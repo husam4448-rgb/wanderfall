@@ -17,7 +17,18 @@ if not (root / "project.godot").is_file():
 parts = sorted(parts_dir.glob("overlay_part_*.b64"))
 if len(parts) != 2:
     raise SystemExit(f"Expected 2 v0.17.4 overlay parts, found {len(parts)}")
-encoded = "".join(p.read_text(encoding="utf-8").strip() for p in parts)
+
+texts = [p.read_text(encoding="utf-8").strip() for p in parts]
+# GitHub transport verification found one omitted Base64 character in part_00:
+# local length 19000 vs repository length 18999, with the repository Git blob SHA
+# matching the local source only when character 'P' at zero-based index 4529 is removed.
+# Restore that single known omission, then require the original archive SHA-256 below.
+if len(texts[0]) == 18999:
+    texts[0] = texts[0][:4529] + "P" + texts[0][4529:]
+elif len(texts[0]) != 19000:
+    raise SystemExit(f"Unexpected v0.17.4 part_00 length: {len(texts[0])}")
+
+encoded = "".join(texts)
 archive = base64.b64decode(encoded, validate=True)
 actual = hashlib.sha256(archive).hexdigest()
 if actual != expected_sha256:
