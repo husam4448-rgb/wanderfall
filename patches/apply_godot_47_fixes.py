@@ -21,6 +21,14 @@ def replace_exact(rel: str, old: str, new: str, expected: int = 1) -> None:
     changed.append(rel)
 
 
+# Android export requires ETC2/ASTC texture import. Keep the immutable Phase 16
+# baseline untouched and enable the Godot 4.7 project setting during reconstruction.
+replace_exact(
+    "project.godot",
+    'renderer/rendering_method.mobile="gl_compatibility"\n',
+    'renderer/rendering_method.mobile="gl_compatibility"\ntextures/vram_compression/import_etc2_astc=true\n',
+)
+
 # Godot 4.7 introduced CanvasItem.draw_ellipse(). Wanderfall's older helper used the
 # same name with a Vector2-radii signature, so rename only our custom calls/definitions.
 for path in sorted((root / "scripts").rglob("*.gd")):
