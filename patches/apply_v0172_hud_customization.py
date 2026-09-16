@@ -44,4 +44,13 @@ replace_exact("export_presets.cfg", 'export_path="build/android/Wanderfall-v0.17
 replace_exact("export_presets.cfg", 'version/code=18', 'version/code=19')
 replace_exact("export_presets.cfg", 'version/name="0.17.1"', 'version/name="0.17.2"')
 
+# Godot 4.7 cannot infer a stable type through the dynamic player/inventory ternary.
+# Keep the immutable v0.17.2 overlay intact and apply the compatibility correction
+# deterministically after extraction.
+replace_exact(
+    "scripts/mobile_hud.gd",
+    "        var count := player.inventory.count_item(item_id) if player != null else 0",
+    "        var count: int = int(player.inventory.count_item(item_id)) if player != null else 0",
+)
+
 print("Applied Wanderfall v0.17.2 draggable/resizable HUD, UI customization and quickbar overlay.")
