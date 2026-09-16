@@ -1,0 +1,78 @@
+name: Wanderfall Phase 16 Validate
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - '.ci/trigger-parse'
+
+permissions:
+  contents: read
+
+env:
+  SOURCE_SHA256: ae4eff17e5f281f5867ac2d82207fcf96e6c8b649432acd48816aebab76fa308
+  SOURCE_ARCHIVE: /tmp/Wanderfall_Phase16_Game_Source.tar.xz
+  PROJECT_DIR: game
+  GODOT_ZIP: /tmp/Godot_v4.7.2-stable_linux.x86_64.zip
+  GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
+
+jobs:
+  validate:
+    name: Reconstruct and parse with Godot 4.7.2
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Reconstruct exact Phase 16 source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f source_parts/SOURCE_BUNDLE_INFO.txt
+          test "$(find source_parts -maxdepth 1 -name 'part_*.b64' -type f | wc -l)" -eq 9
+          cat source_parts/part_*.b64 > /tmp/wanderfall_source.b64
+          base64 --decode /tmp/wanderfall_source.b64 > "$SOURCE_ARCHIVE"
+          echo "$SOURCE_SHA256  $SOURCE_ARCHIVE" | sha256sum -c -
+          mkdir -p "$PROJECT_DIR"
+          tar -xJf "$SOURCE_ARCHIVE" -C "$PROJECT_DIR"
+          test -f "$PROJECT_DIR/project.godot"
+          test -f "$PROJECT_DIR/export_presets.cfg"
+          test -f "$PROJECT_DIR/scenes/main.tscn"
+          test -f "$PROJECT_DIR/tools/preflight.py"
+          echo "Reconstructed files: $(find "$PROJECT_DIR" -type f | wc -l)"
+
+      - name: Static structural preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 "$PROJECT_DIR/tools/preflight.py" "$PROJECT_DIR"
+
+      - name: Download verified Godot 4.7.2 Linux editor
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 2 \
+            -o "$GODOT_ZIP" \
+            "https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip"
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  $GODOT_ZIP" | sha256sum -c -
+          unzip -q "$GODOT_ZIP" -d /tmp
+          test -x "$GODOT_BIN"
+          "$GODOT_BIN" --version
+
+      - name: Godot headless import and parser validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --editor --path "$PROJECT_DIR" --quit --verbose 2>&1 | tee godot-parser.log
+
+      - name: Upload parser log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Wanderfall-Phase16-Godot-Parser-Log
+          path: godot-parser.log
+          retention-days: 7
+          if-no-files-found: ignore
