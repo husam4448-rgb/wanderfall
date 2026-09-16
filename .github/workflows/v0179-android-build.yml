@@ -60,7 +60,7 @@ jobs:
           python3 patches/apply_v0176_hotbar_deadzone.py "$PROJECT_DIR"
           python3 patches/apply_v0177_mobile_hotbar_layers.py "$PROJECT_DIR"
           python3 patches/apply_v0178_dedicated_hotbar_layer.py "$PROJECT_DIR"
-          python3 patches/apply_v0179_android_hotbar_replacement.py "$PROJECT_DIR"
+          python3 patches/apply_v0179_quick_items_safe_spawn.py "$PROJECT_DIR"
           python3 "$PROJECT_DIR/tools/preflight.py" "$PROJECT_DIR"
 
       - name: Set up Java 17
