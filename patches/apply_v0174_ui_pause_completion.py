@@ -42,4 +42,20 @@ with tarfile.open(fileobj=io.BytesIO(archive), mode="r:xz") as tf:
             raise SystemExit(f"Unsafe overlay member: {member.name}")
     tf.extractall(root)
 
+# Godot 4.7 requires explicit types for these dynamic player/inventory expressions.
+mobile_hud = root / "scripts/mobile_hud.gd"
+text = mobile_hud.read_text(encoding="utf-8")
+replacements = {
+    "        var count := player.inventory.count_item(item_id) if player != null else 0":
+        "        var count: int = int(player.inventory.count_item(item_id)) if player != null else 0",
+    "        var equipped := player != null and player.equipment.equipped_weapon_id == item_id":
+        "        var equipped: bool = bool(player != null and player.equipment.equipped_weapon_id == item_id)",
+}
+for old, new in replacements.items():
+    count = text.count(old)
+    if count != 1:
+        raise SystemExit(f"mobile_hud.gd: expected one occurrence for v0.17.4 Godot 4.7 type fix, found {count}: {old!r}")
+    text = text.replace(old, new)
+mobile_hud.write_text(text, encoding="utf-8")
+
 print("Applied Wanderfall v0.17.4 UI/control completion: editable HUD buttons, persistent hotbar, pause/time controls, and return-to-menu flow.")
