@@ -52,8 +52,12 @@ required_mobile = [
 for needle in required_mobile:
     if needle not in mobile:
         raise SystemExit(f"v0.17.9 mobile assertion missing: {needle}")
-if "_build_quickbar()" in mobile.split("func _build_ui() -> void:", 1)[1].split("func _build_status_panel()", 1)[0]:
+
+build_ui_body = mobile.split("func _build_ui() -> void:", 1)[1].split("func _quick_item_layout_id", 1)[0]
+if "_build_quickbar()" in build_ui_body:
     raise SystemExit("v0.17.9 still constructs the retired fixed hotbar")
+if "_build_quick_item_buttons()" not in build_ui_body:
+    raise SystemExit("v0.17.9 quick item controls are not constructed by MobileHUD")
 
 if 'var quick_item_ids: Array[String] = []' not in settings or 'const MAX_QUICK_ITEMS := 12' not in settings:
     raise SystemExit("v0.17.9 quick item persistence assertions failed")
