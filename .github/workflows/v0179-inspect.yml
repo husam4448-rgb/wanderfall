@@ -1,4 +1,4 @@
-name: Wanderfall v0.17.9 HUD Inspection
+name: Wanderfall v0.17.9 Source Inspection
 
 on:
   push:
@@ -16,11 +16,12 @@ env:
 
 jobs:
   inspect:
+    name: Reconstruct exact v0.17.8 source
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
-      - name: Reconstruct exact v0.17.8 source
+      - name: Reconstruct source through v0.17.8
         shell: bash
         run: |
           set -euo pipefail
@@ -50,16 +51,16 @@ jobs:
           python3 patches/apply_v0176_hotbar_deadzone.py "$PROJECT_DIR"
           python3 patches/apply_v0177_mobile_hotbar_layers.py "$PROJECT_DIR"
           python3 patches/apply_v0178_dedicated_hotbar_layer.py "$PROJECT_DIR"
-          mkdir -p inspection/scripts/ui inspection/scripts/settings inspection/scripts/items
-          cp "$PROJECT_DIR/scripts/mobile_hud.gd" inspection/scripts/mobile_hud.gd
-          cp "$PROJECT_DIR/scripts/settings/settings_hud.gd" inspection/scripts/settings/settings_hud.gd
-          cp "$PROJECT_DIR/scripts/settings/game_settings.gd" inspection/scripts/settings/game_settings.gd
-          cp "$PROJECT_DIR/scripts/ui/ui_manager.gd" inspection/scripts/ui/ui_manager.gd
-          cp "$PROJECT_DIR/scripts/items/item_database.gd" inspection/scripts/items/item_database.gd
-      - name: Upload inspection snapshot
+          python3 "$PROJECT_DIR/tools/preflight.py" "$PROJECT_DIR"
+      - name: Upload reconstructed scripts and scenes
         uses: actions/upload-artifact@v4
         with:
-          name: Wanderfall-v0.17.8-HUD-inspection
-          path: inspection
+          name: Wanderfall-v0.17.8-Reconstructed-Inspection
+          path: |
+            game/project.godot
+            game/export_presets.cfg
+            game/scripts/**/*.gd
+            game/scenes/**/*.tscn
           retention-days: 2
-          compression-level: 0
+          if-no-files-found: error
+          compression-level: 9
