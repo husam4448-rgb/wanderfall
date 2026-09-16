@@ -17,6 +17,15 @@ def replace_once(rel: str, old: str, new: str) -> None:
     path.write_text(text.replace(old, new, 1), encoding="utf-8")
 
 
+def replace_count(rel: str, old: str, new: str, expected: int) -> None:
+    path = root / rel
+    text = path.read_text(encoding="utf-8")
+    count = text.count(old)
+    if count != expected:
+        raise SystemExit(f"{rel}: expected exactly {expected} occurrences, found {count}: {old!r}")
+    path.write_text(text.replace(old, new), encoding="utf-8")
+
+
 def sub_once(rel: str, pattern: str, replacement: str, flags: int = 0) -> None:
     path = root / rel
     text = path.read_text(encoding="utf-8")
@@ -50,7 +59,7 @@ sub_once(
     '[menu_button, "menu_button"], [quickbar_panel, "mobile_hotbar7_v0177"]',
 )
 
-# The plain Control is exactly seven 68 px slots + six 6 px gaps/spacing budget.
+# The plain Control is exactly seven 68 px slots + spacing budget.
 sub_once(
     "scripts/mobile_hud.gd",
     r'quickbar_panel\.size = Vector2\([^\n]+\) \* ui_scale',
@@ -79,10 +88,11 @@ replace_once(
     'inventory_quickslot_clear_button = _make_small_button("CLEAR Q")',
     'inventory_quickslot_clear_button = _make_small_button("CLEAR HOTBAR SLOT")',
 )
-replace_once(
+replace_count(
     "scripts/mobile_hud.gd",
     'inventory_quickslot_button.text = "PIN Q%d" % (_quickslot_assign_index + 1)',
     'inventory_quickslot_button.text = "ADD → HOTBAR %d" % (_quickslot_assign_index + 1)',
+    2,
 )
 
 # ---------------------------------------------------------------------------
