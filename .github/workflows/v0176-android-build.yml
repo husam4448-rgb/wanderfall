@@ -1,4 +1,4 @@
-name: Wanderfall v0.17.6 Android Build
+name: Wanderfall v0.17.7 Android Build
 
 on:
   workflow_dispatch:
@@ -18,18 +18,18 @@ env:
   GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
   GODOT_TEMPLATES_TPZ: /tmp/Godot_v4.7.2-stable_export_templates.tpz
   GODOT_TEMPLATES_SHA256: f298490b8d44d934be425a5a65a51bf15f422428b229a06a6e11d9ffea248011
-  APK_PATH: Wanderfall-v0.17.6-debug.apk
+  APK_PATH: Wanderfall-v0.17.7-debug.apk
   MAX_APK_BYTES: '419430400'
 
 jobs:
   build:
-    name: Validate and export Wanderfall v0.17.6 APK
+    name: Validate and export Wanderfall v0.17.7 APK
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v5
 
-      - name: Reconstruct source and apply v0.17.6
+      - name: Reconstruct source and apply v0.17.7
         shell: bash
         run: |
           set -euo pipefail
@@ -46,7 +46,6 @@ jobs:
           python3 patches/apply_v0173_touch_layout_fixes.py "$PROJECT_DIR"
           python3 patches/apply_v0174_ui_pause_completion.py "$PROJECT_DIR"
 
-          # Prepare the known robust v0.17.5 refresh anchor.
           python3 - <<'PY'
           from pathlib import Path
           p = Path('patches/apply_v0175_hotbar_sensitivity.py')
@@ -60,6 +59,7 @@ jobs:
 
           python3 patches/apply_v0175_hotbar_sensitivity.py "$PROJECT_DIR"
           python3 patches/apply_v0176_hotbar_deadzone.py "$PROJECT_DIR"
+          python3 patches/apply_v0177_mobile_hotbar_layers.py "$PROJECT_DIR"
           python3 "$PROJECT_DIR/tools/preflight.py" "$PROJECT_DIR"
 
       - name: Set up Java 17
@@ -100,8 +100,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          "$GODOT_BIN" --headless --editor --path "$PROJECT_DIR" --quit --verbose 2>&1 | tee godot-v0176-parser.log
-          if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|ERROR: Failed to create an autoload|Compile Error:|Parse Error:' godot-v0176-parser.log; then exit 1; fi
+          "$GODOT_BIN" --headless --editor --path "$PROJECT_DIR" --quit --verbose 2>&1 | tee godot-v0177-parser.log
+          if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|ERROR: Failed to create an autoload|Compile Error:|Parse Error:' godot-v0177-parser.log; then exit 1; fi
 
       - name: Export APK
         shell: bash
@@ -121,22 +121,22 @@ jobs:
           "$APKSIGNER" verify --verbose --print-certs "$APK" | tee apk-signature.txt
           "$AAPT" dump badging "$APK" | tee apk-badging.txt
           grep -q "package: name='org.wanderfall.game'" apk-badging.txt
-          grep -q "versionCode='23'" apk-badging.txt
-          grep -q "versionName='0.17.6'" apk-badging.txt
+          grep -q "versionCode='24'" apk-badging.txt
+          grep -q "versionName='0.17.7'" apk-badging.txt
           grep -q "application-label:'Wanderfall'" apk-badging.txt
           APK_BYTES="$(stat -c%s "$APK")"
           test "$APK_BYTES" -lt "$MAX_APK_BYTES"
-          sha256sum "$APK" | tee Wanderfall-v0.17.6-debug.apk.sha256
+          sha256sum "$APK" | tee Wanderfall-v0.17.7-debug.apk.sha256
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Wanderfall-Android-v0.17.6-debug
+          name: Wanderfall-Android-v0.17.7-debug
           path: |
-            Wanderfall-v0.17.6-debug.apk
-            Wanderfall-v0.17.6-debug.apk.sha256
+            Wanderfall-v0.17.7-debug.apk
+            Wanderfall-v0.17.7-debug.apk.sha256
             android-export.log
-            godot-v0176-parser.log
+            godot-v0177-parser.log
             apk-signature.txt
             apk-badging.txt
             apk-zip-test.txt
