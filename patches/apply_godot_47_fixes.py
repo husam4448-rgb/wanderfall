@@ -37,6 +37,14 @@ replace_exact(
     "func get_vehicle_name(vehicle_id: String) -> String:",
 )
 
+# Godot 4.7 now exposes a native VirtualJoystick class. Keep Wanderfall's scripted
+# joystick globally named, but make its class name project-specific.
+replace_exact(
+    "scripts/virtual_joystick.gd",
+    "class_name VirtualJoystick",
+    "class_name WanderfallVirtualJoystick",
+)
+
 # Godot 4.7 is stricter when := tries to infer a type from a dynamic/Variant expression.
 replacements = {
     "scripts/player.gd": [
