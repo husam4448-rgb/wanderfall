@@ -1,0 +1,54 @@
+name: Wanderfall v0.17.5 Inspect
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.ci/trigger-v0175-inspect'
+
+permissions:
+  contents: read
+
+env:
+  SOURCE_SHA256: ae4eff17e5f281f5867ac2d82207fcf96e6c8b649432acd48816aebab76fa308
+  SOURCE_ARCHIVE: /tmp/Wanderfall_Phase16_Game_Source.tar.xz
+  PROJECT_DIR: game
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - name: Reconstruct v0.17.4
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat source_parts/part_*.b64 > /tmp/wanderfall_source.b64
+          base64 --decode /tmp/wanderfall_source.b64 > "$SOURCE_ARCHIVE"
+          echo "$SOURCE_SHA256  $SOURCE_ARCHIVE" | sha256sum -c -
+          mkdir -p "$PROJECT_DIR"
+          tar -xJf "$SOURCE_ARCHIVE" -C "$PROJECT_DIR"
+          python3 patches/apply_godot_47_fixes.py "$PROJECT_DIR"
+          python3 patches/apply_v017_ui_overhaul.py "$PROJECT_DIR"
+          python3 patches/apply_v0171_inventory_polish.py "$PROJECT_DIR"
+          python3 patches/apply_v0172_hud_customization.py "$PROJECT_DIR"
+          python3 patches/fix_v0173_applicator_path.py
+          python3 patches/apply_v0173_touch_layout_fixes.py "$PROJECT_DIR"
+          python3 patches/apply_v0174_ui_pause_completion.py "$PROJECT_DIR"
+      - name: Print hotbar and joystick/settings context
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '=== mobile_hud hotbar/quickbar references ==='
+          grep -n -E 'hotbar|quickbar|slot|joystick|layout editor|layout_mode' "$PROJECT_DIR/scripts/mobile_hud.gd" || true
+          echo '=== mobile_hud lines 680-820 ==='
+          nl -ba "$PROJECT_DIR/scripts/mobile_hud.gd" | sed -n '680,820p'
+          echo '=== settings_hud relevant refs ==='
+          grep -n -E 'pause|speed|touch|scale|sensitivity|layout|hotbar|quickbar' "$PROJECT_DIR/scripts/settings/settings_hud.gd" || true
+          echo '=== settings_hud full relevant middle ==='
+          nl -ba "$PROJECT_DIR/scripts/settings/settings_hud.gd" | sed -n '1,360p'
+          echo '=== game_settings relevant refs ==='
+          grep -n -E 'pause|speed|touch|scale|sensitivity|serialize|deserialize' "$PROJECT_DIR/scripts/settings/game_settings.gd" || true
+          echo '=== virtual joystick ==='
+          nl -ba "$PROJECT_DIR/scripts/virtual_joystick.gd" | sed -n '1,220p'
