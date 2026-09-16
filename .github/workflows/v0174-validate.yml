@@ -37,6 +37,7 @@ jobs:
           python3 patches/apply_v017_ui_overhaul.py "$PROJECT_DIR"
           python3 patches/apply_v0171_inventory_polish.py "$PROJECT_DIR"
           python3 patches/apply_v0172_hud_customization.py "$PROJECT_DIR"
+          python3 patches/fix_v0173_applicator_path.py
           python3 patches/apply_v0173_touch_layout_fixes.py "$PROJECT_DIR"
           python3 patches/apply_v0174_ui_pause_completion.py "$PROJECT_DIR"
           python3 "$PROJECT_DIR/tools/preflight.py" "$PROJECT_DIR"
