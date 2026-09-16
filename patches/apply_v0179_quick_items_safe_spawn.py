@@ -25,8 +25,6 @@ diff_bytes = lzma.decompress(compressed)
 diff_path = Path("/tmp/wanderfall-v0179.diff")
 diff_path.write_bytes(diff_bytes)
 
-# The diff was generated between exact reconstructed v0.17.8 and the verified
-# v0.17.9 working copy. -p1 strips wfinspect/ or wfwork/ and targets root.
 result = subprocess.run(
     ["patch", "-p1", "--batch", "--forward", "-d", str(root), "-i", str(diff_path)],
     text=True,
@@ -37,7 +35,6 @@ if result.returncode != 0:
     sys.stderr.write(result.stderr)
     raise SystemExit(f"v0.17.9 patch failed with exit code {result.returncode}")
 
-# Strong assertions for the user-facing changes.
 mobile = (root / "scripts/mobile_hud.gd").read_text(encoding="utf-8")
 settings = (root / "scripts/settings/game_settings.gd").read_text(encoding="utf-8")
 main = (root / "scripts/main.gd").read_text(encoding="utf-8")
@@ -48,7 +45,8 @@ required_mobile = [
     'inventory_promote_button = _make_small_button("ADD QUICK BUTTON")',
     "func _rebuild_quick_item_buttons() -> void:",
     "func _activate_quick_item(item_id: String) -> void:",
-    'UIManager.register_layout_control(button, "quick_item_" + item_id, true)',
+    "UIManager.register_layout_control(button, _quick_item_layout_id(item_id))",
+    'return "quick_item_" + item_id',
     "ItemDatabase.get_icon_path(item_id)",
 ]
 for needle in required_mobile:
