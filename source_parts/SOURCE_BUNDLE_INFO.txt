@@ -1,0 +1,50 @@
+Wanderfall Phase 16 Game Source Bundle
+
+Archive name:
+Wanderfall_Phase16_Game_Source.tar.xz
+
+Purpose:
+Exact Phase 16 game/source package for later Godot CI reconstruction. This Step 2 bundle intentionally contains no .github/workflows files.
+
+Source contents:
+.gitignore
+project.godot
+export_presets.cfg
+data/
+scenes/
+scripts/
+legacy_phase1/
+tools/preflight.py
+
+Reconstruction order:
+part_00.b64
+part_01.b64
+part_02.b64
+part_03.b64
+part_04.b64
+part_05.b64
+part_06.b64
+part_07.b64
+part_08.b64
+
+Base64 length:
+99056 characters
+
+Part sizes and SHA-256:
+part_00.b64  12000  71c5e905dd1884a63684881e344b0bec3333496b0761d37a26dc2b0330e8fba7
+part_01.b64  12000  3870e9a5c0a3612bec42ffd451db4c73eec3b86882be3a3e13a0ac7f3a3a39c4
+part_02.b64  12000  30d8bbe1588fdcfd1daa946253b827fcf54a820ce30816c3d63f895bfa167b9f
+part_03.b64  12000  bbcbcc0eb4bea5354c3abf008e6ac1e448d69082c74a4f5cbd7bad345eb3824b
+part_04.b64  12000  e2f5e5edf740e0de4f9d0f16b2ad3fdff08a536a105d99c38bcb03cd44244ae0
+part_05.b64  12000  0dbc3d4dc1fb16851ba21eb6092b0010148bae3cf96ecc480e046034b6073c49
+part_06.b64  12000  fe1f41c32593e69f2f5f910bf9c5ad8d0491d31ef531921f0acd7e6dccf20ab2
+part_07.b64  12000  39d53221891f6091e873019680378e72624c09baa91c7bfe378125b028d01c73
+part_08.b64   3056  d5949206b0d30b27795dbf0b389548b81e264d4de67eecf475df44cc12e2044d
+
+Expected reconstructed archive SHA-256:
+ae4eff17e5f281f5867ac2d82207fcf96e6c8b649432acd48816aebab76fa308
+
+Reconstruction (Linux/GitHub Actions):
+cat source_parts/part_*.b64 | base64 -d > Wanderfall_Phase16_Game_Source.tar.xz
+echo "ae4eff17e5f281f5867ac2d82207fcf96e6c8b649432acd48816aebab76fa308  Wanderfall_Phase16_Game_Source.tar.xz" | sha256sum -c -
+tar -xJf Wanderfall_Phase16_Game_Source.tar.xz
