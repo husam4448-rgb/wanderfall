@@ -36,19 +36,14 @@ jobs:
           python3 patches/fix_v0173_applicator_path.py
           python3 patches/apply_v0173_touch_layout_fixes.py "$PROJECT_DIR"
           python3 patches/apply_v0174_ui_pause_completion.py "$PROJECT_DIR"
-      - name: Print hotbar and joystick/settings context
+      - name: Print exact v0.17.4 hotbar/settings context
         shell: bash
         run: |
           set -euo pipefail
-          echo '=== mobile_hud hotbar/quickbar references ==='
-          grep -n -E 'hotbar|quickbar|slot|joystick|layout editor|layout_mode' "$PROJECT_DIR/scripts/mobile_hud.gd" || true
-          echo '=== mobile_hud lines 680-820 ==='
-          nl -ba "$PROJECT_DIR/scripts/mobile_hud.gd" | sed -n '680,820p'
-          echo '=== settings_hud relevant refs ==='
-          grep -n -E 'pause|speed|touch|scale|sensitivity|layout|hotbar|quickbar' "$PROJECT_DIR/scripts/settings/settings_hud.gd" || true
-          echo '=== settings_hud full relevant middle ==='
-          nl -ba "$PROJECT_DIR/scripts/settings/settings_hud.gd" | sed -n '1,360p'
-          echo '=== game_settings relevant refs ==='
-          grep -n -E 'pause|speed|touch|scale|sensitivity|serialize|deserialize' "$PROJECT_DIR/scripts/settings/game_settings.gd" || true
-          echo '=== virtual joystick ==='
-          nl -ba "$PROJECT_DIR/scripts/virtual_joystick.gd" | sed -n '1,220p'
+          echo '=== mobile_hud build quickbar ==='
+          nl -ba "$PROJECT_DIR/scripts/mobile_hud.gd" | sed -n '145,180p;312,365p;520,615p'
+          echo '=== game_settings defaults/scalars/save ==='
+          nl -ba "$PROJECT_DIR/scripts/settings/game_settings.gd" | sed -n '20,72p;150,210p;230,310p'
+          echo '=== UIManager quickbar/layout handling ==='
+          grep -n -E 'register_layout_control|apply_saved_layouts|ensure_fully_visible|layout_controls|visible|z_index' "$PROJECT_DIR/scripts/ui/ui_manager.gd" || true
+          nl -ba "$PROJECT_DIR/scripts/ui/ui_manager.gd" | sed -n '1,260p'
