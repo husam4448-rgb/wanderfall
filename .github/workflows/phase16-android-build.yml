@@ -1,4 +1,4 @@
-name: Wanderfall Phase 16 Android Build
+name: Wanderfall v0.17 Android Build
 
 on:
   workflow_dispatch:
@@ -18,12 +18,12 @@ env:
   GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
   GODOT_TEMPLATES_TPZ: /tmp/Godot_v4.7.2-stable_export_templates.tpz
   GODOT_TEMPLATES_SHA256: f298490b8d44d934be425a5a65a51bf15f422428b229a06a6e11d9ffea248011
-  APK_PATH: Wanderfall-v0.16.0-debug.apk
+  APK_PATH: Wanderfall-v0.17.0-debug.apk
   MAX_APK_BYTES: '419430400'
 
 jobs:
   build_android:
-    name: Export and validate Wanderfall Android APK
+    name: Export and validate Wanderfall v0.17 Android APK
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
@@ -53,6 +53,12 @@ jobs:
         run: |
           set -euo pipefail
           python3 patches/apply_godot_47_fixes.py "$PROJECT_DIR"
+
+      - name: Apply Wanderfall v0.17 UI/menu overhaul
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 patches/apply_v017_ui_overhaul.py "$PROJECT_DIR"
 
       - name: Static structural preflight
         shell: bash
@@ -160,6 +166,8 @@ jobs:
           "$AAPT" dump badging "$APK" | tee apk-badging.txt
 
           grep -q "package: name='org.wanderfall.game'" apk-badging.txt
+          grep -q "versionCode='17'" apk-badging.txt
+          grep -q "versionName='0.17.0'" apk-badging.txt
           grep -q "application-label:'Wanderfall'" apk-badging.txt
 
           APK_BYTES="$(stat -c%s "$APK")"
@@ -169,16 +177,16 @@ jobs:
             exit 1
           fi
 
-          sha256sum "$APK" | tee Wanderfall-v0.16.0-debug.apk.sha256
+          sha256sum "$APK" | tee Wanderfall-v0.17.0-debug.apk.sha256
           ls -lh "$APK"
 
       - name: Upload validated APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Wanderfall-Android-v0.16.0-debug
+          name: Wanderfall-Android-v0.17.0-debug
           path: |
-            Wanderfall-v0.16.0-debug.apk
-            Wanderfall-v0.16.0-debug.apk.sha256
+            Wanderfall-v0.17.0-debug.apk
+            Wanderfall-v0.17.0-debug.apk.sha256
             android-export.log
             godot-build-parser.log
             apk-signature.txt
@@ -192,7 +200,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: Wanderfall-Android-Build-Diagnostics
+          name: Wanderfall-v0.17-Android-Build-Diagnostics
           path: |
             android-export.log
             godot-build-parser.log
