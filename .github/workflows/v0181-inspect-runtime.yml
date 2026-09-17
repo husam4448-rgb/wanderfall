@@ -1,0 +1,67 @@
+name: Wanderfall v0.18.1 Runtime Inspection
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.ci/trigger-v0181-inspect'
+
+permissions:
+  contents: read
+
+env:
+  SOURCE_SHA256: ae4eff17e5f281f5867ac2d82207fcf96e6c8b649432acd48816aebab76fa308
+  SOURCE_ARCHIVE: /tmp/Wanderfall_Phase16_Game_Source.tar.xz
+  PROJECT_DIR: game
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Reconstruct current test runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat source_parts/part_*.b64 > /tmp/wanderfall_source.b64
+          base64 --decode /tmp/wanderfall_source.b64 > "$SOURCE_ARCHIVE"
+          echo "$SOURCE_SHA256  $SOURCE_ARCHIVE" | sha256sum -c -
+          mkdir -p "$PROJECT_DIR"
+          tar -xJf "$SOURCE_ARCHIVE" -C "$PROJECT_DIR"
+          python3 patches/apply_godot_47_fixes.py "$PROJECT_DIR"
+          python3 patches/apply_v017_ui_overhaul.py "$PROJECT_DIR"
+          python3 patches/apply_v0171_inventory_polish.py "$PROJECT_DIR"
+          python3 patches/apply_v0172_hud_customization.py "$PROJECT_DIR"
+          python3 patches/fix_v0173_applicator_path.py
+          python3 patches/apply_v0173_touch_layout_fixes.py "$PROJECT_DIR"
+          python3 patches/apply_v0174_ui_pause_completion.py "$PROJECT_DIR"
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('patches/apply_v0175_hotbar_sensitivity.py')
+          s = p.read_text(encoding='utf-8')
+          old = '''replace_once(\n    "scripts/settings/settings_hud.gd",\n    '    if ui_buttons.has("quickbar_visible"):\\n        ui_buttons["quickbar_visible"].text = "QUICKBAR: %s" % ("ON" if GameSettings.quickbar_visible else "OFF")\\n\\n    var pause_names :=',\n    '    if ui_buttons.has("quickbar_visible"):\\n        ui_buttons["quickbar_visible"].text = "QUICKBAR: %s" % ("ON" if GameSettings.quickbar_visible else "OFF")\\n'\n    '    if movement_sensitivity_slider != null:\\n'\n    '        movement_sensitivity_slider.set_value_no_signal(GameSettings.movement_stick_sensitivity)\\n'\n    '    if movement_sensitivity_label != null:\\n'\n    '        movement_sensitivity_label.text = "×%.2f" % GameSettings.movement_stick_sensitivity\\n\\n'\n    '    var pause_names :=',\n)'''
+          new = '''replace_once(\n    "scripts/settings/settings_hud.gd",\n    '    var pause_names :=',\n    '    if movement_sensitivity_slider != null:\\n'\n    '        movement_sensitivity_slider.set_value_no_signal(GameSettings.movement_stick_sensitivity)\\n'\n    '    if movement_sensitivity_label != null:\\n'\n    '        movement_sensitivity_label.text = "×%.2f" % GameSettings.movement_stick_sensitivity\\n\\n'\n    '    var pause_names :=',\n)'''
+          if old not in s:
+              raise SystemExit('Expected v0.17.5 applicator block not found')
+          p.write_text(s.replace(old, new, 1), encoding='utf-8')
+          PY
+          python3 patches/apply_v0175_hotbar_sensitivity.py "$PROJECT_DIR"
+          python3 patches/apply_v0176_hotbar_deadzone.py "$PROJECT_DIR"
+          python3 patches/apply_v0177_mobile_hotbar_layers.py "$PROJECT_DIR"
+          python3 patches/apply_v0178_dedicated_hotbar_layer.py "$PROJECT_DIR"
+          python3 patches/apply_v0179_quick_item_buttons.py "$PROJECT_DIR"
+          python3 "$PROJECT_DIR/tools/preflight.py" "$PROJECT_DIR"
+      - name: Collect runtime scripts
+        shell: bash
+        run: |
+          mkdir -p inspect/scripts/settings inspect/scripts/ui inspect/scripts
+          cp game/scripts/mobile_hud.gd inspect/scripts/mobile_hud.gd
+          cp game/scripts/settings/game_settings.gd inspect/scripts/settings/game_settings.gd
+          cp game/scripts/ui/ui_manager.gd inspect/scripts/ui/ui_manager.gd
+          cp game/scripts/virtual_joystick.gd inspect/scripts/virtual_joystick.gd || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Wanderfall-v0.18.1-runtime-scripts
+          path: inspect
+          retention-days: 2
+          if-no-files-found: error
