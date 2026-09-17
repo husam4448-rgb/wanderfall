@@ -24,8 +24,9 @@ storage_b2 = patch_dir / "apply_v0187b2_storage_grid_interaction.py"
 universal_c = patch_dir / "apply_v0187c_universal_windows.py"
 universal_c2 = patch_dir / "apply_v0187c2_window_touch_scroll.py"
 universal_c3 = patch_dir / "apply_v0187c3_inventory_gestures_hud_bounds.py"
+art_foundation = patch_dir / "apply_v0190a_survival_paradise_art_foundation.py"
 
-for step in (combined, radial, polish, static_scene, ci_compat, responsive_hud, uniform_inventory, dual_stick, qol_world, vehicle_controls, vehicle_qol, vehicle_a3, control_editor_a4, storage_b, storage_b2, universal_c, universal_c2, universal_c3):
+for step in (combined, radial, polish, static_scene, ci_compat, responsive_hud, uniform_inventory, dual_stick, qol_world, vehicle_controls, vehicle_qol, vehicle_a3, control_editor_a4, storage_b, storage_b2, universal_c, universal_c2, universal_c3, art_foundation):
     if not step.is_file():
         raise SystemExit(f"Missing Quick-Use applicator: {step}")
 
@@ -62,9 +63,9 @@ if missing:
     mobile = mobile.replace(func_anchor, "".join(missing) + func_anchor, 1)
 mobile_path.write_text(mobile, encoding="utf-8")
 
-for step in (radial, polish, static_scene, ci_compat, responsive_hud, uniform_inventory, dual_stick, qol_world, vehicle_controls, vehicle_qol, vehicle_a3, control_editor_a4, storage_b, storage_b2, universal_c, universal_c2, universal_c3):
+for step in (radial, polish, static_scene, ci_compat, responsive_hud, uniform_inventory, dual_stick, qol_world, vehicle_controls, vehicle_qol, vehicle_a3, control_editor_a4, storage_b, storage_b2, universal_c, universal_c2, universal_c3, art_foundation):
     result = subprocess.run([sys.executable, str(step), str(root)])
     if result.returncode != 0:
         raise SystemExit(result.returncode)
 
-print("Applied through v0.18.7C3 inventory/storage gestures + strict HUD bounds.")
+print("Applied through v0.19.0A Survival Paradise production art foundation.")
