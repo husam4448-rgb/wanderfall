@@ -1,4 +1,4 @@
-name: Wanderfall v0.18.1 Runtime Inspection
+name: Wanderfall v0.18.5 Combat Runtime Inspection
 
 on:
   push:
@@ -51,17 +51,19 @@ jobs:
           python3 patches/apply_v0178_dedicated_hotbar_layer.py "$PROJECT_DIR"
           python3 patches/apply_v0179_quick_item_buttons.py "$PROJECT_DIR"
           python3 "$PROJECT_DIR/tools/preflight.py" "$PROJECT_DIR"
-      - name: Collect runtime scripts
+      - name: Collect combat runtime
         shell: bash
         run: |
-          mkdir -p inspect/scripts/settings inspect/scripts/ui inspect/scripts
-          cp game/scripts/mobile_hud.gd inspect/scripts/mobile_hud.gd
-          cp game/scripts/settings/game_settings.gd inspect/scripts/settings/game_settings.gd
-          cp game/scripts/ui/ui_manager.gd inspect/scripts/ui/ui_manager.gd
-          cp game/scripts/virtual_joystick.gd inspect/scripts/virtual_joystick.gd || true
+          set -euo pipefail
+          mkdir -p inspect
+          cp -R game/scripts inspect/scripts
+          mkdir -p inspect/scenes
+          cp game/scenes/main.tscn inspect/scenes/main.tscn || true
+          find game/scripts -type f -name '*.gd' | sort > inspect/script_manifest.txt
+          grep -RniE 'attack|shoot|firearm|melee|projectile|aim|crosshair|mobile_move|InputState' game/scripts > inspect/combat_index.txt || true
       - uses: actions/upload-artifact@v4
         with:
-          name: Wanderfall-v0.18.1-runtime-scripts
+          name: Wanderfall-v0.18.5-combat-runtime
           path: inspect
           retention-days: 2
           if-no-files-found: error
