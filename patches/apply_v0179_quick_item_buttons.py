@@ -21,8 +21,9 @@ vehicle_a3 = patch_dir / "apply_v0187a3_vehicle_sensitivity_quick_melee.py"
 control_editor_a4 = patch_dir / "apply_v0187a4_control_editor_stability.py"
 storage_b = patch_dir / "apply_v0187b_storage_windows.py"
 storage_b2 = patch_dir / "apply_v0187b2_storage_grid_interaction.py"
+universal_c = patch_dir / "apply_v0187c_universal_windows.py"
 
-for step in (combined, radial, polish, static_scene, ci_compat, responsive_hud, uniform_inventory, dual_stick, qol_world, vehicle_controls, vehicle_qol, vehicle_a3, control_editor_a4, storage_b, storage_b2):
+for step in (combined, radial, polish, static_scene, ci_compat, responsive_hud, uniform_inventory, dual_stick, qol_world, vehicle_controls, vehicle_qol, vehicle_a3, control_editor_a4, storage_b, storage_b2, universal_c):
     if not step.is_file():
         raise SystemExit(f"Missing Quick-Use applicator: {step}")
 
@@ -59,9 +60,9 @@ if missing:
     mobile = mobile.replace(func_anchor, "".join(missing) + func_anchor, 1)
 mobile_path.write_text(mobile, encoding="utf-8")
 
-for step in (radial, polish, static_scene, ci_compat, responsive_hud, uniform_inventory, dual_stick, qol_world, vehicle_controls, vehicle_qol, vehicle_a3, control_editor_a4, storage_b, storage_b2):
+for step in (radial, polish, static_scene, ci_compat, responsive_hud, uniform_inventory, dual_stick, qol_world, vehicle_controls, vehicle_qol, vehicle_a3, control_editor_a4, storage_b, storage_b2, universal_c):
     result = subprocess.run([sys.executable, str(step), str(root)])
     if result.returncode != 0:
         raise SystemExit(result.returncode)
 
-print("Applied through v0.18.7B2 storage icon grids + reliable header buttons + contextual USE label.")
+print("Applied through v0.18.7C universal foreground/modal window behavior.")
