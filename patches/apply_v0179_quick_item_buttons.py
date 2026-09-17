@@ -14,8 +14,9 @@ combined = patch_dir / "apply_v0179_quick_items_safe_spawn.py"
 radial = patch_dir / "apply_v0180_radial_quick_menu.py"
 polish = patch_dir / "apply_v0181_quick_radial_joystick.py"
 static_scene = patch_dir / "apply_v0182_static_quick_scene.py"
+ci_compat = patch_dir / "apply_v0182_ci_compat.py"
 
-for step in (combined, radial, polish, static_scene):
+for step in (combined, radial, polish, static_scene, ci_compat):
     if not step.is_file():
         raise SystemExit(f"Missing Quick-Use applicator: {step}")
 
@@ -55,7 +56,7 @@ if missing:
     mobile = mobile.replace(func_anchor, "".join(missing) + func_anchor, 1)
 mobile_path.write_text(mobile, encoding="utf-8")
 
-for step in (radial, polish, static_scene):
+for step in (radial, polish, static_scene, ci_compat):
     result = subprocess.run([sys.executable, str(step), str(root)])
     if result.returncode != 0:
         raise SystemExit(result.returncode)
