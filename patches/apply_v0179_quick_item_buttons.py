@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Compatibility entry point for the Android Quick-Use test build.
+"""Compatibility entry point for the current Android Quick-Use test build.
 
-Keeps the safe-spawn fix, applies the permanent QUICK + six-slot radial menu,
-and then applies the v0.18.1 radial-startup + joystick polish fix.
+Keeps safe spawn and BAG binding data, applies joystick polish, then replaces
+MobileHUD-drawn quick controls with the v0.18.2 static scene-based radial HUD.
 """
 from pathlib import Path
 import subprocess
@@ -13,8 +13,9 @@ patch_dir = Path(__file__).resolve().parent
 combined = patch_dir / "apply_v0179_quick_items_safe_spawn.py"
 radial = patch_dir / "apply_v0180_radial_quick_menu.py"
 polish = patch_dir / "apply_v0181_quick_radial_joystick.py"
+static_scene = patch_dir / "apply_v0182_static_quick_scene.py"
 
-for step in (combined, radial, polish):
+for step in (combined, radial, polish, static_scene):
     if not step.is_file():
         raise SystemExit(f"Missing Quick-Use applicator: {step}")
 
@@ -22,8 +23,8 @@ result = subprocess.run([sys.executable, str(combined), str(root)])
 if result.returncode != 0:
     raise SystemExit(result.returncode)
 
-# v0.17.9 retired legacy hotbar assignment helpers/declarations. The radial
-# system deliberately reuses those names for BAG -> Q1..Q6 binding.
+# v0.17.9 retired legacy hotbar assignment helpers/declarations. The BAG
+# binding UI still reuses those names for Q1..Q6 assignment.
 mobile_path = root / "scripts/mobile_hud.gd"
 mobile = mobile_path.read_text(encoding="utf-8")
 
@@ -52,12 +53,11 @@ if "func _clear_quickslot_assign() -> void:" not in mobile:
     missing.append("func _clear_quickslot_assign() -> void:\n    pass\n\n")
 if missing:
     mobile = mobile.replace(func_anchor, "".join(missing) + func_anchor, 1)
-
 mobile_path.write_text(mobile, encoding="utf-8")
 
-for step in (radial, polish):
+for step in (radial, polish, static_scene):
     result = subprocess.run([sys.executable, str(step), str(root)])
     if result.returncode != 0:
         raise SystemExit(result.returncode)
 
-print("Applied safe spawn + radial Quick menu + v0.18.1 joystick polish.")
+print("Applied safe spawn + BAG binding + joystick polish + v0.18.2 static Quick scene.")
