@@ -1,1 +1,1 @@
-Trigger v0.18.7C2 true outside-tap modal fix + touch-drag inventory scrolling Android test.
+Trigger v0.18.7C3 deterministic GRID/LIST gestures, BAG↔STORAGE drag transfer, and strict HUD bounds Android test.
