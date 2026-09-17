@@ -2,8 +2,8 @@
 """Compatibility entry point for the current Android Quick-Use test build.
 
 Keeps safe spawn and BAG binding data, applies joystick polish, replaces the
-old Quick renderer with the static scene, then applies v0.18.3 responsive HUD
-layout, QUICK customization and collision avoidance.
+old Quick renderer with the static scene, then applies responsive and v0.18.4
+uniform-HUD / inventory-grid polish.
 """
 from pathlib import Path
 import subprocess
@@ -17,8 +17,9 @@ polish = patch_dir / "apply_v0181_quick_radial_joystick.py"
 static_scene = patch_dir / "apply_v0182_static_quick_scene.py"
 ci_compat = patch_dir / "apply_v0182_ci_compat.py"
 responsive_hud = patch_dir / "apply_v0183_responsive_hud.py"
+uniform_inventory = patch_dir / "apply_v0184_uniform_hud_inventory_grid.py"
 
-for step in (combined, radial, polish, static_scene, ci_compat, responsive_hud):
+for step in (combined, radial, polish, static_scene, ci_compat, responsive_hud, uniform_inventory):
     if not step.is_file():
         raise SystemExit(f"Missing Quick-Use applicator: {step}")
 
@@ -58,9 +59,9 @@ if missing:
     mobile = mobile.replace(func_anchor, "".join(missing) + func_anchor, 1)
 mobile_path.write_text(mobile, encoding="utf-8")
 
-for step in (radial, polish, static_scene, ci_compat, responsive_hud):
+for step in (radial, polish, static_scene, ci_compat, responsive_hud, uniform_inventory):
     result = subprocess.run([sys.executable, str(step), str(root)])
     if result.returncode != 0:
         raise SystemExit(result.returncode)
 
-print("Applied safe spawn + BAG binding + static Quick scene + v0.18.3 responsive HUD.")
+print("Applied safe spawn + static Quick scene + v0.18.4 uniform HUD and inventory grid.")
