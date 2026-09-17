@@ -21,13 +21,28 @@ result = subprocess.run([sys.executable, str(combined), str(root)])
 if result.returncode != 0:
     raise SystemExit(result.returncode)
 
-# v0.17.9 retired some legacy hotbar assignment helpers. The radial patch
-# deliberately reuses those names for BAG->Q1..Q6 binding, so recreate any
-# missing function anchors before applying it.
+# v0.17.9 retired legacy hotbar assignment helpers/declarations. The radial
+# system deliberately reuses those names for BAG -> Q1..Q6 binding.
 mobile_path = root / "scripts/mobile_hud.gd"
 mobile = mobile_path.read_text(encoding="utf-8")
-anchor = "func _toggle_inventory() -> void:\n"
-if anchor not in mobile:
+
+# Restore the three declarations removed by v0.17.9.
+decl_anchor = "var inventory_use_button: Button\n"
+if decl_anchor not in mobile:
+    raise SystemExit("Inventory declaration anchor missing")
+decls = ""
+if "var inventory_quickslot_button: Button" not in mobile:
+    decls += "var inventory_quickslot_button: Button\n"
+if "var inventory_quickslot_clear_button: Button" not in mobile:
+    decls += "var inventory_quickslot_clear_button: Button\n"
+if "var _quickslot_assign_index :=" not in mobile:
+    decls += "var _quickslot_assign_index := 0\n"
+if decls:
+    mobile = mobile.replace(decl_anchor, decl_anchor + decls, 1)
+
+# Restore function anchors if v0.17.9 removed them.
+func_anchor = "func _toggle_inventory() -> void:\n"
+if func_anchor not in mobile:
     raise SystemExit("Inventory toggle anchor missing")
 missing = []
 if "func _next_quickslot_assign() -> void:" not in mobile:
@@ -37,8 +52,9 @@ if "func _assign_selected_to_quickbar() -> void:" not in mobile:
 if "func _clear_quickslot_assign() -> void:" not in mobile:
     missing.append("func _clear_quickslot_assign() -> void:\n    pass\n\n")
 if missing:
-    mobile = mobile.replace(anchor, "".join(missing) + anchor, 1)
-    mobile_path.write_text(mobile, encoding="utf-8")
+    mobile = mobile.replace(func_anchor, "".join(missing) + func_anchor, 1)
+
+mobile_path.write_text(mobile, encoding="utf-8")
 
 result = subprocess.run([sys.executable, str(radial), str(root)])
 if result.returncode != 0:
