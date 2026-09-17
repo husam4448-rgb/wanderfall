@@ -28,8 +28,9 @@ art_foundation = patch_dir / "apply_v0190a_survival_paradise_art_foundation.py"
 terrain_props = patch_dir / "apply_v0190b_terrain_props.py"
 grass_density = patch_dir / "apply_v0190b1_grass_density.py"
 structures_interiors = patch_dir / "apply_v0190c_structures_interiors.py"
+structures_parser_fix = patch_dir / "apply_v0190c_parser_fix.py"
 
-steps = (combined, radial, polish, static_scene, ci_compat, responsive_hud, uniform_inventory, dual_stick, qol_world, vehicle_controls, vehicle_qol, vehicle_a3, control_editor_a4, storage_b, storage_b2, universal_c, universal_c2, universal_c3, art_foundation, terrain_props, grass_density, structures_interiors)
+steps = (combined, radial, polish, static_scene, ci_compat, responsive_hud, uniform_inventory, dual_stick, qol_world, vehicle_controls, vehicle_qol, vehicle_a3, control_editor_a4, storage_b, storage_b2, universal_c, universal_c2, universal_c3, art_foundation, terrain_props, grass_density, structures_interiors, structures_parser_fix)
 for step in steps:
     if not step.is_file():
         raise SystemExit(f"Missing Quick-Use applicator: {step}")
@@ -72,4 +73,4 @@ for step in steps[1:]:
     if result.returncode != 0:
         raise SystemExit(result.returncode)
 
-print("Applied through v0.19.0C Survival Paradise structures + prototype interiors.")
+print("Applied through v0.19.0C Survival Paradise structures + prototype interiors, parser-fixed.")
