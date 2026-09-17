@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Compatibility entry point for the Android Quick-Use test build.
 
-Keeps the safe-spawn fix, retires the failed runtime-created Quick-Use widgets,
-and applies the v0.18.0 permanent QUICK button + six-slot radial menu.
+Keeps the safe-spawn fix, applies the permanent QUICK + six-slot radial menu,
+and then applies the v0.18.1 radial-startup + joystick polish fix.
 """
 from pathlib import Path
 import subprocess
@@ -12,8 +12,9 @@ root = Path(sys.argv[1] if len(sys.argv) > 1 else "game")
 patch_dir = Path(__file__).resolve().parent
 combined = patch_dir / "apply_v0179_quick_items_safe_spawn.py"
 radial = patch_dir / "apply_v0180_radial_quick_menu.py"
+polish = patch_dir / "apply_v0181_quick_radial_joystick.py"
 
-for step in (combined, radial):
+for step in (combined, radial, polish):
     if not step.is_file():
         raise SystemExit(f"Missing Quick-Use applicator: {step}")
 
@@ -26,7 +27,6 @@ if result.returncode != 0:
 mobile_path = root / "scripts/mobile_hud.gd"
 mobile = mobile_path.read_text(encoding="utf-8")
 
-# Restore the three declarations removed by v0.17.9.
 decl_anchor = "var inventory_use_button: Button\n"
 if decl_anchor not in mobile:
     raise SystemExit("Inventory declaration anchor missing")
@@ -40,7 +40,6 @@ if "var _quickslot_assign_index :=" not in mobile:
 if decls:
     mobile = mobile.replace(decl_anchor, decl_anchor + decls, 1)
 
-# Restore function anchors if v0.17.9 removed them.
 func_anchor = "func _toggle_inventory() -> void:\n"
 if func_anchor not in mobile:
     raise SystemExit("Inventory toggle anchor missing")
@@ -56,8 +55,9 @@ if missing:
 
 mobile_path.write_text(mobile, encoding="utf-8")
 
-result = subprocess.run([sys.executable, str(radial), str(root)])
-if result.returncode != 0:
-    raise SystemExit(result.returncode)
+for step in (radial, polish):
+    result = subprocess.run([sys.executable, str(step), str(root)])
+    if result.returncode != 0:
+        raise SystemExit(result.returncode)
 
-print("Applied safe spawn plus v0.18.0 permanent radial Quick menu.")
+print("Applied safe spawn + radial Quick menu + v0.18.1 joystick polish.")
