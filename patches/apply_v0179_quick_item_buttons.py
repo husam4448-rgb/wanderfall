@@ -17,8 +17,9 @@ dual_stick = patch_dir / "apply_v0185_dual_stick_combat.py"
 qol_world = patch_dir / "apply_v0186_qol_world_spacing.py"
 vehicle_controls = patch_dir / "apply_v0187a_character_vehicle_controls.py"
 vehicle_qol = patch_dir / "apply_v0187a2_vehicle_qol_fix.py"
+vehicle_a3 = patch_dir / "apply_v0187a3_vehicle_sensitivity_quick_melee.py"
 
-for step in (combined, radial, polish, static_scene, ci_compat, responsive_hud, uniform_inventory, dual_stick, qol_world, vehicle_controls, vehicle_qol):
+for step in (combined, radial, polish, static_scene, ci_compat, responsive_hud, uniform_inventory, dual_stick, qol_world, vehicle_controls, vehicle_qol, vehicle_a3):
     if not step.is_file():
         raise SystemExit(f"Missing Quick-Use applicator: {step}")
 
@@ -55,9 +56,9 @@ if missing:
     mobile = mobile.replace(func_anchor, "".join(missing) + func_anchor, 1)
 mobile_path.write_text(mobile, encoding="utf-8")
 
-for step in (radial, polish, static_scene, ci_compat, responsive_hud, uniform_inventory, dual_stick, qol_world, vehicle_controls, vehicle_qol):
+for step in (radial, polish, static_scene, ci_compat, responsive_hud, uniform_inventory, dual_stick, qol_world, vehicle_controls, vehicle_qol, vehicle_a3):
     result = subprocess.run([sys.executable, str(step), str(root)])
     if result.returncode != 0:
         raise SystemExit(result.returncode)
 
-print("Applied through v0.18.7A2 gradual vehicle controls + contextual enter/exit + QUICK window layering fix.")
+print("Applied through v0.18.7A3 modal QUICK hiding + vehicle response sliders + left melee.")
