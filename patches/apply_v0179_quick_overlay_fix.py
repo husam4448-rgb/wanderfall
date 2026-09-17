@@ -125,7 +125,7 @@ refresh_body = '''func _refresh_quick_item_buttons() -> void:
         var icon_resource = load(ItemDatabase.get_icon_path(item_id))
         button.icon = icon_resource if icon_resource is Texture2D else null
         var short_name := display_name if display_name.length() <= 12 else display_name.substr(0, 11) + "…"
-        button.text = "QUICK\n%s  ×%d" % [short_name, count]
+        button.text = "QUICK\\n%s  ×%d" % [short_name, count]
         button.tooltip_text = "%s — tap to use/equip" % display_name
         button.disabled = count <= 0
         button.visible = true
