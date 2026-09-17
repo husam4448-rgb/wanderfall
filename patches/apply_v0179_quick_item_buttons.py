@@ -24,8 +24,8 @@ if result.returncode != 0:
 
 mobile_path = root / "scripts/mobile_hud.gd"
 mobile = mobile_path.read_text(encoding="utf-8")
-legacy = "        UIManager.register_layout_control(button, _quick_item_layout_id(item_id))\n"
-mobile = mobile.replace(legacy, "")
+legacy_call = "UIManager.register_layout_control(button, _quick_item_layout_id(item_id))"
+mobile = mobile.replace(legacy_call, "pass # Quick-Use overlay intentionally bypasses saved layout registration")
 mobile_path.write_text(mobile, encoding="utf-8")
 
 result = subprocess.run([sys.executable, str(overlay), str(root)])
