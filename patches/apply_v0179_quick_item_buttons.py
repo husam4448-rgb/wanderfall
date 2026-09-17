@@ -16,8 +16,9 @@ uniform_inventory = patch_dir / "apply_v0184_uniform_hud_inventory_grid.py"
 dual_stick = patch_dir / "apply_v0185_dual_stick_combat.py"
 qol_world = patch_dir / "apply_v0186_qol_world_spacing.py"
 vehicle_controls = patch_dir / "apply_v0187a_character_vehicle_controls.py"
+vehicle_qol = patch_dir / "apply_v0187a2_vehicle_qol_fix.py"
 
-for step in (combined, radial, polish, static_scene, ci_compat, responsive_hud, uniform_inventory, dual_stick, qol_world, vehicle_controls):
+for step in (combined, radial, polish, static_scene, ci_compat, responsive_hud, uniform_inventory, dual_stick, qol_world, vehicle_controls, vehicle_qol):
     if not step.is_file():
         raise SystemExit(f"Missing Quick-Use applicator: {step}")
 
@@ -54,9 +55,9 @@ if missing:
     mobile = mobile.replace(func_anchor, "".join(missing) + func_anchor, 1)
 mobile_path.write_text(mobile, encoding="utf-8")
 
-for step in (radial, polish, static_scene, ci_compat, responsive_hud, uniform_inventory, dual_stick, qol_world, vehicle_controls):
+for step in (radial, polish, static_scene, ci_compat, responsive_hud, uniform_inventory, dual_stick, qol_world, vehicle_controls, vehicle_qol):
     result = subprocess.run([sys.executable, str(step), str(root)])
     if result.returncode != 0:
         raise SystemExit(result.returncode)
 
-print("Applied through v0.18.7A smaller player + vehicle arrow controls + 360-degree vehicle aim/fire.")
+print("Applied through v0.18.7A2 gradual vehicle controls + contextual enter/exit + QUICK window layering fix.")
