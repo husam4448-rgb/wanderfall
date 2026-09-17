@@ -10,16 +10,38 @@ import sys
 
 root = Path(sys.argv[1] if len(sys.argv) > 1 else "game")
 patch_dir = Path(__file__).resolve().parent
-steps = [
-    patch_dir / "apply_v0179_quick_items_safe_spawn.py",
-    patch_dir / "apply_v0180_radial_quick_menu.py",
-]
+combined = patch_dir / "apply_v0179_quick_items_safe_spawn.py"
+radial = patch_dir / "apply_v0180_radial_quick_menu.py"
 
-for step in steps:
+for step in (combined, radial):
     if not step.is_file():
         raise SystemExit(f"Missing Quick-Use applicator: {step}")
-    result = subprocess.run([sys.executable, str(step), str(root)])
-    if result.returncode != 0:
-        raise SystemExit(result.returncode)
+
+result = subprocess.run([sys.executable, str(combined), str(root)])
+if result.returncode != 0:
+    raise SystemExit(result.returncode)
+
+# v0.17.9 retired some legacy hotbar assignment helpers. The radial patch
+# deliberately reuses those names for BAG->Q1..Q6 binding, so recreate any
+# missing function anchors before applying it.
+mobile_path = root / "scripts/mobile_hud.gd"
+mobile = mobile_path.read_text(encoding="utf-8")
+anchor = "func _toggle_inventory() -> void:\n"
+if anchor not in mobile:
+    raise SystemExit("Inventory toggle anchor missing")
+missing = []
+if "func _next_quickslot_assign() -> void:" not in mobile:
+    missing.append("func _next_quickslot_assign() -> void:\n    pass\n\n")
+if "func _assign_selected_to_quickbar() -> void:" not in mobile:
+    missing.append("func _assign_selected_to_quickbar() -> void:\n    pass\n\n")
+if "func _clear_quickslot_assign() -> void:" not in mobile:
+    missing.append("func _clear_quickslot_assign() -> void:\n    pass\n\n")
+if missing:
+    mobile = mobile.replace(anchor, "".join(missing) + anchor, 1)
+    mobile_path.write_text(mobile, encoding="utf-8")
+
+result = subprocess.run([sys.executable, str(radial), str(root)])
+if result.returncode != 0:
+    raise SystemExit(result.returncode)
 
 print("Applied safe spawn plus v0.18.0 permanent radial Quick menu.")
