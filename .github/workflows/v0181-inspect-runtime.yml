@@ -57,8 +57,10 @@ jobs:
           set -euo pipefail
           mkdir -p inspect
           cp -R game/scripts inspect/scripts
-          mkdir -p inspect/scenes
+          mkdir -p inspect/scenes inspect/data inspect/assets
           cp game/scenes/main.tscn inspect/scenes/main.tscn || true
+          cp game/data/items.json inspect/data/items.json || true
+          find game/assets -maxdepth 4 -type f | sort > inspect/assets/asset_manifest.txt || true
           find game/scripts -type f -name '*.gd' | sort > inspect/script_manifest.txt
           grep -RniE 'attack|shoot|firearm|melee|projectile|aim|crosshair|mobile_move|InputState' game/scripts > inspect/combat_index.txt || true
       - uses: actions/upload-artifact@v4
