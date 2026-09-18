@@ -63,6 +63,35 @@ jobs:
           find game/assets -maxdepth 4 -type f | sort > inspect/assets/asset_manifest.txt || true
           find game/scripts -type f -name '*.gd' | sort > inspect/script_manifest.txt
           grep -RniE 'attack|shoot|firearm|melee|projectile|aim|crosshair|mobile_move|InputState' game/scripts > inspect/combat_index.txt || true
+      - name: Print D2B2 animation integration snippets
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("game/scripts/player.gd")
+          s = p.read_text(encoding="utf-8").splitlines()
+          keys = ("func _physics_process", "func _process", "func _draw", "func melee", "func _melee", "func perform", "func attack", "func _attack", "func quick_melee", "func _quick", "func set_crou", "func toggle_crou", "_facing", "_muzzle_flash_timer", "velocity", "crouch", "run")
+          hits=[]
+          for i,line in enumerate(s):
+              if any(k in line for k in keys):
+                  hits.append(i)
+          shown=set()
+          print("=== PLAYER D2B2 INTEGRATION WINDOWS ===")
+          for i in hits:
+              a=max(0,i-5); b=min(len(s),i+24)
+              key=(a,b)
+              if key in shown: continue
+              shown.add(key)
+              print(f"--- lines {a+1}-{b} ---")
+              for j in range(a,b):
+                  print(f"{j+1:04d}: {s[j]}")
+          print("=== LAYERED ACTOR VISUAL SETTERS ===")
+          q=Path("game/scripts/art/layered_actor_visual.gd")
+          if q.is_file():
+              for i,line in enumerate(q.read_text(encoding="utf-8").splitlines(),1):
+                  if line.startswith("func set_") or line.startswith("func _process") or line.startswith("func _draw"):
+                      print(f"{i:04d}: {line}")
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: Wanderfall-v0.18.5-combat-runtime
