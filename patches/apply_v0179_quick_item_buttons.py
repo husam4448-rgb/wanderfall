@@ -41,8 +41,9 @@ bandit_loot_d1b = patch_dir / "apply_v0190d1b_bandit_loot.py"
 interior_utilities_d1c = patch_dir / "apply_v0190d1c_interior_utilities.py"
 visual_slots_d2a1 = patch_dir / "apply_v0190d2a1_slots_lootall.py"
 layered_visuals_d2a2 = patch_dir / "apply_v0190d2a2_layered_visuals.py"
+visual_d2a_parser_fix = patch_dir / "apply_v0190d2a_parser_fix.py"
 
-steps = (combined, radial, polish, static_scene, ci_compat, responsive_hud, uniform_inventory, dual_stick, qol_world, vehicle_controls, vehicle_qol, vehicle_a3, control_editor_a4, storage_b, storage_b2, universal_c, universal_c2, universal_c3, art_foundation, terrain_props, grass_density, structures_interiors, structures_parser_fix, world_coherence_c1, hud_natural_water_c2, world_density_c3, visual_fixes_c4, world_layering_c5, world_layering_c5_parser_fix, aim_occlusion_c6, storage_use_icon_d1a, bandit_loot_d1b, interior_utilities_d1c, visual_slots_d2a1, layered_visuals_d2a2)
+steps = (combined, radial, polish, static_scene, ci_compat, responsive_hud, uniform_inventory, dual_stick, qol_world, vehicle_controls, vehicle_qol, vehicle_a3, control_editor_a4, storage_b, storage_b2, universal_c, universal_c2, universal_c3, art_foundation, terrain_props, grass_density, structures_interiors, structures_parser_fix, world_coherence_c1, hud_natural_water_c2, world_density_c3, visual_fixes_c4, world_layering_c5, world_layering_c5_parser_fix, aim_occlusion_c6, storage_use_icon_d1a, bandit_loot_d1b, interior_utilities_d1c, visual_slots_d2a1, layered_visuals_d2a2, visual_d2a_parser_fix)
 for step in steps:
     if not step.is_file():
         raise SystemExit(f"Missing Quick-Use applicator: {step}")
