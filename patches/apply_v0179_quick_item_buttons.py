@@ -51,8 +51,12 @@ articulated_gear_d2b2b = patch_dir / "apply_v0190d2b2b_articulated_gear.py"
 animation_integration_d2b2c = patch_dir / "apply_v0190d2b2c_animation_integration.py"
 weapon_pose_fix_d2b2d = patch_dir / "apply_v0190d2b2d_weapon_pose_fix.py"
 slim_weapon_art_d2b2e = patch_dir / "apply_v0190d2b2e_slim_weapon_art.py"
+direction_pose_d2b3a = patch_dir / "apply_v0190d2b3a_directional_pose_engine.py"
+direction_body_d2b3b = patch_dir / "apply_v0190d2b3b_directional_body_perspective.py"
+direction_head_arms_d2b3c = patch_dir / "apply_v0190d2b3c_directional_head_arms.py"
+direction_gear_d2b3d = patch_dir / "apply_v0190d2b3d_directional_gear.py"
 
-steps = (combined, radial, polish, static_scene, ci_compat, responsive_hud, uniform_inventory, dual_stick, qol_world, vehicle_controls, vehicle_qol, vehicle_a3, control_editor_a4, storage_b, storage_b2, universal_c, universal_c2, universal_c3, art_foundation, terrain_props, grass_density, structures_interiors, structures_parser_fix, world_coherence_c1, hud_natural_water_c2, world_density_c3, visual_fixes_c4, world_layering_c5, world_layering_c5_parser_fix, aim_occlusion_c6, storage_use_icon_d1a, bandit_loot_d1b, interior_utilities_d1c, visual_slots_d2a1, layered_visuals_d2a2, visual_d2a_parser_fix, weapon_visuals_d2b1, npc_weapon_state_d2b2, exact_weapon_icons_d2b3, character_visual_repair_d2b1, articulated_actor_d2b2a, articulated_gear_d2b2b, animation_integration_d2b2c, weapon_pose_fix_d2b2d, slim_weapon_art_d2b2e)
+steps = (combined, radial, polish, static_scene, ci_compat, responsive_hud, uniform_inventory, dual_stick, qol_world, vehicle_controls, vehicle_qol, vehicle_a3, control_editor_a4, storage_b, storage_b2, universal_c, universal_c2, universal_c3, art_foundation, terrain_props, grass_density, structures_interiors, structures_parser_fix, world_coherence_c1, hud_natural_water_c2, world_density_c3, visual_fixes_c4, world_layering_c5, world_layering_c5_parser_fix, aim_occlusion_c6, storage_use_icon_d1a, bandit_loot_d1b, interior_utilities_d1c, visual_slots_d2a1, layered_visuals_d2a2, visual_d2a_parser_fix, weapon_visuals_d2b1, npc_weapon_state_d2b2, exact_weapon_icons_d2b3, character_visual_repair_d2b1, articulated_actor_d2b2a, articulated_gear_d2b2b, animation_integration_d2b2c, weapon_pose_fix_d2b2d, slim_weapon_art_d2b2e, direction_pose_d2b3a, direction_body_d2b3b, direction_head_arms_d2b3c, direction_gear_d2b3d)
 for step in steps:
     if not step.is_file():
         raise SystemExit(f"Missing Quick-Use applicator: {step}")
@@ -95,4 +99,4 @@ for step in steps[1:]:
     if result.returncode != 0:
         raise SystemExit(result.returncode)
 
-print("Applied through v0.19.0D2B.2 Survival Paradise articulated near-concept character rig, gait, melee animation, weapon mirroring, and slimmer weapon art.")
+print("Applied through v0.19.0D2B.3 Survival Paradise nine-direction body perspective, back-facing pose, wider aim arms, and direction-aware gear.")
