@@ -126,10 +126,14 @@ func _make_joint()->Polygon2D:
     p.color=Color("3b4141"); p.z_index=3; add_child(p); return p
 
 func _load_body_textures()->void:
-    var prefix:="player_female" if body_type=="female" else "player_male"
-    core.texture=load("res://assets/art/characters/%s_core.png" % prefix)
-    leg_left.texture=load("res://assets/art/characters/%s_leg_left.png" % prefix)
-    leg_right.texture=load("res://assets/art/characters/%s_leg_right.png" % prefix)
+    if body_type=="female":
+        core.texture=load("res://assets/art/characters/player_female_core.png")
+        leg_left.texture=load("res://assets/art/characters/player_female_leg_left.png")
+        leg_right.texture=load("res://assets/art/characters/player_female_leg_right.png")
+    else:
+        core.texture=load("res://assets/art/characters/player_male_core.png")
+        leg_left.texture=load("res://assets/art/characters/player_male_leg_left.png")
+        leg_right.texture=load("res://assets/art/characters/player_male_leg_right.png")
 
 func _apply_pose()->void:
     if core==null:return
