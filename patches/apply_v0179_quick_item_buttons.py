@@ -62,8 +62,9 @@ direct_sprite_d2b6 = patch_dir / "apply_v0190d2b6_direct_sprite_actor.py"
 hybrid_sprite_d2b7 = patch_dir / "apply_v0190d2b7_hybrid_sprite_skeleton.py"
 directional_hybrid_idle_d2b8 = patch_dir / "apply_v0190d2b8_directional_hybrid_idle.py"
 aiming_fix_d2b9 = patch_dir / "apply_v0190d2b9_aiming_fix.py"
+pure_sprite_skeleton_d2b10 = patch_dir / "apply_v0190d2b10_pure_sprite_skeleton.py"
 
-steps = (combined, radial, polish, static_scene, ci_compat, responsive_hud, uniform_inventory, dual_stick, qol_world, vehicle_controls, vehicle_qol, vehicle_a3, control_editor_a4, storage_b, storage_b2, universal_c, universal_c2, universal_c3, art_foundation, terrain_props, grass_density, structures_interiors, structures_parser_fix, world_coherence_c1, hud_natural_water_c2, world_density_c3, visual_fixes_c4, world_layering_c5, world_layering_c5_parser_fix, aim_occlusion_c6, storage_use_icon_d1a, bandit_loot_d1b, interior_utilities_d1c, visual_slots_d2a1, layered_visuals_d2a2, visual_d2a_parser_fix, weapon_visuals_d2b1, npc_weapon_state_d2b2, exact_weapon_icons_d2b3, character_visual_repair_d2b1, articulated_actor_d2b2a, articulated_gear_d2b2b, animation_integration_d2b2c, weapon_pose_fix_d2b2d, slim_weapon_art_d2b2e, direction_pose_d2b3a, direction_body_d2b3b, direction_head_arms_d2b3c, direction_gear_d2b3d, production_survivor_d2b4, production_survivor_d2b4_parser_fix, player_male_female_d2b5, direct_sprite_d2b6, hybrid_sprite_d2b7, directional_hybrid_idle_d2b8, aiming_fix_d2b9)
+steps = (combined, radial, polish, static_scene, ci_compat, responsive_hud, uniform_inventory, dual_stick, qol_world, vehicle_controls, vehicle_qol, vehicle_a3, control_editor_a4, storage_b, storage_b2, universal_c, universal_c2, universal_c3, art_foundation, terrain_props, grass_density, structures_interiors, structures_parser_fix, world_coherence_c1, hud_natural_water_c2, world_density_c3, visual_fixes_c4, world_layering_c5, world_layering_c5_parser_fix, aim_occlusion_c6, storage_use_icon_d1a, bandit_loot_d1b, interior_utilities_d1c, visual_slots_d2a1, layered_visuals_d2a2, visual_d2a_parser_fix, weapon_visuals_d2b1, npc_weapon_state_d2b2, exact_weapon_icons_d2b3, character_visual_repair_d2b1, articulated_actor_d2b2a, articulated_gear_d2b2b, animation_integration_d2b2c, weapon_pose_fix_d2b2d, slim_weapon_art_d2b2e, direction_pose_d2b3a, direction_body_d2b3b, direction_head_arms_d2b3c, direction_gear_d2b3d, production_survivor_d2b4, production_survivor_d2b4_parser_fix, player_male_female_d2b5, direct_sprite_d2b6, hybrid_sprite_d2b7, directional_hybrid_idle_d2b8, aiming_fix_d2b9, pure_sprite_skeleton_d2b10)
 for step in steps:
     if not step.is_file():
         raise SystemExit(f"Missing Quick-Use applicator: {step}")
@@ -106,4 +107,4 @@ for step in steps[1:]:
     if result.returncode != 0:
         raise SystemExit(result.returncode)
 
-print("Applied through v0.19.0D2B.9 Survival Paradise hand-opacity and aiming-reach correction.")
+print("Applied through v0.19.0D2B.10 Survival Paradise pure sprite-skinned skeleton with true gait and wrist-mounted firearm.")
