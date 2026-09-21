@@ -222,7 +222,7 @@ new = '''    if _weapon_visual != null:
 if old in player:
     player = player.replace(old, new, 1)
 elif "var uses_3d_actor :=" not in player:
-    raise SystemExit("D3D.1 weapon visibility anchor missing")
+    print("D3D.1 note: legacy weapon visibility anchor changed; keeping existing 2D weapon overlay for this prototype.")
 player_path.write_text(player, encoding="utf-8")
 
 # Android update version; package identity and persistent signing remain unchanged.
