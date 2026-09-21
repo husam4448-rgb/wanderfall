@@ -61,6 +61,46 @@ jobs:
           python3 patches/apply_v0177_mobile_hotbar_layers.py "$PROJECT_DIR"
           python3 patches/apply_v0178_dedicated_hotbar_layer.py "$PROJECT_DIR"
           python3 patches/apply_v0179_quick_item_buttons.py "$PROJECT_DIR"
+          # Fetch Quaternius D3D.1 character assets (same CC0 model contained in the uploaded pack).
+          echo "Fetch Quaternius D3D.1 character assets"
+          MODEL_DIR="$PROJECT_DIR/assets/models/superhero_male"
+          mkdir -p "$MODEL_DIR"
+          MODEL_BASE="https://raw.githubusercontent.com/robert-porter/sprite-renderer/fb8b9ee247ed2e5d9b5dfebd408382156be3b57f/assets/quaternius/universal/universal-base-characters/Universal%20Base%20Characters%5BStandard%5D/Base%20Characters/Godot%20-%20UE"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/Superhero_Male_FullBody.gltf" "$MODEL_BASE/Superhero_Male_FullBody.gltf"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/Superhero_Male_FullBody.bin" "$MODEL_BASE/Superhero_Male_FullBody.bin"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/T_Hair_1_BaseColor.png" "$MODEL_BASE/T_Hair_1_BaseColor.png"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/T_Eye_Brown.png" "$MODEL_BASE/T_Eye_Brown.png"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/T_Superhero_Male_Dark.png" "$MODEL_BASE/T_Superhero_Male_Dark.png"
+
+          # Mobile prototype keeps only albedo maps; remove multi-megabyte normal/roughness
+          # references while preserving geometry, weights, skeleton and original base colors.
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("game/assets/models/superhero_male/Superhero_Male_FullBody.gltf")
+          d = json.loads(p.read_text(encoding="utf-8"))
+          d["images"] = [
+              {"mimeType":"image/png","name":"HairBase","uri":"T_Hair_1_BaseColor.png"},
+              {"mimeType":"image/png","name":"EyeBase","uri":"T_Eye_Brown.png"},
+              {"mimeType":"image/png","name":"BodyBase","uri":"T_Superhero_Male_Dark.png"},
+          ]
+          d["samplers"] = [{"magFilter":9729,"minFilter":9987,"wrapS":10497,"wrapT":10497}]
+          d["textures"] = [
+              {"sampler":0,"source":0},
+              {"sampler":0,"source":1},
+              {"sampler":0,"source":2},
+          ]
+          for i, mat in enumerate(d.get("materials", [])):
+              mat.pop("normalTexture", None)
+              pbr = mat.setdefault("pbrMetallicRoughness", {})
+              pbr["baseColorTexture"] = {"index": i}
+              pbr.pop("metallicRoughnessTexture", None)
+              pbr["metallicFactor"] = 0.0
+              pbr["roughnessFactor"] = 0.72
+          p.write_text(json.dumps(d, separators=(",",":")), encoding="utf-8")
+          PY
+          test "$(stat -c%s "$MODEL_DIR/Superhero_Male_FullBody.bin")" -eq 720076
+
           python3 "$PROJECT_DIR/tools/preflight.py" "$PROJECT_DIR"
 
       - name: Set up Java 17
@@ -131,8 +171,8 @@ jobs:
           "$APKSIGNER" verify --verbose --print-certs "$APK" | tee apk-signature.txt
           "$AAPT" dump badging "$APK" | tee apk-badging.txt
           grep -q "package: name='org.wanderfall.game'" apk-badging.txt
-          grep -q "versionCode='29'" apk-badging.txt
-          grep -q "versionName='0.19.0D2B.18'" apk-badging.txt
+          grep -q "versionCode='30'" apk-badging.txt
+          grep -q "versionName='0.20.0D3D.1'" apk-badging.txt
           grep -q "application-label:'Wanderfall'" apk-badging.txt
           APK_BYTES="$(stat -c%s "$APK")"
           test "$APK_BYTES" -lt "$MAX_APK_BYTES"
