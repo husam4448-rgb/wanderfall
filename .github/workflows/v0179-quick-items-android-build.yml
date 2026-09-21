@@ -101,6 +101,46 @@ jobs:
           PY
           test "$(stat -c%s "$MODEL_DIR/Superhero_Male_FullBody.bin")" -eq 720076
 
+          echo "Fetch Quaternius Ranger outfit assets"
+          OUTFIT_BASE="https://raw.githubusercontent.com/joega/check-and-conquer/b2a3a3418dc080e782c1e5d386d258145346a218/assets/characters/quaternius/outfits"
+          curl -fL --retry 3 -o "$MODEL_DIR/Male_Ranger.gltf" "$OUTFIT_BASE/Male_Ranger.gltf"
+          curl -fL --retry 3 -o "$MODEL_DIR/Male_Ranger.bin" "$OUTFIT_BASE/Male_Ranger.bin"
+          curl -fL --retry 3 -o "$MODEL_DIR/T_Ranger_BaseColor.png" "$OUTFIT_BASE/T_Ranger_BaseColor.png"
+          curl -fL --retry 3 -o "$MODEL_DIR/T_Regular_Male_Dark_BaseColor.png" "$OUTFIT_BASE/T_Regular_Male_Dark_BaseColor.png"
+
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("game/assets/models/superhero_male/Male_Ranger.gltf")
+          d = json.loads(p.read_text(encoding="utf-8"))
+          d["images"] = [
+              {"mimeType":"image/png","name":"RangerBase","uri":"T_Ranger_BaseColor.png"},
+              {"mimeType":"image/png","name":"RegularMaleBase","uri":"T_Regular_Male_Dark_BaseColor.png"},
+          ]
+          d["samplers"] = [{"magFilter":9729,"minFilter":9987,"wrapS":10497,"wrapT":10497}]
+          d["textures"] = [
+              {"sampler":0,"source":0},
+              {"sampler":0,"source":1},
+          ]
+          mats = d.get("materials", [])
+          if len(mats) >= 1:
+              mats[0].pop("normalTexture", None)
+              pbr = mats[0].setdefault("pbrMetallicRoughness", {})
+              pbr["baseColorTexture"] = {"index":0}
+              pbr.pop("metallicRoughnessTexture", None)
+              pbr["metallicFactor"] = 0.0
+              pbr["roughnessFactor"] = 0.78
+          if len(mats) >= 2:
+              mats[1].pop("normalTexture", None)
+              pbr = mats[1].setdefault("pbrMetallicRoughness", {})
+              pbr["baseColorTexture"] = {"index":1}
+              pbr.pop("metallicRoughnessTexture", None)
+              pbr["metallicFactor"] = 0.0
+              pbr["roughnessFactor"] = 0.82
+          p.write_text(json.dumps(d, separators=(",",":")), encoding="utf-8")
+          PY
+          test "$(stat -c%s "$MODEL_DIR/Male_Ranger.bin")" -eq 1746884
+
           python3 "$PROJECT_DIR/tools/preflight.py" "$PROJECT_DIR"
 
       - name: Set up Java 17
@@ -171,8 +211,8 @@ jobs:
           "$APKSIGNER" verify --verbose --print-certs "$APK" | tee apk-signature.txt
           "$AAPT" dump badging "$APK" | tee apk-badging.txt
           grep -q "package: name='org.wanderfall.game'" apk-badging.txt
-          grep -q "versionCode='30'" apk-badging.txt
-          grep -q "versionName='0.20.0D3D.1'" apk-badging.txt
+          grep -q "versionCode='31'" apk-badging.txt
+          grep -q "versionName='0.20.0D3D.2'" apk-badging.txt
           grep -q "application-label:'Wanderfall'" apk-badging.txt
           APK_BYTES="$(stat -c%s "$APK")"
           test "$APK_BYTES" -lt "$MAX_APK_BYTES"
