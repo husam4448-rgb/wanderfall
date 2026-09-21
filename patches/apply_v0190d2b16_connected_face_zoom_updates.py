@@ -400,81 +400,19 @@ p.write_text(s, encoding="utf-8")
 
 # ---------------------------------------------------------------------------
 # One additional close-zoom layer.
-# Patch the actual camera/zoom controller found in reconstructed source.
+# Existing camera uses 0.18 zoom steps and max 2.60, so exactly one more
+# layer is 2.78. Keep step/min/saved-zoom behavior unchanged.
 # ---------------------------------------------------------------------------
-zoom_patched = False
-zoom_diagnostics = []
-for gp in root.rglob("*.gd"):
-    text = gp.read_text(encoding="utf-8")
-    if "zoom" not in text.lower():
-        continue
-    for ln in text.splitlines():
-        if "zoom" in ln.lower():
-            zoom_diagnostics.append(f"{gp.relative_to(root)}: {ln.strip()}")
-
-    original = text
-
-    # Common explicit max constants.
-    def bump_const(m):
-        nonlocal_zoom = float(m.group(2))
-        bumped = max(nonlocal_zoom * 1.25, nonlocal_zoom + 0.25)
-        return m.group(1) + (f"{bumped:.2f}".rstrip("0").rstrip("."))
-
-    patterns = [
-        r'(?im)^(\s*(?:const|var)\s+\w*ZOOM_MAX\w*\s*(?::=|=)\s*)([0-9]+(?:\.[0-9]+)?)',
-        r'(?im)^(\s*(?:const|var)\s+MAX_?ZOOM\w*\s*(?::=|=)\s*)([0-9]+(?:\.[0-9]+)?)',
-    ]
-    for pat in patterns:
-        def repl(m):
-            val = float(m.group(2))
-            bumped = max(val * 1.25, val + 0.25)
-            return m.group(1) + (f"{bumped:.2f}".rstrip("0").rstrip("."))
-        text, n = re.subn(pat, repl, text, count=1)
-        if n:
-            zoom_patched = True
-            break
-
-    # Zoom preset arrays of Vector2 values: append one 25% closer step.
-    if not zoom_patched or text == original:
-        arr_pat = re.compile(r'(?is)((?:const|var)\s+\w*zoom\w*\s*(?::=|=)\s*\[)(.*?)(\])')
-        am = arr_pat.search(text)
-        if am and "Vector2" in am.group(2):
-            vals = re.findall(r'Vector2\(\s*([0-9.]+)\s*,\s*([0-9.]+)\s*\)', am.group(2))
-            if vals:
-                x, y = map(float, vals[-1])
-                nx, ny = x*1.25, y*1.25
-                extra = f", Vector2({nx:.3f}, {ny:.3f})"
-                text = text[:am.end(2)] + extra + text[am.end(2):]
-                zoom_patched = True
-
-    # Scalar preset arrays.
-    if not zoom_patched or text == original:
-        am = re.search(r'(?is)((?:const|var)\s+\w*zoom\w*\s*(?::=|=)\s*\[)([0-9.,\s]+)(\])', text)
-        if am:
-            vals = [float(v) for v in re.findall(r'[0-9]+(?:\.[0-9]+)?', am.group(2))]
-            if len(vals) >= 2:
-                nv = vals[-1] + (vals[-1]-vals[-2])
-                text = text[:am.end(2)] + f", {nv:.3f}" + text[am.end(2):]
-                zoom_patched = True
-
-    # Clamp-based controller: increase the upper clamp by one 25% step.
-    if text == original:
-        clamp_pat = re.compile(r'(clampf\([^\n]*?zoom[^\n]*?,\s*[0-9.]+\s*,\s*)([0-9]+(?:\.[0-9]+)?)(\s*\))', re.I)
-        cm = clamp_pat.search(text)
-        if cm:
-            val = float(cm.group(2))
-            nv = max(val*1.25, val+0.25)
-            text = text[:cm.start(2)] + (f"{nv:.2f}".rstrip("0").rstrip(".")) + text[cm.end(2):]
-            zoom_patched = True
-
-    if text != original:
-        gp.write_text(text, encoding="utf-8")
-
-if not zoom_patched:
-    print("D2B.16 zoom diagnostics:")
-    for line in zoom_diagnostics[:120]:
-        print(line)
-    raise SystemExit("D2B.16 could not locate the camera zoom limit/preset; see diagnostics above.")
+player_path = root / "scripts/player.gd"
+if not player_path.is_file():
+    raise SystemExit("D2B.16 player.gd missing for zoom patch")
+player_text = player_path.read_text(encoding="utf-8")
+zoom_anchor = '@export var max_camera_zoom := 2.60'
+if zoom_anchor not in player_text:
+    raise SystemExit("D2B.16 expected max_camera_zoom 2.60 anchor missing")
+player_text = player_text.replace(zoom_anchor, '@export var max_camera_zoom := 2.78', 1)
+player_path.write_text(player_text, encoding="utf-8")
+print("D2B.16 added one closer camera zoom layer: 2.60 -> 2.78.")
 
 # ---------------------------------------------------------------------------
 # Android updateability: preserve package ID, increment version code/name,
