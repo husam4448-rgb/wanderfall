@@ -119,4 +119,4 @@ for step in steps[1:]:
     if result.returncode != 0:
         raise SystemExit(result.returncode)
 
-print("Applied through v0.20.0D3D.4 Survival Paradise aim, pose, performance and zoom pass.")
+print("Applied through v0.20.0D3D.5 Survival Paradise head, grip, planted aim, size and zoom correction pass.")
