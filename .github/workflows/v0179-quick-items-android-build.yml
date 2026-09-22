@@ -5,6 +5,10 @@ on:
     branches: [ main ]
     paths:
       - '.ci/trigger-v0179-quick-items-build'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '.ci/trigger-v0179-quick-items-build'
 
 permissions:
   contents: read
