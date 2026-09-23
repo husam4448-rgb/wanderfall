@@ -65,6 +65,41 @@ jobs:
           python3 patches/apply_v0177_mobile_hotbar_layers.py "$PROJECT_DIR"
           python3 patches/apply_v0178_dedicated_hotbar_layer.py "$PROJECT_DIR"
           python3 patches/apply_v0179_quick_item_buttons.py "$PROJECT_DIR"
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("game")
+          print("=== D3D14 FINAL PROBE ===")
+          for p in root.rglob("*.gd"):
+              s=p.read_text()
+              if p.name=="production_survivor_visual.gd":
+                  print("\nVISUAL",p)
+                  for f in ["func _apply_pose_to_skeleton","func _point_bone_fast","func _point_bone_to_target","func _apply_skeleton_pose","func _make_pistol","func _sync_apparel_visuals","func _process(delta"]:
+                      i=s.find(f)
+                      if i<0:continue
+                      j=s.find("\nfunc ",i+5)
+                      print("\nSECTION",f,"\n",s[i:j if j>=0 else len(s)])
+              elif "mobile_crouch" in s or "mobile_sprint" in s or "func _on_crouch" in s:
+                  print("\nINPUT FILE",p)
+                  if p.name in ["mobile_hud.gd","input_state.gd"]:
+                      for f in ["func _build_ui","func _process(delta","func _ready","func _layout_ui","func set_mobile_aim","func reset_mobile_state"]:
+                          i=s.find(f)
+                          if i<0:continue
+                          j=s.find("\nfunc ",i+5)
+                          t=s[i:j if j>=0 else len(s)]
+                          if f=="func _build_ui":
+                              for word in ["crouch_button =","sprint_button ="]:
+                                  k=t.find(word)
+                                  if k>=0:print("\nBLOCK",word,"\n",t[max(0,k-500):k+950])
+                          elif f=="func _process(delta" or f=="func reset_mobile_state":
+                              print("\nSECTION",f,"\n",t[:6000])
+                  else:
+                      for line_no,line in enumerate(s.splitlines()):
+                          if "mobile_crouch" in line or "mobile_sprint" in line:
+                              lines=s.splitlines()
+                              print("\nLINE",line_no+1,"\n","\n".join(lines[max(0,line_no-18):min(len(lines),line_no+25)]))
+          print("=== D3D14 PROBE END ===")
+          raise SystemExit(91)
+          PY
           # Fetch Quaternius D3D.1 character assets (same CC0 model contained in the uploaded pack).
           echo "Fetch Quaternius D3D.1 character assets"
           MODEL_DIR="$PROJECT_DIR/assets/models/superhero_male"
