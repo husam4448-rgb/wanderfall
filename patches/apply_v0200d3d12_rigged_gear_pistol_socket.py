@@ -14,6 +14,7 @@ def once(old,new,name):
 
 once("var gun_root: Node3D\n","var gun_root: Node3D\nvar pistol_hand_socket: BoneAttachment3D\n","pistol socket declaration")
 once('    _make_pistol()\n','    _make_pistol()\n    _install_pistol_hand_socket()\n',"pistol stage")
+once("    _make_backpack()\n    _make_pistol()\n","    _make_backpack()\n    _sync_apparel_visuals()\n    _make_pistol()\n","backpack initial sync")
 
 a=s.find("func _sync_apparel_visuals() -> void:\n")
 b=s.find("\nfunc _weapon_category() -> String:\n",a)
