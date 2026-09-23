@@ -198,13 +198,6 @@ m=re.sub(
     'var aim_size := clampf(move_size * 0.96, 195.0, 318.0)',
     m,count=1,
 )
-# Fallback for layouts that use a single stick_size variable.
-m=re.sub(
-    r'var stick_size := clampf\([^\n]+\)',
-    'var stick_size := clampf(short_side * 0.32 * clampf(ts, 0.85, 1.30), 200.0, 330.0)',
-    m,count=1,
-)
-
 m=re.sub(r'"joystick_v[0-9a-zA-Z_]+"','"joystick_v0200d3d10"',m,count=1)
 m=re.sub(r'"aim_joystick_v[0-9a-zA-Z_]+"','"aim_joystick_v0200d3d10"',m,count=1)
 
@@ -234,7 +227,7 @@ if save.is_file():
 # Guardrails.
 checks={
     visual:["support_elbow_target","right_hand_pos","raw_aim - 0.28"],
-    mobile:['func _install_inventory_unequip_button_safe() -> void:',"joystick_v0200d3d10"],
+    mobile:['func _install_inventory_unequip_button_safe() -> void:',"joystick_v0200d3d10","short_side * 0.32","move_size * 0.96"],
 }
 for p,needles in checks.items():
     s=p.read_text(encoding="utf-8")
