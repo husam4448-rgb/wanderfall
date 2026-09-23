@@ -158,11 +158,14 @@ v=v.replace(needle,replacement,1)
 
 # Armed does not mean actively aiming. Only use the compact two-hand firearm pose
 # while the right stick is actually held for aim.
-v=v.replace(
-    'func _apply_skeleton_pose(armed: bool, moving: bool) -> void:',
+v, _d3d8_pose_sig = re.subn(
+    r'func _apply_skeleton_pose\\(armed: bool, moving: bool(?:, aiming: bool = false)?\\) -> void:',
     'func _apply_skeleton_pose(armed: bool, moving: bool, aiming: bool = false) -> void:',
-    1,
+    v,
+    count=1,
 )
+if not _d3d8_pose_sig:
+    raise SystemExit('D3D.8 pose signature anchor missing')
 v=v.replace(
     '        _apply_skeleton_pose(armed, moving)',
     '        _apply_skeleton_pose(armed, moving, aiming)',
