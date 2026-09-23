@@ -254,8 +254,8 @@ jobs:
           "$APKSIGNER" verify --verbose --print-certs "$APK" | tee apk-signature.txt
           "$AAPT" dump badging "$APK" | tee apk-badging.txt
           grep -q "package: name='org.wanderfall.game'" apk-badging.txt
-          grep -q "versionCode='36'" apk-badging.txt
-          grep -q "versionName='0.20.0D3D.7'" apk-badging.txt
+          grep -q "versionCode='37'" apk-badging.txt
+          grep -q "versionName='0.20.0D3D.8'" apk-badging.txt
           grep -q "application-label:'Wanderfall'" apk-badging.txt
           APK_BYTES="$(stat -c%s "$APK")"
           test "$APK_BYTES" -lt "$MAX_APK_BYTES"
