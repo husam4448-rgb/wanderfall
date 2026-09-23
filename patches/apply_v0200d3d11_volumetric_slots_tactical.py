@@ -184,9 +184,9 @@ pose=pose[:a2]+'''    if armed:
             if not moving:
                 grip_target.y += sin(idle_phase) * 0.011
             for side in ["r","l"]:
-                var elbow_bone := "upperarm_"+side
-                var forearm := "lowerarm_"+side
-                var hand := "hand_"+side
+                var elbow_bone: String = "upperarm_"+side
+                var forearm: String = "lowerarm_"+side
+                var hand: String = "hand_"+side
                 var shoulder_idx := skel.find_bone(elbow_bone)
                 if shoulder_idx < 0:
                     continue
