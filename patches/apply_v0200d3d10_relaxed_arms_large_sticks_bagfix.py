@@ -157,17 +157,33 @@ if a>=0 and b>=0:
 '''
     m=m[:a]+callback+m[b+1:]
 
-# Insert UNEQUIP next to the standard USE control in the normal VBox content.
-if 'inventory_unequip_button = _make_small_button("UNEQUIP")' not in m:
-    use_add='    inventory_root.add_child(inventory_use_button)\n'
-    if use_add not in m:
-        raise SystemExit("D3D.10 BAG USE button hierarchy anchor missing")
-    insert='''    inventory_root.add_child(inventory_use_button)
+# Install UNEQUIP as a sibling of the existing USE button. This deliberately
+# inherits the USE button's actual action-row/VBox parent instead of anchoring
+# over the inventory panel/grid.
+if '_install_inventory_unequip_button_safe()' not in m:
+    ready_call='    _build_ui()\n'
+    if ready_call not in m:
+        raise SystemExit("D3D.10 BAG build anchor missing")
+    m=m.replace(ready_call,ready_call+'    call_deferred("_install_inventory_unequip_button_safe")\n',1)
+
+safe_installer=r'''func _install_inventory_unequip_button_safe() -> void:
+    if inventory_unequip_button != null or inventory_use_button == null:
+        return
+    var action_parent := inventory_use_button.get_parent()
+    if action_parent == null:
+        return
     inventory_unequip_button = _make_small_button("UNEQUIP")
+    inventory_unequip_button.focus_mode = Control.FOCUS_NONE
     inventory_unequip_button.pressed.connect(_unequip_selected_inventory_item)
-    inventory_root.add_child(inventory_unequip_button)
+    action_parent.add_child(inventory_unequip_button)
+    _refresh_inventory()
+
 '''
-    m=m.replace(use_add,insert,1)
+refresh_sig='func _refresh_inventory() -> void:\n'
+if refresh_sig not in m:
+    raise SystemExit("D3D.10 BAG refresh anchor missing")
+if 'func _install_inventory_unequip_button_safe() -> void:' not in m:
+    m=m.replace(refresh_sig,safe_installer+refresh_sig,1)
 
 # Enlarge both virtual sticks in whichever responsive layout variant survived
 # reconstruction. D3D.10 deliberately uses new layout IDs so old saved scaling
@@ -219,7 +235,7 @@ if save.is_file():
 # Guardrails.
 checks={
     visual:["support_elbow_target","right_hand_pos","raw_aim - 0.28"],
-    mobile:['inventory_unequip_button = _make_small_button("UNEQUIP")',"joystick_v0200d3d10"],
+    mobile:['func _install_inventory_unequip_button_safe() -> void:',"joystick_v0200d3d10"],
 }
 for p,needles in checks.items():
     s=p.read_text(encoding="utf-8")
