@@ -20,9 +20,7 @@ rep('viewport_sprite.scale = Vector2(0.1575, 0.1575)',
     'viewport_sprite.scale = Vector2(0.171, 0.171)',"initial actor size")
 rep('viewport_sprite.scale = Vector2(0.1575, 0.1575)',
     'viewport_sprite.scale = Vector2(0.171, 0.171)',"runtime actor size")
-rep('    outfit_model.name = "SurvivorRangerOutfit"\n',
-    '    outfit_model.name = "SurvivorOutfit"\n    outfit_model.scale = Vector3(1.13, 1.09, 1.13)\n',
-    "full coverage outfit fit")
+
 
 # Independently skinned Peasant legs have full-length trousers and the arms
 # provide sleeves. The Ranger torso/boots still supply the modern silhouette.
@@ -43,6 +41,7 @@ apparel=r'''func _sync_apparel_visuals() -> void:
     body_model.visible = true
     if ranger_model == null or outfit_model == null:
         return
+    outfit_model.scale = Vector3(1.13,1.09,1.13)
     var equipped: Dictionary = {}
     for slot in ["torso","armor","hands","legs","feet","head","eyes","lower_face","back"]:
         equipped[slot] = String(equipment.get_visual_item(slot)) if equipment != null and is_instance_valid(equipment) and equipment.has_method("get_visual_item") else ""
