@@ -65,25 +65,6 @@ jobs:
           python3 patches/apply_v0177_mobile_hotbar_layers.py "$PROJECT_DIR"
           python3 patches/apply_v0178_dedicated_hotbar_layer.py "$PROJECT_DIR"
           python3 patches/apply_v0179_quick_item_buttons.py "$PROJECT_DIR"
-          python3 - <<'PY'
-          from pathlib import Path
-          root=Path("game")
-          print("=== D3D6 EQUIPMENT PROBE ===")
-          p=root/"scripts/player.gd"
-          if p.is_file():
-              s=p.read_text(encoding="utf-8")
-              print("PLAYER_HEAD")
-              print("\n".join(s.splitlines()[:220]))
-          for gp in root.rglob("*.gd"):
-              s=gp.read_text(encoding="utf-8")
-              hits=[ln for ln in s.splitlines() if ("equipment" in ln.lower() or "equipped_" in ln.lower() or "clothing" in ln.lower())]
-              if hits:
-                  print("\nFILE",gp)
-                  for ln in hits[:160]:
-                      print(ln)
-          print("=== D3D6 EQUIPMENT PROBE END ===")
-          raise SystemExit(91)
-          PY
           # Fetch Quaternius D3D.1 character assets (same CC0 model contained in the uploaded pack).
           echo "Fetch Quaternius D3D.1 character assets"
           MODEL_DIR="$PROJECT_DIR/assets/models/superhero_male"
@@ -273,8 +254,8 @@ jobs:
           "$APKSIGNER" verify --verbose --print-certs "$APK" | tee apk-signature.txt
           "$AAPT" dump badging "$APK" | tee apk-badging.txt
           grep -q "package: name='org.wanderfall.game'" apk-badging.txt
-          grep -q "versionCode='34'" apk-badging.txt
-          grep -q "versionName='0.20.0D3D.5'" apk-badging.txt
+          grep -q "versionCode='35'" apk-badging.txt
+          grep -q "versionName='0.20.0D3D.6'" apk-badging.txt
           grep -q "application-label:'Wanderfall'" apk-badging.txt
           APK_BYTES="$(stat -c%s "$APK")"
           test "$APK_BYTES" -lt "$MAX_APK_BYTES"
