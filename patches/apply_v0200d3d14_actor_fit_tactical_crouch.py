@@ -75,7 +75,7 @@ apparel=r'''func _sync_apparel_visuals() -> void:
         if skel == null:
             continue
         for extra in ["HeadMesh","Eyes","Eyebrows","SurvivorHair"]:
-            var duplicate := skel.get_node_or_null(extra)
+            var duplicate: Node = skel.get_node_or_null(extra)
             if duplicate is Node3D:
                 (duplicate as Node3D).visible = false
     if backpack_root != null:
