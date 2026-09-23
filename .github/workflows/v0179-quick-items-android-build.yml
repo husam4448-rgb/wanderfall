@@ -65,18 +65,6 @@ jobs:
           python3 patches/apply_v0177_mobile_hotbar_layers.py "$PROJECT_DIR"
           python3 patches/apply_v0178_dedicated_hotbar_layer.py "$PROJECT_DIR"
           python3 patches/apply_v0179_quick_item_buttons.py "$PROJECT_DIR"
-          python3 - <<'PY'
-          from pathlib import Path
-          root=Path("game")
-          print("=== D3D9 EQUIPMENT PROBE START ===")
-          for p in root.rglob("*.gd"):
-              s=p.read_text(encoding="utf-8")
-              if "class_name EquipmentComponent" in s or "transmog_changed" in s or ("TRANSMOG" in s and "Button.new()" in s) or "equip_wearable" in s:
-                  print("\nFILE",p)
-                  print(s[:50000])
-          print("=== D3D9 EQUIPMENT PROBE END ===")
-          raise SystemExit(91)
-          PY
           # Fetch Quaternius D3D.1 character assets (same CC0 model contained in the uploaded pack).
           echo "Fetch Quaternius D3D.1 character assets"
           MODEL_DIR="$PROJECT_DIR/assets/models/superhero_male"
@@ -266,8 +254,8 @@ jobs:
           "$APKSIGNER" verify --verbose --print-certs "$APK" | tee apk-signature.txt
           "$AAPT" dump badging "$APK" | tee apk-badging.txt
           grep -q "package: name='org.wanderfall.game'" apk-badging.txt
-          grep -q "versionCode='37'" apk-badging.txt
-          grep -q "versionName='0.20.0D3D.8'" apk-badging.txt
+          grep -q "versionCode='38'" apk-badging.txt
+          grep -q "versionName='0.20.0D3D.9'" apk-badging.txt
           grep -q "application-label:'Wanderfall'" apk-badging.txt
           APK_BYTES="$(stat -c%s "$APK")"
           test "$APK_BYTES" -lt "$MAX_APK_BYTES"
