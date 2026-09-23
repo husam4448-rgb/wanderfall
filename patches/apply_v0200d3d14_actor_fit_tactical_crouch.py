@@ -20,7 +20,7 @@ rep('viewport_sprite.scale = Vector2(0.1575, 0.1575)',
     'viewport_sprite.scale = Vector2(0.171, 0.171)',"initial actor size")
 rep('viewport_sprite.scale = Vector2(0.1575, 0.1575)',
     'viewport_sprite.scale = Vector2(0.171, 0.171)',"runtime actor size")
-rep('    outfit_model.name = "SurvivorOutfit"\n',
+rep('    outfit_model.name = "SurvivorRangerOutfit"\n',
     '    outfit_model.name = "SurvivorOutfit"\n    outfit_model.scale = Vector3(1.13, 1.09, 1.13)\n',
     "full coverage outfit fit")
 
@@ -87,11 +87,11 @@ s=s[:a]+apparel+s[b:]
 # A simple matte pistol with distinguishable slide, frame, sights, grip and
 # muzzle. No metallic material that flashes white at certain camera angles.
 a=s.find("func _make_pistol() -> void:\n")
-b=s.find("\nfunc _rebuild_backpack_shape() -> void:\n",a)
+b=s.find("\nfunc ",a+len("func _make_pistol() -> void:\n"))
+if a<0:
+    raise SystemExit("D3D.14 pistol function anchor missing")
 if b<0:
-    b=s.find("\nfunc _rucksack_mesh() -> ArrayMesh:\n",a)
-if a<0 or b<0:
-    raise SystemExit("D3D.14 pistol function bounds missing")
+    b=len(s)
 gun=r'''func _make_pistol() -> void:
     gun_root = Node3D.new()
     gun_root.name = "Pistol3D"
