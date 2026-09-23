@@ -65,6 +65,44 @@ jobs:
           python3 patches/apply_v0177_mobile_hotbar_layers.py "$PROJECT_DIR"
           python3 patches/apply_v0178_dedicated_hotbar_layer.py "$PROJECT_DIR"
           python3 patches/apply_v0179_quick_item_buttons.py "$PROJECT_DIR"
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("game")
+          targets=[
+              root/"scripts/art/production_survivor_visual.gd",
+              root/"scripts/mobile_hud.gd",
+              root/"scripts/ui/ui_manager.gd",
+              root/"scripts/player.gd",
+              root/"scripts/components/equipment_component.gd",
+              root/"scripts/items/equipment_component.gd",
+          ]
+          needles=[
+              "viewport_sprite.scale","idle_phase","func _process","func refresh_gear",
+              "func _update_equipment_3d","gun_root.position","ACTOR_SCENE","BODY_SCENE",
+              "get_weapon_category","equipped","clothing","armor",
+              "func _change_inventory_icon_size","func _change_storage_icon_size",
+              "inventory_icon_scale_index","storage_icon_scale_index",
+              "func _begin_pointer_gesture","func _update_pointer_gesture",
+              "_resize_handles","custom_minimum_size","wanderfall_resizable",
+          ]
+          print("=== D3D6 DIAGNOSTIC START ===")
+          for p in targets:
+              if not p.is_file():
+                  continue
+              s=p.read_text(encoding="utf-8")
+              print("\nFILE",p)
+              for n in needles:
+                  i=s.find(n)
+                  if i < 0:
+                      continue
+                  a=max(0,s.rfind("\n",0,max(0,i-1000)))
+                  b=s.find("\nfunc ",i+1)
+                  if b<0 or b-i>5000:
+                      b=min(len(s),i+3200)
+                  print("\n---",n,"---")
+                  print(s[a:b])
+          print("=== D3D6 DIAGNOSTIC END ===")
+          PY
           # Fetch Quaternius D3D.1 character assets (same CC0 model contained in the uploaded pack).
           echo "Fetch Quaternius D3D.1 character assets"
           MODEL_DIR="$PROJECT_DIR/assets/models/superhero_male"
