@@ -68,42 +68,13 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           root=Path("game")
-          targets=[
-              root/"scripts/art/production_survivor_visual.gd",
-              root/"scripts/mobile_hud.gd",
-              root/"scripts/ui/ui_manager.gd",
-              root/"scripts/components/equipment_component.gd",
-              root/"scripts/items/equipment_component.gd",
-              root/"scripts/player.gd",
-          ]
-          needles=[
-              "func _apply_skeleton_pose",
-              "lowerarm_l","lowerarm_r","upperarm_l","upperarm_r",
-              "hand_l","hand_r","mobile_aim",
-              "backpack_root","func _rebuild_backpack_shape",
-              "func _sync_apparel_visuals","HeadMesh","Eyes","Eyebrows",
-              "inventory_use_button","func _refresh_inventory","func _use_inventory_item",
-              "func _on_inventory","func use_inventory","func _create_inventory",
-              "transmog","appearance","equip","unequip","get_visual_item",
-              "func refresh_gear","GEAR","gear",
-          ]
-          print("=== D3D9 DIAGNOSTIC START ===")
-          for p in targets:
-              if not p.is_file():
-                  continue
+          print("=== D3D9 EQUIPMENT PROBE START ===")
+          for p in root.rglob("*.gd"):
               s=p.read_text(encoding="utf-8")
-              print("\nFILE",p)
-              for n in needles:
-                  i=s.lower().find(n.lower())
-                  if i < 0:
-                      continue
-                  a=max(0,s.rfind("\n",0,max(0,i-2200)))
-                  b=s.find("\nfunc ",i+1)
-                  if b < 0 or b-i > 8500:
-                      b=min(len(s),i+6500)
-                  print("\n---",n,"---")
-                  print(s[a:b])
-          print("=== D3D9 DIAGNOSTIC END ===")
+              if "class_name EquipmentComponent" in s or "transmog_changed" in s or ("TRANSMOG" in s and "Button.new()" in s) or "equip_wearable" in s:
+                  print("\nFILE",p)
+                  print(s[:50000])
+          print("=== D3D9 EQUIPMENT PROBE END ===")
           raise SystemExit(91)
           PY
           # Fetch Quaternius D3D.1 character assets (same CC0 model contained in the uploaded pack).
