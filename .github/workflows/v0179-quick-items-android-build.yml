@@ -65,6 +65,14 @@ jobs:
           python3 patches/apply_v0177_mobile_hotbar_layers.py "$PROJECT_DIR"
           python3 patches/apply_v0178_dedicated_hotbar_layer.py "$PROJECT_DIR"
           python3 patches/apply_v0179_quick_item_buttons.py "$PROJECT_DIR"
+          python3 - <<'PY'
+          from pathlib import Path
+          for n in ["scripts/virtual_joystick.gd","scripts/input_state.gd"]:
+              print("FILE",n)
+              print((Path("game")/n).read_text()[:30000])
+          print("D3D13 PROBE END")
+          raise SystemExit(91)
+          PY
           # Fetch Quaternius D3D.1 character assets (same CC0 model contained in the uploaded pack).
           echo "Fetch Quaternius D3D.1 character assets"
           MODEL_DIR="$PROJECT_DIR/assets/models/superhero_male"
