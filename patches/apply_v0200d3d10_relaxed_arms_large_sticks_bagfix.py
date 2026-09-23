@@ -205,9 +205,8 @@ m=re.sub(
     m,count=1,
 )
 
-m=m.replace('"joystick_v0185"','"joystick_v0200d3d10"')
-m=m.replace('"aim_joystick_v0185"','"aim_joystick_v0200d3d10"')
-m=m.replace('"joystick_v0184"','"joystick_v0200d3d10"')
+m=re.sub(r'"joystick_v[0-9a-zA-Z_]+"','"joystick_v0200d3d10"',m,count=1)
+m=re.sub(r'"aim_joystick_v[0-9a-zA-Z_]+"','"aim_joystick_v0200d3d10"',m,count=1)
 
 # If later code still creates the aim stick at a small fixed size before layout,
 # enlarge that initial footprint too.
