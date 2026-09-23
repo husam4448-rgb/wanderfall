@@ -151,6 +151,11 @@ jobs:
           curl -fL --retry 3 -o "$MODEL_DIR/Male_Peasant.bin" "$OUTFIT_BASE/Male_Peasant.bin"
           curl -fL --retry 3 -o "$MODEL_DIR/T_Peasant_BaseColor.png" "$OUTFIT_BASE/T_Peasant_BaseColor.png"
 
+echo "Fetch compatible D3D.9 survivor hair"
+curl -fL --retry 3 -o "$MODEL_DIR/Hair_SimpleParted.gltf" "https://raw.githubusercontent.com/joega/check-and-conquer/b2a3a3418dc080e782c1e5d386d258145346a218/assets/characters/quaternius/hair/Hair_SimpleParted.gltf"
+curl -fL --retry 3 -o "$MODEL_DIR/Hair_SimpleParted.bin" "https://raw.githubusercontent.com/joega/check-and-conquer/b2a3a3418dc080e782c1e5d386d258145346a218/assets/characters/quaternius/hair/Hair_SimpleParted.bin"
+curl -fL --retry 3 -o "$MODEL_DIR/T_Hair_1_Normal.png" "https://raw.githubusercontent.com/joega/check-and-conquer/b2a3a3418dc080e782c1e5d386d258145346a218/assets/characters/quaternius/hair/T_Hair_1_Normal.png"
+
           python3 - <<'PY'
           import json
           from pathlib import Path
