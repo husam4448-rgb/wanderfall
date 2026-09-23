@@ -156,34 +156,19 @@ if needle not in v:
     raise SystemExit('D3D.8 skeleton setup anchor missing')
 v=v.replace(needle,replacement,1)
 
-# Armed does not mean actively aiming. Only use the compact two-hand firearm pose
-# while the right stick is actually held for aim.
-v, _d3d8_pose_sig = re.subn(
-    r'func _apply_skeleton_pose\\(armed: bool, moving: bool(?:, aiming: bool = false)?\\) -> void:',
-    'func _apply_skeleton_pose(armed: bool, moving: bool, aiming: bool = false) -> void:',
-    v,
-    count=1,
-)
-if not _d3d8_pose_sig:
-    raise SystemExit('D3D.8 pose signature anchor missing')
-v=v.replace(
-    '        _apply_skeleton_pose(armed, moving)',
-    '        _apply_skeleton_pose(armed, moving, aiming)',
-    1,
-)
-
-# Introduce aim state next to armed state and make it participate in pose changes.
+# Armed does not mean actively aiming. Keep aim state as a member so the existing
+# pose-function signature remains untouched across reconstruction variants.
 armed_line='    var armed := _weapon_category() == "firearm"\n'
 if armed_line not in v:
     raise SystemExit('D3D.8 armed state anchor missing')
 v=v.replace(
     armed_line,
-    armed_line + '    var aiming := armed and InputState.mobile_aim_active and InputState.mobile_aim.length_squared() > 0.04\n',
+    armed_line + '    var aiming := armed and InputState.mobile_aim_active and InputState.mobile_aim.length_squared() > 0.04\n    _active_aiming = aiming\n',
     1,
 )
 v=v.replace(
     'var _last_armed := false\n',
-    'var _last_armed := false\nvar _last_aiming := false\n',
+    'var _last_armed := false\nvar _last_aiming := false\nvar _active_aiming := false\n',
     1,
 )
 v=v.replace(
@@ -199,7 +184,7 @@ v=v.replace(
 
 # Compact firearm stance only while aiming; relax arms naturally otherwise.
 v=v.replace('    if armed:\n        _point_bone_fast(skel, "lowerarm_r", "hand_r", Vector3(-0.04, -0.10, 0.99))',
-            '    if armed and aiming:\n        _point_bone_fast(skel, "lowerarm_r", "hand_r", Vector3(-0.08, -0.20, 0.975))',1)
+            '    if armed and _active_aiming:\n        _point_bone_fast(skel, "lowerarm_r", "hand_r", Vector3(-0.08, -0.20, 0.975))',1)
 v=v.replace(
     '            var grip_target := skel.get_bone_global_pose(r_hand_idx).origin + Vector3(-0.055, -0.015, 0.025)',
     '            var grip_target := skel.get_bone_global_pose(r_hand_idx).origin + Vector3(-0.040, -0.025, 0.015)',
