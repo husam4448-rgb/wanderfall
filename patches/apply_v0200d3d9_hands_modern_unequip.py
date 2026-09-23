@@ -435,7 +435,7 @@ func _unequip_current_slot() -> void:
     if player == null:
         return
     var slot := _slots[_slot_index]
-    var item_id := player.equipment.get_equipped(slot)
+    var item_id: String = String(player.equipment.get_equipped(slot))
     if item_id.is_empty():
         player.interaction_message.emit("Nothing equipped in %s." % slot)
     else:
