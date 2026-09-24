@@ -55,8 +55,11 @@ pose=pose.replace(
     1
 )
 
-# Stronger anatomical finger curl around the grip. Keep index a little less
-# closed than the middle/ring/pinky so it does not look like a fist.
+s=s[:pose_a]+pose+s[pose_b:]
+
+# Stronger anatomical finger curl around the pistol grip. The helper is
+# defined immediately before the pose function, so patch it in the full script
+# rather than inside the pose-function slice.
 old_curl='''    var curls := {
         "01": -0.55,
         "02": -0.72,
@@ -69,18 +72,16 @@ new_curl='''    var curls := {
         "03": -0.78,
     }
 '''
-if old_curl not in pose:
+if s.count(old_curl)!=1:
     raise SystemExit("D3D.19 finger curl anchor missing")
-pose=pose.replace(old_curl,new_curl,1)
-if 'Quaternion(Vector3.RIGHT, -0.34)' not in pose:
+s=s.replace(old_curl,new_curl,1)
+if s.count('Quaternion(Vector3.RIGHT, -0.34)')!=1:
     raise SystemExit("D3D.19 thumb curl anchor missing")
-pose=pose.replace(
+s=s.replace(
     'Quaternion(Vector3.RIGHT, -0.34)',
     'Quaternion(Vector3.RIGHT, -0.58)',
     1
 )
-
-s=s[:pose_a]+pose+s[pose_b:]
 
 # ------------------------------------------------------------------
 # 2) Clothing: retain successful coverage but trim the excessive shell.
