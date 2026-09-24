@@ -149,7 +149,7 @@ if old_loop not in sync:
 new_loop='''    for skel in [ranger_skeleton,outfit_skeleton]:
         if skel == null:
             continue
-        var show_head_copy := full_body_coverage and skel == ranger_skeleton
+        var show_head_copy: bool = bool(full_body_coverage and skel == ranger_skeleton)
         for extra in ["HeadMesh","Eyes","Eyebrows","SurvivorHair"]:
             var duplicate: Node = skel.get_node_or_null(extra)
             if duplicate is Node3D:
