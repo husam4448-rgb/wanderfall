@@ -65,6 +65,26 @@ jobs:
           python3 patches/apply_v0177_mobile_hotbar_layers.py "$PROJECT_DIR"
           python3 patches/apply_v0178_dedicated_hotbar_layer.py "$PROJECT_DIR"
           python3 patches/apply_v0179_quick_item_buttons.py "$PROJECT_DIR"
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("game")
+          print("=== D3D21 PROBE ===")
+          for rel in ["scripts/art/production_survivor_visual.gd","scripts/player.gd","scripts/mobile_hud.gd","scripts/world/world_chunk.gd"]:
+              p=root/rel
+              s=p.read_text()
+              print("\nFILE",rel)
+              needles=["body_type","setup_equipment","set_body_type","_production_visual","female","tree","Tree","_draw_prop","_draw_tree","func _sync_apparel_visuals","func _ensure_3d_stage","func _apply_pose_to_skeleton"]
+              for n in needles:
+                  pos=0
+                  shown=0
+                  while True:
+                      i=s.find(n,pos)
+                      if i<0 or shown>=6: break
+                      print("\nHIT",n,"@",i,"\n",s[max(0,i-900):min(len(s),i+3600)])
+                      pos=i+len(n); shown+=1
+          print("=== D3D21 PROBE END ===")
+          raise SystemExit(91)
+          PY
           # Fetch Quaternius D3D.1 character assets (same CC0 model contained in the uploaded pack).
           echo "Fetch Quaternius D3D.1 character assets"
           MODEL_DIR="$PROJECT_DIR/assets/models/superhero_male"
