@@ -65,14 +65,6 @@ jobs:
           python3 patches/apply_v0177_mobile_hotbar_layers.py "$PROJECT_DIR"
           python3 patches/apply_v0178_dedicated_hotbar_layer.py "$PROJECT_DIR"
           python3 patches/apply_v0179_quick_item_buttons.py "$PROJECT_DIR"
-          python3 - <<'PY'
-          from pathlib import Path
-          for rel in ["scripts/world/tree_canopy_overlay.gd","scripts/ecology/natural_resource.gd"]:
-              p=Path("game")/rel
-              print("\nFILE",rel)
-              print(p.read_text()[:26000])
-          raise SystemExit(91)
-          PY
           # Fetch Quaternius D3D.1 character assets (same CC0 model contained in the uploaded pack).
           echo "Fetch Quaternius D3D.1 character assets"
           MODEL_DIR="$PROJECT_DIR/assets/models/superhero_male"
@@ -197,6 +189,75 @@ jobs:
           PY
           test "$(stat -c%s "$MODEL_DIR/Male_Peasant.bin")" -eq 674764
 
+          echo "Fetch Quaternius D3D.21 female template assets"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/Superhero_Female_FullBody.gltf" "$MODEL_BASE/Superhero_Female_FullBody.gltf"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/Superhero_Female_FullBody.bin" "$MODEL_BASE/Superhero_Female_FullBody.bin"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/T_Hair_2_BaseColor.png" "$MODEL_BASE/T_Hair_2_BaseColor.png"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/T_Superhero_Female_Dark_BaseColor.png" "$MODEL_BASE/T_Superhero_Female_Dark_BaseColor.png"
+          curl -fL --retry 3 -o "$MODEL_DIR/Female_Ranger.gltf" "$OUTFIT_BASE/Female_Ranger.gltf"
+          curl -fL --retry 3 -o "$MODEL_DIR/Female_Ranger.bin" "$OUTFIT_BASE/Female_Ranger.bin"
+          curl -fL --retry 3 -o "$MODEL_DIR/Female_Peasant.gltf" "$OUTFIT_BASE/Female_Peasant.gltf"
+          curl -fL --retry 3 -o "$MODEL_DIR/Female_Peasant.bin" "$OUTFIT_BASE/Female_Peasant.bin"
+          curl -fL --retry 3 -o "$MODEL_DIR/T_Regular_Female_Dark_BaseColor.png" "$OUTFIT_BASE/T_Regular_Female_Dark_BaseColor.png"
+
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path("game/assets/models/superhero_male")
+
+          p=root/"Superhero_Female_FullBody.gltf"
+          d=json.loads(p.read_text(encoding="utf-8"))
+          d["images"]=[
+              {"mimeType":"image/png","name":"HairBase","uri":"T_Hair_2_BaseColor.png"},
+              {"mimeType":"image/png","name":"EyeBase","uri":"T_Eye_Brown.png"},
+              {"mimeType":"image/png","name":"BodyBase","uri":"T_Superhero_Female_Dark_BaseColor.png"},
+          ]
+          d["samplers"]=[{"magFilter":9729,"minFilter":9987,"wrapS":10497,"wrapT":10497}]
+          d["textures"]=[{"sampler":0,"source":0},{"sampler":0,"source":1},{"sampler":0,"source":2}]
+          for i,mat in enumerate(d.get("materials",[])):
+              mat.pop("normalTexture",None)
+              pbr=mat.setdefault("pbrMetallicRoughness",{})
+              pbr["baseColorTexture"]={"index":i}
+              pbr.pop("metallicRoughnessTexture",None)
+              pbr["metallicFactor"]=0.0
+              pbr["roughnessFactor"]=0.76
+          p.write_text(json.dumps(d,separators=(",",":")),encoding="utf-8")
+
+          p=root/"Female_Ranger.gltf"
+          d=json.loads(p.read_text(encoding="utf-8"))
+          d["images"]=[
+              {"mimeType":"image/png","name":"RangerBase","uri":"T_Ranger_BaseColor.png"},
+              {"mimeType":"image/png","name":"RegularFemaleBase","uri":"T_Regular_Female_Dark_BaseColor.png"},
+          ]
+          d["samplers"]=[{"magFilter":9729,"minFilter":9987,"wrapS":10497,"wrapT":10497}]
+          d["textures"]=[{"sampler":0,"source":0},{"sampler":0,"source":1}]
+          for i,mat in enumerate(d.get("materials",[])):
+              mat.pop("normalTexture",None)
+              pbr=mat.setdefault("pbrMetallicRoughness",{})
+              pbr["baseColorTexture"]={"index":min(i,1)}
+              pbr.pop("metallicRoughnessTexture",None)
+              pbr["metallicFactor"]=0.0
+              pbr["roughnessFactor"]=0.82
+          p.write_text(json.dumps(d,separators=(",",":")),encoding="utf-8")
+
+          p=root/"Female_Peasant.gltf"
+          d=json.loads(p.read_text(encoding="utf-8"))
+          d["images"]=[{"mimeType":"image/png","name":"PeasantBase","uri":"T_Peasant_BaseColor.png"}]
+          d["samplers"]=[{"magFilter":9729,"minFilter":9987,"wrapS":10497,"wrapT":10497}]
+          d["textures"]=[{"sampler":0,"source":0}]
+          for mat in d.get("materials",[]):
+              mat.pop("normalTexture",None)
+              pbr=mat.setdefault("pbrMetallicRoughness",{})
+              pbr["baseColorTexture"]={"index":0}
+              pbr.pop("metallicRoughnessTexture",None)
+              pbr["metallicFactor"]=0.0
+              pbr["roughnessFactor"]=0.86
+          p.write_text(json.dumps(d,separators=(",",":")),encoding="utf-8")
+          PY
+          test -s "$MODEL_DIR/Superhero_Female_FullBody.bin"
+          test -s "$MODEL_DIR/Female_Ranger.bin"
+          test -s "$MODEL_DIR/Female_Peasant.bin"
+
           python3 "$PROJECT_DIR/tools/preflight.py" "$PROJECT_DIR"
 
       - name: Set up Java 17
@@ -267,8 +328,8 @@ jobs:
           "$APKSIGNER" verify --verbose --print-certs "$APK" | tee apk-signature.txt
           "$AAPT" dump badging "$APK" | tee apk-badging.txt
           grep -q "package: name='org.wanderfall.game'" apk-badging.txt
-          grep -q "versionCode='49'" apk-badging.txt
-          grep -q "versionName='0.20.0D3D.20'" apk-badging.txt
+          grep -q "versionCode='50'" apk-badging.txt
+          grep -q "versionName='0.20.0D3D.21'" apk-badging.txt
           grep -q "application-label:'Wanderfall'" apk-badging.txt
           APK_BYTES="$(stat -c%s "$APK")"
           test "$APK_BYTES" -lt "$MAX_APK_BYTES"
