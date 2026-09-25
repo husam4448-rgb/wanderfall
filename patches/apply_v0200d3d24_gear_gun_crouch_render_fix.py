@@ -43,7 +43,7 @@ sync=sync.replace(old_regions,new_regions,1)
 # Give each shell enough thickness to fully cover its matching body surface.
 repls=[
 ('_scale_wearable_part(ranger_model,ranger_prefix+"Body",Vector3(1.035,1.015,1.035))',
- '_scale_wearable_part(ranger_model,ranger_prefix+"Body",Vector3(1.075,1.030,1.075))'),
+ '_scale_wearable_part(ranger_model,ranger_prefix+"Body",Vector3(1.075,1.015,1.075))'),
 ('_scale_wearable_part(ranger_model,ranger_prefix+("Feet" if is_female else "Feet_Boots"),Vector3(1.040,1.022,1.040))',
  '_scale_wearable_part(ranger_model,ranger_prefix+("Feet" if is_female else "Feet_Boots"),Vector3(1.105,1.075,1.105))'),
 ('_scale_wearable_part(ranger_model,ranger_prefix+"Arms_Bracer",Vector3(1.045,1.022,1.045))',
@@ -58,28 +58,7 @@ for old,new in repls:
         raise SystemExit("D3D.24 wearable scale anchor missing: "+old)
     sync=sync.replace(old,new,1)
 
-# Lower the torso shell slightly so added coverage does not climb into neck/head.
-helper='''func _offset_wearable_part(model: Node3D, node_name: String, offset: Vector3) -> void:
-    if model == null:
-        return
-    var part := model.find_child(node_name,true,false)
-    if part is Node3D:
-        (part as Node3D).position = offset
-
-'''
-helper_anchor='func _sync_apparel_visuals() -> void:\n'
-if "func _offset_wearable_part(" not in s:
-    s=s[:sync_a]+helper+s[sync_a:]
-    sync_a=s.find("func _sync_apparel_visuals() -> void:\n")
-    sync_b=s.find("\nfunc _weapon_category() -> String:\n",sync_a)
-    sync=s[sync_a:sync_b]
-offset_anchor='''    _scale_wearable_part(outfit_model,peasant_prefix+"Legs",Vector3(1.085,1.050,1.085))
-'''
-if offset_anchor not in sync:
-    raise SystemExit("D3D.24 offset anchor missing")
-sync=sync.replace(offset_anchor,offset_anchor+'''    _offset_wearable_part(ranger_model,ranger_prefix+"Body",Vector3(0.0,-0.018,0.0))
-''',1)
-s=s[:sync_a]+sync+s[sync_b:]
+# Commit the corrected independent wearable block.\ns=s[:sync_a]+sync+s[sync_b:]
 
 # ------------------------------------------------------------------
 # 2) Crouch: undo D3D.23 foot/ball reset that collapsed the feet.
