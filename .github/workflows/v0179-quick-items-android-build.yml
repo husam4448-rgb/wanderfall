@@ -155,6 +155,14 @@ jobs:
           curl -fL --retry 3 -o "$MODEL_DIR/Hair_SimpleParted.gltf" "https://raw.githubusercontent.com/joega/check-and-conquer/b2a3a3418dc080e782c1e5d386d258145346a218/assets/characters/quaternius/hair/Hair_SimpleParted.gltf"
           curl -fL --retry 3 -o "$MODEL_DIR/Hair_SimpleParted.bin" "https://raw.githubusercontent.com/joega/check-and-conquer/b2a3a3418dc080e782c1e5d386d258145346a218/assets/characters/quaternius/hair/Hair_SimpleParted.bin"
           curl -fL --retry 3 -o "$MODEL_DIR/T_Hair_1_Normal.png" "https://raw.githubusercontent.com/joega/check-and-conquer/b2a3a3418dc080e782c1e5d386d258145346a218/assets/characters/quaternius/hair/T_Hair_1_Normal.png"
+          echo "Fetch Quaternius D3D.22 long female hair"
+          FEMALE_HAIR_BASE="https://raw.githubusercontent.com/robert-porter/sprite-renderer/fb8b9ee247ed2e5d9b5dfebd408382156be3b57f/assets/quaternius/universal/universal-base-characters/Universal%20Base%20Characters%5BStandard%5D/Hairstyles/Rigged%20to%20Head%20Bone/glTF%20(Godot%20-Unreal)"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/Hair_Long.gltf" "$FEMALE_HAIR_BASE/Hair_Long.gltf"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/Hair_Long.bin" "$FEMALE_HAIR_BASE/Hair_Long.bin"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/T_Hair_2_Normal.png" "$FEMALE_HAIR_BASE/T_Hair_2_Normal.png"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/T_Hair_2_BaseColor.png" "$FEMALE_HAIR_BASE/T_Hair_2_BaseColor.png"
+          test -s "$MODEL_DIR/Hair_Long.bin"
+
 
           python3 - <<'PY'
           import json
@@ -328,8 +336,8 @@ jobs:
           "$APKSIGNER" verify --verbose --print-certs "$APK" | tee apk-signature.txt
           "$AAPT" dump badging "$APK" | tee apk-badging.txt
           grep -q "package: name='org.wanderfall.game'" apk-badging.txt
-          grep -q "versionCode='50'" apk-badging.txt
-          grep -q "versionName='0.20.0D3D.21'" apk-badging.txt
+          grep -q "versionCode='51'" apk-badging.txt
+          grep -q "versionName='0.20.0D3D.22'" apk-badging.txt
           grep -q "application-label:'Wanderfall'" apk-badging.txt
           APK_BYTES="$(stat -c%s "$APK")"
           test "$APK_BYTES" -lt "$MAX_APK_BYTES"
