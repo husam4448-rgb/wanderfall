@@ -44,7 +44,7 @@ sync=sync.replace(old_regions,new_regions,1)
 repls=[
 ('_scale_wearable_part(ranger_model,ranger_prefix+"Body",Vector3(1.035,1.015,1.035))',
  '_scale_wearable_part(ranger_model,ranger_prefix+"Body",Vector3(1.075,1.030,1.075))'),
-('_scale_wearable_part(ranger_model,ranger_prefix+("Feet" if is_female else "Feet_Boots"),Vector3(1.065,1.035,1.065))',
+('_scale_wearable_part(ranger_model,ranger_prefix+("Feet" if is_female else "Feet_Boots"),Vector3(1.040,1.022,1.040))',
  '_scale_wearable_part(ranger_model,ranger_prefix+("Feet" if is_female else "Feet_Boots"),Vector3(1.105,1.075,1.105))'),
 ('_scale_wearable_part(ranger_model,ranger_prefix+"Arms_Bracer",Vector3(1.045,1.022,1.045))',
  '_scale_wearable_part(ranger_model,ranger_prefix+"Arms_Bracer",Vector3(1.070,1.035,1.070))'),
