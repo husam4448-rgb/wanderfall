@@ -21,7 +21,7 @@ env:
   GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
   GODOT_TEMPLATES_TPZ: /tmp/Godot_v4.7.2-stable_export_templates.tpz
   GODOT_TEMPLATES_SHA256: f298490b8d44d934be425a5a65a51bf15f422428b229a06a6e11d9ffea248011
-  APK_PATH: Wanderfall-v0.17.9-debug.apk
+  APK_PATH: Survival-Paradise-v0.20.0D3D.32.apk
   MAX_APK_BYTES: '419430400'
 
 jobs:
@@ -336,20 +336,20 @@ jobs:
           "$APKSIGNER" verify --verbose --print-certs "$APK" | tee apk-signature.txt
           "$AAPT" dump badging "$APK" | tee apk-badging.txt
           grep -q "package: name='org.wanderfall.game'" apk-badging.txt
-          grep -q "versionCode='60'" apk-badging.txt
-          grep -q "versionName='0.20.0D3D.31'" apk-badging.txt
+          grep -q "versionCode='61'" apk-badging.txt
+          grep -q "versionName='0.20.0D3D.32'" apk-badging.txt
           grep -q "application-label:'Wanderfall'" apk-badging.txt
           APK_BYTES="$(stat -c%s "$APK")"
           test "$APK_BYTES" -lt "$MAX_APK_BYTES"
-          sha256sum "$APK" | tee Wanderfall-v0.17.9-debug.apk.sha256
+          sha256sum "$APK" | tee Survival-Paradise-v0.20.0D3D.32.apk.sha256
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Wanderfall-Android-v0.17.9-quick-items-debug
+          name: Survival-Paradise-v0.20.0D3D.32-debug
           path: |
-            Wanderfall-v0.17.9-debug.apk
-            Wanderfall-v0.17.9-debug.apk.sha256
+            Survival-Paradise-v0.20.0D3D.32.apk
+            Survival-Paradise-v0.20.0D3D.32.apk.sha256
             android-export.log
             godot-v0179-parser.log
             apk-signature.txt
