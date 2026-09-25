@@ -43,6 +43,9 @@ sync_b=s.find("\nfunc _weapon_category() -> String:\n",sync_a)
 if sync_a<0 or sync_b<0:
     raise SystemExit("D3D.25 apparel bounds missing")
 sync=s[sync_a:sync_b]
+print("D3D25_SYNC_DUMP_BEGIN")
+print(sync)
+print("D3D25_SYNC_DUMP_END")
 
 # Replace the covered-region calls by key rather than depending on a prior
 # comment/body formatting variant.
