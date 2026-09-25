@@ -104,13 +104,79 @@ female_scale='''    if body_type == "female":
 pose=pose.replace(reset_anchor,reset_anchor+female_scale,1)
 
 # 4) Stable crouch: lower vertically around the original body/head axis.
-old_pelvis='''        var pelvis_offset := Vector3(0.0,-0.145,0.035) if crouching else Vector3.ZERO
-'''
-new_pelvis='''        var pelvis_offset := Vector3(0.0,-0.115,0.0) if crouching else Vector3.ZERO
-'''
-if old_pelvis not in pose:
-    raise SystemExit("D3D.22 crouch pelvis anchor missing")
-pose=pose.replace(old_pelvis,new_pelvis,1)
+pelvis_pattern=r'(?m)^        var pelvis_offset := Vector3\\([^\\n]*\\) if crouching else Vector3.ZERO
+# Crouch leg targets: narrower than the old motorcycle/squat pose; knees bend,
+# feet stay beneath the body instead of sending the pelvis forward.
+for old,new in [
+    ('Vector3(0.14,-0.75,0.48+crouch_step)','Vector3(0.11,-0.80,0.31+crouch_step)'),
+    ('Vector3(-0.14,-0.75,0.48-crouch_step)','Vector3(-0.11,-0.80,0.31-crouch_step)'),
+    ('Vector3(0.075,-0.78,-crouch_knee)','Vector3(0.055,-0.83,-0.40)'),
+    ('Vector3(-0.075,-0.78,-crouch_knee)','Vector3(-0.055,-0.83,-0.40)'),
+]:
+    if old not in pose:
+        raise SystemExit("D3D.22 crouch leg anchor missing "+old)
+    pose=pose.replace(old,new,1)
+
+# Reduce crouch torso pitch substantially; head/neck counterpose keeps gaze level.
+for old,new in [
+    ('deg_to_rad(12.0)','deg_to_rad(6.0)'),
+    ('deg_to_rad(7.0)','deg_to_rad(3.0)'),
+    ('deg_to_rad(-12.0)','deg_to_rad(-5.0)'),
+    ('deg_to_rad(-7.0)','deg_to_rad(-4.0)'),
+]:
+    if old not in pose:
+        raise SystemExit("D3D.22 crouch lean anchor missing "+old)
+    pose=pose.replace(old,new,1)
+
+s=s[:pose_a]+pose+s[pose_b:]
+
+# 5) Individual clothing shells: tiny coverage margin only, avoiding bulky full-set look.
+sync_a=s.find("func _sync_apparel_visuals() -> void:\n")
+sync_b=s.find("\nfunc _weapon_category() -> String:\n",sync_a)
+if sync_a<0 or sync_b<0:
+    raise SystemExit("D3D.22 apparel bounds missing")
+sync=s[sync_a:sync_b]
+for old,new in [
+    ('Vector3(1.025,1.01,1.025)','Vector3(1.035,1.015,1.035)'),
+    ('Vector3(1.035,1.02,1.035)','Vector3(1.040,1.022,1.040)'),
+    ('Vector3(1.04,1.02,1.04)','Vector3(1.045,1.022,1.045)'),
+    ('Vector3(1.03,1.01,1.03)','Vector3(1.040,1.015,1.040)'),
+    ('Vector3(1.025,1.01,1.025)','Vector3(1.035,1.015,1.035)'),
+]:
+    if old in sync:
+        sync=sync.replace(old,new,1)
+s=s[:sync_a]+sync+s[sync_b:]
+
+visual.write_text(s,encoding="utf-8")
+
+# Build stamp.
+hud=root/"scripts/mobile_hud.gd"
+h=hud.read_text(encoding="utf-8")
+if 'marker.text = "D3D.21  |  MALE/FEMALE TEMPLATES"' not in h:
+    raise SystemExit("D3D.22 HUD marker anchor missing")
+h=h.replace('marker.text = "D3D.21  |  MALE/FEMALE TEMPLATES"','marker.text = "D3D.22  |  FEMALE + CROUCH FIX"',1)
+hud.write_text(h,encoding="utf-8")
+
+# Version.
+preset=root/"export_presets.cfg"
+p=preset.read_text(encoding="utf-8")
+p,n1=re.subn(r'(?m)^version/code=\d+$','version/code=51',p,count=1)
+p,n2=re.subn(r'(?m)^version/name="[^"]*"$','version/name="0.20.0D3D.22"',p,count=1)
+if n1!=1 or n2!=1:
+    raise SystemExit("D3D.22 version anchors missing")
+preset.write_text(p,encoding="utf-8")
+
+save=root/"scripts/save/save_manager.gd"
+if save.is_file():
+    t=save.read_text(encoding="utf-8")
+    t,_=re.subn(r'const GAME_VERSION := "[^"]+"','const GAME_VERSION := "0.20.0D3D.22"',t,count=1)
+    save.write_text(t,encoding="utf-8")
+
+print("Applied D3D.22: transparent viewport, long dark female hair with subtle sway, slimmer female legs, centered stable crouch/pivot, improved individual gear coverage.")
+
+pose,n_pelvis=re.subn(pelvis_pattern,'        var pelvis_offset := Vector3(0.0,-0.115,0.0) if crouching else Vector3.ZERO',pose,count=1)
+if n_pelvis!=1:
+    raise SystemExit("D3D.22 crouch pelvis pattern missing")
 
 # Crouch leg targets: narrower than the old motorcycle/squat pose; knees bend,
 # feet stay beneath the body instead of sending the pelvis forward.
