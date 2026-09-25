@@ -43,38 +43,39 @@ sync_b=s.find("\nfunc _weapon_category() -> String:\n",sync_a)
 if sync_a<0 or sync_b<0:
     raise SystemExit("D3D.25 apparel bounds missing")
 sync=s[sync_a:sync_b]
-print("D3D25_SYNC_DUMP_BEGIN")
-print(sync)
-print("D3D25_SYNC_DUMP_END")
 
-# Replace the covered-region calls by key rather than depending on a prior
-# comment/body formatting variant.
-subs=[
-    (r'_set_skin_region\("hips",[^\n]+\)', '_set_skin_region("hips",not (shirt or trousers))'),
-    (r'_set_skin_region\("upperarms",[^\n]+\)', '_set_skin_region("upperarms",not shirt)'),
-    (r'_set_skin_region\("forearms",[^\n]+\)', '_set_skin_region("forearms",not shirt)'),
-]
-for pattern,replacement in subs:
-    sync,n=re.subn(pattern,replacement,sync,count=1)
-    if n!=1:
-        raise SystemExit("D3D.25 apparel regex anchor missing "+pattern)
-sync,n=re.subn(
-    r'_set_skin_region\("legs",[^\n]+\)',
-    '_set_skin_region("thighs",not trousers)\\n        _set_skin_region("calves",not boots)',
-    sync,
-    count=1
-)
-if n!=1:
-    raise SystemExit("D3D.25 leg visibility anchor missing")
+old_regions='''    if segmented:
+        # All anatomical skin remains present under independent wearable shells.
+        # This prevents jeans from deleting bare calves/feet and boots from
+        # depending on trousers or the rest of the costume.
+        for region_name in ["head","torso","hips","upperarms","forearms","hands","legs","feet"]:
+            _set_skin_region(region_name,true)
+'''
+new_regions='''    if segmented:
+        # One anatomical shell per covered zone: no duplicate torso/arms.
+        # Trousers and boots stay independent by splitting thighs from calves.
+        _set_skin_region("head",true)
+        _set_skin_region("torso",not shirt)
+        _set_skin_region("hips",not (shirt or trousers))
+        _set_skin_region("upperarms",not shirt)
+        _set_skin_region("forearms",not shirt)
+        _set_skin_region("hands",not gloves)
+        _set_skin_region("thighs",not trousers)
+        _set_skin_region("calves",not boots)
+        _set_skin_region("feet",not boots)
+'''
+if old_regions not in sync:
+    raise SystemExit("D3D.25 reconstructed D3D.23 region block missing")
+sync=sync.replace(old_regions,new_regions,1)
 
 # Keep coverage margins, but remove the excessive inflation introduced in D3D.24.
 # The body underneath is now correctly occluded, so garments do not need to be huge.
 for old,new in [
-    ('Vector3(1.075,1.015,1.075)','Vector3(1.045,1.010,1.045)'),
-    ('Vector3(1.105,1.075,1.105)','Vector3(1.060,1.040,1.060)'),
-    ('Vector3(1.070,1.035,1.070)','Vector3(1.045,1.020,1.045)'),
-    ('Vector3(1.065,1.030,1.065)','Vector3(1.040,1.015,1.040)'),
-    ('Vector3(1.085,1.050,1.085)','Vector3(1.050,1.025,1.050)'),
+    ('Vector3(1.035,1.015,1.035)','Vector3(1.030,1.008,1.030)'),
+    ('Vector3(1.040,1.022,1.040)','Vector3(1.035,1.018,1.035)'),
+    ('Vector3(1.045,1.022,1.045)','Vector3(1.035,1.018,1.035)'),
+    ('Vector3(1.040,1.015,1.040)','Vector3(1.030,1.010,1.030)'),
+    ('Vector3(1.055,1.025,1.055)','Vector3(1.040,1.018,1.040)'),
 ]:
     if old not in sync:
         raise SystemExit("D3D.25 garment scale anchor missing "+old)
