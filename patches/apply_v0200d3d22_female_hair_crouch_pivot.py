@@ -104,7 +104,10 @@ female_scale='''    if body_type == "female":
 pose=pose.replace(reset_anchor,reset_anchor+female_scale,1)
 
 # 4) Stable crouch: lower vertically around the original body/head axis.
-pelvis_pattern=r'(?m)^        var pelvis_offset := Vector3\([^\n]*\) if crouching else Vector3\.ZERO# Crouch leg targets: narrower than the old motorcycle/squat pose; knees bend,
+pelvis_pattern=r'(?m)^        var pelvis_offset := Vector3\\([^\\n]*\\) if crouching else Vector3\\.ZERO$'
+pose,n_pelvis=re.subn(pelvis_pattern,'        var pelvis_offset := Vector3(0.0,-0.115,0.0) if crouching else Vector3.ZERO',pose,count=1)
+if n_pelvis!=1:
+    raise SystemExit("D3D.22 crouch pelvis pattern missing")
 # feet stay beneath the body instead of sending the pelvis forward.
 for old,new in [
     ('Vector3(0.14,-0.75,0.48+crouch_step)','Vector3(0.11,-0.80,0.31+crouch_step)'),
