@@ -44,34 +44,20 @@ if sync_a<0 or sync_b<0:
     raise SystemExit("D3D.25 apparel bounds missing")
 sync=s[sync_a:sync_b]
 
-old_block='''    if segmented:
-        # Each item is independent. Hide only the body zone that the item fully
-        # replaces; leave partially covered limbs available beneath their shell.
-        _set_skin_region("head",true)
-        _set_skin_region("torso",not shirt)
-        _set_skin_region("hips",not trousers)
-        _set_skin_region("upperarms",true)
-        _set_skin_region("forearms",true)
-        _set_skin_region("hands",not gloves)
-        _set_skin_region("legs",true)
-        _set_skin_region("feet",not boots)
-'''
-new_block='''    if segmented:
-        # Exactly one shell is rendered for each covered anatomical zone.
-        # This prevents doubled shoulders/arms and keeps each item independent.
-        _set_skin_region("head",true)
-        _set_skin_region("torso",not shirt)
-        _set_skin_region("hips",not (shirt or trousers))
-        _set_skin_region("upperarms",not shirt)
-        _set_skin_region("forearms",not shirt)
-        _set_skin_region("hands",not gloves)
-        _set_skin_region("thighs",not trousers)
-        _set_skin_region("calves",not boots)
-        _set_skin_region("feet",not boots)
-'''
-if old_block not in sync:
-    raise SystemExit("D3D.25 D3D.24 apparel visibility anchor missing")
-sync=sync.replace(old_block,new_block,1)
+# Replace D3D.24 region visibility line-by-line so this stays robust to comments.
+for old,new in [
+    ('        _set_skin_region("hips",not trousers)\n',
+     '        _set_skin_region("hips",not (shirt or trousers))\n'),
+    ('        _set_skin_region("upperarms",true)\n',
+     '        _set_skin_region("upperarms",not shirt)\n'),
+    ('        _set_skin_region("forearms",true)\n',
+     '        _set_skin_region("forearms",not shirt)\n'),
+    ('        _set_skin_region("legs",true)\n',
+     '        _set_skin_region("thighs",not trousers)\n        _set_skin_region("calves",not boots)\n'),
+]:
+    if old not in sync:
+        raise SystemExit("D3D.25 apparel line anchor missing "+old.strip())
+    sync=sync.replace(old,new,1)
 
 # Keep coverage margins, but remove the excessive inflation introduced in D3D.24.
 # The body underneath is now correctly occluded, so garments do not need to be huge.
