@@ -44,20 +44,25 @@ if sync_a<0 or sync_b<0:
     raise SystemExit("D3D.25 apparel bounds missing")
 sync=s[sync_a:sync_b]
 
-# Replace D3D.24 region visibility line-by-line so this stays robust to comments.
-for old,new in [
-    ('        _set_skin_region("hips",not trousers)\n',
-     '        _set_skin_region("hips",not (shirt or trousers))\n'),
-    ('        _set_skin_region("upperarms",true)\n',
-     '        _set_skin_region("upperarms",not shirt)\n'),
-    ('        _set_skin_region("forearms",true)\n',
-     '        _set_skin_region("forearms",not shirt)\n'),
-    ('        _set_skin_region("legs",true)\n',
-     '        _set_skin_region("thighs",not trousers)\n        _set_skin_region("calves",not boots)\n'),
-]:
-    if old not in sync:
-        raise SystemExit("D3D.25 apparel line anchor missing "+old.strip())
-    sync=sync.replace(old,new,1)
+# Replace the covered-region calls by key rather than depending on a prior
+# comment/body formatting variant.
+subs=[
+    (r'_set_skin_region\("hips",[^\n]+\)', '_set_skin_region("hips",not (shirt or trousers))'),
+    (r'_set_skin_region\("upperarms",[^\n]+\)', '_set_skin_region("upperarms",not shirt)'),
+    (r'_set_skin_region\("forearms",[^\n]+\)', '_set_skin_region("forearms",not shirt)'),
+]
+for pattern,replacement in subs:
+    sync,n=re.subn(pattern,replacement,sync,count=1)
+    if n!=1:
+        raise SystemExit("D3D.25 apparel regex anchor missing "+pattern)
+sync,n=re.subn(
+    r'_set_skin_region\("legs",[^\n]+\)',
+    '_set_skin_region("thighs",not trousers)\\n        _set_skin_region("calves",not boots)',
+    sync,
+    count=1
+)
+if n!=1:
+    raise SystemExit("D3D.25 leg visibility anchor missing")
 
 # Keep coverage margins, but remove the excessive inflation introduced in D3D.24.
 # The body underneath is now correctly occluded, so garments do not need to be huge.
