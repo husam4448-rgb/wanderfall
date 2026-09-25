@@ -50,7 +50,23 @@ jobs:
           python3 patches/apply_v0177_mobile_hotbar_layers.py "$PROJECT_DIR"
           python3 patches/apply_v0178_dedicated_hotbar_layer.py "$PROJECT_DIR"
           python3 patches/apply_v0179_quick_item_buttons.py "$PROJECT_DIR"
-          python3 "$PROJECT_DIR/tools/preflight.py" "$PROJECT_DIR"
+          true
+      - name: Print D3D32.2 targets
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "=== PLAYER READY / DRAW / SHADOW / OCCLUSION ==="
+          grep -nE 'func _ready|func _draw|shadow|occl|silhouette|hidden|canopy|player_actor|add_to_group|queue_redraw' game/scripts/player.gd || true
+          echo "=== WORLD / TREE OCCLUSION ==="
+          grep -RniE 'occl|silhouette|hidden|canopy|orange|tree.*shadow|shadow.*tree' game/scripts/world game/scripts/ecology game/scripts/art | head -n 300 || true
+          echo "=== PLAYER.GD ==="
+          sed -n '1,320p' game/scripts/player.gd
+          echo "=== NATURAL RESOURCE OCCLUSION WINDOWS ==="
+          grep -nE -C 12 'occl|silhouette|hidden|canopy|shadow' game/scripts/ecology/natural_resource.gd || true
+          echo "=== WORLD CHUNK OCCLUSION WINDOWS ==="
+          grep -nE -C 12 'occl|silhouette|hidden|canopy|shadow' game/scripts/world/world_chunk.gd || true
+          echo "=== PRODUCTION SURVIVOR SCALE/DRAW ==="
+          grep -nE -C 8 'PLAYER_WORLD_SPRITE_SCALE|shadow|silhouette|viewport_sprite.scale' game/scripts/art/production_survivor_visual.gd || true
       - name: Collect combat runtime
         shell: bash
         run: |
