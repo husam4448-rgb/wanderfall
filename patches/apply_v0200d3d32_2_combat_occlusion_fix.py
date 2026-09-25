@@ -92,10 +92,8 @@ helper='''func _d3d322_spawn_combat_test() -> void:
     if bandit.has_method("setup"):
         bandit.call("setup", self)
     # Force immediate awareness so the encounter cannot remain inert.
-    if "alert_time" in bandit:
-        bandit.alert_time = 8.0
-    if "alert_position" in bandit:
-        bandit.alert_position = global_position
+    bandit.alert_time = 8.0
+    bandit.alert_position = global_position
 
 '''
 p=p.replace(helper_anchor,helper+helper_anchor,1)
