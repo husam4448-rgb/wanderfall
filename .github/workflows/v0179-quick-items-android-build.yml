@@ -316,6 +316,8 @@ jobs:
         run: |
           set -euo pipefail
           rm -rf "$PROJECT_DIR/assets/generated/d2d"
+          # Import downloaded glTF resources and register class_name scripts before the baker loads them.
+          "$GODOT_BIN" --headless --editor --path "$PROJECT_DIR" --quit --verbose 2>&1 | tee d2d-import.log
           "$GODOT_BIN" --headless --path "$PROJECT_DIR" --script res://tools/bake_d2d_from_production.gd 2>&1 | tee d2d-bake.log
           test -s "$PROJECT_DIR/assets/generated/d2d/player_male/idle_south_00.png"
           test -s "$PROJECT_DIR/assets/generated/d2d/player_male/walk_east_03.png"
@@ -365,6 +367,7 @@ jobs:
             Survival-Paradise-v0.21.0D2D.2.apk
             Survival-Paradise-v0.21.0D2D.2.apk.sha256
             android-export.log
+            d2d-import.log
             d2d-bake.log
             godot-v0179-parser.log
             apk-signature.txt
