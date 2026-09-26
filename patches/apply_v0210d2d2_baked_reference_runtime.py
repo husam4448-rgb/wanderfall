@@ -84,7 +84,7 @@ func _frame_index(state: String) -> int:
 func _texture_for(key: String) -> Texture2D:
     if _cache.has(key):
         return _cache[key]
-    var path := "res://assets/generated/d2d/%s/%s.png" % [set_name,key]
+    var path := ("res:/" + "/assets/generated/d2d/%s/%s.png") % [set_name,key]
     var tex := load(path) as Texture2D
     _cache[key] = tex
     return tex
@@ -150,7 +150,7 @@ func _bake_set(set_name: String, body_type: String, gear: Dictionary, weapon_id:
     for i in range(4):
         await process_frame
 
-    var out_dir := "res://assets/generated/d2d/%s" % set_name
+    var out_dir := ("res:/" + "/assets/generated/d2d/%s") % set_name
     DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(out_dir))
 
     var dirs := {
