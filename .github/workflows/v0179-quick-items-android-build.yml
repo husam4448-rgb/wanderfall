@@ -21,7 +21,7 @@ env:
   GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
   GODOT_TEMPLATES_TPZ: /tmp/Godot_v4.7.2-stable_export_templates.tpz
   GODOT_TEMPLATES_SHA256: f298490b8d44d934be425a5a65a51bf15f422428b229a06a6e11d9ffea248011
-  APK_PATH: Survival-Paradise-v0.21.0D2D.3.apk
+  APK_PATH: Survival-Paradise-v0.21.0D2D.4.apk
   MAX_APK_BYTES: '419430400'
 
 jobs:
@@ -266,6 +266,13 @@ jobs:
           test -s "$MODEL_DIR/Female_Ranger.bin"
           test -s "$MODEL_DIR/Female_Peasant.bin"
 
+          echo "Copy D2D.4 authored 2D atlases"
+          mkdir -p "$PROJECT_DIR/assets/authored2d"
+          cp assets/authored2d/d2d4_player_anim.webp "$PROJECT_DIR/assets/authored2d/"
+          cp assets/authored2d/d2d4_bandit_idle.webp "$PROJECT_DIR/assets/authored2d/"
+          test -s "$PROJECT_DIR/assets/authored2d/d2d4_player_anim.webp"
+          test -s "$PROJECT_DIR/assets/authored2d/d2d4_bandit_idle.webp"
+
           python3 "$PROJECT_DIR/tools/preflight.py" "$PROJECT_DIR"
 
       - name: Set up Java 17
@@ -311,21 +318,13 @@ jobs:
           mkdir -p "$TEMPLATE_DIR"
           cp -a /tmp/godot_export_templates/templates/. "$TEMPLATE_DIR/"
 
-      - name: Bake developed 3D poses to 2D sprites
+      - name: Validate authored 2D sprite assets
         shell: bash
         run: |
           set -euo pipefail
-          rm -rf "$PROJECT_DIR/assets/generated/d2d"
-          # Import downloaded glTF resources and register class_name scripts before the baker loads them.
-          "$GODOT_BIN" --headless --editor --path "$PROJECT_DIR" --quit --verbose 2>&1 | tee d2d-import.log
-          xvfb-run -a "$GODOT_BIN" --path "$PROJECT_DIR" --rendering-method gl_compatibility --audio-driver Dummy res://tools/bake_d2d_runner.tscn 2>&1 | tee d2d-bake.log
-          test -s "$PROJECT_DIR/assets/generated/d2d/player_male_t1_a0_b1_h0_w1/idle_south_00.png"
-          test -s "$PROJECT_DIR/assets/generated/d2d/player_male_t1_a0_b1_h0_w1/walk_east_03.png"
-          test -s "$PROJECT_DIR/assets/generated/d2d/player_male_t1_a0_b1_h0_w1/run_north_02.png"
-          test -s "$PROJECT_DIR/assets/generated/d2d/bandit_female/idle_south_00.png"
-          FRAME_COUNT="$(find "$PROJECT_DIR/assets/generated/d2d" -type f -name '*.png' | wc -l)"
-          echo "Baked frame count: $FRAME_COUNT"
-          test "$FRAME_COUNT" -eq 2376
+          test -s "$PROJECT_DIR/assets/authored2d/d2d4_player_anim.webp"
+          test -s "$PROJECT_DIR/assets/authored2d/d2d4_bandit_idle.webp"
+          "$GODOT_BIN" --headless --editor --path "$PROJECT_DIR" --quit --verbose 2>&1 | tee authored2d-import.log
 
       - name: Godot parser validation
         shell: bash
@@ -352,23 +351,22 @@ jobs:
           "$APKSIGNER" verify --verbose --print-certs "$APK" | tee apk-signature.txt
           "$AAPT" dump badging "$APK" | tee apk-badging.txt
           grep -q "package: name='org.wanderfall.game'" apk-badging.txt
-          grep -q "versionCode='67'" apk-badging.txt
-          grep -q "versionName='0.21.0D2D.3'" apk-badging.txt
+          grep -q "versionCode='68'" apk-badging.txt
+          grep -q "versionName='0.21.0D2D.4'" apk-badging.txt
           grep -q "application-label:'Wanderfall'" apk-badging.txt
           APK_BYTES="$(stat -c%s "$APK")"
           test "$APK_BYTES" -lt "$MAX_APK_BYTES"
-          sha256sum "$APK" | tee Survival-Paradise-v0.21.0D2D.3.apk.sha256
+          sha256sum "$APK" | tee Survival-Paradise-v0.21.0D2D.4.apk.sha256
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Survival-Paradise-v0.21.0D2D.3-debug
+          name: Survival-Paradise-v0.21.0D2D.4-debug
           path: |
-            Survival-Paradise-v0.21.0D2D.3.apk
-            Survival-Paradise-v0.21.0D2D.3.apk.sha256
+            Survival-Paradise-v0.21.0D2D.4.apk
+            Survival-Paradise-v0.21.0D2D.4.apk.sha256
             android-export.log
-            d2d-import.log
-            d2d-bake.log
+            authored2d-import.log
             godot-v0179-parser.log
             apk-signature.txt
             apk-badging.txt
