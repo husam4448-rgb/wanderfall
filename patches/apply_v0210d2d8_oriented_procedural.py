@@ -113,7 +113,7 @@ new_draw=r'''func _draw() -> void:
         l_knee.y += 2.0; r_knee.y += 2.0
         l_ankle.y -= 1.0; r_ankle.y -= 1.0
 
-    func draw_leg_chain(hip: Vector2,knee: Vector2,ankle: Vector2,c: Color,stride: float,front: bool) -> void:
+    var draw_leg_chain := func(hip: Vector2,knee: Vector2,ankle: Vector2,c: Color,stride: float,front: bool) -> void:
         var shade:=c if front else c.darkened(0.13)
         _limb(hip,knee,shade,4.9,outline)
         _joint(knee,shade.lightened(0.03),2.25,outline)
@@ -154,7 +154,7 @@ new_draw=r'''func _draw() -> void:
     var arm_pose := _arm_pose(l_shoulder,r_shoulder,body_bob)
     _last_lw=arm_pose[1]; _last_rw=arm_pose[3]
 
-    func draw_arm_chain(sh: Vector2,el: Vector2,wr: Vector2,c: Color,hand_c: Color,front: bool) -> void:
+    var draw_arm_chain := func(sh: Vector2,el: Vector2,wr: Vector2,c: Color,hand_c: Color,front: bool) -> void:
         var shade:=c if front else c.darkened(0.15)
         _joint(sh,shade,2.15,outline)
         _limb(sh,el,shade,4.25,outline)
