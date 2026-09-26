@@ -67,6 +67,16 @@ jobs:
           grep -nE -C 12 'occl|silhouette|hidden|canopy|shadow' game/scripts/world/world_chunk.gd || true
           echo "=== PRODUCTION SURVIVOR SCALE/DRAW ==="
           grep -nE -C 8 'PLAYER_WORLD_SPRITE_SCALE|shadow|silhouette|viewport_sprite.scale' game/scripts/art/production_survivor_visual.gd || true
+      - name: Print D2D3 runtime targets
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "=== D2D3 RUNTIME TARGETS ==="
+          sed -n '1,260p' game/scripts/player.gd
+          echo "=== BANDIT ==="
+          sed -n '1,260p' game/scripts/combat/bandit.gd
+          echo "=== EQUIPMENT METHODS ==="
+          grep -RniE 'class_name .*Equipment|get_visual_item|gear_changed|equipment_changed|weapon_changed|attachments_changed' game/scripts | head -n 300 || true
       - name: Collect combat runtime
         shell: bash
         run: |
