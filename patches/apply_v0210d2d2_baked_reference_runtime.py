@@ -197,13 +197,13 @@ func _capture_pose(visual: Node, out_dir: String, state: String, dir_name: Strin
         push_error("No production viewport for bake")
         quit(2)
         return
-    var image := visual.viewport.get_texture().get_image()
+    var image: Image = visual.viewport.get_texture().get_image()
     if image == null or image.is_empty():
         push_error("Empty baked frame")
         quit(3)
         return
     var filename := "%s/%s_%s_%02d.png" % [out_dir,state,dir_name,frame]
-    var err := image.save_png(ProjectSettings.globalize_path(filename))
+    var err: Error = image.save_png(ProjectSettings.globalize_path(filename))
     if err != OK:
         push_error("Failed save: %s" % filename)
         quit(4)
