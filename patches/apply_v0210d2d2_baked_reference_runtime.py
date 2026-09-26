@@ -108,20 +108,20 @@ func _refresh_frame(force: bool) -> void:
 tools=root/"tools"
 tools.mkdir(parents=True,exist_ok=True)
 baker=tools/"bake_d2d_from_production.gd"
-baker.write_text(r'''extends SceneTree
+baker.write_text(r'''extends Node
 
 const ProductionVisual = preload("res://scripts/art/production_survivor_visual.gd")
 const StaticEquipment = preload("res://scripts/art/static_visual_equipment.gd")
 
 var host: Node2D
 
-func _initialize() -> void:
+func _ready() -> void:
     call_deferred("_run")
 
 func _run() -> void:
     host = Node2D.new()
-    root.add_child(host)
-    await process_frame
+    add_child(host)
+    await get_tree().process_frame
     await _bake_set(
         "player_male","male",
         {"head":"","eyes":"","lower_face":"","torso":"hoodie","armor":"","hands":"work_gloves","legs":"jeans","feet":"hiking_boots","back":"small_backpack"},
@@ -133,7 +133,7 @@ func _run() -> void:
         "pistol_9mm"
     )
     print("D2D bake complete.")
-    quit(0)
+    get_tree().quit(0)
 
 func _bake_set(set_name: String, body_type: String, gear: Dictionary, weapon_id: String) -> void:
     var equipment = StaticEquipment.new()
@@ -148,7 +148,7 @@ func _bake_set(set_name: String, body_type: String, gear: Dictionary, weapon_id:
 
     # Let glTF meshes/materials settle.
     for i in range(4):
-        await process_frame
+        await get_tree().process_frame
 
     var out_dir := ("res:/" + "/assets/generated/d2d/%s") % set_name
     DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(out_dir))
@@ -175,7 +175,7 @@ func _bake_set(set_name: String, body_type: String, gear: Dictionary, weapon_id:
     visual.queue_free()
     host.remove_child(equipment)
     equipment.queue_free()
-    await process_frame
+    await get_tree().process_frame
 
 func _capture_pose(visual: Node, out_dir: String, state: String, dir_name: String, d: Vector2, frame: int, run: bool, phase: float) -> void:
     visual.set_facing(d)
@@ -187,26 +187,35 @@ func _capture_pose(visual: Node, out_dir: String, state: String, dir_name: Strin
     else:
         visual.set_motion_state(d*(190.0 if run else 105.0),run,false)
     # Two frames: process pose then render SubViewport.
-    await process_frame
+    await get_tree().process_frame
     visual._character_render_accum = 1.0
     visual._pose_dirty = true
-    await process_frame
-    await process_frame
+    await get_tree().process_frame
+    await get_tree().process_frame
 
     if visual.viewport == null:
         push_error("No production viewport for bake")
-        quit(2)
+        get_tree().quit(2)
         return
     var image: Image = visual.viewport.get_texture().get_image()
     if image == null or image.is_empty():
         push_error("Empty baked frame")
-        quit(3)
+        get_tree().quit(3)
         return
     var filename := "%s/%s_%s_%02d.png" % [out_dir,state,dir_name,frame]
     var err: Error = image.save_png(ProjectSettings.globalize_path(filename))
     if err != OK:
         push_error("Failed save: %s" % filename)
-        quit(4)
+        get_tree().quit(4)
+''',encoding="utf-8")
+
+runner=tools/"bake_d2d_runner.tscn"
+runner.write_text('''[gd_scene load_steps=2 format=3]
+
+[ext_resource path="res://tools/bake_d2d_from_production.gd" type="Script" id="1"]
+
+[node name="D2DBakeRunner" type="Node"]
+script = ExtResource("1")
 ''',encoding="utf-8")
 
 # ---------------------------------------------------------------------------
