@@ -125,17 +125,17 @@ new_draw=r'''func _draw() -> void:
     var left_near := side < -0.15
     if profile > 0.38:
         if left_near:
-            draw_leg_chain(r_hip,r_knee,r_ankle,pants_color,r_stride,false)
-            draw_leg_chain(l_hip,l_knee,l_ankle,pants_color,l_stride,true)
+            draw_leg_chain.call(r_hip,r_knee,r_ankle,pants_color,r_stride,false)
+            draw_leg_chain.call(l_hip,l_knee,l_ankle,pants_color,l_stride,true)
         else:
-            draw_leg_chain(l_hip,l_knee,l_ankle,pants_color,l_stride,false)
-            draw_leg_chain(r_hip,r_knee,r_ankle,pants_color,r_stride,true)
+            draw_leg_chain.call(l_hip,l_knee,l_ankle,pants_color,l_stride,false)
+            draw_leg_chain.call(r_hip,r_knee,r_ankle,pants_color,r_stride,true)
     elif stride_wave >= 0.0:
-        draw_leg_chain(r_hip,r_knee,r_ankle,pants_color,r_stride,false)
-        draw_leg_chain(l_hip,l_knee,l_ankle,pants_color,l_stride,true)
+        draw_leg_chain.call(r_hip,r_knee,r_ankle,pants_color,r_stride,false)
+        draw_leg_chain.call(l_hip,l_knee,l_ankle,pants_color,l_stride,true)
     else:
-        draw_leg_chain(l_hip,l_knee,l_ankle,pants_color,l_stride,false)
-        draw_leg_chain(r_hip,r_knee,r_ankle,pants_color,r_stride,true)
+        draw_leg_chain.call(l_hip,l_knee,l_ankle,pants_color,l_stride,false)
+        draw_leg_chain.call(r_hip,r_knee,r_ankle,pants_color,r_stride,true)
     _draw_pants_detail(legs_id,l_knee,r_knee,pants_color)
 
     var torso := PackedVector2Array([
@@ -167,19 +167,19 @@ new_draw=r'''func _draw() -> void:
     var pure_side := profile > 0.86 and absf(aim.y) < 0.34
     var left_arm_near := side < -0.05
     if backness > 0.68:
-        draw_arm_chain(l_shoulder,arm_pose[0],arm_pose[1],torso_color,glove_color.darkened(0.05),false)
-        draw_arm_chain(r_shoulder,arm_pose[2],arm_pose[3],torso_color,glove_color,false)
+        draw_arm_chain.call(l_shoulder,arm_pose[0],arm_pose[1],torso_color,glove_color.darkened(0.05),false)
+        draw_arm_chain.call(r_shoulder,arm_pose[2],arm_pose[3],torso_color,glove_color,false)
     elif pure_side:
         if left_arm_near:
-            draw_arm_chain(r_shoulder,arm_pose[2],arm_pose[3],torso_color,glove_color,false)
+            draw_arm_chain.call(r_shoulder,arm_pose[2],arm_pose[3],torso_color,glove_color,false)
         else:
-            draw_arm_chain(l_shoulder,arm_pose[0],arm_pose[1],torso_color,glove_color.darkened(0.05),false)
+            draw_arm_chain.call(l_shoulder,arm_pose[0],arm_pose[1],torso_color,glove_color.darkened(0.05),false)
     else:
         # Diagonals/front: far arm behind torso.
         if left_arm_near:
-            draw_arm_chain(r_shoulder,arm_pose[2],arm_pose[3],torso_color,glove_color,false)
+            draw_arm_chain.call(r_shoulder,arm_pose[2],arm_pose[3],torso_color,glove_color,false)
         else:
-            draw_arm_chain(l_shoulder,arm_pose[0],arm_pose[1],torso_color,glove_color.darkened(0.05),false)
+            draw_arm_chain.call(l_shoulder,arm_pose[0],arm_pose[1],torso_color,glove_color.darkened(0.05),false)
 
     # Equipment follows depth: backpack behind when facing front, visible over back when facing up.
     if backness < 0.62:
@@ -200,13 +200,13 @@ new_draw=r'''func _draw() -> void:
     if backness <= 0.68:
         if pure_side:
             if left_arm_near:
-                draw_arm_chain(l_shoulder,arm_pose[0],arm_pose[1],torso_color,glove_color.darkened(0.05),true)
+                draw_arm_chain.call(l_shoulder,arm_pose[0],arm_pose[1],torso_color,glove_color.darkened(0.05),true)
             else:
-                draw_arm_chain(r_shoulder,arm_pose[2],arm_pose[3],torso_color,glove_color,true)
+                draw_arm_chain.call(r_shoulder,arm_pose[2],arm_pose[3],torso_color,glove_color,true)
         elif left_arm_near:
-            draw_arm_chain(l_shoulder,arm_pose[0],arm_pose[1],torso_color,glove_color.darkened(0.05),true)
+            draw_arm_chain.call(l_shoulder,arm_pose[0],arm_pose[1],torso_color,glove_color.darkened(0.05),true)
         else:
-            draw_arm_chain(r_shoulder,arm_pose[2],arm_pose[3],torso_color,glove_color,true)
+            draw_arm_chain.call(r_shoulder,arm_pose[2],arm_pose[3],torso_color,glove_color,true)
 
     _draw_glove_detail(hands_id,arm_pose[1],arm_pose[3],glove_color)
     _draw_skeleton_weapon(arm_pose[1],arm_pose[3],outline)
