@@ -21,7 +21,7 @@ env:
   GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
   GODOT_TEMPLATES_TPZ: /tmp/Godot_v4.7.2-stable_export_templates.tpz
   GODOT_TEMPLATES_SHA256: f298490b8d44d934be425a5a65a51bf15f422428b229a06a6e11d9ffea248011
-  APK_PATH: Survival-Paradise-v0.21.0D2D.4.4.apk
+  APK_PATH: Survival-Paradise-v0.21.0D2D.4.5.apk
   MAX_APK_BYTES: '419430400'
 
 jobs:
@@ -269,9 +269,7 @@ jobs:
           echo "Copy D2D.4.2 verified 2D atlases"
           mkdir -p "$PROJECT_DIR/assets/authored2d"
           cp assets/authored2d/d2d43_player_armed.webp "$PROJECT_DIR/assets/authored2d/"
-          cp assets/authored2d/d2d44_player_unarmed.png "$PROJECT_DIR/assets/authored2d/"
           test -s "$PROJECT_DIR/assets/authored2d/d2d43_player_armed.webp"
-          test -s "$PROJECT_DIR/assets/authored2d/d2d44_player_unarmed.png"
 
           python3 "$PROJECT_DIR/tools/preflight.py" "$PROJECT_DIR"
 
@@ -323,7 +321,6 @@ jobs:
         run: |
           set -euo pipefail
           test -s "$PROJECT_DIR/assets/authored2d/d2d43_player_armed.webp"
-          test -s "$PROJECT_DIR/assets/authored2d/d2d44_player_unarmed.png"
           "$GODOT_BIN" --headless --editor --path "$PROJECT_DIR" --quit --verbose 2>&1 | tee authored2d-import.log
           if grep -E "ERROR: (Error loading image|Error importing).*assets/authored2d" authored2d-import.log; then
             echo "Authored 2D import failed"
@@ -355,20 +352,20 @@ jobs:
           "$APKSIGNER" verify --verbose --print-certs "$APK" | tee apk-signature.txt
           "$AAPT" dump badging "$APK" | tee apk-badging.txt
           grep -q "package: name='org.wanderfall.game'" apk-badging.txt
-          grep -q "versionCode='72'" apk-badging.txt
-          grep -q "versionName='0.21.0D2D.4.4'" apk-badging.txt
+          grep -q "versionCode='73'" apk-badging.txt
+          grep -q "versionName='0.21.0D2D.4.5'" apk-badging.txt
           grep -q "application-label:'Wanderfall'" apk-badging.txt
           APK_BYTES="$(stat -c%s "$APK")"
           test "$APK_BYTES" -lt "$MAX_APK_BYTES"
-          sha256sum "$APK" | tee Survival-Paradise-v0.21.0D2D.4.4.apk.sha256
+          sha256sum "$APK" | tee Survival-Paradise-v0.21.0D2D.4.5.apk.sha256
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Survival-Paradise-v0.21.0D2D.4.4-debug
+          name: Survival-Paradise-v0.21.0D2D.4.5-debug
           path: |
-            Survival-Paradise-v0.21.0D2D.4.4.apk
-            Survival-Paradise-v0.21.0D2D.4.4.apk.sha256
+            Survival-Paradise-v0.21.0D2D.4.5.apk
+            Survival-Paradise-v0.21.0D2D.4.5.apk.sha256
             android-export.log
             authored2d-import.log
             godot-v0179-parser.log
