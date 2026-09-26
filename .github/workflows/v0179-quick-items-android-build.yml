@@ -319,9 +319,9 @@ jobs:
           # Import downloaded glTF resources and register class_name scripts before the baker loads them.
           "$GODOT_BIN" --headless --editor --path "$PROJECT_DIR" --quit --verbose 2>&1 | tee d2d-import.log
           xvfb-run -a "$GODOT_BIN" --path "$PROJECT_DIR" --rendering-method gl_compatibility --audio-driver Dummy res://tools/bake_d2d_runner.tscn 2>&1 | tee d2d-bake.log
-          test -s "$PROJECT_DIR/assets/generated/d2d/player_male/idle_south_00.png"
-          test -s "$PROJECT_DIR/assets/generated/d2d/player_male/walk_east_03.png"
-          test -s "$PROJECT_DIR/assets/generated/d2d/player_male/run_north_02.png"
+          test -s "$PROJECT_DIR/assets/generated/d2d/player_male_t1_a0_b1_h0_w1/idle_south_00.png"
+          test -s "$PROJECT_DIR/assets/generated/d2d/player_male_t1_a0_b1_h0_w1/walk_east_03.png"
+          test -s "$PROJECT_DIR/assets/generated/d2d/player_male_t1_a0_b1_h0_w1/run_north_02.png"
           test -s "$PROJECT_DIR/assets/generated/d2d/bandit_female/idle_south_00.png"
           FRAME_COUNT="$(find "$PROJECT_DIR/assets/generated/d2d" -type f -name '*.png' | wc -l)"
           echo "Baked frame count: $FRAME_COUNT"
