@@ -216,17 +216,17 @@ player=root/"scripts/player.gd"
 p=player.read_text(encoding="utf-8")
 if 'const BakedActorVisualScript' not in p:
     p=p.replace(
-        'const ProductionSurvivorVisualScript = preload("res://scripts/art/production_survivor_visual.gd")
-',
-        'const ProductionSurvivorVisualScript = preload("res://scripts/art/production_survivor_visual.gd")
+        '''const ProductionSurvivorVisualScript = preload("res://scripts/art/production_survivor_visual.gd")
+''',
+        '''const ProductionSurvivorVisualScript = preload("res://scripts/art/production_survivor_visual.gd")
 const BakedActorVisualScript = preload("res://scripts/art/baked_actor_visual.gd")
-',1)
+''',1)
 if 'var _baked_visual' not in p:
-    p=p.replace('var _production_visual: Node2D = null
-',
-                'var _production_visual: Node2D = null
+    p=p.replace('''var _production_visual: Node2D = null
+''',
+                '''var _production_visual: Node2D = null
 var _baked_visual: Node2D = null
-',1)
+''',1)
 
 # D2D.1 still creates both old visuals. Keep creation for code compatibility but hide/disable them.
 ready_anchor='''    _weapon_visual.setup_equipment(equipment)
@@ -288,17 +288,17 @@ bandit=root/"scripts/combat/bandit.gd"
 b=bandit.read_text(encoding="utf-8")
 if 'const BakedActorVisualScript' not in b:
     b=b.replace(
-        'const StaticVisualEquipmentScript = preload("res://scripts/art/static_visual_equipment.gd")
-',
-        'const StaticVisualEquipmentScript = preload("res://scripts/art/static_visual_equipment.gd")
+        '''const StaticVisualEquipmentScript = preload("res://scripts/art/static_visual_equipment.gd")
+''',
+        '''const StaticVisualEquipmentScript = preload("res://scripts/art/static_visual_equipment.gd")
 const BakedActorVisualScript = preload("res://scripts/art/baked_actor_visual.gd")
-',1)
+''',1)
 if 'var _baked_visual' not in b:
-    b=b.replace('var _production_visual: Node2D = null
-',
-                'var _production_visual: Node2D = null
+    b=b.replace('''var _production_visual: Node2D = null
+''',
+                '''var _production_visual: Node2D = null
 var _baked_visual: Node2D = null
-',1)
+''',1)
 
 bandit_ready='''    _weapon_visual.setup_static(equipped_weapon_id, weapon_attachments)
     _refresh_visual_mode()
