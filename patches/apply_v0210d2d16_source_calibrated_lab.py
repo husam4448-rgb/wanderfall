@@ -15,23 +15,20 @@ scene_dir.mkdir(parents=True, exist_ok=True)
 # original approved SP_Player_Male_8Directions.png. No old runtime atlas or
 # limb cutout is used by this lab.
 parts = [
-    "unarmed_00.b64",
-    "unarmed_01a.b64",
-    "unarmed_01b.b64",
-    "unarmed_01c.b64",
-    "unarmed_01d.b64",
-    "unarmed_02.b64",
-    "unarmed_03.b64",
-    "unarmed_04.b64",
+    "unarmed_q65_00.b64",
+    "unarmed_q65_01.b64",
+    "unarmed_q65_02.b64",
+    "unarmed_q65_03.b64",
+    "unarmed_q65_04.b64",
 ]
-b64 = "".join((patch_dir / "d2d16_assets" / name).read_text(encoding="utf-8").strip() for name in parts)
-if len(b64) != 112372:
-    raise SystemExit(f"D2D.16 atlas base64 length mismatch: {len(b64)} != 112372")
+b64 = "".join((patch_dir / "d2d16_compact" / name).read_text(encoding="utf-8").strip() for name in parts)
+if len(b64) != 32248:
+    raise SystemExit(f"D2D.16 atlas base64 length mismatch: {len(b64)} != 32248")
 raw = base64.b64decode(b64, validate=True)
-if len(raw) != 84278:
-    raise SystemExit(f"D2D.16 atlas byte length mismatch: {len(raw)} != 84278")
+if len(raw) != 24184:
+    raise SystemExit(f"D2D.16 atlas byte length mismatch: {len(raw)} != 24184")
 digest = hashlib.sha256(raw).hexdigest()
-expected = "10487418f1183186b0285ba208864d7006fa7bcc68b03f8dd952ada8052f9216"
+expected = "e2aeb38fecf2ba560e752dfbc177505608467e8ccebaaf0e1581042c7ac462bd"
 if digest != expected:
     raise SystemExit(f"D2D.16 atlas SHA mismatch: {digest}")
 atlas_path = asset_dir / "d2d16_unarmed_source.webp"
