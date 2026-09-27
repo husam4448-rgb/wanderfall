@@ -35,8 +35,7 @@ const DIR_VECTORS := [
     Vector2(-0.70710678,0.70710678)
 ]
 
-const REF_ARMED := preload("res://assets/authored2d/d2d42_player_armed.png")
-const REF_UNARMED := preload("res://assets/authored2d/d2d42_player_unarmed.png")
+const REF_ARMED := preload("res://assets/authored2d/d2d43_player_armed.webp")
 const TEX_HEAD := preload("res://assets/authored2d/parts/head.png")
 const TEX_TORSO := preload("res://assets/authored2d/parts/torso.png")
 const TEX_UPPER := preload("res://assets/authored2d/parts/upper_arm.png")
@@ -303,7 +302,7 @@ func _set_segment(pivot: Node2D, a: Vector2, b: Vector2) -> void:
     pivot.rotation = d.angle()-PI*0.5
 
 func _reference_texture() -> Texture2D:
-    return REF_ARMED if armed else REF_UNARMED
+    return REF_ARMED
 
 func _apply_reference() -> void:
     var atlas := AtlasTexture.new()
@@ -411,7 +410,6 @@ func _update_labels() -> void:
         return
     info_label.text = "BODY: %s\nREFERENCE: VERIFIED ARMED\nRIG SCALE: %.2fx\nLIMBS: U %.0f / F %.0f / T %.0f / S %.0f" % [
         DIR_NAMES[body_dir],
-        "ARMED" if armed else "UNARMED",
         lab_zoom,
         UPPER_LEN,FORE_LEN,THIGH_LEN,SHIN_LEN
     ]
