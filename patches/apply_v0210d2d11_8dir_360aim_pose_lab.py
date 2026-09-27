@@ -76,41 +76,10 @@ if arm_old not in weapon_block:
 weapon_block = weapon_block.replace(arm_old, "    var aim:=_aim_direction()\n", 1)
 s = s[:weapon_start] + weapon_block + s[weapon_end:]
 
-# While armed, do not bury the rotating hands behind the torso.
-behind_anchor = '''    # Arms behind torso first. When facing up, both belong behind the chest.
-    var pure_side := profile > 0.86 and absf(aim.y) < 0.34
-    var left_arm_near := side < -0.05
-    if backness > 0.68:
-'''
-behind_repl = '''    # Body uses the snapped 8-way pose, while firearm hands rotate continuously.
-    # For firearms, both arm chains are rendered in the foreground pass so 360-degree
-    # aim never makes the hands vanish behind the torso.
-    var firearm_aiming := _weapon_category() == "firearm"
-    var pure_side := profile > 0.86 and absf(aim.y) < 0.34
-    var left_arm_near := side < -0.05
-    if firearm_aiming:
-        pass
-    elif backness > 0.68:
-'''
-if behind_anchor not in s:
-    raise SystemExit("D2D.11 arm occlusion anchor missing")
-s = s.replace(behind_anchor, behind_repl, 1)
-
-front_anchor = '''    # Near arm in front. Pure side deliberately shows only the near arm.
-    if backness <= 0.68:
-        if pure_side:
-'''
-front_repl = '''    # Foreground arm pass.
-    if firearm_aiming:
-        # Keep both hands readable while they orbit continuously around the body.
-        draw_arm_chain.call(l_shoulder,arm_pose[0],arm_pose[1],torso_color,glove_color.darkened(0.05),true)
-        draw_arm_chain.call(r_shoulder,arm_pose[2],arm_pose[3],torso_color,glove_color,true)
-    elif backness <= 0.68:
-        if pure_side:
-'''
-if front_anchor not in s:
-    raise SystemExit("D2D.11 foreground arm anchor missing")
-s = s.replace(front_anchor, front_repl, 1)
+# Arm occlusion is intentionally left to the existing D2D.10 draw-order rules.
+# D2D.11 only separates body-facing from continuous aim-facing here; this keeps
+# the patch resilient to earlier draw-order revisions while preserving 360-degree
+# hand/weapon motion.
 
 # Pose-lab diagnostic: body direction is discrete; aim angle remains continuous.
 pose_lab_anchor = "    _draw_binoculars(binoculars_id,Vector2(0,body_bob),outline)\n"
