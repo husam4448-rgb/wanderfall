@@ -35,8 +35,8 @@ const DIR_VECTORS := [
     Vector2(-0.70710678,0.70710678)
 ]
 
-const REF_ARMED := preload("res://assets/authored2d/d2d43_player_armed.webp")
-const REF_UNARMED := preload("res://assets/authored2d/d2d43_player_unarmed.webp")
+const REF_ARMED := preload("res://assets/authored2d/d2d42_player_armed.png")
+const REF_UNARMED := preload("res://assets/authored2d/d2d42_player_unarmed.png")
 const TEX_HEAD := preload("res://assets/authored2d/parts/head.png")
 const TEX_TORSO := preload("res://assets/authored2d/parts/torso.png")
 const TEX_UPPER := preload("res://assets/authored2d/parts/upper_arm.png")
