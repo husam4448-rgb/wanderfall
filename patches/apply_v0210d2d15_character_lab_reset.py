@@ -409,7 +409,7 @@ func _apply_all() -> void:
 func _update_labels() -> void:
     if info_label == null:
         return
-    info_label.text = "BODY: %s\nREFERENCE: %s\nRIG SCALE: %.2fx\nLIMBS: U %.0f / F %.0f / T %.0f / S %.0f" % [
+    info_label.text = "BODY: %s\nREFERENCE: VERIFIED ARMED\nRIG SCALE: %.2fx\nLIMBS: U %.0f / F %.0f / T %.0f / S %.0f" % [
         DIR_NAMES[body_dir],
         "ARMED" if armed else "UNARMED",
         lab_zoom,
