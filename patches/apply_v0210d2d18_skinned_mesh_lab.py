@@ -507,7 +507,7 @@ project.write_text(q, encoding="utf-8")
 
 ep = root / "export_presets.cfg"
 e = ep.read_text(encoding="utf-8")
-e = re.sub(r'(?m)^version/code=\d+
+e = re.sub(r'(?m)^version/code=\d+$','version/code=91',e,count=1)
 e = re.sub(r'(?m)^version/name="[^"]*"$','version/name="0.21.0D2D.18"',e,count=1)
 ep.write_text(e,encoding="utf-8")
 
