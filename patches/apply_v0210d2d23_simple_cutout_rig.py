@@ -1,17 +1,28 @@
 #!/usr/bin/env python3
 from pathlib import Path
-import re, sys, zipfile, shutil
+import re, sys, zipfile, shutil, base64, io, hashlib
 
 root = Path(sys.argv[1] if len(sys.argv) > 1 else "game")
 repo_root = Path(__file__).resolve().parents[1]
-archive = repo_root / "art_source" / "d2d23" / "simple_atlases.zip"
-if not archive.exists():
-    raise SystemExit("D2D.23 simplified atlas archive missing")
+chunk_dir = repo_root / "art_source" / "d2d23" / "chunks"
+chunk_files = [chunk_dir / f"{i:02d}.txt" for i in range(8)]
+missing = [str(p) for p in chunk_files if not p.exists()]
+if missing:
+    raise SystemExit(f"D2D.23 atlas chunks missing: {missing}")
+
+encoded = "".join(p.read_text(encoding="utf-8").strip() for p in chunk_files)
+raw_archive = base64.b64decode(encoded, validate=True)
+expected_sha256 = "996b58b604126da088cf64da4fc8237fe44aae1fc7b162944adca925fb0a24bd"
+actual_sha256 = hashlib.sha256(raw_archive).hexdigest()
+if actual_sha256 != expected_sha256:
+    raise SystemExit(f"D2D.23 atlas SHA mismatch: {actual_sha256}")
 
 asset_dir = root / "assets" / "d2d23"
 asset_dir.mkdir(parents=True, exist_ok=True)
-with zipfile.ZipFile(archive, "r") as z:
+with zipfile.ZipFile(io.BytesIO(raw_archive), "r") as z:
     z.extractall(asset_dir)
+
+print(f"D2D.23 atlas SHA verified: {actual_sha256}")
 
 script_dir = root / "scripts" / "art"
 scene_dir = root / "scenes"
