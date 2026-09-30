@@ -367,7 +367,7 @@ jobs:
           "$AAPT" dump badging "$APK" | tee apk-badging.txt
           grep -q "package: name='org.wanderfall.game'" apk-badging.txt
           grep -q "versionCode='94'" apk-badging.txt
-          grep -q "versionName='0.21.0D2D.20'" apk-badging.txt
+          grep -q "versionName='0.21.0D2D.21'" apk-badging.txt
           grep -q "application-label:'Wanderfall'" apk-badging.txt
           APK_BYTES="$(stat -c%s "$APK")"
           test "$APK_BYTES" -lt "$MAX_APK_BYTES"
