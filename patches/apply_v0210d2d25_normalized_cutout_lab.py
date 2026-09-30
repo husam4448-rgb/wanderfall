@@ -160,8 +160,9 @@ func _draw() -> void:
     if not show_joints or not is_instance_valid(rig_root):
         return
     for src_p in _joint_points():
-        var local_p := src_p - ORIGIN
-        var global_p := rig_root.to_global(local_p)
+        var typed_p: Vector2 = src_p
+        var local_p: Vector2 = typed_p - ORIGIN
+        var global_p: Vector2 = rig_root.to_global(local_p)
         draw_circle(to_local(global_p),3.1,Color(1.0,0.78,0.12,0.95))
 
 func _button(label_text: String, cb: Callable) -> Button:
