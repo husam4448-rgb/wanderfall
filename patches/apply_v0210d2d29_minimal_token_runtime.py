@@ -118,16 +118,16 @@ func _rot(v: Vector2, a: float) -> Vector2:
 func _draw_actor() -> void:
     var moving := move_vec.length() > 0.05
     var stride := 8.0 if running else 5.0
-    var swing := sin(step_phase) * stride if moving else 0.0
-    var bob := abs(sin(step_phase)) * (2.2 if running else 1.3) if moving else 0.0
-    var sway := sin(step_phase) * (1.8 if running else 1.0) if moving else 0.0
+    var swing: float = sin(step_phase) * stride if moving else 0.0
+    var bob: float = abs(sin(step_phase)) * (2.2 if running else 1.3) if moving else 0.0
+    var sway: float = sin(step_phase) * (1.8 if running else 1.0) if moving else 0.0
 
     var face_right := aim_pos.x >= actor_pos.x
     var dir_sign := 1.0 if face_right else -1.0
     var base := actor_pos + Vector2(sway, -bob)
 
     # shadow
-    draw_ellipse(base + Vector2(0,28), Vector2(25,6), Color(0,0,0,0.36))
+    _draw_oval(base + Vector2(0,28), Vector2(25,6), Color(0,0,0,0.36))
 
     # FEET FIRST: always beneath the body, never behind it.
     var left_foot := base + Vector2(-7 + swing * 0.55, 25)
@@ -174,7 +174,7 @@ func _draw_foot(p: Vector2, dir_sign: float) -> void:
     var toe := p + Vector2(4.5 * dir_sign, 1)
     draw_line(p + Vector2(-2*dir_sign,0), toe, Color("2d3030"), 7.0, true)
 
-func draw_ellipse(center: Vector2, radii: Vector2, color: Color) -> void:
+func _draw_oval(center: Vector2, radii: Vector2, color: Color) -> void:
     var pts := PackedVector2Array()
     for i in range(24):
         var a := TAU * float(i) / 24.0
@@ -190,9 +190,6 @@ func _draw_touch_ui() -> void:
 
     draw_line(actor_pos, aim_pos, Color(0.85,0.72,0.35,0.18), 1.0)
 
-func _notification(what: int) -> void:
-    if what == NOTIFICATION_RESIZED:
-        queue_redraw()
 '''
 
 # Godot does not provide draw_ellipse; helper above is deliberate.
