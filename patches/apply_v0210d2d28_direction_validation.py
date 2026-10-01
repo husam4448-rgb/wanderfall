@@ -10,9 +10,7 @@ if not source_atlas.exists():
     raise SystemExit("D2D.28 verified authored player atlas missing")
 
 atlas_bytes = source_atlas.read_bytes()
-asset_dir = root / "assets" / "d2d28"
-asset_dir.mkdir(parents=True, exist_ok=True)
-(asset_dir / "approved_direction_atlas.png").write_bytes(atlas_bytes)
+atlas_b64 = base64.b64encode(atlas_bytes).decode("ascii")
 
 script_dir = root / "scripts" / "art"
 scene_dir = root / "scenes"
@@ -21,7 +19,7 @@ scene_dir.mkdir(parents=True, exist_ok=True)
 
 lab = r'''extends Node2D
 
-const ATLAS := preload("res://assets/d2d28/approved_direction_atlas.png")
+const ATLAS_B64 := "__ATLAS_B64__"
 
 const DIR_ORDER := ["S","SE","E","NE","N","NW","W","SW"]
 const DIR_NAMES := {
@@ -72,9 +70,17 @@ func _ready() -> void:
     _layout()
 
 func _build_character() -> void:
+    var raw: PackedByteArray = Marshalls.base64_to_raw(ATLAS_B64)
+    var img := Image.new()
+    var err := img.load_png_from_buffer(raw)
+    if err != OK:
+        push_error("D2D.28 atlas decode failed: %s" % err)
+        return
+    var tex := ImageTexture.create_from_image(img)
+
     sprite = Sprite2D.new()
     sprite.name = "ApprovedDirectionSprite"
-    sprite.texture = ATLAS
+    sprite.texture = tex
     sprite.centered = true
     sprite.region_enabled = true
     sprite.region_filter_clip_enabled = true
@@ -204,6 +210,7 @@ func _layout() -> void:
     sprite.position = Vector2(v.x * 0.37, v.y * 0.46)
     sprite.scale = Vector2.ONE * fit * user_zoom
 '''
+lab = lab.replace("__ATLAS_B64__", atlas_b64)
 
 (script_dir / "d2d28_direction_validation.gd").write_text(lab, encoding="utf-8")
 
