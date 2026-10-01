@@ -31,11 +31,11 @@ if old_consts not in s:
     raise SystemExit("D2D.37 head constants anchor missing")
 s = s.replace(old_consts, new_consts, 1)
 
-old_ready = '''    tex_head_right = load(HEAD_RIGHT_PATH) as Texture2D
-    tex_head_left = load(HEAD_LEFT_PATH) as Texture2D
+old_ready = '''    set_process(true)
     _build_gear_ui()
     queue_redraw()'''
-new_ready = '''    tex_head_right = _texture_from_embedded_png(HEAD_RIGHT_B64)
+new_ready = '''    set_process(true)
+    tex_head_right = _texture_from_embedded_png(HEAD_RIGHT_B64)
     tex_head_left = _texture_from_embedded_png(HEAD_LEFT_B64)
     _build_gear_ui()
     queue_redraw()'''
