@@ -5,13 +5,8 @@ import re, sys, base64, hashlib
 root = Path(sys.argv[1] if len(sys.argv) > 1 else "game")
 repo_root = Path(__file__).resolve().parents[1]
 
-source_atlas = repo_root / "assets" / "authored2d" / "d2d42_player_unarmed.png"
-if not source_atlas.exists():
-    raise SystemExit("D2D.28 verified authored player atlas missing")
-
-atlas_bytes = source_atlas.read_bytes()
-atlas_b64 = base64.b64encode(atlas_bytes).decode("ascii")
-
+# D2D.28.1 uses the already-imported authored runtime atlas that is explicitly
+# materialized by the Android workflow. This avoids blank runtime textures.
 script_dir = root / "scripts" / "art"
 scene_dir = root / "scenes"
 script_dir.mkdir(parents=True, exist_ok=True)
@@ -19,7 +14,7 @@ scene_dir.mkdir(parents=True, exist_ok=True)
 
 lab = r'''extends Node2D
 
-const ATLAS_B64 := "__ATLAS_B64__"
+const ATLAS := preload("res://assets/authored2d/d2d43_player_armed.webp")
 
 const DIR_ORDER := ["S","SE","E","NE","N","NW","W","SW"]
 const DIR_NAMES := {
@@ -70,17 +65,9 @@ func _ready() -> void:
     _layout()
 
 func _build_character() -> void:
-    var raw: PackedByteArray = Marshalls.base64_to_raw(ATLAS_B64)
-    var img := Image.new()
-    var err := img.load_png_from_buffer(raw)
-    if err != OK:
-        push_error("D2D.28 atlas decode failed: %s" % err)
-        return
-    var tex := ImageTexture.create_from_image(img)
-
     sprite = Sprite2D.new()
     sprite.name = "ApprovedDirectionSprite"
-    sprite.texture = tex
+    sprite.texture = ATLAS
     sprite.centered = true
     sprite.region_enabled = true
     sprite.region_filter_clip_enabled = true
@@ -115,14 +102,14 @@ func _build_ui() -> void:
     layer.add_child(root)
 
     var head := Label.new()
-    head.text = "D2D.28 — APPROVED 8-DIRECTION MAPPING VALIDATION"
+    head.text = "D2D.28.1 — VISIBLE 8-DIRECTION MAPPING VALIDATION"
     head.position = Vector2(24,18)
     head.add_theme_font_size_override("font_size",23)
     head.modulate = Color("efd38e")
     root.add_child(head)
 
     var sub := Label.new()
-    sub.text = "Exact approved source crops • no generated poses • no mirroring • no animation"
+    sub.text = "Verified authored atlas • explicit S/SE/E/NE/N/NW/W/SW mapping • no animation"
     sub.position = Vector2(24,52)
     sub.add_theme_font_size_override("font_size",15)
     sub.modulate = Color("a7d9c8")
@@ -210,7 +197,6 @@ func _layout() -> void:
     sprite.position = Vector2(v.x * 0.37, v.y * 0.46)
     sprite.scale = Vector2.ONE * fit * user_zoom
 '''
-lab = lab.replace("__ATLAS_B64__", atlas_b64)
 
 (script_dir / "d2d28_direction_validation.gd").write_text(lab, encoding="utf-8")
 
@@ -232,14 +218,14 @@ project.write_text(q, encoding="utf-8")
 
 ep = root / "export_presets.cfg"
 e = ep.read_text(encoding="utf-8")
-e = re.sub(r'(?m)^version/code=\d+$', 'version/code=100', e, count=1)
-e = re.sub(r'(?m)^version/name="[^"]*"$', 'version/name="0.21.0D2D.28"', e, count=1)
+e = re.sub(r'(?m)^version/code=\d+$', 'version/code=101', e, count=1)
+e = re.sub(r'(?m)^version/name="[^"]*"$', 'version/name="0.21.0D2D.28.1"', e, count=1)
 ep.write_text(e, encoding="utf-8")
 
 sm = root / "scripts/save/save_manager.gd"
 if sm.exists():
     t = sm.read_text(encoding="utf-8")
-    t = re.sub(r'const GAME_VERSION := "[^"]+"', 'const GAME_VERSION := "0.21.0D2D.28"', t, count=1)
+    t = re.sub(r'const GAME_VERSION := "[^"]+"', 'const GAME_VERSION := "0.21.0D2D.28.1"', t, count=1)
     sm.write_text(t, encoding="utf-8")
 
-print("Applied D2D.28 approved direction validation using verified authored S,SE,E,NE,N,NW,W,SW atlas.")
+print("Applied D2D.28.1 visible direction validation using imported authored atlas.")
