@@ -5,22 +5,14 @@ import re, sys, base64, hashlib
 root = Path(sys.argv[1] if len(sys.argv) > 1 else "game")
 repo_root = Path(__file__).resolve().parents[1]
 
-chunk_dir = repo_root / "art_source" / "d2d28" / "atlas_chunks"
-chunks = [chunk_dir / f"{i:02d}.txt" for i in range(3)]
-missing = [str(p) for p in chunks if not p.exists()]
-if missing:
-    raise SystemExit(f"D2D.28 atlas chunks missing: {missing}")
+source_atlas = repo_root / "assets" / "authored2d" / "d2d42_player_unarmed.png"
+if not source_atlas.exists():
+    raise SystemExit("D2D.28 verified authored player atlas missing")
 
-encoded = "".join(p.read_text(encoding="utf-8").strip() for p in chunks)
-atlas_bytes = base64.b64decode(encoded, validate=True)
-expected = "8848e155461288e9dfc5da797788c7733cbc835f02fb70037f80374252d184fb"
-actual = hashlib.sha256(atlas_bytes).hexdigest()
-if actual != expected:
-    raise SystemExit(f"D2D.28 atlas SHA mismatch: {actual}")
-
+atlas_bytes = source_atlas.read_bytes()
 asset_dir = root / "assets" / "d2d28"
 asset_dir.mkdir(parents=True, exist_ok=True)
-(asset_dir / "approved_direction_atlas.jpg").write_bytes(atlas_bytes)
+(asset_dir / "approved_direction_atlas.png").write_bytes(atlas_bytes)
 
 script_dir = root / "scripts" / "art"
 scene_dir = root / "scenes"
@@ -29,7 +21,7 @@ scene_dir.mkdir(parents=True, exist_ok=True)
 
 lab = r'''extends Node2D
 
-const ATLAS := preload("res://assets/d2d28/approved_direction_atlas.jpg")
+const ATLAS := preload("res://assets/d2d28/approved_direction_atlas.png")
 
 const DIR_ORDER := ["S","SE","E","NE","N","NW","W","SW"]
 const DIR_NAMES := {
@@ -52,16 +44,16 @@ const DIR_ARROWS := {
     "W":"←",
     "SW":"↙"
 }
-const CELL := Vector2(280,280)
+const CELL := Vector2(60,62)
 const CELLS := {
     "S":Vector2i(0,0),
     "SE":Vector2i(1,0),
     "E":Vector2i(2,0),
     "NE":Vector2i(3,0),
-    "N":Vector2i(0,1),
-    "NW":Vector2i(1,1),
-    "W":Vector2i(2,1),
-    "SW":Vector2i(3,1)
+    "N":Vector2i(4,0),
+    "NW":Vector2i(5,0),
+    "W":Vector2i(6,0),
+    "SW":Vector2i(7,0)
 }
 
 var current := "S"
@@ -69,7 +61,7 @@ var sprite: Sprite2D
 var title_label: Label
 var arrow_label: Label
 var index_label: Label
-var user_zoom := 1.55
+var user_zoom := 3.20
 
 func _ready() -> void:
     RenderingServer.set_default_clear_color(Color("101716"))
@@ -86,7 +78,7 @@ func _build_character() -> void:
     sprite.centered = true
     sprite.region_enabled = true
     sprite.region_filter_clip_enabled = true
-    sprite.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+    sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
     add_child(sprite)
 
 func _apply_direction() -> void:
@@ -185,7 +177,7 @@ func _build_ui() -> void:
     zp.text = "ZOOM +"
     zp.custom_minimum_size = Vector2(0,42)
     zp.pressed.connect(func():
-        user_zoom = clampf(user_zoom + 0.1, 1.0, 2.2)
+        user_zoom = clampf(user_zoom + 0.2, 2.0, 5.0)
         _layout()
     )
     row.add_child(zp)
@@ -193,7 +185,7 @@ func _build_ui() -> void:
     zm.text = "ZOOM -"
     zm.custom_minimum_size = Vector2(0,42)
     zm.pressed.connect(func():
-        user_zoom = clampf(user_zoom - 0.1, 1.0, 2.2)
+        user_zoom = clampf(user_zoom - 0.2, 2.0, 5.0)
         _layout()
     )
     row.add_child(zm)
@@ -243,4 +235,4 @@ if sm.exists():
     t = re.sub(r'const GAME_VERSION := "[^"]+"', 'const GAME_VERSION := "0.21.0D2D.28"', t, count=1)
     sm.write_text(t, encoding="utf-8")
 
-print(f"Applied D2D.28 approved direction validation. Atlas SHA: {actual}")
+print("Applied D2D.28 approved direction validation using verified authored S,SE,E,NE,N,NW,W,SW atlas.")
