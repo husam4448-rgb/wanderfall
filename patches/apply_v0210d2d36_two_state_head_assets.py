@@ -23,8 +23,10 @@ s = s.replace('title.text = "D2D.35 GEAR:"', 'title.text = "D2D.36 GEAR:"')
 
 s = s.replace(
     'const TEX_DIRECTION_ATLAS := preload("res://assets/authored2d/d2d43_player_armed.webp")',
-    'const TEX_HEAD_RIGHT := preload("res://assets/d2d36/d2d36_head_right.png")\n'
-    'const TEX_HEAD_LEFT := preload("res://assets/d2d36/d2d36_head_left.png")'
+    'const HEAD_RIGHT_PATH := "res://assets/d2d36/d2d36_head_right.png"\n'
+    'const HEAD_LEFT_PATH := "res://assets/d2d36/d2d36_head_left.png"\n'
+    'var tex_head_right: Texture2D = null\n'
+    'var tex_head_left: Texture2D = null'
 )
 
 old_head = '''    # D2D.35 direction-locked authored head.
@@ -42,12 +44,13 @@ old_head = '''    # D2D.35 direction-locked authored head.
 new_head = '''    # D2D.36 strict two-state head system.
     # Head direction follows horizontal aim side only; vertical aim never rotates or changes the face.
     var head_center := base + Vector2(0,-26)
-    var head_tex: Texture2D = TEX_HEAD_RIGHT if face_right else TEX_HEAD_LEFT
+    var head_tex: Texture2D = tex_head_right if face_right else tex_head_left
 
     # Both source heads are normalized to the same 64x64 runtime canvas.
     # Render to the same body-fit envelope so swapping sides never changes apparent head size.
     var head_dst := Rect2(head_center + Vector2(-9.5,-10.5), Vector2(19.0,21.0))
-    draw_texture_rect(head_tex, head_dst, false)
+    if head_tex != null:
+        draw_texture_rect(head_tex, head_dst, false)
 
     if gear_head:
         _draw_headgear(base, dir_sign)
