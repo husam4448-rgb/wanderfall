@@ -1,1 +1,1 @@
-Build Survival Paradise v0.21.0D2D.67 from D2D.62. Patch the FINAL runtime draw layer so every bare-head draw selects tex_head_female whenever FEMALE mode is active; print diagnostics and fail if any unconditional male head draw remains.
+Retry Survival Paradise v0.21.0D2D.67 after defining the final head patch in the build chain.
