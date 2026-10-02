@@ -1,1 +1,1 @@
-Retry Survival Paradise v0.21.0D2D.65 head-only build after fixing the D2D.65 patch definition.
+Build Survival Paradise v0.21.0D2D.66 from D2D.62 baseline. Apply only verified female head bytes extracted from the validated D2D.64 asset. Verify female head constant, loader, and draw branch before export. Exclude D2D.63-D2D.65.
