@@ -10,39 +10,15 @@ if not runtime.exists():
 
 EXPECTED_SHA="2222f1bf7f05a2c9bd649e9da5e09ab6278124f500eac135d19447ba1ed8627e"
 
-# Find the exact uploaded 96x96 female-head PNG bytes among the previous head patches.
-# We do not trust filenames or labels; we trust the SHA-256 of the actual uploaded cutout.
-candidates=[
-    patch_dir/"apply_v0210d2d68_exact_female_head.py",
-    patch_dir/"apply_v0210d2d66_verified_female_head_only.py",
-    patch_dir/"apply_v0210d2d64_female_head_valid_png.py",
-    patch_dir/"apply_v0210d2d61_female_cutout_fix.py",
-]
-female_head_b64=None
-source_name=None
-for p in candidates:
-    if not p.exists():
-        continue
-    txt=p.read_text(encoding="utf-8")
-    # inspect every long PNG-looking base64 literal in the file
-    for m in re.finditer(r'([A-Za-z0-9+/]{1000,}={0,2})', txt):
-        b64=m.group(1)
-        try:
-            raw=base64.b64decode(b64, validate=True)
-        except Exception:
-            continue
-        if not raw.startswith(b"\x89PNG\r\n\x1a\n"):
-            continue
-        sha=hashlib.sha256(raw).hexdigest()
-        if sha==EXPECTED_SHA:
-            female_head_b64=b64
-            source_name=p.name
-            break
-    if female_head_b64:
-        break
-
-if not female_head_b64:
-    raise SystemExit("D2D.69 exact uploaded female head PNG not found by SHA-256")
+# Read the exact uploaded 96x96 female-head PNG bytes from repository chunks.
+parts=[]
+for i in range(8):
+    part=patch_dir/"d2d69_assets"/f"female_head_{i}.b64part"
+    if not part.exists():
+        raise SystemExit(f"D2D.69 missing female head chunk {i}")
+    parts.append(part.read_text(encoding="utf-8").strip())
+female_head_b64="".join(parts)
+source_name="d2d69_assets/female_head_0..7.b64part"
 
 raw=base64.b64decode(female_head_b64)
 if len(raw)!=21085:
