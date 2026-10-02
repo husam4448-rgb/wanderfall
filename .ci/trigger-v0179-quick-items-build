@@ -1,1 +1,1 @@
-Build Survival Paradise v0.21.0D2D.60 using the exact user-provided female head, torso and leg assets. Preserve female source aspect ratios and make raw unequipped torso/legs use the same silhouettes and dimensions.
+Build Survival Paradise v0.21.0D2D.61: correctly decode female head as PNG, remove black backgrounds and margins from female torso/legs, render visible female torso in geared and raw states, and close hip separation with joined female skeleton geometry.
