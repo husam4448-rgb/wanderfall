@@ -30,17 +30,35 @@ if ready_anchor not in s:
 s = s.replace(ready_anchor, ready_anchor + '    tex_head_female = _texture_from_embedded_png(FEMALE_HEAD_B64)\n', 1)
 
 # Add a dedicated gender test button without changing the existing gear-slot controls.
-s = s.replace('panel.custom_minimum_size = Vector2(730, 54)', 'panel.custom_minimum_size = Vector2(850, 54)', 1)
-buttons_anchor = '    _add_gear_button(row, "gloves", "GLOVES")\n    _refresh_gear_buttons()\n'
+s = s.replace('panel.custom_minimum_size = Vector2(980, 54)', 'panel.custom_minimum_size = Vector2(1090, 54)', 1)
+buttons_anchor = '''    var zoom_plus := Button.new()
+    zoom_plus.text = "ZOOM +"
+    zoom_plus.custom_minimum_size = Vector2(82,44)
+    zoom_plus.add_theme_font_size_override("font_size", 14)
+    zoom_plus.pressed.connect(func(): _change_zoom(0.5))
+    row.add_child(zoom_plus)
+
+    _refresh_gear_buttons()
+    _refresh_zoom_label()
+'''
 if buttons_anchor not in s:
     raise SystemExit("D2D.58 gear UI anchor missing")
-buttons_new = '''    _add_gear_button(row, "gloves", "GLOVES")
+buttons_new = '''    var zoom_plus := Button.new()
+    zoom_plus.text = "ZOOM +"
+    zoom_plus.custom_minimum_size = Vector2(82,44)
+    zoom_plus.add_theme_font_size_override("font_size", 14)
+    zoom_plus.pressed.connect(func(): _change_zoom(0.5))
+    row.add_child(zoom_plus)
+
     female_button = Button.new()
     female_button.custom_minimum_size = Vector2(102,44)
     female_button.add_theme_font_size_override("font_size",14)
     female_button.pressed.connect(_toggle_female)
     row.add_child(female_button)
+
     _refresh_gear_buttons()
+    _refresh_zoom_label()
+    _refresh_gender_button()
 '''
 s = s.replace(buttons_anchor, buttons_new, 1)
 
