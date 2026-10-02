@@ -64,7 +64,7 @@ jobs:
           python3 patches/apply_v0176_hotbar_deadzone.py "$PROJECT_DIR"
           python3 patches/apply_v0177_mobile_hotbar_layers.py "$PROJECT_DIR"
           python3 patches/apply_v0178_dedicated_hotbar_layer.py "$PROJECT_DIR"
-          python3 -m pip install --quiet pillow
+          python3 -m pip install --quiet pillow numpy
           python3 patches/apply_v0179_quick_item_buttons.py "$PROJECT_DIR"
           # Fetch Quaternius D3D.1 character assets (same CC0 model contained in the uploaded pack).
           echo "Fetch Quaternius D3D.1 character assets"
