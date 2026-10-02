@@ -89,28 +89,16 @@ if load_anchor not in s:
     raise SystemExit("D2D.72 female pelvis loader anchor missing")
 s=s.replace(load_anchor,load_anchor+"    tex_female_pelvis = _texture_from_embedded_webp(FEMALE_PELVIS_B64)\n",1)
 
-old_pelvis='''    if female_mode:
-        var pelvis_col := Color("5c574a") if gear_legs else Color("394247")
-        var pelvis_pts := PackedVector2Array([
-            base + Vector2(-5.9,7.7), base + Vector2(5.9,7.7),
-            base + Vector2(6.3,12.4), base + Vector2(3.2,13.7),
-            base + Vector2(-3.2,13.7), base + Vector2(-6.3,12.4)
-        ])
-        draw_colored_polygon(pelvis_pts,pelvis_col)
+old_pelvis='''    # D2D.60: no synthetic female pelvis overlay. Exact female torso/leg silhouettes
+    # define both equipped and raw body dimensions.
 '''
-new_pelvis='''    if female_mode:
-        if gear_legs:
-            _draw_equipment_texture(tex_female_pelvis, base + Vector2(0,10.5), Vector2(13.8,7.4), dir_sign < 0.0)
-        else:
-            var pelvis_pts := PackedVector2Array([
-                base + Vector2(-5.9,7.7), base + Vector2(5.9,7.7),
-                base + Vector2(6.3,12.4), base + Vector2(3.2,13.7),
-                base + Vector2(-3.2,13.7), base + Vector2(-6.3,12.4)
-            ])
-            draw_colored_polygon(pelvis_pts,Color("394247"))
+new_pelvis='''    # D2D.72: bridge the upper legs only when pants are equipped, using pixels
+    # sampled from the authored female pants texture rather than a flat color.
+    if female_mode and gear_legs:
+        _draw_equipment_texture(tex_female_pelvis, base + Vector2(0,10.7), Vector2(13.8,7.0), dir_sign < 0.0)
 '''
 if old_pelvis not in s:
-    raise SystemExit("D2D.72 pelvis block anchor missing")
+    raise SystemExit("D2D.72 pelvis comment anchor missing")
 s=s.replace(old_pelvis,new_pelvis,1)
 
 # 4) Boots: re-seat them under the now-thicker female legs and match the leg width.
