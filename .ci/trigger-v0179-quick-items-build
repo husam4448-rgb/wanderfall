@@ -1,1 +1,1 @@
-Build Survival Paradise v0.21.0D2D.69 using the exact 96x96 female head PNG stored in repo chunks, SHA-256 verified before export.
+Build Survival Paradise v0.21.0D2D.70. Preserve the SHA-verified D2D.69 female head exactly. Clean only low-alpha haze from the authored female torso asset to remove its transparent rectangle. Do not modify legs yet.
