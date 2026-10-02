@@ -1,1 +1,1 @@
-Build Survival Paradise v0.21.0D2D.68 from D2D.62 baseline. Install the exact supplied female head PNG bytes and force the final bare-head draw to use tex_head_female in FEMALE mode. Fail if any unconditional male bare-head draw remains.
+Retry Survival Paradise v0.21.0D2D.68 exact female head build after fixing the build-chain variable.
