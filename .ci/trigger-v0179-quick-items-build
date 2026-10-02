@@ -1,1 +1,1 @@
-Retry Survival Paradise v0.21.0D2D.70 after defining the torso-only patch in the Quick-Use build chain.
+Build Survival Paradise v0.21.0D2D.71. Preserve D2D.69 female head. Replace the unequipped female torso's rectangle-producing solid helper with a dedicated hard-alpha torso texture, and widen the existing female leg textures from 12.6 to 17.2 while preserving leg length/articulation.
