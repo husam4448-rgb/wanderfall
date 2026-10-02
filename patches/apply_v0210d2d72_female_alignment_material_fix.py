@@ -89,16 +89,32 @@ if load_anchor not in s:
     raise SystemExit("D2D.72 female pelvis loader anchor missing")
 s=s.replace(load_anchor,load_anchor+"    tex_female_pelvis = _texture_from_embedded_webp(FEMALE_PELVIS_B64)\n",1)
 
-old_pelvis='''    # D2D.60: no synthetic female pelvis overlay. Exact female torso/leg silhouettes
-    # define both equipped and raw body dimensions.
+old_pelvis='''    # D2D.61: compact female pelvis connector closes the hip gap behind the two
+    # articulated leg cutouts. It stays inside the authored silhouette envelope.
+    if female_mode:
+        var pelvis_col := Color("51483e") if gear_legs else Color("394247")
+        var pelvis_pts := PackedVector2Array([
+            base + Vector2(-5.9,7.7), base + Vector2(5.9,7.7),
+            base + Vector2(6.3,12.4), base + Vector2(3.2,13.7),
+            base + Vector2(-3.2,13.7), base + Vector2(-6.3,12.4)
+        ])
+        draw_colored_polygon(pelvis_pts,pelvis_col)
 '''
-new_pelvis='''    # D2D.72: bridge the upper legs only when pants are equipped, using pixels
-    # sampled from the authored female pants texture rather than a flat color.
-    if female_mode and gear_legs:
-        _draw_equipment_texture(tex_female_pelvis, base + Vector2(0,10.7), Vector2(13.8,7.0), dir_sign < 0.0)
+new_pelvis='''    # D2D.72: same compact connector geometry, but equipped pants use authored
+    # female pants texture instead of a flat mono-color pelvis patch.
+    if female_mode:
+        if gear_legs:
+            _draw_equipment_texture(tex_female_pelvis, base + Vector2(0,10.7), Vector2(13.8,7.0), dir_sign < 0.0)
+        else:
+            var pelvis_pts := PackedVector2Array([
+                base + Vector2(-5.9,7.7), base + Vector2(5.9,7.7),
+                base + Vector2(6.3,12.4), base + Vector2(3.2,13.7),
+                base + Vector2(-3.2,13.7), base + Vector2(-6.3,12.4)
+            ])
+            draw_colored_polygon(pelvis_pts,Color("394247"))
 '''
 if old_pelvis not in s:
-    raise SystemExit("D2D.72 pelvis comment anchor missing")
+    raise SystemExit("D2D.72 pelvis block anchor missing")
 s=s.replace(old_pelvis,new_pelvis,1)
 
 # 4) Boots: re-seat them under the now-thicker female legs and match the leg width.
