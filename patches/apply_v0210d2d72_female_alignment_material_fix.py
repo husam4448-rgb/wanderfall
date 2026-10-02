@@ -118,8 +118,8 @@ if old_pelvis not in s:
 s=s.replace(old_pelvis,new_pelvis,1)
 
 # 4) Boots: re-seat them under the now-thicker female legs and match the leg width.
-old_center='var boot_center := ankle + Vector2(-1.4 * dir_sign, 5.6)'
-new_center='var boot_center := ankle + Vector2(((-0.7 if female_mode else -1.4) * dir_sign), (5.3 if female_mode else 5.6))'
+old_center='var boot_center := ankle + Vector2(0.4 * dir_sign, 6.8)'
+new_center='var boot_center := ankle + Vector2(((0.15 if female_mode else 0.4) * dir_sign), (6.4 if female_mode else 6.8))'
 if old_center not in s:
     raise SystemExit("D2D.72 boot center anchor missing")
 s=s.replace(old_center,new_center,1)
