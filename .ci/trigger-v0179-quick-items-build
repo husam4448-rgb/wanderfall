@@ -1,1 +1,1 @@
-Retry Survival Paradise v0.21.0D2D.68 exact female head build after fixing the build-chain variable.
+Build Survival Paradise v0.21.0D2D.69. Use only the exact uploaded female_head_cutout_96.png identified by SHA-256 2222f1bf7f05a2c9bd649e9da5e09ab6278124f500eac135d19447ba1ed8627e; verify exact bytes before export and force final bare-head draw to female texture in FEMALE mode.
