@@ -93,20 +93,12 @@ if old_vest not in s:
 s = s.replace(old_vest, new_vest, 1)
 
 # Forward thigh pocket cleanup: cover the inner thigh pocket area with matching material.
-# 'side' identifies the two articulated legs; forward leg is selected by current stride.
-leg_anchor = '''    if gear_legs:
-        _draw_equipment_texture(tex_gear_legs, mid, Vector2(16.5,26.5), leg_flip, leg_angle)
-    else:
-        _draw_equipment_texture(tex_base_leg, mid, Vector2(16.5,26.5), leg_flip, leg_angle)
-
+# Insert immediately before the current D2D.50 boot-center line; avoids depending on
+# the exact surrounding leg-render block from older patches.
+boot_anchor = '''    # D2D.50: slightly forward and lower relative to ankle.
     var boot_center := ankle + Vector2(0.4 * dir_sign, 6.8)
 '''
-leg_new = '''    if gear_legs:
-        _draw_equipment_texture(tex_gear_legs, mid, Vector2(16.5,26.5), leg_flip, leg_angle)
-    else:
-        _draw_equipment_texture(tex_base_leg, mid, Vector2(16.5,26.5), leg_flip, leg_angle)
-
-    # D2D.53: remove the visually misplaced inner-thigh pocket from the forward leg.
+boot_new = '''    # D2D.53: remove the visually misplaced inner-thigh pocket from the forward leg.
     # Patch follows leg rotation so it stays attached during gait.
     if stride > 0.0:
         var patch_center := mid + _pose_point(Vector2(-2.2 * dir_sign,-4.0), leg_angle, 1.0)
@@ -115,11 +107,12 @@ leg_new = '''    if gear_legs:
         draw_rect(Rect2(Vector2(-2.2,-2.8),Vector2(4.4,5.6)),patch_color,true)
         draw_set_transform(Vector2.ZERO,0.0,Vector2.ONE)
 
+    # D2D.50: slightly forward and lower relative to ankle.
     var boot_center := ankle + Vector2(0.4 * dir_sign, 6.8)
 '''
-if leg_anchor not in s:
-    raise SystemExit("D2D.53 forward-leg pocket anchor missing")
-s = s.replace(leg_anchor, leg_new, 1)
+if boot_anchor not in s:
+    raise SystemExit("D2D.53 forward-leg boot anchor missing")
+s = s.replace(boot_anchor, boot_new, 1)
 
 script.write_text(s, encoding="utf-8")
 
