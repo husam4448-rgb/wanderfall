@@ -143,14 +143,6 @@ for old,new in (
         raise SystemExit("D2D.89 pelvis anchor missing: "+old)
     s=s.replace(old,new,1)
 
-# Bring the female hip joints slightly upward into the compact pelvis while
-# leaving the male skeleton untouched.
-old_hip='var hip := base + Vector2(side * hip_span, 11)'
-new_hip='var hip := base + Vector2(side * hip_span, (10.6 if female_mode else 11.0))'
-if old_hip not in s:
-    raise SystemExit("D2D.89 hip-y anchor missing")
-s=s.replace(old_hip,new_hip,1)
-
 # ---------------------------------------------------------------
 # 3) BACKPACK CLOSER TO FEMALE TORSO
 # Preserve male pack placement. Female only moves ~1.6 world px toward the spine.
@@ -186,7 +178,6 @@ for needle in (
     'FEMALE_FRONT_COLLAR_GEAR_B64',
     'Vector2(9.4,5.2)',
     'Vector2(12.8,5.2)',
-    '10.6 if female_mode else 11.0',
     'var pack_x := -8.9 if female_mode else -10.5',
 ):
     if needle not in s2:
