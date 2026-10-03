@@ -21,7 +21,7 @@ env:
   GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
   GODOT_TEMPLATES_TPZ: /tmp/Godot_v4.7.2-stable_export_templates.tpz
   GODOT_TEMPLATES_SHA256: f298490b8d44d934be425a5a65a51bf15f422428b229a06a6e11d9ffea248011
-  APK_PATH: PlayerCharacters_v02.apk
+  APK_PATH: PlayerCharacters_v03.apk
   MAX_APK_BYTES: '419430400'
 
 jobs:
@@ -349,6 +349,13 @@ jobs:
           "$GODOT_BIN" --headless --editor --path "$PROJECT_DIR" --quit --verbose 2>&1 | tee godot-v0179-parser.log
           if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|ERROR: Failed to create an autoload|Compile Error:|Parse Error:' godot-v0179-parser.log; then exit 1; fi
 
+      - name: Player character runtime smoke test
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 20s "$GODOT_BIN" --headless --path "$PROJECT_DIR" --quit-after 120 --verbose 2>&1 | tee player-runtime-smoke.log
+          if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|Compile Error:|Parse Error:|Invalid call|Invalid get index' player-runtime-smoke.log; then exit 1; fi
+
       - name: Prune obsolete prototype assets
         shell: bash
         run: |
@@ -391,8 +398,8 @@ jobs:
           "$APKSIGNER" verify --verbose --print-certs "$APK" | tee apk-signature.txt
           "$AAPT" dump badging "$APK" | tee apk-badging.txt
           grep -q "package: name='org.wanderfall.game'" apk-badging.txt
-          grep -q "versionCode='168'" apk-badging.txt
-          grep -q "versionName='0.21.0-PC02'" apk-badging.txt
+          grep -q "versionCode='169'" apk-badging.txt
+          grep -q "versionName='0.21.0-PC03'" apk-badging.txt
           grep -q "application-label:'Wanderfall'" apk-badging.txt
           APK_BYTES="$(stat -c%s "$APK")"
           test "$APK_BYTES" -lt "$MAX_APK_BYTES"
@@ -402,19 +409,20 @@ jobs:
             exit 1
           fi
           echo "APK_BYTES=$APK_BYTES" | tee apk-size.txt
-          sha256sum "$APK" | tee PlayerCharacters_v02.apk.sha256
+          sha256sum "$APK" | tee PlayerCharacters_v03.apk.sha256
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PlayerCharacters_v02-debug
+          name: PlayerCharacters_v03-debug
           path: |
-            PlayerCharacters_v02.apk
+            PlayerCharacters_v03.apk
             PlayerCharacters_v01.apk.sha256
             game/scripts/art/d2d29_minimal_token_runtime.gd
             android-export.log
             authored2d-import.log
             godot-v0179-parser.log
+            player-runtime-smoke.log
             apk-signature.txt
             apk-badging.txt
             apk-zip-test.txt
