@@ -63,6 +63,10 @@ s=s.replace(
     1
 )
 
+# Temporary CI diagnostic: print the exact generated head/collar region with line numbers.
+for _ln,_txt in enumerate(s.splitlines(),1):
+    if 438 <= _ln <= 458:
+        print("D2D.91 DEBUG RUNTIME %03d: %s" % (_ln,_txt))
 runtime.write_text(s,encoding="utf-8")
 s2=runtime.read_text(encoding="utf-8")
 
