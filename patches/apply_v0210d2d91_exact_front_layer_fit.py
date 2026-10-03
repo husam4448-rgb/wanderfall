@@ -11,62 +11,57 @@ s=runtime.read_text(encoding="utf-8")
 if 'title.text = "D2D.90 FULLER WAIST + LOWER BELT:"' not in s:
     raise SystemExit("D2D.91 D2D.90 title anchor missing")
 
-# ------------------------------------------------------------------
-# D2D.91 is a layer-order correction, not another redesign.
-# The two user-visible errors in D2D.90 came from drawing the intended
-# overlays too early:
-#   - the collar was subsequently covered by the head/neck
-#   - the belt was rendered in the pelvis stage instead of as the final seam
-#     cover across the torso/upper-leg junction.
-#
-# Remove those early draws and redraw BOTH as deliberate FRONT overlays after
-# the head/headgear stage. Existing body assets and proportions are preserved.
-# ------------------------------------------------------------------
+# D2D.91 is only a placement/layer-order correction.
+# D2D.90 already contains the fuller torso, collar textures, belt textures,
+# and no pelvis rag. Here we relocate the collar/belt so their actual render
+# order matches the requested visual result.
 
-early_collar_base='            _draw_equipment_texture(tex_female_front_collar_base, base + Vector2((0.8 * dir_sign),-15.0), Vector2(10.4,5.8), dir_sign < 0.0)\n'
-early_collar_gear='        _draw_equipment_texture(tex_female_front_collar_gear, base + Vector2((0.8 * dir_sign),-15.0), Vector2(10.4,5.8), dir_sign < 0.0)\n'
-early_belt_gear='        _draw_equipment_texture(tex_female_waist_belt_gear, base + Vector2((0.15 * dir_sign),10.6), Vector2(17.2,5.2), dir_sign < 0.0)\n'
-early_belt_base='            _draw_equipment_texture(tex_female_waist_belt_base, base + Vector2((0.15 * dir_sign),10.6), Vector2(17.2,5.2), dir_sign < 0.0)\n'
-
-for needle in (early_collar_base,early_collar_gear,early_belt_gear,early_belt_base):
+# Remove the early collar draws from torso/vest branches.
+for needle in (
+    '            _draw_equipment_texture(tex_female_front_collar_base, base + Vector2((0.8 * dir_sign),-15.0), Vector2(10.4,5.8), dir_sign < 0.0)\n',
+    '        _draw_equipment_texture(tex_female_front_collar_gear, base + Vector2((0.8 * dir_sign),-15.0), Vector2(10.4,5.8), dir_sign < 0.0)\n',
+):
     if needle not in s:
-        raise SystemExit("D2D.91 early overlay anchor missing: "+needle.strip())
+        raise SystemExit("D2D.91 early collar anchor missing: "+needle.strip())
     s=s.replace(needle,'',1)
 
-# Removing both old pelvis-stage belt draws leaves the old female pelvis
-# conditional empty. Remove that obsolete control block entirely.
-s,n_empty=re.subn(
-    r'(?m)^    if female_mode:\n        if gear_legs:\n            else:\n(?:\n)?',
-    '',
-    s,
-    count=1
-)
-if n_empty!=1:
-    raise SystemExit("D2D.91 empty pelvis block regex count: %d" % n_empty)
+# Remove the COMPLETE old pelvis-stage belt branch in one operation.
+# This avoids leaving an empty if/else block in GDScript.
+old_belt_block='''    if female_mode:
+        if gear_legs:
+            _draw_equipment_texture(tex_female_waist_belt_gear, base + Vector2((0.15 * dir_sign),10.6), Vector2(17.2,5.2), dir_sign < 0.0)
+        else:
+            _draw_equipment_texture(tex_female_waist_belt_base, base + Vector2((0.15 * dir_sign),10.6), Vector2(17.2,5.2), dir_sign < 0.0)
+'''
+if old_belt_block not in s:
+    raise SystemExit("D2D.91 old belt block missing")
+s=s.replace(old_belt_block,'',1)
 
-# Locate the explicit female bare-head draw. Insert the final collar/belt
-# INSIDE that female branch, immediately after the head sprite draw and before
-# the branch's else. This guarantees front layering without breaking the
-# surrounding if/else structure.
-lines=s.splitlines()
-head_line_index=-1
-for i,line in enumerate(lines):
-    if 'draw_texture_rect(tex_head_female,' in line:
-        head_line_index=i
-        break
-if head_line_index<0:
-    raise SystemExit("D2D.91 explicit female head draw anchor missing")
+# Put collar and belt at the TRUE end of _draw_actor(), immediately before
+# the next top-level function. This is syntactically safe and makes both
+# overlays render in front of neck/body layers.
+actor_start=s.find('func _draw_actor() -> void:\n')
+if actor_start<0:
+    raise SystemExit("D2D.91 _draw_actor anchor missing")
+next_func=s.find('\nfunc ',actor_start+1)
+if next_func<0:
+    raise SystemExit("D2D.91 could not locate end of _draw_actor")
 
-indent=lines[head_line_index][:len(lines[head_line_index])-len(lines[head_line_index].lstrip())]
-overlay_lines=[
-    indent+'# D2D.91 final female body-edge overlays: AFTER head/neck.',
-    indent+'var female_front_collar := tex_female_front_collar_gear if gear_torso else tex_female_front_collar_base',
-    indent+'_draw_equipment_texture(female_front_collar, base + Vector2((0.55 * dir_sign),-13.5), Vector2(11.4,6.4), dir_sign < 0.0)',
-    indent+'var female_seam_belt := tex_female_waist_belt_gear if gear_torso else tex_female_waist_belt_base',
-    indent+'_draw_equipment_texture(female_seam_belt, base + Vector2((0.10 * dir_sign),9.7), Vector2(18.4,5.0), dir_sign < 0.0)',
-]
-lines[head_line_index+1:head_line_index+1]=overlay_lines
-s='\n'.join(lines)+'\n'
+overlay='''
+
+    # D2D.91 final female front overlays.
+    if female_mode:
+        # Shirt/vest collar is deliberately drawn last so it visibly covers
+        # the lower neck instead of disappearing behind the neck/head.
+        var female_front_collar := tex_female_front_collar_gear if gear_torso else tex_female_front_collar_base
+        _draw_equipment_texture(female_front_collar, base + Vector2((0.45 * dir_sign),-13.1), Vector2(12.2,7.0), dir_sign < 0.0)
+
+        # Belt sits directly across the torso/upper-leg seam and overlaps both
+        # edges, replacing the unnatural pelvis rag completely.
+        var female_seam_belt := tex_female_waist_belt_gear if gear_torso else tex_female_waist_belt_base
+        _draw_equipment_texture(female_seam_belt, base + Vector2((0.05 * dir_sign),9.4), Vector2(18.8,5.2), dir_sign < 0.0)
+'''
+s=s[:next_func]+overlay+s[next_func:]
 
 s=s.replace(
     'title.text = "D2D.90 FULLER WAIST + LOWER BELT:"',
@@ -74,26 +69,21 @@ s=s.replace(
     1
 )
 
-# Temporary CI diagnostic: print the exact generated head/collar region with line numbers.
-for _ln,_txt in enumerate(s.splitlines(),1):
-    if 438 <= _ln <= 490:
-        print("D2D.91 DEBUG RUNTIME %03d: %s" % (_ln,_txt))
 runtime.write_text(s,encoding="utf-8")
 s2=runtime.read_text(encoding="utf-8")
 
 for needle in (
     'D2D.91 EXACT COLLAR + SEAM BELT:',
     'var female_front_collar :=',
-    'Vector2((0.55 * dir_sign),-13.5)',
-    'Vector2(11.4,6.4)',
+    'Vector2((0.45 * dir_sign),-13.1)',
+    'Vector2(12.2,7.0)',
     'var female_seam_belt :=',
-    'Vector2((0.10 * dir_sign),9.7)',
-    'Vector2(18.4,5.0)',
+    'Vector2((0.05 * dir_sign),9.4)',
+    'Vector2(18.8,5.2)',
 ):
     if needle not in s2:
         raise SystemExit("D2D.91 verification missing: "+needle)
 
-# Verify that the old early-layer versions are truly gone.
 for forbidden in (
     'Vector2((0.8 * dir_sign),-15.0), Vector2(10.4,5.8)',
     'Vector2((0.15 * dir_sign),10.6), Vector2(17.2,5.2)',
@@ -101,7 +91,6 @@ for forbidden in (
     if forbidden in s2:
         raise SystemExit("D2D.91 obsolete overlay placement remains: "+forbidden)
 
-# Pelvis rag must remain disabled.
 if '_draw_equipment_texture(tex_female_pelvis,' in s2 or '_draw_equipment_texture(tex_female_base_pelvis,' in s2:
     raise SystemExit("D2D.91 pelvis rag renderer returned")
 
@@ -120,6 +109,6 @@ if sm.exists():
              'const GAME_VERSION := "0.21.0D2D.91"',q,count=1)
     sm.write_text(q,encoding="utf-8")
 
-print("D2D.91 collar moved to final front layer after head/neck")
-print("D2D.91 belt moved to exact torso/upper-leg seam and final front layer")
-print("D2D.91 D2D.90 fuller torso retained; pelvis rag stays removed")
+print("D2D.91 collar now renders last and covers the lower neck")
+print("D2D.91 belt now sits directly over the torso/upper-leg seam")
+print("D2D.91 fuller D2D.90 body retained; pelvis rag remains removed")
