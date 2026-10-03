@@ -99,3 +99,16 @@ The user replaced the previous extracted head/torso/pants sources with three hig
 ### Arm rule
 No dedicated arm source has been approved yet. Do not fabricate visible arms as bars or line geometry.
 Until an arm source is approved, use the D2D.76 target screenshot only as a silhouette/pivot reference for arm proportions. Any final visible arm must be an authored 2D sprite with real volume and texture.
+
+
+## Step 3 approval
+The user approved the static V5 female assembly on 2026-10-03.
+
+Approved integration source:
+- static assembly: `female_static_assembly_v5.png`
+- comparison reference: `female_static_comparison_v5.png`
+
+Integration rule:
+- D2D.81 must reproduce this approved East-facing body in-engine before any additional direction, gait, or equipment-state expansion.
+- Do not redesign the approved silhouette during integration.
+- Visible arms must remain authored 2D sprites; IK may only transform them.
