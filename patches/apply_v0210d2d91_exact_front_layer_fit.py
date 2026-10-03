@@ -33,6 +33,17 @@ for needle in (early_collar_base,early_collar_gear,early_belt_gear,early_belt_ba
         raise SystemExit("D2D.91 early overlay anchor missing: "+needle.strip())
     s=s.replace(needle,'',1)
 
+# Removing both old pelvis-stage belt draws leaves the old female pelvis
+# conditional empty. Remove that obsolete control block entirely.
+empty_pelvis_block='''    if female_mode:
+        if gear_legs:
+        else:
+
+'''
+if empty_pelvis_block not in s:
+    raise SystemExit("D2D.91 empty pelvis block anchor missing")
+s=s.replace(empty_pelvis_block,'',1)
+
 # Locate the explicit female bare-head draw. Insert the final collar/belt
 # INSIDE that female branch, immediately after the head sprite draw and before
 # the branch's else. This guarantees front layering without breaking the
