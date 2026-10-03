@@ -21,7 +21,7 @@ env:
   GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
   GODOT_TEMPLATES_TPZ: /tmp/Godot_v4.7.2-stable_export_templates.tpz
   GODOT_TEMPLATES_SHA256: f298490b8d44d934be425a5a65a51bf15f422428b229a06a6e11d9ffea248011
-  APK_PATH: PlayerCharacters_v01.apk
+  APK_PATH: PlayerCharacters_v02.apk
   MAX_APK_BYTES: '419430400'
 
 jobs:
@@ -391,8 +391,8 @@ jobs:
           "$APKSIGNER" verify --verbose --print-certs "$APK" | tee apk-signature.txt
           "$AAPT" dump badging "$APK" | tee apk-badging.txt
           grep -q "package: name='org.wanderfall.game'" apk-badging.txt
-          grep -q "versionCode='167'" apk-badging.txt
-          grep -q "versionName='0.21.0-PC01'" apk-badging.txt
+          grep -q "versionCode='168'" apk-badging.txt
+          grep -q "versionName='0.21.0-PC02'" apk-badging.txt
           grep -q "application-label:'Wanderfall'" apk-badging.txt
           APK_BYTES="$(stat -c%s "$APK")"
           test "$APK_BYTES" -lt "$MAX_APK_BYTES"
@@ -402,14 +402,14 @@ jobs:
             exit 1
           fi
           echo "APK_BYTES=$APK_BYTES" | tee apk-size.txt
-          sha256sum "$APK" | tee PlayerCharacters_v01.apk.sha256
+          sha256sum "$APK" | tee PlayerCharacters_v02.apk.sha256
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PlayerCharacters_v01-debug
+          name: PlayerCharacters_v02-debug
           path: |
-            PlayerCharacters_v01.apk
+            PlayerCharacters_v02.apk
             PlayerCharacters_v01.apk.sha256
             game/scripts/art/d2d29_minimal_token_runtime.gd
             android-export.log
