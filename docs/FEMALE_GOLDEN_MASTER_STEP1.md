@@ -54,3 +54,22 @@ Extract authored East-side body parts from this golden master:
 - gear overlays
 
 No APK body redesign should occur until those parts and pivots are validated against the intact East-side source.
+
+
+## Superseding visual acceptance target — user-provided D2D.76 reference
+The user explicitly designated the uploaded D2D.76 screenshot as the visual target for the female body.
+
+Reference metadata:
+- image size: 1536 x 864
+- SHA-256: `986380269f41c7144160e819ab63b65a45f33c25ed60862e3cf1659b79f57b66`
+
+The body in this screenshot is the acceptance target for:
+- torso silhouette and shirt texture;
+- neck/head blend;
+- waist and pelvis alignment;
+- thigh and lower-leg proportions;
+- real arm volume and shoulder/elbow/wrist continuity;
+- hand placement on the firearm;
+- overall side-view scale and anatomical coherence.
+
+Important: the screenshot is a visual calibration target. The actual rig parts should still be extracted from approved authored 2D source assets rather than reconstructed with procedural bars, polygons, or generated substitute anatomy.
