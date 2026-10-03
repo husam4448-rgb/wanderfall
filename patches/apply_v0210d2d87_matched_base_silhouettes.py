@@ -109,17 +109,19 @@ if "tex_female_base_boot = _texture_from_embedded_webp" not in s:
 
 # Female unequipped boots use the new silhouette-matched texture.
 # Keep the exact D2D.74 female size/placement, already shared by equipped boots.
-old_boot_draw='_draw_equipment_texture(tex_base_boot, boot_center, (Vector2(14.8,10.8) if female_mode else Vector2(17.0,12.8)), dir_sign < 0.0)'
-new_boot_draw='_draw_equipment_texture((tex_female_base_boot if female_mode else tex_base_boot), boot_center, (Vector2(14.8,10.8) if female_mode else Vector2(17.0,12.8)), dir_sign < 0.0)'
-if old_boot_draw not in s:
-    # tolerate normalized formatting from prior patches
-    pat=r'_draw_equipment_texture\(tex_base_boot, boot_center, \(Vector2\(14\.8,10\.8\) if female_mode else Vector2\(17\.0,12\.8\)\), dir_sign < 0\.0\)'
-    s2,n=re.subn(pat,new_boot_draw,s,count=1)
-    if n!=1:
-        raise SystemExit("D2D.87 unequipped boot draw anchor missing")
-    s=s2
-else:
-    s=s.replace(old_boot_draw,new_boot_draw,1)
+boot_lines=s.splitlines()
+boot_replaced=0
+for i,line in enumerate(boot_lines):
+    if '_draw_equipment_texture(tex_base_boot, boot_center,' in line:
+        boot_lines[i]=line.replace(
+            '_draw_equipment_texture(tex_base_boot, boot_center,',
+            '_draw_equipment_texture((tex_female_base_boot if female_mode else tex_base_boot), boot_center,',
+            1
+        )
+        boot_replaced+=1
+if boot_replaced!=1:
+    raise SystemExit("D2D.87 unequipped boot draw anchor count: %d" % boot_replaced)
+s='\\n'.join(boot_lines)+'\\n'
 
 s=s.replace(
     'title.text = "D2D.86 SLIM BASE + FULLER LEGS:"',
