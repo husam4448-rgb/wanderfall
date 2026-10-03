@@ -11,13 +11,9 @@ s=runtime.read_text(encoding="utf-8")
 if 'title.text = "PLAYER CHARACTERS V02 | ARMS + IDLE + RECOIL:"' not in s:
     raise SystemExit("PC03 PC02 title anchor missing")
 
-# Replace the unequipped female torso with the approved right-facing two-side asset.
-# Left facing uses the same asset mirrored by the existing two-side renderer.
-m=re.search(r'const FEMALE_BASE_TORSO_B64 := "[A-Za-z0-9+/=]+"',s)
-if not m:
-    raise SystemExit("PC03 female base torso constant missing")
-s=s[:m.start()]+'const FEMALE_BASE_TORSO_B64 := "'+torsoB64+'"'+s[m.end():]
-
+# Refine the existing approved female torso geometry without importing a new
+# asset in this iteration. The dedicated torso replacement remains a separate
+# visual milestone so skeletal fixes can be validated independently.
 old='_draw_equipment_texture(tex_female_base_torso, base + Vector2((-0.45 * dir_sign),-5.4), Vector2(25.6,30.4), dir_sign < 0.0)'
 new='_draw_equipment_texture(tex_female_base_torso, base + Vector2((-0.35 * dir_sign),-4.7), Vector2(26.4,31.8), dir_sign < 0.0)'
 if old not in s:
@@ -134,7 +130,7 @@ if sm.exists():
     q=re.sub(r'const GAME_VERSION := "[^"]+"','const GAME_VERSION := "0.21.0-PC03"',q,count=1)
     sm.write_text(q,encoding="utf-8")
 
-print("PC03 installed optimized right-facing female torso asset for two-side mirroring")
+print("PC03 refined female torso geometry on the stable two-side asset")
 print("PC03 fixed support wrist/hand alignment and duplicate left support hand")
 print("PC03 elbow bend safety and male/female upper-body differentiation improved")
 print("PC03 female base/equipped boot footprints matched")
