@@ -21,7 +21,7 @@ env:
   GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
   GODOT_TEMPLATES_TPZ: /tmp/Godot_v4.7.2-stable_export_templates.tpz
   GODOT_TEMPLATES_SHA256: f298490b8d44d934be425a5a65a51bf15f422428b229a06a6e11d9ffea248011
-  APK_PATH: PlayerCharacters_v03.apk
+  APK_PATH: PlayerCharacters_v04.apk
   MAX_APK_BYTES: '419430400'
 
 jobs:
@@ -356,6 +356,18 @@ jobs:
           timeout 20s "$GODOT_BIN" --headless --path "$PROJECT_DIR" --quit-after 120 --verbose 2>&1 | tee player-runtime-smoke.log
           if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|Compile Error:|Parse Error:|Invalid call|Invalid get index' player-runtime-smoke.log; then exit 1; fi
 
+      - name: Capture canonical player-character visuals
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb >/dev/null
+          mkdir -p "$GITHUB_WORKSPACE/player-character-captures"
+          PLAYER_CAPTURE_DIR="$GITHUB_WORKSPACE/player-character-captures" \
+            timeout 30s xvfb-run -a "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1280x720 --verbose 2>&1 | tee player-character-capture.log
+          test "$(find "$GITHUB_WORKSPACE/player-character-captures" -maxdepth 1 -name '*.png' | wc -l)" -eq 8
+          grep -q 'PC_PERF_STATIC_MEMORY:' player-character-capture.log
+
       - name: Prune obsolete prototype assets
         shell: bash
         run: |
@@ -398,8 +410,8 @@ jobs:
           "$APKSIGNER" verify --verbose --print-certs "$APK" | tee apk-signature.txt
           "$AAPT" dump badging "$APK" | tee apk-badging.txt
           grep -q "package: name='org.wanderfall.game'" apk-badging.txt
-          grep -q "versionCode='169'" apk-badging.txt
-          grep -q "versionName='0.21.0-PC03'" apk-badging.txt
+          grep -q "versionCode='170'" apk-badging.txt
+          grep -q "versionName='0.21.0-PC04'" apk-badging.txt
           grep -q "application-label:'Wanderfall'" apk-badging.txt
           APK_BYTES="$(stat -c%s "$APK")"
           test "$APK_BYTES" -lt "$MAX_APK_BYTES"
@@ -409,20 +421,22 @@ jobs:
             exit 1
           fi
           echo "APK_BYTES=$APK_BYTES" | tee apk-size.txt
-          sha256sum "$APK" | tee PlayerCharacters_v03.apk.sha256
+          sha256sum "$APK" | tee PlayerCharacters_v04.apk.sha256
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PlayerCharacters_v03-debug
+          name: PlayerCharacters_v04-debug
           path: |
-            PlayerCharacters_v03.apk
+            PlayerCharacters_v04.apk
             PlayerCharacters_v01.apk.sha256
             game/scripts/art/d2d29_minimal_token_runtime.gd
             android-export.log
             authored2d-import.log
             godot-v0179-parser.log
             player-runtime-smoke.log
+            player-character-capture.log
+            player-character-captures/*.png
             apk-signature.txt
             apk-badging.txt
             apk-zip-test.txt
