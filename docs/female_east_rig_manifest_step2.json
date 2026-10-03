@@ -1,0 +1,40 @@
+{
+  "reference": {
+    "file": "target_crop.png",
+    "size_px": [360, 560],
+    "source_target": "User-designated D2D.76 female body screenshot",
+    "zoom": 4.0
+  },
+  "design_decisions": [
+    "Torso, waist and pelvis are one authored body_core sprite to eliminate the waist/pelvis seam.",
+    "The visible near-side upper arm and forearm/hand are extracted as real 2D sprites; the rear arm will reuse authored arm geometry with separate transforms rather than visible bars.",
+    "IK is transform-only. No line/bar geometry may render as anatomy.",
+    "The D2D.79/80 neck-placement improvement is retained only insofar as it matches this target."
+  ],
+  "parts": {
+    "head_neck": {"source_bbox":[77,40,179,158],"size_px_4x":[102,118],"sha256":"50d720a9b647b7307c1e73320b6952242ffe2c6dd52075170b40ed6ddf3979fd"},
+    "body_core": {"source_bbox":[88,135,173,333],"size_px_4x":[85,198],"sha256":"ddd83a37567e52a3d726fa420a8e274cf013d6c826078a1395235360fc145929"},
+    "upper_arm": {"source_bbox":[97,149,143,245],"size_px_4x":[46,96],"sha256":"f7185cfcc40250ab900a9b456e53f87cf23a3f6d52efea6c329d3fca599e4937"},
+    "forearm_hand": {"source_bbox":[124,223,223,266],"size_px_4x":[99,43],"sha256":"cdd372e907db603a1ca83d36c5cb01555f58ec0c44ffde8265822c3b25da616a"},
+    "rear_thigh": {"source_bbox":[87,297,131,410],"size_px_4x":[44,113],"sha256":"0047e322ba495c9acf6a1c23bf3a520066a0e559c834074043df0186243c5e6a"},
+    "rear_shin": {"source_bbox":[85,379,126,481],"size_px_4x":[41,102],"sha256":"79b027d20dc062bd7c8db8c20b9b5c27d2a5cb6e7fd149e2481aa367c48d4fb3"},
+    "front_thigh": {"source_bbox":[117,296,169,413],"size_px_4x":[52,117],"sha256":"6e01d52269e6cc2e4a14a738c52d00713ed0786bbb18223f21e2ebc821d7548f"},
+    "front_shin": {"source_bbox":[132,378,171,482],"size_px_4x":[39,104],"sha256":"d17d091d8889d6112824505c35099bca5fdf63026845345c731b6cf5a2abd5b4"},
+    "rear_boot": {"source_bbox":[69,456,135,523],"size_px_4x":[66,67],"sha256":"6323392135d4c57a6e49e6239d0596b17fd18aecac29d52db529ac2fab09e9a0"},
+    "front_boot": {"source_bbox":[134,455,225,523],"size_px_4x":[91,68],"sha256":"73cea654087364bda687b7b76abe858a10cd14f72a6ccfa79d983a603ebfd470"}
+  },
+  "pivots_px_4x": {
+    "neck_head":[139,143],"rear_shoulder":[143,169],"front_shoulder":[108,178],
+    "front_elbow":[129,235],"front_wrist":[202,249],"rear_wrist":[276,214],
+    "rear_hip":[107,307],"front_hip":[143,307],"rear_knee":[104,392],
+    "front_knee":[150,393],"rear_ankle":[103,469],"front_ankle":[155,469],
+    "foot_baseline":[130,514]
+  },
+  "pivots_runtime_units_at_4x": {
+    "neck_head":[34.75,35.75],"rear_shoulder":[35.75,42.25],"front_shoulder":[27.0,44.5],
+    "front_elbow":[32.25,58.75],"front_wrist":[50.5,62.25],"rear_wrist":[69.0,53.5],
+    "rear_hip":[26.75,76.75],"front_hip":[35.75,76.75],"rear_knee":[26.0,98.0],
+    "front_knee":[37.5,98.25],"rear_ankle":[25.75,117.25],"front_ankle":[38.75,117.25],
+    "foot_baseline":[32.5,128.5]
+  }
+}
