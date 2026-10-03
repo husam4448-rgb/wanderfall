@@ -35,14 +35,14 @@ for needle in (early_collar_base,early_collar_gear,early_belt_gear,early_belt_ba
 
 # Removing both old pelvis-stage belt draws leaves the old female pelvis
 # conditional empty. Remove that obsolete control block entirely.
-empty_pelvis_block='''    if female_mode:
-        if gear_legs:
-        else:
-
-'''
-if empty_pelvis_block not in s:
-    raise SystemExit("D2D.91 empty pelvis block anchor missing")
-s=s.replace(empty_pelvis_block,'',1)
+s,n_empty=re.subn(
+    r'(?m)^    if female_mode:\n        if gear_legs:\n            else:\n(?:\n)?',
+    '',
+    s,
+    count=1
+)
+if n_empty!=1:
+    raise SystemExit("D2D.91 empty pelvis block regex count: %d" % n_empty)
 
 # Locate the explicit female bare-head draw. Insert the final collar/belt
 # INSIDE that female branch, immediately after the head sprite draw and before
@@ -76,7 +76,7 @@ s=s.replace(
 
 # Temporary CI diagnostic: print the exact generated head/collar region with line numbers.
 for _ln,_txt in enumerate(s.splitlines(),1):
-    if 438 <= _ln <= 458:
+    if 438 <= _ln <= 490:
         print("D2D.91 DEBUG RUNTIME %03d: %s" % (_ln,_txt))
 runtime.write_text(s,encoding="utf-8")
 s2=runtime.read_text(encoding="utf-8")
