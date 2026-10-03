@@ -69,11 +69,19 @@ s=s.replace(old_ankle,new_ankle,1)
 
 # 5) Unequipped boots still read too large. Keep the same existing boot asset and
 # anchor logic, but reduce only the unequipped female display footprint.
-old_boot='_draw_equipment_texture((tex_female_base_boot if female_mode else tex_base_boot), boot_center, (Vector2(14.8,10.8) if female_mode else Vector2(17.0,12.8)), dir_sign < 0.0)'
-new_boot='_draw_equipment_texture((tex_female_base_boot if female_mode else tex_base_boot), boot_center, (Vector2(12.6,9.4) if female_mode else Vector2(17.0,12.8)), dir_sign < 0.0)'
-if old_boot not in s:
-    raise SystemExit("D2D.88 unequipped boot draw anchor missing")
-s=s.replace(old_boot,new_boot,1)
+boot_lines=s.splitlines()
+boot_count=0
+for i,line in enumerate(boot_lines):
+    if 'tex_female_base_boot if female_mode else tex_base_boot' in line and '_draw_equipment_texture' in line:
+        # Preserve the current draw structure; change only the female footprint.
+        line2=line.replace('Vector2(14.8,10.8)', 'Vector2(12.6,9.4)', 1)
+        if line2 == line:
+            raise SystemExit("D2D.88 current female boot size anchor missing")
+        boot_lines[i]=line2
+        boot_count+=1
+if boot_count!=1:
+    raise SystemExit("D2D.88 unequipped boot draw count: %d" % boot_count)
+s='\n'.join(boot_lines)+'\n'
 
 s=s.replace(
     'title.text = "D2D.87 MATCHED BASE SILHOUETTES:"',
