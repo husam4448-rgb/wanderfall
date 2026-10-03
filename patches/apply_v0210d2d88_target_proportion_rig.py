@@ -73,11 +73,8 @@ boot_lines=s.splitlines()
 boot_count=0
 for i,line in enumerate(boot_lines):
     if 'tex_female_base_boot if female_mode else tex_base_boot' in line and '_draw_equipment_texture' in line:
-        # Preserve the current draw structure; change only the female footprint.
-        line2=line.replace('Vector2(14.8,10.8)', 'Vector2(12.6,9.4)', 1)
-        if line2 == line:
-            raise SystemExit("D2D.88 current female boot size anchor missing")
-        boot_lines[i]=line2
+        indent=line[:len(line)-len(line.lstrip())]
+        boot_lines[i]=indent+'_draw_equipment_texture((tex_female_base_boot if female_mode else tex_base_boot), boot_center, (Vector2(12.6,9.4) if female_mode else Vector2(17.0,12.8)), dir_sign < 0.0)'
         boot_count+=1
 if boot_count!=1:
     raise SystemExit("D2D.88 unequipped boot draw count: %d" % boot_count)
