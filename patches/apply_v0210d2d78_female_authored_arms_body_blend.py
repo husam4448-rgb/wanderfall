@@ -249,18 +249,14 @@ s=s.replace('    tex_female_forearm = _texture_from_embedded_webp(FEMALE_FOREARM
             '    tex_female_neck = _texture_from_embedded_webp(FEMALE_NECK_B64)\n',1)
 
 # Draw neck before the torso so shirt/collar covers the lower seam.
-torso_if='''    if not gear_torso:
-        if female_mode:
-            _draw_equipment_texture(tex_female_base_torso, base + Vector2(0,-4.0), Vector2(22.8,31.0), dir_sign < 0.0)
-'''
-torso_if_new='''    if not gear_torso:
-        if female_mode:
-            _draw_equipment_texture(tex_female_neck, base + Vector2((2.0 * dir_sign),-15.2), Vector2(7.2,10.8), dir_sign < 0.0)
-            _draw_equipment_texture(tex_female_base_torso, base + Vector2(0,-4.0), Vector2(22.8,31.0), dir_sign < 0.0)
-'''
-if torso_if not in s:
-    raise SystemExit("D2D.78 base torso block anchor missing")
-s=s.replace(torso_if,torso_if_new,1)
+torso_draw_line='            _draw_equipment_texture(tex_female_base_torso, base + Vector2(0,-4.0), Vector2(22.8,31.0), dir_sign < 0.0)'
+if torso_draw_line not in s:
+    raise SystemExit("D2D.78 base torso draw line missing for neck insert")
+s=s.replace(
+    torso_draw_line,
+    '            _draw_equipment_texture(tex_female_neck, base + Vector2((2.0 * dir_sign),-15.2), Vector2(7.2,10.8), dir_sign < 0.0)\\n'+torso_draw_line,
+    1
+)
 
 # Equipped state gets the same neck bridge so helmet/vest mode remains coherent.
 vest_anchor='''func _draw_vest(base: Vector2, dir_sign: float) -> void:
