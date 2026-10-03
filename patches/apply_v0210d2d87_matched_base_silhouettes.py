@@ -121,7 +121,7 @@ for i,line in enumerate(boot_lines):
         boot_replaced+=1
 if boot_replaced!=1:
     raise SystemExit("D2D.87 unequipped boot draw anchor count: %d" % boot_replaced)
-s='\\n'.join(boot_lines)+'\\n'
+s='\n'.join(boot_lines)+'\n'
 
 s=s.replace(
     'title.text = "D2D.86 SLIM BASE + FULLER LEGS:"',
