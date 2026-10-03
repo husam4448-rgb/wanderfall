@@ -45,6 +45,10 @@ Reject the static art unless all of the following are true:
 - equipped gear overlays the same body foundation rather than replacing anatomy.
 
 ## Phase C — Part extraction
+
+### Step 2 status: COMPLETE
+The East-side target has been calibrated into authored part regions and joint pivots. Torso+waist+pelvis are intentionally treated as one `body_core` sprite to eliminate the recurring waist/pelvis seam. Real 2D arm sprites are mandatory; IK may transform them but may not render line/bar anatomy.
+
 Only after the static checkpoint is approved.
 
 Extract authored transparent sprites:
