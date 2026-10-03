@@ -21,7 +21,7 @@ env:
   GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
   GODOT_TEMPLATES_TPZ: /tmp/Godot_v4.7.2-stable_export_templates.tpz
   GODOT_TEMPLATES_SHA256: f298490b8d44d934be425a5a65a51bf15f422428b229a06a6e11d9ffea248011
-  APK_PATH: Survival-Paradise-v0.21.0D2D.79.apk
+  APK_PATH: Survival-Paradise-v0.21.0D2D.80.apk
   MAX_APK_BYTES: '419430400'
 
 jobs:
@@ -349,6 +349,30 @@ jobs:
           "$GODOT_BIN" --headless --editor --path "$PROJECT_DIR" --quit --verbose 2>&1 | tee godot-v0179-parser.log
           if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|ERROR: Failed to create an autoload|Compile Error:|Parse Error:' godot-v0179-parser.log; then exit 1; fi
 
+      - name: Prune obsolete prototype assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Before prune:"
+          du -sh "$PROJECT_DIR" || true
+
+          # These Quaternius 3D assets were required by older D3D experiments only.
+          # The current D2D runtime embeds/draws its 2D character assets and does not
+          # reference this model directory.
+          rm -rf "$PROJECT_DIR/assets/models/superhero_male"
+
+          # Remove imported caches belonging exclusively to those obsolete 3D models.
+          IMPORTED="$PROJECT_DIR/.godot/imported"
+          if [ -d "$IMPORTED" ]; then
+            find "$IMPORTED" -maxdepth 1 -type f \(               -name 'Superhero_*' -o               -name 'Female_Ranger*' -o -name 'Male_Ranger*' -o               -name 'Female_Peasant*' -o -name 'Male_Peasant*' -o               -name 'Hair_Long*' -o -name 'Hair_SimpleParted*' -o               -name 'T_Hair_*' -o -name 'T_Ranger_*' -o               -name 'T_Peasant_*' -o -name 'T_Regular_*' -o               -name 'T_Superhero_*' -o -name 'T_Eye_Brown*'             \) -print -delete
+
+            # Old 2D laboratory atlases no longer referenced by D2D.79/80 runtime.
+            find "$IMPORTED" -maxdepth 1 -type f \(               -name 'body_atlas.webp-*' -o               -name 'd2d16_unarmed_source.webp-*' -o               -name 'south_body.webp-*' -o -name 'south.webp-*' -o -name 'north.webp-*' -o               -name 'player_male_direct_run.png-*' -o               -name 'player_female_direct_run.png-*' -o               -name 'd2d43_player_armed.webp-*'             \) -print -delete
+          fi
+
+          echo "After prune:"
+          du -sh "$PROJECT_DIR" || true
+
       - name: Export APK
         shell: bash
         run: |
@@ -367,26 +391,33 @@ jobs:
           "$APKSIGNER" verify --verbose --print-certs "$APK" | tee apk-signature.txt
           "$AAPT" dump badging "$APK" | tee apk-badging.txt
           grep -q "package: name='org.wanderfall.game'" apk-badging.txt
-          grep -q "versionCode='152'" apk-badging.txt
-          grep -q "versionName='0.21.0D2D.79'" apk-badging.txt
+          grep -q "versionCode='153'" apk-badging.txt
+          grep -q "versionName='0.21.0D2D.80'" apk-badging.txt
           grep -q "application-label:'Wanderfall'" apk-badging.txt
           APK_BYTES="$(stat -c%s "$APK")"
           test "$APK_BYTES" -lt "$MAX_APK_BYTES"
-          sha256sum "$APK" | tee Survival-Paradise-v0.21.0D2D.79.apk.sha256
+          unzip -l "$APK" | grep -q 'lib/arm64-v8a/libgodot_android.so'
+          if unzip -l "$APK" | grep -q 'lib/armeabi-v7a/'; then
+            echo "Legacy armeabi-v7a library unexpectedly present"
+            exit 1
+          fi
+          echo "APK_BYTES=$APK_BYTES" | tee apk-size.txt
+          sha256sum "$APK" | tee Survival-Paradise-v0.21.0D2D.80.apk.sha256
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Survival-Paradise-v0.21.0D2D.79-debug
+          name: Survival-Paradise-v0.21.0D2D.80-debug
           path: |
-            Survival-Paradise-v0.21.0D2D.79.apk
-            Survival-Paradise-v0.21.0D2D.79.apk.sha256
+            Survival-Paradise-v0.21.0D2D.80.apk
+            Survival-Paradise-v0.21.0D2D.80.apk.sha256
             android-export.log
             authored2d-import.log
             godot-v0179-parser.log
             apk-signature.txt
             apk-badging.txt
             apk-zip-test.txt
+            apk-size.txt
           retention-days: 14
           if-no-files-found: error
           compression-level: 0
