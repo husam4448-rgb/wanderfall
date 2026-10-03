@@ -1,1 +1,1 @@
-Retry D2D.91: remove obsolete empty pelvis conditional; collar remains front-layer after female head; belt remains exact torso-upper-leg seam overlay.
+Retry D2D.91: actual empty pelvis branch regex fixed; collar front-layer after female head; belt exact torso-upper-leg seam.
