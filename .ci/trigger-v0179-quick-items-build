@@ -1,1 +1,1 @@
-Build PlayerCharacters_v03: optimized right-facing female torso asset mirrored for Left/Right, exact support-hand wrist alignment, safe elbow bend, matched female boots, broader male torso, runtime smoke test.
+Build PlayerCharacters_v03 retry: skeletal/anatomy alignment pass on stable female asset; exact support-hand wrist, safe elbow bend, matched boots, broader male torso, runtime smoke test.
