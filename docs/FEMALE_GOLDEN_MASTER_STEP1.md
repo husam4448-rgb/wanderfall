@@ -73,3 +73,29 @@ The body in this screenshot is the acceptance target for:
 - overall side-view scale and anatomical coherence.
 
 Important: the screenshot is a visual calibration target. The actual rig parts should still be extracted from approved authored 2D source assets rather than reconstructed with procedural bars, polygons, or generated substitute anatomy.
+
+
+## Superseding authored component sources — user-selected
+The user replaced the previous extracted head/torso/pants sources with three higher-detail authored references. These are now the preferred art sources for the static female rebuild.
+
+### Head
+- uploaded file: `1000050897.png`
+- dimensions: 1536 x 1536
+- SHA-256: `492264865c7a0fc33f928897a9c99b23f55d357c14922d7cd37e8cf6beff62c6`
+- role: female head/hair/neck appearance reference
+
+### Torso
+- uploaded file: `1000050898.png`
+- dimensions: 1536 x 1536
+- SHA-256: `eae9869b69e9ba5544d1c9e2ecdad07dc9f7ea08d43869208fd9a54064014319`
+- role: torso/shirt/vest material and silhouette source
+
+### Pants / lower body
+- uploaded file: `1000050899.png`
+- dimensions: 1024 x 1536
+- SHA-256: `41950aa7976b4d81258ef87c91adfd556571f34bd9b0323b1b5f6cea5f210fc5`
+- role: pelvis/waist/thigh/shin/boot-proportion texture source
+
+### Arm rule
+No dedicated arm source has been approved yet. Do not fabricate visible arms as bars or line geometry.
+Until an arm source is approved, use the D2D.76 target screenshot only as a silhouette/pivot reference for arm proportions. Any final visible arm must be an authored 2D sprite with real volume and texture.
