@@ -254,7 +254,7 @@ if torso_draw_line not in s:
     raise SystemExit("D2D.78 base torso draw line missing for neck insert")
 s=s.replace(
     torso_draw_line,
-    '            _draw_equipment_texture(tex_female_neck, base + Vector2((2.0 * dir_sign),-15.2), Vector2(7.2,10.8), dir_sign < 0.0)\\n'+torso_draw_line,
+    '            _draw_equipment_texture(tex_female_neck, base + Vector2((2.0 * dir_sign),-15.2), Vector2(7.2,10.8), dir_sign < 0.0)\n'+torso_draw_line,
     1
 )
 
