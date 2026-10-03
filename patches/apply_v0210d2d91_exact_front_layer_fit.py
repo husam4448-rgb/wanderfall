@@ -33,26 +33,29 @@ for needle in (early_collar_base,early_collar_gear,early_belt_gear,early_belt_ba
         raise SystemExit("D2D.91 early overlay anchor missing: "+needle.strip())
     s=s.replace(needle,'',1)
 
-# Locate the actual visible headgear stage inside _draw_actor. Drawing immediately
-# after it guarantees collar and belt are in FRONT of the neck/body layers.
-pat=r'(?m)(^    if gear_head:\n        _draw_headgear\([^\n]+\)\n)'
-m=re.search(pat,s)
-if not m:
-    raise SystemExit("D2D.91 head/headgear layering anchor missing")
+# Locate the explicit female bare-head draw. Insert the final collar/belt
+# INSIDE that female branch, immediately after the head sprite draw and before
+# the branch's else. This guarantees front layering without breaking the
+# surrounding if/else structure.
+lines=s.splitlines()
+head_line_index=-1
+for i,line in enumerate(lines):
+    if 'draw_texture_rect(tex_head_female,' in line:
+        head_line_index=i
+        break
+if head_line_index<0:
+    raise SystemExit("D2D.91 explicit female head draw anchor missing")
 
-overlay = m.group(1) + '''    # D2D.91: final female body-edge overlays.
-    # These are deliberately rendered AFTER the head/neck so the shirt collar
-    # covers the lower neck instead of disappearing behind it.
-    if female_mode:
-        var female_front_collar := tex_female_front_collar_gear if gear_torso else tex_female_front_collar_base
-        _draw_equipment_texture(female_front_collar, base + Vector2((0.55 * dir_sign),-13.5), Vector2(11.4,6.4), dir_sign < 0.0)
-
-        # Belt center is aligned to the actual torso bottom (~y 9.8) and overlaps
-        # both torso and upper-leg edges. It is no longer a pelvis-stage sprite.
-        var female_seam_belt := tex_female_waist_belt_gear if gear_torso else tex_female_waist_belt_base
-        _draw_equipment_texture(female_seam_belt, base + Vector2((0.10 * dir_sign),9.7), Vector2(18.4,5.0), dir_sign < 0.0)
-'''
-s=s[:m.start()]+overlay+s[m.end():]
+indent=lines[head_line_index][:len(lines[head_line_index])-len(lines[head_line_index].lstrip())]
+overlay_lines=[
+    indent+'# D2D.91 final female body-edge overlays: AFTER head/neck.',
+    indent+'var female_front_collar := tex_female_front_collar_gear if gear_torso else tex_female_front_collar_base',
+    indent+'_draw_equipment_texture(female_front_collar, base + Vector2((0.55 * dir_sign),-13.5), Vector2(11.4,6.4), dir_sign < 0.0)',
+    indent+'var female_seam_belt := tex_female_waist_belt_gear if gear_torso else tex_female_waist_belt_base',
+    indent+'_draw_equipment_texture(female_seam_belt, base + Vector2((0.10 * dir_sign),9.7), Vector2(18.4,5.0), dir_sign < 0.0)',
+]
+lines[head_line_index+1:head_line_index+1]=overlay_lines
+s='\n'.join(lines)+'\n'
 
 s=s.replace(
     'title.text = "D2D.90 FULLER WAIST + LOWER BELT:"',
