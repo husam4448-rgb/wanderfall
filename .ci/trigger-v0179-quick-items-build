@@ -1,1 +1,1 @@
-Build PlayerCharacters_v03 retry: skeletal/anatomy alignment pass on stable female asset; exact support-hand wrist, safe elbow bend, matched boots, broader male torso, runtime smoke test.
+Build PlayerCharacters_v04: restore female base collar/belt, capture eight canonical male/female Left/Right equipped/base visual states, record performance telemetry.
