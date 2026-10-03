@@ -145,22 +145,25 @@ for old,new in (
 
 # ---------------------------------------------------------------
 # 3) BACKPACK CLOSER TO FEMALE TORSO
-# Preserve male pack placement. Female only moves ~1.6 world px toward the spine.
+# Preserve male placement. Rewrite only the center calculation inside the
+# existing backpack helper so this stays robust across earlier patch comments.
 # ---------------------------------------------------------------
-old_pack='''func _draw_backpack(base: Vector2, dir_sign: float) -> void:
-    # D2D.49: pack hugs the spine instead of floating behind it, and rides higher.
-    var center := base + Vector2(-10.5 * dir_sign, -4.0)
-    _draw_equipment_texture(tex_gear_pack, center, Vector2(25,31), dir_sign < 0.0)
-'''
-new_pack='''func _draw_backpack(base: Vector2, dir_sign: float) -> void:
-    # D2D.89: female pack sits closer to the torso; male placement is unchanged.
-    var pack_x := -8.9 if female_mode else -10.5
-    var center := base + Vector2(pack_x * dir_sign, -4.0)
-    _draw_equipment_texture(tex_gear_pack, center, Vector2(25,31), dir_sign < 0.0)
-'''
-if old_pack not in s:
-    raise SystemExit("D2D.89 backpack function anchor missing")
-s=s.replace(old_pack,new_pack,1)
+pack_start=s.find('func _draw_backpack(base: Vector2, dir_sign: float) -> void:')
+if pack_start<0:
+    raise SystemExit("D2D.89 backpack function missing")
+pack_end=s.find('\nfunc ',pack_start+5)
+if pack_end<0:
+    pack_end=len(s)
+pack_block=s[pack_start:pack_end]
+pack_block2,n=re.subn(
+    r'(?m)^    var center := base \+ Vector2\([^\n]+\)$',
+    '    var pack_x := -8.9 if female_mode else -10.5\n    var center := base + Vector2(pack_x * dir_sign, -4.0)',
+    pack_block,
+    count=1
+)
+if n!=1:
+    raise SystemExit("D2D.89 backpack center anchor missing")
+s=s[:pack_start]+pack_block2+s[pack_end:]
 
 s=s.replace(
     'title.text = "D2D.88 TARGET-PROPORTION FEMALE RIG:"',
