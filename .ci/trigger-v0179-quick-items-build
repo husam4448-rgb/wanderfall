@@ -1,1 +1,1 @@
-Rebuild PlayerCharacters_v11 after fixing QA assertion: shared female underlying torso, compact pelvis bridge, shared collar, unified leg width/hip roots, no visible arms, Left/Right only. Candidate for visual QA.
+Rebuild PlayerCharacters_v11 after runtime-wide leg QA fix. Shared female body geometry, compact pelvis bridge, shared collar, unified leg widths/hip roots, no visible arms, Left/Right only. Candidate for visual QA.
