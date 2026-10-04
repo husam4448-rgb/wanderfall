@@ -146,7 +146,7 @@ if 'tex_female_front_collar_gear' in actor:
 
 # Both female leg branches now resolve to 18.8px width. The branch-local
 # draw statement is shared textually, so verify the obsolete 17.4px width is gone.
-if 'Vector2(17.4,26.5)' in actor or 'Vector2(18.8,26.5)' not in actor:
+if 'Vector2(17.4,26.5)' in s2 or 'Vector2(18.8,26.5)' not in s2:
     raise SystemExit("PC11 female leg width not unified")
 
 for forbidden in ('direction_index','octant_index','eight_direction','8_direction'):
