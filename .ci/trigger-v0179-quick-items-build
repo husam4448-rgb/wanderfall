@@ -1,1 +1,1 @@
-Rebuild PlayerCharacters_v11 after runtime-wide leg QA fix. Shared female body geometry, compact pelvis bridge, shared collar, unified leg widths/hip roots, no visible arms, Left/Right only. Candidate for visual QA.
+Build PlayerCharacters_v12: final lower-shirt taper, tighter waist/pelvis bridge, contained belt, shared equipped/base anatomy, no visible arms, Left/Right only. Candidate must pass whole-body visual QA before delivery.
