@@ -1,1 +1,1 @@
-Build PlayerCharacters_v12: final lower-shirt taper, tighter waist/pelvis bridge, contained belt, shared equipped/base anatomy, no visible arms, Left/Right only. Candidate must pass whole-body visual QA before delivery.
+Build PlayerCharacters_v13: reject PC12 female torso deformation, restore PC10 anatomical body, remove the accidental full-torso-as-vest double render, fit the genuine vest-only overlay, preserve no visible arms and Left/Right-only facing. Candidate must pass visual QA before delivery.
