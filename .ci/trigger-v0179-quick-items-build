@@ -1,1 +1,1 @@
-Build PlayerCharacters_v06: remove female arm rendering while preserving hands; install uploaded-reference-derived torso; render matching collar in front of lower neck; move compact trimmed belt to bottom shirt hem; capture canonical Left/Right QA screenshots before delivery.
+Retry PlayerCharacters_v06 after quick-chain syntax fix: no female arms, hands retained, uploaded-reference torso/collar, compact lower-hem belt, canonical Left/Right visual QA captures.
