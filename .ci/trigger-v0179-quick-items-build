@@ -1,1 +1,1 @@
-Build PlayerCharacters_v11: shared female underlying torso for equipped/base, compact pelvis bridge, shared collar, unified female leg width/hip roots, no visible arms, Left/Right only. Candidate for visual QA; reject if anatomy remains inconsistent.
+Rebuild PlayerCharacters_v11 after fixing QA assertion: shared female underlying torso, compact pelvis bridge, shared collar, unified leg width/hip roots, no visible arms, Left/Right only. Candidate for visual QA.
