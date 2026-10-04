@@ -1,1 +1,1 @@
-Build PlayerCharacters_v10: anatomical row-wise reshape of female unequipped torso; reduce equipped torso height and collar coverage so neck remains natural; preserve compact belt, no visible arms, hands-only weapon interaction, Left/Right-only facing, and QA captures.
+Build PlayerCharacters_v11: shared female underlying torso for equipped/base, compact pelvis bridge, shared collar, unified female leg width/hip roots, no visible arms, Left/Right only. Candidate for visual QA; reject if anatomy remains inconsistent.
