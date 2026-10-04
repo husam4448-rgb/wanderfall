@@ -1,1 +1,1 @@
-Build PlayerCharacters_v07: visually verified PC06 torso/no-arm baseline retained; trim base belt to pelvis width, recenter over upper legs, and keep it on the lowest shirt/pelvis seam; capture Left/Right QA before delivery.
+Build PlayerCharacters_v08: remove male and female visible arms while preserving hands/weapon sockets; reduce female torso scale; trim female belt in both base/equipped states; retain Left/Right-only facing and QA captures.
