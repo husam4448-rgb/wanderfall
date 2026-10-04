@@ -144,8 +144,9 @@ if '_draw_player_authored_arm(' in actor:
 if 'tex_female_front_collar_gear' in actor:
     raise SystemExit("PC11 old gear collar still rendered")
 
-# Both female leg branches must now use the same dimensions.
-if actor.count('Vector2(18.8,26.5)') < 2:
+# Both female leg branches now resolve to 18.8px width. The branch-local
+# draw statement is shared textually, so verify the obsolete 17.4px width is gone.
+if 'Vector2(17.4,26.5)' in actor or 'Vector2(18.8,26.5)' not in actor:
     raise SystemExit("PC11 female leg width not unified")
 
 for forbidden in ('direction_index','octant_index','eight_direction','8_direction'):
