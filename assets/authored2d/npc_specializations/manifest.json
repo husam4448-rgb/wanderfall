@@ -1,0 +1,290 @@
+[
+  {
+    "file": "SP_NPC_Trader_Male_Torso_Right.png",
+    "role": "Trader",
+    "gender": "Male",
+    "part": "Torso",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Trader_Male_Pants_Right.png",
+    "role": "Trader",
+    "gender": "Male",
+    "part": "Pants",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Trader_Male_Boots_Right.png",
+    "role": "Trader",
+    "gender": "Male",
+    "part": "Boots",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Trader_Female_Torso_Right.png",
+    "role": "Trader",
+    "gender": "Female",
+    "part": "Torso",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Trader_Female_Pants_Right.png",
+    "role": "Trader",
+    "gender": "Female",
+    "part": "Pants",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Trader_Female_Boots_Right.png",
+    "role": "Trader",
+    "gender": "Female",
+    "part": "Boots",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Medic_Male_Torso_Right.png",
+    "role": "Medic",
+    "gender": "Male",
+    "part": "Torso",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Medic_Male_Pants_Right.png",
+    "role": "Medic",
+    "gender": "Male",
+    "part": "Pants",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Medic_Male_Boots_Right.png",
+    "role": "Medic",
+    "gender": "Male",
+    "part": "Boots",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Medic_Female_Torso_Right.png",
+    "role": "Medic",
+    "gender": "Female",
+    "part": "Torso",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Medic_Female_Pants_Right.png",
+    "role": "Medic",
+    "gender": "Female",
+    "part": "Pants",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Medic_Female_Boots_Right.png",
+    "role": "Medic",
+    "gender": "Female",
+    "part": "Boots",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Mechanic_Male_Torso_Right.png",
+    "role": "Mechanic",
+    "gender": "Male",
+    "part": "Torso",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Mechanic_Male_Pants_Right.png",
+    "role": "Mechanic",
+    "gender": "Male",
+    "part": "Pants",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Mechanic_Male_Boots_Right.png",
+    "role": "Mechanic",
+    "gender": "Male",
+    "part": "Boots",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Mechanic_Female_Torso_Right.png",
+    "role": "Mechanic",
+    "gender": "Female",
+    "part": "Torso",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Mechanic_Female_Pants_Right.png",
+    "role": "Mechanic",
+    "gender": "Female",
+    "part": "Pants",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Mechanic_Female_Boots_Right.png",
+    "role": "Mechanic",
+    "gender": "Female",
+    "part": "Boots",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Guard_Male_Torso_Right.png",
+    "role": "Guard",
+    "gender": "Male",
+    "part": "Torso",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Guard_Male_Pants_Right.png",
+    "role": "Guard",
+    "gender": "Male",
+    "part": "Pants",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Guard_Male_Boots_Right.png",
+    "role": "Guard",
+    "gender": "Male",
+    "part": "Boots",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Guard_Female_Torso_Right.png",
+    "role": "Guard",
+    "gender": "Female",
+    "part": "Torso",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Guard_Female_Pants_Right.png",
+    "role": "Guard",
+    "gender": "Female",
+    "part": "Pants",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Guard_Female_Boots_Right.png",
+    "role": "Guard",
+    "gender": "Female",
+    "part": "Boots",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Bandit_Male_Torso_Right.png",
+    "role": "Bandit",
+    "gender": "Male",
+    "part": "Torso",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Bandit_Male_Pants_Right.png",
+    "role": "Bandit",
+    "gender": "Male",
+    "part": "Pants",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Bandit_Male_Boots_Right.png",
+    "role": "Bandit",
+    "gender": "Male",
+    "part": "Boots",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Bandit_Female_Torso_Right.png",
+    "role": "Bandit",
+    "gender": "Female",
+    "part": "Torso",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Bandit_Female_Pants_Right.png",
+    "role": "Bandit",
+    "gender": "Female",
+    "part": "Pants",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Bandit_Female_Boots_Right.png",
+    "role": "Bandit",
+    "gender": "Female",
+    "part": "Boots",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Civilian_Male_Torso_Right.png",
+    "role": "Civilian",
+    "gender": "Male",
+    "part": "Torso",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Civilian_Male_Pants_Right.png",
+    "role": "Civilian",
+    "gender": "Male",
+    "part": "Pants",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Civilian_Male_Boots_Right.png",
+    "role": "Civilian",
+    "gender": "Male",
+    "part": "Boots",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Civilian_Female_Torso_Right.png",
+    "role": "Civilian",
+    "gender": "Female",
+    "part": "Torso",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Civilian_Female_Pants_Right.png",
+    "role": "Civilian",
+    "gender": "Female",
+    "part": "Pants",
+    "canvas": "256x256",
+    "background": "transparent"
+  },
+  {
+    "file": "SP_NPC_Civilian_Female_Boots_Right.png",
+    "role": "Civilian",
+    "gender": "Female",
+    "part": "Boots",
+    "canvas": "256x256",
+    "background": "transparent"
+  }
+]
