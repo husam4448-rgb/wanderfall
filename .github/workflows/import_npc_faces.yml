@@ -1,0 +1,34 @@
+name: Import NPC Face Assets
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.ci/npc_faces_bundle.zip'
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Unpack NPC faces
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p assets/authored2d/npc_faces
+          unzip -o .ci/npc_faces_bundle.zip -d .
+          rm .ci/npc_faces_bundle.zip
+      - name: Commit imported assets
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/authored2d/npc_faces .ci/npc_faces_bundle.zip
+          git diff --cached --quiet && exit 0
+          git commit -m "Import all NPC face assets"
+          git push
