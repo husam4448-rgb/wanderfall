@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main ]
     paths:
-      - '.ci/npc_faces_bundle.zip'
+      - '.ci/npc_faces_bundle.part*.b64'
 
 permissions:
   contents: write
@@ -20,15 +20,22 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          shopt -s nullglob
+          parts=(.ci/npc_faces_bundle.part*.b64)
+          if [ ${#parts[@]} -eq 0 ]; then
+            echo "No NPC face bundle parts remain; nothing to import."
+            exit 0
+          fi
           mkdir -p assets/authored2d/npc_faces
-          unzip -o .ci/npc_faces_bundle.zip -d assets/authored2d/npc_faces
-          rm .ci/npc_faces_bundle.zip
+          cat "${parts[@]}" | base64 -d > /tmp/npc_faces_bundle.zip
+          unzip -o /tmp/npc_faces_bundle.zip -d assets/authored2d/npc_faces
+          rm -f "${parts[@]}"
       - name: Commit imported assets
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/authored2d/npc_faces .ci/npc_faces_bundle.zip
+          git add assets/authored2d/npc_faces .ci
           git diff --cached --quiet && exit 0
           git commit -m "Import all NPC face assets"
           git push
