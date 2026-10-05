@@ -1,0 +1,41 @@
+name: Import NPC Specialization Assets
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.ci/npc_specializations_bundle.part*.b64'
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Unpack NPC specialization assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          parts=(.ci/npc_specializations_bundle.part*.b64)
+          if [ ${#parts[@]} -eq 0 ]; then
+            echo "No specialization bundle parts remain; nothing to import."
+            exit 0
+          fi
+          mkdir -p assets/authored2d/npc_specializations
+          cat "${parts[@]}" | base64 -d > /tmp/npc_specializations_bundle.zip
+          unzip -o /tmp/npc_specializations_bundle.zip -d assets/authored2d/npc_specializations
+          rm -f "${parts[@]}"
+      - name: Commit imported assets
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/authored2d/npc_specializations .ci
+          git diff --cached --quiet && exit 0
+          git commit -m "Import NPC specialization modular assets"
+          git push
