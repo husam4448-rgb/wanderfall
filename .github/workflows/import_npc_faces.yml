@@ -21,7 +21,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p assets/authored2d/npc_faces
-          unzip -o .ci/npc_faces_bundle.zip -d .
+          unzip -o .ci/npc_faces_bundle.zip -d assets/authored2d/npc_faces
           rm .ci/npc_faces_bundle.zip
       - name: Commit imported assets
         shell: bash
