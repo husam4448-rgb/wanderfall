@@ -18,12 +18,12 @@
       "mirroring_supported": true,
       "approval_state": "candidate",
       "alpha_bbox": [
-        9,
         5,
-        54,
+        5,
+        59,
         123
       ],
-      "sha256": "5f4722cfe2032e0a67578ad026df831c1f5d89d17237bf231fa6b1ba9205976b"
+      "sha256": "ee933cd7c92912bc0ac082fcd5ff1fa96303abd3620dd0454716d4bbc78a8b5e"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/male/SP_PC22_Male_Forearm_Right.png",
@@ -43,12 +43,12 @@
       "mirroring_supported": true,
       "approval_state": "candidate",
       "alpha_bbox": [
-        13,
+        6,
         5,
-        51,
+        58,
         123
       ],
-      "sha256": "eaef91f33de4ee4c3a414deab9f1a3cb4d48bbd91fc6af430786b872a077c884"
+      "sha256": "ff8fa5f1748bb8bdfb31aeff7a1575742a0803efb6845bb36f6e2d3960540cc8"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/male/SP_PC22_Male_Hand_Dominant_Right.png",
@@ -68,12 +68,12 @@
       "mirroring_supported": true,
       "approval_state": "candidate",
       "alpha_bbox": [
-        4,
-        19,
-        92,
-        77
+        8,
+        21,
+        68,
+        75
       ],
-      "sha256": "9eb6d943565a45f434a7c2828b2034b2fe2b23467c4bd113d47957b8ce771c25"
+      "sha256": "794d82ced5322b813d5e640a288761ef8e8a24bf3db961396858c05a8c72a8fa"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/male/SP_PC22_Male_Hand_Support_Right.png",
@@ -93,12 +93,12 @@
       "mirroring_supported": true,
       "approval_state": "candidate",
       "alpha_bbox": [
-        22,
-        36,
-        66,
-        65
+        7,
+        25,
+        58,
+        71
       ],
-      "sha256": "a5c35c4132c05790d1d92959d747303efe657a1ce28b80bc1fd89f4d6575cf95"
+      "sha256": "e046f2c3a47296457598ca85f9bf9df322b5d1fe2bc9c2f6579cde9091c90430"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/female/SP_PC22_Female_UpperArm_Right.png",
@@ -118,12 +118,12 @@
       "mirroring_supported": true,
       "approval_state": "candidate",
       "alpha_bbox": [
-        11,
+        9,
         5,
-        52,
+        55,
         123
       ],
-      "sha256": "592aa47dbec75de95b3f6e0917fdd92677c0e682a37740fed714845530313829"
+      "sha256": "899547cad5bce63e3a1c4c957851da6005062ec7da7891d72a987d2f0b69e5bb"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/female/SP_PC22_Female_Forearm_Right.png",
@@ -143,12 +143,12 @@
       "mirroring_supported": true,
       "approval_state": "candidate",
       "alpha_bbox": [
-        14,
+        11,
         5,
-        49,
+        53,
         123
       ],
-      "sha256": "ee6c2ade7443d9d5359617383abf1636718ab5538e65c9113361ac79777a5fa2"
+      "sha256": "dcd33274b194114d994e07c9e4f7f1d49c24614fa2418509d98258b00436887e"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/female/SP_PC22_Female_Hand_Dominant_Right.png",
@@ -168,12 +168,12 @@
       "mirroring_supported": true,
       "approval_state": "candidate",
       "alpha_bbox": [
-        4,
-        19,
-        92,
-        77
+        8,
+        22,
+        64,
+        73
       ],
-      "sha256": "edbbec51fb3c486ce2829da7afd16747fd8b4b1261f1372ccdc4d2ba54791a03"
+      "sha256": "53208099a40bd7b8e955b94114299a9560b9fb653cc71c579afa888846a5510c"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/female/SP_PC22_Female_Hand_Support_Right.png",
@@ -193,12 +193,12 @@
       "mirroring_supported": true,
       "approval_state": "candidate",
       "alpha_bbox": [
-        22,
-        36,
-        66,
-        65
+        7,
+        26,
+        54,
+        69
       ],
-      "sha256": "7675097597a9c011fb86497884d5aa77d62cf55df75e3f01d1333a7ae4247f8f"
+      "sha256": "c20bc651a02bf5e5f1e8a086bd25aa151285debb2cb75376013729d192677bd7"
     }
   ]
 }
