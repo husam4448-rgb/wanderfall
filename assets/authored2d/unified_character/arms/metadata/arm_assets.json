@@ -1,0 +1,204 @@
+{
+  "assets": [
+    {
+      "filename": "assets/authored2d/unified_character/arms/male/SP_PC22_Male_UpperArm_Right.png",
+      "sex": "male",
+      "segment": "upper_arm",
+      "canvas_size": [
+        64,
+        128
+      ],
+      "pivot": "segment parent joint / centered draw helper",
+      "joint_parent": "shoulder",
+      "joint_child": "elbow",
+      "canonical_length": 10.9,
+      "visual_overlap_parent": 1.1,
+      "visual_overlap_child": 1.1,
+      "compatible_rig": "MALE_CANONICAL_ARM_SYSTEM",
+      "mirroring_supported": true,
+      "approval_state": "candidate",
+      "alpha_bbox": [
+        17,
+        5,
+        46,
+        123
+      ],
+      "sha256": "21829c1004fe15b22f7a677f7b71780fe196ab49b2261566ab8ad326209b0d0c"
+    },
+    {
+      "filename": "assets/authored2d/unified_character/arms/male/SP_PC22_Male_Forearm_Right.png",
+      "sex": "male",
+      "segment": "forearm",
+      "canvas_size": [
+        64,
+        128
+      ],
+      "pivot": "segment parent joint / centered draw helper",
+      "joint_parent": "elbow",
+      "joint_child": "wrist",
+      "canonical_length": 10.7,
+      "visual_overlap_parent": 1.1,
+      "visual_overlap_child": 1.1,
+      "compatible_rig": "MALE_CANONICAL_ARM_SYSTEM",
+      "mirroring_supported": true,
+      "approval_state": "candidate",
+      "alpha_bbox": [
+        19,
+        5,
+        44,
+        123
+      ],
+      "sha256": "1d8036c54a1c68269f409b494b5e69f8b0603ba343f534f16a5e72b4bbe0b42c"
+    },
+    {
+      "filename": "assets/authored2d/unified_character/arms/male/SP_PC22_Male_Hand_Dominant_Right.png",
+      "sex": "male",
+      "segment": "hand_dominant",
+      "canvas_size": [
+        96,
+        96
+      ],
+      "pivot": "segment parent joint / centered draw helper",
+      "joint_parent": "wrist",
+      "joint_child": "dominant_grip",
+      "canonical_length": 0.0,
+      "visual_overlap_parent": 1.0,
+      "visual_overlap_child": 1.0,
+      "compatible_rig": "MALE_CANONICAL_ARM_SYSTEM",
+      "mirroring_supported": true,
+      "approval_state": "candidate",
+      "alpha_bbox": [
+        4,
+        19,
+        92,
+        77
+      ],
+      "sha256": "9eb6d943565a45f434a7c2828b2034b2fe2b23467c4bd113d47957b8ce771c25"
+    },
+    {
+      "filename": "assets/authored2d/unified_character/arms/male/SP_PC22_Male_Hand_Support_Right.png",
+      "sex": "male",
+      "segment": "hand_support",
+      "canvas_size": [
+        96,
+        96
+      ],
+      "pivot": "segment parent joint / centered draw helper",
+      "joint_parent": "wrist",
+      "joint_child": "support_grip",
+      "canonical_length": 0.0,
+      "visual_overlap_parent": 1.0,
+      "visual_overlap_child": 1.0,
+      "compatible_rig": "MALE_CANONICAL_ARM_SYSTEM",
+      "mirroring_supported": true,
+      "approval_state": "candidate",
+      "alpha_bbox": [
+        4,
+        19,
+        92,
+        77
+      ],
+      "sha256": "9eb6d943565a45f434a7c2828b2034b2fe2b23467c4bd113d47957b8ce771c25"
+    },
+    {
+      "filename": "assets/authored2d/unified_character/arms/female/SP_PC22_Female_UpperArm_Right.png",
+      "sex": "female",
+      "segment": "upper_arm",
+      "canvas_size": [
+        64,
+        128
+      ],
+      "pivot": "segment parent joint / centered draw helper",
+      "joint_parent": "shoulder",
+      "joint_child": "elbow",
+      "canonical_length": 10.6,
+      "visual_overlap_parent": 1.1,
+      "visual_overlap_child": 1.1,
+      "compatible_rig": "FEMALE_CANONICAL_ARM_SYSTEM",
+      "mirroring_supported": true,
+      "approval_state": "candidate",
+      "alpha_bbox": [
+        20,
+        5,
+        45,
+        123
+      ],
+      "sha256": "9c9faa72a2fb78ec8f30b7f5fd064be36939f05280604efdbfdbdfcd86449dda"
+    },
+    {
+      "filename": "assets/authored2d/unified_character/arms/female/SP_PC22_Female_Forearm_Right.png",
+      "sex": "female",
+      "segment": "forearm",
+      "canvas_size": [
+        64,
+        128
+      ],
+      "pivot": "segment parent joint / centered draw helper",
+      "joint_parent": "elbow",
+      "joint_child": "wrist",
+      "canonical_length": 10.5,
+      "visual_overlap_parent": 1.1,
+      "visual_overlap_child": 1.1,
+      "compatible_rig": "FEMALE_CANONICAL_ARM_SYSTEM",
+      "mirroring_supported": true,
+      "approval_state": "candidate",
+      "alpha_bbox": [
+        22,
+        5,
+        42,
+        123
+      ],
+      "sha256": "82c16f46fbf412ecad27d38c41b978f79bd9f48d9825bb11b99126bc62ceec6e"
+    },
+    {
+      "filename": "assets/authored2d/unified_character/arms/female/SP_PC22_Female_Hand_Dominant_Right.png",
+      "sex": "female",
+      "segment": "hand_dominant",
+      "canvas_size": [
+        96,
+        96
+      ],
+      "pivot": "segment parent joint / centered draw helper",
+      "joint_parent": "wrist",
+      "joint_child": "dominant_grip",
+      "canonical_length": 0.0,
+      "visual_overlap_parent": 1.0,
+      "visual_overlap_child": 1.0,
+      "compatible_rig": "FEMALE_CANONICAL_ARM_SYSTEM",
+      "mirroring_supported": true,
+      "approval_state": "candidate",
+      "alpha_bbox": [
+        4,
+        19,
+        92,
+        77
+      ],
+      "sha256": "edbbec51fb3c486ce2829da7afd16747fd8b4b1261f1372ccdc4d2ba54791a03"
+    },
+    {
+      "filename": "assets/authored2d/unified_character/arms/female/SP_PC22_Female_Hand_Support_Right.png",
+      "sex": "female",
+      "segment": "hand_support",
+      "canvas_size": [
+        96,
+        96
+      ],
+      "pivot": "segment parent joint / centered draw helper",
+      "joint_parent": "wrist",
+      "joint_child": "support_grip",
+      "canonical_length": 0.0,
+      "visual_overlap_parent": 1.0,
+      "visual_overlap_child": 1.0,
+      "compatible_rig": "FEMALE_CANONICAL_ARM_SYSTEM",
+      "mirroring_supported": true,
+      "approval_state": "candidate",
+      "alpha_bbox": [
+        4,
+        19,
+        92,
+        77
+      ],
+      "sha256": "edbbec51fb3c486ce2829da7afd16747fd8b4b1261f1372ccdc4d2ba54791a03"
+    }
+  ]
+}
