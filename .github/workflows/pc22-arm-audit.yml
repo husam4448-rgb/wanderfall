@@ -7,12 +7,14 @@ on:
       - '.ci/trigger-pc22-arm-audit'
       - '.github/workflows/pc22-arm-audit.yml'
       - 'tools/audit_pc22_arm_runtime.py'
+      - 'tools/build_pc22_canonical_arm_assets.py'
   pull_request:
     branches: [ main ]
     paths:
       - '.ci/trigger-pc22-arm-audit'
       - '.github/workflows/pc22-arm-audit.yml'
       - 'tools/audit_pc22_arm_runtime.py'
+      - 'tools/build_pc22_canonical_arm_assets.py'
 
 permissions:
   contents: write
@@ -90,13 +92,25 @@ jobs:
           test -s assets/authored2d/unified_character/arms/qa/runtime_arm_audit.json
           test -s assets/authored2d/unified_character/arms/qa/runtime_arm_excerpt.gd.txt
 
-      - name: Commit audit evidence to candidate branch
+      - name: Build canonical arm candidate assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/build_pc22_canonical_arm_assets.py "$GITHUB_WORKSPACE"
+          test -s assets/authored2d/unified_character/core/male/arm_spec.json
+          test -s assets/authored2d/unified_character/core/female/arm_spec.json
+          test -s assets/authored2d/unified_character/arms/qa/numerical_qa.json
+
+      - name: Commit audit evidence and passing candidate assets
+        if: github.event_name == 'push'
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "Survival Paradise Arm QA Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add assets/authored2d/unified_character/arms/qa/
+          git add assets/authored2d/unified_character/arms/ \
+                  assets/authored2d/unified_character/core/male/arm_spec.json \
+                  assets/authored2d/unified_character/core/female/arm_spec.json
           if git diff --cached --quiet; then
             echo "Audit evidence already current."
             exit 0
