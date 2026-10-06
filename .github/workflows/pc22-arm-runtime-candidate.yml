@@ -173,9 +173,11 @@ jobs:
             exit 0
           fi
           git commit -m "Capture PC22 canonical arm candidate in Godot runtime"
+          git reset --hard HEAD
           for attempt in 1 2 3; do
             if git push origin HEAD:pc22-canonical-arm-system; then exit 0; fi
             sleep $((attempt*3))
+            git reset --hard HEAD
             git pull --rebase origin pc22-canonical-arm-system
           done
           exit 1
