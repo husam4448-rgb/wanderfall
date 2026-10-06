@@ -1,0 +1,99 @@
+name: PC22 Canonical Arm Runtime Audit
+
+on:
+  push:
+    branches: [ pc22-canonical-arm-system ]
+    paths:
+      - '.ci/trigger-pc22-arm-audit'
+      - '.github/workflows/pc22-arm-audit.yml'
+      - 'tools/audit_pc22_arm_runtime.py'
+
+permissions:
+  contents: write
+
+env:
+  SOURCE_SHA256: ae4eff17e5f281f5867ac2d82207fcf96e6c8b649432acd48816aebab76fa308
+  SOURCE_ARCHIVE: /tmp/Wanderfall_Phase16_Game_Source.tar.xz
+  PROJECT_DIR: game
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      - name: Reconstruct exact PlayerCharacters_v22 runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat source_parts/part_*.b64 > /tmp/wanderfall_source.b64
+          base64 --decode /tmp/wanderfall_source.b64 > "$SOURCE_ARCHIVE"
+          echo "$SOURCE_SHA256  $SOURCE_ARCHIVE" | sha256sum -c -
+          mkdir -p "$PROJECT_DIR"
+          tar -xJf "$SOURCE_ARCHIVE" -C "$PROJECT_DIR"
+          python3 patches/apply_godot_47_fixes.py "$PROJECT_DIR"
+          python3 patches/apply_v017_ui_overhaul.py "$PROJECT_DIR"
+          python3 patches/apply_v0171_inventory_polish.py "$PROJECT_DIR"
+          python3 patches/apply_v0172_hud_customization.py "$PROJECT_DIR"
+          python3 patches/fix_v0173_applicator_path.py
+          python3 patches/apply_v0173_touch_layout_fixes.py "$PROJECT_DIR"
+          python3 patches/apply_v0174_ui_pause_completion.py "$PROJECT_DIR"
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('patches/apply_v0175_hotbar_sensitivity.py')
+          s = p.read_text(encoding='utf-8')
+          old = '''replace_once(
+              "scripts/settings/settings_hud.gd",
+              '    if ui_buttons.has("quickbar_visible"):\\n        ui_buttons["quickbar_visible"].text = "QUICKBAR: %s" % ("ON" if GameSettings.quickbar_visible else "OFF")\\n\\n    var pause_names :=',
+              '    if ui_buttons.has("quickbar_visible"):\\n        ui_buttons["quickbar_visible"].text = "QUICKBAR: %s" % ("ON" if GameSettings.quickbar_visible else "OFF")\\n'
+              '    if movement_sensitivity_slider != null:\\n'
+              '        movement_sensitivity_slider.set_value_no_signal(GameSettings.movement_stick_sensitivity)\\n'
+              '    if movement_sensitivity_label != null:\\n'
+              '        movement_sensitivity_label.text = "×%.2f" % GameSettings.movement_stick_sensitivity\\n\\n'
+              '    var pause_names :=',
+          )'''
+          new = '''replace_once(
+              "scripts/settings/settings_hud.gd",
+              '    var pause_names :=',
+              '    if movement_sensitivity_slider != null:\\n'
+              '        movement_sensitivity_slider.set_value_no_signal(GameSettings.movement_stick_sensitivity)\\n'
+              '    if movement_sensitivity_label != null:\\n'
+              '        movement_sensitivity_label.text = "×%.2f" % GameSettings.movement_stick_sensitivity\\n\\n'
+              '    var pause_names :=',
+          )'''
+          if old not in s:
+              raise SystemExit('Expected v0.17.5 applicator block not found')
+          p.write_text(s.replace(old, new, 1), encoding='utf-8')
+          PY
+          python3 patches/apply_v0175_hotbar_sensitivity.py "$PROJECT_DIR"
+          python3 patches/apply_v0176_hotbar_deadzone.py "$PROJECT_DIR"
+          python3 patches/apply_v0177_mobile_hotbar_layers.py "$PROJECT_DIR"
+          python3 patches/apply_v0178_dedicated_hotbar_layer.py "$PROJECT_DIR"
+          python3 -m pip install --quiet pillow numpy
+          python3 patches/apply_v0179_quick_item_buttons.py "$PROJECT_DIR"
+          grep -q 'PLAYER CHARACTERS V22' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"
+
+      - name: Extract canonical arm evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/audit_pc22_arm_runtime.py "$GITHUB_WORKSPACE" "$PROJECT_DIR"
+          test -s assets/authored2d/unified_character/arms/qa/runtime_arm_audit.json
+          test -s assets/authored2d/unified_character/arms/qa/runtime_arm_excerpt.gd.txt
+
+      - name: Commit audit evidence to candidate branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "Survival Paradise Arm QA Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add assets/authored2d/unified_character/arms/qa/
+          if git diff --cached --quiet; then
+            echo "Audit evidence already current."
+            exit 0
+          fi
+          git commit -m "Audit PC22 canonical arm runtime"
+          git push origin HEAD:pc22-canonical-arm-system
