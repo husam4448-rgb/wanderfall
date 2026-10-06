@@ -120,10 +120,10 @@
       "alpha_bbox": [
         11,
         5,
-        51,
+        52,
         123
       ],
-      "sha256": "ced6886fd8a1f1bb28a3c388431f4d35f52202663d0cb0e8e13187a198349aa5"
+      "sha256": "592aa47dbec75de95b3f6e0917fdd92677c0e682a37740fed714845530313829"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/female/SP_PC22_Female_Forearm_Right.png",
@@ -145,10 +145,10 @@
       "alpha_bbox": [
         14,
         5,
-        48,
+        49,
         123
       ],
-      "sha256": "66080c79ab8bde20d5ddcfbff0de3c935dd814f98c7920b4515bcbda0e09ecc5"
+      "sha256": "ee6c2ade7443d9d5359617383abf1636718ab5538e65c9113361ac79777a5fa2"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/female/SP_PC22_Female_Hand_Dominant_Right.png",
