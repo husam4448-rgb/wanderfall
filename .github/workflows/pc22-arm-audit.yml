@@ -33,6 +33,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
+          ref: pc22-canonical-arm-system
           fetch-depth: 1
 
       - name: Reconstruct exact PlayerCharacters_v22 runtime
@@ -114,7 +115,6 @@ jobs:
           test -s assets/authored2d/unified_character/arms/qa/female_aim_sweep.gif
 
       - name: Commit audit evidence and passing candidate assets
-        if: github.event_name == 'push'
         shell: bash
         run: |
           set -euo pipefail
