@@ -267,6 +267,20 @@ for sex,s in specs.items():
     core_spec.write_text(json.dumps(s,indent=2),encoding="utf-8")
 (meta/"arm_assets.json").write_text(json.dumps({"assets":asset_meta},indent=2),encoding="utf-8")
 
+roles=["player","trader","medic","mechanic","guard","bandit","civilian"]
+inheritance={
+  "standard_id":"PlayerCharacters_v22",
+  "policy":{
+    "npc_specific_skeletons":False,
+    "role_specialization_changes_geometry":False,
+    "left_is_runtime_mirror":True,
+    "role_specialization":["sleeve_overlay","glove_overlay","armor_overlay","equipment","weapon","held_tool"]
+  },
+  "male":{"rig_id":"MALE_CANONICAL_ARM_SYSTEM","users":[f"{r}_male" for r in roles]},
+  "female":{"rig_id":"FEMALE_CANONICAL_ARM_SYSTEM","users":[f"{r}_female" for r in roles]},
+}
+(meta/"rig_inheritance.json").write_text(json.dumps(inheritance,indent=2),encoding="utf-8")
+
 # --------------------------- deterministic IK QA ---------------------------
 def rot(v,a):
     x,y=v
