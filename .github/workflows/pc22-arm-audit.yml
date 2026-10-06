@@ -98,7 +98,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/build_pc22_canonical_arm_assets.py "$GITHUB_WORKSPACE"
+          python3 tools/build_pc22_canonical_arm_assets.py "$GITHUB_WORKSPACE" "$PROJECT_DIR"
           test -s assets/authored2d/unified_character/core/male/arm_spec.json
           test -s assets/authored2d/unified_character/core/female/arm_spec.json
           test -s assets/authored2d/unified_character/arms/qa/numerical_qa.json
