@@ -8,6 +8,7 @@ on:
       - '.github/workflows/pc22-arm-audit.yml'
       - 'tools/audit_pc22_arm_runtime.py'
       - 'tools/build_pc22_canonical_arm_assets.py'
+      - 'tools/render_pc22_arm_qa.py'
   pull_request:
     branches: [ main ]
     paths:
@@ -15,6 +16,7 @@ on:
       - '.github/workflows/pc22-arm-audit.yml'
       - 'tools/audit_pc22_arm_runtime.py'
       - 'tools/build_pc22_canonical_arm_assets.py'
+      - 'tools/render_pc22_arm_qa.py'
 
 permissions:
   contents: write
@@ -100,6 +102,16 @@ jobs:
           test -s assets/authored2d/unified_character/core/male/arm_spec.json
           test -s assets/authored2d/unified_character/core/female/arm_spec.json
           test -s assets/authored2d/unified_character/arms/qa/numerical_qa.json
+
+      - name: Render magnified visual QA evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/render_pc22_arm_qa.py "$GITHUB_WORKSPACE"
+          test -s assets/authored2d/unified_character/arms/qa/male_arm_contact_sheet.jpg
+          test -s assets/authored2d/unified_character/arms/qa/female_arm_contact_sheet.jpg
+          test -s assets/authored2d/unified_character/arms/qa/male_aim_sweep.gif
+          test -s assets/authored2d/unified_character/arms/qa/female_aim_sweep.gif
 
       - name: Commit audit evidence and passing candidate assets
         if: github.event_name == 'push'
