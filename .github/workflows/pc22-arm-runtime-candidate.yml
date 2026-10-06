@@ -165,6 +165,7 @@ jobs:
           set -euo pipefail
           OUT=assets/authored2d/unified_character/arms/qa/runtime_engine
           cp pc22-arm-capture.log "$OUT/runtime_capture.log"
+          git restore -- patches/apply_v0175_hotbar_sensitivity.py || true
           git config user.name "Survival Paradise Arm QA Bot"
           git config user.email "actions@users.noreply.github.com"
           git add "$OUT"
