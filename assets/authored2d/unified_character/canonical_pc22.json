@@ -1,0 +1,130 @@
+{
+  "standard_id": "PlayerCharacters_v22",
+  "source_commit": "9304254920ad732c2522384b91822618931347bd",
+  "facing": {
+    "authored": "right",
+    "left": "runtime_mirror"
+  },
+  "shared_motion": {
+    "walk_stride": 5.0,
+    "run_stride": 8.0,
+    "walk_bob": 1.3,
+    "run_bob": 2.2,
+    "walk_sway": 1.0,
+    "run_sway": 1.8,
+    "idle_breath_amplitude": 0.42,
+    "head_tilt_clamp_rad": 0.34,
+    "aim_angle_clamp_rad": 1.53938
+  },
+  "weapon_socket": {
+    "pivot_from_base": [
+      6.0,
+      -2.0
+    ],
+    "dominant_hand_from_pivot": [
+      3.0,
+      4.0
+    ],
+    "support_hand_from_pivot": [
+      16.0,
+      2.0
+    ],
+    "recoil_local_x": -1.45
+  },
+  "male": {
+    "torso_center": [
+      0.0,
+      -4.0
+    ],
+    "torso_size": [
+      26.2,
+      29.6
+    ],
+    "neck_socket": [
+      1.6,
+      -16.0
+    ],
+    "head_size": [
+      16.9,
+      18.4
+    ],
+    "backpack_center": [
+      -10.5,
+      -4.0
+    ],
+    "backpack_size": [
+      25.0,
+      31.0
+    ],
+    "hip_span": 3.8,
+    "knee_span": 4.9,
+    "ankle_span": 5.4,
+    "hip_y": 11.0,
+    "knee_y": 18.0,
+    "ankle_y": 25.0,
+    "leg_size": [
+      16.5,
+      26.5
+    ],
+    "boot_offset": [
+      0.4,
+      6.8
+    ],
+    "boot_size": [
+      17.0,
+      12.8
+    ],
+    "hand_size": [
+      10.9,
+      10.5
+    ]
+  },
+  "female": {
+    "torso_center": [
+      0.05,
+      -3.05
+    ],
+    "torso_size": [
+      27.0,
+      27.5
+    ],
+    "neck_socket": [
+      1.6,
+      -14.55
+    ],
+    "head_size": [
+      16.9,
+      18.4
+    ],
+    "backpack_center": [
+      -8.4,
+      -4.0
+    ],
+    "backpack_size": [
+      19.8,
+      28.8
+    ],
+    "hip_span": 3.05,
+    "knee_span": 4.15,
+    "ankle_span": 4.6,
+    "hip_y": 10.05,
+    "knee_y": 18.8,
+    "ankle_y": 26.4,
+    "leg_size": [
+      19.8,
+      26.5
+    ],
+    "boot_offset": [
+      1.0,
+      6.2
+    ],
+    "boot_size": [
+      14.4,
+      10.6
+    ],
+    "hand_size": [
+      10.0,
+      9.8
+    ]
+  }
+}

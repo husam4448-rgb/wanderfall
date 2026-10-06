@@ -1,0 +1,370 @@
+{
+  "version": "1.0",
+  "canonical": {
+    "standard_id": "PlayerCharacters_v22",
+    "source_commit": "9304254920ad732c2522384b91822618931347bd",
+    "facing": {
+      "authored": "right",
+      "left": "runtime_mirror"
+    },
+    "shared_motion": {
+      "walk_stride": 5.0,
+      "run_stride": 8.0,
+      "walk_bob": 1.3,
+      "run_bob": 2.2,
+      "walk_sway": 1.0,
+      "run_sway": 1.8,
+      "idle_breath_amplitude": 0.42,
+      "head_tilt_clamp_rad": 0.34,
+      "aim_angle_clamp_rad": 1.53938
+    },
+    "weapon_socket": {
+      "pivot_from_base": [
+        6.0,
+        -2.0
+      ],
+      "dominant_hand_from_pivot": [
+        3.0,
+        4.0
+      ],
+      "support_hand_from_pivot": [
+        16.0,
+        2.0
+      ],
+      "recoil_local_x": -1.45
+    },
+    "male": {
+      "torso_center": [
+        0.0,
+        -4.0
+      ],
+      "torso_size": [
+        26.2,
+        29.6
+      ],
+      "neck_socket": [
+        1.6,
+        -16.0
+      ],
+      "head_size": [
+        16.9,
+        18.4
+      ],
+      "backpack_center": [
+        -10.5,
+        -4.0
+      ],
+      "backpack_size": [
+        25.0,
+        31.0
+      ],
+      "hip_span": 3.8,
+      "knee_span": 4.9,
+      "ankle_span": 5.4,
+      "hip_y": 11.0,
+      "knee_y": 18.0,
+      "ankle_y": 25.0,
+      "leg_size": [
+        16.5,
+        26.5
+      ],
+      "boot_offset": [
+        0.4,
+        6.8
+      ],
+      "boot_size": [
+        17.0,
+        12.8
+      ],
+      "hand_size": [
+        10.9,
+        10.5
+      ]
+    },
+    "female": {
+      "torso_center": [
+        0.05,
+        -3.05
+      ],
+      "torso_size": [
+        27.0,
+        27.5
+      ],
+      "neck_socket": [
+        1.6,
+        -14.55
+      ],
+      "head_size": [
+        16.9,
+        18.4
+      ],
+      "backpack_center": [
+        -8.4,
+        -4.0
+      ],
+      "backpack_size": [
+        19.8,
+        28.8
+      ],
+      "hip_span": 3.05,
+      "knee_span": 4.15,
+      "ankle_span": 4.6,
+      "hip_y": 10.05,
+      "knee_y": 18.8,
+      "ankle_y": 26.4,
+      "leg_size": [
+        19.8,
+        26.5
+      ],
+      "boot_offset": [
+        1.0,
+        6.2
+      ],
+      "boot_size": [
+        14.4,
+        10.6
+      ],
+      "hand_size": [
+        10.0,
+        9.8
+      ]
+    }
+  },
+  "roles": {
+    "trader": {
+      "male": {
+        "head": "res://assets/authored2d/unified_character/roles/trader/male/head.png",
+        "torso": "res://assets/authored2d/unified_character/roles/trader/male/torso.png",
+        "pants_rear": "res://assets/authored2d/unified_character/roles/trader/male/pants_rear.png",
+        "pants_front": "res://assets/authored2d/unified_character/roles/trader/male/pants_front.png",
+        "boots": "res://assets/authored2d/unified_character/roles/trader/male/boots.png",
+        "backpack": "res://assets/authored2d/unified_character/roles/trader/male/backpack.png",
+        "glove": "res://assets/authored2d/unified_character/roles/trader/male/glove.png",
+        "utility": "res://assets/authored2d/unified_character/roles/trader/male/utility.png",
+        "utility_draw_size": [
+          14,
+          18
+        ],
+        "utility_grip_px": [
+          64,
+          64
+        ]
+      },
+      "female": {
+        "head": "res://assets/authored2d/unified_character/roles/trader/female/head.png",
+        "torso": "res://assets/authored2d/unified_character/roles/trader/female/torso.png",
+        "pants_rear": "res://assets/authored2d/unified_character/roles/trader/female/pants_rear.png",
+        "pants_front": "res://assets/authored2d/unified_character/roles/trader/female/pants_front.png",
+        "boots": "res://assets/authored2d/unified_character/roles/trader/female/boots.png",
+        "backpack": "res://assets/authored2d/unified_character/roles/trader/female/backpack.png",
+        "glove": "res://assets/authored2d/unified_character/roles/trader/female/glove.png",
+        "utility": "res://assets/authored2d/unified_character/roles/trader/female/utility.png",
+        "utility_draw_size": [
+          10,
+          15
+        ],
+        "utility_grip_px": [
+          64,
+          64
+        ]
+      }
+    },
+    "medic": {
+      "male": {
+        "head": "res://assets/authored2d/unified_character/roles/medic/male/head.png",
+        "torso": "res://assets/authored2d/unified_character/roles/medic/male/torso.png",
+        "pants_rear": "res://assets/authored2d/unified_character/roles/medic/male/pants_rear.png",
+        "pants_front": "res://assets/authored2d/unified_character/roles/medic/male/pants_front.png",
+        "boots": "res://assets/authored2d/unified_character/roles/medic/male/boots.png",
+        "backpack": "res://assets/authored2d/unified_character/roles/medic/male/backpack.png",
+        "glove": "res://assets/authored2d/unified_character/roles/medic/male/glove.png",
+        "utility": "res://assets/authored2d/unified_character/roles/medic/male/utility.png",
+        "utility_draw_size": [
+          16,
+          13
+        ],
+        "utility_grip_px": [
+          64,
+          64
+        ]
+      },
+      "female": {
+        "head": "res://assets/authored2d/unified_character/roles/medic/female/head.png",
+        "torso": "res://assets/authored2d/unified_character/roles/medic/female/torso.png",
+        "pants_rear": "res://assets/authored2d/unified_character/roles/medic/female/pants_rear.png",
+        "pants_front": "res://assets/authored2d/unified_character/roles/medic/female/pants_front.png",
+        "boots": "res://assets/authored2d/unified_character/roles/medic/female/boots.png",
+        "backpack": "res://assets/authored2d/unified_character/roles/medic/female/backpack.png",
+        "glove": "res://assets/authored2d/unified_character/roles/medic/female/glove.png",
+        "utility": "res://assets/authored2d/unified_character/roles/medic/female/utility.png",
+        "utility_draw_size": [
+          15,
+          13
+        ],
+        "utility_grip_px": [
+          64,
+          64
+        ]
+      }
+    },
+    "mechanic": {
+      "male": {
+        "head": "res://assets/authored2d/unified_character/roles/mechanic/male/head.png",
+        "torso": "res://assets/authored2d/unified_character/roles/mechanic/male/torso.png",
+        "pants_rear": "res://assets/authored2d/unified_character/roles/mechanic/male/pants_rear.png",
+        "pants_front": "res://assets/authored2d/unified_character/roles/mechanic/male/pants_front.png",
+        "boots": "res://assets/authored2d/unified_character/roles/mechanic/male/boots.png",
+        "backpack": "res://assets/authored2d/unified_character/roles/mechanic/male/backpack.png",
+        "glove": "res://assets/authored2d/unified_character/roles/mechanic/male/glove.png",
+        "utility": "res://assets/authored2d/unified_character/roles/mechanic/male/utility.png",
+        "utility_draw_size": [
+          21,
+          7
+        ],
+        "utility_grip_px": [
+          64,
+          64
+        ]
+      },
+      "female": {
+        "head": "res://assets/authored2d/unified_character/roles/mechanic/female/head.png",
+        "torso": "res://assets/authored2d/unified_character/roles/mechanic/female/torso.png",
+        "pants_rear": "res://assets/authored2d/unified_character/roles/mechanic/female/pants_rear.png",
+        "pants_front": "res://assets/authored2d/unified_character/roles/mechanic/female/pants_front.png",
+        "boots": "res://assets/authored2d/unified_character/roles/mechanic/female/boots.png",
+        "backpack": "res://assets/authored2d/unified_character/roles/mechanic/female/backpack.png",
+        "glove": "res://assets/authored2d/unified_character/roles/mechanic/female/glove.png",
+        "utility": "res://assets/authored2d/unified_character/roles/mechanic/female/utility.png",
+        "utility_draw_size": [
+          13,
+          14
+        ],
+        "utility_grip_px": [
+          64,
+          64
+        ]
+      }
+    },
+    "guard": {
+      "male": {
+        "head": "res://assets/authored2d/unified_character/roles/guard/male/head.png",
+        "torso": "res://assets/authored2d/unified_character/roles/guard/male/torso.png",
+        "pants_rear": "res://assets/authored2d/unified_character/roles/guard/male/pants_rear.png",
+        "pants_front": "res://assets/authored2d/unified_character/roles/guard/male/pants_front.png",
+        "boots": "res://assets/authored2d/unified_character/roles/guard/male/boots.png",
+        "backpack": "res://assets/authored2d/unified_character/roles/guard/male/backpack.png",
+        "glove": "res://assets/authored2d/unified_character/roles/guard/male/glove.png",
+        "utility": "res://assets/authored2d/unified_character/roles/guard/male/utility.png",
+        "utility_draw_size": [
+          30,
+          10
+        ],
+        "utility_grip_px": [
+          64,
+          64
+        ]
+      },
+      "female": {
+        "head": "res://assets/authored2d/unified_character/roles/guard/female/head.png",
+        "torso": "res://assets/authored2d/unified_character/roles/guard/female/torso.png",
+        "pants_rear": "res://assets/authored2d/unified_character/roles/guard/female/pants_rear.png",
+        "pants_front": "res://assets/authored2d/unified_character/roles/guard/female/pants_front.png",
+        "boots": "res://assets/authored2d/unified_character/roles/guard/female/boots.png",
+        "backpack": "res://assets/authored2d/unified_character/roles/guard/female/backpack.png",
+        "glove": "res://assets/authored2d/unified_character/roles/guard/female/glove.png",
+        "utility": "res://assets/authored2d/unified_character/roles/guard/female/utility.png",
+        "utility_draw_size": [
+          15,
+          11
+        ],
+        "utility_grip_px": [
+          64,
+          64
+        ]
+      }
+    },
+    "bandit": {
+      "male": {
+        "head": "res://assets/authored2d/unified_character/roles/bandit/male/head.png",
+        "torso": "res://assets/authored2d/unified_character/roles/bandit/male/torso.png",
+        "pants_rear": "res://assets/authored2d/unified_character/roles/bandit/male/pants_rear.png",
+        "pants_front": "res://assets/authored2d/unified_character/roles/bandit/male/pants_front.png",
+        "boots": "res://assets/authored2d/unified_character/roles/bandit/male/boots.png",
+        "backpack": "res://assets/authored2d/unified_character/roles/bandit/male/backpack.png",
+        "glove": "res://assets/authored2d/unified_character/roles/bandit/male/glove.png",
+        "utility": "res://assets/authored2d/unified_character/roles/bandit/male/utility.png",
+        "utility_draw_size": [
+          30,
+          10
+        ],
+        "utility_grip_px": [
+          64,
+          64
+        ]
+      },
+      "female": {
+        "head": "res://assets/authored2d/unified_character/roles/bandit/female/head.png",
+        "torso": "res://assets/authored2d/unified_character/roles/bandit/female/torso.png",
+        "pants_rear": "res://assets/authored2d/unified_character/roles/bandit/female/pants_rear.png",
+        "pants_front": "res://assets/authored2d/unified_character/roles/bandit/female/pants_front.png",
+        "boots": "res://assets/authored2d/unified_character/roles/bandit/female/boots.png",
+        "backpack": "res://assets/authored2d/unified_character/roles/bandit/female/backpack.png",
+        "glove": "res://assets/authored2d/unified_character/roles/bandit/female/glove.png",
+        "utility": "res://assets/authored2d/unified_character/roles/bandit/female/utility.png",
+        "utility_draw_size": [
+          20,
+          7
+        ],
+        "utility_grip_px": [
+          64,
+          64
+        ]
+      }
+    },
+    "civilian": {
+      "male": {
+        "head": "res://assets/authored2d/unified_character/roles/civilian/male/head.png",
+        "torso": "res://assets/authored2d/unified_character/roles/civilian/male/torso.png",
+        "pants_rear": "res://assets/authored2d/unified_character/roles/civilian/male/pants_rear.png",
+        "pants_front": "res://assets/authored2d/unified_character/roles/civilian/male/pants_front.png",
+        "boots": "res://assets/authored2d/unified_character/roles/civilian/male/boots.png",
+        "backpack": "res://assets/authored2d/unified_character/roles/civilian/male/backpack.png",
+        "glove": "res://assets/authored2d/unified_character/roles/civilian/male/glove.png",
+        "utility": "res://assets/authored2d/unified_character/roles/civilian/male/utility.png",
+        "utility_draw_size": [
+          19,
+          8
+        ],
+        "utility_grip_px": [
+          64,
+          64
+        ]
+      },
+      "female": {
+        "head": "res://assets/authored2d/unified_character/roles/civilian/female/head.png",
+        "torso": "res://assets/authored2d/unified_character/roles/civilian/female/torso.png",
+        "pants_rear": "res://assets/authored2d/unified_character/roles/civilian/female/pants_rear.png",
+        "pants_front": "res://assets/authored2d/unified_character/roles/civilian/female/pants_front.png",
+        "boots": "res://assets/authored2d/unified_character/roles/civilian/female/boots.png",
+        "backpack": "res://assets/authored2d/unified_character/roles/civilian/female/backpack.png",
+        "glove": "res://assets/authored2d/unified_character/roles/civilian/female/glove.png",
+        "utility": "res://assets/authored2d/unified_character/roles/civilian/female/utility.png",
+        "utility_draw_size": [
+          9,
+          15
+        ],
+        "utility_grip_px": [
+          64,
+          64
+        ]
+      }
+    }
+  },
+  "policy": {
+    "same_player_npc_rig": true,
+    "base_body_always_drawn": true,
+    "equipment_overlay": true,
+    "role_is_default_loadout": true,
+    "left_is_runtime_mirror": true
+  }
+}

@@ -1,0 +1,2080 @@
+{
+  "files": [
+    {
+      "path": "assets/authored2d/unified_character/core/female/boot_base.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        4,
+        13,
+        92,
+        82
+      ],
+      "bytes": 8552,
+      "sha256": "b26b538bc9a05867dbab1f7369f0194afec7cbff088b580286990f860b0ee9fc"
+    },
+    {
+      "path": "assets/authored2d/unified_character/core/female/hand_base.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        4,
+        19,
+        92,
+        77
+      ],
+      "bytes": 4311,
+      "sha256": "c1681d004076bd012d64757d89efe6c58787c38e22394dd6b7f7687d29158233"
+    },
+    {
+      "path": "assets/authored2d/unified_character/core/female/head_right.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        1,
+        3,
+        95,
+        92
+      ],
+      "bytes": 20473,
+      "sha256": "184b206f4c0d9760edd512dfd417fcf55743e18491e6703a3af482dde063e1c9"
+    },
+    {
+      "path": "assets/authored2d/unified_character/core/female/leg_front_base.png",
+      "size": [
+        160,
+        256
+      ],
+      "alpha_bbox": [
+        48,
+        4,
+        116,
+        252
+      ],
+      "bytes": 30364,
+      "sha256": "1d78e3c845d672879e8f530bcb7b3b91464f5125ca0d5c4afa0b7191bcc2dda2"
+    },
+    {
+      "path": "assets/authored2d/unified_character/core/female/leg_rear_base.png",
+      "size": [
+        160,
+        256
+      ],
+      "alpha_bbox": [
+        43,
+        4,
+        116,
+        252
+      ],
+      "bytes": 31615,
+      "sha256": "6f8ab26465a2c10710c24daea6be6c955d070a9ae68c8879e586b632237f4e51"
+    },
+    {
+      "path": "assets/authored2d/unified_character/core/female/torso_base.png",
+      "size": [
+        96,
+        141
+      ],
+      "alpha_bbox": [
+        19,
+        0,
+        80,
+        141
+      ],
+      "bytes": 16946,
+      "sha256": "438b3c965bde801deb9e75de805346a15da5ee845a49ed117bd2e5f3db804564"
+    },
+    {
+      "path": "assets/authored2d/unified_character/core/male/boot_base.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        4,
+        13,
+        92,
+        82
+      ],
+      "bytes": 5502,
+      "sha256": "e651b08f308f5137e60ca2f9dbfd37416bdbba626705d9e82039621b27c95de1"
+    },
+    {
+      "path": "assets/authored2d/unified_character/core/male/hand_base.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        4,
+        19,
+        92,
+        77
+      ],
+      "bytes": 4312,
+      "sha256": "0ffa6a50ae4e14892f3821e4052d4a8454b8d06d54d98f702c081fe8c9c4a1c7"
+    },
+    {
+      "path": "assets/authored2d/unified_character/core/male/head_right.png",
+      "size": [
+        32,
+        32
+      ],
+      "alpha_bbox": [
+        1,
+        1,
+        30,
+        31
+      ],
+      "bytes": 2435,
+      "sha256": "48dda287a35f1b984e4e94beb378a8c1691f884249163d084de27fa5adeb9917"
+    },
+    {
+      "path": "assets/authored2d/unified_character/core/male/leg_front_base.png",
+      "size": [
+        80,
+        160
+      ],
+      "alpha_bbox": [
+        16,
+        4,
+        63,
+        156
+      ],
+      "bytes": 6451,
+      "sha256": "362bf55c1afce929ea759f392723395aad544e5c7db31dffb1849780d4f65ff8"
+    },
+    {
+      "path": "assets/authored2d/unified_character/core/male/leg_rear_base.png",
+      "size": [
+        80,
+        160
+      ],
+      "alpha_bbox": [
+        16,
+        4,
+        63,
+        156
+      ],
+      "bytes": 6616,
+      "sha256": "1a3acd267eba00b6bd33ee8f12d4445ab5c36d0523646a50bafb224d37d1515a"
+    },
+    {
+      "path": "assets/authored2d/unified_character/core/male/torso_base.png",
+      "size": [
+        112,
+        144
+      ],
+      "alpha_bbox": [
+        14,
+        4,
+        98,
+        140
+      ],
+      "bytes": 10363,
+      "sha256": "950441df54586d0b3d1707492a81bb2d5cc3e7ca43eb68dca32c55bf8c86059b"
+    },
+    {
+      "path": "assets/authored2d/unified_character/generic/boot.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        4,
+        13,
+        92,
+        82
+      ],
+      "bytes": 16087,
+      "sha256": "82a62afee66fc4af92debb92bb4ac5be7f90ee2ce925c05a99ed521fbf1356f4"
+    },
+    {
+      "path": "assets/authored2d/unified_character/generic/glove.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        4,
+        19,
+        92,
+        77
+      ],
+      "bytes": 12981,
+      "sha256": "c0e1ff8fbf00430b71911169f54ad8d5eafdab06e07b05ab0e5c32ad8413db17"
+    },
+    {
+      "path": "assets/authored2d/unified_character/generic/helmet.png",
+      "size": [
+        112,
+        96
+      ],
+      "alpha_bbox": [
+        5,
+        4,
+        106,
+        92
+      ],
+      "bytes": 23264,
+      "sha256": "5347212ad5e1d4b08d723d0be39fb9c38694dbd8cd5b94b535a25d4d7cc9a092"
+    },
+    {
+      "path": "assets/authored2d/unified_character/generic/leg_front.png",
+      "size": [
+        80,
+        160
+      ],
+      "alpha_bbox": [
+        16,
+        4,
+        63,
+        156
+      ],
+      "bytes": 18283,
+      "sha256": "b9ca8b265040473f0b38c28210b537c14ccfc618f717811499c36db5a443ee55"
+    },
+    {
+      "path": "assets/authored2d/unified_character/generic/leg_rear.png",
+      "size": [
+        80,
+        160
+      ],
+      "alpha_bbox": [
+        16,
+        4,
+        63,
+        156
+      ],
+      "bytes": 20514,
+      "sha256": "3374eb64b2c55ab2dece5a551efbb0d1625050de56f8e2b4ff0ee56d9bf93063"
+    },
+    {
+      "path": "assets/authored2d/unified_character/generic/pack.png",
+      "size": [
+        112,
+        144
+      ],
+      "alpha_bbox": [
+        5,
+        4,
+        106,
+        140
+      ],
+      "bytes": 36354,
+      "sha256": "f6e1c4cfd5f83286280839e098ff25959b2d0590ba232e97c6df5a7a0f140a67"
+    },
+    {
+      "path": "assets/authored2d/unified_character/generic/torso.png",
+      "size": [
+        112,
+        144
+      ],
+      "alpha_bbox": [
+        14,
+        4,
+        98,
+        140
+      ],
+      "bytes": 29692,
+      "sha256": "d4e4cd8289b66b05fb6165d4d9c8456b82429f3a5268a335fe77fd466408143a"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/bandit/female/backpack.png",
+      "size": [
+        112,
+        144
+      ],
+      "alpha_bbox": [
+        5,
+        4,
+        106,
+        140
+      ],
+      "bytes": 26006,
+      "sha256": "c22ae1ed71f9f44755ecc34164f377c978077eeac0082d543267ad0e31601f47"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/bandit/female/boots.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        4,
+        13,
+        92,
+        82
+      ],
+      "bytes": 16208,
+      "sha256": "c78caf49aad6996fe5c1f3d513d633c83ba0f1656df24fa0369ad276bcbb71a9"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/bandit/female/glove.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        4,
+        19,
+        92,
+        77
+      ],
+      "bytes": 9177,
+      "sha256": "242c3d6aaff57dab5a3c51394d66a0ea1b51789c1955179bb9b4c0b4cf25b281"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/bandit/female/head.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        2,
+        20,
+        94,
+        92
+      ],
+      "bytes": 16071,
+      "sha256": "e31185894b06f8a26163f1cd72a126d7ea270e2323ea5069749df04c48acb4ed"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/bandit/female/pants_front.png",
+      "size": [
+        160,
+        256
+      ],
+      "alpha_bbox": [
+        48,
+        4,
+        116,
+        252
+      ],
+      "bytes": 43653,
+      "sha256": "d614cfab0db44cafe8c50791c6918161712ef8d96923b21c57cf074458ec6195"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/bandit/female/pants_rear.png",
+      "size": [
+        160,
+        256
+      ],
+      "alpha_bbox": [
+        43,
+        4,
+        116,
+        252
+      ],
+      "bytes": 45364,
+      "sha256": "362f775d1c6af1c6b04c7c7068564c856fa40df24dfabf869167234685c931a3"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/bandit/female/torso.png",
+      "size": [
+        96,
+        141
+      ],
+      "alpha_bbox": [
+        19,
+        0,
+        80,
+        141
+      ],
+      "bytes": 22639,
+      "sha256": "1dd326611b4e550ffa9237c0984fa04c697bc754cb02c132df7bcd6d91bce523"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/bandit/female/utility.png",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        16,
+        47,
+        117,
+        73
+      ],
+      "bytes": 457,
+      "sha256": "962c5ca1919f4c0c01c78e891cecca6a2b6869ef31f26e99ef3f24ca95a3504c"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/bandit/male/backpack.png",
+      "size": [
+        112,
+        144
+      ],
+      "alpha_bbox": [
+        5,
+        4,
+        106,
+        140
+      ],
+      "bytes": 26006,
+      "sha256": "c22ae1ed71f9f44755ecc34164f377c978077eeac0082d543267ad0e31601f47"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/bandit/male/boots.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        4,
+        13,
+        92,
+        82
+      ],
+      "bytes": 16189,
+      "sha256": "4850b47cfafb5a8893ccce028987cd3a302694a553ce61a3592418eef8387040"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/bandit/male/glove.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        4,
+        19,
+        92,
+        77
+      ],
+      "bytes": 9177,
+      "sha256": "242c3d6aaff57dab5a3c51394d66a0ea1b51789c1955179bb9b4c0b4cf25b281"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/bandit/male/head.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        2,
+        20,
+        94,
+        92
+      ],
+      "bytes": 14478,
+      "sha256": "b2dccfd5fb8e975b01bfc6395fdfd1747e4d40551538b94548a39c51851eeb69"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/bandit/male/pants_front.png",
+      "size": [
+        80,
+        160
+      ],
+      "alpha_bbox": [
+        16,
+        4,
+        63,
+        156
+      ],
+      "bytes": 20962,
+      "sha256": "7d390ee2637f09acf2b3dbddaa5dc60df544b2b19b3f1bed0cb323b6a97ce4f5"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/bandit/male/pants_rear.png",
+      "size": [
+        80,
+        160
+      ],
+      "alpha_bbox": [
+        16,
+        4,
+        63,
+        156
+      ],
+      "bytes": 22192,
+      "sha256": "845e4486a364b3cd2555f18430c5930aca65492731147650abef29ad8ea46068"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/bandit/male/torso.png",
+      "size": [
+        112,
+        144
+      ],
+      "alpha_bbox": [
+        14,
+        4,
+        98,
+        140
+      ],
+      "bytes": 33244,
+      "sha256": "03987690c39177743f7f4279c94f81f56033267bc53a49294486563a9e1d4c4e"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/bandit/male/utility.png",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        12,
+        51,
+        120,
+        87
+      ],
+      "bytes": 337,
+      "sha256": "f54e440e285cd078f9e001edf7c20e935771ebfaffe2442d6ffd5c8b160929d7"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/civilian/female/backpack.png",
+      "size": [
+        112,
+        144
+      ],
+      "alpha_bbox": [
+        5,
+        4,
+        106,
+        140
+      ],
+      "bytes": 27173,
+      "sha256": "1ae41c174dbf871d62bdba33bd5cbe5ede385d8e44df1b2f9159dada3dafb489"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/civilian/female/boots.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        4,
+        13,
+        92,
+        82
+      ],
+      "bytes": 16453,
+      "sha256": "f74e0b5c2ebc2f9c24f605ffb64ff24ea7f2ad0cf5150ca56e31b887fd8e9480"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/civilian/female/glove.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        4,
+        19,
+        92,
+        77
+      ],
+      "bytes": 9362,
+      "sha256": "8092c8cc6955aae47cc25dfb0917173e395026ff55756638c05a532d58ce32b9"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/civilian/female/head.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        2,
+        20,
+        94,
+        92
+      ],
+      "bytes": 14156,
+      "sha256": "cd78a3bae8d5784ba4f6cfec069ba1773f23d441cb071d415276210284bb9ce4"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/civilian/female/pants_front.png",
+      "size": [
+        160,
+        256
+      ],
+      "alpha_bbox": [
+        48,
+        4,
+        116,
+        252
+      ],
+      "bytes": 44581,
+      "sha256": "51a1345c59acba1051374ca6405b055de12748a7a84850ae7867e960a5ac7da6"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/civilian/female/pants_rear.png",
+      "size": [
+        160,
+        256
+      ],
+      "alpha_bbox": [
+        43,
+        4,
+        116,
+        252
+      ],
+      "bytes": 46444,
+      "sha256": "54e0f64ea222933b933085f769122ea88cc7422fc5f7fb9bc8ca56b6b01be307"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/civilian/female/torso.png",
+      "size": [
+        96,
+        141
+      ],
+      "alpha_bbox": [
+        19,
+        0,
+        80,
+        141
+      ],
+      "bytes": 21468,
+      "sha256": "53397563c41c328c16f83d69580b7f088338e1c8b289fe835d8b6ca2d17fbdd8"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/civilian/female/utility.png",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        48,
+        8,
+        83,
+        107
+      ],
+      "bytes": 519,
+      "sha256": "6506d9dd94b555afe3d095b6ad51cee2f1e1c980c5389a013beacd675fc8c956"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/civilian/male/backpack.png",
+      "size": [
+        112,
+        144
+      ],
+      "alpha_bbox": [
+        5,
+        4,
+        106,
+        140
+      ],
+      "bytes": 27173,
+      "sha256": "1ae41c174dbf871d62bdba33bd5cbe5ede385d8e44df1b2f9159dada3dafb489"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/civilian/male/boots.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        4,
+        13,
+        92,
+        82
+      ],
+      "bytes": 16432,
+      "sha256": "bcbc1c0893ef815dd08863968fe328895a35081fe2493ac79c0b4a3c722a22e4"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/civilian/male/glove.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        4,
+        19,
+        92,
+        77
+      ],
+      "bytes": 9362,
+      "sha256": "8092c8cc6955aae47cc25dfb0917173e395026ff55756638c05a532d58ce32b9"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/civilian/male/head.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        2,
+        20,
+        94,
+        92
+      ],
+      "bytes": 12472,
+      "sha256": "2f00810d983b20cdf87fc31b8005dc46774dfa06c09b979725f6b020f0e72112"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/civilian/male/pants_front.png",
+      "size": [
+        80,
+        160
+      ],
+      "alpha_bbox": [
+        16,
+        4,
+        63,
+        156
+      ],
+      "bytes": 20973,
+      "sha256": "d5e1627e8f9e22f35438d6dc1eb489f83aaa5900c07a83eb848dd971d5a8e556"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/civilian/male/pants_rear.png",
+      "size": [
+        80,
+        160
+      ],
+      "alpha_bbox": [
+        16,
+        4,
+        63,
+        156
+      ],
+      "bytes": 22186,
+      "sha256": "ea1bd0fda2ba9d0908d0435904df422d48dc0598f97923ffce2b34e8124e59dd"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/civilian/male/torso.png",
+      "size": [
+        112,
+        144
+      ],
+      "alpha_bbox": [
+        14,
+        4,
+        98,
+        140
+      ],
+      "bytes": 32500,
+      "sha256": "7fcdcea33a18932f070c4b5a81234eaf7d068899715b4b3773fdb6989a15fb57"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/civilian/male/utility.png",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        22,
+        52,
+        119,
+        77
+      ],
+      "bytes": 369,
+      "sha256": "86ce38943abb429b1019e677bb6398dfb17b89670831977cae4173cec7e2bbe3"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/guard/female/backpack.png",
+      "size": [
+        112,
+        144
+      ],
+      "alpha_bbox": [
+        5,
+        4,
+        106,
+        140
+      ],
+      "bytes": 26049,
+      "sha256": "f07ca064d065e1daf072c835f1c7aabd570b8d3bc953e1646688227b7b62e6e3"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/guard/female/boots.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        4,
+        13,
+        92,
+        82
+      ],
+      "bytes": 15993,
+      "sha256": "d4bc219f0dd0e43d38d3e3cf30e1151633f41f0f72f2dcaf9040b4be6a61ba9a"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/guard/female/glove.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        4,
+        19,
+        92,
+        77
+      ],
+      "bytes": 8959,
+      "sha256": "d9affd8e2755aa76488652a0830510354149a1dd715d632403ae0bd1f2284203"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/guard/female/head.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        2,
+        20,
+        94,
+        92
+      ],
+      "bytes": 14369,
+      "sha256": "fa019137e6c2e8cc9bf1e0f791a5ef038cb445e9d637b3519895670d0043f6e8"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/guard/female/pants_front.png",
+      "size": [
+        160,
+        256
+      ],
+      "alpha_bbox": [
+        48,
+        4,
+        116,
+        252
+      ],
+      "bytes": 42368,
+      "sha256": "22842220f6d4f8f38ef570fc1b99b9d0ebbf2a848e12c9a5631bfac9fc518eba"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/guard/female/pants_rear.png",
+      "size": [
+        160,
+        256
+      ],
+      "alpha_bbox": [
+        43,
+        4,
+        116,
+        252
+      ],
+      "bytes": 44327,
+      "sha256": "40ca258d3adde97c7369fec5bcb5600fc57414a16b2a146736dba20f9ceba7e8"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/guard/female/torso.png",
+      "size": [
+        96,
+        141
+      ],
+      "alpha_bbox": [
+        19,
+        0,
+        80,
+        141
+      ],
+      "bytes": 21834,
+      "sha256": "63c38ac36def3eb96f8fe7ec3ac7bb9c4f0f523b84663d670424b24503b38bb4"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/guard/female/utility.png",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        42,
+        36,
+        107,
+        107
+      ],
+      "bytes": 440,
+      "sha256": "1c1601e4ca14b62ec7d1f655b8c1f441f8c514b03c95a701ab75dce0e9f8c69a"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/guard/male/backpack.png",
+      "size": [
+        112,
+        144
+      ],
+      "alpha_bbox": [
+        5,
+        4,
+        106,
+        140
+      ],
+      "bytes": 26049,
+      "sha256": "f07ca064d065e1daf072c835f1c7aabd570b8d3bc953e1646688227b7b62e6e3"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/guard/male/boots.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        4,
+        13,
+        92,
+        82
+      ],
+      "bytes": 15855,
+      "sha256": "65aa16622baa5d212671db4a754d9051b90be9b33d88a459bb399bb6d055e445"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/guard/male/glove.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        4,
+        19,
+        92,
+        77
+      ],
+      "bytes": 8959,
+      "sha256": "d9affd8e2755aa76488652a0830510354149a1dd715d632403ae0bd1f2284203"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/guard/male/head.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        2,
+        20,
+        94,
+        92
+      ],
+      "bytes": 10326,
+      "sha256": "23a1c1cd0b275639e897b9a2f9eeeb800d14a7f032e29ffa01850368e6d0203c"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/guard/male/pants_front.png",
+      "size": [
+        80,
+        160
+      ],
+      "alpha_bbox": [
+        16,
+        4,
+        63,
+        156
+      ],
+      "bytes": 20382,
+      "sha256": "0649c33a4db1d134172bd8913aa205ed030d41129c52db0d013640cb6ea09150"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/guard/male/pants_rear.png",
+      "size": [
+        80,
+        160
+      ],
+      "alpha_bbox": [
+        16,
+        4,
+        63,
+        156
+      ],
+      "bytes": 21460,
+      "sha256": "1ab2912c0049029f0c507173fdc186d998e2e2a60a5da1d8af698b89bf36a76f"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/guard/male/torso.png",
+      "size": [
+        112,
+        144
+      ],
+      "alpha_bbox": [
+        14,
+        4,
+        98,
+        140
+      ],
+      "bytes": 31813,
+      "sha256": "29c508921f0e0db287149c4153a91a0d022cbce52037de76eef2fb19bbacca01"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/guard/male/utility.png",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        17,
+        48,
+        118,
+        86
+      ],
+      "bytes": 361,
+      "sha256": "e5dbc09aa5f1c65726ef55fb6e8ed48bb950068702ae1d6786a6a58debc39e6a"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/mechanic/female/backpack.png",
+      "size": [
+        112,
+        144
+      ],
+      "alpha_bbox": [
+        5,
+        4,
+        106,
+        140
+      ],
+      "bytes": 26845,
+      "sha256": "0b20693d06a0b5e220149b47dc373b35f5bde9ea786ca73684117ada5cb1e6fb"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/mechanic/female/boots.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        4,
+        13,
+        92,
+        82
+      ],
+      "bytes": 16142,
+      "sha256": "5e33d98227b731d0aa91993023da11b9f4eba35e54c8d3a7784a9c9c5f308f24"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/mechanic/female/glove.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        4,
+        19,
+        92,
+        77
+      ],
+      "bytes": 9455,
+      "sha256": "63a14e7400dceb075fe507bb863c6fd679c4489044f6e7ff710f331a690fe7df"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/mechanic/female/head.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        2,
+        20,
+        94,
+        92
+      ],
+      "bytes": 14901,
+      "sha256": "87113d59063f1e2291e9b9f83b0c90c6513e0f0e0c8281f6841424bf1fe667cf"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/mechanic/female/pants_front.png",
+      "size": [
+        160,
+        256
+      ],
+      "alpha_bbox": [
+        48,
+        4,
+        116,
+        252
+      ],
+      "bytes": 44444,
+      "sha256": "3d8eba9c46ca4041fd0c9b7613447c399ad462b6f26721931923b7f1e384c84b"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/mechanic/female/pants_rear.png",
+      "size": [
+        160,
+        256
+      ],
+      "alpha_bbox": [
+        43,
+        4,
+        116,
+        252
+      ],
+      "bytes": 46451,
+      "sha256": "b422e61c9a97fba792e861959ce051f46a246b3187a3cc25a0d2142bb2da5fb1"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/mechanic/female/torso.png",
+      "size": [
+        96,
+        141
+      ],
+      "alpha_bbox": [
+        19,
+        0,
+        80,
+        141
+      ],
+      "bytes": 23057,
+      "sha256": "aca426cbfb78915b853b5d14e817c40dbfc5a316255972e7c581555539aaaefa"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/mechanic/female/utility.png",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        39,
+        28,
+        89,
+        101
+      ],
+      "bytes": 704,
+      "sha256": "10e5fd72669ba4fe0bd6cc1f3a1fc730bfbc1fa3fe01fefba287b60afcc18eb5"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/mechanic/male/backpack.png",
+      "size": [
+        112,
+        144
+      ],
+      "alpha_bbox": [
+        5,
+        4,
+        106,
+        140
+      ],
+      "bytes": 26845,
+      "sha256": "0b20693d06a0b5e220149b47dc373b35f5bde9ea786ca73684117ada5cb1e6fb"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/mechanic/male/boots.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        4,
+        13,
+        92,
+        82
+      ],
+      "bytes": 16137,
+      "sha256": "ce45b91d67e97b7fcaf4499e3516a158d2737a472787fc6c99899870185ab3d5"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/mechanic/male/glove.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        4,
+        19,
+        92,
+        77
+      ],
+      "bytes": 9455,
+      "sha256": "63a14e7400dceb075fe507bb863c6fd679c4489044f6e7ff710f331a690fe7df"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/mechanic/male/head.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        2,
+        20,
+        94,
+        92
+      ],
+      "bytes": 12911,
+      "sha256": "47c02fc78ed270d66c42b5fcbdef50fae9f87561021760dcd9947d453decb1c7"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/mechanic/male/pants_front.png",
+      "size": [
+        80,
+        160
+      ],
+      "alpha_bbox": [
+        16,
+        4,
+        63,
+        156
+      ],
+      "bytes": 20727,
+      "sha256": "a953fcdd8f623b2572290903339735b3c9c4cb331726b40efb6ce778748ab64c"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/mechanic/male/pants_rear.png",
+      "size": [
+        80,
+        160
+      ],
+      "alpha_bbox": [
+        16,
+        4,
+        63,
+        156
+      ],
+      "bytes": 21805,
+      "sha256": "4ddf4c602985e74389da962cc1f38401aaddf6446561cd15db7c224ae0f29f9c"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/mechanic/male/torso.png",
+      "size": [
+        112,
+        144
+      ],
+      "alpha_bbox": [
+        14,
+        4,
+        98,
+        140
+      ],
+      "bytes": 32739,
+      "sha256": "8f07cd13aaed0fbedf1e06a8536fb3b5ea809a2b9e497eae7a0cfaf5bfce3301"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/mechanic/male/utility.png",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        8,
+        45,
+        113,
+        79
+      ],
+      "bytes": 518,
+      "sha256": "749e287909db30299379bc79871f498ba84f46fc4b56e4e075a3c5751f822405"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/medic/female/backpack.png",
+      "size": [
+        112,
+        144
+      ],
+      "alpha_bbox": [
+        5,
+        4,
+        106,
+        140
+      ],
+      "bytes": 30113,
+      "sha256": "f263f50cd3c4ce650f9152afa1a582715b6d4b4304e2a905026f4803b051490e"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/medic/female/boots.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        4,
+        13,
+        92,
+        82
+      ],
+      "bytes": 16248,
+      "sha256": "b9fd8d272a3b4e96ce8c93485d76987d721b6af39267a67b3f6adb4cc0ff6d81"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/medic/female/glove.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        4,
+        19,
+        92,
+        77
+      ],
+      "bytes": 10543,
+      "sha256": "26e293118af5173ff790a469b4ebd94823e8fdfe90872024501ff6aa0cc55155"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/medic/female/head.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        2,
+        20,
+        94,
+        92
+      ],
+      "bytes": 14623,
+      "sha256": "ede4fb6b2b33118b4477fefb0d9cf08f02b765f59a7324bce9935d76baa701bc"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/medic/female/pants_front.png",
+      "size": [
+        160,
+        256
+      ],
+      "alpha_bbox": [
+        48,
+        4,
+        116,
+        252
+      ],
+      "bytes": 43918,
+      "sha256": "d3b48f431f5dcfd958141d859237d6482b0eafa69b75494a15d2f91a1190e10d"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/medic/female/pants_rear.png",
+      "size": [
+        160,
+        256
+      ],
+      "alpha_bbox": [
+        43,
+        4,
+        116,
+        252
+      ],
+      "bytes": 45943,
+      "sha256": "99e91316b32fd8295cfbad7fa8ad4a5d5bb8bd6e793ea3cd4f915dba66db7ce5"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/medic/female/torso.png",
+      "size": [
+        96,
+        141
+      ],
+      "alpha_bbox": [
+        19,
+        0,
+        80,
+        141
+      ],
+      "bytes": 23406,
+      "sha256": "88df9bb987dcff4eac041f9697b7ed4882c9ea46702a16ed44c70bd0c2cae37c"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/medic/female/utility.png",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        29,
+        32,
+        102,
+        102
+      ],
+      "bytes": 493,
+      "sha256": "9afa7d419d562ddece411135c7c365088600143e8498f99eecda73b624050635"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/medic/male/backpack.png",
+      "size": [
+        112,
+        144
+      ],
+      "alpha_bbox": [
+        5,
+        4,
+        106,
+        140
+      ],
+      "bytes": 30113,
+      "sha256": "f263f50cd3c4ce650f9152afa1a582715b6d4b4304e2a905026f4803b051490e"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/medic/male/boots.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        4,
+        13,
+        92,
+        82
+      ],
+      "bytes": 16204,
+      "sha256": "03f32a8ca095c8c7ec7b8c708a2042c10aa2c10c9e901040b6d15247a82bf501"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/medic/male/glove.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        4,
+        19,
+        92,
+        77
+      ],
+      "bytes": 10543,
+      "sha256": "26e293118af5173ff790a469b4ebd94823e8fdfe90872024501ff6aa0cc55155"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/medic/male/head.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        2,
+        20,
+        94,
+        92
+      ],
+      "bytes": 12477,
+      "sha256": "74caf3dc482ab770fd368e28ab296d2ae2e98888c50b70c1f9e2f96b55ed80b5"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/medic/male/pants_front.png",
+      "size": [
+        80,
+        160
+      ],
+      "alpha_bbox": [
+        16,
+        4,
+        63,
+        156
+      ],
+      "bytes": 20985,
+      "sha256": "7d6b5cdd8692aaf39bfb5097e5555275eea3535fea572dd398b3404bde76c9e8"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/medic/male/pants_rear.png",
+      "size": [
+        80,
+        160
+      ],
+      "alpha_bbox": [
+        16,
+        4,
+        63,
+        156
+      ],
+      "bytes": 22045,
+      "sha256": "7d5fe12e136432379100d19ee82d3275e765cf31b45c391b40a2e4db1e9ff190"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/medic/male/torso.png",
+      "size": [
+        112,
+        144
+      ],
+      "alpha_bbox": [
+        14,
+        4,
+        98,
+        140
+      ],
+      "bytes": 33743,
+      "sha256": "4258d0e1e708437f516092fd1e08a3d977f726cc8d37fe37b8a5d39734a86894"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/medic/male/utility.png",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        22,
+        32,
+        107,
+        104
+      ],
+      "bytes": 502,
+      "sha256": "9e6e63f37af8d4e8c301abd1e1c16cc2a20084372c63351c9d97f8e15566b40c"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/trader/female/backpack.png",
+      "size": [
+        112,
+        144
+      ],
+      "alpha_bbox": [
+        5,
+        4,
+        106,
+        140
+      ],
+      "bytes": 27203,
+      "sha256": "07276d1fc8bd07b33d48ada29a4a19b904f79c1cf9a2ec2be5a67f8fa0ca03ac"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/trader/female/boots.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        4,
+        13,
+        92,
+        82
+      ],
+      "bytes": 16466,
+      "sha256": "6748fc71a87889b53c2583c219db91e2f1c8178511050d3a3f50cad63a9b6d0e"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/trader/female/glove.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        4,
+        19,
+        92,
+        77
+      ],
+      "bytes": 9635,
+      "sha256": "a90ed343ec0a65b3d946cb8e52dbc5eca2a18172d736091a6c7d36c0940d9716"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/trader/female/head.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        2,
+        20,
+        94,
+        92
+      ],
+      "bytes": 13582,
+      "sha256": "c7bdc28de20eb92ad95f71117ec716eaa075d18af76cf03891623da529bf3fdf"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/trader/female/pants_front.png",
+      "size": [
+        160,
+        256
+      ],
+      "alpha_bbox": [
+        48,
+        4,
+        116,
+        252
+      ],
+      "bytes": 44120,
+      "sha256": "beb521a2dd47914c6a1d8cdac521316f64dbb585b68b232e77540734d692ad1f"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/trader/female/pants_rear.png",
+      "size": [
+        160,
+        256
+      ],
+      "alpha_bbox": [
+        43,
+        4,
+        116,
+        252
+      ],
+      "bytes": 46028,
+      "sha256": "54cb659a6ef37f00acfbf05a0724af7d8dfbd7891fedd9c27b48e5b892a06fc3"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/trader/female/torso.png",
+      "size": [
+        96,
+        141
+      ],
+      "alpha_bbox": [
+        19,
+        0,
+        80,
+        141
+      ],
+      "bytes": 22320,
+      "sha256": "8f3765f10613be3fb6453449389a1ea65ec097bd87ce20a02707f63e2629c539"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/trader/female/utility.png",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        48,
+        9,
+        82,
+        102
+      ],
+      "bytes": 537,
+      "sha256": "5b2f1a3cf37aad96a1a639e427b03c5fb590a58263f40ddbb41c81ef91214bdb"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/trader/male/backpack.png",
+      "size": [
+        112,
+        144
+      ],
+      "alpha_bbox": [
+        5,
+        4,
+        106,
+        140
+      ],
+      "bytes": 27203,
+      "sha256": "07276d1fc8bd07b33d48ada29a4a19b904f79c1cf9a2ec2be5a67f8fa0ca03ac"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/trader/male/boots.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        4,
+        13,
+        92,
+        82
+      ],
+      "bytes": 16068,
+      "sha256": "beb621a90358ef5401b1eb9e01f59accc6b8ef19b03f54828e9eff892ae0c967"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/trader/male/glove.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        4,
+        19,
+        92,
+        77
+      ],
+      "bytes": 9635,
+      "sha256": "a90ed343ec0a65b3d946cb8e52dbc5eca2a18172d736091a6c7d36c0940d9716"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/trader/male/head.png",
+      "size": [
+        96,
+        96
+      ],
+      "alpha_bbox": [
+        2,
+        21,
+        94,
+        92
+      ],
+      "bytes": 13623,
+      "sha256": "356b8082c89aa3dbe37f54febae25ca591c7976d90176a121375fd7976e4fd40"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/trader/male/pants_front.png",
+      "size": [
+        80,
+        160
+      ],
+      "alpha_bbox": [
+        16,
+        4,
+        63,
+        156
+      ],
+      "bytes": 21195,
+      "sha256": "2cd8368cb2306198381b0fe7d49488b24de62874e78a5442a5dc5367400eec1d"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/trader/male/pants_rear.png",
+      "size": [
+        80,
+        160
+      ],
+      "alpha_bbox": [
+        16,
+        4,
+        63,
+        156
+      ],
+      "bytes": 22161,
+      "sha256": "161ecdc8d1bb8b791d0743ddd58315bba6960e6ba3a793c4254161f6b71ca98b"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/trader/male/torso.png",
+      "size": [
+        112,
+        144
+      ],
+      "alpha_bbox": [
+        14,
+        4,
+        98,
+        140
+      ],
+      "bytes": 33308,
+      "sha256": "5c642b4c1c9d741da37805fdc55682b37e94705803ff333d466a337b1164b841"
+    },
+    {
+      "path": "assets/authored2d/unified_character/roles/trader/male/utility.png",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        25,
+        20,
+        65,
+        103
+      ],
+      "bytes": 516,
+      "sha256": "f8d32e70da9f7edcdb90751a2300a8701be34dff06976945632410ab81e1f420"
+    }
+  ],
+  "head_normalization": [
+    {
+      "mode": "opaque-background-segmentation",
+      "threshold": 42.0,
+      "foreground_ratio": 0.4202,
+      "center_ratio": 0.97052,
+      "border_occupancy": 0.00037,
+      "source_bbox": [
+        5,
+        35,
+        250,
+        225
+      ],
+      "source": "assets/authored2d/npc_faces/SP_NPC_Trader_Male_Face_Right.png",
+      "source_size": [
+        256,
+        256
+      ],
+      "output_size": [
+        96,
+        96
+      ],
+      "output_bbox": [
+        2,
+        21,
+        94,
+        92
+      ],
+      "output_foreground_ratio": 0.42817
+    },
+    {
+      "mode": "opaque-background-segmentation",
+      "threshold": 56.0,
+      "foreground_ratio": 0.42044,
+      "center_ratio": 0.95612,
+      "border_occupancy": 0.07092,
+      "source_bbox": [
+        4,
+        31,
+        250,
+        225
+      ],
+      "source": "assets/authored2d/npc_faces/SP_NPC_Trader_Female_Face_Right.png",
+      "source_size": [
+        256,
+        256
+      ],
+      "output_size": [
+        96,
+        96
+      ],
+      "output_bbox": [
+        2,
+        20,
+        94,
+        92
+      ],
+      "output_foreground_ratio": 0.43783
+    },
+    {
+      "mode": "opaque-background-segmentation",
+      "threshold": 42.0,
+      "foreground_ratio": 0.4118,
+      "center_ratio": 0.99567,
+      "border_occupancy": 0.07141,
+      "source_bbox": [
+        4,
+        31,
+        250,
+        225
+      ],
+      "source": "assets/authored2d/npc_faces/SP_NPC_Medic_Male_Face_Right.png",
+      "source_size": [
+        256,
+        256
+      ],
+      "output_size": [
+        96,
+        96
+      ],
+      "output_bbox": [
+        2,
+        20,
+        94,
+        92
+      ],
+      "output_foreground_ratio": 0.42014
+    },
+    {
+      "mode": "opaque-background-segmentation",
+      "threshold": 56.0,
+      "foreground_ratio": 0.4622,
+      "center_ratio": 0.96301,
+      "border_occupancy": 0.07129,
+      "source_bbox": [
+        4,
+        31,
+        251,
+        225
+      ],
+      "source": "assets/authored2d/npc_faces/SP_NPC_Medic_Female_Face_Right.png",
+      "source_size": [
+        256,
+        256
+      ],
+      "output_size": [
+        96,
+        96
+      ],
+      "output_bbox": [
+        2,
+        20,
+        94,
+        92
+      ],
+      "output_foreground_ratio": 0.47504
+    },
+    {
+      "mode": "opaque-background-segmentation",
+      "threshold": 56.0,
+      "foreground_ratio": 0.44766,
+      "center_ratio": 0.99774,
+      "border_occupancy": 0.00415,
+      "source_bbox": [
+        6,
+        30,
+        252,
+        225
+      ],
+      "source": "assets/authored2d/npc_faces/SP_NPC_Mechanic_Male_Face_Right.png",
+      "source_size": [
+        256,
+        256
+      ],
+      "output_size": [
+        96,
+        96
+      ],
+      "output_bbox": [
+        2,
+        20,
+        94,
+        92
+      ],
+      "output_foreground_ratio": 0.44531
+    },
+    {
+      "mode": "opaque-background-segmentation",
+      "threshold": 56.0,
+      "foreground_ratio": 0.50769,
+      "center_ratio": 0.98352,
+      "border_occupancy": 0.07495,
+      "source_bbox": [
+        4,
+        30,
+        252,
+        225
+      ],
+      "source": "assets/authored2d/npc_faces/SP_NPC_Mechanic_Female_Face_Right.png",
+      "source_size": [
+        256,
+        256
+      ],
+      "output_size": [
+        96,
+        96
+      ],
+      "output_bbox": [
+        2,
+        20,
+        94,
+        92
+      ],
+      "output_foreground_ratio": 0.5077
+    },
+    {
+      "mode": "opaque-background-segmentation",
+      "threshold": 42.0,
+      "foreground_ratio": 0.39098,
+      "center_ratio": 0.98608,
+      "border_occupancy": 0.07422,
+      "source_bbox": [
+        4,
+        30,
+        252,
+        225
+      ],
+      "source": "assets/authored2d/npc_faces/SP_NPC_Guard_Male_Face_Right.png",
+      "source_size": [
+        256,
+        256
+      ],
+      "output_size": [
+        96,
+        96
+      ],
+      "output_bbox": [
+        2,
+        20,
+        94,
+        92
+      ],
+      "output_foreground_ratio": 0.39182
+    },
+    {
+      "mode": "opaque-background-segmentation",
+      "threshold": 39.543,
+      "foreground_ratio": 0.52841,
+      "center_ratio": 0.99976,
+      "border_occupancy": 0.07983,
+      "source_bbox": [
+        4,
+        31,
+        251,
+        225
+      ],
+      "source": "assets/authored2d/npc_faces/SP_NPC_Guard_Female_Face_Right.png",
+      "source_size": [
+        256,
+        256
+      ],
+      "output_size": [
+        96,
+        96
+      ],
+      "output_bbox": [
+        2,
+        20,
+        94,
+        92
+      ],
+      "output_foreground_ratio": 0.52658
+    },
+    {
+      "mode": "opaque-background-segmentation",
+      "threshold": 72.0,
+      "foreground_ratio": 0.47586,
+      "center_ratio": 0.98541,
+      "border_occupancy": 0.00635,
+      "source_bbox": [
+        5,
+        30,
+        252,
+        225
+      ],
+      "source": "assets/authored2d/npc_faces/SP_NPC_Bandit_Male_Face_Right.png",
+      "source_size": [
+        256,
+        256
+      ],
+      "output_size": [
+        96,
+        96
+      ],
+      "output_bbox": [
+        2,
+        20,
+        94,
+        92
+      ],
+      "output_foreground_ratio": 0.48014
+    },
+    {
+      "mode": "opaque-background-segmentation",
+      "threshold": 72.0,
+      "foreground_ratio": 0.50774,
+      "center_ratio": 0.92902,
+      "border_occupancy": 0.07751,
+      "source_bbox": [
+        4,
+        30,
+        252,
+        225
+      ],
+      "source": "assets/authored2d/npc_faces/SP_NPC_Bandit_Female_Face_Right.png",
+      "source_size": [
+        256,
+        256
+      ],
+      "output_size": [
+        96,
+        96
+      ],
+      "output_bbox": [
+        2,
+        20,
+        94,
+        92
+      ],
+      "output_foreground_ratio": 0.52159
+    },
+    {
+      "mode": "opaque-background-segmentation",
+      "threshold": 43.228,
+      "foreground_ratio": 0.4471,
+      "center_ratio": 0.99683,
+      "border_occupancy": 0.08752,
+      "source_bbox": [
+        4,
+        30,
+        252,
+        225
+      ],
+      "source": "assets/authored2d/npc_faces/SP_NPC_Civilian_Male_Face_Right.png",
+      "source_size": [
+        256,
+        256
+      ],
+      "output_size": [
+        96,
+        96
+      ],
+      "output_bbox": [
+        2,
+        20,
+        94,
+        92
+      ],
+      "output_foreground_ratio": 0.44803
+    },
+    {
+      "mode": "opaque-background-segmentation",
+      "threshold": 42.0,
+      "foreground_ratio": 0.46294,
+      "center_ratio": 0.98004,
+      "border_occupancy": 0.07458,
+      "source_bbox": [
+        4,
+        31,
+        251,
+        225
+      ],
+      "source": "assets/authored2d/npc_faces/SP_NPC_Civilian_Female_Face_Right.png",
+      "source_size": [
+        256,
+        256
+      ],
+      "output_size": [
+        96,
+        96
+      ],
+      "output_bbox": [
+        2,
+        20,
+        94,
+        92
+      ],
+      "output_foreground_ratio": 0.47515
+    }
+  ],
+  "failures": []
+}
