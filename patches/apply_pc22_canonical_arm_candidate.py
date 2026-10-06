@@ -28,6 +28,8 @@ asset_paths={
  "FEMALE_FORE":arms/"female/SP_PC22_Female_Forearm_Right.png",
  "FEMALE_DOM_HAND":arms/"female/SP_PC22_Female_Hand_Dominant_Right.png",
  "FEMALE_SUPPORT_HAND":arms/"female/SP_PC22_Female_Hand_Support_Right.png",
+ "PISTOL":repo_root/"assets/authored2d/gear/pistol.png",
+ "RIFLE":repo_root/"assets/authored2d/gear/rifle.png",
 }
 for k,p in asset_paths.items():
     if not p.is_file():
@@ -48,7 +50,8 @@ if tex_anchor not in s:
     raise SystemExit("Candidate arm texture anchor missing")
 inject=''
 for name in ("MALE_UPPER","MALE_FORE","MALE_DOM_HAND","MALE_SUPPORT_HAND",
-             "FEMALE_UPPER","FEMALE_FORE","FEMALE_DOM_HAND","FEMALE_SUPPORT_HAND"):
+             "FEMALE_UPPER","FEMALE_FORE","FEMALE_DOM_HAND","FEMALE_SUPPORT_HAND",
+             "PISTOL","RIFLE"):
     inject += f'const PC22_ARM_{name}_B64 := "{b64[name]}"\n'
 inject += '''var tex_pc22_male_upper: Texture2D = null
 var tex_pc22_male_fore: Texture2D = null
@@ -58,6 +61,8 @@ var tex_pc22_female_upper: Texture2D = null
 var tex_pc22_female_fore: Texture2D = null
 var tex_pc22_female_dom_hand: Texture2D = null
 var tex_pc22_female_support_hand: Texture2D = null
+var tex_pc22_pistol: Texture2D = null
+var tex_pc22_rifle: Texture2D = null
 '''
 s=s.replace(tex_anchor,tex_anchor+inject,1)
 
@@ -72,6 +77,8 @@ loads='''    tex_pc22_male_upper = _texture_from_embedded_png(PC22_ARM_MALE_UPPE
     tex_pc22_female_fore = _texture_from_embedded_png(PC22_ARM_FEMALE_FORE_B64)
     tex_pc22_female_dom_hand = _texture_from_embedded_png(PC22_ARM_FEMALE_DOM_HAND_B64)
     tex_pc22_female_support_hand = _texture_from_embedded_png(PC22_ARM_FEMALE_SUPPORT_HAND_B64)
+    tex_pc22_pistol = _texture_from_embedded_png(PC22_ARM_PISTOL_B64)
+    tex_pc22_rifle = _texture_from_embedded_png(PC22_ARM_RIFLE_B64)
 '''
 s=s.replace(load_anchor,load_anchor+loads,1)
 
@@ -166,7 +173,7 @@ new_support=support_anchor+'''    var support_tex := tex_pc22_female_support_han
     if gear_gloves and tex_gear_glove != null:
         support_tex = tex_gear_glove
     if support_tex != null:
-        var support_size := Vector2(5.9,4.8) if female_mode else Vector2(6.4,5.2)
+        var support_size := Vector2(6.4,5.2) if female_mode else Vector2(6.9,5.6)
         _draw_equipment_texture(support_tex,center,support_size*scale,dir_sign<0.0,angle)
         return
     if female_mode:
@@ -280,27 +287,20 @@ end=s.find('\n\n    # PC15: base torso keeps its matching collar/belt.',start)
 if start<0 or end<0:
     raise SystemExit("Candidate weapon block boundaries missing")
 weapon_block='''    # Weapon is the relationship anchor between the two hands.
-    # One-handed mode uses a compact pistol and releases the support hand.
+    # Use real authored weapon sprites so magnified grip QA is meaningful.
     if weapon_visible:
         if weapon_two_handed and not face_right:
             _draw_support_hand(hand_front + _pose_point(Vector2(0,2.1), angle, dir_sign), angle, dir_sign, Color("ad704f"), 0.94)
 
         var active_muzzle := muzzle
         if weapon_two_handed:
-            draw_line(stock_a, muzzle, Color("34383a"), 6.0, true)
-            draw_line(pivot + _pose_point(Vector2(10,-1.5),angle,dir_sign),
-                      pivot + _pose_point(Vector2(29,-1.5),angle,dir_sign),
-                      Color("656b6d"), 2.0, true)
-            draw_line(pivot + _pose_point(Vector2(5,2),angle,dir_sign),
-                      pivot + _pose_point(Vector2(3,9),angle,dir_sign),
-                      Color("2e3132"), 4.0, true)
+            var rifle_center := pivot + _pose_point(Vector2(12.0,-0.5),angle,dir_sign)
+            _draw_equipment_texture(tex_pc22_rifle,rifle_center,Vector2(36.0,8.2),dir_sign<0.0,angle)
+            active_muzzle = pivot + _pose_point(Vector2(31,0),angle,dir_sign)
         else:
+            var pistol_center := pivot + _pose_point(Vector2(5.0,-0.4),angle,dir_sign)
+            _draw_equipment_texture(tex_pc22_pistol,pistol_center,Vector2(18.0,7.0),dir_sign<0.0,angle)
             active_muzzle = pivot + _pose_point(Vector2(12,0),angle,dir_sign)
-            draw_line(pivot + _pose_point(Vector2(-1,0),angle,dir_sign),
-                      active_muzzle,Color("34383a"),4.6,true)
-            draw_line(pivot + _pose_point(Vector2(3,1.5),angle,dir_sign),
-                      pivot + _pose_point(Vector2(2,8),angle,dir_sign),
-                      Color("2e3132"),3.4,true)
 
         if shot_flash > 0.02:
             var flash_len := 5.0 * shot_flash
@@ -420,6 +420,8 @@ for needle in (
     "PC22_ARM_CAPTURE_COMPLETE:",
     "PC22_ARM_MALE_UPPER_B64",
     "PC22_ARM_FEMALE_FORE_B64",
+    "PC22_ARM_PISTOL_B64",
+    "PC22_ARM_RIFLE_B64",
 ):
     if needle not in s2:
         raise SystemExit("Candidate integration verification missing: "+needle)
