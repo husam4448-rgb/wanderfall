@@ -164,23 +164,138 @@ def tint_canonical(target, main, accent, kind, sex):
     img.putalpha(a)
     return img
 
-def normalize_head(src):
+head_normalization_qa=[]
+
+def _mask_bbox(mask):
+    ys,xs=np.where(mask>12)
+    if len(xs)==0:
+        return None
+    return (int(xs.min()),int(ys.min()),int(xs.max()+1),int(ys.max()+1))
+
+def _opaque_background_mask(rgba, source_name=''):
+    rgb=rgba[:,:,:3].astype(np.float32)
+    h,w=rgb.shape[:2]
+    corner=max(3,min(h,w)//18)
+    corner_blocks=[
+        rgb[:corner,:corner], rgb[:corner,w-corner:w],
+        rgb[h-corner:h,:corner], rgb[h-corner:h,w-corner:w]
+    ]
+    bg_samples=[np.median(b.reshape(-1,3),axis=0) for b in corner_blocks]
+    # Add a robust whole-border estimate so slightly noisy/gradient backgrounds
+    # are handled without assuming a single exact corner colour.
+    bw=max(2,min(h,w)//32)
+    border=np.concatenate([
+        rgb[:bw,:,:].reshape(-1,3), rgb[h-bw:h,:,:].reshape(-1,3),
+        rgb[:, :bw,:].reshape(-1,3), rgb[:, w-bw:w,:].reshape(-1,3)
+    ],axis=0)
+    bg_samples.append(np.median(border,axis=0))
+    bg=np.stack(bg_samples,axis=0)
+    dist=np.sqrt(((rgb[:,:,None,:]-bg[None,None,:,:])**2).sum(axis=3)).min(axis=2)
+    border_dist=np.concatenate([
+        dist[:bw,:].ravel(),dist[h-bw:h,:].ravel(),
+        dist[:,:bw].ravel(),dist[:,w-bw:w].ravel()
+    ])
+    noise=float(np.percentile(border_dist,95))
+    # Several adaptive thresholds are tried. We select a centered foreground
+    # candidate with little border occupancy rather than ever zeroing the image.
+    thresholds=[]
+    for t in [noise+8,noise+12,noise+18,18,24,32,42,56,72]:
+        t=float(np.clip(t,8,96))
+        if all(abs(t-x)>0.5 for x in thresholds):
+            thresholds.append(t)
+    best=None
+    for threshold in thresholds:
+        ramp=max(10.0,threshold*0.55)
+        soft=np.clip((dist-threshold)/ramp,0.0,1.0)
+        # Dark-background safety path: retain meaningful luminance differences
+        # even when hair or skin is chromatically close to the sampled background.
+        border_lum=float(np.median(0.2126*border[:,0]+0.7152*border[:,1]+0.0722*border[:,2]))
+        if border_lum < 45:
+            lum=0.2126*rgb[:,:,0]+0.7152*rgb[:,:,1]+0.0722*rgb[:,:,2]
+            soft=np.maximum(soft,np.clip((lum-(border_lum+10.0))/28.0,0.0,1.0))
+        m=(soft*255.0).astype(np.uint8)
+        # Close tiny holes and soften cutout edges without introducing dependencies.
+        mi=Image.fromarray(m,'L').filter(ImageFilter.MaxFilter(3)).filter(ImageFilter.MinFilter(3)).filter(ImageFilter.GaussianBlur(0.65))
+        ma=np.array(mi)
+        binary=ma>24
+        ratio=float(binary.mean())
+        bbox=_mask_bbox(ma)
+        if bbox is None:
+            continue
+        center=binary[h//4:3*h//4,w//4:3*w//4]
+        center_ratio=float(center.mean()) if center.size else 0.0
+        border_occ=float(np.mean(np.concatenate([
+            binary[:bw,:].ravel(),binary[h-bw:h,:].ravel(),
+            binary[:,:bw].ravel(),binary[:,w-bw:w].ravel()
+        ])))
+        # Heads in these source images are centered and normally occupy a
+        # minority of the frame. Prefer plausible area and low border contact.
+        valid=(0.008 <= ratio <= 0.82 and center_ratio > 0.01 and border_occ < 0.28)
+        score=abs(ratio-0.24)+(border_occ*2.5)+(0.0 if valid else 10.0)
+        cand=(score,ma,threshold,ratio,center_ratio,border_occ,bbox)
+        if best is None or cand[0] < best[0]:
+            best=cand
+    if best is None or best[0] >= 10.0:
+        details={
+            'source':source_name,'border_noise':round(noise,3),
+            'size':[w,h],'reason':'no plausible opaque-background foreground mask'
+        }
+        raise RuntimeError('head background segmentation failed: '+json.dumps(details))
+    _,mask,threshold,ratio,center_ratio,border_occ,bbox=best
+    return mask,{
+        'mode':'opaque-background-segmentation',
+        'threshold':round(float(threshold),3),
+        'foreground_ratio':round(float(ratio),5),
+        'center_ratio':round(float(center_ratio),5),
+        'border_occupancy':round(float(border_occ),5),
+        'source_bbox':list(bbox)
+    }
+
+def normalize_head(src, source_name=''):
     src=src.convert('RGBA')
-    a=np.array(src.getchannel('A'))
-    counts=(a>10).sum(axis=1)
-    arr=np.array(src)
-    for y,c in enumerate(counts):
-        if c > src.width*0.85:
-            arr[y,:,:]=0
-    src=Image.fromarray(arr,'RGBA')
+    rgba=np.array(src)
+    alpha=rgba[:,:,3]
+    transparent_fraction=float(np.mean(alpha<245))
+    alpha_bbox=_mask_bbox(alpha)
+    if alpha_bbox is not None and transparent_fraction >= 0.01:
+        # Genuine RGBA source: preserve authored anti-aliased alpha directly.
+        mask=alpha.copy()
+        info={
+            'mode':'authored-alpha',
+            'transparent_fraction':round(transparent_fraction,5),
+            'source_bbox':list(alpha_bbox)
+        }
+    else:
+        # Opaque PNG/JPEG-like source: infer the background from borders/corners.
+        # This is the path that prevents the former all-opaque -> empty-head bug.
+        mask,info=_opaque_background_mask(rgba,source_name)
+    rgba[:,:,3]=np.minimum(rgba[:,:,3],mask)
+    src=Image.fromarray(rgba,'RGBA')
     b=src.getchannel('A').getbbox()
     if not b:
-        raise RuntimeError('empty head')
+        raise RuntimeError('head normalization produced no foreground: '+source_name)
     obj=src.crop(b)
+    if obj.width<4 or obj.height<4:
+        raise RuntimeError('head normalization foreground too small: '+source_name)
     scale=min(92/obj.width,90/obj.height)
     obj=obj.resize((max(1,int(obj.width*scale)),max(1,int(obj.height*scale))),Image.Resampling.LANCZOS)
     canvas=Image.new('RGBA',(96,96),(0,0,0,0))
-    canvas.alpha_composite(obj,((96-obj.width)//2,max(1,92-obj.height)))
+    pos=((96-obj.width)//2,max(1,92-obj.height))
+    canvas.alpha_composite(obj,pos)
+    final_bbox=canvas.getchannel('A').getbbox()
+    if not final_bbox:
+        raise RuntimeError('head normalization final canvas empty: '+source_name)
+    final_ratio=float(np.mean(np.array(canvas.getchannel('A'))>12))
+    if final_ratio < 0.015 or final_ratio > 0.78:
+        raise RuntimeError('head normalization final occupancy out of bounds for %s: %.5f' % (source_name,final_ratio))
+    info.update({
+        'source':source_name,
+        'source_size':[src.width,src.height],
+        'output_size':[96,96],
+        'output_bbox':list(final_bbox),
+        'output_foreground_ratio':round(final_ratio,5)
+    })
+    head_normalization_qa.append(info)
     return canvas
 
 def utility_canvas(role, sex):
@@ -263,7 +378,7 @@ for role in roles:
         face=src_faces/f'SP_NPC_{role}_{sex}_Face_Right.png'
         if not face.is_file():
             raise SystemExit('Missing role face '+str(face))
-        normalize_head(Image.open(face)).save(target/'head.png', optimize=True)
+        normalize_head(Image.open(face),str(face.relative_to(repo))).save(target/'head.png', optimize=True)
         torso_src=src_spec/f'SP_NPC_{role}_{sex}_Torso_Right.png'
         pants_src=src_spec/f'SP_NPC_{role}_{sex}_Pants_Right.png'
         boots_src=src_spec/f'SP_NPC_{role}_{sex}_Boots_Right.png'
@@ -313,7 +428,7 @@ for p in sorted(out.rglob('*.png')):
     rec={'path':str(p.relative_to(repo)),'size':list(im.size),'alpha_bbox':list(bb) if bb else None,'bytes':p.stat().st_size,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()}
     files.append(rec)
     if bb is None: failures.append({'path':rec['path'],'reason':'empty alpha'})
-(out/'qa_asset_report.json').write_text(json.dumps({'files':files,'failures':failures},indent=2),encoding='utf-8')
+(out/'qa_asset_report.json').write_text(json.dumps({'files':files,'head_normalization':head_normalization_qa,'failures':failures},indent=2),encoding='utf-8')
 if failures:
     raise SystemExit('Asset QA failures: '+json.dumps(failures))
 print('UNIFIED_ASSETS_OK count=%d' % len(files))
