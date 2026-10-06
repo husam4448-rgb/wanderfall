@@ -179,9 +179,8 @@ def render_pose(sex,label,kind,aim=0.0,phase=0.0,recoil=0.0,tile=420):
         d.line([grip0,grip1],fill=(43,37,34,255),width=max(3,int(scale*1.1)))
 
     # Hands are distinct assets and always land on solved wrist targets.
-    for hand,w in ((hdom,rear[2]),(hsup,front[2])):
-        sz=spec["hand_size"]
-        paste_sprite(im,hand,px(w),sz,scale,rotation=pts.get("angle",0))
+    paste_sprite(im,hdom,px(rear[2]),spec.get("dominant_hand_size",spec["hand_size"]),scale,rotation=pts.get("angle",0))
+    paste_sprite(im,hsup,px(front[2]),spec.get("support_hand_size",spec["hand_size"]),scale,rotation=pts.get("angle",0))
 
     # QA joint markers (not production): small rings aid magnified inspection.
     d=ImageDraw.Draw(im)
