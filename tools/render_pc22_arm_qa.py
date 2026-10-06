@@ -55,7 +55,7 @@ def paste_segment(dst,img,a,b,width,scale,overlap):
     d=sub(b,a); seglen=length(d)
     mid=((a[0]+b[0])*0.5,(a[1]+b[1])*0.5)
     w=max(2,int(round(width*scale)))
-    h=max(3,int(round((seglen+2*overlap)*scale)))
+    h=max(3,int(round(seglen+2*overlap*scale)))
     s=fit(img,(w,h))
     theta=math.atan2(d[1],d[0])
     # Source segment is vertical. Rotation 90-theta visually aligns its long axis to a->b.
@@ -155,8 +155,8 @@ def render_pose(sex,label,kind,aim=0.0,phase=0.0,recoil=0.0,tile=420):
 
     ov=spec["joint_overlap_each_end"]
     # Rear arm first, torso covers shoulder overlap.
-    paste_segment(im,upper,px(rear[0]),px(rear[1]),spec["upper_arm_width"]*scale/scale,1.0,ov*scale/scale)
-    paste_segment(im,fore,px(rear[1]),px(rear[2]),spec["forearm_width"]*scale/scale,1.0,ov*scale/scale)
+    paste_segment(im,upper,px(rear[0]),px(rear[1]),spec["upper_arm_width"],scale,ov)
+    paste_segment(im,fore,px(rear[1]),px(rear[2]),spec["forearm_width"],scale,ov)
 
     torso_center=add(basep,tuple(canonical[sex]["torso_center"]))
     paste_sprite(im,torso,px(torso_center),canonical[sex]["torso_size"],scale)
