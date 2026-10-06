@@ -7,6 +7,12 @@ on:
       - '.ci/trigger-pc22-arm-audit'
       - '.github/workflows/pc22-arm-audit.yml'
       - 'tools/audit_pc22_arm_runtime.py'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '.ci/trigger-pc22-arm-audit'
+      - '.github/workflows/pc22-arm-audit.yml'
+      - 'tools/audit_pc22_arm_runtime.py'
 
 permissions:
   contents: write
