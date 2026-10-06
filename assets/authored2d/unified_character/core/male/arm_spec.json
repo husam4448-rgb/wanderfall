@@ -16,6 +16,14 @@
     10.9,
     10.5
   ],
+  "dominant_hand_size": [
+    10.9,
+    10.5
+  ],
+  "support_hand_size": [
+    6.4,
+    5.2
+  ],
   "neutral_upper_angle_deg": 82.0,
   "neutral_elbow_flex_deg": 22.0,
   "source_tint": [
