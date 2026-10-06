@@ -1,0 +1,174 @@
+name: PC22 Canonical Arm Runtime Candidate
+
+on:
+  push:
+    branches: [ pc22-canonical-arm-system ]
+    paths:
+      - '.ci/trigger-pc22-arm-runtime'
+      - '.github/workflows/pc22-arm-runtime-candidate.yml'
+      - 'patches/apply_pc22_canonical_arm_candidate.py'
+
+permissions:
+  contents: write
+
+env:
+  SOURCE_SHA256: ae4eff17e5f281f5867ac2d82207fcf96e6c8b649432acd48816aebab76fa308
+  SOURCE_ARCHIVE: /tmp/Wanderfall_Phase16_Game_Source.tar.xz
+  PROJECT_DIR: game
+  GODOT_ZIP: /tmp/Godot_v4.7.2-stable_linux.x86_64.zip
+  GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
+
+jobs:
+  runtime-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: pc22-canonical-arm-system
+          fetch-depth: 1
+
+      - name: Reconstruct exact PC22 and apply canonical arm candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat source_parts/part_*.b64 > /tmp/wanderfall_source.b64
+          base64 --decode /tmp/wanderfall_source.b64 > "$SOURCE_ARCHIVE"
+          echo "$SOURCE_SHA256  $SOURCE_ARCHIVE" | sha256sum -c -
+          mkdir -p "$PROJECT_DIR"
+          tar -xJf "$SOURCE_ARCHIVE" -C "$PROJECT_DIR"
+          python3 patches/apply_godot_47_fixes.py "$PROJECT_DIR"
+          python3 patches/apply_v017_ui_overhaul.py "$PROJECT_DIR"
+          python3 patches/apply_v0171_inventory_polish.py "$PROJECT_DIR"
+          python3 patches/apply_v0172_hud_customization.py "$PROJECT_DIR"
+          python3 patches/fix_v0173_applicator_path.py
+          python3 patches/apply_v0173_touch_layout_fixes.py "$PROJECT_DIR"
+          python3 patches/apply_v0174_ui_pause_completion.py "$PROJECT_DIR"
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('patches/apply_v0175_hotbar_sensitivity.py')
+          s=p.read_text(encoding='utf-8')
+          old='''replace_once(
+              "scripts/settings/settings_hud.gd",
+              '    if ui_buttons.has("quickbar_visible"):\\n        ui_buttons["quickbar_visible"].text = "QUICKBAR: %s" % ("ON" if GameSettings.quickbar_visible else "OFF")\\n\\n    var pause_names :=',
+              '    if ui_buttons.has("quickbar_visible"):\\n        ui_buttons["quickbar_visible"].text = "QUICKBAR: %s" % ("ON" if GameSettings.quickbar_visible else "OFF")\\n'
+              '    if movement_sensitivity_slider != null:\\n'
+              '        movement_sensitivity_slider.set_value_no_signal(GameSettings.movement_stick_sensitivity)\\n'
+              '    if movement_sensitivity_label != null:\\n'
+              '        movement_sensitivity_label.text = "×%.2f" % GameSettings.movement_stick_sensitivity\\n\\n'
+              '    var pause_names :=',
+          )'''
+          new='''replace_once(
+              "scripts/settings/settings_hud.gd",
+              '    var pause_names :=',
+              '    if movement_sensitivity_slider != null:\\n'
+              '        movement_sensitivity_slider.set_value_no_signal(GameSettings.movement_stick_sensitivity)\\n'
+              '    if movement_sensitivity_label != null:\\n'
+              '        movement_sensitivity_label.text = "×%.2f" % GameSettings.movement_stick_sensitivity\\n\\n'
+              '    var pause_names :=',
+          )'''
+          if old not in s:
+              raise SystemExit('Expected v0.17.5 applicator block not found')
+          p.write_text(s.replace(old,new,1),encoding='utf-8')
+          PY
+          python3 patches/apply_v0175_hotbar_sensitivity.py "$PROJECT_DIR"
+          python3 patches/apply_v0176_hotbar_deadzone.py "$PROJECT_DIR"
+          python3 patches/apply_v0177_mobile_hotbar_layers.py "$PROJECT_DIR"
+          python3 patches/apply_v0178_dedicated_hotbar_layer.py "$PROJECT_DIR"
+          python3 -m pip install --quiet pillow numpy
+          python3 patches/apply_v0179_quick_item_buttons.py "$PROJECT_DIR"
+          grep -q 'PLAYER CHARACTERS V22 | PROPORTIONAL FEMALE BOOTS:' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"
+          python3 patches/apply_pc22_canonical_arm_candidate.py "$PROJECT_DIR"
+          grep -q 'PLAYER CHARACTERS V22 ARM CANDIDATE | CANONICAL IK:' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"
+
+      - name: Install Godot and Xvfb
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 2 -o "$GODOT_ZIP" "https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip"
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  $GODOT_ZIP" | sha256sum -c -
+          unzip -q "$GODOT_ZIP" -d /tmp
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb >/dev/null
+
+      - name: Import and parser validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --editor --path "$PROJECT_DIR" --quit --verbose 2>&1 | tee pc22-arm-import.log
+          if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|ERROR: Failed to create an autoload|Compile Error:|Parse Error:' pc22-arm-import.log; then exit 1; fi
+
+      - name: Runtime smoke test
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 20s "$GODOT_BIN" --headless --path "$PROJECT_DIR" --quit-after 120 --verbose 2>&1 | tee pc22-arm-smoke.log
+          if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|Compile Error:|Parse Error:|Invalid call|Invalid get index' pc22-arm-smoke.log; then exit 1; fi
+
+      - name: Capture actual engine arm states
+        shell: bash
+        run: |
+          set -euo pipefail
+          CAP="$GITHUB_WORKSPACE/pc22-arm-runtime-captures"
+          mkdir -p "$CAP"
+          ARM_CAPTURE_DIR="$CAP" timeout 35s xvfb-run -a "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1280x720 --verbose 2>&1 | tee pc22-arm-capture.log
+          test "$(find "$CAP" -maxdepth 1 -name '*.png' | wc -l)" -eq 16
+          grep -q 'PC22_ARM_CAPTURE_COMPLETE:16' pc22-arm-capture.log
+          grep -q 'PC22_ARM_GEOMETRY_OK:' pc22-arm-capture.log
+          if grep -q 'PC22_ARM_GEOMETRY_FAIL' pc22-arm-capture.log; then exit 1; fi
+          if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|Compile Error:|Parse Error:|Invalid call|Invalid get index' pc22-arm-capture.log; then exit 1; fi
+
+      - name: Build actual-runtime contact sheets
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image,ImageDraw
+          root=Path('pc22-arm-runtime-captures')
+          out=Path('assets/authored2d/unified_character/arms/qa/runtime_engine')
+          out.mkdir(parents=True,exist_ok=True)
+          names=[
+            "idle","walk","run","pistol_horizontal","pistol_up","rifle_horizontal","rifle_up","recoil"
+          ]
+          for sex in ("male","female"):
+              imgs=[]
+              for state in names:
+                  p=root/f"{sex}_{state}.png"
+                  im=Image.open(p).convert("RGB")
+                  # Full runtime screenshot plus a central crop around the actor.
+                  crop=im.crop((360,60,920,700))
+                  crop=crop.resize((420,480),Image.Resampling.LANCZOS)
+                  d=ImageDraw.Draw(crop)
+                  d.rectangle((0,450,420,480),fill=(8,10,10))
+                  d.text((8,458),f"{sex.upper()} — {state}",fill=(240,240,235))
+                  imgs.append(crop)
+              sheet=Image.new("RGB",(4*420,2*480),(16,20,21))
+              for i,im in enumerate(imgs):
+                  sheet.paste(im,((i%4)*420,(i//4)*480))
+              sheet.save(out/f"{sex}_runtime_contact_sheet.jpg",quality=95,subsampling=0)
+              # Maximum practical close-up uses horizontal-rifle state.
+              ref=Image.open(root/f"{sex}_rifle_horizontal.png").convert("RGB")
+              ref=ref.crop((430,100,850,650)).resize((1260,1650),Image.Resampling.NEAREST)
+              ref.save(out/f"{sex}_runtime_max_inspection.jpg",quality=95)
+          PY
+
+      - name: Persist actual-runtime QA evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT=assets/authored2d/unified_character/arms/qa/runtime_engine
+          cp pc22-arm-capture.log "$OUT/runtime_capture.log"
+          git config user.name "Survival Paradise Arm QA Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add "$OUT"
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "Capture PC22 canonical arm candidate in Godot runtime"
+          for attempt in 1 2 3; do
+            if git push origin HEAD:pc22-canonical-arm-system; then exit 0; fi
+            sleep $((attempt*3))
+            git pull --rebase origin pc22-canonical-arm-system
+          done
+          exit 1
