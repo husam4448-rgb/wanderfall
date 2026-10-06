@@ -128,4 +128,9 @@ jobs:
             exit 0
           fi
           git commit -m "Audit PC22 canonical arm runtime"
-          git push origin HEAD:pc22-canonical-arm-system
+          for attempt in 1 2 3; do
+            if git push origin HEAD:pc22-canonical-arm-system; then exit 0; fi
+            sleep $((attempt*3))
+            git pull --rebase origin pc22-canonical-arm-system
+          done
+          exit 1
