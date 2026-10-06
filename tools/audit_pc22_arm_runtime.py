@@ -54,8 +54,8 @@ def regex_vec(pattern):
     return [float(m.group(1)), float(m.group(2))]
 
 pivot = regex_vec(r"var\s+pivot\s*:=\s*base\s*\+\s*Vector2\(\s*([0-9.]+)\s*\*\s*dir_sign\s*,\s*(-?[0-9.]+)\s*\)")
-dom = regex_vec(r"hand_rear\s*:=\s*pivot\s*\+\s*_rot\(Vector2\(\s*(-?[0-9.]+)\s*,\s*(-?[0-9.]+)\s*\)")
-sup = regex_vec(r"hand_front\s*:=\s*pivot\s*\+\s*_rot\(Vector2\(\s*(-?[0-9.]+)\s*,\s*(-?[0-9.]+)\s*\)")
+dom = regex_vec(r"hand_rear(?:\s*:\s*Vector2)?\s*:=\s*pivot\s*\+\s*_(?:rot|pose_point)\(Vector2\(\s*(-?[0-9.]+)\s*,\s*(-?[0-9.]+)\s*\)")
+sup = regex_vec(r"hand_front(?:\s*:\s*Vector2)?\s*:=\s*pivot\s*\+\s*_(?:rot|pose_point)\(Vector2\(\s*(-?[0-9.]+)\s*,\s*(-?[0-9.]+)\s*\)")
 
 # PC22 unified manifest is an independent generated summary; compare it against runtime evidence.
 canon_path = repo / "assets" / "authored2d" / "unified_character" / "canonical_pc22.json"
