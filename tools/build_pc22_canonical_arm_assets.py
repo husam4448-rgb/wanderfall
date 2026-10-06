@@ -19,8 +19,9 @@ if canonical.get("standard_id")!="PlayerCharacters_v22":
 src_dir=repo/"art_source/characters"
 upper_src_path=src_dir/"hybrid_male_upper_arm.b64"
 fore_src_path=src_dir/"hybrid_male_forearm_hand.b64"
-if not upper_src_path.is_file() or not fore_src_path.is_file():
-    raise SystemExit("Authored modular arm sources missing")
+glove_src_path=repo/"art_source/gear/d2d40/glove.webp"
+if not upper_src_path.is_file() or not fore_src_path.is_file() or not glove_src_path.is_file():
+    raise SystemExit("Authored modular arm/hand sources missing")
 
 root=repo/"assets/authored2d/unified_character/arms"
 qa=root/"qa"
@@ -106,33 +107,43 @@ def derive_hand_fallback(fore, sex):
     canvas.alpha_composite(rs,((96-rs.width)//2,(96-rs.height)//2))
     return canvas
 
-def make_support_hand(sex):
-    # Rasterized form of the accepted compact PC22 procedural support hand.
-    # Draw at 4x then downsample for anti-aliased fingers and thumb.
-    S=4; W=96*S; H=96*S
-    img=Image.new("RGBA",(W,H),(0,0,0,0))
-    d=ImageDraw.Draw(img)
-    skin=(201,142,104,255) if sex=="male" else (196,133,98,255)
-    dark=(184,124,90,255)
-    cx,cy=43*S,48*S
-    palm=[(-2.9,-1.5),(1.9,-1.6),(2.8,-0.5),(2.5,1.7),(-2.1,1.9),(-3.0,0.6)]
-    # Scale local PC22 units to useful texture pixels while preserving silhouette.
-    k=6.0*S
-    pts=[(cx+x*k,cy+y*k) for x,y in palm]
-    d.polygon(pts,fill=skin)
-    for i in range(4):
-        fy=-1.2+i*0.8
-        a=(cx+0.9*k,cy+fy*k); b=(cx+2.9*k,cy+(fy+0.28)*k)
-        d.line((a,b),fill=dark,width=max(2,int(0.85*6*S)))
-        rr=0.42*6*S
-        d.ellipse((b[0]-rr,b[1]-rr,b[0]+rr,b[1]+rr),fill=dark)
-    a=(cx-0.4*k,cy+1.3*k); b=(cx+1.3*k,cy+2.0*k)
-    d.line((a,b),fill=skin,width=max(2,int(1.0*6*S)))
-    img=img.resize((96,96),Image.Resampling.LANCZOS)
-    return img
+def derive_bare_hand(glove_img, sex):
+    # Reuse the authored glove palm/finger silhouette, but remove the long wrist
+    # cuff and recolor material to bare-skin shading. This keeps real finger
+    # anatomy while preserving PC22's existing hand draw envelope.
+    g=glove_img.convert("RGBA")
+    bb=g.getchannel("A").getbbox()
+    if bb is None:
+        raise SystemExit("Empty glove source")
+    g=g.crop(bb)
+    # Cuff occupies the left/rear portion of the right-facing source.
+    x0=max(0,int(g.width*0.28))
+    g=g.crop((x0,0,g.width,g.height))
+    base=(196,132,96) if sex=="male" else (202,140,105)
+    g=recolor(g,base,1)
+    g=trim(g)
+    canvas=Image.new("RGBA",(96,96),(0,0,0,0))
+    max_w=72 if sex=="male" else 68
+    max_h=54 if sex=="male" else 51
+    sc=min(max_w/g.width,max_h/g.height)
+    rs=g.resize((max(1,int(round(g.width*sc))),max(1,int(round(g.height*sc)))),Image.Resampling.LANCZOS)
+    # Put wrist closer to the left edge so the wrist socket enters the forearm.
+    canvas.alpha_composite(rs,(8,(96-rs.height)//2))
+    return canvas
+
+def derive_support_hand(dominant, sex):
+    # Same anatomical hand family, compacted for the fore-end grip.
+    d=trim(dominant)
+    target=(62,46) if sex=="male" else (58,43)
+    sc=min(target[0]/d.width,target[1]/d.height)
+    rs=d.resize((max(1,int(round(d.width*sc))),max(1,int(round(d.height*sc)))),Image.Resampling.LANCZOS)
+    out=Image.new("RGBA",(96,96),(0,0,0,0))
+    out.alpha_composite(rs,(7,(96-rs.height)//2))
+    return out
 
 upper_src=load_b64_png(upper_src_path)
 fore_src=load_b64_png(fore_src_path)
+glove_src=Image.open(glove_src_path).convert("RGBA")
 female_upper_runtime=embedded_runtime_image("FEMALE_UPPER_ARM_B64")
 female_fore_runtime=embedded_runtime_image("FEMALE_FOREARM_B64")
 
@@ -146,8 +157,8 @@ specs={
    "shoulder_front":[3.8,-5.3],
    "upper_arm_length":10.9,
    "forearm_length":10.7,
-   "upper_arm_width":6.8,
-   "forearm_width":5.9,
+   "upper_arm_width":7.3,
+   "forearm_width":6.5,
    "hand_size":canonical["male"]["hand_size"],
    "dominant_hand_size":canonical["male"]["hand_size"],
    "support_hand_size":[6.4,5.2],
@@ -161,8 +172,8 @@ specs={
    "shoulder_front":[3.0,-5.0],
    "upper_arm_length":10.6,
    "forearm_length":10.5,
-   "upper_arm_width":5.9,
-   "forearm_width":5.1,
+   "upper_arm_width":6.2,
+   "forearm_width":5.6,
    "hand_size":canonical["female"]["hand_size"],
    "dominant_hand_size":canonical["female"]["hand_size"],
    "support_hand_size":[5.9,4.8],
@@ -209,7 +220,7 @@ for sex,s in specs.items():
     u=row_warp(source_upper,0.94 if female else 1.02,0.90 if female else 0.98,0.84 if female else 0.92)
     u=recolor(u,tuple(s["source_tint"]),2)
     u.putalpha(u.getchannel("A").filter(ImageFilter.GaussianBlur(0.20)))
-    u=recanvas_vertical(u,(64,128),5,0.64 if female else 0.70)
+    u=recanvas_vertical(u,(64,128),5,0.72 if female else 0.84)
 
     f=row_warp(source_fore,0.94 if female else 0.98,0.90 if female else 0.94,0.82 if female else 0.88)
     # Convert the full authored forearm/hand source into a sleeve-to-wrist segment.
@@ -225,7 +236,7 @@ for sex,s in specs.items():
             d=int(max(-18,min(18,(lum-110)*0.12)))
             fp[x,y]=(max(0,min(255,base[0]+d)),max(0,min(255,base[1]+d)),max(0,min(255,base[2]+d)),a)
     f.putalpha(f.getchannel("A").filter(ImageFilter.GaussianBlur(0.18)))
-    f=recanvas_vertical(f,(64,128),5,0.54 if female else 0.60)
+    f=recanvas_vertical(f,(64,128),5,0.66 if female else 0.82)
 
     sex_dir=root/sex
     up_name=f"SP_PC22_{sex.title()}_UpperArm_Right.png"
@@ -234,9 +245,8 @@ for sex,s in specs.items():
     f.save(sex_dir/fo_name)
 
     # Prefer the already-generated PC22 unified hand base so arm and existing equipment remain compatible.
-    hand_src=repo/f"assets/authored2d/unified_character/core/{sex}/hand_base.png"
-    hand=Image.open(hand_src).convert("RGBA") if hand_src.is_file() else derive_hand_fallback(fore_src,sex)
-    support_hand=make_support_hand(sex)
+    hand=derive_bare_hand(glove_src,sex)
+    support_hand=derive_support_hand(hand,sex)
     hand.save(sex_dir/f"SP_PC22_{sex.title()}_Hand_Dominant_Right.png")
     support_hand.save(sex_dir/f"SP_PC22_{sex.title()}_Hand_Support_Right.png")
 
