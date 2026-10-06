@@ -107,6 +107,44 @@ def derive_hand_fallback(fore, sex):
     canvas.alpha_composite(rs,((96-rs.width)//2,(96-rs.height)//2))
     return canvas
 
+def keep_largest_alpha_component(img, threshold=12):
+    img=img.convert("RGBA")
+    a=img.getchannel("A")
+    pix=a.load(); w,h=img.size
+    seen=set(); comps=[]
+    for y in range(h):
+        for x in range(w):
+            if (x,y) in seen or pix[x,y] <= threshold:
+                continue
+            stack=[(x,y)]; seen.add((x,y)); comp=[]
+            while stack:
+                qx,qy=stack.pop(); comp.append((qx,qy))
+                for nx,ny in ((qx-1,qy),(qx+1,qy),(qx,qy-1),(qx,qy+1)):
+                    if 0<=nx<w and 0<=ny<h and (nx,ny) not in seen and pix[nx,ny] > threshold:
+                        seen.add((nx,ny)); stack.append((nx,ny))
+            comps.append(comp)
+    if not comps:
+        return img
+    keep=set(max(comps,key=len))
+    out=Image.new("RGBA",img.size,(0,0,0,0)); src=img.load(); dst=out.load()
+    for x,y in keep:
+        dst[x,y]=src[x,y]
+    return out
+
+def add_joint_caps(img, rgb, top_frac, bottom_frac, depth=11):
+    # Small rounded overlap zones at parent/child ends. They sit behind the
+    # authored texture and prevent transparent gaps during rotation.
+    img=img.convert("RGBA")
+    layer=Image.new("RGBA",img.size,(0,0,0,0))
+    d=ImageDraw.Draw(layer)
+    w,h=img.size
+    tw=max(3,int(w*top_frac)); bw=max(3,int(w*bottom_frac))
+    col=(max(0,rgb[0]-4),max(0,rgb[1]-4),max(0,rgb[2]-4),255)
+    d.ellipse(((w-tw)//2,-depth//2,(w+tw)//2,depth),fill=col)
+    d.ellipse(((w-bw)//2,h-depth,(w+bw)//2,h+depth//2),fill=col)
+    layer.alpha_composite(img)
+    return layer
+
 def derive_bare_hand(glove_img, sex):
     # Reuse the authored glove palm/finger silhouette, but remove the long wrist
     # cuff and recolor material to bare-skin shading. This keeps real finger
@@ -134,7 +172,7 @@ def derive_bare_hand(glove_img, sex):
 def derive_support_hand(dominant, sex):
     # Same anatomical hand family, compacted for the fore-end grip.
     d=trim(dominant)
-    target=(62,46) if sex=="male" else (58,43)
+    target=(78,58) if sex=="male" else (73,55)
     sc=min(target[0]/d.width,target[1]/d.height)
     rs=d.resize((max(1,int(round(d.width*sc))),max(1,int(round(d.height*sc)))),Image.Resampling.LANCZOS)
     out=Image.new("RGBA",(96,96),(0,0,0,0))
@@ -210,8 +248,8 @@ for sex,s in specs.items():
     female=sex=="female"
     source_upper=female_upper_runtime if female and female_upper_runtime is not None else upper_src
     source_fore=female_fore_runtime if female and female_fore_runtime is not None else fore_src
-    source_upper=trim(source_upper)
-    source_fore=trim(source_fore)
+    source_upper=keep_largest_alpha_component(trim(source_upper))
+    source_fore=keep_largest_alpha_component(trim(source_fore))
     # Remove the baked distal hand from the legacy forearm source. The canonical
     # chain owns the hand as a separate wrist child.
     cut=0.80 if female else 0.74
@@ -220,7 +258,9 @@ for sex,s in specs.items():
     u=row_warp(source_upper,0.94 if female else 1.02,0.90 if female else 0.98,0.84 if female else 0.92)
     u=recolor(u,tuple(s["source_tint"]),2)
     u.putalpha(u.getchannel("A").filter(ImageFilter.GaussianBlur(0.20)))
-    u=recanvas_vertical(u,(64,128),5,0.72 if female else 0.84)
+    u=recanvas_vertical(u,(64,128),1,0.72 if female else 0.84)
+    u=keep_largest_alpha_component(u)
+    u=add_joint_caps(u,tuple(s["source_tint"]),0.56 if female else 0.60,0.44 if female else 0.48,11)
 
     f=row_warp(source_fore,0.94 if female else 0.98,0.90 if female else 0.94,0.82 if female else 0.88)
     # Convert the full authored forearm/hand source into a sleeve-to-wrist segment.
@@ -236,7 +276,9 @@ for sex,s in specs.items():
             d=int(max(-18,min(18,(lum-110)*0.12)))
             fp[x,y]=(max(0,min(255,base[0]+d)),max(0,min(255,base[1]+d)),max(0,min(255,base[2]+d)),a)
     f.putalpha(f.getchannel("A").filter(ImageFilter.GaussianBlur(0.18)))
-    f=recanvas_vertical(f,(64,128),5,0.66 if female else 0.82)
+    f=recanvas_vertical(f,(64,128),1,0.66 if female else 0.82)
+    f=keep_largest_alpha_component(f)
+    f=add_joint_caps(f,tuple(s["source_tint"]),0.48 if female else 0.52,0.31 if female else 0.34,10)
 
     sex_dir=root/sex
     up_name=f"SP_PC22_{sex.title()}_UpperArm_Right.png"
