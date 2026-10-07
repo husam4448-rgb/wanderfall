@@ -848,8 +848,8 @@ for forbidden in ('direction_index','octant_index','eight_direction','8_directio
 # Candidate APK identity is deliberately distinct from the approved PC22 baseline.
 ep=root/"export_presets.cfg"
 e=ep.read_text(encoding="utf-8")
-e,n1=re.subn(r'(?m)^version/code=\d+
-e,n2=re.subn(r'(?m)^version/name="[^"]*"
+e,n1=re.subn(r'(?m)^version/code=\d+$','version/code=189',e,count=1)
+e,n2=re.subn(r'(?m)^version/name="[^"]*"$','version/name="0.21.0-PC22-ARM-CANDIDATE"',e,count=1)
 if n1!=1 or n2!=1:
     raise SystemExit("PC22 arm candidate Android version anchors missing")
 ep.write_text(e,encoding="utf-8")
