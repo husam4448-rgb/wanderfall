@@ -105,10 +105,10 @@ def anatomical_sleeve(img, base_rgb, sex, segment, fabric_ref=None):
     female=(sex=="female")
     if segment=="upper":
         # broad hidden shoulder root -> biceps -> compact elbow
-        profile=(0.38,0.50,0.27) if female else (0.42,0.56,0.30)
+        profile=(0.38,0.50,0.35) if female else (0.42,0.56,0.39)
     else:
         # elbow mass -> tapered forearm -> narrow wrist/cuff
-        profile=(0.34,0.41,0.20) if female else (0.38,0.46,0.22)
+        profile=(0.40,0.43,0.20) if female else (0.44,0.48,0.22)
 
     mask=Image.new("L",(w,h),0)
     mp=mask.load()
@@ -122,9 +122,9 @@ def anatomical_sleeve(img, base_rgb, sex, segment, fabric_ref=None):
             q=(t-0.52)/0.48
             frac=profile[1]+(profile[2]-profile[1])*(q*q*(3.0-2.0*q))
         half=max(2.0,(w*frac)*0.5)
-        curve=(1.15 if not female else 0.85)*math.sin(math.pi*t)
+        curve=(2.25 if not female else 1.75)*math.sin(math.pi*t)
         if segment=="forearm":
-            curve*=0.72
+            curve*=0.76
         cx=(w-1)*0.5+curve
         x0=max(0,int(round(cx-half)))
         x1=min(w-1,int(round(cx+half)))
@@ -171,7 +171,7 @@ def anatomical_sleeve(img, base_rgb, sex, segment, fabric_ref=None):
         ref_light=tuple(min(255,int(c*1.50+8)) for c in base_rgb)
         reftex=ImageOps.colorize(refgray,ref_dark,ref_light).convert("RGBA")
         reftex.putalpha(mask)
-        base=Image.blend(base,reftex,0.34 if sex=="female" else 0.28)
+        base=Image.blend(base,reftex,0.50 if sex=="female" else 0.38)
         base.putalpha(mask)
 
     # Sparse cloth creases give readable fabric structure without jagged source
@@ -271,7 +271,7 @@ def tactical_sleeve(img, sex, segment):
     glight=tuple(min(255,int(c*1.35+6)) for c in light)
     gtex=ImageOps.colorize(glum,gdark,glight).convert("RGBA")
     gtex.putalpha(alpha)
-    out=Image.blend(out,gtex,0.34)
+    out=Image.blend(out,gtex,0.50)
     out.putalpha(alpha)
     d=ImageDraw.Draw(out)
     w,h=out.size
