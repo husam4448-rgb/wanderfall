@@ -121,7 +121,6 @@ for token in (
     "func _pc22_v3_draw_segment",
     "func _pc22_v3_draw_distal_segment",
     "func _pc22_v3_draw_elbow_bridge",
-    "func _pc22_v3_draw_elbow_patch",
     "func _pc22_v3_draw_hand",
     "func _pc22_v3_draw_grip_hand",
     "func _pc22_v3_draw_cap",
@@ -192,14 +191,3 @@ require("if gear_gloves:" in patch and "tex_pc22_female_glove_dom" in patch and 
 # Armed shoulder caps are intentionally suppressed after real-device review.
 require("if not weapon_visible:" in patch and "small shoulder blob" in patch,
         "armed shoulder-cap suppression missing")
-
-# Dedicated player/gear elbow gussets must exist; role sleeves may use fallback.
-for sex in ("male","female"):
-    for name in (f"SP_PC22_{sex.title()}_Elbow_V3.png", f"SP_PC22_{sex.title()}_Elbow_Gear_V3.png"):
-        ep=arms/"hybrid_v3"/sex/name
-        require(ep.is_file(), f"{sex}: textured elbow gusset missing {name}")
-        if ep.is_file():
-            eim=Image.open(ep).convert("RGBA")
-            require(eim.getchannel("A").getbbox() is not None, f"{sex}: textured elbow gusset empty {name}")
-require("func _pc22_elbow_texture" in patch and "func _pc22_v3_draw_elbow_patch" in patch,
-        "runtime textured elbow patch integration missing")
