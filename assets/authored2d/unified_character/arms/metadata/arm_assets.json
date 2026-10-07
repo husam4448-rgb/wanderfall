@@ -1,0 +1,264 @@
+{
+  "assets": [
+    {
+      "filename": "assets/authored2d/unified_character/arms/male/SP_PC22_Male_UpperArm_Right.png",
+      "sex": "male",
+      "segment": "upper_arm",
+      "canvas_size": [
+        64,
+        128
+      ],
+      "pivot": "segment parent joint / centered draw helper",
+      "joint_parent": "shoulder",
+      "joint_child": "elbow",
+      "canonical_length": 10.9,
+      "visual_overlap_parent": 1.1,
+      "visual_overlap_child": 1.1,
+      "compatible_rig": "MALE_CANONICAL_ARM_SYSTEM",
+      "mirroring_supported": true,
+      "approval_state": "candidate",
+      "alpha_bbox": [
+        13,
+        0,
+        59,
+        128
+      ],
+      "sha256": "807c6b902aa89da6547061358893abc8d84d9cfa4817249dbcdbf9284cd5258b"
+    },
+    {
+      "filename": "assets/authored2d/unified_character/arms/male/SP_PC22_Male_Forearm_Right.png",
+      "sex": "male",
+      "segment": "forearm",
+      "canvas_size": [
+        64,
+        128
+      ],
+      "pivot": "segment parent joint / centered draw helper",
+      "joint_parent": "elbow",
+      "joint_child": "wrist",
+      "canonical_length": 10.7,
+      "visual_overlap_parent": 1.1,
+      "visual_overlap_child": 1.1,
+      "compatible_rig": "MALE_CANONICAL_ARM_SYSTEM",
+      "mirroring_supported": true,
+      "approval_state": "candidate",
+      "alpha_bbox": [
+        14,
+        0,
+        52,
+        128
+      ],
+      "sha256": "75dac4d7c53b4757652938ab3fd2d9fb8e6b05c7b722f455a7d4288c64e922c7"
+    },
+    {
+      "filename": "assets/authored2d/unified_character/arms/male/SP_PC22_Male_Hand_Dominant_Right.png",
+      "sex": "male",
+      "segment": "hand_dominant",
+      "canvas_size": [
+        96,
+        96
+      ],
+      "pivot": "segment parent joint / centered draw helper",
+      "joint_parent": "wrist",
+      "joint_child": "dominant_grip",
+      "canonical_length": 0.0,
+      "visual_overlap_parent": 1.0,
+      "visual_overlap_child": 1.0,
+      "compatible_rig": "MALE_CANONICAL_ARM_SYSTEM",
+      "mirroring_supported": true,
+      "approval_state": "candidate",
+      "alpha_bbox": [
+        9,
+        23,
+        47,
+        73
+      ],
+      "sha256": "22ea1bdb78513b76a595d6c72748e7e6da5fea5306c359975777b8b456f894c3"
+    },
+    {
+      "filename": "assets/authored2d/unified_character/arms/male/SP_PC22_Male_Hand_Support_Right.png",
+      "sex": "male",
+      "segment": "hand_support",
+      "canvas_size": [
+        96,
+        96
+      ],
+      "pivot": "segment parent joint / centered draw helper",
+      "joint_parent": "wrist",
+      "joint_child": "support_grip",
+      "canonical_length": 0.0,
+      "visual_overlap_parent": 1.0,
+      "visual_overlap_child": 1.0,
+      "compatible_rig": "MALE_CANONICAL_ARM_SYSTEM",
+      "mirroring_supported": true,
+      "approval_state": "candidate",
+      "alpha_bbox": [
+        9,
+        25,
+        44,
+        71
+      ],
+      "sha256": "2e75d027721168a670b820800edc2e8be290b8c586c93f09cefe19d8da1b5acd"
+    },
+    {
+      "filename": "assets/authored2d/unified_character/arms/female/SP_PC22_Female_UpperArm_Right.png",
+      "sex": "female",
+      "segment": "upper_arm",
+      "canvas_size": [
+        64,
+        128
+      ],
+      "pivot": "segment parent joint / centered draw helper",
+      "joint_parent": "shoulder",
+      "joint_child": "elbow",
+      "canonical_length": 10.6,
+      "visual_overlap_parent": 1.1,
+      "visual_overlap_child": 1.1,
+      "compatible_rig": "FEMALE_CANONICAL_ARM_SYSTEM",
+      "mirroring_supported": true,
+      "approval_state": "candidate",
+      "alpha_bbox": [
+        10,
+        0,
+        54,
+        128
+      ],
+      "sha256": "6c22fa5fe4b6d0638cdf60f018717834a85b2566f4eb7aaa81fbcf9afbff8e70"
+    },
+    {
+      "filename": "assets/authored2d/unified_character/arms/female/SP_PC22_Female_Forearm_Right.png",
+      "sex": "female",
+      "segment": "forearm",
+      "canvas_size": [
+        64,
+        128
+      ],
+      "pivot": "segment parent joint / centered draw helper",
+      "joint_parent": "elbow",
+      "joint_child": "wrist",
+      "canonical_length": 10.5,
+      "visual_overlap_parent": 1.1,
+      "visual_overlap_child": 1.1,
+      "compatible_rig": "FEMALE_CANONICAL_ARM_SYSTEM",
+      "mirroring_supported": true,
+      "approval_state": "candidate",
+      "alpha_bbox": [
+        14,
+        0,
+        50,
+        128
+      ],
+      "sha256": "29da4b1b772b894dd2037a0debb914969ed0d22d42f2154c562280a0b26c13f9"
+    },
+    {
+      "filename": "assets/authored2d/unified_character/arms/female/SP_PC22_Female_Hand_Dominant_Right.png",
+      "sex": "female",
+      "segment": "hand_dominant",
+      "canvas_size": [
+        96,
+        96
+      ],
+      "pivot": "segment parent joint / centered draw helper",
+      "joint_parent": "wrist",
+      "joint_child": "dominant_grip",
+      "canonical_length": 0.0,
+      "visual_overlap_parent": 1.0,
+      "visual_overlap_child": 1.0,
+      "compatible_rig": "FEMALE_CANONICAL_ARM_SYSTEM",
+      "mirroring_supported": true,
+      "approval_state": "candidate",
+      "alpha_bbox": [
+        9,
+        24,
+        45,
+        71
+      ],
+      "sha256": "d202d8bdd05e709a7652b6bd2255da29bf42858f2df8fccecc854d7221b69b09"
+    },
+    {
+      "filename": "assets/authored2d/unified_character/arms/female/SP_PC22_Female_Hand_Support_Right.png",
+      "sex": "female",
+      "segment": "hand_support",
+      "canvas_size": [
+        96,
+        96
+      ],
+      "pivot": "segment parent joint / centered draw helper",
+      "joint_parent": "wrist",
+      "joint_child": "support_grip",
+      "canonical_length": 0.0,
+      "visual_overlap_parent": 1.0,
+      "visual_overlap_child": 1.0,
+      "compatible_rig": "FEMALE_CANONICAL_ARM_SYSTEM",
+      "mirroring_supported": true,
+      "approval_state": "candidate",
+      "alpha_bbox": [
+        9,
+        26,
+        42,
+        69
+      ],
+      "sha256": "f8d12a08bcefdc05f7532ec1debedf98540aae37b6665cb29e8d8f3fd9d59df1"
+    },
+    {
+      "filename": "assets/authored2d/unified_character/arms/weapons/SP_PC22_Rifle_ArmCompatible.png",
+      "sex": "shared",
+      "segment": "weapon_rifle_arm_compatible",
+      "canvas_size": [
+        44,
+        14
+      ],
+      "pivot": "unchanged canonical PC22 weapon pivot",
+      "joint_parent": "dominant_grip",
+      "joint_child": "support_grip",
+      "canonical_length": 0.0,
+      "visual_overlap_parent": 0.0,
+      "visual_overlap_child": 0.0,
+      "compatible_rig": "MALE_CANONICAL_ARM_SYSTEM,FEMALE_CANONICAL_ARM_SYSTEM",
+      "mirroring_supported": true,
+      "approval_state": "candidate",
+      "sha256": "160fed077dfe52a8024501dda17223984931c9506245f9d864e0efeb14adccfd",
+      "note": "Only upper butt-stock pixels shifted +4 source px; body/grip/barrel geometry unchanged"
+    },
+    {
+      "filename": "assets/authored2d/unified_character/arms/weapons/SP_PC22_Rifle_Stock_Rear.png",
+      "sex": "shared",
+      "segment": "weapon_rifle_stock_rear",
+      "canvas_size": [
+        44,
+        14
+      ],
+      "pivot": "same canonical PC22 rifle center/pivot",
+      "joint_parent": "weapon",
+      "joint_child": "weapon",
+      "canonical_length": 0.0,
+      "visual_overlap_parent": 0.0,
+      "visual_overlap_child": 0.0,
+      "compatible_rig": "MALE_CANONICAL_ARM_SYSTEM,FEMALE_CANONICAL_ARM_SYSTEM",
+      "mirroring_supported": true,
+      "approval_state": "candidate",
+      "sha256": "b19bedd6ed9a3a3889462451d60ed129bf1254406aa1c8a25ebdec604d6f43e3",
+      "note": "Upper butt-stock only; render behind torso"
+    },
+    {
+      "filename": "assets/authored2d/unified_character/arms/weapons/SP_PC22_Rifle_Front.png",
+      "sex": "shared",
+      "segment": "weapon_rifle_front",
+      "canvas_size": [
+        44,
+        14
+      ],
+      "pivot": "same canonical PC22 rifle center/pivot",
+      "joint_parent": "weapon",
+      "joint_child": "weapon",
+      "canonical_length": 0.0,
+      "visual_overlap_parent": 0.0,
+      "visual_overlap_child": 0.0,
+      "compatible_rig": "MALE_CANONICAL_ARM_SYSTEM,FEMALE_CANONICAL_ARM_SYSTEM",
+      "mirroring_supported": true,
+      "approval_state": "candidate",
+      "sha256": "9c0c717626a1a454394aaba1ef48b93fd0362ec2e95d36ce6608046ea8f82af6",
+      "note": "Receiver/barrel/grip only; render in front"
+    }
+  ]
+}

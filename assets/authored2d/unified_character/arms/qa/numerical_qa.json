@@ -1,0 +1,38 @@
+{
+  "summary": {
+    "pass": true,
+    "failure_count": 0,
+    "samples": 1928,
+    "male": {
+      "upper_length_range": [
+        10.899999999999997,
+        10.900000000000004
+      ],
+      "forearm_length_range": [
+        10.699999999999994,
+        10.700000000000006
+      ],
+      "flex_range_deg": [
+        37.017648173342025,
+        151.5007203139836
+      ],
+      "max_frame_elbow_displacement": 0.30569951632993203
+    },
+    "female": {
+      "upper_length_range": [
+        10.599999999999996,
+        10.600000000000003
+      ],
+      "forearm_length_range": [
+        10.499999999999995,
+        10.500000000000004
+      ],
+      "flex_range_deg": [
+        20.61246905007269,
+        148.53333467832377
+      ],
+      "max_frame_elbow_displacement": 0.3241050590965511
+    }
+  },
+  "failures": []
+}

@@ -1,0 +1,71 @@
+{
+  "rig_id": "FEMALE_CANONICAL_ARM_SYSTEM",
+  "shoulder_rear": [
+    5.3,
+    -8.0
+  ],
+  "shoulder_front": [
+    3.0,
+    -5.0
+  ],
+  "upper_arm_length": 10.6,
+  "forearm_length": 10.5,
+  "upper_arm_width": 6.2,
+  "forearm_width": 5.6,
+  "hand_size": [
+    10.0,
+    9.8
+  ],
+  "dominant_hand_size": [
+    7.0,
+    6.5
+  ],
+  "support_hand_size": [
+    6.1,
+    5.4
+  ],
+  "neutral_upper_angle_deg": 84.0,
+  "neutral_elbow_flex_deg": 24.0,
+  "source_tint": [
+    80,
+    91,
+    75
+  ],
+  "standard_id": "PlayerCharacters_v22",
+  "shoulder_source": "PC03 exact articulated socket retained as candidate; active PC22 intentionally has no visible shoulder joint",
+  "upper_forearm_length_source": "corrected from prior 9.4+10.5 solver to cover the complete active PC22 support-hand aim envelope without stretch",
+  "weapon_socket": [
+    6.0,
+    -2.0
+  ],
+  "dominant_hand_grip_socket": [
+    3.0,
+    4.0
+  ],
+  "support_hand_grip_socket": [
+    16.0,
+    2.0
+  ],
+  "support_hand_vertical_offset_right": 1.8,
+  "support_hand_vertical_offset_left": 2.1,
+  "elbow_bend_constraints_deg": {
+    "min_flex": 12.0,
+    "max_flex": 155.0
+  },
+  "wrist_neutral_position": "derived from neutral upper angle + elbow flex; fixed-length FK",
+  "torso_overlap_depth": 1.15,
+  "joint_overlap_each_end": 1.1,
+  "arm_sprite_canvas": [
+    64,
+    128
+  ],
+  "maximum_upward_aim_angle_rad": 1.53938,
+  "maximum_downward_aim_angle_rad": -1.53938,
+  "left_right_mirror_behavior": "right-authored; left runtime mirror",
+  "body_scale": "PlayerCharacters_v22 runtime units",
+  "layering": {
+    "rear_arm": "behind torso/weapon as appropriate",
+    "front_arm": "ahead of torso, behind hands",
+    "hands": "weapon-contact layer"
+  }
+}

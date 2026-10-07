@@ -1,0 +1,40 @@
+{
+  "standard_id": "PlayerCharacters_v22",
+  "policy": {
+    "npc_specific_skeletons": false,
+    "role_specialization_changes_geometry": false,
+    "left_is_runtime_mirror": true,
+    "role_specialization": [
+      "sleeve_overlay",
+      "glove_overlay",
+      "armor_overlay",
+      "equipment",
+      "weapon",
+      "held_tool"
+    ]
+  },
+  "male": {
+    "rig_id": "MALE_CANONICAL_ARM_SYSTEM",
+    "users": [
+      "player_male",
+      "trader_male",
+      "medic_male",
+      "mechanic_male",
+      "guard_male",
+      "bandit_male",
+      "civilian_male"
+    ]
+  },
+  "female": {
+    "rig_id": "FEMALE_CANONICAL_ARM_SYSTEM",
+    "users": [
+      "player_female",
+      "trader_female",
+      "medic_female",
+      "mechanic_female",
+      "guard_female",
+      "bandit_female",
+      "civilian_female"
+    ]
+  }
+}
