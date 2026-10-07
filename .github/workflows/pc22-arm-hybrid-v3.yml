@@ -164,7 +164,7 @@ jobs:
           mkdir -p "$CAP"
           ARM_CAPTURE_DIR="$CAP" timeout 35s xvfb-run -a "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1280x720 --verbose 2>&1 | tee pc22-hybrid-v3-capture.log
           test "$(find "$CAP" -maxdepth 1 -name '*.png' | wc -l)" -eq 72
-          grep -q 'PC22_ARM_CAPTURE_COMPLETE:72' pc22-hybrid-v3-capture.log
+          grep -q 'PC22_ARM_CAPTURE_COMPLETE:76' pc22-hybrid-v3-capture.log
           grep -q 'PC22_ARM_GEOMETRY_OK:' pc22-hybrid-v3-capture.log
           grep -q 'PC22_RUNTIME_SWEEP_OK' pc22-hybrid-v3-capture.log
           grep -q 'PC22_NPC_INHERITANCE_OK' pc22-hybrid-v3-capture.log
@@ -191,7 +191,8 @@ jobs:
             "pistol_horizontal","pistol_up30","pistol_up60","pistol_max_up","pistol_down30","pistol_down60","pistol_max_down",
             "rifle_horizontal","rifle_up30","rifle_up60","rifle_max_up","rifle_down30","rifle_down60","rifle_max_down","recoil",
             "walk_right_aim_right","walk_left_aim_right","walk_right_aim_up","walk_left_aim_down",
-            "run_pistol","run_rifle","rifle_left","rifle_left_up60","rifle_left_down60"
+            "run_pistol","run_rifle","rifle_left","rifle_left_up60","rifle_left_down60",
+            "full_gear_rifle","full_gear_pistol"
           ]
           groups={
             "locomotion":["idle","walk_a","walk_b","run_a","run_b","run_pistol","run_rifle"],
@@ -199,6 +200,7 @@ jobs:
             "rifle":["rifle_horizontal","rifle_up30","rifle_up60","rifle_max_up","rifle_down30","rifle_down60","rifle_max_down","recoil"],
             "movement_aim":["walk_right_aim_right","walk_left_aim_right","walk_right_aim_up","walk_left_aim_down","rifle_left","rifle_left_up60","rifle_left_down60"],
             "roles":["role_trader","role_medic","role_mechanic","role_guard","role_bandit","role_civilian","npc_generic_glove"],
+            "equipment":["full_gear_rifle","full_gear_pistol","rifle_horizontal","pistol_horizontal"],
           }
 
           def frame(sex,state,w=360,h=420):
@@ -245,6 +247,8 @@ jobs:
                   ("rifle_max_up","rifle_max_up"),
                   ("rifle_max_down","rifle_max_down"),
                   ("pistol_horizontal","pistol_grip"),
+                  ("full_gear_rifle","full_gear_rifle"),
+                  ("full_gear_pistol","full_gear_pistol"),
               ]
               close_frames=[]
               for state,label in close_states:
@@ -257,9 +261,11 @@ jobs:
                   dd.text((8,578),f"{sex.upper()} — {label} — ACTUAL GODOT 2x",fill=(240,240,235))
                   cr.save(out/f"{sex}_closeup_{label}.png")
                   close_frames.append(cr)
-              cs=Image.new("RGB",(1500,1200),(16,20,21))
+              close_cols=2
+              close_rows=math.ceil(len(close_frames)/close_cols)
+              cs=Image.new("RGB",(1500,close_rows*600),(16,20,21))
               for ci,cr in enumerate(close_frames):
-                  cs.paste(cr,((ci%2)*750,(ci//2)*600))
+                  cs.paste(cr,((ci%close_cols)*750,(ci//close_cols)*600))
               cs.save(out/f"{sex}_arm_closeup_contact_sheet.png")
 
               # Actual-Godot aim-range preview; individual frames remain authoritative.

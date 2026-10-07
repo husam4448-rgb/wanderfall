@@ -200,7 +200,7 @@ var pc22_prev_arm_valid := false
 var pc22_prev_face_right := true
 var pc22_arm_capture_dir := ""
 var pc22_arm_capture_index := -1
-var pc22_arm_states_per_sex := 29
+var pc22_arm_states_per_sex := 31
 var pc22_arm_capture_names := PackedStringArray([
     "male_idle","male_walk_a","male_walk_b","male_run_a",
     "male_run_b","male_pistol_horizontal","male_pistol_up30","male_pistol_up60",
@@ -209,14 +209,15 @@ var pc22_arm_capture_names := PackedStringArray([
     "male_rifle_down30","male_rifle_down60","male_rifle_max_down","male_recoil",
     "male_walk_right_aim_right","male_walk_left_aim_right","male_walk_right_aim_up","male_walk_left_aim_down",
     "male_run_pistol","male_run_rifle","male_rifle_left","male_rifle_left_up60",
-    "male_rifle_left_down60","female_idle","female_walk_a","female_walk_b",
+    "male_rifle_left_down60","male_full_gear_rifle","male_full_gear_pistol",
+    "female_idle","female_walk_a","female_walk_b",
     "female_run_a","female_run_b","female_pistol_horizontal","female_pistol_up30",
     "female_pistol_up60","female_pistol_max_up","female_pistol_down30","female_pistol_down60",
     "female_pistol_max_down","female_rifle_horizontal","female_rifle_up30","female_rifle_up60",
     "female_rifle_max_up","female_rifle_down30","female_rifle_down60","female_rifle_max_down",
     "female_recoil","female_walk_right_aim_right","female_walk_left_aim_right","female_walk_right_aim_up",
     "female_walk_left_aim_down","female_run_pistol","female_run_rifle","female_rifle_left",
-    "female_rifle_left_up60","female_rifle_left_down60",
+    "female_rifle_left_up60","female_rifle_left_down60","female_full_gear_rifle","female_full_gear_pistol",
     "male_role_trader","male_role_medic","male_role_mechanic","male_role_guard",
     "male_role_bandit","male_role_civilian","female_role_trader","female_role_medic",
     "female_role_mechanic","female_role_guard","female_role_bandit","female_role_civilian",
@@ -888,6 +889,24 @@ capture_helpers='''func _pc22_apply_arm_capture_state(idx: int) -> void:
             weapon_visible = true
             weapon_two_handed = true
             aim_pos = actor_pos + Vector2(-125,216.5)
+        29:
+            gear_head = true
+            gear_torso = true
+            gear_back = true
+            gear_legs = true
+            gear_boots = true
+            gear_gloves = true
+            weapon_visible = true
+            weapon_two_handed = true
+        30:
+            gear_head = true
+            gear_torso = true
+            gear_back = true
+            gear_legs = true
+            gear_boots = true
+            gear_gloves = true
+            weapon_visible = true
+            weapon_two_handed = false
     pc22_prev_arm_valid = false
     _refresh_gear_buttons()
     _apply_visual_zoom()

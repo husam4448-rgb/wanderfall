@@ -89,6 +89,67 @@ def fabric_grade(img, base_rgb, contrast=1.42):
     out.putalpha(alpha)
     return out
 
+def anatomical_sleeve(img, base_rgb, sex, segment):
+    """Impose a smooth anatomical silhouette while retaining authored cloth folds.
+
+    Real-device V3 screenshots exposed jagged/pointed alpha from the tiny legacy
+    source art after rotation.  The texture is preserved, but the visible sleeve
+    edge is rebuilt as a continuous shoulder/elbow/wrist profile.
+    """
+    img=img.convert("RGBA")
+    w,h=img.size
+    female=(sex=="female")
+    if segment=="upper":
+        # broad hidden shoulder root -> biceps -> compact elbow
+        profile=(0.66,0.60,0.46) if female else (0.72,0.65,0.50)
+    else:
+        # elbow mass -> tapered forearm -> narrow wrist/cuff
+        profile=(0.55,0.47,0.30) if female else (0.62,0.53,0.34)
+
+    mask=Image.new("L",(w,h),0)
+    mp=mask.load()
+    # Build the silhouette row-by-row with smooth interpolation.
+    for y in range(h):
+        t=y/max(1,h-1)
+        if t<0.52:
+            q=t/0.52
+            frac=profile[0]+(profile[1]-profile[0])*(q*q*(3.0-2.0*q))
+        else:
+            q=(t-0.52)/0.48
+            frac=profile[1]+(profile[2]-profile[1])*(q*q*(3.0-2.0*q))
+        half=max(2.0,(w*frac)*0.5)
+        cx=(w-1)*0.5
+        x0=max(0,int(round(cx-half)))
+        x1=min(w-1,int(round(cx+half)))
+        for x in range(x0,x1+1):
+            mp[x,y]=255
+    # Soften only one pixel-class at the edge; do not create a blurred blob.
+    mask=mask.filter(ImageFilter.GaussianBlur(0.38))
+
+    # Fill the silhouette with cloth-toned edge shading first so any transparent
+    # holes in the legacy source cannot become visible black gaps at runtime.
+    base=Image.new("RGBA",(w,h),(0,0,0,0))
+    bp=base.load(); ma=mask.load()
+    for y in range(h):
+        for x in range(w):
+            a=ma[x,y]
+            if a<4: continue
+            center=(w-1)*0.5
+            edge=min(1.0,abs(x-center)/max(1.0,w*0.36))
+            light=1.03-0.25*edge
+            # tiny deterministic fabric variation avoids a flat vector tube
+            grain=(((x*13+y*7)%9)-4)*0.010
+            bp[x,y]=(max(0,min(255,int(base_rgb[0]*(light+grain)))),
+                     max(0,min(255,int(base_rgb[1]*(light+grain)))),
+                     max(0,min(255,int(base_rgb[2]*(light+grain)))),a)
+
+    tex=img.copy()
+    # Close one-pixel voids in source texture before overlaying onto the smooth base.
+    tex.putalpha(tex.getchannel("A").filter(ImageFilter.MaxFilter(3)))
+    base.alpha_composite(tex)
+    base.putalpha(mask)
+    return base
+
 def row_warp(img, top_scale, mid_scale, bottom_scale):
     img=img.convert("RGBA"); w,h=img.size
     out=Image.new("RGBA",(w,h),(0,0,0,0))
@@ -249,43 +310,45 @@ def make_v3_shoulder_cap(upper_x, sex):
     return cap,pivot
 
 def _aa_grip_hand(sex, support=False):
-    """Compact side-view gripping hand with a narrow wrist and readable finger curl."""
+    """Weapon-wrap hand: palm/wrist plus visible thumb/fingers around a clear gun channel."""
     S=4
     im=Image.new("RGBA",(80*S,96*S),(0,0,0,0))
     d=ImageDraw.Draw(im)
     skin=(190,126,92,255) if sex=="male" else (204,139,103,255)
     light=(226,160,120,255) if sex=="male" else (232,172,132,255)
-    mid=(151,94,72,255) if sex=="male" else (164,102,78,255)
-    deep=(63,43,36,255)
+    mid=(145,88,67,255) if sex=="male" else (160,98,75,255)
+    deep=(58,39,33,255)
     def sc(box): return tuple(int(v*S) for v in box)
-    def poly(points,fill):
-        d.polygon([(int(x*S),int(y*S)) for x,y in points],fill=fill)
-        d.line([(int(x*S),int(y*S)) for x,y in points+[points[0]]],fill=deep,width=2*S)
+    def rr(box,r,fill):
+        d.rounded_rectangle(sc(box),radius=r*S,fill=fill,outline=deep,width=2*S)
 
-    # Narrow wrist entering from the forearm.
-    d.rounded_rectangle(sc((13,39,29,57)),radius=5*S,fill=mid,outline=deep,width=2*S)
+    # Wrist enters from the forearm; keep it distinctly narrower than the palm.
+    rr((13,39,29,57),5,mid)
 
     if support:
-        # Support hand wraps around the handguard: compact palm with fingers
-        # curling below the rail rather than a horizontal mitten.
-        poly([(25,31),(39,25),(49,31),(50,51),(43,65),(29,62),(23,51)],skin)
-        d.rounded_rectangle(sc((38,23,49,35)),radius=4*S,fill=light,outline=deep,width=2*S)  # thumb
-        for box in ((39,47,49,58),(36,54,46,66),(32,58,42,70)):
-            d.rounded_rectangle(sc(box),radius=4*S,fill=skin,outline=deep,width=2*S)
-        d.line([(27*S,43*S),(45*S,43*S)],fill=mid,width=S)
-        d.line([(31*S,51*S),(46*S,51*S)],fill=mid,width=S)
+        # Handguard runs horizontally through the middle of this C-shape.
+        rr((24,28,48,62),8,skin)
+        rr((39,24,53,36),4,light)  # thumb over rail
+        rr((38,52,50,66),4,skin)
+        rr((33,57,45,71),4,skin)
+        rr((28,59,40,72),4,skin)
+        # Cut a horizontal weapon channel so rail remains visibly inside the hand.
+        d.rounded_rectangle(sc((31,41,58,50)),radius=3*S,fill=(0,0,0,0))
+        d.line([(28*S,37*S),(47*S,37*S)],fill=light,width=S)
+        d.line([(29*S,56*S),(45*S,60*S)],fill=deep,width=S)
     else:
-        # Trigger hand: thumb rides over the grip while four fingers curl down.
-        poly([(24,31),(38,26),(49,33),(48,54),(41,66),(28,63),(22,51)],skin)
-        d.rounded_rectangle(sc((37,23,50,35)),radius=4*S,fill=light,outline=deep,width=2*S)
-        for box in ((39,42,49,52),(38,50,48,60),(35,57,45,68)):
-            d.rounded_rectangle(sc(box),radius=4*S,fill=skin,outline=deep,width=2*S)
-        d.arc(sc((28,34,49,59)),285,85,fill=mid,width=2*S)
-        d.line([(27*S,47*S),(43*S,47*S)],fill=mid,width=S)
+        # Pistol/rifle grip falls vertically through the palm.
+        rr((23,27,48,64),8,skin)
+        rr((38,23,53,36),4,light)  # thumb web over backstrap
+        rr((34,52,47,67),4,skin)
+        rr((31,58,43,72),4,skin)
+        rr((27,60,39,73),4,skin)
+        # Vertical grip channel: weapon remains visible between thumb and fingers.
+        d.rounded_rectangle(sc((36,41,44,70)),radius=3*S,fill=(0,0,0,0))
+        d.arc(sc((25,31,48,58)),280,85,fill=mid,width=2*S)
+        d.line([(27*S,48*S),(35*S,49*S)],fill=deep,width=S)
 
-    # Small knuckle highlight and palm shadow survive at gameplay scale.
-    d.ellipse(sc((30,31,35,36)),fill=light)
-    d.line([(26*S,60*S),(39*S,63*S)],fill=deep,width=S)
+    d.ellipse(sc((29,31,34,36)),fill=light)
     return im.resize((80,96),Image.Resampling.LANCZOS)
 
 def derive_bare_hand(glove_img, sex):
@@ -481,9 +544,10 @@ for sex,s in specs.items():
     u=row_warp(source_upper,1.04 if female else 1.08,0.98 if female else 1.00,0.80 if female else 0.84)
     u=fabric_grade(u,tuple(s["source_tint"]),1.50 if female else 1.46)
     u.putalpha(u.getchannel("A").filter(ImageFilter.GaussianBlur(0.08)))
-    u=recanvas_vertical(u,(64,128),1,0.62 if female else 0.70)
+    u=recanvas_vertical(u,(64,128),1,0.66 if female else 0.73)
+    u=anatomical_sleeve(u,tuple(s["source_tint"]),sex,"upper")
     u=keep_largest_alpha_component(u)
-    u=add_joint_caps(u,tuple(s["source_tint"]),0.34 if female else 0.38,0.26 if female else 0.29,3)
+    u=add_joint_caps(u,tuple(s["source_tint"]),0.34 if female else 0.38,0.29 if female else 0.32,3)
 
     f=row_warp(source_fore,1.02 if female else 1.05,0.91 if female else 0.94,0.66 if female else 0.70)
     f=fabric_grade(f,tuple(s["source_tint"]),1.55 if female else 1.50)
@@ -498,9 +562,10 @@ for sex,s in specs.items():
             if a<4: continue
             fp[x,y]=(int(r*0.74),int(g*0.74),int(b*0.74),a)
     f.putalpha(f.getchannel("A").filter(ImageFilter.GaussianBlur(0.07)))
-    f=recanvas_vertical(f,(64,128),1,0.50 if female else 0.58)
+    f=recanvas_vertical(f,(64,128),1,0.55 if female else 0.62)
+    f=anatomical_sleeve(f,tuple(s["source_tint"]),sex,"forearm")
     f=keep_largest_alpha_component(f)
-    f=add_joint_caps(f,tuple(s["source_tint"]),0.29 if female else 0.32,0.18 if female else 0.21,3)
+    f=add_joint_caps(f,tuple(s["source_tint"]),0.32 if female else 0.35,0.21 if female else 0.24,3)
 
     sex_dir=root/sex
     up_name=f"SP_PC22_{sex.title()}_UpperArm_Right.png"

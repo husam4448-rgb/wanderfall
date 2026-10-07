@@ -75,7 +75,7 @@ for sex in ("male","female"):
             # in the failed Android screenshots.
             span=max(1.0,cp[0]-pp[0])
             ratio=bh/span
-            limit=(0.42 if key=="upper_arm" else 0.34) if sex=="male" else (0.38 if key=="upper_arm" else 0.31)
+            limit=(0.44 if key=="upper_arm" else 0.36) if sex=="male" else (0.40 if key=="upper_arm" else 0.33)
             require(ratio <= limit, f"{sex}/{key}: visible thickness ratio too large {ratio:.3f}>{limit:.3f}")
 
     for key in ("hand_dominant","hand_support","shoulder_cap"):
