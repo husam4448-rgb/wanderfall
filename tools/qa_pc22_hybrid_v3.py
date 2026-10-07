@@ -50,7 +50,39 @@ if "_draw_equipment_texture(tex,center,Vector2(width,seg_len+2.2)" in patch:
 for marker in ("HYBRID V3: only proximal upper-arm art is drawn behind the torso","HYBRID V3 DEPTH STACK"):
     if marker not in patch:
         errors.append("missing V3 depth marker: "+marker)
-rifle_scales=[float(x) for x in re.findall(r'_pc22_v3_draw_weapon_piece\(tex_pc22_rifle_(?:front|stock).*?,([0-9]+(?:\.[0-9]+)?)\)',patch)]
+rifle_scales=[float(x) for x in re.findall(r'_pc22_v3_draw_weapon_piece\(tex_pc22_rifle_(?:front|stock)[^\n]*?,([0-9]+(?:\.[0-9]+)?)\)\s*
+pistol_scales=[float(x) for x in re.findall(r'_pc22_v3_draw_weapon_piece\(tex_pc22_pistol[^\n]*?,([0-9]+(?:\.[0-9]+)?)\)\s*
+if not rifle_scales or any(x<0.30 or x>0.36 for x in rifle_scales):
+    errors.append(f"rifle uniform scale invalid: {rifle_scales}")
+if not pistol_scales or any(x<0.34 or x>0.42 for x in pistol_scales):
+    errors.append(f"pistol uniform scale invalid: {pistol_scales}")
+if errors:
+    print("PC22_HYBRID_V3_QA_FAIL")
+    print("\n".join(" - "+e for e in errors))
+    raise SystemExit(1)
+print("PC22_HYBRID_V3_QA_OK")
+,patch,re.M)]
+pistol_scales=[float(x) for x in re.findall(r'_pc22_v3_draw_weapon_piece\(tex_pc22_pistol.*?,([0-9]+(?:\.[0-9]+)?)\)',patch)]
+if not rifle_scales or any(x<0.30 or x>0.36 for x in rifle_scales):
+    errors.append(f"rifle uniform scale invalid: {rifle_scales}")
+if not pistol_scales or any(x<0.34 or x>0.42 for x in pistol_scales):
+    errors.append(f"pistol uniform scale invalid: {pistol_scales}")
+if errors:
+    print("PC22_HYBRID_V3_QA_FAIL")
+    print("\n".join(" - "+e for e in errors))
+    raise SystemExit(1)
+print("PC22_HYBRID_V3_QA_OK")
+,patch,re.M)]
+if not rifle_scales or any(x<0.30 or x>0.36 for x in rifle_scales):
+    errors.append(f"rifle uniform scale invalid: {rifle_scales}")
+if not pistol_scales or any(x<0.34 or x>0.42 for x in pistol_scales):
+    errors.append(f"pistol uniform scale invalid: {pistol_scales}")
+if errors:
+    print("PC22_HYBRID_V3_QA_FAIL")
+    print("\n".join(" - "+e for e in errors))
+    raise SystemExit(1)
+print("PC22_HYBRID_V3_QA_OK")
+,patch,re.M)]
 pistol_scales=[float(x) for x in re.findall(r'_pc22_v3_draw_weapon_piece\(tex_pc22_pistol.*?,([0-9]+(?:\.[0-9]+)?)\)',patch)]
 if not rifle_scales or any(x<0.30 or x>0.36 for x in rifle_scales):
     errors.append(f"rifle uniform scale invalid: {rifle_scales}")
