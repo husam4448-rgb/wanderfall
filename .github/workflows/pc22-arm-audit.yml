@@ -9,6 +9,7 @@ on:
       - 'tools/audit_pc22_arm_runtime.py'
       - 'tools/build_pc22_canonical_arm_assets.py'
       - 'tools/render_pc22_arm_qa.py'
+      - 'tools/build_pc22_role_overlays.py'
   pull_request:
     branches: [ main ]
     paths:
@@ -17,6 +18,7 @@ on:
       - 'tools/audit_pc22_arm_runtime.py'
       - 'tools/build_pc22_canonical_arm_assets.py'
       - 'tools/render_pc22_arm_qa.py'
+      - 'tools/build_pc22_role_overlays.py'
 
 permissions:
   contents: write
@@ -114,26 +116,61 @@ jobs:
           test -s assets/authored2d/unified_character/arms/qa/male_aim_sweep.gif
           test -s assets/authored2d/unified_character/arms/qa/female_aim_sweep.gif
 
+      - name: Build canonical role overlays
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/build_pc22_role_overlays.py "$GITHUB_WORKSPACE"
+          test -s assets/authored2d/unified_character/arms/metadata/role_overlays.json
+          test -s assets/authored2d/unified_character/arms/qa/role_overlays_contact_sheet.jpg
+          test "$(find assets/authored2d/unified_character/arms/sleeves -type f -name '*.png' | wc -l)" -eq 24
+          test "$(find assets/authored2d/unified_character/arms/gloves -type f -name '*.png' | wc -l)" -eq 12
+          test "$(find assets/authored2d/unified_character/roles -type f -name 'torso.png' | wc -l)" -eq 12
+
       - name: Commit audit evidence and passing candidate assets
         shell: bash
         run: |
           set -euo pipefail
           git restore -- patches/apply_v0175_hotbar_sensitivity.py || true
+
+          rm -rf /tmp/pc22-arm-audit-output
+          mkdir -p /tmp/pc22-arm-audit-output/arms
+          mkdir -p /tmp/pc22-arm-audit-output/core/male
+          mkdir -p /tmp/pc22-arm-audit-output/core/female
+          mkdir -p /tmp/pc22-arm-audit-output/roles
+          cp -a assets/authored2d/unified_character/arms/. /tmp/pc22-arm-audit-output/arms/
+          cp assets/authored2d/unified_character/core/male/arm_spec.json /tmp/pc22-arm-audit-output/core/male/
+          cp assets/authored2d/unified_character/core/female/arm_spec.json /tmp/pc22-arm-audit-output/core/female/
+          cp -a assets/authored2d/unified_character/roles/. /tmp/pc22-arm-audit-output/roles/
+
           git config user.name "Survival Paradise Arm QA Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add assets/authored2d/unified_character/arms/ \
-                  assets/authored2d/unified_character/core/male/arm_spec.json \
-                  assets/authored2d/unified_character/core/female/arm_spec.json
-          if git diff --cached --quiet; then
-            echo "Audit evidence already current."
-            exit 0
-          fi
-          git commit -m "Audit PC22 canonical arm runtime"
-          git reset --hard HEAD
+
           for attempt in 1 2 3; do
-            if git push origin HEAD:pc22-canonical-arm-system; then exit 0; fi
+            git fetch origin pc22-canonical-arm-system
+            git reset --hard origin/pc22-canonical-arm-system
+
+            mkdir -p assets/authored2d/unified_character/arms
+            mkdir -p assets/authored2d/unified_character/core/male
+            mkdir -p assets/authored2d/unified_character/core/female
+            mkdir -p assets/authored2d/unified_character/roles
+            cp -a /tmp/pc22-arm-audit-output/arms/. assets/authored2d/unified_character/arms/
+            cp /tmp/pc22-arm-audit-output/core/male/arm_spec.json assets/authored2d/unified_character/core/male/
+            cp /tmp/pc22-arm-audit-output/core/female/arm_spec.json assets/authored2d/unified_character/core/female/
+            cp -a /tmp/pc22-arm-audit-output/roles/. assets/authored2d/unified_character/roles/
+
+            git add assets/authored2d/unified_character/arms/ \
+                    assets/authored2d/unified_character/core/male/arm_spec.json \
+                    assets/authored2d/unified_character/core/female/arm_spec.json \
+                    assets/authored2d/unified_character/roles/
+            if git diff --cached --quiet; then
+              echo "Arm audit and role overlays already current."
+              exit 0
+            fi
+            git commit -m "Audit PC22 arms and canonical role overlays"
+            if git push origin HEAD:pc22-canonical-arm-system; then
+              exit 0
+            fi
             sleep $((attempt*3))
-            git reset --hard HEAD
-            git pull --rebase origin pc22-canonical-arm-system
           done
           exit 1
