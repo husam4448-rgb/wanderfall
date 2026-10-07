@@ -340,9 +340,9 @@ func _pc22_verify_sweep_case(label: String, upper_len: float, fore_len: float, r
         var shoulder_dom := Vector2(rear_socket.x*dir_sign,rear_socket.y)
         var shoulder_sup := Vector2(front_socket.x*dir_sign,front_socket.y)
         var pivot := Vector2(10.5*dir_sign,-6.0)
-        var wrist_dom := pivot + _pose_point(Vector2(1,3.4),angle,dir_sign)
-        var wrist_sup := pivot + _pose_point(Vector2(17.0,0.0),angle,dir_sign)
-        wrist_sup += _pose_point(Vector2(0,(1.0 if dir_sign>0.0 else 1.2)),angle,dir_sign)
+        var wrist_dom := pivot + _pose_point(Vector2(9.8,0.8),angle,dir_sign)
+        var wrist_sup := pivot + _pose_point(Vector2(17.0,-1.0),angle,dir_sign)
+        wrist_sup += _pose_point(Vector2(0,0.0),angle,dir_sign)
         var elbow_dom := _pc22_solve_elbow(shoulder_dom,wrist_dom,upper_len,fore_len,previous_dom,has_previous)
         var elbow_sup := _pc22_solve_elbow(shoulder_sup,wrist_sup,upper_len,fore_len,previous_sup,has_previous)
         var dom_upper_err := absf(shoulder_dom.distance_to(elbow_dom)-upper_len)
@@ -425,7 +425,7 @@ new_support=support_anchor+'''    var support_tex := _pc22_support_hand_texture(
     if gear_gloves and tex_gear_glove != null:
         support_tex = tex_gear_glove
     if support_tex != null:
-        var support_size := Vector2(4.2,3.9) if female_mode else Vector2(4.5,4.2)
+        var support_size := Vector2(4.9,4.6) if female_mode else Vector2(5.2,4.8)
         _draw_equipment_texture(support_tex,center,support_size*scale,dir_sign<0.0,angle)
         return
     if female_mode:
@@ -444,7 +444,7 @@ old_hand='''    if tex_base_hand != null:
 new_hand='''    var pc22_dom_hand := _pc22_dominant_hand_texture()
     if pc22_dom_hand != null:
         var hand_center := center + _pose_point(Vector2(0.9,0.0) * scale, angle, dir_sign)
-        _draw_equipment_texture(pc22_dom_hand, hand_center, (Vector2(4.5,4.2) if female_mode else Vector2(4.8,4.5)) * scale, dir_sign < 0.0, angle)
+        _draw_equipment_texture(pc22_dom_hand, hand_center, (Vector2(5.2,4.9) if female_mode else Vector2(5.6,5.2)) * scale, dir_sign < 0.0, angle)
         return
 '''
 if old_hand not in s:
@@ -557,9 +557,6 @@ s=s.replace(rear_anchor,'''    if gear_back and not female_mode:
         var pc22_front_upper_tex: Texture2D = _pc22_upper_texture()
         var pc22_front_upper_w: float = 7.8 if female_mode else 8.8
         _pc22_draw_segment(pc22_front_upper_tex,pc22_front_shoulder,pc22_front_elbow,pc22_front_upper_w,dir_sign<0.0)
-        if weapon_two_handed and tex_pc22_rifle_stock != null:
-            var pc22_stock_center: Vector2 = pc22_arm_pivot + _pose_point(Vector2(7.5,-1.0),pc22_arm_angle,dir_sign)
-            _draw_equipment_texture(tex_pc22_rifle_stock,pc22_stock_center,Vector2(46.0,11.0),dir_sign<0.0,pc22_arm_angle)
     else:
         _pc22_draw_chain(pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist,dir_sign)
         var pc22_rear_free_angle: float = (pc22_dom_wrist-pc22_rear_elbow).angle()
@@ -576,6 +573,12 @@ if front_anchor not in s:
 s=s.replace(front_anchor,'''    # Armed dominant forearm is foregrounded after the torso; this preserves
     # shoulder occlusion while keeping elbow→wrist continuity visible.
     if weapon_visible:
+        # VISUAL_FIX_V2_STOCK_FOREGROUND_BEHIND_ARMS
+        # The stock is visible against the shoulder/chest, but remains under
+        # the foreground forearms/hands just like the approved reference.
+        if weapon_two_handed and tex_pc22_rifle_stock != null:
+            var pc22_stock_center: Vector2 = pc22_arm_pivot + _pose_point(Vector2(14.5,-1.5),pc22_arm_angle,dir_sign)
+            _draw_equipment_texture(tex_pc22_rifle_stock,pc22_stock_center,Vector2(38.0,10.0),dir_sign<0.0,pc22_arm_angle)
         var pc22_rear_fore_tex: Texture2D = _pc22_fore_texture()
         var pc22_rear_fore_w: float = 6.8 if female_mode else 7.6
         _pc22_draw_segment(pc22_rear_fore_tex,pc22_rear_elbow,pc22_dom_wrist,pc22_rear_fore_w,dir_sign<0.0)
@@ -616,13 +619,13 @@ weapon_block='''    # Weapon is the relationship anchor between the two hands.
     if weapon_visible:
         var active_muzzle: Vector2 = pc22_arm_pivot
         if weapon_two_handed:
-            var rifle_center: Vector2 = pc22_arm_pivot + _pose_point(Vector2(7.5,-1.0),pc22_arm_angle,dir_sign)
-            _draw_equipment_texture(tex_pc22_rifle_front,rifle_center,Vector2(46.0,11.0),dir_sign<0.0,pc22_arm_angle)
-            active_muzzle = pc22_arm_pivot + _pose_point(Vector2(29.0,-1.7),pc22_arm_angle,dir_sign)
+            var rifle_center: Vector2 = pc22_arm_pivot + _pose_point(Vector2(14.5,-1.5),pc22_arm_angle,dir_sign)
+            _draw_equipment_texture(tex_pc22_rifle_front,rifle_center,Vector2(38.0,10.0),dir_sign<0.0,pc22_arm_angle)
+            active_muzzle = pc22_arm_pivot + _pose_point(Vector2(33.0,-1.8),pc22_arm_angle,dir_sign)
         else:
-            var pistol_center: Vector2 = pc22_arm_pivot + _pose_point(Vector2(3.5,-0.6),pc22_arm_angle,dir_sign)
-            _draw_equipment_texture(tex_pc22_pistol,pistol_center,Vector2(20.0,9.0),dir_sign<0.0,pc22_arm_angle)
-            active_muzzle = pc22_arm_pivot + _pose_point(Vector2(13.0,-2.2),pc22_arm_angle,dir_sign)
+            var pistol_center: Vector2 = pc22_arm_pivot + _pose_point(Vector2(12.8,-1.1),pc22_arm_angle,dir_sign)
+            _draw_equipment_texture(tex_pc22_pistol,pistol_center,Vector2(16.0,7.5),dir_sign<0.0,pc22_arm_angle)
+            active_muzzle = pc22_arm_pivot + _pose_point(Vector2(20.5,-2.4),pc22_arm_angle,dir_sign)
 
         if shot_flash > 0.02:
             var flash_len: float = 5.0 * shot_flash
