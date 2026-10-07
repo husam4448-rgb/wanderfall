@@ -147,45 +147,36 @@ def add_joint_caps(img, rgb, top_frac, bottom_frac, depth=11):
     return layer
 
 def _aa_grip_hand(sex, support=False):
-    """Reference-driven bare hand with readable palm, knuckles, thumb and curled grip."""
+    """Compact reference-driven gripping hand; no extended/pointing fingers."""
     S=4
-    W=96*S; H=96*S
-    im=Image.new("RGBA",(W,H),(0,0,0,0))
+    im=Image.new("RGBA",(96*S,96*S),(0,0,0,0))
     d=ImageDraw.Draw(im)
     skin=(190,126,92,255) if sex=="male" else (204,139,103,255)
     light=(222,159,119,255) if sex=="male" else (229,168,128,255)
-    dark=(105,68,52,255)
-    deep=(68,48,40,255)
+    dark=(105,68,52,255); deep=(68,48,40,255)
     def sc(box): return tuple(int(v*S) for v in box)
 
-    # Wrist enters from the left and narrows before the palm.
-    d.rounded_rectangle(sc((6,38,34,60)),radius=8*S,fill=skin,outline=deep,width=2*S)
-    d.polygon([tuple(v*S for v in p) for p in ((24,31),(51,27),(68,36),(70,58),(52,69),(28,62))],
-              fill=skin,outline=deep)
+    # Short wrist and compact palm centered in the canvas.
+    d.rounded_rectangle(sc((15,39,37,57)),radius=7*S,fill=skin,outline=deep,width=2*S)
+    d.rounded_rectangle(sc((30,31,61,65)),radius=9*S,fill=skin,outline=deep,width=2*S)
 
-    if not support:
-        # Curled trigger-hand fingers form a compact vertical grip silhouette.
-        finger_boxes=((50,34,68,43),(52,42,70,51),(52,50,69,59),(49,57,65,66))
-        for j,b in enumerate(finger_boxes):
-            d.rounded_rectangle(sc(b),radius=5*S,fill=skin,outline=deep,width=2*S)
-            d.line([((b[0]+4)*S,(b[1]+3)*S),((b[2]-3)*S,(b[1]+3)*S)],fill=light,width=S)
-        # Thumb crosses the curled fingers, making a closed grip rather than a pointing hand.
-        d.polygon([tuple(v*S for v in p) for p in ((30,33),(45,29),(59,35),(54,43),(40,40))],
+    if support:
+        # Fore-end grip: knuckles sit over the rail, fingers curl underneath.
+        for b in ((47,31,59,40),(55,33,66,42),(60,37,69,46)):
+            d.rounded_rectangle(sc(b),radius=4*S,fill=light,outline=deep,width=2*S)
+        for b in ((47,50,58,62),(55,49,65,61),(61,47,70,58)):
+            d.rounded_rectangle(sc(b),radius=4*S,fill=skin,outline=deep,width=2*S)
+        d.polygon([tuple(v*S for v in p) for p in ((31,35),(43,29),(55,35),(51,44),(39,43))],
                   fill=light,outline=dark)
-        d.line([(37*S,48*S),(56*S,52*S)],fill=dark,width=2*S)
     else:
-        # Support hand wraps a horizontal fore-end: knuckles on top, fingers curl under.
-        for b in ((47,34,61,43),(56,35,69,44),(63,37,75,46)):
-            d.rounded_rectangle(sc(b),radius=5*S,fill=skin,outline=deep,width=2*S)
-        for b in ((49,47,62,60),(57,48,69,61),(64,47,75,59)):
-            d.rounded_rectangle(sc(b),radius=5*S,fill=skin,outline=deep,width=2*S)
-        d.polygon([tuple(v*S for v in p) for p in ((29,34),(43,30),(57,36),(52,44),(39,42))],
+        # Trigger grip: four curled fingers stack around a near-vertical grip.
+        for b in ((48,31,61,40),(50,39,64,48),(50,47,64,56),(47,55,60,64)):
+            d.rounded_rectangle(sc(b),radius=4*S,fill=skin,outline=deep,width=2*S)
+        d.polygon([tuple(v*S for v in p) for p in ((31,35),(43,29),(56,35),(52,43),(39,42))],
                   fill=light,outline=dark)
-        d.line([(36*S,50*S),(62*S,51*S)],fill=dark,width=2*S)
 
-    # Palm crease/detail so the hand does not read as a flat orange block.
-    d.arc(sc((30,39,61,65)),10,120,fill=dark,width=S)
-    d.ellipse(sc((32,35,38,41)),fill=light)
+    d.arc(sc((32,39,57,62)),15,125,fill=dark,width=S)
+    d.ellipse(sc((34,35,39,40)),fill=light)
     return im.resize((96,96),Image.Resampling.LANCZOS)
 
 def derive_bare_hand(glove_img, sex):
@@ -318,8 +309,8 @@ specs={
    "upper_arm_width":8.8,
    "forearm_width":7.6,
    "hand_size":canonical["male"]["hand_size"],
-   "dominant_hand_size":[6.2,5.6],
-   "support_hand_size":[5.8,5.2],
+   "dominant_hand_size":[4.8,4.5],
+   "support_hand_size":[4.5,4.2],
    "neutral_upper_angle_deg":82.0,
    "neutral_elbow_flex_deg":22.0,
    "source_tint":[78,88,72],
@@ -333,8 +324,8 @@ specs={
    "upper_arm_width":7.8,
    "forearm_width":6.8,
    "hand_size":canonical["female"]["hand_size"],
-   "dominant_hand_size":[5.8,5.3],
-   "support_hand_size":[5.4,4.9],
+   "dominant_hand_size":[4.5,4.2],
+   "support_hand_size":[4.2,3.9],
    "neutral_upper_angle_deg":84.0,
    "neutral_elbow_flex_deg":24.0,
    "source_tint":[80,91,75],
@@ -406,6 +397,20 @@ for sex,s in specs.items():
     u.save(sex_dir/up_name)
     f.save(sex_dir/fo_name)
 
+    # Proximal deltoid bridge used in armed poses after torso draw. The main
+    # upper arm remains depth-layered behind the torso, while this small
+    # textured cap reconnects the visible limb to the anatomical shoulder.
+    ub=trim(u)
+    cap_h=max(4,int(round(ub.height*0.34)))
+    cap_src=ub.crop((0,0,ub.width,cap_h))
+    cap=Image.new("RGBA",(64,64),(0,0,0,0))
+    cap_trim=trim(cap_src)
+    sc=min(54/max(1,cap_trim.width),46/max(1,cap_trim.height))
+    cap_rs=cap_trim.resize((max(1,int(round(cap_trim.width*sc))),max(1,int(round(cap_trim.height*sc)))),Image.Resampling.LANCZOS)
+    cap.alpha_composite(cap_rs,((64-cap_rs.width)//2,(64-cap_rs.height)//2))
+    cap_name=f"SP_PC22_{sex.title()}_ShoulderCap_Right.png"
+    cap.save(sex_dir/cap_name)
+
     # Prefer the already-generated PC22 unified hand base so arm and existing equipment remain compatible.
     hand=derive_bare_hand(glove_src,sex)
     support_hand=derive_support_hand(hand,sex)
@@ -414,6 +419,7 @@ for sex,s in specs.items():
 
     for seg,fn,img,parent,child,length in (
       ("upper_arm",up_name,u,"shoulder","elbow",s["upper_arm_length"]),
+      ("shoulder_cap",cap_name,cap,"shoulder","upper_arm",0.0),
       ("forearm",fo_name,f,"elbow","wrist",s["forearm_length"]),
       ("hand_dominant",f"SP_PC22_{sex.title()}_Hand_Dominant_Right.png",hand,"wrist","dominant_grip",0.0),
       ("hand_support",f"SP_PC22_{sex.title()}_Hand_Support_Right.png",support_hand,"wrist","support_grip",0.0),
