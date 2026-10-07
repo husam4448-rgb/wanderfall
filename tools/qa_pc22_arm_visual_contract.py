@@ -96,6 +96,9 @@ if contract.get("layering",{}).get("armed_front_forearm")=="foreground":
 if contract.get("layering",{}).get("shoulder_cap_foreground") is True:
     if "VISUAL_FIX_V2_SHOULDER_CAP_FOREGROUND" not in patch:
         fail.append("layering.shoulder_cap_foreground: missing textured shoulder bridge marker")
+if contract.get("layering",{}).get("shoulder_cap_foreground") is False:
+    if "VISUAL_FIX_V2_NO_FOREGROUND_SHOULDER_CAP" not in patch:
+        fail.append("layering.shoulder_cap_foreground: artificial cap must remain disabled")
 
 if fail:
     print("PC22_ARM_VISUAL_CONTRACT_FAIL")
