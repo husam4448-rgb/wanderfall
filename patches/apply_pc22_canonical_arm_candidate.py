@@ -413,7 +413,7 @@ new_support=support_anchor+'''    var support_tex := _pc22_support_hand_texture(
     if gear_gloves and tex_gear_glove != null:
         support_tex = tex_gear_glove
     if support_tex != null:
-        var support_size := Vector2(7.1,5.9) if female_mode else Vector2(7.7,6.4)
+        var support_size := Vector2(6.1,5.4) if female_mode else Vector2(6.6,5.8)
         _draw_equipment_texture(support_tex,center,support_size*scale,dir_sign<0.0,angle)
         return
     if female_mode:
@@ -432,7 +432,7 @@ old_hand='''    if tex_base_hand != null:
 new_hand='''    var pc22_dom_hand := _pc22_dominant_hand_texture()
     if pc22_dom_hand != null:
         var hand_center := center + _pose_point(Vector2(0.9,0.0) * scale, angle, dir_sign)
-        _draw_equipment_texture(pc22_dom_hand, hand_center, (Vector2(10.0,9.8) if female_mode else Vector2(10.9,10.5)) * scale, dir_sign < 0.0, angle)
+        _draw_equipment_texture(pc22_dom_hand, hand_center, (Vector2(7.0,6.5) if female_mode else Vector2(7.6,7.0)) * scale, dir_sign < 0.0, angle)
         return
 '''
 if old_hand not in s:
