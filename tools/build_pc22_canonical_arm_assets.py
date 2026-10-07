@@ -105,10 +105,10 @@ def anatomical_sleeve(img, base_rgb, sex, segment, fabric_ref=None):
     female=(sex=="female")
     if segment=="upper":
         # broad hidden shoulder root -> biceps -> compact elbow
-        profile=(0.38,0.50,0.35) if female else (0.42,0.56,0.39)
+        profile=(0.38,0.50,0.40) if female else (0.42,0.56,0.44)
     else:
         # elbow mass -> tapered forearm -> narrow wrist/cuff
-        profile=(0.40,0.43,0.20) if female else (0.44,0.48,0.22)
+        profile=(0.42,0.46,0.20) if female else (0.46,0.50,0.22)
 
     mask=Image.new("L",(w,h),0)
     mp=mask.load()
