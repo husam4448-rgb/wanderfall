@@ -569,7 +569,7 @@ s=s.replace(front_anchor,'''    # Armed dominant forearm is foregrounded after t
     # shoulder occlusion while keeping elbow→wrist continuity visible.
     if weapon_visible:
         var pc22_rear_fore_tex := _pc22_fore_texture()
-        var pc22_rear_fore_w := 7.1 if female_mode else 8
+        var pc22_rear_fore_w := 7.1 if female_mode else 8.0
         _pc22_draw_segment(pc22_rear_fore_tex,pc22_rear_elbow,pc22_dom_wrist,pc22_rear_fore_w,dir_sign<0.0)
 
     _pc22_draw_chain(pc22_front_shoulder,pc22_front_elbow,pc22_front_wrist,dir_sign)
