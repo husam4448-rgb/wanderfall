@@ -198,39 +198,71 @@ def derive_support_hand(dominant, sex):
 upper_src=load_b64_png(upper_src_path)
 fore_src=load_b64_png(fore_src_path)
 glove_src=Image.open(glove_src_path).convert("RGBA")
-rifle_src=Image.open(rifle_src_path).convert("RGBA")
 
-# Preserve the canonical rifle body/grip geometry, but move only the upper
-# butt-stock pixels forward by 4 source pixels. In the original 44x14 asset,
-# the stock protruded behind the shoulder socket and appeared as a brown
-# triangular chest intrusion at magnified runtime QA. Grip/barrel pixels stay
-# exactly where they are, so hand/socket geometry is unchanged.
-rifle_arm=rifle_src.copy()
-rp=rifle_arm.load()
-moved=[]
-for y in range(min(5,rifle_arm.height)):
-    for x in range(rifle_arm.width):
-        if rp[x,y][3] > 0:
-            moved.append((x,y,rp[x,y]))
-            rp[x,y]=(0,0,0,0)
-for x,y,pix in moved:
-    nx=min(rifle_arm.width-1,x+4)
-    rp[nx,y]=pix
+def build_reference_rifle():
+    """Reference-driven side-view rifle: readable stock, receiver, handguard and barrel."""
+    im=Image.new("RGBA",(72,24),(0,0,0,0))
+    d=ImageDraw.Draw(im)
+    dark=(35,39,39,255); mid=(52,57,56,255); hi=(78,84,80,255)
+    wood=(72,58,43,255); wood_hi=(102,78,54,255)
+    # compact buttstock ending near the shoulder rather than through the chest
+    d.polygon([(2,9),(8,6),(17,7),(21,10),(20,15),(12,15),(5,18),(2,17)],fill=wood)
+    d.line([(4,9),(15,8),(19,10)],fill=wood_hi,width=1)
+    d.rectangle((1,9,4,17),fill=(47,43,37,255))
+    # buffer tube / rear receiver
+    d.rectangle((18,10,25,12),fill=dark)
+    d.rectangle((22,7,40,15),fill=mid)
+    d.rectangle((23,6,40,8),fill=dark)
+    d.line((24,7,39,7),fill=hi,width=1)
+    # pistol grip under the receiver
+    d.polygon([(25,14),(31,14),(33,22),(28,23),(25,18)],fill=(55,49,42,255))
+    d.line((27,16,30,21),fill=(88,70,52,255),width=1)
+    # magazine
+    d.polygon([(34,14),(40,14),(42,22),(36,23)],fill=(38,42,42,255))
+    d.line((36,16,40,20),fill=(69,74,71,255),width=1)
+    # handguard with visible mass / vents
+    d.rectangle((40,8,58,14),fill=(48,53,52,255))
+    d.rectangle((41,9,57,10),fill=(81,86,82,255))
+    for x in (44,49,54):
+        d.rectangle((x,11,x+2,12),fill=(24,28,29,255))
+    # barrel and muzzle
+    d.rectangle((58,10,69,12),fill=(33,37,38,255))
+    d.rectangle((68,9,71,13),fill=(24,28,29,255))
+    # front sight
+    d.polygon([(58,8),(60,5),(61,8)],fill=(35,39,39,255))
+    return im
+
+def build_reference_pistol():
+    """Reference-driven pistol with slide, frame, trigger guard and angled grip."""
+    im=Image.new("RGBA",(32,18),(0,0,0,0))
+    d=ImageDraw.Draw(im)
+    dark=(31,35,36,255); mid=(56,61,61,255); hi=(91,97,94,255)
+    d.rectangle((4,3,27,8),fill=mid)
+    d.rectangle((5,3,26,4),fill=hi)
+    d.rectangle((26,5,31,7),fill=dark)
+    d.rectangle((7,8,24,11),fill=(44,48,48,255))
+    # trigger guard
+    d.rectangle((17,10,24,12),outline=(76,81,78,255),width=1)
+    # grip
+    d.polygon([(8,10),(16,10),(15,17),(9,17),(7,13)],fill=(49,44,39,255))
+    d.line((10,12,14,16),fill=(84,66,49,255),width=1)
+    return im
+
+rifle_arm=build_reference_rifle()
+pistol_arm=build_reference_pistol()
 rifle_arm_path=root/"weapons"/"SP_PC22_Rifle_ArmCompatible.png"
+pistol_arm_path=root/"weapons"/"SP_PC22_Pistol_ArmCompatible.png"
 rifle_arm.save(rifle_arm_path)
+pistol_arm.save(pistol_arm_path)
 
-# Split only the upper butt-stock from the front rifle body so the stock can be
-# rendered behind the torso while the receiver/barrel/grip remain in front.
+# Depth split: stock/buffer behind torso; receiver, grip, handguard, barrel in front.
 rifle_stock=Image.new("RGBA",rifle_arm.size,(0,0,0,0))
 rifle_front=rifle_arm.copy()
 srcp=rifle_arm.load(); sp=rifle_stock.load(); fp=rifle_front.load()
-for y in range(min(6,rifle_arm.height)):
+for y in range(rifle_arm.height):
     for x in range(rifle_arm.width):
-        pix=srcp[x,y]
-        # Rear-layer only the brown wooden butt-stock pixels. Preserve the dark
-        # receiver top edge in the foreground even where it shares row 5.
-        if pix[3] > 0 and pix[:3] == (63,49,37):
-            sp[x,y]=pix
+        if x <= 24 and srcp[x,y][3] > 0:
+            sp[x,y]=srcp[x,y]
             fp[x,y]=(0,0,0,0)
 rifle_stock_path=root/"weapons"/"SP_PC22_Rifle_Stock_Rear.png"
 rifle_front_path=root/"weapons"/"SP_PC22_Rifle_Front.png"
@@ -246,30 +278,30 @@ female_fore_runtime=embedded_runtime_image("FEMALE_FOREARM_B64")
 specs={
  "male":{
    "rig_id":"MALE_CANONICAL_ARM_SYSTEM",
-   "shoulder_rear":[6.2,-8.5],
-   "shoulder_front":[3.8,-5.3],
+   "shoulder_rear":[9.2,-9.0],
+   "shoulder_front":[7.8,-7.0],
    "upper_arm_length":10.9,
    "forearm_length":10.7,
-   "upper_arm_width":7.3,
-   "forearm_width":6.5,
+   "upper_arm_width":9.2,
+   "forearm_width":8.0,
    "hand_size":canonical["male"]["hand_size"],
-   "dominant_hand_size":[7.6,7.0],
-   "support_hand_size":[6.6,5.8],
+   "dominant_hand_size":[9.2,8.5],
+   "support_hand_size":[8.4,7.5],
    "neutral_upper_angle_deg":82.0,
    "neutral_elbow_flex_deg":22.0,
    "source_tint":[78,88,72],
  },
  "female":{
    "rig_id":"FEMALE_CANONICAL_ARM_SYSTEM",
-   "shoulder_rear":[5.3,-8.0],
-   "shoulder_front":[3.0,-5.0],
+   "shoulder_rear":[8.6,-8.6],
+   "shoulder_front":[7.4,-6.7],
    "upper_arm_length":10.6,
    "forearm_length":10.5,
-   "upper_arm_width":6.2,
-   "forearm_width":5.6,
+   "upper_arm_width":8.2,
+   "forearm_width":7.1,
    "hand_size":canonical["female"]["hand_size"],
-   "dominant_hand_size":[7.0,6.5],
-   "support_hand_size":[6.1,5.4],
+   "dominant_hand_size":[8.6,7.9],
+   "support_hand_size":[7.8,7.0],
    "neutral_upper_angle_deg":84.0,
    "neutral_elbow_flex_deg":24.0,
    "source_tint":[80,91,75],
@@ -278,13 +310,13 @@ specs={
 for sex,s in specs.items():
     s.update({
       "standard_id":"PlayerCharacters_v22",
-      "shoulder_source":"PC03 exact articulated socket retained as candidate; active PC22 intentionally has no visible shoulder joint",
+      "shoulder_source":"Visual-fix-v2: moved to visible PC22 deltoid/outer-torso attachment using approved reference sheets",
       "upper_forearm_length_source":"corrected from prior 9.4+10.5 solver to cover the complete active PC22 support-hand aim envelope without stretch",
-      "weapon_socket":canonical["weapon_socket"]["pivot_from_base"],
-      "dominant_hand_grip_socket":canonical["weapon_socket"]["dominant_hand_from_pivot"],
-      "support_hand_grip_socket":canonical["weapon_socket"]["support_hand_from_pivot"],
-      "support_hand_vertical_offset_right":1.8,
-      "support_hand_vertical_offset_left":2.1,
+      "weapon_socket":[10.3,-4.4],
+      "dominant_hand_grip_socket":[1.0,3.4],
+      "support_hand_grip_socket":[14.7,1.45],
+      "support_hand_vertical_offset_right":1.5,
+      "support_hand_vertical_offset_left":1.8,
       "elbow_bend_constraints_deg":{"min_flex":12.0,"max_flex":155.0},
       "wrist_neutral_position":"derived from neutral upper angle + elbow flex; fixed-length FK",
       "torso_overlap_depth":1.15,
@@ -372,6 +404,19 @@ for sex,s in specs.items():
 for sex,s in specs.items():
     core_spec=repo/f"assets/authored2d/unified_character/core/{sex}/arm_spec.json"
     core_spec.write_text(json.dumps(s,indent=2),encoding="utf-8")
+asset_meta.append({
+  "filename":str(pistol_arm_path.relative_to(repo)),
+  "sex":"shared","segment":"weapon_pistol_arm_compatible",
+  "canvas_size":list(pistol_arm.size),
+  "pivot":"dominant grip socket",
+  "joint_parent":"dominant_grip","joint_child":"muzzle",
+  "canonical_length":0.0,
+  "visual_overlap_parent":0.0,"visual_overlap_child":0.0,
+  "compatible_rig":"MALE_CANONICAL_ARM_SYSTEM,FEMALE_CANONICAL_ARM_SYSTEM",
+  "mirroring_supported":True,"approval_state":"candidate_visual_fix_v2",
+  "sha256":hashlib.sha256(pistol_arm_path.read_bytes()).hexdigest(),
+  "note":"Reference-driven pistol with readable slide/frame/grip mass"
+})
 asset_meta.append({
   "filename":str(rifle_arm_path.relative_to(repo)),
   "sex":"shared","segment":"weapon_rifle_arm_compatible",
