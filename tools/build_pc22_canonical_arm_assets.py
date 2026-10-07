@@ -352,8 +352,10 @@ def make_v3_pivoted_segment(vertical_img):
     seg=trim(vertical_img).rotate(90,expand=True,resample=Image.Resampling.BICUBIC)
     seg=trim(seg)
     w,h=seg.size
-    parent_x=max(2,min(6,int(round(w*0.035))))
-    child_x=max(parent_x+2,w-1-max(2,min(6,int(round(w*0.035)))))
+    # Deliberately inset pivots deeper into the textured sleeve so adjacent
+    # segments overlap across the mathematical joint instead of meeting edge-to-edge.
+    parent_x=max(4,min(9,int(round(w*0.065))))
+    child_x=max(parent_x+2,w-1-max(4,min(9,int(round(w*0.065)))))
     pivot_y=h/2.0
     return seg, [float(parent_x),float(pivot_y)], [float(child_x),float(pivot_y)]
 
