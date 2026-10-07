@@ -29,6 +29,14 @@ for sex in ("male","female"):
     for i,axis in enumerate(("x","y")):
         ge(f"{sex}.dominant_hand_size.{axis}",spec["dominant_hand_size"][i],c["dominant_hand_min"][i])
         ge(f"{sex}.support_hand_size.{axis}",spec["support_hand_size"][i],c["support_hand_min"][i])
+        if "dominant_hand_max" in c:
+            le(f"{sex}.dominant_hand_size.{axis}",spec["dominant_hand_size"][i],c["dominant_hand_max"][i])
+        if "support_hand_max" in c:
+            le(f"{sex}.support_hand_size.{axis}",spec["support_hand_size"][i],c["support_hand_max"][i])
+    if "weapon_socket_max_y" in c:
+        le(f"{sex}.weapon_socket.y",spec["weapon_socket"][1],c["weapon_socket_max_y"])
+    if "support_grip_x_min" in c:
+        ge(f"{sex}.support_hand_grip_socket.x",spec["support_hand_grip_socket"][0],c["support_grip_x_min"])
 
 def alpha_bbox_metrics(path):
     im=Image.open(path).convert("RGBA")
