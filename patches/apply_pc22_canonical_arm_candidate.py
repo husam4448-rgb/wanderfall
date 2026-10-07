@@ -706,14 +706,14 @@ s=s.replace(rear_anchor,'''    if gear_back and not female_mode:
     _pc22_v3_draw_segment(pc22_rear_upper_tex,pc22_rear_shoulder,pc22_rear_elbow,dir_sign<0.0)
     _pc22_v3_draw_segment(pc22_front_upper_tex,pc22_front_shoulder,pc22_front_elbow,dir_sign<0.0)
 
-    # Both deltoid caps are now composed behind the torso.  Fresh Godot evidence
-    # showed the remaining foreground front cap still read as a pasted-on pad.
-    # With the sockets already outboard, torso occlusion leaves only the distal
-    # deltoid/taper visible and integrates the shoulder root into the clothing.
-    var pc22_rear_cap_tex: Texture2D = _pc22_shoulder_cap_texture()
-    var pc22_front_cap_tex: Texture2D = _pc22_shoulder_cap_texture()
-    _pc22_v3_draw_cap(pc22_rear_cap_tex,pc22_rear_shoulder,pc22_rear_elbow,dir_sign)
-    _pc22_v3_draw_cap(pc22_front_cap_tex,pc22_front_shoulder,pc22_front_elbow,dir_sign)
+    # Both deltoid caps are now composed behind the torso. Armed poses suppress
+    # them entirely because close-up review still exposed a small shoulder blob;
+    # the torso-masked upper-arm root is sufficient and reads more naturally.
+    if not weapon_visible:
+        var pc22_rear_cap_tex: Texture2D = _pc22_shoulder_cap_texture()
+        var pc22_front_cap_tex: Texture2D = _pc22_shoulder_cap_texture()
+        _pc22_v3_draw_cap(pc22_rear_cap_tex,pc22_rear_shoulder,pc22_rear_elbow,dir_sign)
+        _pc22_v3_draw_cap(pc22_front_cap_tex,pc22_front_shoulder,pc22_front_elbow,dir_sign)
 
     # Rifle stock is a rear-depth piece. Draw it BEFORE torso/clothing so the
     # chest naturally occludes the butt/root instead of showing a brown block
