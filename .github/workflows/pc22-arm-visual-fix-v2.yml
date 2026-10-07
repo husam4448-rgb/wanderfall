@@ -162,8 +162,12 @@ jobs:
           CAP="$GITHUB_WORKSPACE/pc22-hybrid-v3-runtime-captures"
           mkdir -p "$CAP"
           ARM_CAPTURE_DIR="$CAP" timeout 35s xvfb-run -a "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1280x720 --verbose 2>&1 | tee pc22-hybrid-v3-capture.log
-          test "$(find "$CAP" -maxdepth 1 -name '*.png' | wc -l)" -eq 72
-          grep -q 'PC22_ARM_CAPTURE_COMPLETE:72' pc22-hybrid-v3-capture.log
+          CAP_COUNT="$(find "$CAP" -maxdepth 1 -name '*.png' | wc -l | tr -d ' ')"
+          LOG_COUNT="$(grep -o 'PC22_ARM_CAPTURE_COMPLETE:[0-9]*' pc22-hybrid-v3-capture.log | tail -1 | cut -d: -f2)"
+          test -n "$LOG_COUNT"
+          test "$CAP_COUNT" -eq "$LOG_COUNT"
+          test "$CAP_COUNT" -eq 76
+          grep -q 'PC22_ARM_CAPTURE_COMPLETE:76' pc22-hybrid-v3-capture.log
           grep -q 'PC22_ARM_GEOMETRY_OK:' pc22-hybrid-v3-capture.log
           grep -q 'PC22_RUNTIME_SWEEP_OK' pc22-hybrid-v3-capture.log
           grep -q 'PC22_NPC_INHERITANCE_OK' pc22-hybrid-v3-capture.log
