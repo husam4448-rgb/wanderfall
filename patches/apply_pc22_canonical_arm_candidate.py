@@ -102,6 +102,8 @@ asset_paths={
  "FEMALE_SUPPORT_HAND":arms/"female/SP_PC22_Female_Hand_Support_Right.png",
  "PISTOL":repo_root/"assets/authored2d/gear/pistol.png",
  "RIFLE":arms/"weapons/SP_PC22_Rifle_ArmCompatible.png",
+ "RIFLE_STOCK":arms/"weapons/SP_PC22_Rifle_Stock_Rear.png",
+ "RIFLE_FRONT":arms/"weapons/SP_PC22_Rifle_Front.png",
 }
 for k,p in asset_paths.items():
     if not p.is_file():
@@ -135,7 +137,7 @@ if tex_anchor not in s:
 inject=''
 for name in ("MALE_UPPER","MALE_FORE","MALE_DOM_HAND","MALE_SUPPORT_HAND",
              "FEMALE_UPPER","FEMALE_FORE","FEMALE_DOM_HAND","FEMALE_SUPPORT_HAND",
-             "PISTOL","RIFLE"):
+             "PISTOL","RIFLE","RIFLE_STOCK","RIFLE_FRONT"):
     inject += f'const PC22_ARM_{name}_B64 := "{b64[name]}"\n'
 inject += '''var tex_pc22_male_upper: Texture2D = null
 var tex_pc22_male_fore: Texture2D = null
@@ -147,6 +149,8 @@ var tex_pc22_female_dom_hand: Texture2D = null
 var tex_pc22_female_support_hand: Texture2D = null
 var tex_pc22_pistol: Texture2D = null
 var tex_pc22_rifle: Texture2D = null
+var tex_pc22_rifle_stock: Texture2D = null
+var tex_pc22_rifle_front: Texture2D = null
 '''
 s=s.replace(tex_anchor,tex_anchor+inject,1)
 
@@ -163,6 +167,8 @@ loads='''    tex_pc22_male_upper = _texture_from_embedded_png(PC22_ARM_MALE_UPPE
     tex_pc22_female_support_hand = _texture_from_embedded_png(PC22_ARM_FEMALE_SUPPORT_HAND_B64)
     tex_pc22_pistol = _texture_from_embedded_png(PC22_ARM_PISTOL_B64)
     tex_pc22_rifle = _texture_from_embedded_png(PC22_ARM_RIFLE_B64)
+    tex_pc22_rifle_stock = _texture_from_embedded_png(PC22_ARM_RIFLE_STOCK_B64)
+    tex_pc22_rifle_front = _texture_from_embedded_png(PC22_ARM_RIFLE_FRONT_B64)
 '''
 s=s.replace(load_anchor,load_anchor+loads,1)
 
@@ -539,6 +545,9 @@ s=s.replace(rear_anchor,'''    if gear_back and not female_mode:
         var pc22_rear_upper_tex := _pc22_upper_texture()
         var pc22_rear_upper_w := 6.2 if female_mode else 7.3
         _pc22_draw_segment(pc22_rear_upper_tex,pc22_rear_shoulder,pc22_rear_elbow,pc22_rear_upper_w,dir_sign<0.0)
+        if weapon_two_handed and tex_pc22_rifle_stock != null:
+            var pc22_stock_center := pc22_arm_pivot + _pose_point(Vector2(14.0,-0.45),pc22_arm_angle,dir_sign)
+            _draw_equipment_texture(tex_pc22_rifle_stock,pc22_stock_center,Vector2(34.0,7.0),dir_sign<0.0,pc22_arm_angle)
     else:
         _pc22_draw_chain(pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist,dir_sign)
         var pc22_rear_free_angle := (pc22_dom_wrist-pc22_rear_elbow).angle()
@@ -583,7 +592,7 @@ weapon_block='''    # Weapon is the relationship anchor between the two hands.
         var active_muzzle := muzzle
         if weapon_two_handed:
             var rifle_center := pivot + _pose_point(Vector2(14.0,-0.45),angle,dir_sign)
-            _draw_equipment_texture(tex_pc22_rifle,rifle_center,Vector2(34.0,7.0),dir_sign<0.0,angle)
+            _draw_equipment_texture(tex_pc22_rifle_front,rifle_center,Vector2(34.0,7.0),dir_sign<0.0,angle)
             active_muzzle = pivot + _pose_point(Vector2(31,0),angle,dir_sign)
         else:
             var pistol_center := pivot + _pose_point(Vector2(5.0,-0.4),angle,dir_sign)
@@ -834,6 +843,8 @@ for needle in (
     "PC22_ARM_FEMALE_FORE_B64",
     "PC22_ARM_PISTOL_B64",
     "PC22_ARM_RIFLE_B64",
+    "PC22_ARM_RIFLE_STOCK_B64",
+    "PC22_ARM_RIFLE_FRONT_B64",
 ):
     if needle not in s2:
         raise SystemExit("Candidate integration verification missing: "+needle)
