@@ -2,8 +2,8 @@
   "standard": "PlayerCharacters_v22",
   "authority": "Approved Survival Paradise arm visual-reference sheets + user-provided failed runtime screenshots",
   "male": {
-    "shoulder_rear_min_x": 8.8,
-    "shoulder_front_min_x": 7.4,
+    "shoulder_rear_min_x": 9.6,
+    "shoulder_front_min_x": 9.2,
     "upper_arm_width_min": 8.8,
     "forearm_width_min": 7.6,
     "dominant_hand_min": [
@@ -13,11 +13,13 @@
     "support_hand_min": [
       8,
       7
-    ]
+    ],
+    "shoulder_rear_max_y": -9.2,
+    "shoulder_front_max_y": -8.7
   },
   "female": {
-    "shoulder_rear_min_x": 8.2,
-    "shoulder_front_min_x": 7,
+    "shoulder_rear_min_x": 9.2,
+    "shoulder_front_min_x": 8.9,
     "upper_arm_width_min": 7.8,
     "forearm_width_min": 6.8,
     "dominant_hand_min": [
@@ -27,7 +29,9 @@
     "support_hand_min": [
       7.4,
       6.6
-    ]
+    ],
+    "shoulder_rear_max_y": -9,
+    "shoulder_front_max_y": -8.6
   },
   "rifle": {
     "alpha_bbox_min_height": 9,
@@ -43,6 +47,13 @@
     "Shoulders must originate near the visible outer deltoid, not chest center.",
     "Hands must read as hands at gameplay scale and remain proportionate to forearms.",
     "Weapons must retain distinct stock/receiver/handguard/barrel or slide/grip mass.",
-    "This numeric contract is a regression floor; final acceptance still requires human visual comparison against the approved reference sheets."
-  ]
+    "This numeric contract is a regression floor; final acceptance still requires human visual comparison against the approved reference sheets.",
+    "Visual-fix-v2 second gate: shoulder sockets must sit higher/outboard at the deltoid; runtime weapon draw height must remain reference-like rather than blocky."
+  ],
+  "runtime_draw": {
+    "rifle_width_min": 38,
+    "rifle_height_max": 11,
+    "pistol_width_min": 17,
+    "pistol_height_max": 9
+  }
 }
