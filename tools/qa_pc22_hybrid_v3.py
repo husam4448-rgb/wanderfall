@@ -154,10 +154,10 @@ require("(3.15 if female_mode else 3.35)" in patch, "support locked hand scale d
 require("Rifle stock is a rear-depth piece" in patch, "rifle stock no longer guaranteed behind torso")
 require(patch.count("_pc22_v3_draw_weapon_piece(tex_pc22_rifle_stock") == 1,
         "rifle stock must be rendered exactly once")
-require("if weapon_visible and weapon_two_handed:" in patch and "pc22_upper_fg_start" in patch,
-        "conditional rifle upper-arm bridge missing")
-require("0.76 if female_mode else 0.72" in patch,
-        "distal rifle bridge exposure drift")
+require("if weapon_visible:" in patch and "pc22_dom_upper_start" in patch and "pc22_front_upper_start" in patch,
+        "short distal upper-arm tails missing")
+require("0.80 if female_mode else 0.76" in patch and "0.76 if female_mode else 0.72" in patch,
+        "distal upper-arm exposure drift")
 require("if gear_torso:" in patch and "tex_pc22_female_gear_upper" in patch and "tex_pc22_male_gear_fore" in patch,
         "equipped tactical sleeve selection missing")
 
