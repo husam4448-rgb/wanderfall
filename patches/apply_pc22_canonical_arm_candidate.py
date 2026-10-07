@@ -251,6 +251,15 @@ func _pc22_solve_elbow(shoulder: Vector2, wrist: Vector2, upper_len: float, fore
 func _pc22_free_arm(shoulder: Vector2, upper_len: float, fore_len: float, swing_angle: float, dir_sign: float) -> PackedVector2Array:
     return pc22_player_arm_rig.free_arm(shoulder,upper_len,fore_len,swing_angle,dir_sign)
 
+func _pc22_relaxed_onehand_arm(shoulder: Vector2, upper_len: float, fore_len: float, dir_sign: float) -> PackedVector2Array:
+    # Natural off-hand rest for one-handed weapons. Exact canonical lengths are
+    # preserved; only the free-arm pose changes so it no longer hangs like two rods.
+    var upper_dir := Vector2(-0.22*dir_sign,0.975).normalized()
+    var fore_dir := Vector2(-0.78*dir_sign,0.626).normalized()
+    var elbow := shoulder + upper_dir*upper_len
+    var wrist := elbow + fore_dir*fore_len
+    return PackedVector2Array([elbow,wrist])
+
 func _pc22_role_texture(kind: String) -> Texture2D:
     if pc22_role.is_empty():
         return null
@@ -375,6 +384,28 @@ func _pc22_v3_draw_distal_segment(tex: Texture2D, a: Vector2, b: Vector2, flip_x
     draw_set_transform(a,rot,Vector2(sx,scale_u))
     var dst := Rect2(Vector2(start_x-parent_x,-th*0.5),Vector2(tw-start_x,th))
     var src := Rect2(Vector2(start_x,0.0),Vector2(tw-start_x,th))
+    draw_texture_rect_region(tex,dst,src)
+    draw_set_transform(Vector2.ZERO,0.0,Vector2.ONE)
+
+func _pc22_v3_draw_elbow_bridge(tex: Texture2D, shoulder: Vector2, elbow: Vector2, wrist: Vector2, flip_x: bool) -> void:
+    if tex == null:
+        return
+    var upper_dir: Vector2 = (elbow-shoulder).normalized()
+    var fore_dir: Vector2 = (wrist-elbow).normalized()
+    var bisector: Vector2 = upper_dir+fore_dir
+    if bisector.length() < 0.05:
+        bisector = fore_dir
+    bisector = bisector.normalized()
+    var tw: float = float(tex.get_width())
+    var th: float = float(tex.get_height())
+    var src_w: float = clampf(tw*0.28,4.0,tw)
+    var desired_len: float = 3.05 if female_mode else 3.35
+    var scale_u: float = desired_len/maxf(1.0,src_w)
+    var rot: float = bisector.angle() if not flip_x else bisector.angle()-PI
+    var sx: float = scale_u if not flip_x else -scale_u
+    draw_set_transform(elbow,rot,Vector2(sx,scale_u))
+    var src := Rect2(Vector2(0,0),Vector2(src_w,th))
+    var dst := Rect2(Vector2(-src_w*0.50,-th*0.5),Vector2(src_w,th))
     draw_texture_rect_region(tex,dst,src)
     draw_set_transform(Vector2.ZERO,0.0,Vector2.ONE)
 
@@ -593,7 +624,7 @@ arm_compute=f'''    var base := actor_pos + Vector2(sway, -bob - breath * 0.28)
             pc22_front_wrist = pc22_support_wrist
             pc22_front_elbow = _pc22_solve_elbow(pc22_front_shoulder,pc22_front_wrist,pc22_lengths.x,pc22_lengths.y,pc22_prev_support_elbow,pc22_prev_arm_valid)
         else:
-            var pc22_free_front: PackedVector2Array = _pc22_free_arm(pc22_front_shoulder,pc22_lengths.x,pc22_lengths.y,pc22_motion_swing,dir_sign)
+            var pc22_free_front: PackedVector2Array = _pc22_relaxed_onehand_arm(pc22_front_shoulder,pc22_lengths.x,pc22_lengths.y,dir_sign)
             pc22_front_elbow = pc22_free_front[0]
             pc22_front_wrist = pc22_free_front[1]
     else:
@@ -698,6 +729,10 @@ s=s.replace(front_anchor,'''    # HYBRID V3 DEPTH STACK: torso is already drawn.
     var pc22_front_fore_tex: Texture2D = _pc22_fore_texture()
     _pc22_v3_draw_segment(pc22_rear_fore_tex,pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)
     _pc22_v3_draw_segment(pc22_front_fore_tex,pc22_front_elbow,pc22_front_wrist,dir_sign<0.0)
+    # Small cloth gussets cover the exact mathematical hinge while keeping the
+    # same shoulder/elbow/wrist geometry. This removes the sharp V-joint read.
+    _pc22_v3_draw_elbow_bridge(pc22_rear_fore_tex,pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)
+    _pc22_v3_draw_elbow_bridge(pc22_front_fore_tex,pc22_front_shoulder,pc22_front_elbow,pc22_front_wrist,dir_sign<0.0)
 
     # Free/front hand remains visible for unarmed locomotion and one-handed pistol.
     if not weapon_visible or not weapon_two_handed:
