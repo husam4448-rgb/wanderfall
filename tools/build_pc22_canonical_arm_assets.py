@@ -101,10 +101,10 @@ def anatomical_sleeve(img, base_rgb, sex, segment):
     female=(sex=="female")
     if segment=="upper":
         # broad hidden shoulder root -> biceps -> compact elbow
-        profile=(0.66,0.60,0.46) if female else (0.72,0.65,0.50)
+        profile=(0.46,0.42,0.34) if female else (0.52,0.48,0.38)
     else:
         # elbow mass -> tapered forearm -> narrow wrist/cuff
-        profile=(0.55,0.47,0.30) if female else (0.62,0.53,0.34)
+        profile=(0.39,0.35,0.24) if female else (0.44,0.40,0.27)
 
     mask=Image.new("L",(w,h),0)
     mp=mask.load()
@@ -118,7 +118,10 @@ def anatomical_sleeve(img, base_rgb, sex, segment):
             q=(t-0.52)/0.48
             frac=profile[1]+(profile[2]-profile[1])*(q*q*(3.0-2.0*q))
         half=max(2.0,(w*frac)*0.5)
-        cx=(w-1)*0.5
+        curve=(1.15 if not female else 0.85)*math.sin(math.pi*t)
+        if segment=="forearm":
+            curve*=0.72
+        cx=(w-1)*0.5+curve
         x0=max(0,int(round(cx-half)))
         x1=min(w-1,int(round(cx+half)))
         for x in range(x0,x1+1):
@@ -143,10 +146,44 @@ def anatomical_sleeve(img, base_rgb, sex, segment):
                      max(0,min(255,int(base_rgb[1]*(light+grain)))),
                      max(0,min(255,int(base_rgb[2]*(light+grain)))),a)
 
-    tex=img.copy()
-    # Close one-pixel voids in source texture before overlaying onto the smooth base.
-    tex.putalpha(tex.getchannel("A").filter(ImageFilter.MaxFilter(3)))
-    base.alpha_composite(tex)
+    # Preserve only broad authored luminance variation. Full-strength legacy
+    # texture produced dark angular/origami patches after rotation in Godot.
+    broad=ImageOps.grayscale(img).filter(ImageFilter.GaussianBlur(1.15))
+    low=tuple(max(0,int(c*0.74)) for c in base_rgb)
+    high=tuple(min(255,int(c*1.26+4)) for c in base_rgb)
+    tonal=ImageOps.colorize(broad,low,high).convert("RGBA")
+    tonal.putalpha(mask)
+    base=Image.blend(base,tonal,0.18)
+    base.putalpha(mask)
+
+    # Sparse cloth creases give readable fabric structure without jagged source
+    # silhouettes. They rotate with the limb and remain subtle at gameplay scale.
+    d=ImageDraw.Draw(base)
+    crease_dark=tuple(max(0,int(c*0.62)) for c in base_rgb)+(95,)
+    crease_light=tuple(min(255,int(c*1.34+5)) for c in base_rgb)+(70,)
+    crease_rows=(0.34,0.61,0.82) if segment=="upper" else (0.28,0.55,0.78)
+    for idx,yf in enumerate(crease_rows):
+        y=int(round(h*yf))
+        t=y/max(1,h-1)
+        if t<0.52:
+            q=t/0.52
+            frac=profile[0]+(profile[1]-profile[0])*(q*q*(3.0-2.0*q))
+        else:
+            q=(t-0.52)/0.48
+            frac=profile[1]+(profile[2]-profile[1])*(q*q*(3.0-2.0*q))
+        half=max(2.0,(w*frac)*0.5)
+        cx=(w-1)*0.5
+        x0=int(round(cx-half*0.62))
+        x1=int(round(cx+half*0.58))
+        d.line((x0,y,x1,y+(1 if idx%2==0 else -1)),fill=crease_dark,width=1)
+        if y+2<h:
+            d.line((x0+2,y+2,x1-2,y+2),fill=crease_light,width=1)
+
+    # Distal cuff shadow defines the wrist without a rectangular joint.
+    if segment=="forearm":
+        y=int(round(h*0.90))
+        d.line((int(w*0.40),y,int(w*0.60),y),fill=crease_dark,width=1)
+
     base.putalpha(mask)
     return base
 
