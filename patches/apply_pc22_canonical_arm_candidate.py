@@ -266,7 +266,16 @@ if rear_anchor not in s:
 s=s.replace(rear_anchor,'''    if gear_back and not female_mode:
         _draw_backpack(base, dir_sign)
 
-    _pc22_draw_chain(pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist,dir_sign)
+    # Rear shoulder/upper arm remains behind the torso. Armed forearm is
+    # deferred to the foreground so the trigger arm stays visibly connected.
+    if weapon_visible:
+        var pc22_rear_upper_tex := tex_pc22_female_upper if female_mode else tex_pc22_male_upper
+        var pc22_rear_upper_w := 6.2 if female_mode else 7.3
+        _pc22_draw_segment(pc22_rear_upper_tex,pc22_rear_shoulder,pc22_rear_elbow,pc22_rear_upper_w,dir_sign<0.0)
+    else:
+        _pc22_draw_chain(pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist,dir_sign)
+        var pc22_rear_free_angle := (pc22_dom_wrist-pc22_rear_elbow).angle()
+        _draw_hand(pc22_dom_wrist,pc22_rear_free_angle,dir_sign,Color("c98e68"),0.82)
 
     # Independent left/right leg gait. Each leg has its own hip, knee, shin and foot.
 ''',1)
@@ -276,7 +285,19 @@ front_anchor='''    # On the left-facing mirror, support hand is drawn first so 
 '''
 if front_anchor not in s:
     raise SystemExit("Candidate front-arm layering anchor missing")
-s=s.replace(front_anchor,'''    _pc22_draw_chain(pc22_front_shoulder,pc22_front_elbow,pc22_front_wrist,dir_sign)
+s=s.replace(front_anchor,'''    # Armed dominant forearm is foregrounded after the torso; this preserves
+    # shoulder occlusion while keeping elbow→wrist continuity visible.
+    if weapon_visible:
+        var pc22_rear_fore_tex := tex_pc22_female_fore if female_mode else tex_pc22_male_fore
+        var pc22_rear_fore_w := 5.6 if female_mode else 6.5
+        _pc22_draw_segment(pc22_rear_fore_tex,pc22_rear_elbow,pc22_dom_wrist,pc22_rear_fore_w,dir_sign<0.0)
+
+    _pc22_draw_chain(pc22_front_shoulder,pc22_front_elbow,pc22_front_wrist,dir_sign)
+
+    # Free/front hand must remain visible for unarmed locomotion and one-handed pistol.
+    if not weapon_visible or not weapon_two_handed:
+        var pc22_front_free_angle := (pc22_front_wrist-pc22_front_elbow).angle()
+        _draw_hand(pc22_front_wrist,pc22_front_free_angle,dir_sign,Color("c98e68"),0.80)
 
     # On the left-facing mirror, support hand is drawn first so the gun occludes it.
 ''',1)
