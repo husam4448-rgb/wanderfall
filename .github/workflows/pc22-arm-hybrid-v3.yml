@@ -45,7 +45,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: pc22-arm-hybrid-render-v3
+          # Test the exact event revision, never whatever the branch happens to
+          # contain when an old queued runner finally starts.
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 1
 
       - name: Validate candidate patch syntax
