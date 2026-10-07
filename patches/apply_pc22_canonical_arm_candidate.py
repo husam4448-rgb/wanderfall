@@ -102,6 +102,8 @@ asset_paths={
  "MALE_SHOULDER_CAP":arms/"hybrid_v3/male/SP_PC22_Male_ShoulderCap_V3.png",
  "MALE_DOM_HAND":arms/"hybrid_v3/male/SP_PC22_Male_Hand_Dominant_V3.png",
  "MALE_SUPPORT_HAND":arms/"hybrid_v3/male/SP_PC22_Male_Hand_Support_V3.png",
+ "MALE_GLOVE_DOM":arms/"hybrid_v3/male/SP_PC22_Male_Glove_Dominant_V3.png",
+ "MALE_GLOVE_SUP":arms/"hybrid_v3/male/SP_PC22_Male_Glove_Support_V3.png",
  "FEMALE_UPPER":arms/"hybrid_v3/female/SP_PC22_Female_UpperArm_V3.png",
  "FEMALE_FORE":arms/"hybrid_v3/female/SP_PC22_Female_Forearm_V3.png",
  "FEMALE_GEAR_UPPER":arms/"hybrid_v3/female/SP_PC22_Female_UpperArm_Gear_V3.png",
@@ -109,6 +111,8 @@ asset_paths={
  "FEMALE_SHOULDER_CAP":arms/"hybrid_v3/female/SP_PC22_Female_ShoulderCap_V3.png",
  "FEMALE_DOM_HAND":arms/"hybrid_v3/female/SP_PC22_Female_Hand_Dominant_V3.png",
  "FEMALE_SUPPORT_HAND":arms/"hybrid_v3/female/SP_PC22_Female_Hand_Support_V3.png",
+ "FEMALE_GLOVE_DOM":arms/"hybrid_v3/female/SP_PC22_Female_Glove_Dominant_V3.png",
+ "FEMALE_GLOVE_SUP":arms/"hybrid_v3/female/SP_PC22_Female_Glove_Support_V3.png",
  "PISTOL":arms/"hybrid_v3/weapons/SP_PC22_Pistol_V3.png",
  "RIFLE":arms/"hybrid_v3/weapons/SP_PC22_Rifle_V3.png",
  "RIFLE_STOCK":arms/"hybrid_v3/weapons/SP_PC22_Rifle_Stock_V3.png",
@@ -149,8 +153,8 @@ tex_anchor='var tex_female_gear_forearm: Texture2D = null\n'
 if tex_anchor not in s:
     raise SystemExit("Candidate arm texture anchor missing")
 inject=''
-for name in ("MALE_UPPER","MALE_FORE","MALE_GEAR_UPPER","MALE_GEAR_FORE","MALE_SHOULDER_CAP","MALE_DOM_HAND","MALE_SUPPORT_HAND",
-             "FEMALE_UPPER","FEMALE_FORE","FEMALE_GEAR_UPPER","FEMALE_GEAR_FORE","FEMALE_SHOULDER_CAP","FEMALE_DOM_HAND","FEMALE_SUPPORT_HAND",
+for name in ("MALE_UPPER","MALE_FORE","MALE_GEAR_UPPER","MALE_GEAR_FORE","MALE_SHOULDER_CAP","MALE_DOM_HAND","MALE_SUPPORT_HAND","MALE_GLOVE_DOM","MALE_GLOVE_SUP",
+             "FEMALE_UPPER","FEMALE_FORE","FEMALE_GEAR_UPPER","FEMALE_GEAR_FORE","FEMALE_SHOULDER_CAP","FEMALE_DOM_HAND","FEMALE_SUPPORT_HAND","FEMALE_GLOVE_DOM","FEMALE_GLOVE_SUP",
              "PISTOL","RIFLE","RIFLE_STOCK","RIFLE_FRONT"):
     inject += f'const PC22_ARM_{name}_B64 := "{b64[name]}"\n'
 inject += '''var tex_pc22_male_upper: Texture2D = null
@@ -160,6 +164,8 @@ var tex_pc22_male_gear_fore: Texture2D = null
 var tex_pc22_male_shoulder_cap: Texture2D = null
 var tex_pc22_male_dom_hand: Texture2D = null
 var tex_pc22_male_support_hand: Texture2D = null
+var tex_pc22_male_glove_dom: Texture2D = null
+var tex_pc22_male_glove_sup: Texture2D = null
 var tex_pc22_female_upper: Texture2D = null
 var tex_pc22_female_fore: Texture2D = null
 var tex_pc22_female_gear_upper: Texture2D = null
@@ -167,6 +173,8 @@ var tex_pc22_female_gear_fore: Texture2D = null
 var tex_pc22_female_shoulder_cap: Texture2D = null
 var tex_pc22_female_dom_hand: Texture2D = null
 var tex_pc22_female_support_hand: Texture2D = null
+var tex_pc22_female_glove_dom: Texture2D = null
+var tex_pc22_female_glove_sup: Texture2D = null
 var tex_pc22_pistol: Texture2D = null
 var tex_pc22_rifle: Texture2D = null
 var tex_pc22_rifle_stock: Texture2D = null
@@ -184,6 +192,8 @@ loads='''    tex_pc22_male_upper = _texture_from_embedded_png(PC22_ARM_MALE_UPPE
     tex_pc22_male_shoulder_cap = _texture_from_embedded_png(PC22_ARM_MALE_SHOULDER_CAP_B64)
     tex_pc22_male_dom_hand = _texture_from_embedded_png(PC22_ARM_MALE_DOM_HAND_B64)
     tex_pc22_male_support_hand = _texture_from_embedded_png(PC22_ARM_MALE_SUPPORT_HAND_B64)
+    tex_pc22_male_glove_dom = _texture_from_embedded_png(PC22_ARM_MALE_GLOVE_DOM_B64)
+    tex_pc22_male_glove_sup = _texture_from_embedded_png(PC22_ARM_MALE_GLOVE_SUP_B64)
     tex_pc22_female_upper = _texture_from_embedded_png(PC22_ARM_FEMALE_UPPER_B64)
     tex_pc22_female_fore = _texture_from_embedded_png(PC22_ARM_FEMALE_FORE_B64)
     tex_pc22_female_gear_upper = _texture_from_embedded_png(PC22_ARM_FEMALE_GEAR_UPPER_B64)
@@ -191,6 +201,8 @@ loads='''    tex_pc22_male_upper = _texture_from_embedded_png(PC22_ARM_MALE_UPPE
     tex_pc22_female_shoulder_cap = _texture_from_embedded_png(PC22_ARM_FEMALE_SHOULDER_CAP_B64)
     tex_pc22_female_dom_hand = _texture_from_embedded_png(PC22_ARM_FEMALE_DOM_HAND_B64)
     tex_pc22_female_support_hand = _texture_from_embedded_png(PC22_ARM_FEMALE_SUPPORT_HAND_B64)
+    tex_pc22_female_glove_dom = _texture_from_embedded_png(PC22_ARM_FEMALE_GLOVE_DOM_B64)
+    tex_pc22_female_glove_sup = _texture_from_embedded_png(PC22_ARM_FEMALE_GLOVE_SUP_B64)
     tex_pc22_pistol = _texture_from_embedded_png(PC22_ARM_PISTOL_B64)
     tex_pc22_rifle = _texture_from_embedded_png(PC22_ARM_RIFLE_B64)
     tex_pc22_rifle_stock = _texture_from_embedded_png(PC22_ARM_RIFLE_STOCK_B64)
@@ -312,10 +324,14 @@ func _pc22_shoulder_cap_texture() -> Texture2D:
     return role_tex if role_tex != null else (tex_pc22_female_shoulder_cap if female_mode else tex_pc22_male_shoulder_cap)
 
 func _pc22_dominant_hand_texture() -> Texture2D:
+    if gear_gloves:
+        return tex_pc22_female_glove_dom if female_mode else tex_pc22_male_glove_dom
     var role_tex: Texture2D = _pc22_role_texture("glove_dominant")
     return role_tex if role_tex != null else (tex_pc22_female_dom_hand if female_mode else tex_pc22_male_dom_hand)
 
 func _pc22_support_hand_texture() -> Texture2D:
+    if gear_gloves:
+        return tex_pc22_female_glove_sup if female_mode else tex_pc22_male_glove_sup
     var role_tex: Texture2D = _pc22_role_texture("glove_support")
     return role_tex if role_tex != null else (tex_pc22_female_support_hand if female_mode else tex_pc22_male_support_hand)
 
