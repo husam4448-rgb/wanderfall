@@ -92,11 +92,23 @@ var pc22_prev_arm_valid := false
 var pc22_prev_face_right := true
 var pc22_arm_capture_dir := ""
 var pc22_arm_capture_index := -1
+var pc22_arm_states_per_sex := 29
 var pc22_arm_capture_names := PackedStringArray([
-    "male_idle","male_walk","male_run","male_pistol_horizontal",
-    "male_pistol_up","male_rifle_horizontal","male_rifle_up","male_recoil",
-    "female_idle","female_walk","female_run","female_pistol_horizontal",
-    "female_pistol_up","female_rifle_horizontal","female_rifle_up","female_recoil"
+    "male_idle","male_walk_a","male_walk_b","male_run_a",
+    "male_run_b","male_pistol_horizontal","male_pistol_up30","male_pistol_up60",
+    "male_pistol_max_up","male_pistol_down30","male_pistol_down60","male_pistol_max_down",
+    "male_rifle_horizontal","male_rifle_up30","male_rifle_up60","male_rifle_max_up",
+    "male_rifle_down30","male_rifle_down60","male_rifle_max_down","male_recoil",
+    "male_walk_right_aim_right","male_walk_left_aim_right","male_walk_right_aim_up","male_walk_left_aim_down",
+    "male_run_pistol","male_run_rifle","male_rifle_left","male_rifle_left_up60",
+    "male_rifle_left_down60","female_idle","female_walk_a","female_walk_b",
+    "female_run_a","female_run_b","female_pistol_horizontal","female_pistol_up30",
+    "female_pistol_up60","female_pistol_max_up","female_pistol_down30","female_pistol_down60",
+    "female_pistol_max_down","female_rifle_horizontal","female_rifle_up30","female_rifle_up60",
+    "female_rifle_max_up","female_rifle_down30","female_rifle_down60","female_rifle_max_down",
+    "female_recoil","female_walk_right_aim_right","female_walk_left_aim_right","female_walk_right_aim_up",
+    "female_walk_left_aim_down","female_run_pistol","female_run_rifle","female_rifle_left",
+    "female_rifle_left_up60","female_rifle_left_down60"
 ])
 '''
 s=s.replace(state_anchor,state_anchor+state,1)
@@ -161,6 +173,52 @@ func _pc22_arm_runtime_check(shoulder: Vector2, elbow: Vector2, wrist: Vector2, 
         push_error("PC22_ARM_GEOMETRY_FAIL %s upper=%.4f fore=%.4f" % [label,du,df])
     else:
         print("PC22_ARM_GEOMETRY_OK:",label,":",shoulder.distance_to(elbow),":",elbow.distance_to(wrist))
+
+func _pc22_verify_sweep_case(label: String, upper_len: float, fore_len: float, rear_socket: Vector2, front_socket: Vector2, dir_sign: float) -> bool:
+    var previous_dom := Vector2.ZERO
+    var previous_sup := Vector2.ZERO
+    var has_previous := false
+    var max_angle := PI*0.49
+    var angles := PackedFloat32Array()
+    for i in range(121):
+        angles.append(-max_angle + (2.0*max_angle*float(i)/120.0))
+    for i in range(119,-1,-1):
+        angles.append(-max_angle + (2.0*max_angle*float(i)/120.0))
+    for angle in angles:
+        var shoulder_dom := Vector2(rear_socket.x*dir_sign,rear_socket.y)
+        var shoulder_sup := Vector2(front_socket.x*dir_sign,front_socket.y)
+        var pivot := Vector2(6.0*dir_sign,-2.0)
+        var wrist_dom := pivot + _pose_point(Vector2(3,4),angle,dir_sign)
+        var wrist_sup := pivot + _pose_point(Vector2(16,2),angle,dir_sign)
+        wrist_sup += _pose_point(Vector2(0,(1.8 if dir_sign>0.0 else 2.1)),angle,dir_sign)
+        var elbow_dom := _pc22_solve_elbow(shoulder_dom,wrist_dom,upper_len,fore_len,previous_dom,has_previous)
+        var elbow_sup := _pc22_solve_elbow(shoulder_sup,wrist_sup,upper_len,fore_len,previous_sup,has_previous)
+        var dom_upper_err := absf(shoulder_dom.distance_to(elbow_dom)-upper_len)
+        var dom_fore_err := absf(elbow_dom.distance_to(wrist_dom)-fore_len)
+        var sup_upper_err := absf(shoulder_sup.distance_to(elbow_sup)-upper_len)
+        var sup_fore_err := absf(elbow_sup.distance_to(wrist_sup)-fore_len)
+        if maxf(maxf(dom_upper_err,dom_fore_err),maxf(sup_upper_err,sup_fore_err)) > 0.03:
+            push_error("PC22_RUNTIME_SWEEP_LENGTH_FAIL %s %.4f %.4f %.4f %.4f" % [label,dom_upper_err,dom_fore_err,sup_upper_err,sup_fore_err])
+            return false
+        if has_previous:
+            var dom_jump := elbow_dom.distance_to(previous_dom)
+            var sup_jump := elbow_sup.distance_to(previous_sup)
+            if dom_jump > 0.70 or sup_jump > 0.70:
+                push_error("PC22_RUNTIME_SWEEP_FLIP_FAIL %s %.4f %.4f" % [label,dom_jump,sup_jump])
+                return false
+        previous_dom = elbow_dom
+        previous_sup = elbow_sup
+        has_previous = true
+    print("PC22_RUNTIME_SWEEP_CASE_OK:",label)
+    return true
+
+func _pc22_verify_runtime_sweep() -> bool:
+    var ok := true
+    ok = _pc22_verify_sweep_case("male_right",10.9,10.7,Vector2(6.2,-8.5),Vector2(3.8,-5.3),1.0) and ok
+    ok = _pc22_verify_sweep_case("male_left",10.9,10.7,Vector2(6.2,-8.5),Vector2(3.8,-5.3),-1.0) and ok
+    ok = _pc22_verify_sweep_case("female_right",10.6,10.5,Vector2(5.3,-8),Vector2(3,-5),1.0) and ok
+    ok = _pc22_verify_sweep_case("female_left",10.6,10.5,Vector2(5.3,-8),Vector2(3,-5),-1.0) and ok
+    return ok
 
 '''
 s=s.replace(support_anchor,helpers+support_anchor,1)
@@ -339,7 +397,12 @@ s=s[:start]+weapon_block+s[end:]
 ready_anchor='    if OS.has_environment("PLAYER_CAPTURE_DIR"):\n'
 if ready_anchor not in s:
     raise SystemExit("Candidate capture ready anchor missing")
-ready_inject='''    if OS.has_environment("ARM_CAPTURE_DIR"):
+ready_inject='''    if not _pc22_verify_runtime_sweep():
+        push_error("PC22_RUNTIME_SWEEP_FAIL")
+        get_tree().quit(23)
+        return
+    print("PC22_RUNTIME_SWEEP_OK")
+    if OS.has_environment("ARM_CAPTURE_DIR"):
         pc22_arm_capture_dir = OS.get_environment("ARM_CAPTURE_DIR")
         DirAccess.make_dir_recursive_absolute(pc22_arm_capture_dir)
         RenderingServer.frame_post_draw.connect(_pc22_arm_capture_after_draw)
@@ -352,8 +415,8 @@ capture_anchor='func _pc_apply_capture_state(idx: int) -> void:\n'
 if capture_anchor not in s:
     raise SystemExit("Candidate capture helper anchor missing")
 capture_helpers='''func _pc22_apply_arm_capture_state(idx: int) -> void:
-    female_mode = idx >= 8
-    var state := idx % 8
+    female_mode = idx >= pc22_arm_states_per_sex
+    var state := idx % pc22_arm_states_per_sex
     gear_head = false
     gear_torso = false
     gear_back = false
@@ -372,32 +435,125 @@ capture_helpers='''func _pc22_apply_arm_capture_state(idx: int) -> void:
     aim_pos = actor_pos + Vector2(250,0)
     match state:
         0:
-            pass # idle, unarmed
+            pass # idle
         1:
             move_vec = Vector2(1,0)
             step_phase = PI*0.5
         2:
             move_vec = Vector2(1,0)
+            step_phase = 3.0*PI*0.5
+        3:
+            move_vec = Vector2(1,0)
             running = true
             step_phase = PI*0.5
-        3:
-            weapon_visible = true
-            weapon_two_handed = false
         4:
-            weapon_visible = true
-            weapon_two_handed = false
-            aim_pos = actor_pos + Vector2(125,-216.5)
+            move_vec = Vector2(1,0)
+            running = true
+            step_phase = 3.0*PI*0.5
         5:
             weapon_visible = true
-            weapon_two_handed = true
+            weapon_two_handed = false
         6:
+            weapon_visible = true
+            weapon_two_handed = false
+            aim_pos = actor_pos + Vector2(216.5,-125)
+        7:
+            weapon_visible = true
+            weapon_two_handed = false
+            aim_pos = actor_pos + Vector2(125,-216.5)
+        8:
+            weapon_visible = true
+            weapon_two_handed = false
+            aim_pos = actor_pos + Vector2(8,-250)
+        9:
+            weapon_visible = true
+            weapon_two_handed = false
+            aim_pos = actor_pos + Vector2(216.5,125)
+        10:
+            weapon_visible = true
+            weapon_two_handed = false
+            aim_pos = actor_pos + Vector2(125,216.5)
+        11:
+            weapon_visible = true
+            weapon_two_handed = false
+            aim_pos = actor_pos + Vector2(8,250)
+        12:
+            weapon_visible = true
+            weapon_two_handed = true
+        13:
+            weapon_visible = true
+            weapon_two_handed = true
+            aim_pos = actor_pos + Vector2(216.5,-125)
+        14:
             weapon_visible = true
             weapon_two_handed = true
             aim_pos = actor_pos + Vector2(125,-216.5)
-        7:
+        15:
+            weapon_visible = true
+            weapon_two_handed = true
+            aim_pos = actor_pos + Vector2(8,-250)
+        16:
+            weapon_visible = true
+            weapon_two_handed = true
+            aim_pos = actor_pos + Vector2(216.5,125)
+        17:
+            weapon_visible = true
+            weapon_two_handed = true
+            aim_pos = actor_pos + Vector2(125,216.5)
+        18:
+            weapon_visible = true
+            weapon_two_handed = true
+            aim_pos = actor_pos + Vector2(8,250)
+        19:
             weapon_visible = true
             weapon_two_handed = true
             shot_recoil = 1.0
+        20:
+            move_vec = Vector2(1,0)
+            step_phase = PI*0.5
+            weapon_visible = true
+            weapon_two_handed = true
+        21:
+            move_vec = Vector2(-1,0)
+            step_phase = PI*0.5
+            weapon_visible = true
+            weapon_two_handed = true
+        22:
+            move_vec = Vector2(1,0)
+            step_phase = PI*0.5
+            weapon_visible = true
+            weapon_two_handed = true
+            aim_pos = actor_pos + Vector2(125,-216.5)
+        23:
+            move_vec = Vector2(-1,0)
+            step_phase = PI*0.5
+            weapon_visible = true
+            weapon_two_handed = true
+            aim_pos = actor_pos + Vector2(125,216.5)
+        24:
+            move_vec = Vector2(1,0)
+            running = true
+            step_phase = PI*0.5
+            weapon_visible = true
+            weapon_two_handed = false
+        25:
+            move_vec = Vector2(1,0)
+            running = true
+            step_phase = PI*0.5
+            weapon_visible = true
+            weapon_two_handed = true
+        26:
+            weapon_visible = true
+            weapon_two_handed = true
+            aim_pos = actor_pos + Vector2(-250,0)
+        27:
+            weapon_visible = true
+            weapon_two_handed = true
+            aim_pos = actor_pos + Vector2(-125,-216.5)
+        28:
+            weapon_visible = true
+            weapon_two_handed = true
+            aim_pos = actor_pos + Vector2(-125,216.5)
     pc22_prev_arm_valid = false
     _refresh_gear_buttons()
     _apply_visual_zoom()
