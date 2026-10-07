@@ -12,6 +12,12 @@ qa=arms/"qa"
 meta=arms/"metadata"
 qa.mkdir(parents=True,exist_ok=True); meta.mkdir(parents=True,exist_ok=True)
 
+# Deterministic rebuild: failed/older candidate layouts must never accumulate.
+import shutil
+for stale in (arms/"sleeves", arms/"gloves", roles_root):
+    if stale.exists():
+        shutil.rmtree(stale)
+
 roles={
  "trader":{"cloth":(61,63,70),"accent":(119,84,58),"glove":(53,49,46)},
  "medic":{"cloth":(184,190,184),"accent":(67,111,121),"glove":(79,91,91)},
