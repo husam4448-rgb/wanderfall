@@ -97,6 +97,14 @@ jobs:
           python3 -m pip install --quiet pillow numpy
           python3 patches/apply_v0179_quick_item_buttons.py "$PROJECT_DIR"
           grep -q 'PLAYER CHARACTERS V22 | PROPORTIONAL FEMALE BOOTS:' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"
+
+          # Build canonical arm/role assets inside this same job so runtime and
+          # production gates always test the generator changes from this commit,
+          # never stale PNGs committed by a parallel audit workflow.
+          python3 tools/build_pc22_canonical_arm_assets.py "$GITHUB_WORKSPACE" "$PROJECT_DIR"
+          python3 tools/build_pc22_role_overlays.py "$GITHUB_WORKSPACE"
+          test -s assets/authored2d/unified_character/arms/weapons/SP_PC22_Rifle_Stock_Rear.png
+          test -s assets/authored2d/unified_character/arms/weapons/SP_PC22_Rifle_Front.png
           python3 patches/apply_playercharacters_v22_canonical_arms.py "$PROJECT_DIR"
           grep -q 'PLAYER CHARACTERS V22 | CANONICAL ARTICULATED ARMS:' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"
           if grep -q 'ARM_CAPTURE_DIR\|PC22_RUNTIME_SWEEP_OK\|PC22_ARM_CAPTURE_COMPLETE\|draw_line(actor_pos, aim_pos' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"; then
