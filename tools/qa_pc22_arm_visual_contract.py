@@ -97,8 +97,8 @@ if contract.get("layering",{}).get("armed_front_upper")=="behind_torso":
     if "HYBRID V3: only proximal upper-arm art is drawn behind the torso." not in patch:
         fail.append("layering.armed_front_upper: V3 behind-torso upper-arm marker missing")
 if contract.get("layering",{}).get("armed_front_forearm")=="foreground":
-    if "Foreground resumes at the forearms" not in patch:
-        fail.append("layering.armed_front_forearm: V3 foreground forearm marker missing")
+    if "_pc22_v3_draw_segment(pc22_rear_fore_tex" not in patch or "_pc22_v3_draw_segment(pc22_front_fore_tex" not in patch:
+        fail.append("layering.armed_front_forearm: foreground forearm draw calls missing")
 if contract.get("layering",{}).get("shoulder_cap_foreground") is False:
     if "Both deltoid caps are now composed behind the torso." not in patch:
         fail.append("layering.shoulder_cap: V3 behind-torso shoulder-cap marker missing")
