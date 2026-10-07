@@ -165,20 +165,20 @@ def anatomical_sleeve(img, base_rgb, sex, segment, fabric_ref=None):
         ref=trim(fabric_ref).convert("RGBA")
         # Use luminance only: this transfers folds/weave, not torso silhouette.
         refgray=ImageOps.grayscale(ref).filter(ImageFilter.GaussianBlur(0.55))
-        refgray=ImageEnhance.Contrast(refgray).enhance(1.38)
+        refgray=ImageEnhance.Contrast(refgray).enhance(1.62)
         refgray=refgray.resize((w,h),Image.Resampling.LANCZOS)
         ref_dark=tuple(max(0,int(c*0.56)) for c in base_rgb)
         ref_light=tuple(min(255,int(c*1.50+8)) for c in base_rgb)
         reftex=ImageOps.colorize(refgray,ref_dark,ref_light).convert("RGBA")
         reftex.putalpha(mask)
-        base=Image.blend(base,reftex,0.50 if sex=="female" else 0.38)
+        base=Image.blend(base,reftex,0.62 if sex=="female" else 0.48)
         base.putalpha(mask)
 
     # Sparse cloth creases give readable fabric structure without jagged source
     # silhouettes. They rotate with the limb and remain subtle at gameplay scale.
     d=ImageDraw.Draw(base)
-    crease_dark=tuple(max(0,int(c*0.62)) for c in base_rgb)+(95,)
-    crease_light=tuple(min(255,int(c*1.34+5)) for c in base_rgb)+(70,)
+    crease_dark=tuple(max(0,int(c*0.60)) for c in base_rgb)+(112,)
+    crease_light=tuple(min(255,int(c*1.38+6)) for c in base_rgb)+(84,)
     crease_rows=(0.34,0.61,0.82) if segment=="upper" else (0.28,0.55,0.78)
     for idx,yf in enumerate(crease_rows):
         y=int(round(h*yf))
@@ -270,22 +270,28 @@ def tactical_sleeve(img, sex, segment):
     # Transfer only shading/detail from the actual tactical torso/vest art.
     gref=trim(gear_torso_ref).convert("RGBA")
     glum=ImageOps.grayscale(gref).filter(ImageFilter.GaussianBlur(0.45))
-    glum=ImageEnhance.Contrast(glum).enhance(1.45).resize(out.size,Image.Resampling.LANCZOS)
+    glum=ImageEnhance.Contrast(glum).enhance(1.68).resize(out.size,Image.Resampling.LANCZOS)
     gdark=tuple(max(0,int(c*0.52)) for c in light)
     glight=tuple(min(255,int(c*1.35+6)) for c in light)
     gtex=ImageOps.colorize(glum,gdark,glight).convert("RGBA")
     gtex.putalpha(alpha)
-    out=Image.blend(out,gtex,0.50)
+    out=Image.blend(out,gtex,0.62)
     out.putalpha(alpha)
     d=ImageDraw.Draw(out)
     w,h=out.size
-    stitch=(174,157,112,58)
-    shadow=(29,31,27,78)
-    # subdued panel seam and two fabric folds
-    d.line((int(w*0.36),int(h*0.10),int(w*0.37),int(h*0.88)),fill=stitch,width=1)
-    for yf in ((0.46,0.67) if segment=="upper" else (0.37,0.72)):
+    stitch=(174,157,112,62)
+    shadow=(29,31,27,92)
+    # Short staggered seams and folds preserve tactical fabric detail without
+    # tracing the whole limb axis like a rigid strap.
+    seam_rows=(0.31,0.58) if segment=="upper" else (0.35,0.64)
+    for idx,yf in enumerate(seam_rows):
         y=int(h*yf)
-        d.line((int(w*0.32),y,int(w*0.67),y+1),fill=shadow,width=1)
+        x0=int(w*(0.30 if idx==0 else 0.40))
+        x1=int(w*(0.59 if idx==0 else 0.68))
+        d.line((x0,y,x1,y+(1 if idx==0 else -1)),fill=stitch,width=1)
+    for yf in ((0.46,0.72) if segment=="upper" else (0.40,0.75)):
+        y=int(h*yf)
+        d.line((int(w*0.28),y,int(w*0.70),y+1),fill=shadow,width=1)
     out.putalpha(alpha)
     return out
 
