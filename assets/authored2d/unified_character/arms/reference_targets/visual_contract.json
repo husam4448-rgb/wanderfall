@@ -4,8 +4,8 @@
   "male": {
     "shoulder_rear_min_x": 9.6,
     "shoulder_front_min_x": 9.2,
-    "upper_arm_width_min": 8.8,
-    "forearm_width_min": 7.6,
+    "upper_arm_width_min": 7.2,
+    "forearm_width_min": 6,
     "dominant_hand_min": [
       5.3,
       4.9
@@ -30,8 +30,8 @@
   "female": {
     "shoulder_rear_min_x": 9.2,
     "shoulder_front_min_x": 8.9,
-    "upper_arm_width_min": 7.8,
-    "forearm_width_min": 6.8,
+    "upper_arm_width_min": 6.6,
+    "forearm_width_min": 5.5,
     "dominant_hand_min": [
       4.9,
       4.6
@@ -71,7 +71,8 @@
     "Visual-fix-v2 second gate: shoulder sockets must sit higher/outboard at the deltoid; runtime weapon draw height must remain reference-like rather than blocky.",
     "Hand bounds were recalibrated after the first v2 runtime pass: generated grip art now occupies most of its canvas, so previous 8–9 unit draw boxes produced oversized open hands.",
     "Visual-fix-v2 shoulder bridge: full armed upper arms remain behind torso; only a short textured proximal cap is redrawn to make the deltoid attachment visible.",
-    "V2 grip calibration: rifle stock is visible at the shoulder, weapon art sockets and IK wrist targets share the same geometry, and visible hand occupancy is enlarged to match the approved grip reference."
+    "V2 grip calibration: rifle stock is visible at the shoulder, weapon art sockets and IK wrist targets share the same geometry, and visible hand occupancy is enlarged to match the approved grip reference.",
+    "Arm mass recalibrated after magnified runtime review: preserve detailed texture and taper while avoiding the oversized forearm/shoulder blobs seen in the prior V2 pass."
   ],
   "runtime_draw": {
     "rifle_width_min": 36,
