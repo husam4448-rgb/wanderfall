@@ -165,23 +165,23 @@ def _aa_grip_hand(sex, support=False):
 
     if not support:
         # Curled trigger-hand fingers form a compact vertical grip silhouette.
-        finger_boxes=((54,33,78,43),(57,41,81,51),(57,49,80,59),(54,57,75,67))
+        finger_boxes=((50,34,68,43),(52,42,70,51),(52,50,69,59),(49,57,65,66))
         for j,b in enumerate(finger_boxes):
             d.rounded_rectangle(sc(b),radius=5*S,fill=skin,outline=deep,width=2*S)
-            d.line([((b[0]+4)*S,(b[1]+3)*S),((b[2]-4)*S,(b[1]+3)*S)],fill=light,width=S)
-        # Thumb crosses the upper palm toward the weapon.
-        d.polygon([tuple(v*S for v in p) for p in ((31,33),(48,28),(65,34),(58,42),(42,39))],
+            d.line([((b[0]+4)*S,(b[1]+3)*S),((b[2]-3)*S,(b[1]+3)*S)],fill=light,width=S)
+        # Thumb crosses the curled fingers, making a closed grip rather than a pointing hand.
+        d.polygon([tuple(v*S for v in p) for p in ((30,33),(45,29),(59,35),(54,43),(40,40))],
                   fill=light,outline=dark)
-        d.line([(38*S,48*S),(61*S,52*S)],fill=dark,width=2*S)
+        d.line([(37*S,48*S),(56*S,52*S)],fill=dark,width=2*S)
     else:
         # Support hand wraps a horizontal fore-end: knuckles on top, fingers curl under.
-        for b in ((50,33,67,43),(61,34,78,44),(70,36,86,46)):
+        for b in ((47,34,61,43),(56,35,69,44),(63,37,75,46)):
             d.rounded_rectangle(sc(b),radius=5*S,fill=skin,outline=deep,width=2*S)
-        for b in ((54,48,69,64),(65,49,79,65),(75,48,88,62)):
+        for b in ((49,47,62,60),(57,48,69,61),(64,47,75,59)):
             d.rounded_rectangle(sc(b),radius=5*S,fill=skin,outline=deep,width=2*S)
-        d.polygon([tuple(v*S for v in p) for p in ((30,34),(48,29),(62,36),(55,45),(40,43))],
+        d.polygon([tuple(v*S for v in p) for p in ((29,34),(43,30),(57,36),(52,44),(39,42))],
                   fill=light,outline=dark)
-        d.line([(38*S,51*S),(72*S,52*S)],fill=dark,width=2*S)
+        d.line([(36*S,50*S),(62*S,51*S)],fill=dark,width=2*S)
 
     # Palm crease/detail so the hand does not read as a flat orange block.
     d.arc(sc((30,39,61,65)),10,120,fill=dark,width=S)
@@ -315,11 +315,11 @@ specs={
    "shoulder_front":[9.8,-9.0],
    "upper_arm_length":10.9,
    "forearm_length":10.7,
-   "upper_arm_width":9.2,
-   "forearm_width":8.0,
+   "upper_arm_width":8.8,
+   "forearm_width":7.6,
    "hand_size":canonical["male"]["hand_size"],
-   "dominant_hand_size":[9.2,8.5],
-   "support_hand_size":[8.4,7.5],
+   "dominant_hand_size":[6.2,5.6],
+   "support_hand_size":[5.8,5.2],
    "neutral_upper_angle_deg":82.0,
    "neutral_elbow_flex_deg":22.0,
    "source_tint":[78,88,72],
@@ -330,11 +330,11 @@ specs={
    "shoulder_front":[9.4,-8.9],
    "upper_arm_length":10.6,
    "forearm_length":10.5,
-   "upper_arm_width":8.2,
-   "forearm_width":7.1,
+   "upper_arm_width":7.8,
+   "forearm_width":6.8,
    "hand_size":canonical["female"]["hand_size"],
-   "dominant_hand_size":[8.6,7.9],
-   "support_hand_size":[7.8,7.0],
+   "dominant_hand_size":[5.8,5.3],
+   "support_hand_size":[5.4,4.9],
    "neutral_upper_angle_deg":84.0,
    "neutral_elbow_flex_deg":24.0,
    "source_tint":[80,91,75],
@@ -347,7 +347,7 @@ for sex,s in specs.items():
       "upper_forearm_length_source":"corrected from prior 9.4+10.5 solver to cover the complete active PC22 support-hand aim envelope without stretch",
       "weapon_socket":[10.5,-6.0],
       "dominant_hand_grip_socket":[1.0,3.4],
-      "support_hand_grip_socket":[14.7,0.5],
+      "support_hand_grip_socket":[17.0,0.0],
       "support_hand_vertical_offset_right":1.0,
       "support_hand_vertical_offset_left":1.2,
       "elbow_bend_constraints_deg":{"min_flex":12.0,"max_flex":155.0},
