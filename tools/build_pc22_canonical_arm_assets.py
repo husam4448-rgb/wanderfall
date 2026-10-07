@@ -197,11 +197,15 @@ def anatomical_sleeve(img, base_rgb, sex, segment, fabric_ref=None):
         if y+2<h:
             d.line((x0+2,y+2,x1-2,y+2),fill=crease_light,width=1)
 
-    # Longitudinal sleeve seam + faint highlight: enough structure to match
-    # torso fabric at 4x without becoming a noisy pasted texture.
-    seam_x=int(round(w*(0.38 if female else 0.36)))
-    d.line((seam_x,int(h*0.12),seam_x+1,int(h*0.88)),fill=crease_dark,width=1)
-    d.line((seam_x+2,int(h*0.18),seam_x+3,int(h*0.82)),fill=crease_light,width=1)
+    # Avoid a long straight stitch that makes the limb read as a rigid strap.
+    # Short diagonal cloth breaks reinforce fabric without exposing the segment axis.
+    for yf,sgn in ((0.43,1),(0.69,-1)):
+        y=int(round(h*yf))
+        cx=int(round(w*0.50))
+        span=max(3,int(round(w*0.13)))
+        d.line((cx-span,y,cx+span,y+sgn),fill=crease_dark,width=1)
+        if y+2<h:
+            d.line((cx-span+2,y+2,cx+span-2,y+2+sgn),fill=crease_light,width=1)
 
     # Distal cuff shadow defines the wrist without a rectangular joint.
     if segment=="forearm":
@@ -275,8 +279,8 @@ def tactical_sleeve(img, sex, segment):
     out.putalpha(alpha)
     d=ImageDraw.Draw(out)
     w,h=out.size
-    stitch=(174,157,112,105)
-    shadow=(29,31,27,100)
+    stitch=(174,157,112,58)
+    shadow=(29,31,27,78)
     # subdued panel seam and two fabric folds
     d.line((int(w*0.36),int(h*0.10),int(w*0.37),int(h*0.88)),fill=stitch,width=1)
     for yf in ((0.46,0.67) if segment=="upper" else (0.37,0.72)):
