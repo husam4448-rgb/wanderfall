@@ -4,25 +4,11 @@ on:
   push:
     branches: [ pc22-arm-hybrid-render-v3 ]
     paths:
-      - '.ci/trigger-pc22-arm-runtime'
-      - '.github/workflows/pc22-arm-hybrid-render-v3.yml'
-      - 'patches/apply_pc22_canonical_arm_candidate.py'
-      - 'tools/build_pc22_canonical_arm_assets.py'
-      - 'tools/qa_pc22_arm_visual_contract.py'
-      - 'assets/authored2d/unified_character/arms/reference_targets/visual_contract.json'
-      - 'assets/authored2d/unified_character/arms/metadata/hybrid_v3_baseline.json'
-      - 'tools/qa_pc22_hybrid_v3.py'
-      - 'tools/build_pc22_role_overlays.py'
+      - '.ci/legacy-pc22-visual-fix-v2-manual-trigger'
   pull_request:
     branches: [ main ]
     paths:
-      - '.ci/trigger-pc22-arm-runtime'
-      - '.github/workflows/pc22-arm-hybrid-render-v3.yml'
-      - 'patches/apply_pc22_canonical_arm_candidate.py'
-
-concurrency:
-  group: pc22-arm-runtime-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+      - '.ci/legacy-pc22-visual-fix-v2-manual-trigger'
 
 permissions:
   contents: write
