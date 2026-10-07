@@ -532,12 +532,18 @@ for sex,s in specs.items():
 # rendering/pivot changes remain isolated from the known-good V2 candidate.
 v3_rifle_path=v3_root/"weapons"/"SP_PC22_Rifle_V3.png"
 v3_pistol_path=v3_root/"weapons"/"SP_PC22_Pistol_V3.png"
+v3_rifle_stock_path=v3_root/"weapons"/"SP_PC22_Rifle_Stock_V3.png"
+v3_rifle_front_path=v3_root/"weapons"/"SP_PC22_Rifle_Front_V3.png"
 rifle_arm.save(v3_rifle_path)
 pistol_arm.save(v3_pistol_path)
+rifle_stock.save(v3_rifle_stock_path)
+rifle_front.save(v3_rifle_front_path)
 v3_weapon_meta={
   "renderer":"hybrid_pivoted_sprite_v3",
   "rifle":{
     "filename":str(v3_rifle_path.relative_to(repo)),
+    "stock_filename":str(v3_rifle_stock_path.relative_to(repo)),
+    "front_filename":str(v3_rifle_front_path.relative_to(repo)),
     "canvas_size":list(rifle_arm.size),
     "weapon_origin_px":[29.0,13.0],
     "butt_contact_px":[4.0,16.0],
