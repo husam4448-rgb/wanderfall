@@ -68,12 +68,12 @@
       "mirroring_supported": true,
       "approval_state": "candidate",
       "alpha_bbox": [
-        8,
-        21,
-        68,
-        75
+        9,
+        23,
+        47,
+        73
       ],
-      "sha256": "794d82ced5322b813d5e640a288761ef8e8a24bf3db961396858c05a8c72a8fa"
+      "sha256": "22ea1bdb78513b76a595d6c72748e7e6da5fea5306c359975777b8b456f894c3"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/male/SP_PC22_Male_Hand_Support_Right.png",
@@ -93,12 +93,12 @@
       "mirroring_supported": true,
       "approval_state": "candidate",
       "alpha_bbox": [
-        7,
-        19,
-        71,
-        77
+        9,
+        25,
+        44,
+        71
       ],
-      "sha256": "6a1c4ec65d4f8a217f86e3b570a675d87b6c6ca77a7b83d7f4d1f5b03a0f029c"
+      "sha256": "2e75d027721168a670b820800edc2e8be290b8c586c93f09cefe19d8da1b5acd"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/female/SP_PC22_Female_UpperArm_Right.png",
@@ -168,12 +168,12 @@
       "mirroring_supported": true,
       "approval_state": "candidate",
       "alpha_bbox": [
-        8,
-        22,
-        64,
-        73
+        9,
+        24,
+        45,
+        71
       ],
-      "sha256": "53208099a40bd7b8e955b94114299a9560b9fb653cc71c579afa888846a5510c"
+      "sha256": "d202d8bdd05e709a7652b6bd2255da29bf42858f2df8fccecc854d7221b69b09"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/female/SP_PC22_Female_Hand_Support_Right.png",
@@ -193,12 +193,12 @@
       "mirroring_supported": true,
       "approval_state": "candidate",
       "alpha_bbox": [
-        7,
-        20,
-        67,
-        75
+        9,
+        26,
+        42,
+        69
       ],
-      "sha256": "f2f5549a5f2aacf9172ace4cd15e321a948f338e80ade5cb5ab33701e7552a76"
+      "sha256": "f8d12a08bcefdc05f7532ec1debedf98540aae37b6665cb29e8d8f3fd9d59df1"
     }
   ]
 }

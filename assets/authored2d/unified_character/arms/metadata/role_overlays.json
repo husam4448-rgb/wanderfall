@@ -61,10 +61,10 @@
         96
       ],
       "alpha_bbox": [
-        8,
-        21,
-        68,
-        75
+        9,
+        23,
+        47,
+        73
       ],
       "joint_parent": "wrist",
       "joint_child": "dominant_hand",
@@ -72,7 +72,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "4fb9e280265b5033e9692bec715e104fc5d2f5c7521513204b1811ea6263487e"
+      "sha256": "dd9fe5fd29c7a4071f572e2ab2e1203b21d46799a8113b26f792977c4f3e53ed"
     },
     {
       "role": "trader",
@@ -84,10 +84,10 @@
         96
       ],
       "alpha_bbox": [
-        7,
-        19,
-        71,
-        77
+        9,
+        25,
+        44,
+        71
       ],
       "joint_parent": "wrist",
       "joint_child": "support_hand",
@@ -95,7 +95,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "5c82dc642ac9400da215012b5083f0bfc94467fe044b160873e7aa164281f4a5"
+      "sha256": "defeff40238922f956715567d634bb775ff77133e5364b7826837431d5b966af"
     },
     {
       "role": "trader",
@@ -176,10 +176,10 @@
         96
       ],
       "alpha_bbox": [
-        8,
-        22,
-        64,
-        73
+        9,
+        24,
+        45,
+        71
       ],
       "joint_parent": "wrist",
       "joint_child": "dominant_hand",
@@ -187,7 +187,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "7943fdac5d5c278247de231e7f579362fda215d06745d291137a3ebf189581fa"
+      "sha256": "55791b696eb289e16b95a54fcfa7069e7c232b2a27330c355ddf59865106247b"
     },
     {
       "role": "trader",
@@ -199,10 +199,10 @@
         96
       ],
       "alpha_bbox": [
-        7,
-        20,
-        67,
-        75
+        9,
+        26,
+        42,
+        69
       ],
       "joint_parent": "wrist",
       "joint_child": "support_hand",
@@ -210,7 +210,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "3c715b0991cecbfcc4185294e9596672734902ce53877e395ed741ca2d68a809"
+      "sha256": "8386df17ce804b9edebc7c2f5a54127e335a14cabe66270d453700edcd560e97"
     },
     {
       "role": "trader",
@@ -291,10 +291,10 @@
         96
       ],
       "alpha_bbox": [
-        8,
-        21,
-        68,
-        75
+        9,
+        23,
+        47,
+        73
       ],
       "joint_parent": "wrist",
       "joint_child": "dominant_hand",
@@ -302,7 +302,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "1dc0594bebe699f19414e313880bb0a0ee312f02b5336151623e9c2056253405"
+      "sha256": "bc3a9fcf5bb83da1e94f9c79ada1b7da6c02d873abe74c22cfebb7e0d03ddeaa"
     },
     {
       "role": "medic",
@@ -314,10 +314,10 @@
         96
       ],
       "alpha_bbox": [
-        7,
-        19,
-        71,
-        77
+        9,
+        25,
+        44,
+        71
       ],
       "joint_parent": "wrist",
       "joint_child": "support_hand",
@@ -325,7 +325,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "a6403ddd20ae821f7def928cb50241f974dd0f5ff161973945ee6c0e084df101"
+      "sha256": "265b3088e72b200d79cb5dd01df6d1c02237472e73932be0d233e262591a57cf"
     },
     {
       "role": "medic",
@@ -406,10 +406,10 @@
         96
       ],
       "alpha_bbox": [
-        8,
-        22,
-        64,
-        73
+        9,
+        24,
+        45,
+        71
       ],
       "joint_parent": "wrist",
       "joint_child": "dominant_hand",
@@ -417,7 +417,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "1ed58227908046709fc0400696063cb6b2ce75bf8349f34ea3081cefb8608ccc"
+      "sha256": "2f0961032c80cf1f286a72ebadc80ddc876af54c6f5b5f0d7e3b7d1129097c67"
     },
     {
       "role": "medic",
@@ -429,10 +429,10 @@
         96
       ],
       "alpha_bbox": [
-        7,
-        20,
-        67,
-        75
+        9,
+        26,
+        42,
+        69
       ],
       "joint_parent": "wrist",
       "joint_child": "support_hand",
@@ -440,7 +440,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "f1977f45823a695f1e5d15e7f7b9cd6137440040e8df0b69046eb2770a05189a"
+      "sha256": "4d234ed62ced5f94ed4296ccc43d2d34eb21036b251f2fddfb63c05fdad9f652"
     },
     {
       "role": "medic",
@@ -521,10 +521,10 @@
         96
       ],
       "alpha_bbox": [
-        8,
-        21,
-        68,
-        75
+        9,
+        23,
+        47,
+        73
       ],
       "joint_parent": "wrist",
       "joint_child": "dominant_hand",
@@ -532,7 +532,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "6ac0827cec43625c65de28ae193e024d505c53c9a814fa20a32ec840d852564f"
+      "sha256": "5860273da331acda5b03e3d675b1cacfb0849f85ab55fa667e6cc090758eb3d8"
     },
     {
       "role": "mechanic",
@@ -544,10 +544,10 @@
         96
       ],
       "alpha_bbox": [
-        7,
-        19,
-        71,
-        77
+        9,
+        25,
+        44,
+        71
       ],
       "joint_parent": "wrist",
       "joint_child": "support_hand",
@@ -555,7 +555,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "093330c1307cbba6c0875387502f3f73be81efe596127f8bd8a437432275177b"
+      "sha256": "13509cf697c72dd5d1c6af106c44d0b98046496b7b430bf71266fa99f0ce190b"
     },
     {
       "role": "mechanic",
@@ -636,10 +636,10 @@
         96
       ],
       "alpha_bbox": [
-        8,
-        22,
-        64,
-        73
+        9,
+        24,
+        45,
+        71
       ],
       "joint_parent": "wrist",
       "joint_child": "dominant_hand",
@@ -647,7 +647,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "3fd24e16a07bcf357fd5e54dec40285060d513128c978a14f15ef2fc773c9b61"
+      "sha256": "4f7617ef288d2fb92a3392260c5aa23021b46e43cbce7b6dd9d743fee5a0ce10"
     },
     {
       "role": "mechanic",
@@ -659,10 +659,10 @@
         96
       ],
       "alpha_bbox": [
-        7,
-        20,
-        67,
-        75
+        9,
+        26,
+        42,
+        69
       ],
       "joint_parent": "wrist",
       "joint_child": "support_hand",
@@ -670,7 +670,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "377d7076c5d673cb3487af1acefdc9c46dd3711c93a5d71a03e719214c706b84"
+      "sha256": "58e876355d9f0f1a81ac44b37d0535393f043b658d298c46387336585a164844"
     },
     {
       "role": "mechanic",
@@ -751,10 +751,10 @@
         96
       ],
       "alpha_bbox": [
-        8,
-        21,
-        68,
-        75
+        9,
+        23,
+        47,
+        73
       ],
       "joint_parent": "wrist",
       "joint_child": "dominant_hand",
@@ -762,7 +762,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "06430eae5388583212eebc3e6f1631ddca1bd86704479b4ff7a5820b79e2f4d3"
+      "sha256": "31b2a9ff74530d06c405d1c9f0fca2bc39f4b669124832e9bcb6f7d79a803df8"
     },
     {
       "role": "guard",
@@ -774,10 +774,10 @@
         96
       ],
       "alpha_bbox": [
-        7,
-        19,
-        71,
-        77
+        9,
+        25,
+        44,
+        71
       ],
       "joint_parent": "wrist",
       "joint_child": "support_hand",
@@ -785,7 +785,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "4c5b1617f676a7bf5a7ad9649fa8109ecef3462e6e67deb00d152acffb8ea4d4"
+      "sha256": "7f761279b2d55d5c475452964ea38f17eca097aa8a0c93a9b6797a3a5165724c"
     },
     {
       "role": "guard",
@@ -866,10 +866,10 @@
         96
       ],
       "alpha_bbox": [
-        8,
-        22,
-        64,
-        73
+        9,
+        24,
+        45,
+        71
       ],
       "joint_parent": "wrist",
       "joint_child": "dominant_hand",
@@ -877,7 +877,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "4b6ad0da8ac2b12fe10a7770a46952c78c5150e87d663d16ded3a7baf6601ced"
+      "sha256": "8b1951375ac78a57d7001d102977d21b0cf389808f11558d422174a1b4914be0"
     },
     {
       "role": "guard",
@@ -889,10 +889,10 @@
         96
       ],
       "alpha_bbox": [
-        7,
-        20,
-        67,
-        75
+        9,
+        26,
+        42,
+        69
       ],
       "joint_parent": "wrist",
       "joint_child": "support_hand",
@@ -900,7 +900,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "cd10613b6fb3b4f40859d111661df2fadfbf3a32541e22a0307da34fe4c88f2d"
+      "sha256": "7a61343619d7fa097ad7c6a4809725968d085a167451528d72db6c4de7b01917"
     },
     {
       "role": "guard",
@@ -981,10 +981,10 @@
         96
       ],
       "alpha_bbox": [
-        8,
-        21,
-        68,
-        75
+        9,
+        23,
+        47,
+        73
       ],
       "joint_parent": "wrist",
       "joint_child": "dominant_hand",
@@ -992,7 +992,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "fe846cbfbb27a047f256fd252aa2d6999970360b9b9f3b50c74f721fb8c44b32"
+      "sha256": "ddbbaff94e55ab5a3a7d1b4e8a50da19801ab722158e5aefd0dd1274d7be9bb0"
     },
     {
       "role": "bandit",
@@ -1004,10 +1004,10 @@
         96
       ],
       "alpha_bbox": [
-        7,
-        19,
-        71,
-        77
+        9,
+        25,
+        44,
+        71
       ],
       "joint_parent": "wrist",
       "joint_child": "support_hand",
@@ -1015,7 +1015,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "200f2b8899c43afa674f98f52ba801b190b3c003110c5d37a975d5ad8117670b"
+      "sha256": "f60eda61f1ff846d38e95988eda9057dd6ee81ebcd2f6506bdf357abaa0b4a46"
     },
     {
       "role": "bandit",
@@ -1096,10 +1096,10 @@
         96
       ],
       "alpha_bbox": [
-        8,
-        22,
-        64,
-        73
+        9,
+        24,
+        45,
+        71
       ],
       "joint_parent": "wrist",
       "joint_child": "dominant_hand",
@@ -1107,7 +1107,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "4202010db964a50bf9e4f3a031308ec8bfa6cc373e41bdcf811d336f9664585b"
+      "sha256": "d1eb83a95ace6b757f6438d2abe3e47b61091b1f4bb2041146b6475ea44e948f"
     },
     {
       "role": "bandit",
@@ -1119,10 +1119,10 @@
         96
       ],
       "alpha_bbox": [
-        7,
-        20,
-        67,
-        75
+        9,
+        26,
+        42,
+        69
       ],
       "joint_parent": "wrist",
       "joint_child": "support_hand",
@@ -1130,7 +1130,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "c88b456edb85f2caddbdf3b726c7f3140d50c8aeb9c00ce88f613905000e136b"
+      "sha256": "1dc3ed66006f51a4b8fc14d9af9d548dcd72202a3ea65c9be1c338adcefcb73e"
     },
     {
       "role": "bandit",
@@ -1211,10 +1211,10 @@
         96
       ],
       "alpha_bbox": [
-        8,
-        21,
-        68,
-        75
+        9,
+        23,
+        47,
+        73
       ],
       "joint_parent": "wrist",
       "joint_child": "dominant_hand",
@@ -1222,7 +1222,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "71a2787ba4147386f6829d1319e5d316895d0b3a4f23ddb5eb83ccaecac9cf4a"
+      "sha256": "05ba1eb49481a914b077c8077ddffa843f78b537d14d361a677ad744502045fc"
     },
     {
       "role": "civilian",
@@ -1234,10 +1234,10 @@
         96
       ],
       "alpha_bbox": [
-        7,
-        19,
-        71,
-        77
+        9,
+        25,
+        44,
+        71
       ],
       "joint_parent": "wrist",
       "joint_child": "support_hand",
@@ -1245,7 +1245,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "58cc751ec2fffec9e849831ffa5a9dcbe3177d839b6ab860283fb782f2878f01"
+      "sha256": "9de0f0fab55c7d6e492ba968e3463a3e41a4e6cdbddb620e2ab22f44d0da9f57"
     },
     {
       "role": "civilian",
@@ -1326,10 +1326,10 @@
         96
       ],
       "alpha_bbox": [
-        8,
-        22,
-        64,
-        73
+        9,
+        24,
+        45,
+        71
       ],
       "joint_parent": "wrist",
       "joint_child": "dominant_hand",
@@ -1337,7 +1337,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "3cbdf1001c5b857fd4b8dbfc9d7d2e5d0098df998237d48df0e7a1ae7facf62b"
+      "sha256": "2916993f39f73691af697c182398c9831465de212804e69bb509de742fa1a316"
     },
     {
       "role": "civilian",
@@ -1349,10 +1349,10 @@
         96
       ],
       "alpha_bbox": [
-        7,
-        20,
-        67,
-        75
+        9,
+        26,
+        42,
+        69
       ],
       "joint_parent": "wrist",
       "joint_child": "support_hand",
@@ -1360,7 +1360,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "943a8c8c78153b9bdfb85a34da1e5cbf775c6a7884545a0d976eda83afee3046"
+      "sha256": "3ec9c6c49d5cdd729a07e531eae0e0def38714f9aae3c3ecf6f4775a82eb0458"
     },
     {
       "role": "civilian",
