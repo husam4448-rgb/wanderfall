@@ -219,6 +219,21 @@ for x,y,pix in moved:
 rifle_arm_path=root/"weapons"/"SP_PC22_Rifle_ArmCompatible.png"
 rifle_arm.save(rifle_arm_path)
 
+# Split only the upper butt-stock from the front rifle body so the stock can be
+# rendered behind the torso while the receiver/barrel/grip remain in front.
+rifle_stock=Image.new("RGBA",rifle_arm.size,(0,0,0,0))
+rifle_front=rifle_arm.copy()
+srcp=rifle_arm.load(); sp=rifle_stock.load(); fp=rifle_front.load()
+for y in range(min(5,rifle_arm.height)):
+    for x in range(rifle_arm.width):
+        if srcp[x,y][3] > 0:
+            sp[x,y]=srcp[x,y]
+            fp[x,y]=(0,0,0,0)
+rifle_stock_path=root/"weapons"/"SP_PC22_Rifle_Stock_Rear.png"
+rifle_front_path=root/"weapons"/"SP_PC22_Rifle_Front.png"
+rifle_stock.save(rifle_stock_path)
+rifle_front.save(rifle_front_path)
+
 female_upper_runtime=embedded_runtime_image("FEMALE_UPPER_ARM_B64")
 female_fore_runtime=embedded_runtime_image("FEMALE_FOREARM_B64")
 
@@ -367,6 +382,22 @@ asset_meta.append({
   "sha256":hashlib.sha256(rifle_arm_path.read_bytes()).hexdigest(),
   "note":"Only upper butt-stock pixels shifted +4 source px; body/grip/barrel geometry unchanged"
 })
+for wp,seg,note in (
+  (rifle_stock_path,"weapon_rifle_stock_rear","Upper butt-stock only; render behind torso"),
+  (rifle_front_path,"weapon_rifle_front","Receiver/barrel/grip only; render in front"),
+):
+    asset_meta.append({
+      "filename":str(wp.relative_to(repo)),
+      "sex":"shared","segment":seg,"canvas_size":list(rifle_arm.size),
+      "pivot":"same canonical PC22 rifle center/pivot",
+      "joint_parent":"weapon","joint_child":"weapon",
+      "canonical_length":0.0,
+      "visual_overlap_parent":0.0,"visual_overlap_child":0.0,
+      "compatible_rig":"MALE_CANONICAL_ARM_SYSTEM,FEMALE_CANONICAL_ARM_SYSTEM",
+      "mirroring_supported":True,"approval_state":"candidate",
+      "sha256":hashlib.sha256(wp.read_bytes()).hexdigest(),
+      "note":note,
+    })
 (meta/"arm_assets.json").write_text(json.dumps({"assets":asset_meta},indent=2),encoding="utf-8")
 
 roles=["player","trader","medic","mechanic","guard","bandit","civilian"]
