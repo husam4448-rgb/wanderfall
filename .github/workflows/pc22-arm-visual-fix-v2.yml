@@ -109,6 +109,8 @@ jobs:
           test -s assets/authored2d/unified_character/arms/weapons/SP_PC22_Pistol_ArmCompatible.png
           python3 patches/apply_pc22_canonical_arm_candidate.py "$PROJECT_DIR"
           grep -q 'PLAYER CHARACTERS V22 ARM VISUAL FIX V2 | REFERENCE QA:' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"
+          echo "=== GENERATED RUNTIME LINES 928-946 ==="
+          nl -ba "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd" | sed -n '928,946p'
 
       - name: Install Godot and Xvfb
         shell: bash
