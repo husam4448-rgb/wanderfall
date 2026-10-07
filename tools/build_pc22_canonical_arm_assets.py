@@ -59,7 +59,7 @@ def recolor(img, base_rgb, grain=2):
             r,g,b,a=src[x,y]
             if a<4: continue
             lum=(r+g+b)/3.0
-            delta=int(max(-24,min(24,(lum-112.0)*0.15)))
+            delta=int(max(-58,min(58,(lum-112.0)*0.42)))
             gnoise=((x*17+y*11)%5)-2 if grain else 0
             dst[x,y]=(max(0,min(255,base_rgb[0]+delta+gnoise)),
                       max(0,min(255,base_rgb[1]+delta+gnoise)),
@@ -368,10 +368,10 @@ for sex,s in specs.items():
 
     u=row_warp(source_upper,1.08 if female else 1.12,0.96 if female else 1.00,0.78 if female else 0.80)
     u=recolor(u,tuple(s["source_tint"]),2)
-    u.putalpha(u.getchannel("A").filter(ImageFilter.GaussianBlur(0.20)))
+    u.putalpha(u.getchannel("A").filter(ImageFilter.GaussianBlur(0.10)))
     u=recanvas_vertical(u,(64,128),1,0.90 if female else 0.96)
     u=keep_largest_alpha_component(u)
-    u=add_joint_caps(u,tuple(s["source_tint"]),0.48 if female else 0.52,0.38 if female else 0.42,8)
+    u=add_joint_caps(u,tuple(s["source_tint"]),0.42 if female else 0.46,0.32 if female else 0.36,4)
 
     f=row_warp(source_fore,1.04 if female else 1.08,0.88 if female else 0.92,0.62 if female else 0.66)
     # Convert the full authored forearm/hand source into a sleeve-to-wrist segment.
@@ -386,10 +386,10 @@ for sex,s in specs.items():
             base=tuple(s["source_tint"]) if t<0.80 else (70,76,66)
             d=int(max(-18,min(18,(lum-110)*0.12)))
             fp[x,y]=(max(0,min(255,base[0]+d)),max(0,min(255,base[1]+d)),max(0,min(255,base[2]+d)),a)
-    f.putalpha(f.getchannel("A").filter(ImageFilter.GaussianBlur(0.18)))
+    f.putalpha(f.getchannel("A").filter(ImageFilter.GaussianBlur(0.09)))
     f=recanvas_vertical(f,(64,128),1,0.88 if female else 0.92)
     f=keep_largest_alpha_component(f)
-    f=add_joint_caps(f,tuple(s["source_tint"]),0.44 if female else 0.48,0.28 if female else 0.31,7)
+    f=add_joint_caps(f,tuple(s["source_tint"]),0.38 if female else 0.42,0.24 if female else 0.27,4)
 
     sex_dir=root/sex
     up_name=f"SP_PC22_{sex.title()}_UpperArm_Right.png"
@@ -401,11 +401,11 @@ for sex,s in specs.items():
     # upper arm remains depth-layered behind the torso, while this small
     # textured cap reconnects the visible limb to the anatomical shoulder.
     ub=trim(u)
-    cap_h=max(4,int(round(ub.height*0.34)))
+    cap_h=max(4,int(round(ub.height*0.24)))
     cap_src=ub.crop((0,0,ub.width,cap_h))
     cap=Image.new("RGBA",(64,64),(0,0,0,0))
     cap_trim=trim(cap_src)
-    sc=min(54/max(1,cap_trim.width),46/max(1,cap_trim.height))
+    sc=min(48/max(1,cap_trim.width),36/max(1,cap_trim.height))
     cap_rs=cap_trim.resize((max(1,int(round(cap_trim.width*sc))),max(1,int(round(cap_trim.height*sc)))),Image.Resampling.LANCZOS)
     cap.alpha_composite(cap_rs,((64-cap_rs.width)//2,(64-cap_rs.height)//2))
     cap_name=f"SP_PC22_{sex.title()}_ShoulderCap_Right.png"
