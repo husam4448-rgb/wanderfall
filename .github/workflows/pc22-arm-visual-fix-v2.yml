@@ -5,7 +5,7 @@ on:
     branches: [ pc22-arm-visual-fix-v2 ]
     paths:
       - '.ci/trigger-pc22-arm-runtime'
-      - '.github/workflows/pc22-arm-runtime-candidate.yml'
+      - '.github/workflows/pc22-arm-visual-fix-v2.yml'
       - 'patches/apply_pc22_canonical_arm_candidate.py'
       - 'tools/build_pc22_canonical_arm_assets.py'
       - 'tools/qa_pc22_arm_visual_contract.py'
@@ -14,7 +14,7 @@ on:
     branches: [ main ]
     paths:
       - '.ci/trigger-pc22-arm-runtime'
-      - '.github/workflows/pc22-arm-runtime-candidate.yml'
+      - '.github/workflows/pc22-arm-visual-fix-v2.yml'
       - 'patches/apply_pc22_canonical_arm_candidate.py'
 
 permissions:
