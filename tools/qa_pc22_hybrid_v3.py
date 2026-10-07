@@ -113,6 +113,7 @@ patch = (repo / "patches/apply_pc22_canonical_arm_candidate.py").read_text(encod
 for token in (
     "func _pc22_v3_draw_pivoted",
     "func _pc22_v3_draw_segment",
+    "func _pc22_v3_draw_distal_segment",
     "func _pc22_v3_draw_hand",
     "func _pc22_v3_draw_grip_hand",
     "func _pc22_v3_draw_cap",
@@ -143,6 +144,11 @@ require("Vector2(0.54,0.50)" in patch, "dominant armed-hand grip pivot drift")
 require("Vector2(0.56,0.48)" in patch, "support armed-hand grip pivot drift")
 require("(3.25 if female_mode else 3.45)" in patch, "dominant locked hand scale drift")
 require("(3.15 if female_mode else 3.35)" in patch, "support locked hand scale drift")
+require("Rifle stock is a rear-depth piece" in patch, "rifle stock no longer guaranteed behind torso")
+require(patch.count("_pc22_v3_draw_weapon_piece(tex_pc22_rifle_stock") == 1,
+        "rifle stock must be rendered exactly once")
+require("pc22_upper_fg_start" in patch and "_pc22_v3_draw_distal_segment(pc22_upper_fg_tex" in patch,
+        "distal upper-arm anatomical bridge missing")
 
 if errors:
     print("PC22_HYBRID_V3_QA_FAIL")

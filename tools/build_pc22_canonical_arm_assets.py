@@ -351,11 +351,55 @@ def _aa_grip_hand(sex, support=False):
     d.ellipse(sc((29,31,34,36)),fill=light)
     return im.resize((80,96),Image.Resampling.LANCZOS)
 
+def _detailed_skin_hand(glove_img, sex, support=False):
+    """Derive a compact articulated-looking bare hand from the authored glove.
+
+    The glove source contains real finger/palm shading. Recoloring and compacting
+    that source preserves far more readable anatomy than the old block/mitten hand.
+    """
+    src=trim(glove_img).convert("RGBA")
+    # Remove most of the bulky equipment cuff, retain a short wrist bridge.
+    w,h=src.size
+    crop_x=max(0,int(round(w*0.10)))
+    src=src.crop((crop_x,0,w,h))
+    base=(194,126,92) if sex=="male" else (207,139,103)
+    src=fabric_grade(src,base,1.36)
+    src=trim(src)
+
+    # Compact the open authored fingers toward a gripping silhouette.
+    xscale=0.62 if not support else 0.68
+    src=src.resize((max(2,int(round(src.width*xscale))),src.height),Image.Resampling.LANCZOS)
+    src=trim(src)
+
+    canvas=Image.new("RGBA",(96,96),(0,0,0,0))
+    maxw,maxh=(70,58) if not support else (74,56)
+    sc=min(maxw/max(1,src.width),maxh/max(1,src.height))
+    rs=src.resize((max(2,int(round(src.width*sc))),max(2,int(round(src.height*sc)))),Image.Resampling.LANCZOS)
+    ox=10
+    oy=(96-rs.height)//2
+    canvas.alpha_composite(rs,(ox,oy))
+
+    # Cut a narrow weapon channel through the palm. The weapon remains visible
+    # inside the hand, so fingers read as wrapping around it instead of sitting
+    # as an orange block on top of the gun.
+    a=canvas.getchannel("A")
+    ad=ImageDraw.Draw(a)
+    if support:
+        cy=oy+int(round(rs.height*0.54))
+        ad.rounded_rectangle((ox+int(rs.width*0.38),cy-3,ox+int(rs.width*0.92),cy+3),radius=2,fill=0)
+    else:
+        cx=ox+int(round(rs.width*0.58))
+        ad.rounded_rectangle((cx-3,oy+int(rs.height*0.37),cx+3,oy+int(rs.height*0.90)),radius=2,fill=0)
+    canvas.putalpha(a)
+    return canvas
+
 def derive_bare_hand(glove_img, sex):
-    return _aa_grip_hand(sex,False)
+    return _detailed_skin_hand(glove_img,sex,False)
 
 def derive_support_hand(dominant, sex):
-    return _aa_grip_hand(sex,True)
+    # Use the same high-detail authored glove source, not the already-cut dominant.
+    return _detailed_skin_hand(glove_src,sex,True)
+
 
 upper_src=load_b64_png(upper_src_path)
 fore_src=load_b64_png(fore_src_path)

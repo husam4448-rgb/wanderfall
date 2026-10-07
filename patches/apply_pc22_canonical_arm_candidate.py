@@ -339,6 +339,25 @@ func _pc22_v3_draw_segment(tex: Texture2D, a: Vector2, b: Vector2, flip_x: bool)
     var scale_u: float = delta.length()/authored_len
     _pc22_v3_draw_pivoted(tex,a,delta.angle(),scale_u,Vector2(parent_x,th*0.5),flip_x)
 
+func _pc22_v3_draw_distal_segment(tex: Texture2D, a: Vector2, b: Vector2, flip_x: bool, start_fraction: float) -> void:
+    if tex == null:
+        return
+    var delta: Vector2 = b-a
+    var tw: float = float(tex.get_width())
+    var th: float = float(tex.get_height())
+    var parent_x: float = clampf(tw*0.035,2.0,6.0)
+    var child_x: float = tw-1.0-parent_x
+    var authored_len: float = maxf(1.0,child_x-parent_x)
+    var scale_u: float = delta.length()/authored_len
+    var start_x: float = lerpf(parent_x,child_x,clampf(start_fraction,0.0,0.9))
+    var rot: float = delta.angle() if not flip_x else delta.angle()-PI
+    var sx: float = scale_u if not flip_x else -scale_u
+    draw_set_transform(a,rot,Vector2(sx,scale_u))
+    var dst := Rect2(Vector2(start_x-parent_x,-th*0.5),Vector2(tw-start_x,th))
+    var src := Rect2(Vector2(start_x,0.0),Vector2(tw-start_x,th))
+    draw_texture_rect_region(tex,dst,src)
+    draw_set_transform(Vector2.ZERO,0.0,Vector2.ONE)
+
 func _pc22_v3_draw_hand(tex: Texture2D, wrist: Vector2, weapon_angle: float, dir_sign: float, world_height: float) -> void:
     if tex == null:
         return
@@ -629,6 +648,9 @@ s=s.replace(rear_anchor,'''    if gear_back and not female_mode:
     _pc22_v3_draw_cap(pc22_rear_cap_tex,pc22_rear_shoulder,pc22_rear_elbow,dir_sign)
     _pc22_v3_draw_cap(pc22_front_cap_tex,pc22_front_shoulder,pc22_front_elbow,dir_sign)
 
+    # Rifle stock is a rear-depth piece. Draw it BEFORE torso/clothing so the
+    # chest naturally occludes the butt/root instead of showing a brown block
+    # pasted across the character.
     # Independent left/right leg gait. Each leg has its own hip, knee, shin and foot.
 ''',1)
 
@@ -637,14 +659,21 @@ front_anchor='''    # On the left-facing mirror, support hand is drawn first so 
 '''
 if front_anchor not in s:
     raise SystemExit("Candidate front-arm layering anchor missing")
-s=s.replace(front_anchor,'''    # HYBRID V3 DEPTH STACK: torso is already drawn.  Rifle stock comes next,
-    # then compact shoulder caps, then foreground forearms.  The caps are small
-    # pivoted deltoid bridges, not stretched upper-arm substitutes.
+s=s.replace(front_anchor,'''    # HYBRID V3 DEPTH STACK: torso is already drawn. The rear rifle stock and
+    # proximal shoulder roots were composed before torso; only distal arm art,
+    # weapon front and hands are allowed to re-emerge here.
     if weapon_visible and weapon_two_handed and tex_pc22_rifle_stock != null:
         _pc22_v3_draw_weapon_piece(tex_pc22_rifle_stock,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(36.0,18.0),0.33)
 
-    # Shoulder roots are intentionally NOT repainted over the torso here.
-    # Foreground resumes at the forearms so the torso masks the proximal caps.
+    # Shoulder roots remain behind the torso, but the distal half of each upper
+    # arm must re-emerge before the elbow. This creates a continuous anatomical
+    # bridge without repainting the proximal shoulder across the chest.
+    var pc22_upper_fg_tex: Texture2D = _pc22_upper_texture()
+    var pc22_upper_fg_start: float = 0.48 if female_mode else 0.44
+    _pc22_v3_draw_distal_segment(pc22_upper_fg_tex,pc22_rear_shoulder,pc22_rear_elbow,dir_sign<0.0,pc22_upper_fg_start)
+    _pc22_v3_draw_distal_segment(pc22_upper_fg_tex,pc22_front_shoulder,pc22_front_elbow,dir_sign<0.0,pc22_upper_fg_start)
+
+    # Forearms remain foreground and deliberately overlap the distal upper arm.
     var pc22_rear_fore_tex: Texture2D = _pc22_fore_texture()
     var pc22_front_fore_tex: Texture2D = _pc22_fore_texture()
     _pc22_v3_draw_segment(pc22_rear_fore_tex,pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)
