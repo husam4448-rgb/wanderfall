@@ -61,7 +61,7 @@ func weapon_targets(base: Vector2, angle: float, dir_sign: float, recoil: float)
     var pivot := base+Vector2({male_spec["weapon_socket"][0]}*dir_sign,{male_spec["weapon_socket"][1]})+pose_point(Vector2(-1.45*recoil,0),angle,dir_sign)
     var dominant := pivot+pose_point(Vector2({male_spec["dominant_hand_grip_socket"][0]},{male_spec["dominant_hand_grip_socket"][1]}),angle,dir_sign)
     var support := pivot+pose_point(Vector2({male_spec["support_hand_grip_socket"][0]},{male_spec["support_hand_grip_socket"][1]}),angle,dir_sign)
-    support += pose_point(Vector2(0,(1.5 if dir_sign>0.0 else 1.8)),angle,dir_sign)
+    support += pose_point(Vector2(0,(1.0 if dir_sign>0.0 else 1.2)),angle,dir_sign)
     return {{"pivot":pivot,"dominant_wrist":dominant,"support_wrist":support}}
 
 func solve_elbow(shoulder: Vector2, wrist: Vector2, upper_len: float, fore_len: float, previous: Vector2, has_previous: bool) -> Vector2:
@@ -76,8 +76,10 @@ func solve_elbow(shoulder: Vector2, wrist: Vector2, upper_len: float, fore_len: 
     var c2 := shoulder+u*along-perp*height
     if not has_previous:
         return c1 if c1.y>=c2.y else c2
-    var p1 := c1.distance_to(previous)+maxf(0.0,shoulder.y-c1.y-1.0)*3.0
-    var p2 := c2.distance_to(previous)+maxf(0.0,shoulder.y-c2.y-1.0)*3.0
+    # Keep the selected IK branch continuous through vertical aim.
+    # A screen-down penalty caused abrupt branch inversions in visual-fix-v2.
+    var p1: float = c1.distance_to(previous)
+    var p2: float = c2.distance_to(previous)
     return c1 if p1<=p2 else c2
 
 func free_arm(shoulder: Vector2, upper_len: float, fore_len: float, swing_angle: float, dir_sign: float) -> PackedVector2Array:
@@ -337,10 +339,10 @@ func _pc22_verify_sweep_case(label: String, upper_len: float, fore_len: float, r
     for angle in angles:
         var shoulder_dom := Vector2(rear_socket.x*dir_sign,rear_socket.y)
         var shoulder_sup := Vector2(front_socket.x*dir_sign,front_socket.y)
-        var pivot := Vector2(10.5*dir_sign,-9.0)
+        var pivot := Vector2(10.5*dir_sign,-6.0)
         var wrist_dom := pivot + _pose_point(Vector2(1,3.4),angle,dir_sign)
-        var wrist_sup := pivot + _pose_point(Vector2(14.7,1.45),angle,dir_sign)
-        wrist_sup += _pose_point(Vector2(0,(1.5 if dir_sign>0.0 else 1.8)),angle,dir_sign)
+        var wrist_sup := pivot + _pose_point(Vector2(14.7,0.5),angle,dir_sign)
+        wrist_sup += _pose_point(Vector2(0,(1.0 if dir_sign>0.0 else 1.2)),angle,dir_sign)
         var elbow_dom := _pc22_solve_elbow(shoulder_dom,wrist_dom,upper_len,fore_len,previous_dom,has_previous)
         var elbow_sup := _pc22_solve_elbow(shoulder_sup,wrist_sup,upper_len,fore_len,previous_sup,has_previous)
         var dom_upper_err := absf(shoulder_dom.distance_to(elbow_dom)-upper_len)
@@ -556,7 +558,7 @@ s=s.replace(rear_anchor,'''    if gear_back and not female_mode:
         var pc22_front_upper_w: float = 8.2 if female_mode else 9.2
         _pc22_draw_segment(pc22_front_upper_tex,pc22_front_shoulder,pc22_front_elbow,pc22_front_upper_w,dir_sign<0.0)
         if weapon_two_handed and tex_pc22_rifle_stock != null:
-            var pc22_stock_center: Vector2 = pc22_arm_pivot + _pose_point(Vector2(7.0,0.5),pc22_arm_angle,dir_sign)
+            var pc22_stock_center: Vector2 = pc22_arm_pivot + _pose_point(Vector2(7.0,-1.0),pc22_arm_angle,dir_sign)
             _draw_equipment_texture(tex_pc22_rifle_stock,pc22_stock_center,Vector2(46.0,11.0),dir_sign<0.0,pc22_arm_angle)
     else:
         _pc22_draw_chain(pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist,dir_sign)
@@ -603,13 +605,13 @@ weapon_block='''    # Weapon is the relationship anchor between the two hands.
     if weapon_visible:
         var active_muzzle: Vector2 = pc22_arm_pivot
         if weapon_two_handed:
-            var rifle_center: Vector2 = pc22_arm_pivot + _pose_point(Vector2(7.0,0.5),pc22_arm_angle,dir_sign)
+            var rifle_center: Vector2 = pc22_arm_pivot + _pose_point(Vector2(7.0,-1.0),pc22_arm_angle,dir_sign)
             _draw_equipment_texture(tex_pc22_rifle_front,rifle_center,Vector2(46.0,11.0),dir_sign<0.0,pc22_arm_angle)
-            active_muzzle = pc22_arm_pivot + _pose_point(Vector2(29.0,-0.2),pc22_arm_angle,dir_sign)
+            active_muzzle = pc22_arm_pivot + _pose_point(Vector2(29.0,-1.7),pc22_arm_angle,dir_sign)
         else:
-            var pistol_center: Vector2 = pc22_arm_pivot + _pose_point(Vector2(3.5,0.8),pc22_arm_angle,dir_sign)
+            var pistol_center: Vector2 = pc22_arm_pivot + _pose_point(Vector2(3.5,-0.6),pc22_arm_angle,dir_sign)
             _draw_equipment_texture(tex_pc22_pistol,pistol_center,Vector2(20.0,9.0),dir_sign<0.0,pc22_arm_angle)
-            active_muzzle = pc22_arm_pivot + _pose_point(Vector2(13.0,-0.2),pc22_arm_angle,dir_sign)
+            active_muzzle = pc22_arm_pivot + _pose_point(Vector2(13.0,-2.2),pc22_arm_angle,dir_sign)
 
         if shot_flash > 0.02:
             var flash_len: float = 5.0 * shot_flash
