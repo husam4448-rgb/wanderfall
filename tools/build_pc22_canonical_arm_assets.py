@@ -375,60 +375,46 @@ def make_v3_pivoted_hand(hand_img):
 
 
 def make_v3_elbow_patch(upper_x, fore_x, sex):
-    """Build a compact textured elbow gusset from both adjacent sleeve segments.
+    """Build a feathered cloth elbow bridge from the two adjacent sleeve textures.
 
-    This is visual overlap only: no skeleton/pivot/IK values are changed.
+    It is deliberately low-contrast and directional so it disappears into the
+    sleeve instead of reading as a separate elbow pad. Skeleton geometry is untouched.
     """
     u=trim(upper_x).convert("RGBA")
     f=trim(fore_x).convert("RGBA")
-    W,H=(46,28) if sex=="female" else (50,31)
+    W,H=(38,20) if sex=="female" else (42,22)
 
-    # Distal upper and proximal forearm are resampled into one shared cloth field.
-    uc=u.crop((max(0,int(round(u.width*0.62))),0,u.width,u.height)).resize((W,H),Image.Resampling.LANCZOS)
-    fc=f.crop((0,0,max(2,int(round(f.width*0.38))),f.height)).resize((W,H),Image.Resampling.LANCZOS)
+    uc=u.crop((max(0,int(round(u.width*0.68))),0,u.width,u.height)).resize((W,H),Image.Resampling.LANCZOS)
+    fc=f.crop((0,0,max(2,int(round(f.width*0.32))),f.height)).resize((W,H),Image.Resampling.LANCZOS)
     tex=Image.blend(uc,fc,0.50).convert("RGBA")
 
-    # Directional anatomical gusset: broad at the flexion center, tapered into
-    # each segment. It is intentionally neither circular nor rectangular.
+    # Long, tapered cloth crossover. No ellipse, border ring, or rectangular panel.
     mask=Image.new("L",(W,H),0)
     d=ImageDraw.Draw(mask)
     cy=H/2.0
     pts=[
-        (1,int(cy-3)),
-        (int(W*0.18),int(H*0.20)),
-        (int(W*0.43),int(H*0.08)),
-        (int(W*0.72),int(H*0.16)),
-        (W-2,int(cy-2)),
-        (int(W*0.82),int(H*0.78)),
-        (int(W*0.54),int(H*0.92)),
-        (int(W*0.25),int(H*0.82)),
+        (0,int(cy-1)),
+        (int(W*0.18),int(H*0.30)),
+        (int(W*0.48),int(H*0.18)),
+        (int(W*0.82),int(H*0.32)),
+        (W-1,int(cy)),
+        (int(W*0.82),int(H*0.68)),
+        (int(W*0.48),int(H*0.82)),
+        (int(W*0.18),int(H*0.70)),
     ]
-    d.polygon(pts,fill=255)
-    # Slight rounding only at the center to avoid pointed/hinged elbow corners.
-    d.rounded_rectangle(
-        (int(W*0.25),int(H*0.20),int(W*0.76),int(H*0.82)),
-        radius=max(2,int(H*0.14)),fill=255
-    )
-    mask=mask.filter(ImageFilter.GaussianBlur(0.38))
+    d.polygon(pts,fill=238)
+    mask=mask.filter(ImageFilter.GaussianBlur(1.15))
+    # Keep the bridge translucent enough to inherit the underlying segment texture.
+    mask=mask.point(lambda a: int(a*0.82))
 
-    # Preserve shared fabric RGB, but let our anatomical mask define alpha.
     tex.putalpha(mask)
-
-    # Restrained contour and cloth folds matching the segment art.
-    inner=mask.filter(ImageFilter.MinFilter(3))
-    edge=ImageChops.subtract(mask,inner)
-    ep=edge.load(); tp=tex.load()
-    for yy in range(H):
-        for xx in range(W):
-            if ep[xx,yy] > 0:
-                r,g,b,a=tp[xx,yy]
-                tp[xx,yy]=(max(0,int(r*0.55)),max(0,int(g*0.55)),max(0,int(b*0.55)),a)
     td=ImageDraw.Draw(tex)
-    fold=(45,49,41,82)
-    td.line((int(W*0.19),int(H*0.43),int(W*0.72),int(H*0.55)),fill=fold,width=1)
-    td.line((int(W*0.27),int(H*0.66),int(W*0.73),int(H*0.48)),fill=fold,width=1)
+    fold=(47,51,43,34)
+    td.line((int(W*0.22),int(H*0.44),int(W*0.76),int(H*0.54)),fill=fold,width=1)
+    td.line((int(W*0.30),int(H*0.64),int(W*0.70),int(H*0.49)),fill=fold,width=1)
     tex.putalpha(mask)
     return tex
+
 
 def make_v3_shoulder_cap(upper_x, sex):
     """Build an asymmetric torso-rooted deltoid from proximal V3 arm texture.
