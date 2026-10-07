@@ -2,7 +2,7 @@
 """Build PlayerCharacters_v22 canonical articulated arm assets and deterministic QA."""
 from pathlib import Path
 from io import BytesIO
-from PIL import Image, ImageDraw, ImageFilter, ImageEnhance
+from PIL import Image, ImageDraw, ImageFilter, ImageEnhance, ImageChops
 import base64, hashlib, json, math, re, sys
 
 repo=Path(sys.argv[1] if len(sys.argv)>1 else ".")
@@ -172,12 +172,36 @@ def make_v3_pivoted_hand(hand_img):
     return hand,[float(wrist_x),float(h/2.0)]
 
 
-def make_v3_shoulder_cap(cap_img):
-    """Tight +X shoulder-cap sprite with socket pivot near its inner edge."""
-    cap=trim(cap_img).rotate(90,expand=True,resample=Image.Resampling.BICUBIC)
+def make_v3_shoulder_cap(upper_x):
+    """Build a compact rounded deltoid from the proximal V3 upper-arm art.
+
+    V2/V3's earlier cap was cut from the top of a vertical legacy sprite; after
+    rotation that produced the triangular shoulder spike visible in Godot.
+    This version samples the already-oriented +X upper arm, keeps its authored
+    shading, and applies a rounded/tapered deltoid mask.  It changes artwork
+    only: the canonical shoulder socket and IK geometry remain untouched.
+    """
+    src=trim(upper_x).convert("RGBA")
+    sw,sh=src.size
+    cap_w=max(10,min(sw,max(int(round(sh*1.35)),int(round(sw*0.34)))))
+    cap=src.crop((0,0,cap_w,sh)).copy()
+
+    mask=Image.new("L",cap.size,0)
+    d=ImageDraw.Draw(mask)
+    w,h=cap.size
+    # Full proximal deltoid mass, gently narrowing toward the upper arm.
+    d.ellipse((0,0,min(w-1,int(round(h*1.10))),h-1),fill=255)
+    neck_x=max(1,int(round(h*0.28)))
+    d.rounded_rectangle(
+        (neck_x,max(0,int(round(h*0.14))),w-1,min(h-1,int(round(h*0.86)))),
+        radius=max(1,int(round(h*0.24))),
+        fill=255,
+    )
+    alpha=ImageChops.multiply(cap.getchannel("A"),mask)
+    cap.putalpha(alpha)
     cap=trim(cap)
     w,h=cap.size
-    pivot=[float(max(1,int(round(w*0.24)))),float(h/2.0)]
+    pivot=[float(max(1,int(round(w*0.18)))),float(h/2.0)]
     return cap,pivot
 
 def _aa_grip_hand(sex, support=False):
@@ -457,7 +481,7 @@ for sex,s in specs.items():
     v3_fore,v3_fore_parent,v3_fore_child=make_v3_pivoted_segment(f)
     v3_dom,v3_dom_pivot=make_v3_pivoted_hand(hand)
     v3_sup,v3_sup_pivot=make_v3_pivoted_hand(support_hand)
-    v3_cap,v3_cap_pivot=make_v3_shoulder_cap(cap)
+    v3_cap,v3_cap_pivot=make_v3_shoulder_cap(v3_upper)
 
     v3_names={
       "upper_arm":f"SP_PC22_{sex.title()}_UpperArm_V3.png",
