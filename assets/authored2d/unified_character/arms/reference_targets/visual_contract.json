@@ -55,5 +55,10 @@
     "rifle_height_max": 11,
     "pistol_width_min": 17,
     "pistol_height_max": 9
+  },
+  "layering": {
+    "armed_front_upper": "behind_torso",
+    "armed_front_forearm": "foreground",
+    "prohibit_full_front_chain_after_torso": true
   }
 }
