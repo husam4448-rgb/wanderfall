@@ -187,3 +187,7 @@ for sex in ("male","female"):
             require(gim.getchannel("A").getbbox() is not None, f"{sex}: tactical grip glove empty {name}")
 require("if gear_gloves:" in patch and "tex_pc22_female_glove_dom" in patch and "tex_pc22_male_glove_sup" in patch,
         "equipped generic glove override missing")
+
+# Armed shoulder caps are intentionally suppressed after real-device review.
+require("if not weapon_visible:" in patch and "small shoulder blob" in patch,
+        "armed shoulder-cap suppression missing")
