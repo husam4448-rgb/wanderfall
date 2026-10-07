@@ -61,7 +61,8 @@ func weapon_targets(base: Vector2, angle: float, dir_sign: float, recoil: float)
     var pivot := base+Vector2({male_spec["weapon_socket"][0]}*dir_sign,{male_spec["weapon_socket"][1]})+pose_point(Vector2(-1.45*recoil,0),angle,dir_sign)
     var dominant := pivot+pose_point(Vector2({male_spec["dominant_hand_grip_socket"][0]},{male_spec["dominant_hand_grip_socket"][1]}),angle,dir_sign)
     var support := pivot+pose_point(Vector2({male_spec["support_hand_grip_socket"][0]},{male_spec["support_hand_grip_socket"][1]}),angle,dir_sign)
-    support += pose_point(Vector2(0,(1.0 if dir_sign>0.0 else 1.2)),angle,dir_sign)
+    # V3 grip sockets are already calibrated in weapon-local space; no extra support-hand drift.
+    support += pose_point(Vector2(0,0.0),angle,dir_sign)
     return {{"pivot":pivot,"dominant_wrist":dominant,"support_wrist":support}}
 
 func solve_elbow(shoulder: Vector2, wrist: Vector2, upper_len: float, fore_len: float, previous: Vector2, has_previous: bool) -> Vector2:
