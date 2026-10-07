@@ -273,6 +273,48 @@ func _pc22_verify_runtime_sweep() -> bool:
     ok = _pc22_verify_sweep_case("female_left",10.6,10.5,Vector2(5.3,-8),Vector2(3,-5),-1.0) and ok
     return ok
 
+func _pc22_verify_npc_inheritance() -> bool:
+    var roles := ["trader","medic","mechanic","guard","bandit","civilian"]
+    for is_female in [false,true]:
+        pc22_player_arm_rig.configure(is_female)
+        pc22_npc_arm_rig.configure(is_female)
+        if pc22_player_arm_rig.rig_id() != pc22_npc_arm_rig.rig_id():
+            push_error("PC22_NPC_RIG_ID_MISMATCH")
+            return false
+        var p_len := pc22_player_arm_rig.lengths()
+        var n_len := pc22_npc_arm_rig.lengths()
+        if p_len.distance_to(n_len) > 0.0001:
+            push_error("PC22_NPC_LENGTH_MISMATCH")
+            return false
+        for role in roles:
+            for dir_sign in [-1.0,1.0]:
+                for angle in [-PI*0.49,-1.0,-0.5,0.0,0.5,1.0,PI*0.49]:
+                    var base := Vector2(100,100)
+                    var psr := pc22_player_arm_rig.shoulder_rear(base,dir_sign)
+                    var nsr := pc22_npc_arm_rig.shoulder_rear(base,dir_sign)
+                    var psf := pc22_player_arm_rig.shoulder_front(base,dir_sign)
+                    var nsf := pc22_npc_arm_rig.shoulder_front(base,dir_sign)
+                    var pt: Dictionary = pc22_player_arm_rig.weapon_targets(base,angle,dir_sign,0.0)
+                    var nt: Dictionary = pc22_npc_arm_rig.weapon_targets(base,angle,dir_sign,0.0)
+                    var pd: Vector2 = pt["dominant_wrist"]
+                    var nd: Vector2 = nt["dominant_wrist"]
+                    var ps: Vector2 = pt["support_wrist"]
+                    var ns: Vector2 = nt["support_wrist"]
+                    if psr.distance_to(nsr)>0.0001 or psf.distance_to(nsf)>0.0001:
+                        push_error("PC22_NPC_SHOULDER_MISMATCH %s" % role)
+                        return false
+                    if pd.distance_to(nd)>0.0001 or ps.distance_to(ns)>0.0001:
+                        push_error("PC22_NPC_WRIST_MISMATCH %s" % role)
+                        return false
+                    var pe := pc22_player_arm_rig.solve_elbow(psr,pd,p_len.x,p_len.y,Vector2.ZERO,false)
+                    var ne := pc22_npc_arm_rig.solve_elbow(nsr,nd,n_len.x,n_len.y,Vector2.ZERO,false)
+                    if pe.distance_to(ne)>0.0001:
+                        push_error("PC22_NPC_ELBOW_MISMATCH %s" % role)
+                        return false
+        print("PC22_NPC_SEX_RIG_OK:",pc22_player_arm_rig.rig_id())
+    print("PC22_NPC_INHERITANCE_OK")
+    return true
+
 '''
 s=s.replace(support_anchor,helpers+support_anchor,1)
 
@@ -456,6 +498,10 @@ ready_inject='''    if not _pc22_verify_runtime_sweep():
         get_tree().quit(23)
         return
     print("PC22_RUNTIME_SWEEP_OK")
+    if not _pc22_verify_npc_inheritance():
+        push_error("PC22_NPC_INHERITANCE_FAIL")
+        get_tree().quit(24)
+        return
     if OS.has_environment("ARM_CAPTURE_DIR"):
         pc22_arm_capture_dir = OS.get_environment("ARM_CAPTURE_DIR")
         DirAccess.make_dir_recursive_absolute(pc22_arm_capture_dir)
