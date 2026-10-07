@@ -44,6 +44,12 @@ for sex, ex in expected.items():
     require(spec["support_hand_vertical_offset_left"] == 0.0, f"{sex}: support left offset drift")
 
 for sex in ("male","female"):
+    for gear_name in (f"SP_PC22_{sex.title()}_UpperArm_Gear_V3.png",f"SP_PC22_{sex.title()}_Forearm_Gear_V3.png"):
+        gp=arms/"hybrid_v3"/sex/gear_name
+        require(gp.is_file(), f"{sex}: tactical gear sleeve missing {gear_name}")
+        if gp.is_file():
+            require(Image.open(gp).convert("RGBA").getchannel("A").getbbox() is not None,
+                    f"{sex}: tactical gear sleeve empty {gear_name}")
     mp = meta / f"hybrid_v3_{sex}_assets.json"
     require(mp.is_file(), f"{sex}: V3 metadata missing")
     if not mp.is_file():
@@ -151,6 +157,8 @@ require("if weapon_visible and weapon_two_handed:" in patch and "pc22_upper_fg_s
         "conditional rifle upper-arm bridge missing")
 require("0.76 if female_mode else 0.72" in patch,
         "distal rifle bridge exposure drift")
+require("if gear_torso:" in patch and "tex_pc22_female_gear_upper" in patch and "tex_pc22_male_gear_fore" in patch,
+        "equipped tactical sleeve selection missing")
 
 if errors:
     print("PC22_HYBRID_V3_QA_FAIL")

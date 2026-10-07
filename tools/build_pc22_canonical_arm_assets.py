@@ -101,10 +101,10 @@ def anatomical_sleeve(img, base_rgb, sex, segment):
     female=(sex=="female")
     if segment=="upper":
         # broad hidden shoulder root -> biceps -> compact elbow
-        profile=(0.46,0.42,0.34) if female else (0.52,0.48,0.38)
+        profile=(0.38,0.50,0.27) if female else (0.42,0.56,0.30)
     else:
         # elbow mass -> tapered forearm -> narrow wrist/cuff
-        profile=(0.39,0.35,0.24) if female else (0.44,0.40,0.27)
+        profile=(0.34,0.41,0.20) if female else (0.38,0.46,0.22)
 
     mask=Image.new("L",(w,h),0)
     mp=mask.load()
@@ -179,6 +179,12 @@ def anatomical_sleeve(img, base_rgb, sex, segment):
         if y+2<h:
             d.line((x0+2,y+2,x1-2,y+2),fill=crease_light,width=1)
 
+    # Longitudinal sleeve seam + faint highlight: enough structure to match
+    # torso fabric at 4x without becoming a noisy pasted texture.
+    seam_x=int(round(w*(0.38 if female else 0.36)))
+    d.line((seam_x,int(h*0.12),seam_x+1,int(h*0.88)),fill=crease_dark,width=1)
+    d.line((seam_x+2,int(h*0.18),seam_x+3,int(h*0.82)),fill=crease_light,width=1)
+
     # Distal cuff shadow defines the wrist without a rectangular joint.
     if segment=="forearm":
         y=int(round(h*0.90))
@@ -213,6 +219,30 @@ def recanvas_vertical(img, canvas=(64,128), margin_y=5, width_fraction=0.48):
     resized=img.resize((target_w,target_h),Image.Resampling.LANCZOS)
     out=Image.new("RGBA",canvas,(0,0,0,0))
     out.alpha_composite(resized,((canvas[0]-target_w)//2,margin_y))
+    return out
+
+def tactical_sleeve(img, sex, segment):
+    """Detailed tactical cloth variant used when vest/body armor is equipped."""
+    src=img.convert("RGBA")
+    alpha=src.getchannel("A")
+    gray=ImageOps.grayscale(src)
+    gray=ImageEnhance.Contrast(gray).enhance(1.28)
+    if sex=="female":
+        dark=(55,55,44); light=(126,118,86)
+    else:
+        dark=(52,51,41); light=(119,109,80)
+    out=ImageOps.colorize(gray,dark,light).convert("RGBA")
+    out.putalpha(alpha)
+    d=ImageDraw.Draw(out)
+    w,h=out.size
+    stitch=(174,157,112,105)
+    shadow=(29,31,27,100)
+    # subdued panel seam and two fabric folds
+    d.line((int(w*0.36),int(h*0.10),int(w*0.37),int(h*0.88)),fill=stitch,width=1)
+    for yf in ((0.46,0.67) if segment=="upper" else (0.37,0.72)):
+        y=int(h*yf)
+        d.line((int(w*0.32),y,int(w*0.67),y+1),fill=shadow,width=1)
+    out.putalpha(alpha)
     return out
 
 def derive_hand_fallback(fore, sex):
@@ -685,6 +715,8 @@ for sex,s in specs.items():
     v3_sex=v3_root/sex
     v3_upper,v3_upper_parent,v3_upper_child=make_v3_pivoted_segment(u)
     v3_fore,v3_fore_parent,v3_fore_child=make_v3_pivoted_segment(f)
+    v3_gear_upper=tactical_sleeve(v3_upper,sex,"upper")
+    v3_gear_fore=tactical_sleeve(v3_fore,sex,"forearm")
     v3_dom,v3_dom_pivot=make_v3_pivoted_hand(hand)
     v3_sup,v3_sup_pivot=make_v3_pivoted_hand(support_hand)
     v3_cap,v3_cap_pivot=make_v3_shoulder_cap(v3_upper,sex)
@@ -692,13 +724,16 @@ for sex,s in specs.items():
     v3_names={
       "upper_arm":f"SP_PC22_{sex.title()}_UpperArm_V3.png",
       "forearm":f"SP_PC22_{sex.title()}_Forearm_V3.png",
+      "gear_upper_arm":f"SP_PC22_{sex.title()}_UpperArm_Gear_V3.png",
+      "gear_forearm":f"SP_PC22_{sex.title()}_Forearm_Gear_V3.png",
       "hand_dominant":f"SP_PC22_{sex.title()}_Hand_Dominant_V3.png",
       "hand_support":f"SP_PC22_{sex.title()}_Hand_Support_V3.png",
       "shoulder_cap":f"SP_PC22_{sex.title()}_ShoulderCap_V3.png",
     }
     for key,img in (
-      ("upper_arm",v3_upper),("forearm",v3_fore),("hand_dominant",v3_dom),
-      ("hand_support",v3_sup),("shoulder_cap",v3_cap),
+      ("upper_arm",v3_upper),("forearm",v3_fore),
+      ("gear_upper_arm",v3_gear_upper),("gear_forearm",v3_gear_fore),
+      ("hand_dominant",v3_dom),("hand_support",v3_sup),("shoulder_cap",v3_cap),
     ):
         img.save(v3_sex/v3_names[key])
 
