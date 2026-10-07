@@ -220,12 +220,11 @@ jobs:
 
       - name: Export Android arm candidate APK
         shell: bash
-        env:
-          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: ${{ env.HOME }}/.local/share/godot/keystores/debug.keystore
-          GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
-          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
         run: |
           set -euo pipefail
+          export GODOT_ANDROID_KEYSTORE_DEBUG_PATH="$HOME/.local/share/godot/keystores/debug.keystore"
+          export GODOT_ANDROID_KEYSTORE_DEBUG_USER="androiddebugkey"
+          export GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD="android"
           test -s "$GODOT_ANDROID_KEYSTORE_DEBUG_PATH"
           "$GODOT_BIN" --headless --path "$PROJECT_DIR" --export-debug Android "$GITHUB_WORKSPACE/$APK_PATH" 2>&1 | tee pc22-arm-android-export.log
           test -s "$GITHUB_WORKSPACE/$APK_PATH"
