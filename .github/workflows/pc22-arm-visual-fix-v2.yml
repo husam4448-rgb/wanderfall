@@ -112,6 +112,12 @@ jobs:
           echo "=== GENERATED RUNTIME LINES 928-946 ==="
           nl -ba "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd" | sed -n '928,946p'
 
+      - name: Show generated runtime around prior parser failure
+        shell: bash
+        run: |
+          set -euo pipefail
+          nl -ba "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd" | sed -n '928,948p'
+
       - name: Install Godot and Xvfb
         shell: bash
         run: |
