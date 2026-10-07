@@ -93,6 +93,9 @@ if contract.get("layering",{}).get("armed_front_upper")=="behind_torso":
 if contract.get("layering",{}).get("armed_front_forearm")=="foreground":
     if "VISUAL_FIX_V2_FRONT_FOREARM_FOREGROUND" not in patch:
         fail.append("layering.armed_front_forearm: missing foreground implementation marker")
+if contract.get("layering",{}).get("shoulder_cap_foreground") is True:
+    if "VISUAL_FIX_V2_SHOULDER_CAP_FOREGROUND" not in patch:
+        fail.append("layering.shoulder_cap_foreground: missing textured shoulder bridge marker")
 
 if fail:
     print("PC22_ARM_VISUAL_CONTRACT_FAIL")
