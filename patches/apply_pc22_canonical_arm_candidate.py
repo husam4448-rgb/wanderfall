@@ -479,7 +479,7 @@ old_support=support_anchor+'''    if female_mode:
 '''
 new_support=support_anchor+'''    var support_tex := _pc22_support_hand_texture()
     if support_tex != null:
-        _pc22_v3_draw_hand(support_tex,center,angle,dir_sign,(4.6 if female_mode else 4.9)*scale)
+        _pc22_v3_draw_hand(support_tex,center,angle,dir_sign,(3.15 if female_mode else 3.35)*scale)
         return
     if female_mode:
         scale *= 0.92
@@ -496,7 +496,7 @@ old_hand='''    if tex_base_hand != null:
 '''
 new_hand='''    var pc22_dom_hand := _pc22_dominant_hand_texture()
     if pc22_dom_hand != null:
-        _pc22_v3_draw_hand(pc22_dom_hand,center,angle,dir_sign,(4.9 if female_mode else 5.2)*scale)
+        _pc22_v3_draw_hand(pc22_dom_hand,center,angle,dir_sign,(3.25 if female_mode else 3.45)*scale)
         return
 '''
 if old_hand not in s:
