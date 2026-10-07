@@ -62,7 +62,8 @@ for role in roles:
         sex_arm=arms/sex
         upper=Image.open(sex_arm/f"SP_PC22_{sex.title()}_UpperArm_Right.png").convert("RGBA")
         fore=Image.open(sex_arm/f"SP_PC22_{sex.title()}_Forearm_Right.png").convert("RGBA")
-        hand=Image.open(sex_arm/f"SP_PC22_{sex.title()}_Hand_Dominant_Right.png").convert("RGBA")
+        hand_dom=Image.open(sex_arm/f"SP_PC22_{sex.title()}_Hand_Dominant_Right.png").convert("RGBA")
+        hand_sup=Image.open(sex_arm/f"SP_PC22_{sex.title()}_Hand_Support_Right.png").convert("RGBA")
         torso=Image.open(base/f"core/{sex}/torso_base.png").convert("RGBA")
 
         outdir=arms/"sleeves"/role/sex; outdir.mkdir(parents=True,exist_ok=True)
@@ -71,26 +72,29 @@ for role in roles:
 
         su=sleeve_asset(upper,role,"upper")
         sf=sleeve_asset(fore,role,"fore")
-        sg=glove_asset(hand,role)
+        sg_dom=glove_asset(hand_dom,role)
+        sg_sup=glove_asset(hand_sup,role)
         st=torso_asset(torso,role)
 
         files={
           "upper_arm":outdir/"upper_arm.png",
           "forearm":outdir/"forearm.png",
-          "glove":gdir/"glove.png",
+          "glove_dominant":gdir/"glove_dominant.png",
+          "glove_support":gdir/"glove_support.png",
           "torso":tdir/"torso.png",
         }
-        for k,img in (("upper_arm",su),("forearm",sf),("glove",sg),("torso",st)):
+        for k,img in (("upper_arm",su),("forearm",sf),("glove_dominant",sg_dom),("glove_support",sg_sup),("torso",st)):
             img.save(files[k])
 
         spec=json.loads((base/f"core/{sex}/arm_spec.json").read_text(encoding="utf-8"))
         for k,img,parent,child in (
           ("upper_arm",su,"shoulder","elbow"),
           ("forearm",sf,"elbow","wrist"),
-          ("glove",sg,"wrist","hand"),
+          ("glove_dominant",sg_dom,"wrist","dominant_hand"),
+          ("glove_support",sg_sup,"wrist","support_hand"),
           ("torso",st,"body","shoulder_interface"),
         ):
-            src_ref={"upper_arm":upper,"forearm":fore,"glove":hand,"torso":torso}[k]
+            src_ref={"upper_arm":upper,"forearm":fore,"glove_dominant":hand_dom,"glove_support":hand_sup,"torso":torso}[k]
             if img.size!=src_ref.size:
                 raise SystemExit(f"{role}/{sex}/{k}: canvas mismatch")
             if img.getchannel("A").tobytes()!=src_ref.getchannel("A").tobytes():
@@ -117,7 +121,7 @@ if len(sleeves)!=24:
   "standard_id":"PlayerCharacters_v22",
   "skeleton_policy":"roles cannot override canonical arm geometry",
   "sleeve_asset_count":len(sleeves),
-  "role_glove_count":len([r for r in records if r["asset"]=="glove"]),
+  "role_glove_count":len([r for r in records if r["asset"] in ("glove_dominant","glove_support")]),
   "role_torso_count":len([r for r in records if r["asset"]=="torso"]),
   "assets":records
 },indent=2),encoding="utf-8")
@@ -132,7 +136,7 @@ for row,sex in enumerate(("male","female")):
         t=Image.open(roles_root/role/sex/"torso.png").convert("RGBA")
         u=Image.open(arms/"sleeves"/role/sex/"upper_arm.png").convert("RGBA")
         f=Image.open(arms/"sleeves"/role/sex/"forearm.png").convert("RGBA")
-        g=Image.open(arms/"gloves"/role/sex/"glove.png").convert("RGBA")
+        g=Image.open(arms/"gloves"/role/sex/"glove_dominant.png").convert("RGBA")
         def fit(im,maxw,maxh):
             bb=im.getchannel("A").getbbox()
             if bb: im=im.crop(bb)
@@ -149,4 +153,4 @@ for row,sex in enumerate(("male","female")):
 sheet.convert("RGB").save(qa/"role_overlays_contact_sheet.jpg",quality=95,subsampling=0)
 
 print("PC22_ROLE_OVERLAYS_OK")
-print(json.dumps({"sleeves":24,"gloves":12,"torsos":12},sort_keys=True))
+print(json.dumps({"sleeves":24,"gloves":24,"torsos":12},sort_keys=True))
