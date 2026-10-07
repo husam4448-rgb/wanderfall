@@ -1,20 +1,23 @@
-name: PC22 Arm Visual Fix V2
+name: PC22 Hybrid Arm Renderer V3
 
 on:
   push:
-    branches: [ pc22-arm-visual-fix-v2 ]
+    branches: [ pc22-arm-hybrid-render-v3 ]
     paths:
       - '.ci/trigger-pc22-arm-runtime'
-      - '.github/workflows/pc22-arm-visual-fix-v2.yml'
+      - '.github/workflows/pc22-arm-hybrid-render-v3.yml'
       - 'patches/apply_pc22_canonical_arm_candidate.py'
       - 'tools/build_pc22_canonical_arm_assets.py'
       - 'tools/qa_pc22_arm_visual_contract.py'
       - 'assets/authored2d/unified_character/arms/reference_targets/visual_contract.json'
+      - 'assets/authored2d/unified_character/arms/metadata/hybrid_v3_baseline.json'
+      - 'tools/qa_pc22_hybrid_v3.py'
+      - 'tools/build_pc22_role_overlays.py'
   pull_request:
     branches: [ main ]
     paths:
       - '.ci/trigger-pc22-arm-runtime'
-      - '.github/workflows/pc22-arm-visual-fix-v2.yml'
+      - '.github/workflows/pc22-arm-hybrid-render-v3.yml'
       - 'patches/apply_pc22_canonical_arm_candidate.py'
 
 permissions:
@@ -28,7 +31,7 @@ env:
   GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
   GODOT_TEMPLATES_TPZ: /tmp/Godot_v4.7.2-stable_export_templates.tpz
   GODOT_TEMPLATES_SHA256: f298490b8d44d934be425a5a65a51bf15f422428b229a06a6e11d9ffea248011
-  APK_PATH: PlayerCharacters_v22_ArmVisualFixV2.apk
+  APK_PATH: PlayerCharacters_v22_HybridArmV3.apk
   MAX_APK_BYTES: '419430400'
 
 jobs:
@@ -38,7 +41,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: pc22-arm-visual-fix-v2
+          ref: pc22-arm-hybrid-render-v3
           fetch-depth: 1
 
       - name: Validate candidate patch syntax
@@ -104,11 +107,12 @@ jobs:
           python3 tools/build_pc22_canonical_arm_assets.py "$GITHUB_WORKSPACE" "$PROJECT_DIR"
           python3 tools/build_pc22_role_overlays.py "$GITHUB_WORKSPACE"
           python3 tools/qa_pc22_arm_visual_contract.py "$GITHUB_WORKSPACE"
+          python3 tools/qa_pc22_hybrid_v3.py "$GITHUB_WORKSPACE"
           test -s assets/authored2d/unified_character/arms/weapons/SP_PC22_Rifle_Stock_Rear.png
           test -s assets/authored2d/unified_character/arms/weapons/SP_PC22_Rifle_Front.png
           test -s assets/authored2d/unified_character/arms/weapons/SP_PC22_Pistol_ArmCompatible.png
           python3 patches/apply_pc22_canonical_arm_candidate.py "$PROJECT_DIR"
-          grep -q 'PLAYER CHARACTERS V22 ARM VISUAL FIX V2 | REFERENCE QA:' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"
+          grep -q 'PLAYER CHARACTERS V22 HYBRID ARM V3 | PIVOTED RENDERER:' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"
           echo "=== GENERATED RUNTIME LINES 928-946 ==="
           nl -ba "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd" | sed -n '928,946p'
 
@@ -142,32 +146,32 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          "$GODOT_BIN" --headless --editor --path "$PROJECT_DIR" --quit --verbose 2>&1 | tee pc22-arm-import.log
-          if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|ERROR: Failed to create an autoload|Compile Error:|Parse Error:' pc22-arm-import.log; then exit 1; fi
+          "$GODOT_BIN" --headless --editor --path "$PROJECT_DIR" --quit --verbose 2>&1 | tee pc22-hybrid-v3-import.log
+          if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|ERROR: Failed to create an autoload|Compile Error:|Parse Error:' pc22-hybrid-v3-import.log; then exit 1; fi
 
       - name: Runtime smoke test
         shell: bash
         run: |
           set -euo pipefail
-          timeout 20s "$GODOT_BIN" --headless --path "$PROJECT_DIR" --quit-after 120 --verbose 2>&1 | tee pc22-arm-smoke.log
-          if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|Compile Error:|Parse Error:|Invalid call|Invalid get index' pc22-arm-smoke.log; then exit 1; fi
+          timeout 20s "$GODOT_BIN" --headless --path "$PROJECT_DIR" --quit-after 120 --verbose 2>&1 | tee pc22-hybrid-v3-smoke.log
+          if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|Compile Error:|Parse Error:|Invalid call|Invalid get index' pc22-hybrid-v3-smoke.log; then exit 1; fi
 
       - name: Capture actual engine arm states
         shell: bash
         run: |
           set -euo pipefail
-          CAP="$GITHUB_WORKSPACE/pc22-arm-runtime-captures"
+          CAP="$GITHUB_WORKSPACE/pc22-hybrid-v3-runtime-captures"
           mkdir -p "$CAP"
-          ARM_CAPTURE_DIR="$CAP" timeout 35s xvfb-run -a "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1280x720 --verbose 2>&1 | tee pc22-arm-capture.log
+          ARM_CAPTURE_DIR="$CAP" timeout 35s xvfb-run -a "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1280x720 --verbose 2>&1 | tee pc22-hybrid-v3-capture.log
           test "$(find "$CAP" -maxdepth 1 -name '*.png' | wc -l)" -eq 72
-          grep -q 'PC22_ARM_CAPTURE_COMPLETE:72' pc22-arm-capture.log
-          grep -q 'PC22_ARM_GEOMETRY_OK:' pc22-arm-capture.log
-          grep -q 'PC22_RUNTIME_SWEEP_OK' pc22-arm-capture.log
-          grep -q 'PC22_NPC_INHERITANCE_OK' pc22-arm-capture.log
-          grep -q 'PC22_ROLE_ASSETS_OK:24_SLEEVES:24_GLOVES:12_TORSOS' pc22-arm-capture.log
-          test "$(grep -c 'PC22_RUNTIME_SWEEP_CASE_OK:' pc22-arm-capture.log)" -ge 4
-          if grep -q 'PC22_ARM_GEOMETRY_FAIL' pc22-arm-capture.log; then exit 1; fi
-          if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|Compile Error:|Parse Error:|Invalid call|Invalid get index' pc22-arm-capture.log; then exit 1; fi
+          grep -q 'PC22_ARM_CAPTURE_COMPLETE:72' pc22-hybrid-v3-capture.log
+          grep -q 'PC22_ARM_GEOMETRY_OK:' pc22-hybrid-v3-capture.log
+          grep -q 'PC22_RUNTIME_SWEEP_OK' pc22-hybrid-v3-capture.log
+          grep -q 'PC22_NPC_INHERITANCE_OK' pc22-hybrid-v3-capture.log
+          grep -q 'PC22_ROLE_ASSETS_OK:24_SLEEVES:24_GLOVES:12_TORSOS' pc22-hybrid-v3-capture.log
+          test "$(grep -c 'PC22_RUNTIME_SWEEP_CASE_OK:' pc22-hybrid-v3-capture.log)" -ge 4
+          if grep -q 'PC22_ARM_GEOMETRY_FAIL' pc22-hybrid-v3-capture.log; then exit 1; fi
+          if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|Compile Error:|Parse Error:|Invalid call|Invalid get index' pc22-hybrid-v3-capture.log; then exit 1; fi
 
       - name: Build actual-runtime contact sheets
         shell: bash
@@ -178,8 +182,8 @@ jobs:
           from PIL import Image,ImageDraw
           import math
 
-          root=Path('pc22-arm-runtime-captures')
-          out=Path('assets/authored2d/unified_character/arms/qa/visual_fix_v2/runtime_engine')
+          root=Path('pc22-hybrid-v3-runtime-captures')
+          out=Path('assets/authored2d/unified_character/arms/qa/hybrid_v3/runtime_engine')
           out.mkdir(parents=True,exist_ok=True)
 
           states=[
@@ -239,6 +243,12 @@ jobs:
                    "rifle_up60","rifle_up30","rifle_horizontal","rifle_down30","rifle_down60"]
               gif=[frame(sex,state,420,480) for state in seq]
               gif[0].save(out/f"{sex}_runtime_rifle_aim_range.gif",save_all=True,append_images=gif[1:],duration=110,loop=0,disposal=2)
+
+          # Stable V3 review aliases.
+          for sex in ("male","female"):
+              src=out/f"{sex}_runtime_contact_sheet.jpg"
+              dst=out/f"PC22_HybridArmV3_{sex.title()}_Runtime.png"
+              Image.open(src).save(dst)
           PY
 
       - name: Export Android arm candidate APK
@@ -249,7 +259,7 @@ jobs:
           export GODOT_ANDROID_KEYSTORE_DEBUG_USER="androiddebugkey"
           export GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD="android"
           test -s "$GODOT_ANDROID_KEYSTORE_DEBUG_PATH"
-          "$GODOT_BIN" --headless --path "$PROJECT_DIR" --export-debug Android "$GITHUB_WORKSPACE/$APK_PATH" 2>&1 | tee pc22-arm-android-export.log
+          "$GODOT_BIN" --headless --path "$PROJECT_DIR" --export-debug Android "$GITHUB_WORKSPACE/$APK_PATH" 2>&1 | tee pc22-hybrid-v3-android-export.log
           test -s "$GITHUB_WORKSPACE/$APK_PATH"
 
       - name: Validate Android arm candidate APK
@@ -259,12 +269,12 @@ jobs:
           APK="$GITHUB_WORKSPACE/$APK_PATH"
           APKSIGNER="$ANDROID_HOME/build-tools/35.0.1/apksigner"
           AAPT="$ANDROID_HOME/build-tools/35.0.1/aapt"
-          unzip -t "$APK" > pc22-arm-apk-zip-test.txt
-          "$APKSIGNER" verify --verbose --print-certs "$APK" | tee pc22-arm-apk-signature.txt
-          "$AAPT" dump badging "$APK" | tee pc22-arm-apk-badging.txt
-          grep -q "package: name='org.wanderfall.game'" pc22-arm-apk-badging.txt
-          grep -q "versionCode='191'" pc22-arm-apk-badging.txt
-          grep -q "versionName='0.21.0-PC22-ARM-VISUAL-FIX-V2'" pc22-arm-apk-badging.txt
+          unzip -t "$APK" > pc22-hybrid-v3-apk-zip-test.txt
+          "$APKSIGNER" verify --verbose --print-certs "$APK" | tee pc22-hybrid-v3-apk-signature.txt
+          "$AAPT" dump badging "$APK" | tee pc22-hybrid-v3-apk-badging.txt
+          grep -q "package: name='org.wanderfall.game'" pc22-hybrid-v3-apk-badging.txt
+          grep -q "versionCode='192'" pc22-hybrid-v3-apk-badging.txt
+          grep -q "versionName='0.21.0-PC22-HYBRID-ARM-V3'" pc22-hybrid-v3-apk-badging.txt
           unzip -l "$APK" | grep -q 'lib/arm64-v8a/libgodot_android.so'
           if unzip -l "$APK" | grep -q 'lib/armeabi-v7a/'; then
             echo "Legacy armeabi-v7a unexpectedly present"
@@ -272,15 +282,15 @@ jobs:
           fi
           APK_BYTES="$(stat -c%s "$APK")"
           test "$APK_BYTES" -lt "$MAX_APK_BYTES"
-          sha256sum "$APK" | tee PlayerCharacters_v22_ArmVisualFixV2.apk.sha256
-          echo "APK_BYTES=$APK_BYTES" | tee pc22-arm-apk-size.txt
+          sha256sum "$APK" | tee PlayerCharacters_v22_HybridArmV3.apk.sha256
+          echo "APK_BYTES=$APK_BYTES" | tee pc22-hybrid-v3-apk-size.txt
 
       - name: Persist actual-runtime QA evidence
         shell: bash
         run: |
           set -euo pipefail
-          OUT=assets/authored2d/unified_character/arms/qa/visual_fix_v2/runtime_engine
-          cp pc22-arm-capture.log "$OUT/runtime_capture.log"
+          OUT=assets/authored2d/unified_character/arms/qa/hybrid_v3/runtime_engine
+          cp pc22-hybrid-v3-capture.log "$OUT/runtime_capture.log"
           git restore -- patches/apply_v0175_hotbar_sensitivity.py || true
 
           rm -rf /tmp/pc22-runtime-evidence
@@ -294,8 +304,8 @@ jobs:
           # newly rendered evidence, reset onto the latest remote head, restore
           # the evidence, then commit. Never rebase conflicting binary screenshots.
           for attempt in 1 2 3; do
-            git fetch origin pc22-arm-visual-fix-v2
-            git reset --hard origin/pc22-arm-visual-fix-v2
+            git fetch origin pc22-arm-hybrid-render-v3
+            git reset --hard origin/pc22-arm-hybrid-render-v3
             mkdir -p "$OUT"
             rm -rf "$OUT"/*
             cp -a /tmp/pc22-runtime-evidence/. "$OUT"/
@@ -303,8 +313,8 @@ jobs:
             if git diff --cached --quiet; then
               exit 0
             fi
-            git commit -m "Capture PC22 arm visual fix v2 in Godot runtime"
-            if git push origin HEAD:pc22-arm-visual-fix-v2; then
+            git commit -m "Capture PC22 hybrid arm V3 in Godot runtime"
+            if git push origin HEAD:pc22-arm-hybrid-render-v3; then
               exit 0
             fi
             sleep $((attempt*3))
@@ -314,11 +324,11 @@ jobs:
       - name: Upload Android arm candidate artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PlayerCharacters_v22-ArmVisualFixV2
+          name: PlayerCharacters_v22-HybridArmV3
           path: |
-            PlayerCharacters_v22_ArmVisualFixV2.apk
-            PlayerCharacters_v22_ArmVisualFixV2.apk.sha256
-            pc22-arm-apk-badging.txt
-            pc22-arm-apk-signature.txt
-            pc22-arm-apk-size.txt
-            assets/authored2d/unified_character/arms/qa/visual_fix_v2/runtime_engine/
+            PlayerCharacters_v22_HybridArmV3.apk
+            PlayerCharacters_v22_HybridArmV3.apk.sha256
+            pc22-hybrid-v3-apk-badging.txt
+            pc22-hybrid-v3-apk-signature.txt
+            pc22-hybrid-v3-apk-size.txt
+            assets/authored2d/unified_character/arms/qa/hybrid_v3/runtime_engine/
