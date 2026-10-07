@@ -96,10 +96,12 @@ if 'const PC22CanonicalArmSystemScript = preload("res://scripts/art/pc22_canonic
 asset_paths={
  "MALE_UPPER":arms/"male/SP_PC22_Male_UpperArm_Right.png",
  "MALE_FORE":arms/"male/SP_PC22_Male_Forearm_Right.png",
+ "MALE_SHOULDER_CAP":arms/"male/SP_PC22_Male_ShoulderCap_Right.png",
  "MALE_DOM_HAND":arms/"male/SP_PC22_Male_Hand_Dominant_Right.png",
  "MALE_SUPPORT_HAND":arms/"male/SP_PC22_Male_Hand_Support_Right.png",
  "FEMALE_UPPER":arms/"female/SP_PC22_Female_UpperArm_Right.png",
  "FEMALE_FORE":arms/"female/SP_PC22_Female_Forearm_Right.png",
+ "FEMALE_SHOULDER_CAP":arms/"female/SP_PC22_Female_ShoulderCap_Right.png",
  "FEMALE_DOM_HAND":arms/"female/SP_PC22_Female_Hand_Dominant_Right.png",
  "FEMALE_SUPPORT_HAND":arms/"female/SP_PC22_Female_Hand_Support_Right.png",
  "PISTOL":arms/"weapons/SP_PC22_Pistol_ArmCompatible.png",
@@ -137,16 +139,18 @@ tex_anchor='var tex_female_gear_forearm: Texture2D = null\n'
 if tex_anchor not in s:
     raise SystemExit("Candidate arm texture anchor missing")
 inject=''
-for name in ("MALE_UPPER","MALE_FORE","MALE_DOM_HAND","MALE_SUPPORT_HAND",
-             "FEMALE_UPPER","FEMALE_FORE","FEMALE_DOM_HAND","FEMALE_SUPPORT_HAND",
+for name in ("MALE_UPPER","MALE_FORE","MALE_SHOULDER_CAP","MALE_DOM_HAND","MALE_SUPPORT_HAND",
+             "FEMALE_UPPER","FEMALE_FORE","FEMALE_SHOULDER_CAP","FEMALE_DOM_HAND","FEMALE_SUPPORT_HAND",
              "PISTOL","RIFLE","RIFLE_STOCK","RIFLE_FRONT"):
     inject += f'const PC22_ARM_{name}_B64 := "{b64[name]}"\n'
 inject += '''var tex_pc22_male_upper: Texture2D = null
 var tex_pc22_male_fore: Texture2D = null
+var tex_pc22_male_shoulder_cap: Texture2D = null
 var tex_pc22_male_dom_hand: Texture2D = null
 var tex_pc22_male_support_hand: Texture2D = null
 var tex_pc22_female_upper: Texture2D = null
 var tex_pc22_female_fore: Texture2D = null
+var tex_pc22_female_shoulder_cap: Texture2D = null
 var tex_pc22_female_dom_hand: Texture2D = null
 var tex_pc22_female_support_hand: Texture2D = null
 var tex_pc22_pistol: Texture2D = null
@@ -161,10 +165,12 @@ if load_anchor not in s:
     raise SystemExit("Candidate arm texture load anchor missing")
 loads='''    tex_pc22_male_upper = _texture_from_embedded_png(PC22_ARM_MALE_UPPER_B64)
     tex_pc22_male_fore = _texture_from_embedded_png(PC22_ARM_MALE_FORE_B64)
+    tex_pc22_male_shoulder_cap = _texture_from_embedded_png(PC22_ARM_MALE_SHOULDER_CAP_B64)
     tex_pc22_male_dom_hand = _texture_from_embedded_png(PC22_ARM_MALE_DOM_HAND_B64)
     tex_pc22_male_support_hand = _texture_from_embedded_png(PC22_ARM_MALE_SUPPORT_HAND_B64)
     tex_pc22_female_upper = _texture_from_embedded_png(PC22_ARM_FEMALE_UPPER_B64)
     tex_pc22_female_fore = _texture_from_embedded_png(PC22_ARM_FEMALE_FORE_B64)
+    tex_pc22_female_shoulder_cap = _texture_from_embedded_png(PC22_ARM_FEMALE_SHOULDER_CAP_B64)
     tex_pc22_female_dom_hand = _texture_from_embedded_png(PC22_ARM_FEMALE_DOM_HAND_B64)
     tex_pc22_female_support_hand = _texture_from_embedded_png(PC22_ARM_FEMALE_SUPPORT_HAND_B64)
     tex_pc22_pistol = _texture_from_embedded_png(PC22_ARM_PISTOL_B64)
@@ -586,12 +592,13 @@ s=s.replace(front_anchor,'''    # Armed dominant forearm is foregrounded after t
         # Re-expose only a short textured proximal portion after torso draw.
         # This visually joins each armed limb to the deltoid without repainting
         # a complete upper-arm bar across the chest.
-        var pc22_rear_cap_end: Vector2 = pc22_rear_shoulder.lerp(pc22_rear_elbow,0.24)
-        var pc22_front_cap_end: Vector2 = pc22_front_shoulder.lerp(pc22_front_elbow,0.24)
-        var pc22_cap_tex: Texture2D = _pc22_upper_texture()
-        var pc22_cap_w: float = 7.2 if female_mode else 8.0
-        _pc22_draw_segment(pc22_cap_tex,pc22_rear_shoulder,pc22_rear_cap_end,pc22_cap_w,dir_sign<0.0)
-        _pc22_draw_segment(pc22_cap_tex,pc22_front_shoulder,pc22_front_cap_end,pc22_cap_w,dir_sign<0.0)
+        var pc22_cap_tex: Texture2D = tex_pc22_female_shoulder_cap if female_mode else tex_pc22_male_shoulder_cap
+        if pc22_cap_tex != null:
+            var pc22_rear_cap_dir: Vector2 = (pc22_rear_elbow-pc22_rear_shoulder).normalized()
+            var pc22_front_cap_dir: Vector2 = (pc22_front_elbow-pc22_front_shoulder).normalized()
+            var pc22_cap_size: Vector2 = Vector2(6.4,5.4) if female_mode else Vector2(7.0,5.8)
+            _draw_equipment_texture(pc22_cap_tex,pc22_rear_shoulder+pc22_rear_cap_dir*1.2,pc22_cap_size,dir_sign<0.0,(pc22_rear_elbow-pc22_rear_shoulder).angle()-PI*0.5)
+            _draw_equipment_texture(pc22_cap_tex,pc22_front_shoulder+pc22_front_cap_dir*1.2,pc22_cap_size,dir_sign<0.0,(pc22_front_elbow-pc22_front_shoulder).angle()-PI*0.5)
 
         # VISUAL_FIX_V2_FRONT_FOREARM_FOREGROUND
         var pc22_front_fore_tex: Texture2D = _pc22_fore_texture()
