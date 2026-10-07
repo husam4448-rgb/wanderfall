@@ -27,7 +27,8 @@ if not upper_src_path.is_file() or not fore_src_path.is_file() or not glove_src_
 root=repo/"assets/authored2d/unified_character/arms"
 qa=root/"qa"
 meta=root/"metadata"
-for d in (root/"male",root/"female",root/"weapons",qa,meta,
+v3_root=root/"hybrid_v3"
+for d in (root/"male",root/"female",root/"weapons",v3_root/"male",v3_root/"female",v3_root/"weapons",qa,meta,
           repo/"assets/authored2d/unified_character/core/male",
           repo/"assets/authored2d/unified_character/core/female"):
     d.mkdir(parents=True,exist_ok=True)
@@ -145,6 +146,39 @@ def add_joint_caps(img, rgb, top_frac, bottom_frac, depth=11):
     d.ellipse(((w-bw)//2,h-depth,(w+bw)//2,h+depth//2),fill=col)
     layer.alpha_composite(img)
     return layer
+
+
+def make_v3_pivoted_segment(vertical_img):
+    """Turn the authored vertical limb into a tightly cropped +X segment.
+
+    The source's proximal/top end becomes the left/parent end.  Pivots are
+    deliberately inside the visible overlap zones rather than at the canvas
+    edge so shoulder/elbow seams remain covered without stretching artwork.
+    """
+    seg=trim(vertical_img).rotate(90,expand=True,resample=Image.Resampling.BICUBIC)
+    seg=trim(seg)
+    w,h=seg.size
+    parent_x=max(2,min(6,int(round(w*0.035))))
+    child_x=max(parent_x+2,w-1-max(2,min(6,int(round(w*0.035)))))
+    pivot_y=h/2.0
+    return seg, [float(parent_x),float(pivot_y)], [float(child_x),float(pivot_y)]
+
+
+def make_v3_pivoted_hand(hand_img):
+    """Tightly crop a hand while keeping its wrist as the local left-side pivot."""
+    hand=trim(hand_img)
+    w,h=hand.size
+    wrist_x=max(1,min(4,int(round(w*0.06))))
+    return hand,[float(wrist_x),float(h/2.0)]
+
+
+def make_v3_shoulder_cap(cap_img):
+    """Tight shoulder-cap sprite with a local socket pivot near its inner edge."""
+    cap=trim(cap_img)
+    w,h=cap.size
+    # Right-facing character: torso is to the left, upper arm exits to the right.
+    pivot=[float(max(1,int(round(w*0.30)))),float(h/2.0)]
+    return cap,pivot
 
 def _aa_grip_hand(sex, support=False):
     """Compact reference-driven gripping hand; no extended/pointing fingers."""
@@ -417,6 +451,61 @@ for sex,s in specs.items():
     hand.save(sex_dir/f"SP_PC22_{sex.title()}_Hand_Dominant_Right.png")
     support_hand.save(sex_dir/f"SP_PC22_{sex.title()}_Hand_Support_Right.png")
 
+    # Hybrid renderer V3 assets: tight bounds + explicit local pivots.
+    v3_sex=v3_root/sex
+    v3_upper,v3_upper_parent,v3_upper_child=make_v3_pivoted_segment(u)
+    v3_fore,v3_fore_parent,v3_fore_child=make_v3_pivoted_segment(f)
+    v3_dom,v3_dom_pivot=make_v3_pivoted_hand(hand)
+    v3_sup,v3_sup_pivot=make_v3_pivoted_hand(support_hand)
+    v3_cap,v3_cap_pivot=make_v3_shoulder_cap(cap)
+
+    v3_names={
+      "upper_arm":f"SP_PC22_{sex.title()}_UpperArm_V3.png",
+      "forearm":f"SP_PC22_{sex.title()}_Forearm_V3.png",
+      "hand_dominant":f"SP_PC22_{sex.title()}_Hand_Dominant_V3.png",
+      "hand_support":f"SP_PC22_{sex.title()}_Hand_Support_V3.png",
+      "shoulder_cap":f"SP_PC22_{sex.title()}_ShoulderCap_V3.png",
+    }
+    for key,img in (
+      ("upper_arm",v3_upper),("forearm",v3_fore),("hand_dominant",v3_dom),
+      ("hand_support",v3_sup),("shoulder_cap",v3_cap),
+    ):
+        img.save(v3_sex/v3_names[key])
+
+    v3_meta={
+      "sex":sex,
+      "rig_id":s["rig_id"],
+      "renderer":"hybrid_pivoted_sprite_v3",
+      "upper_arm":{
+        "filename":str((v3_sex/v3_names["upper_arm"]).relative_to(repo)),
+        "canvas_size":list(v3_upper.size),"parent_pivot_px":v3_upper_parent,
+        "child_pivot_px":v3_upper_child,"canonical_length":s["upper_arm_length"],
+      },
+      "forearm":{
+        "filename":str((v3_sex/v3_names["forearm"]).relative_to(repo)),
+        "canvas_size":list(v3_fore.size),"parent_pivot_px":v3_fore_parent,
+        "child_pivot_px":v3_fore_child,"canonical_length":s["forearm_length"],
+      },
+      "hand_dominant":{
+        "filename":str((v3_sex/v3_names["hand_dominant"]).relative_to(repo)),
+        "canvas_size":list(v3_dom.size),"wrist_pivot_px":v3_dom_pivot,
+      },
+      "hand_support":{
+        "filename":str((v3_sex/v3_names["hand_support"]).relative_to(repo)),
+        "canvas_size":list(v3_sup.size),"wrist_pivot_px":v3_sup_pivot,
+      },
+      "shoulder_cap":{
+        "filename":str((v3_sex/v3_names["shoulder_cap"]).relative_to(repo)),
+        "canvas_size":list(v3_cap.size),"shoulder_pivot_px":v3_cap_pivot,
+      },
+      "policy":{
+        "anisotropic_scaling":False,
+        "segment_scale":"uniform_from_canonical_length_and_parent_child_pixel_distance",
+        "left_behavior":"mirror_about_parent_pivot_then rotate",
+      }
+    }
+    (meta/f"hybrid_v3_{sex}_assets.json").write_text(json.dumps(v3_meta,indent=2),encoding="utf-8")
+
     for seg,fn,img,parent,child,length in (
       ("upper_arm",up_name,u,"shoulder","elbow",s["upper_arm_length"]),
       ("shoulder_cap",cap_name,cap,"shoulder","upper_arm",0.0),
@@ -438,6 +527,33 @@ for sex,s in specs.items():
           "alpha_bbox":list(bb) if bb else None,
           "sha256":hashlib.sha256((sex_dir/fn).read_bytes()).hexdigest(),
         })
+
+# Hybrid V3 keeps the detailed V2 weapon art but stores it separately so
+# rendering/pivot changes remain isolated from the known-good V2 candidate.
+v3_rifle_path=v3_root/"weapons"/"SP_PC22_Rifle_V3.png"
+v3_pistol_path=v3_root/"weapons"/"SP_PC22_Pistol_V3.png"
+rifle_arm.save(v3_rifle_path)
+pistol_arm.save(v3_pistol_path)
+v3_weapon_meta={
+  "renderer":"hybrid_pivoted_sprite_v3",
+  "rifle":{
+    "filename":str(v3_rifle_path.relative_to(repo)),
+    "canvas_size":list(rifle_arm.size),
+    "weapon_origin_px":[29.0,13.0],
+    "butt_contact_px":[4.0,16.0],
+    "dominant_grip_px":[36.0,18.0],
+    "support_grip_px":[66.0,14.0],
+    "muzzle_px":[94.0,13.0]
+  },
+  "pistol":{
+    "filename":str(v3_pistol_path.relative_to(repo)),
+    "canvas_size":list(pistol_arm.size),
+    "weapon_origin_px":[14.0,16.0],
+    "dominant_grip_px":[15.0,18.0],
+    "muzzle_px":[46.0,9.0]
+  }
+}
+(meta/"hybrid_v3_weapon_assets.json").write_text(json.dumps(v3_weapon_meta,indent=2),encoding="utf-8")
 
 # Store exact machine-readable specs in requested core locations and arm metadata.
 for sex,s in specs.items():
