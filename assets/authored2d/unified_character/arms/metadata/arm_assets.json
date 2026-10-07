@@ -199,6 +199,26 @@
         69
       ],
       "sha256": "f8d12a08bcefdc05f7532ec1debedf98540aae37b6665cb29e8d8f3fd9d59df1"
+    },
+    {
+      "filename": "assets/authored2d/unified_character/arms/weapons/SP_PC22_Rifle_ArmCompatible.png",
+      "sex": "shared",
+      "segment": "weapon_rifle_arm_compatible",
+      "canvas_size": [
+        44,
+        14
+      ],
+      "pivot": "unchanged canonical PC22 weapon pivot",
+      "joint_parent": "dominant_grip",
+      "joint_child": "support_grip",
+      "canonical_length": 0.0,
+      "visual_overlap_parent": 0.0,
+      "visual_overlap_child": 0.0,
+      "compatible_rig": "MALE_CANONICAL_ARM_SYSTEM,FEMALE_CANONICAL_ARM_SYSTEM",
+      "mirroring_supported": true,
+      "approval_state": "candidate",
+      "sha256": "160fed077dfe52a8024501dda17223984931c9506245f9d864e0efeb14adccfd",
+      "note": "Only upper butt-stock pixels shifted +4 source px; body/grip/barrel geometry unchanged"
     }
   ]
 }
