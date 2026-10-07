@@ -94,20 +94,20 @@ if 'const PC22CanonicalArmSystemScript = preload("res://scripts/art/pc22_canonic
     s=s.replace('extends Node2D\n','extends Node2D\nconst PC22CanonicalArmSystemScript = preload("res://scripts/art/pc22_canonical_arm_system.gd")\n',1)
 
 asset_paths={
- "MALE_UPPER":arms/"male/SP_PC22_Male_UpperArm_Right.png",
- "MALE_FORE":arms/"male/SP_PC22_Male_Forearm_Right.png",
- "MALE_SHOULDER_CAP":arms/"male/SP_PC22_Male_ShoulderCap_Right.png",
- "MALE_DOM_HAND":arms/"male/SP_PC22_Male_Hand_Dominant_Right.png",
- "MALE_SUPPORT_HAND":arms/"male/SP_PC22_Male_Hand_Support_Right.png",
- "FEMALE_UPPER":arms/"female/SP_PC22_Female_UpperArm_Right.png",
- "FEMALE_FORE":arms/"female/SP_PC22_Female_Forearm_Right.png",
- "FEMALE_SHOULDER_CAP":arms/"female/SP_PC22_Female_ShoulderCap_Right.png",
- "FEMALE_DOM_HAND":arms/"female/SP_PC22_Female_Hand_Dominant_Right.png",
- "FEMALE_SUPPORT_HAND":arms/"female/SP_PC22_Female_Hand_Support_Right.png",
- "PISTOL":arms/"weapons/SP_PC22_Pistol_ArmCompatible.png",
- "RIFLE":arms/"weapons/SP_PC22_Rifle_ArmCompatible.png",
- "RIFLE_STOCK":arms/"weapons/SP_PC22_Rifle_Stock_Rear.png",
- "RIFLE_FRONT":arms/"weapons/SP_PC22_Rifle_Front.png",
+ "MALE_UPPER":arms/"hybrid_v3/male/SP_PC22_Male_UpperArm_V3.png",
+ "MALE_FORE":arms/"hybrid_v3/male/SP_PC22_Male_Forearm_V3.png",
+ "MALE_SHOULDER_CAP":arms/"hybrid_v3/male/SP_PC22_Male_ShoulderCap_V3.png",
+ "MALE_DOM_HAND":arms/"hybrid_v3/male/SP_PC22_Male_Hand_Dominant_V3.png",
+ "MALE_SUPPORT_HAND":arms/"hybrid_v3/male/SP_PC22_Male_Hand_Support_V3.png",
+ "FEMALE_UPPER":arms/"hybrid_v3/female/SP_PC22_Female_UpperArm_V3.png",
+ "FEMALE_FORE":arms/"hybrid_v3/female/SP_PC22_Female_Forearm_V3.png",
+ "FEMALE_SHOULDER_CAP":arms/"hybrid_v3/female/SP_PC22_Female_ShoulderCap_V3.png",
+ "FEMALE_DOM_HAND":arms/"hybrid_v3/female/SP_PC22_Female_Hand_Dominant_V3.png",
+ "FEMALE_SUPPORT_HAND":arms/"hybrid_v3/female/SP_PC22_Female_Hand_Support_V3.png",
+ "PISTOL":arms/"hybrid_v3/weapons/SP_PC22_Pistol_V3.png",
+ "RIFLE":arms/"hybrid_v3/weapons/SP_PC22_Rifle_V3.png",
+ "RIFLE_STOCK":arms/"hybrid_v3/weapons/SP_PC22_Rifle_Stock_V3.png",
+ "RIFLE_FRONT":arms/"hybrid_v3/weapons/SP_PC22_Rifle_Front_V3.png",
 }
 for k,p in asset_paths.items():
     if not p.is_file():
@@ -121,6 +121,11 @@ for sex in ("male","female"):
     dst.mkdir(parents=True,exist_ok=True)
     for p in (arms/sex).glob("SP_PC22_*.png"):
         (dst/p.name).write_bytes(p.read_bytes())
+
+v3_src=arms/"hybrid_v3"
+v3_dst=root/"assets/authored2d/unified_character/arms/hybrid_v3"
+if v3_src.is_dir():
+    shutil.copytree(v3_src,v3_dst,dirs_exist_ok=True)
 
 # Role specialization is strictly artwork-only: no role-specific joints/skeletons.
 for src_rel,dst_rel in (
@@ -305,22 +310,59 @@ func _pc22_verify_role_assets() -> bool:
     print("PC22_ROLE_ASSETS_OK:24_SLEEVES:24_GLOVES:12_TORSOS")
     return true
 
-func _pc22_draw_segment(tex: Texture2D, a: Vector2, b: Vector2, width: float, flip_x: bool) -> void:
+func _pc22_v3_draw_pivoted(tex: Texture2D, joint: Vector2, world_angle: float, uniform_scale: float, pivot_px: Vector2, flip_x: bool) -> void:
+    if tex == null:
+        return
+    var rot: float = world_angle if not flip_x else world_angle-PI
+    var sx: float = uniform_scale if not flip_x else -uniform_scale
+    draw_set_transform(joint,rot,Vector2(sx,uniform_scale))
+    draw_texture(tex,-pivot_px)
+    draw_set_transform(Vector2.ZERO,0.0,Vector2.ONE)
+
+func _pc22_v3_draw_segment(tex: Texture2D, a: Vector2, b: Vector2, flip_x: bool) -> void:
     if tex == null:
         return
     var delta: Vector2 = b-a
-    var seg_len: float = maxf(delta.length(),0.5)
-    var center: Vector2 = (a+b)*0.5
-    var rotation: float = delta.angle()-PI*0.5
-    _draw_equipment_texture(tex,center,Vector2(width,seg_len+2.2),flip_x,rotation)
+    var tw: float = float(tex.get_width())
+    var th: float = float(tex.get_height())
+    var parent_x: float = clampf(tw*0.035,2.0,6.0)
+    var child_x: float = tw-1.0-parent_x
+    var authored_len: float = maxf(1.0,child_x-parent_x)
+    var scale_u: float = delta.length()/authored_len
+    _pc22_v3_draw_pivoted(tex,a,delta.angle(),scale_u,Vector2(parent_x,th*0.5),flip_x)
+
+func _pc22_v3_draw_hand(tex: Texture2D, wrist: Vector2, weapon_angle: float, dir_sign: float, world_height: float) -> void:
+    if tex == null:
+        return
+    var th: float = float(tex.get_height())
+    var tw: float = float(tex.get_width())
+    var scale_u: float = world_height/maxf(1.0,th)
+    var pivot_px := Vector2(clampf(tw*0.06,1.0,4.0),th*0.5)
+    var world_rot: float = weapon_angle*dir_sign
+    _pc22_v3_draw_pivoted(tex,wrist,world_rot,scale_u,pivot_px,dir_sign<0.0)
+
+func _pc22_v3_draw_cap(tex: Texture2D, shoulder: Vector2, elbow: Vector2, dir_sign: float) -> void:
+    if tex == null:
+        return
+    var delta: Vector2 = elbow-shoulder
+    var th: float = float(tex.get_height())
+    var tw: float = float(tex.get_width())
+    var desired_h: float = 4.8 if female_mode else 5.3
+    var scale_u: float = desired_h/maxf(1.0,th)
+    var pivot_px := Vector2(maxf(1.0,tw*0.24),th*0.5)
+    _pc22_v3_draw_pivoted(tex,shoulder,delta.angle(),scale_u,pivot_px,dir_sign<0.0)
+
+func _pc22_v3_draw_weapon_piece(tex: Texture2D, grip_world: Vector2, aim_angle: float, dir_sign: float, pivot_px: Vector2, scale_u: float) -> void:
+    if tex == null:
+        return
+    _pc22_v3_draw_pivoted(tex,grip_world,aim_angle*dir_sign,scale_u,pivot_px,dir_sign<0.0)
+
+func _pc22_draw_segment(tex: Texture2D, a: Vector2, b: Vector2, width: float, flip_x: bool) -> void:
+    _pc22_v3_draw_segment(tex,a,b,flip_x)
 
 func _pc22_draw_chain(shoulder: Vector2, elbow: Vector2, wrist: Vector2, dir_sign: float) -> void:
-    var upper_tex: Texture2D = _pc22_upper_texture()
-    var fore_tex: Texture2D = _pc22_fore_texture()
-    var upper_width: float = {female_spec["upper_arm_width"]} if female_mode else {male_spec["upper_arm_width"]}
-    var fore_width: float = {female_spec["forearm_width"]} if female_mode else {male_spec["forearm_width"]}
-    _pc22_draw_segment(upper_tex,shoulder,elbow,upper_width,dir_sign<0.0)
-    _pc22_draw_segment(fore_tex,elbow,wrist,fore_width,dir_sign<0.0)
+    _pc22_v3_draw_segment(_pc22_upper_texture(),shoulder,elbow,dir_sign<0.0)
+    _pc22_v3_draw_segment(_pc22_fore_texture(),elbow,wrist,dir_sign<0.0)
 
 func _pc22_arm_runtime_check(shoulder: Vector2, elbow: Vector2, wrist: Vector2, expected_upper: float, expected_fore: float, label: String) -> void:
     if pc22_arm_capture_dir == "":
@@ -428,11 +470,8 @@ old_support=support_anchor+'''    if female_mode:
         scale *= 0.92
 '''
 new_support=support_anchor+'''    var support_tex := _pc22_support_hand_texture()
-    if gear_gloves and tex_gear_glove != null:
-        support_tex = tex_gear_glove
     if support_tex != null:
-        var support_size := Vector2(4.9,4.6) if female_mode else Vector2(5.2,4.8)
-        _draw_equipment_texture(support_tex,center,support_size*scale,dir_sign<0.0,angle)
+        _pc22_v3_draw_hand(support_tex,center,angle,dir_sign,(4.6 if female_mode else 4.9)*scale)
         return
     if female_mode:
         scale *= 0.92
@@ -449,8 +488,7 @@ old_hand='''    if tex_base_hand != null:
 '''
 new_hand='''    var pc22_dom_hand := _pc22_dominant_hand_texture()
     if pc22_dom_hand != null:
-        var hand_center := center + _pose_point(Vector2(0.9,0.0) * scale, angle, dir_sign)
-        _draw_equipment_texture(pc22_dom_hand, hand_center, (Vector2(5.2,4.9) if female_mode else Vector2(5.6,5.2)) * scale, dir_sign < 0.0, angle)
+        _pc22_v3_draw_hand(pc22_dom_hand,center,angle,dir_sign,(4.9 if female_mode else 5.2)*scale)
         return
 '''
 if old_hand not in s:
