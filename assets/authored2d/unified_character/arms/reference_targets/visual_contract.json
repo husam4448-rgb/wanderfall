@@ -7,22 +7,22 @@
     "upper_arm_width_min": 8.8,
     "forearm_width_min": 7.6,
     "dominant_hand_min": [
-      4.3,
-      4
+      5.3,
+      4.9
     ],
     "support_hand_min": [
-      4,
-      3.7
+      4.9,
+      4.5
     ],
     "shoulder_rear_max_y": -9.2,
     "shoulder_front_max_y": -8.7,
     "dominant_hand_max": [
-      5.3,
-      5
+      6,
+      5.6
     ],
     "support_hand_max": [
-      5,
-      4.7
+      5.6,
+      5.2
     ],
     "weapon_socket_max_y": -5.5,
     "support_grip_x_min": 16.5
@@ -33,22 +33,22 @@
     "upper_arm_width_min": 7.8,
     "forearm_width_min": 6.8,
     "dominant_hand_min": [
-      4,
-      3.8
+      4.9,
+      4.6
     ],
     "support_hand_min": [
-      3.8,
-      3.5
+      4.6,
+      4.3
     ],
     "shoulder_rear_max_y": -9,
     "shoulder_front_max_y": -8.6,
     "dominant_hand_max": [
-      5,
-      4.7
+      5.6,
+      5.3
     ],
     "support_hand_max": [
-      4.7,
-      4.4
+      5.3,
+      5
     ],
     "weapon_socket_max_y": -5.5,
     "support_grip_x_min": 16.5
@@ -70,18 +70,20 @@
     "This numeric contract is a regression floor; final acceptance still requires human visual comparison against the approved reference sheets.",
     "Visual-fix-v2 second gate: shoulder sockets must sit higher/outboard at the deltoid; runtime weapon draw height must remain reference-like rather than blocky.",
     "Hand bounds were recalibrated after the first v2 runtime pass: generated grip art now occupies most of its canvas, so previous 8–9 unit draw boxes produced oversized open hands.",
-    "Visual-fix-v2 shoulder bridge: full armed upper arms remain behind torso; only a short textured proximal cap is redrawn to make the deltoid attachment visible."
+    "Visual-fix-v2 shoulder bridge: full armed upper arms remain behind torso; only a short textured proximal cap is redrawn to make the deltoid attachment visible.",
+    "V2 grip calibration: rifle stock is visible at the shoulder, weapon art sockets and IK wrist targets share the same geometry, and visible hand occupancy is enlarged to match the approved grip reference."
   ],
   "runtime_draw": {
-    "rifle_width_min": 38,
+    "rifle_width_min": 36,
     "rifle_height_max": 11,
-    "pistol_width_min": 17,
-    "pistol_height_max": 9
+    "pistol_width_min": 15,
+    "pistol_height_max": 8
   },
   "layering": {
     "armed_front_upper": "behind_torso",
     "armed_front_forearm": "foreground",
     "prohibit_full_front_chain_after_torso": true,
-    "shoulder_cap_foreground": true
+    "shoulder_cap_foreground": true,
+    "rifle_stock": "foreground_to_torso_behind_forearms_and_hands"
   }
 }
