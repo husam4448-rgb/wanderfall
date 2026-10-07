@@ -374,6 +374,62 @@ def make_v3_pivoted_hand(hand_img):
     return hand,[float(wrist_x),float(h/2.0)]
 
 
+def make_v3_elbow_patch(upper_x, fore_x, sex):
+    """Build a compact textured elbow gusset from both adjacent sleeve segments.
+
+    This is visual overlap only: no skeleton/pivot/IK values are changed.
+    """
+    u=trim(upper_x).convert("RGBA")
+    f=trim(fore_x).convert("RGBA")
+    W,H=(46,28) if sex=="female" else (50,31)
+
+    # Distal upper and proximal forearm are resampled into one shared cloth field.
+    uc=u.crop((max(0,int(round(u.width*0.62))),0,u.width,u.height)).resize((W,H),Image.Resampling.LANCZOS)
+    fc=f.crop((0,0,max(2,int(round(f.width*0.38))),f.height)).resize((W,H),Image.Resampling.LANCZOS)
+    tex=Image.blend(uc,fc,0.50).convert("RGBA")
+
+    # Directional anatomical gusset: broad at the flexion center, tapered into
+    # each segment. It is intentionally neither circular nor rectangular.
+    mask=Image.new("L",(W,H),0)
+    d=ImageDraw.Draw(mask)
+    cy=H/2.0
+    pts=[
+        (1,int(cy-3)),
+        (int(W*0.18),int(H*0.20)),
+        (int(W*0.43),int(H*0.08)),
+        (int(W*0.72),int(H*0.16)),
+        (W-2,int(cy-2)),
+        (int(W*0.82),int(H*0.78)),
+        (int(W*0.54),int(H*0.92)),
+        (int(W*0.25),int(H*0.82)),
+    ]
+    d.polygon(pts,fill=255)
+    # Slight rounding only at the center to avoid pointed/hinged elbow corners.
+    d.rounded_rectangle(
+        (int(W*0.25),int(H*0.20),int(W*0.76),int(H*0.82)),
+        radius=max(2,int(H*0.14)),fill=255
+    )
+    mask=mask.filter(ImageFilter.GaussianBlur(0.38))
+
+    # Preserve shared fabric RGB, but let our anatomical mask define alpha.
+    tex.putalpha(mask)
+
+    # Restrained contour and cloth folds matching the segment art.
+    inner=mask.filter(ImageFilter.MinFilter(3))
+    edge=ImageChops.subtract(mask,inner)
+    ep=edge.load(); tp=tex.load()
+    for yy in range(H):
+        for xx in range(W):
+            if ep[xx,yy] > 0:
+                r,g,b,a=tp[xx,yy]
+                tp[xx,yy]=(max(0,int(r*0.55)),max(0,int(g*0.55)),max(0,int(b*0.55)),a)
+    td=ImageDraw.Draw(tex)
+    fold=(45,49,41,82)
+    td.line((int(W*0.19),int(H*0.43),int(W*0.72),int(H*0.55)),fill=fold,width=1)
+    td.line((int(W*0.27),int(H*0.66),int(W*0.73),int(H*0.48)),fill=fold,width=1)
+    tex.putalpha(mask)
+    return tex
+
 def make_v3_shoulder_cap(upper_x, sex):
     """Build an asymmetric torso-rooted deltoid from proximal V3 arm texture.
 
@@ -800,6 +856,8 @@ for sex,s in specs.items():
     v3_fore,v3_fore_parent,v3_fore_child=make_v3_pivoted_segment(f)
     v3_gear_upper=tactical_sleeve(v3_upper,sex,"upper")
     v3_gear_fore=tactical_sleeve(v3_fore,sex,"forearm")
+    v3_elbow=make_v3_elbow_patch(v3_upper,v3_fore,sex)
+    v3_gear_elbow=make_v3_elbow_patch(v3_gear_upper,v3_gear_fore,sex)
     v3_dom,v3_dom_pivot=make_v3_pivoted_hand(hand)
     v3_sup,v3_sup_pivot=make_v3_pivoted_hand(support_hand)
     v3_glove_dom,v3_glove_dom_pivot=make_v3_pivoted_hand(glove_dom)
@@ -811,6 +869,8 @@ for sex,s in specs.items():
       "forearm":f"SP_PC22_{sex.title()}_Forearm_V3.png",
       "gear_upper_arm":f"SP_PC22_{sex.title()}_UpperArm_Gear_V3.png",
       "gear_forearm":f"SP_PC22_{sex.title()}_Forearm_Gear_V3.png",
+      "elbow":f"SP_PC22_{sex.title()}_Elbow_V3.png",
+      "gear_elbow":f"SP_PC22_{sex.title()}_Elbow_Gear_V3.png",
       "hand_dominant":f"SP_PC22_{sex.title()}_Hand_Dominant_V3.png",
       "hand_support":f"SP_PC22_{sex.title()}_Hand_Support_V3.png",
       "glove_dominant":f"SP_PC22_{sex.title()}_Glove_Dominant_V3.png",
@@ -820,6 +880,7 @@ for sex,s in specs.items():
     for key,img in (
       ("upper_arm",v3_upper),("forearm",v3_fore),
       ("gear_upper_arm",v3_gear_upper),("gear_forearm",v3_gear_fore),
+      ("elbow",v3_elbow),("gear_elbow",v3_gear_elbow),
       ("hand_dominant",v3_dom),("hand_support",v3_sup),
       ("glove_dominant",v3_glove_dom),("glove_support",v3_glove_sup),
       ("shoulder_cap",v3_cap),
@@ -839,6 +900,12 @@ for sex,s in specs.items():
         "filename":str((v3_sex/v3_names["forearm"]).relative_to(repo)),
         "canvas_size":list(v3_fore.size),"parent_pivot_px":v3_fore_parent,
         "child_pivot_px":v3_fore_child,"canonical_length":s["forearm_length"],
+      },
+      "elbow":{
+        "filename":str((v3_sex/v3_names["elbow"]).relative_to(repo)),
+        "gear_filename":str((v3_sex/v3_names["gear_elbow"]).relative_to(repo)),
+        "canvas_size":list(v3_elbow.size),
+        "joint":"elbow","canonical_geometry_change":False,
       },
       "hand_dominant":{
         "filename":str((v3_sex/v3_names["hand_dominant"]).relative_to(repo)),
