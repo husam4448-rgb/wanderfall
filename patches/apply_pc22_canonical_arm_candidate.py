@@ -278,8 +278,8 @@ func _pc22_free_arm(shoulder: Vector2, upper_len: float, fore_len: float, swing_
 func _pc22_relaxed_onehand_arm(shoulder: Vector2, upper_len: float, fore_len: float, dir_sign: float) -> PackedVector2Array:
     # Natural off-hand rest for one-handed weapons. Exact canonical lengths are
     # preserved; only the free-arm pose changes so it no longer hangs like two rods.
-    var upper_dir := Vector2(-0.22*dir_sign,0.975).normalized()
-    var fore_dir := Vector2(-0.78*dir_sign,0.626).normalized()
+    var upper_dir := Vector2(-0.44*dir_sign,0.898).normalized()
+    var fore_dir := Vector2(-0.86*dir_sign,0.510).normalized()
     var elbow := shoulder + upper_dir*upper_len
     var wrist := elbow + fore_dir*fore_len
     return PackedVector2Array([elbow,wrist])
