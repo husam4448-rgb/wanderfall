@@ -137,10 +137,16 @@ jobs:
           assert data.get("sleeve_asset_count")==24, data
           assert data.get("role_glove_count")==24, data
           assert data.get("role_torso_count")==12, data
-          assert len(list((root/"arms/sleeves").glob("*/*/*.png")))==24
-          assert len(list((root/"arms/gloves").glob("*/*/glove_dominant.png")))==12
-          assert len(list((root/"arms/gloves").glob("*/*/glove_support.png")))==12
-          assert len(list((root/"roles").glob("*/*/torso.png")))==12
+          upper=list((root/"arms/sleeves").glob("*/*/upper_arm.png"))
+          fore=list((root/"arms/sleeves").glob("*/*/forearm.png"))
+          dom=list((root/"arms/gloves").glob("*/*/glove_dominant.png"))
+          sup=list((root/"arms/gloves").glob("*/*/glove_support.png"))
+          torsos=list((root/"roles").glob("*/*/torso.png"))
+          assert len(upper)==12, len(upper)
+          assert len(fore)==12, len(fore)
+          assert len(dom)==12, len(dom)
+          assert len(sup)==12, len(sup)
+          assert len(torsos)==12, len(torsos)
           print("PC22_ROLE_OVERLAY_WORKSPACE_OK:24_SLEEVES:24_GLOVES:12_TORSOS")
           PY
 
