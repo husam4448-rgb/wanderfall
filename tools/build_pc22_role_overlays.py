@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate role clothing overlays that inherit PC22 canonical arm geometry."""
+"""Generate V3 role clothing overlays that inherit PC22 canonical pivots and geometry."""
 from pathlib import Path
 from PIL import Image,ImageDraw
 import hashlib,json,sys
@@ -65,11 +65,11 @@ def torso_asset(src,role):
 records=[]
 for role in roles:
     for sex in ("male","female"):
-        sex_arm=arms/sex
-        upper=Image.open(sex_arm/f"SP_PC22_{sex.title()}_UpperArm_Right.png").convert("RGBA")
-        fore=Image.open(sex_arm/f"SP_PC22_{sex.title()}_Forearm_Right.png").convert("RGBA")
-        hand_dom=Image.open(sex_arm/f"SP_PC22_{sex.title()}_Hand_Dominant_Right.png").convert("RGBA")
-        hand_sup=Image.open(sex_arm/f"SP_PC22_{sex.title()}_Hand_Support_Right.png").convert("RGBA")
+        sex_arm=arms/"hybrid_v3"/sex
+        upper=Image.open(sex_arm/f"SP_PC22_{sex.title()}_UpperArm_V3.png").convert("RGBA")
+        fore=Image.open(sex_arm/f"SP_PC22_{sex.title()}_Forearm_V3.png").convert("RGBA")
+        hand_dom=Image.open(sex_arm/f"SP_PC22_{sex.title()}_Hand_Dominant_V3.png").convert("RGBA")
+        hand_sup=Image.open(sex_arm/f"SP_PC22_{sex.title()}_Hand_Support_V3.png").convert("RGBA")
         torso=Image.open(base/f"core/{sex}/torso_base.png").convert("RGBA")
 
         outdir=arms/"sleeves"/role/sex; outdir.mkdir(parents=True,exist_ok=True)
