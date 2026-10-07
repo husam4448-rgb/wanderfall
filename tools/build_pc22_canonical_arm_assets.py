@@ -278,8 +278,8 @@ female_fore_runtime=embedded_runtime_image("FEMALE_FOREARM_B64")
 specs={
  "male":{
    "rig_id":"MALE_CANONICAL_ARM_SYSTEM",
-   "shoulder_rear":[9.2,-9.0],
-   "shoulder_front":[7.8,-7.0],
+   "shoulder_rear":[10.0,-9.5],
+   "shoulder_front":[9.8,-9.0],
    "upper_arm_length":10.9,
    "forearm_length":10.7,
    "upper_arm_width":9.2,
@@ -293,8 +293,8 @@ specs={
  },
  "female":{
    "rig_id":"FEMALE_CANONICAL_ARM_SYSTEM",
-   "shoulder_rear":[8.6,-8.6],
-   "shoulder_front":[7.4,-6.7],
+   "shoulder_rear":[9.6,-9.3],
+   "shoulder_front":[9.4,-8.9],
    "upper_arm_length":10.6,
    "forearm_length":10.5,
    "upper_arm_width":8.2,
@@ -312,7 +312,7 @@ for sex,s in specs.items():
       "standard_id":"PlayerCharacters_v22",
       "shoulder_source":"Visual-fix-v2: moved to visible PC22 deltoid/outer-torso attachment using approved reference sheets",
       "upper_forearm_length_source":"corrected from prior 9.4+10.5 solver to cover the complete active PC22 support-hand aim envelope without stretch",
-      "weapon_socket":[10.3,-4.4],
+      "weapon_socket":[11.0,-4.8],
       "dominant_hand_grip_socket":[1.0,3.4],
       "support_hand_grip_socket":[14.7,1.45],
       "support_hand_vertical_offset_right":1.5,
