@@ -77,7 +77,8 @@
     "Hybrid V3 replaces V2's center-stretched segment rectangles with tight +X sprites rotated about explicit parent pivots and uniformly scaled only from canonical bone length.",
     "Hybrid V3 restores a compact textured shoulder cap as an intentional deltoid bridge; this is not a full upper-arm redraw and must remain anchored to the canonical shoulder socket.",
     "Hybrid V3 armed-hand refinement: locked IK grip sockets now land inside the rendered palm; free-hand wrist anchoring is unchanged.",
-    "Hybrid V3 pistol scale recalibrated from runtime evidence so sidearm length is realistic relative to the 10.5–10.7 unit forearm while preserving the exact locked grip socket."
+    "Hybrid V3 pistol scale recalibrated from runtime evidence so sidearm length is realistic relative to the 10.5–10.7 unit forearm while preserving the exact locked grip socket.",
+    "Hybrid V3 final shoulder composition: compact deltoid caps are rendered behind the torso so torso occlusion hides their root and prevents a pasted-on shoulder-pad silhouette."
   ],
   "runtime_draw": {
     "rifle_scale_min": 0.3,
@@ -98,9 +99,10 @@
     "armed_front_upper": "behind_torso",
     "armed_front_forearm": "foreground",
     "prohibit_full_front_chain_after_torso": true,
-    "shoulder_cap_foreground": true,
+    "shoulder_cap_foreground": false,
     "rifle_stock": "foreground_to_torso_behind_forearms_and_hands",
-    "natural_torso_shoulder_occlusion": true
+    "natural_torso_shoulder_occlusion": true,
+    "shoulder_cap": "behind_torso"
   },
   "renderer": "hybrid_pivoted_sprite_v3"
 }

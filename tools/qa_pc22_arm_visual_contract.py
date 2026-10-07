@@ -92,21 +92,20 @@ for label,key in (("dominant","dominant_grip_pivot_fraction"),("support","suppor
             fail.append(f"runtime.{label}_grip_pivot: {token} not found")
 
 
-# Armed shoulder layering must not repaint the complete front upper-arm chain
-# over the chest. The proximal upper arm is depth-layered behind the torso;
-# only the distal forearm returns to the foreground.
+# Armed layering contract for the V3 renderer.
 if contract.get("layering",{}).get("armed_front_upper")=="behind_torso":
-    if "VISUAL_FIX_V2_FRONT_UPPER_BEHIND_TORSO" not in patch:
-        fail.append("layering.armed_front_upper: missing behind-torso implementation marker")
+    if "HYBRID V3: only proximal upper-arm art is drawn behind the torso." not in patch:
+        fail.append("layering.armed_front_upper: V3 behind-torso upper-arm marker missing")
 if contract.get("layering",{}).get("armed_front_forearm")=="foreground":
-    if "VISUAL_FIX_V2_FRONT_FOREARM_FOREGROUND" not in patch:
-        fail.append("layering.armed_front_forearm: missing foreground implementation marker")
-if contract.get("layering",{}).get("shoulder_cap_foreground") is True:
-    if "VISUAL_FIX_V2_SHOULDER_CAP_FOREGROUND" not in patch:
-        fail.append("layering.shoulder_cap_foreground: missing textured shoulder bridge marker")
+    if "Foreground resumes at the forearms" not in patch:
+        fail.append("layering.armed_front_forearm: V3 foreground forearm marker missing")
 if contract.get("layering",{}).get("shoulder_cap_foreground") is False:
-    if "VISUAL_FIX_V2_NO_FOREGROUND_SHOULDER_CAP" not in patch:
-        fail.append("layering.shoulder_cap_foreground: artificial cap must remain disabled")
+    if "Both deltoid caps are now composed behind the torso." not in patch:
+        fail.append("layering.shoulder_cap: V3 behind-torso shoulder-cap marker missing")
+if contract.get("layering",{}).get("prohibit_full_front_chain_after_torso") is True:
+    if "_pc22_draw_chain(pc22_front_shoulder" in patch:
+        fail.append("layering.front_chain: full front chain repainted after torso")
+
 
 if fail:
     print("PC22_ARM_VISUAL_CONTRACT_FAIL")
