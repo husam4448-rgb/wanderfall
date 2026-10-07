@@ -1,0 +1,185 @@
+name: PC22 Canonical Arm Production Gate
+
+on:
+  push:
+    branches: [ pc22-canonical-arm-system ]
+    paths:
+      - '.ci/trigger-pc22-arm-production'
+      - '.github/workflows/pc22-arm-production-gate.yml'
+      - 'patches/apply_playercharacters_v22_canonical_arms.py'
+      - 'patches/finalize_pc22_canonical_arms_production.py'
+      - 'patches/apply_pc22_canonical_arm_candidate.py'
+
+permissions:
+  contents: read
+
+env:
+  SOURCE_SHA256: ae4eff17e5f281f5867ac2d82207fcf96e6c8b649432acd48816aebab76fa308
+  SOURCE_ARCHIVE: /tmp/Wanderfall_Phase16_Game_Source.tar.xz
+  PROJECT_DIR: game
+  GODOT_ZIP: /tmp/Godot_v4.7.2-stable_linux.x86_64.zip
+  GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
+  GODOT_TEMPLATES_TPZ: /tmp/Godot_v4.7.2-stable_export_templates.tpz
+  GODOT_TEMPLATES_SHA256: f298490b8d44d934be425a5a65a51bf15f422428b229a06a6e11d9ffea248011
+  APK_PATH: PlayerCharacters_v22_Arms.apk
+
+jobs:
+  production-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: pc22-canonical-arm-system
+          fetch-depth: 1
+
+      - name: Validate production patch scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile             patches/apply_pc22_canonical_arm_candidate.py             patches/finalize_pc22_canonical_arms_production.py             patches/apply_playercharacters_v22_canonical_arms.py
+
+      - name: Reconstruct exact PC22 and apply production arms
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat source_parts/part_*.b64 > /tmp/wanderfall_source.b64
+          base64 --decode /tmp/wanderfall_source.b64 > "$SOURCE_ARCHIVE"
+          echo "$SOURCE_SHA256  $SOURCE_ARCHIVE" | sha256sum -c -
+          mkdir -p "$PROJECT_DIR"
+          tar -xJf "$SOURCE_ARCHIVE" -C "$PROJECT_DIR"
+          python3 patches/apply_godot_47_fixes.py "$PROJECT_DIR"
+          python3 patches/apply_v017_ui_overhaul.py "$PROJECT_DIR"
+          python3 patches/apply_v0171_inventory_polish.py "$PROJECT_DIR"
+          python3 patches/apply_v0172_hud_customization.py "$PROJECT_DIR"
+          python3 patches/fix_v0173_applicator_path.py
+          python3 patches/apply_v0173_touch_layout_fixes.py "$PROJECT_DIR"
+          python3 patches/apply_v0174_ui_pause_completion.py "$PROJECT_DIR"
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('patches/apply_v0175_hotbar_sensitivity.py')
+          s=p.read_text(encoding='utf-8')
+          old='''replace_once(
+              "scripts/settings/settings_hud.gd",
+              '    if ui_buttons.has("quickbar_visible"):\\n        ui_buttons["quickbar_visible"].text = "QUICKBAR: %s" % ("ON" if GameSettings.quickbar_visible else "OFF")\\n\\n    var pause_names :=',
+              '    if ui_buttons.has("quickbar_visible"):\\n        ui_buttons["quickbar_visible"].text = "QUICKBAR: %s" % ("ON" if GameSettings.quickbar_visible else "OFF")\\n'
+              '    if movement_sensitivity_slider != null:\\n'
+              '        movement_sensitivity_slider.set_value_no_signal(GameSettings.movement_stick_sensitivity)\\n'
+              '    if movement_sensitivity_label != null:\\n'
+              '        movement_sensitivity_label.text = "×%.2f" % GameSettings.movement_stick_sensitivity\\n\\n'
+              '    var pause_names :=',
+          )'''
+          new='''replace_once(
+              "scripts/settings/settings_hud.gd",
+              '    var pause_names :=',
+              '    if movement_sensitivity_slider != null:\\n'
+              '        movement_sensitivity_slider.set_value_no_signal(GameSettings.movement_stick_sensitivity)\\n'
+              '    if movement_sensitivity_label != null:\\n'
+              '        movement_sensitivity_label.text = "×%.2f" % GameSettings.movement_stick_sensitivity\\n\\n'
+              '    var pause_names :=',
+          )'''
+          if old not in s:
+              raise SystemExit('Expected v0.17.5 applicator block not found')
+          p.write_text(s.replace(old,new,1),encoding='utf-8')
+          PY
+          python3 patches/apply_v0175_hotbar_sensitivity.py "$PROJECT_DIR"
+          python3 patches/apply_v0176_hotbar_deadzone.py "$PROJECT_DIR"
+          python3 patches/apply_v0177_mobile_hotbar_layers.py "$PROJECT_DIR"
+          python3 patches/apply_v0178_dedicated_hotbar_layer.py "$PROJECT_DIR"
+          python3 -m pip install --quiet pillow numpy
+          python3 patches/apply_v0179_quick_item_buttons.py "$PROJECT_DIR"
+          grep -q 'PLAYER CHARACTERS V22 | PROPORTIONAL FEMALE BOOTS:' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"
+          python3 patches/apply_playercharacters_v22_canonical_arms.py "$PROJECT_DIR"
+          grep -q 'PLAYER CHARACTERS V22 | CANONICAL ARTICULATED ARMS:' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"
+          if grep -q 'ARM_CAPTURE_DIR\|PC22_RUNTIME_SWEEP_OK\|PC22_ARM_CAPTURE_COMPLETE\|draw_line(actor_pos, aim_pos' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"; then
+            echo "Production runtime retained QA/debug code"
+            exit 1
+          fi
+
+      - name: Set up Java and Android
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Prepare Android SDK and signing
+        shell: bash
+        run: |
+          set -euo pipefail
+          ANDROID_SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          echo "ANDROID_HOME=$ANDROID_SDK" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK" >> "$GITHUB_ENV"
+          SDKMANAGER="$(command -v sdkmanager || true)"
+          [ -n "$SDKMANAGER" ] || SDKMANAGER="$ANDROID_SDK/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMANAGER" --licenses >/dev/null 2>&1 || true
+          "$SDKMANAGER" --sdk_root="$ANDROID_SDK" "platform-tools" "build-tools;35.0.1" "platforms;android-35" "cmdline-tools;latest"
+          mkdir -p "$HOME/.android"
+          base64 --decode signing/survival_paradise_debug.keystore.b64 > "$HOME/.android/debug.keystore"
+          chmod 600 "$HOME/.android/debug.keystore"
+          keytool -list -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey >/dev/null
+
+      - name: Install Godot and export templates
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 2 -o "$GODOT_ZIP" "https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip"
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  $GODOT_ZIP" | sha256sum -c -
+          unzip -q "$GODOT_ZIP" -d /tmp
+          curl -fL --retry 3 --retry-delay 2 -o "$GODOT_TEMPLATES_TPZ" "https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_export_templates.tpz"
+          echo "$GODOT_TEMPLATES_SHA256  $GODOT_TEMPLATES_TPZ" | sha256sum -c -
+          rm -rf /tmp/godot_export_templates
+          mkdir -p /tmp/godot_export_templates
+          unzip -q "$GODOT_TEMPLATES_TPZ" -d /tmp/godot_export_templates
+          TEMPLATE_DIR="$HOME/.local/share/godot/export_templates/4.7.2.stable"
+          mkdir -p "$TEMPLATE_DIR"
+          cp -a /tmp/godot_export_templates/templates/. "$TEMPLATE_DIR/"
+
+      - name: Production parser and runtime smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --editor --path "$PROJECT_DIR" --quit --verbose 2>&1 | tee pc22-arms-production-parser.log
+          if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|Compile Error:|Parse Error:' pc22-arms-production-parser.log; then exit 1; fi
+          timeout 20s "$GODOT_BIN" --headless --path "$PROJECT_DIR" --quit-after 120 --verbose 2>&1 | tee pc22-arms-production-smoke.log
+          if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|Compile Error:|Parse Error:|Invalid call|Invalid get index' pc22-arms-production-smoke.log; then exit 1; fi
+
+      - name: Export production arm APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --path "$PROJECT_DIR" --export-debug Android "$GITHUB_WORKSPACE/$APK_PATH" 2>&1 | tee pc22-arms-production-export.log
+          test -s "$GITHUB_WORKSPACE/$APK_PATH"
+
+      - name: Validate production arm APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="$GITHUB_WORKSPACE/$APK_PATH"
+          APKSIGNER="$ANDROID_HOME/build-tools/35.0.1/apksigner"
+          AAPT="$ANDROID_HOME/build-tools/35.0.1/aapt"
+          unzip -t "$APK" > pc22-arms-apk-zip.txt
+          "$APKSIGNER" verify --verbose --print-certs "$APK" | tee pc22-arms-apk-signature.txt
+          "$AAPT" dump badging "$APK" | tee pc22-arms-apk-badging.txt
+          grep -q "package: name='org.wanderfall.game'" pc22-arms-apk-badging.txt
+          grep -q "versionCode='190'" pc22-arms-apk-badging.txt
+          grep -q "versionName='0.21.0-PC22-ARMS'" pc22-arms-apk-badging.txt
+          unzip -l "$APK" | grep -q 'lib/arm64-v8a/libgodot_android.so'
+          if unzip -l "$APK" | grep -q 'lib/armeabi-v7a/'; then exit 1; fi
+          sha256sum "$APK" | tee PlayerCharacters_v22_Arms.apk.sha256
+
+      - name: Upload production gate artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PlayerCharacters_v22-Arms-ProductionGate
+          path: |
+            PlayerCharacters_v22_Arms.apk
+            PlayerCharacters_v22_Arms.apk.sha256
+            pc22-arms-apk-signature.txt
+            pc22-arms-apk-badging.txt
+            pc22-arms-apk-zip.txt
+            pc22-arms-production-parser.log
+            pc22-arms-production-smoke.log
+            pc22-arms-production-export.log
+          retention-days: 14
+          if-no-files-found: error
+          compression-level: 0
