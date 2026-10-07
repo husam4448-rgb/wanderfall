@@ -589,22 +589,13 @@ if rear_anchor not in s:
 s=s.replace(rear_anchor,'''    if gear_back and not female_mode:
         _draw_backpack(base, dir_sign)
 
-    # Rear shoulder/upper arm remains behind the torso. Armed forearm is
-    # deferred to the foreground so the trigger arm stays visibly connected.
-    if weapon_visible:
-        var pc22_rear_upper_tex: Texture2D = _pc22_upper_texture()
-        var pc22_rear_upper_w: float = 5.8 if female_mode else 6.2
-        _pc22_draw_segment(pc22_rear_upper_tex,pc22_rear_shoulder,pc22_rear_elbow,pc22_rear_upper_w,dir_sign<0.0)
-        # VISUAL_FIX_V2_FRONT_UPPER_BEHIND_TORSO
-        # The proximal support upper arm belongs behind the torso/clothing;
-        # only its distal forearm returns to the foreground after torso draw.
-        var pc22_front_upper_tex: Texture2D = _pc22_upper_texture()
-        var pc22_front_upper_w: float = 5.8 if female_mode else 6.2
-        _pc22_draw_segment(pc22_front_upper_tex,pc22_front_shoulder,pc22_front_elbow,pc22_front_upper_w,dir_sign<0.0)
-    else:
-        _pc22_draw_chain(pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist,dir_sign)
-        var pc22_rear_free_angle: float = (pc22_dom_wrist-pc22_rear_elbow).angle()
-        _draw_hand(pc22_dom_wrist,pc22_rear_free_angle,dir_sign,Color("c98e68"),0.82)
+    # HYBRID V3: only proximal upper-arm art is drawn behind the torso.
+    # Forearms/hands are deferred until after torso/clothing so they can remain
+    # readable without painting a full upper-arm rectangle across the chest.
+    var pc22_rear_upper_tex: Texture2D = _pc22_upper_texture()
+    var pc22_front_upper_tex: Texture2D = _pc22_upper_texture()
+    _pc22_v3_draw_segment(pc22_rear_upper_tex,pc22_rear_shoulder,pc22_rear_elbow,dir_sign<0.0)
+    _pc22_v3_draw_segment(pc22_front_upper_tex,pc22_front_shoulder,pc22_front_elbow,dir_sign<0.0)
 
     # Independent left/right leg gait. Each leg has its own hip, knee, shin and foot.
 ''',1)
@@ -614,34 +605,28 @@ front_anchor='''    # On the left-facing mirror, support hand is drawn first so 
 '''
 if front_anchor not in s:
     raise SystemExit("Candidate front-arm layering anchor missing")
-s=s.replace(front_anchor,'''    # Armed dominant forearm is foregrounded after the torso; this preserves
-    # shoulder occlusion while keeping elbow→wrist continuity visible.
-    if weapon_visible:
-        # VISUAL_FIX_V2_STOCK_FOREGROUND_BEHIND_ARMS
-        # The stock is visible against the shoulder/chest, but remains under
-        # the foreground forearms/hands just like the approved reference.
-        if weapon_two_handed and tex_pc22_rifle_stock != null:
-            var pc22_stock_center: Vector2 = pc22_arm_pivot + _pose_point(Vector2(14.5,-1.5),pc22_arm_angle,dir_sign)
-            _draw_equipment_texture(tex_pc22_rifle_stock,pc22_stock_center,Vector2(38.0,10.0),dir_sign<0.0,pc22_arm_angle)
-        var pc22_rear_fore_tex: Texture2D = _pc22_fore_texture()
-        var pc22_rear_fore_w: float = 4.8 if female_mode else 5.1
-        _pc22_draw_segment(pc22_rear_fore_tex,pc22_rear_elbow,pc22_dom_wrist,pc22_rear_fore_w,dir_sign<0.0)
-        # VISUAL_FIX_V2_NO_FOREGROUND_SHOULDER_CAP
-        # Upper arms stay behind the torso and emerge naturally from the
-        # outboard deltoid sockets. No artificial foreground cap is painted
-        # across the chest; torso occlusion itself forms the shoulder seam.
+s=s.replace(front_anchor,'''    # HYBRID V3 DEPTH STACK: torso is already drawn.  Rifle stock comes next,
+    # then compact shoulder caps, then foreground forearms.  The caps are small
+    # pivoted deltoid bridges, not stretched upper-arm substitutes.
+    if weapon_visible and weapon_two_handed and tex_pc22_rifle_stock != null:
+        _pc22_v3_draw_weapon_piece(tex_pc22_rifle_stock,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(36.0,18.0),0.33)
 
-        # VISUAL_FIX_V2_FRONT_FOREARM_FOREGROUND
-        var pc22_front_fore_tex: Texture2D = _pc22_fore_texture()
-        var pc22_front_fore_w: float = 4.8 if female_mode else 5.1
-        _pc22_draw_segment(pc22_front_fore_tex,pc22_front_elbow,pc22_front_wrist,pc22_front_fore_w,dir_sign<0.0)
-    else:
-        _pc22_draw_chain(pc22_front_shoulder,pc22_front_elbow,pc22_front_wrist,dir_sign)
+    var pc22_cap_tex: Texture2D = tex_pc22_female_shoulder_cap if female_mode else tex_pc22_male_shoulder_cap
+    _pc22_v3_draw_cap(pc22_cap_tex,pc22_rear_shoulder,pc22_rear_elbow,dir_sign)
+    _pc22_v3_draw_cap(pc22_cap_tex,pc22_front_shoulder,pc22_front_elbow,dir_sign)
 
-    # Free/front hand must remain visible for unarmed locomotion and one-handed pistol.
+    var pc22_rear_fore_tex: Texture2D = _pc22_fore_texture()
+    var pc22_front_fore_tex: Texture2D = _pc22_fore_texture()
+    _pc22_v3_draw_segment(pc22_rear_fore_tex,pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)
+    _pc22_v3_draw_segment(pc22_front_fore_tex,pc22_front_elbow,pc22_front_wrist,dir_sign<0.0)
+
+    # Free/front hand remains visible for unarmed locomotion and one-handed pistol.
     if not weapon_visible or not weapon_two_handed:
         var pc22_front_free_angle: float = (pc22_front_wrist-pc22_front_elbow).angle()
         _draw_hand(pc22_front_wrist,pc22_front_free_angle,dir_sign,Color("c98e68"),0.80)
+    if not weapon_visible:
+        var pc22_rear_free_angle: float = (pc22_dom_wrist-pc22_rear_elbow).angle()
+        _draw_hand(pc22_dom_wrist,pc22_rear_free_angle,dir_sign,Color("c98e68"),0.82)
 
     # On the left-facing mirror, support hand is drawn first so the gun occludes it.
 ''',1)
@@ -651,19 +636,17 @@ start=s.find('    # On the left-facing mirror, support hand is drawn first so th
 end=s.find('\n\n    # PC15: base torso keeps its matching collar/belt.',start)
 if start<0 or end<0:
     raise SystemExit("Candidate weapon block boundaries missing")
-weapon_block='''    # Weapon is the relationship anchor between the two hands.
-    # Visual-fix-v2 uses the same PC22 IK wrist targets for drawing the hands,
-    # preventing a second legacy hand coordinate system from drifting away.
+weapon_block='''    # HYBRID V3: weapon artwork is anchored directly at the dominant grip
+    # socket.  Stock/front pieces share the exact same transform, eliminating
+    # the old center-offset drift between weapon and hands.
     if weapon_visible:
-        var active_muzzle: Vector2 = pc22_arm_pivot
+        var active_muzzle: Vector2 = pc22_dom_wrist
         if weapon_two_handed:
-            var rifle_center: Vector2 = pc22_arm_pivot + _pose_point(Vector2(14.5,-1.5),pc22_arm_angle,dir_sign)
-            _draw_equipment_texture(tex_pc22_rifle_front,rifle_center,Vector2(38.0,10.0),dir_sign<0.0,pc22_arm_angle)
-            active_muzzle = pc22_arm_pivot + _pose_point(Vector2(33.0,-1.8),pc22_arm_angle,dir_sign)
+            _pc22_v3_draw_weapon_piece(tex_pc22_rifle_front,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(36.0,18.0),0.33)
+            active_muzzle = pc22_dom_wrist + _pose_point(Vector2(19.14,-1.65),pc22_arm_angle,dir_sign)
         else:
-            var pistol_center: Vector2 = pc22_arm_pivot + _pose_point(Vector2(12.8,-1.1),pc22_arm_angle,dir_sign)
-            _draw_equipment_texture(tex_pc22_pistol,pistol_center,Vector2(16.0,7.5),dir_sign<0.0,pc22_arm_angle)
-            active_muzzle = pc22_arm_pivot + _pose_point(Vector2(20.5,-2.4),pc22_arm_angle,dir_sign)
+            _pc22_v3_draw_weapon_piece(tex_pc22_pistol,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(15.0,18.0),0.38)
+            active_muzzle = pc22_dom_wrist + _pose_point(Vector2(11.78,-3.42),pc22_arm_angle,dir_sign)
 
         if shot_flash > 0.02:
             var flash_len: float = 5.0 * shot_flash
@@ -895,7 +878,7 @@ func _pc22_arm_capture_after_draw() -> void:
 '''
 s=s.replace(capture_anchor,capture_helpers+capture_anchor,1)
 
-s=s.replace(title_old,'title.text = "PLAYER CHARACTERS V22 ARM VISUAL FIX V2 | REFERENCE QA:"',1)
+s=s.replace(title_old,'title.text = "PLAYER CHARACTERS V22 HYBRID ARM V3 | PIVOTED RENDERER:"',1)
 
 # Visual-fix-v2 removes the legacy full-screen aim guide. The weapon itself
 # and muzzle flash communicate aim direction; the guide was being mistaken
@@ -907,7 +890,7 @@ if aim_guide in s:
 runtime.write_text(s,encoding="utf-8")
 s2=runtime.read_text(encoding="utf-8")
 for needle in (
-    "PLAYER CHARACTERS V22 ARM VISUAL FIX V2 | REFERENCE QA:",
+    "PLAYER CHARACTERS V22 HYBRID ARM V3 | PIVOTED RENDERER:",
     "func _pc22_solve_elbow(",
     "func _pc22_draw_chain(",
     "var weapon_visible := true",
@@ -932,8 +915,8 @@ for forbidden in ('direction_index','octant_index','eight_direction','8_directio
 # Candidate APK identity is deliberately distinct from the approved PC22 baseline.
 ep=root/"export_presets.cfg"
 e=ep.read_text(encoding="utf-8")
-e,n1=re.subn(r'(?m)^version/code=\d+$','version/code=191',e,count=1)
-e,n2=re.subn(r'(?m)^version/name="[^"]*"$','version/name="0.21.0-PC22-ARM-VISUAL-FIX-V2"',e,count=1)
+e,n1=re.subn(r'(?m)^version/code=\d+$','version/code=192',e,count=1)
+e,n2=re.subn(r'(?m)^version/name="[^"]*"$','version/name="0.21.0-PC22-HYBRID-ARM-V3"',e,count=1)
 if n1!=1 or n2!=1:
     raise SystemExit("PC22 arm candidate Android version anchors missing")
 ep.write_text(e,encoding="utf-8")
@@ -941,10 +924,10 @@ ep.write_text(e,encoding="utf-8")
 sm=root/"scripts/save/save_manager.gd"
 if sm.exists():
     q=sm.read_text(encoding="utf-8")
-    q=re.sub(r'const GAME_VERSION := "[^"]+"','const GAME_VERSION := "0.21.0-PC22-ARM-VISUAL-FIX-V2"',q,count=1)
+    q=re.sub(r'const GAME_VERSION := "[^"]+"','const GAME_VERSION := "0.21.0-PC22-HYBRID-ARM-V3"',q,count=1)
     sm.write_text(q,encoding="utf-8")
 
 print("PC22 canonical articulated arm candidate integrated")
 print("Male/female share one IK algorithm; geometry remains sex-canonical only")
 print("One-handed pistol, two-handed rifle, recoil, unarmed swing and runtime capture enabled")
-print("Android candidate version: 191 / 0.21.0-PC22-ARM-VISUAL-FIX-V2")
+print("Android candidate version: 192 / 0.21.0-PC22-HYBRID-ARM-V3")
