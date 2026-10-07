@@ -135,8 +135,8 @@ jobs:
           assert sheet.is_file() and sheet.stat().st_size>0
           data=json.loads(meta.read_text(encoding="utf-8"))
           assert data.get("sleeve_asset_count")==24, data
-          assert data.get("glove_asset_count")==24, data
-          assert data.get("torso_asset_count")==12, data
+          assert data.get("role_glove_count")==24, data
+          assert data.get("role_torso_count")==12, data
           assert len(list((root/"arms/sleeves").glob("*/*/*.png")))==24
           assert len(list((root/"arms/gloves").glob("*/*/glove_dominant.png")))==12
           assert len(list((root/"arms/gloves").glob("*/*/glove_support.png")))==12
