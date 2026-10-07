@@ -176,3 +176,14 @@ require("upper_dir*upper_len" in patch and "fore_dir*fore_len" in patch,
 require("_pc22_v3_draw_elbow_bridge(pc22_rear_fore_tex" in patch and
         "_pc22_v3_draw_elbow_bridge(pc22_front_fore_tex" in patch,
         "runtime elbow seam bridges missing")
+
+# Equipped gloves must use dedicated authored tactical grip sprites.
+for sex in ("male","female"):
+    for name in (f"SP_PC22_{sex.title()}_Glove_Dominant_V3.png", f"SP_PC22_{sex.title()}_Glove_Support_V3.png"):
+        gp=arms/"hybrid_v3"/sex/name
+        require(gp.is_file(), f"{sex}: tactical grip glove missing {name}")
+        if gp.is_file():
+            gim=Image.open(gp).convert("RGBA")
+            require(gim.getchannel("A").getbbox() is not None, f"{sex}: tactical grip glove empty {name}")
+require("if gear_gloves:" in patch and "tex_pc22_female_glove_dom" in patch and "tex_pc22_male_glove_sup" in patch,
+        "equipped generic glove override missing")
