@@ -192,34 +192,13 @@ support_anchor='func _draw_support_hand(center: Vector2, angle: float, dir_sign:
 if support_anchor not in s:
     raise SystemExit("Candidate support-hand helper anchor missing")
 helpers=f'''func _pc22_arm_lengths() -> Vector2:
-    return Vector2({female_spec["upper_arm_length"]},{female_spec["forearm_length"]}) if female_mode else Vector2({male_spec["upper_arm_length"]},{male_spec["forearm_length"]})
+    return pc22_player_arm_rig.lengths()
 
 func _pc22_solve_elbow(shoulder: Vector2, wrist: Vector2, upper_len: float, fore_len: float, previous: Vector2, has_previous: bool) -> Vector2:
-    var dvec := wrist - shoulder
-    var dist := maxf(dvec.length(),0.001)
-    var min_reach := absf(upper_len-fore_len)+0.001
-    var max_reach := upper_len+fore_len-0.001
-    var clamped_dist := clampf(dist,min_reach,max_reach)
-    var u := dvec / dist
-    var along := (upper_len*upper_len-fore_len*fore_len+clamped_dist*clamped_dist)/(2.0*clamped_dist)
-    var height := sqrt(maxf(upper_len*upper_len-along*along,0.0))
-    var perp := Vector2(-u.y,u.x)
-    var c1 := shoulder + u*along + perp*height
-    var c2 := shoulder + u*along - perp*height
-    if not has_previous:
-        # Initial anatomical preference: elbow stays on the screen-down side.
-        return c1 if c1.y >= c2.y else c2
-    var p1 := c1.distance_to(previous) + maxf(0.0, shoulder.y-c1.y-1.0)*3.0
-    var p2 := c2.distance_to(previous) + maxf(0.0, shoulder.y-c2.y-1.0)*3.0
-    return c1 if p1 <= p2 else c2
+    return pc22_player_arm_rig.solve_elbow(shoulder,wrist,upper_len,fore_len,previous,has_previous)
 
 func _pc22_free_arm(shoulder: Vector2, upper_len: float, fore_len: float, swing_angle: float, dir_sign: float) -> PackedVector2Array:
-    var upper_dir := Vector2(sin(swing_angle)*dir_sign,cos(swing_angle))
-    var elbow := shoulder + upper_dir*upper_len
-    var fore_angle := swing_angle + 0.34*dir_sign
-    var fore_dir := Vector2(sin(fore_angle)*dir_sign,cos(fore_angle))
-    var wrist := elbow + fore_dir*fore_len
-    return PackedVector2Array([elbow,wrist])
+    return pc22_player_arm_rig.free_arm(shoulder,upper_len,fore_len,swing_angle,dir_sign)
 
 func _pc22_draw_segment(tex: Texture2D, a: Vector2, b: Vector2, width: float, flip_x: bool) -> void:
     if tex == null:
