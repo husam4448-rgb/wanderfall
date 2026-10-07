@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Candidate promotion patch: real PC22 canonical articulated arms. Not wired to main."""
 from pathlib import Path
-import base64, json, re, sys
+import base64, json, re, shutil, sys
 
 root=Path(sys.argv[1] if len(sys.argv)>1 else "game")
 repo_root=Path(__file__).resolve().parents[1]
@@ -116,6 +116,18 @@ for sex in ("male","female"):
     for p in (arms/sex).glob("SP_PC22_*.png"):
         (dst/p.name).write_bytes(p.read_bytes())
 
+# Role specialization is strictly artwork-only: no role-specific joints/skeletons.
+for src_rel,dst_rel in (
+    ("assets/authored2d/unified_character/arms/sleeves","assets/authored2d/unified_character/arms/sleeves"),
+    ("assets/authored2d/unified_character/arms/gloves","assets/authored2d/unified_character/arms/gloves"),
+    ("assets/authored2d/unified_character/roles","assets/authored2d/unified_character/roles"),
+):
+    src=repo_root/src_rel
+    dst=root/dst_rel
+    if not src.is_dir():
+        raise SystemExit(f"Missing canonical role overlay directory: {src}")
+    shutil.copytree(src,dst,dirs_exist_ok=True)
+
 # Embed candidate textures so the renderer does not depend on import timing.
 tex_anchor='var tex_female_gear_forearm: Texture2D = null\n'
 if tex_anchor not in s:
@@ -160,6 +172,8 @@ if state_anchor not in s:
 state='''var weapon_visible := true
 var pc22_player_arm_rig := PC22CanonicalArmSystemScript.new()
 var pc22_npc_arm_rig := PC22CanonicalArmSystemScript.new()
+var pc22_role := ""
+var pc22_role_texture_cache: Dictionary = {}
 var pc22_prev_dom_elbow := Vector2.ZERO
 var pc22_prev_support_elbow := Vector2.ZERO
 var pc22_prev_arm_valid := false
@@ -200,6 +214,75 @@ func _pc22_solve_elbow(shoulder: Vector2, wrist: Vector2, upper_len: float, fore
 func _pc22_free_arm(shoulder: Vector2, upper_len: float, fore_len: float, swing_angle: float, dir_sign: float) -> PackedVector2Array:
     return pc22_player_arm_rig.free_arm(shoulder,upper_len,fore_len,swing_angle,dir_sign)
 
+func _pc22_role_texture(kind: String) -> Texture2D:
+    if pc22_role.is_empty():
+        return null
+    var sex_name := "female" if female_mode else "male"
+    var key := "%s/%s/%s" % [pc22_role,sex_name,kind]
+    if pc22_role_texture_cache.has(key):
+        return pc22_role_texture_cache[key] as Texture2D
+    var path := ""
+    match kind:
+        "upper_arm":
+            path = "res://assets/authored2d/unified_character/arms/sleeves/%s/%s/upper_arm.png" % [pc22_role,sex_name]
+        "forearm":
+            path = "res://assets/authored2d/unified_character/arms/sleeves/%s/%s/forearm.png" % [pc22_role,sex_name]
+        "glove_dominant":
+            path = "res://assets/authored2d/unified_character/arms/gloves/%s/%s/glove_dominant.png" % [pc22_role,sex_name]
+        "glove_support":
+            path = "res://assets/authored2d/unified_character/arms/gloves/%s/%s/glove_support.png" % [pc22_role,sex_name]
+        "torso":
+            path = "res://assets/authored2d/unified_character/roles/%s/%s/torso.png" % [pc22_role,sex_name]
+    if path.is_empty() or not ResourceLoader.exists(path):
+        return null
+    var tex := load(path) as Texture2D
+    pc22_role_texture_cache[key] = tex
+    return tex
+
+func _pc22_upper_texture() -> Texture2D:
+    var role_tex := _pc22_role_texture("upper_arm")
+    return role_tex if role_tex != null else (tex_pc22_female_upper if female_mode else tex_pc22_male_upper)
+
+func _pc22_fore_texture() -> Texture2D:
+    var role_tex := _pc22_role_texture("forearm")
+    return role_tex if role_tex != null else (tex_pc22_female_fore if female_mode else tex_pc22_male_fore)
+
+func _pc22_dominant_hand_texture() -> Texture2D:
+    var role_tex := _pc22_role_texture("glove_dominant")
+    return role_tex if role_tex != null else (tex_pc22_female_dom_hand if female_mode else tex_pc22_male_dom_hand)
+
+func _pc22_support_hand_texture() -> Texture2D:
+    var role_tex := _pc22_role_texture("glove_support")
+    return role_tex if role_tex != null else (tex_pc22_female_support_hand if female_mode else tex_pc22_male_support_hand)
+
+func _pc22_draw_role_torso(base: Vector2, dir_sign: float) -> void:
+    var role_torso := _pc22_role_texture("torso")
+    if role_torso == null:
+        return
+    if female_mode:
+        _draw_equipment_texture(role_torso,base+Vector2(0.05*dir_sign,-3.05),Vector2(27.0,27.5),dir_sign<0.0)
+    else:
+        _draw_equipment_texture(role_torso,base+Vector2(0,-4),Vector2(26.2,29.6),dir_sign<0.0)
+
+func _pc22_verify_role_assets() -> bool:
+    var roles := ["trader","medic","mechanic","guard","bandit","civilian"]
+    var old_role := pc22_role
+    var old_female := female_mode
+    for role in roles:
+        for is_female in [false,true]:
+            pc22_role = role
+            female_mode = is_female
+            for kind in ["upper_arm","forearm","glove_dominant","glove_support","torso"]:
+                if _pc22_role_texture(kind) == null:
+                    push_error("PC22_ROLE_ASSET_MISSING %s %s %s" % [role,("female" if is_female else "male"),kind])
+                    pc22_role = old_role
+                    female_mode = old_female
+                    return false
+    pc22_role = old_role
+    female_mode = old_female
+    print("PC22_ROLE_ASSETS_OK:24_SLEEVES:24_GLOVES:12_TORSOS")
+    return true
+
 func _pc22_draw_segment(tex: Texture2D, a: Vector2, b: Vector2, width: float, flip_x: bool) -> void:
     if tex == null:
         return
@@ -210,8 +293,8 @@ func _pc22_draw_segment(tex: Texture2D, a: Vector2, b: Vector2, width: float, fl
     _draw_equipment_texture(tex,center,Vector2(width,seg_len+2.2),flip_x,rotation)
 
 func _pc22_draw_chain(shoulder: Vector2, elbow: Vector2, wrist: Vector2, dir_sign: float) -> void:
-    var upper_tex := tex_pc22_female_upper if female_mode else tex_pc22_male_upper
-    var fore_tex := tex_pc22_female_fore if female_mode else tex_pc22_male_fore
+    var upper_tex := _pc22_upper_texture()
+    var fore_tex := _pc22_fore_texture()
     var upper_width := {female_spec["upper_arm_width"]} if female_mode else {male_spec["upper_arm_width"]}
     var fore_width := {female_spec["forearm_width"]} if female_mode else {male_spec["forearm_width"]}
     _pc22_draw_segment(upper_tex,shoulder,elbow,upper_width,dir_sign<0.0)
@@ -322,7 +405,7 @@ s=s.replace(support_anchor,helpers+support_anchor,1)
 old_support=support_anchor+'''    if female_mode:
         scale *= 0.92
 '''
-new_support=support_anchor+'''    var support_tex := tex_pc22_female_support_hand if female_mode else tex_pc22_male_support_hand
+new_support=support_anchor+'''    var support_tex := _pc22_support_hand_texture()
     if gear_gloves and tex_gear_glove != null:
         support_tex = tex_gear_glove
     if support_tex != null:
@@ -342,7 +425,7 @@ old_hand='''    if tex_base_hand != null:
         _draw_equipment_texture(tex_base_hand, hand_center, (Vector2(10.0,9.8) if female_mode else Vector2(10.9,10.5)) * scale, dir_sign < 0.0, angle)
         return
 '''
-new_hand='''    var pc22_dom_hand := tex_pc22_female_dom_hand if female_mode else tex_pc22_male_dom_hand
+new_hand='''    var pc22_dom_hand := _pc22_dominant_hand_texture()
     if pc22_dom_hand != null:
         var hand_center := center + _pose_point(Vector2(0.9,0.0) * scale, angle, dir_sign)
         _draw_equipment_texture(pc22_dom_hand, hand_center, (Vector2(10.0,9.8) if female_mode else Vector2(10.9,10.5)) * scale, dir_sign < 0.0, angle)
@@ -409,6 +492,32 @@ arm_compute=f'''    var base := actor_pos + Vector2(sway, -bob - breath * 0.28)
 '''
 s=s.replace(base_anchor,arm_compute,1)
 
+role_torso_anchor='''    if female_mode:
+        if gear_torso:
+            _draw_equipment_texture(tex_female_vest, base + Vector2((0.05 * dir_sign),-3.05), Vector2(27.0,27.5), dir_sign < 0.0)
+        else:
+            _draw_equipment_texture(tex_pc06_female_torso, base + Vector2((0.05 * dir_sign),-3.05), Vector2(27.0,27.5), dir_sign < 0.0)
+    elif not gear_torso:
+        _draw_equipment_texture(tex_base_torso, base + Vector2(0,-4), Vector2(26.2,29.6), dir_sign < 0.0)
+
+'''
+role_torso_new='''    if female_mode:
+        if gear_torso:
+            _draw_equipment_texture(tex_female_vest, base + Vector2((0.05 * dir_sign),-3.05), Vector2(27.0,27.5), dir_sign < 0.0)
+        else:
+            _draw_equipment_texture(tex_pc06_female_torso, base + Vector2((0.05 * dir_sign),-3.05), Vector2(27.0,27.5), dir_sign < 0.0)
+    elif not gear_torso:
+        _draw_equipment_texture(tex_base_torso, base + Vector2(0,-4), Vector2(26.2,29.6), dir_sign < 0.0)
+
+    # Role clothing changes only the material/appearance, never shoulder geometry.
+    if not pc22_role.is_empty() and not gear_torso:
+        _pc22_draw_role_torso(base,dir_sign)
+
+'''
+if role_torso_anchor not in s:
+    raise SystemExit("Candidate role torso render anchor missing")
+s=s.replace(role_torso_anchor,role_torso_new,1)
+
 # Rear arm: after backpack, before legs/torso, so torso naturally covers shoulder overlap.
 rear_anchor='''    if gear_back and not female_mode:
         _draw_backpack(base, dir_sign)
@@ -423,7 +532,7 @@ s=s.replace(rear_anchor,'''    if gear_back and not female_mode:
     # Rear shoulder/upper arm remains behind the torso. Armed forearm is
     # deferred to the foreground so the trigger arm stays visibly connected.
     if weapon_visible:
-        var pc22_rear_upper_tex := tex_pc22_female_upper if female_mode else tex_pc22_male_upper
+        var pc22_rear_upper_tex := _pc22_upper_texture()
         var pc22_rear_upper_w := 6.2 if female_mode else 7.3
         _pc22_draw_segment(pc22_rear_upper_tex,pc22_rear_shoulder,pc22_rear_elbow,pc22_rear_upper_w,dir_sign<0.0)
     else:
@@ -442,7 +551,7 @@ if front_anchor not in s:
 s=s.replace(front_anchor,'''    # Armed dominant forearm is foregrounded after the torso; this preserves
     # shoulder occlusion while keeping elbow→wrist continuity visible.
     if weapon_visible:
-        var pc22_rear_fore_tex := tex_pc22_female_fore if female_mode else tex_pc22_male_fore
+        var pc22_rear_fore_tex := _pc22_fore_texture()
         var pc22_rear_fore_w := 5.6 if female_mode else 6.5
         _pc22_draw_segment(pc22_rear_fore_tex,pc22_rear_elbow,pc22_dom_wrist,pc22_rear_fore_w,dir_sign<0.0)
 
@@ -501,6 +610,10 @@ ready_inject='''    if not _pc22_verify_runtime_sweep():
     if not _pc22_verify_npc_inheritance():
         push_error("PC22_NPC_INHERITANCE_FAIL")
         get_tree().quit(24)
+        return
+    if not _pc22_verify_role_assets():
+        push_error("PC22_ROLE_ASSET_QA_FAIL")
+        get_tree().quit(25)
         return
     if OS.has_environment("ARM_CAPTURE_DIR"):
         pc22_arm_capture_dir = OS.get_environment("ARM_CAPTURE_DIR")
