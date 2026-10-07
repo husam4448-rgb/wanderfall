@@ -75,6 +75,17 @@ else:
         ge("runtime.pistol_width",w,rc["pistol_width_min"])
         le("runtime.pistol_height",h,rc["pistol_height_max"])
 
+
+# Armed shoulder layering must not repaint the complete front upper-arm chain
+# over the chest. The proximal upper arm is depth-layered behind the torso;
+# only the distal forearm returns to the foreground.
+if contract.get("layering",{}).get("armed_front_upper")=="behind_torso":
+    if "VISUAL_FIX_V2_FRONT_UPPER_BEHIND_TORSO" not in patch:
+        fail.append("layering.armed_front_upper: missing behind-torso implementation marker")
+if contract.get("layering",{}).get("armed_front_forearm")=="foreground":
+    if "VISUAL_FIX_V2_FRONT_FOREARM_FOREGROUND" not in patch:
+        fail.append("layering.armed_front_forearm: missing foreground implementation marker")
+
 if fail:
     print("PC22_ARM_VISUAL_CONTRACT_FAIL")
     for item in fail: print(" -",item)
