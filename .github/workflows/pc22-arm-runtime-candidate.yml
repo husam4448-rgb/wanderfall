@@ -38,6 +38,12 @@ jobs:
           ref: pc22-canonical-arm-system
           fetch-depth: 1
 
+      - name: Validate candidate patch syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile patches/apply_pc22_canonical_arm_candidate.py
+
       - name: Reconstruct exact PC22 and apply canonical arm candidate
         shell: bash
         run: |
@@ -214,8 +220,13 @@ jobs:
 
       - name: Export Android arm candidate APK
         shell: bash
+        env:
+          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: ${{ env.HOME }}/.local/share/godot/keystores/debug.keystore
+          GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
+          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
         run: |
           set -euo pipefail
+          test -s "$GODOT_ANDROID_KEYSTORE_DEBUG_PATH"
           "$GODOT_BIN" --headless --path "$PROJECT_DIR" --export-debug Android "$GITHUB_WORKSPACE/$APK_PATH" 2>&1 | tee pc22-arm-android-export.log
           test -s "$GITHUB_WORKSPACE/$APK_PATH"
 
