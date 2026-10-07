@@ -549,6 +549,12 @@ s=s.replace(rear_anchor,'''    if gear_back and not female_mode:
         var pc22_rear_upper_tex: Texture2D = _pc22_upper_texture()
         var pc22_rear_upper_w: float = 8.2 if female_mode else 9.2
         _pc22_draw_segment(pc22_rear_upper_tex,pc22_rear_shoulder,pc22_rear_elbow,pc22_rear_upper_w,dir_sign<0.0)
+        # VISUAL_FIX_V2_FRONT_UPPER_BEHIND_TORSO
+        # The proximal support upper arm belongs behind the torso/clothing;
+        # only its distal forearm returns to the foreground after torso draw.
+        var pc22_front_upper_tex: Texture2D = _pc22_upper_texture()
+        var pc22_front_upper_w: float = 8.2 if female_mode else 9.2
+        _pc22_draw_segment(pc22_front_upper_tex,pc22_front_shoulder,pc22_front_elbow,pc22_front_upper_w,dir_sign<0.0)
         if weapon_two_handed and tex_pc22_rifle_stock != null:
             var pc22_stock_center: Vector2 = pc22_arm_pivot + _pose_point(Vector2(4.0,-0.65),pc22_arm_angle,dir_sign)
             _draw_equipment_texture(tex_pc22_rifle_stock,pc22_stock_center,Vector2(40.0,10.5),dir_sign<0.0,pc22_arm_angle)
@@ -571,8 +577,12 @@ s=s.replace(front_anchor,'''    # Armed dominant forearm is foregrounded after t
         var pc22_rear_fore_tex: Texture2D = _pc22_fore_texture()
         var pc22_rear_fore_w: float = 7.1 if female_mode else 8.0
         _pc22_draw_segment(pc22_rear_fore_tex,pc22_rear_elbow,pc22_dom_wrist,pc22_rear_fore_w,dir_sign<0.0)
-
-    _pc22_draw_chain(pc22_front_shoulder,pc22_front_elbow,pc22_front_wrist,dir_sign)
+        # VISUAL_FIX_V2_FRONT_FOREARM_FOREGROUND
+        var pc22_front_fore_tex: Texture2D = _pc22_fore_texture()
+        var pc22_front_fore_w: float = 7.1 if female_mode else 8.0
+        _pc22_draw_segment(pc22_front_fore_tex,pc22_front_elbow,pc22_front_wrist,pc22_front_fore_w,dir_sign<0.0)
+    else:
+        _pc22_draw_chain(pc22_front_shoulder,pc22_front_elbow,pc22_front_wrist,dir_sign)
 
     # Free/front hand must remain visible for unarmed locomotion and one-handed pistol.
     if not weapon_visible or not weapon_two_handed:
