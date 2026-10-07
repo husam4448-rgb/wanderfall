@@ -128,7 +128,7 @@ jobs:
           test -s assets/authored2d/unified_character/arms/metadata/role_overlays.json
           test -s assets/authored2d/unified_character/arms/qa/role_overlays_contact_sheet.jpg
           test "$(find assets/authored2d/unified_character/arms/sleeves -type f -name '*.png' | wc -l)" -eq 24
-          test "$(find assets/authored2d/unified_character/arms/gloves -type f -name '*.png' | wc -l)" -eq 24
+          test "$(find assets/authored2d/unified_character/arms/gloves -type f -name '*.png' | wc -l)" -eq 36
           test "$(find assets/authored2d/unified_character/roles -type f -name 'torso.png' | wc -l)" -eq 12
 
       - name: Commit audit evidence and passing candidate assets

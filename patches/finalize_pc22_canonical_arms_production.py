@@ -9,14 +9,18 @@ if not runtime.is_file():
     raise SystemExit("PC22 arm production finalizer: runtime missing")
 
 s=runtime.read_text(encoding="utf-8")
-if 'PLAYER CHARACTERS V22 ARM CANDIDATE | CANONICAL IK:' not in s:
+candidate_titles=(
+    'PLAYER CHARACTERS V22 ARM CANDIDATE | CANONICAL IK:',
+    'PLAYER CHARACTERS V22 HYBRID ARM V3 | PIVOTED RENDERER:',
+)
+if not any(title in s for title in candidate_titles):
     raise SystemExit("PC22 arm production finalizer requires validated candidate runtime")
 
 # Remove capture-only state, preserving the real player/NPC rig + role selection state.
 s=re.sub(
     r'(?ms)^var pc22_arm_capture_dir := ""\n'
     r'var pc22_arm_capture_index := -1\n'
-    r'var pc22_arm_states_per_sex := 29\n'
+    r'var pc22_arm_states_per_sex := \d+\n'
     r'var pc22_arm_capture_names := PackedStringArray\(\[.*?^\]\)\n',
     '',
     s,
@@ -59,14 +63,20 @@ s,n=re.subn(
     s,
     count=1,
 )
-if n!=1:
-    raise SystemExit("PC22 arm production aim-guide anchor missing")
+if n not in (0,1):
+    raise SystemExit("PC22 arm production aim-guide removal ambiguity")
 
-s=s.replace(
+for candidate_title in (
     'title.text = "PLAYER CHARACTERS V22 ARM CANDIDATE | CANONICAL IK:"',
-    'title.text = "PLAYER CHARACTERS V22 | CANONICAL ARTICULATED ARMS:"',
-    1,
-)
+    'title.text = "PLAYER CHARACTERS V22 HYBRID ARM V3 | PIVOTED RENDERER:"',
+):
+    if candidate_title in s:
+        s=s.replace(
+            candidate_title,
+            'title.text = "PLAYER CHARACTERS V22 | CANONICAL ARTICULATED ARMS:"',
+            1,
+        )
+        break
 
 # Production identity follows the validated arm candidate but is distinct from
 # both baseline PC22 (188) and test candidate (189).
@@ -97,6 +107,9 @@ required=(
     'PC22_ARM_FEMALE_FORE_B64',
     'PC22_ARM_RIFLE_STOCK_B64',
     'PC22_ARM_RIFLE_FRONT_B64',
+    'PC22_ARM_MALE_ELBOW_B64',
+    'PC22_ARM_FEMALE_ELBOW_B64',
+    'func _pc22_v3_draw_elbow_gusset(',
 )
 for needle in required:
     if needle not in s2:
@@ -111,6 +124,7 @@ for forbidden in (
     'func _pc22_arm_runtime_check(',
     'draw_line(actor_pos, aim_pos, Color(0.85,0.72,0.35,0.18), 1.0)',
     'PLAYER CHARACTERS V22 ARM CANDIDATE',
+    'PLAYER CHARACTERS V22 HYBRID ARM V3',
 ):
     if forbidden in s2:
         raise SystemExit("PC22 production runtime retained QA/debug marker: "+forbidden)

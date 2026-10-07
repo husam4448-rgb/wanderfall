@@ -107,7 +107,7 @@ jobs:
           test -s assets/authored2d/unified_character/arms/weapons/SP_PC22_Rifle_Stock_Rear.png
           test -s assets/authored2d/unified_character/arms/weapons/SP_PC22_Rifle_Front.png
           python3 patches/apply_pc22_canonical_arm_candidate.py "$PROJECT_DIR"
-          grep -q 'PLAYER CHARACTERS V22 ARM CANDIDATE | CANONICAL IK:' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"
+          grep -q 'PLAYER CHARACTERS V22 HYBRID ARM V3 | PIVOTED RENDERER:' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"
 
       - name: Install Godot and Xvfb
         shell: bash
