@@ -1,0 +1,48 @@
+{
+  "standard": "PlayerCharacters_v22",
+  "authority": "Approved Survival Paradise arm visual-reference sheets + user-provided failed runtime screenshots",
+  "male": {
+    "shoulder_rear_min_x": 8.8,
+    "shoulder_front_min_x": 7.4,
+    "upper_arm_width_min": 8.8,
+    "forearm_width_min": 7.6,
+    "dominant_hand_min": [
+      8.8,
+      8
+    ],
+    "support_hand_min": [
+      8,
+      7
+    ]
+  },
+  "female": {
+    "shoulder_rear_min_x": 8.2,
+    "shoulder_front_min_x": 7,
+    "upper_arm_width_min": 7.8,
+    "forearm_width_min": 6.8,
+    "dominant_hand_min": [
+      8.2,
+      7.4
+    ],
+    "support_hand_min": [
+      7.4,
+      6.6
+    ]
+  },
+  "rifle": {
+    "alpha_bbox_min_height": 9,
+    "alpha_bbox_min_width": 42,
+    "max_length_to_height_ratio": 6
+  },
+  "pistol": {
+    "alpha_bbox_min_height": 7,
+    "alpha_bbox_min_width": 16,
+    "max_length_to_height_ratio": 4
+  },
+  "notes": [
+    "Shoulders must originate near the visible outer deltoid, not chest center.",
+    "Hands must read as hands at gameplay scale and remain proportionate to forearms.",
+    "Weapons must retain distinct stock/receiver/handguard/barrel or slide/grip mass.",
+    "This numeric contract is a regression floor; final acceptance still requires human visual comparison against the approved reference sheets."
+  ]
+}
