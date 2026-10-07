@@ -354,9 +354,11 @@ func _pc22_v3_draw_cap(tex: Texture2D, shoulder: Vector2, elbow: Vector2, dir_si
     var delta: Vector2 = elbow-shoulder
     var th: float = float(tex.get_height())
     var tw: float = float(tex.get_width())
-    var desired_h: float = 4.8 if female_mode else 5.3
+    # Keep the deltoid bridge shallow.  The earlier 5px-class cap read as a
+    # separate padded ball at gameplay scale, especially when two caps overlapped.
+    var desired_h: float = 3.35 if female_mode else 3.85
     var scale_u: float = desired_h/maxf(1.0,th)
-    var pivot_px := Vector2(maxf(1.0,tw*0.24),th*0.5)
+    var pivot_px := Vector2(maxf(1.0,tw*0.18),th*0.5)
     _pc22_v3_draw_pivoted(tex,shoulder,delta.angle(),scale_u,pivot_px,dir_sign<0.0)
 
 func _pc22_v3_draw_weapon_piece(tex: Texture2D, grip_world: Vector2, aim_angle: float, dir_sign: float, pivot_px: Vector2, scale_u: float) -> void:
@@ -605,6 +607,11 @@ s=s.replace(rear_anchor,'''    if gear_back and not female_mode:
     _pc22_v3_draw_segment(pc22_rear_upper_tex,pc22_rear_shoulder,pc22_rear_elbow,dir_sign<0.0)
     _pc22_v3_draw_segment(pc22_front_upper_tex,pc22_front_shoulder,pc22_front_elbow,dir_sign<0.0)
 
+    # The rear deltoid belongs behind the torso.  Drawing both shoulder caps in
+    # front created a doubled padded blob because the two sockets are close in side view.
+    var pc22_rear_cap_tex: Texture2D = _pc22_shoulder_cap_texture()
+    _pc22_v3_draw_cap(pc22_rear_cap_tex,pc22_rear_shoulder,pc22_rear_elbow,dir_sign)
+
     # Independent left/right leg gait. Each leg has its own hip, knee, shin and foot.
 ''',1)
 
@@ -619,9 +626,10 @@ s=s.replace(front_anchor,'''    # HYBRID V3 DEPTH STACK: torso is already drawn.
     if weapon_visible and weapon_two_handed and tex_pc22_rifle_stock != null:
         _pc22_v3_draw_weapon_piece(tex_pc22_rifle_stock,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(36.0,18.0),0.33)
 
-    var pc22_cap_tex: Texture2D = _pc22_shoulder_cap_texture()
-    _pc22_v3_draw_cap(pc22_cap_tex,pc22_rear_shoulder,pc22_rear_elbow,dir_sign)
-    _pc22_v3_draw_cap(pc22_cap_tex,pc22_front_shoulder,pc22_front_elbow,dir_sign)
+    # Only the front/visible deltoid returns above the torso.  The rear cap was
+    # already rendered behind the torso and is naturally masked by the body.
+    var pc22_front_cap_tex: Texture2D = _pc22_shoulder_cap_texture()
+    _pc22_v3_draw_cap(pc22_front_cap_tex,pc22_front_shoulder,pc22_front_elbow,dir_sign)
 
     var pc22_rear_fore_tex: Texture2D = _pc22_fore_texture()
     var pc22_front_fore_tex: Texture2D = _pc22_fore_texture()
