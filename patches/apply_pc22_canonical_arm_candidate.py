@@ -378,7 +378,7 @@ func _pc22_v3_draw_segment(tex: Texture2D, a: Vector2, b: Vector2, flip_x: bool)
     var delta: Vector2 = b-a
     var tw: float = float(tex.get_width())
     var th: float = float(tex.get_height())
-    var parent_x: float = clampf(tw*0.035,2.0,6.0)
+    var parent_x: float = clampf(tw*0.065,4.0,9.0)
     var child_x: float = tw-1.0-parent_x
     var authored_len: float = maxf(1.0,child_x-parent_x)
     var scale_u: float = delta.length()/authored_len
@@ -390,7 +390,7 @@ func _pc22_v3_draw_distal_segment(tex: Texture2D, a: Vector2, b: Vector2, flip_x
     var delta: Vector2 = b-a
     var tw: float = float(tex.get_width())
     var th: float = float(tex.get_height())
-    var parent_x: float = clampf(tw*0.035,2.0,6.0)
+    var parent_x: float = clampf(tw*0.065,4.0,9.0)
     var child_x: float = tw-1.0-parent_x
     var authored_len: float = maxf(1.0,child_x-parent_x)
     var scale_u: float = delta.length()/authored_len
