@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from pathlib import Path
 from PIL import Image
-import json, sys
+import json, re, sys
 
 repo=Path(sys.argv[1] if len(sys.argv)>1 else ".")
 root=repo/"assets/authored2d/unified_character"
@@ -13,11 +13,17 @@ def ge(label, actual, minimum):
     if actual < minimum:
         fail.append(f"{label}: {actual} < {minimum}")
 
+def le(label, actual, maximum):
+    if actual > maximum:
+        fail.append(f"{label}: {actual} > {maximum}")
+
 for sex in ("male","female"):
     spec=json.loads((root/f"core/{sex}/arm_spec.json").read_text(encoding="utf-8"))
     c=contract[sex]
     ge(f"{sex}.shoulder_rear.x",abs(spec["shoulder_rear"][0]),c["shoulder_rear_min_x"])
     ge(f"{sex}.shoulder_front.x",abs(spec["shoulder_front"][0]),c["shoulder_front_min_x"])
+    le(f"{sex}.shoulder_rear.y",spec["shoulder_rear"][1],c["shoulder_rear_max_y"])
+    le(f"{sex}.shoulder_front.y",spec["shoulder_front"][1],c["shoulder_front_max_y"])
     ge(f"{sex}.upper_arm_width",spec["upper_arm_width"],c["upper_arm_width_min"])
     ge(f"{sex}.forearm_width",spec["forearm_width"],c["forearm_width_min"])
     for i,axis in enumerate(("x","y")):
@@ -45,6 +51,29 @@ for label,path in (("rifle",rifle_path),("pistol",pistol_path)):
     ge(f"{label}.alpha_bbox_height",h,c["alpha_bbox_min_height"])
     if ratio>c["max_length_to_height_ratio"]:
         fail.append(f"{label}.length_to_height_ratio: {ratio:.2f} > {c['max_length_to_height_ratio']:.2f}")
+
+
+# Runtime weapon scaling is part of the visual contract. A thick source sprite
+# can still become an oversized block when the renderer scales it too tall.
+patch=(repo/"patches/apply_pc22_canonical_arm_candidate.py").read_text(encoding="utf-8")
+rc=contract["runtime_draw"]
+rifle_sizes=[tuple(map(float,m)) for m in re.findall(r'Vector2\((\d+(?:\.\d+)?),(\d+(?:\.\d+)?)\).*?tex_pc22_rifle_(?:front|stock)',patch)]
+if not rifle_sizes:
+    # Current call order puts texture before Vector2, accept that exact form too.
+    rifle_sizes=[tuple(map(float,m)) for m in re.findall(r'tex_pc22_rifle_(?:front|stock).*?Vector2\((\d+(?:\.\d+)?),(\d+(?:\.\d+)?)\)',patch)]
+pistol_sizes=[tuple(map(float,m)) for m in re.findall(r'tex_pc22_pistol.*?Vector2\((\d+(?:\.\d+)?),(\d+(?:\.\d+)?)\)',patch)]
+if not rifle_sizes:
+    fail.append("runtime.rifle_draw_size: not found")
+else:
+    for w,h in rifle_sizes:
+        ge("runtime.rifle_width",w,rc["rifle_width_min"])
+        le("runtime.rifle_height",h,rc["rifle_height_max"])
+if not pistol_sizes:
+    fail.append("runtime.pistol_draw_size: not found")
+else:
+    for w,h in pistol_sizes:
+        ge("runtime.pistol_width",w,rc["pistol_width_min"])
+        le("runtime.pistol_height",h,rc["pistol_height_max"])
 
 if fail:
     print("PC22_ARM_VISUAL_CONTRACT_FAIL")
