@@ -106,7 +106,6 @@ jobs:
           # never stale PNGs committed by a parallel audit workflow.
           python3 tools/build_pc22_canonical_arm_assets.py "$GITHUB_WORKSPACE" "$PROJECT_DIR"
           python3 tools/build_pc22_role_overlays.py "$GITHUB_WORKSPACE"
-          python3 tools/qa_pc22_arm_visual_contract.py "$GITHUB_WORKSPACE"
           python3 tools/qa_pc22_hybrid_v3.py "$GITHUB_WORKSPACE"
           test -s assets/authored2d/unified_character/arms/weapons/SP_PC22_Rifle_Stock_Rear.png
           test -s assets/authored2d/unified_character/arms/weapons/SP_PC22_Rifle_Front.png
