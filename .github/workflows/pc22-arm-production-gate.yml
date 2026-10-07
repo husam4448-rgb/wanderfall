@@ -9,6 +9,14 @@ on:
       - 'patches/apply_playercharacters_v22_canonical_arms.py'
       - 'patches/finalize_pc22_canonical_arms_production.py'
       - 'patches/apply_pc22_canonical_arm_candidate.py'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '.ci/trigger-pc22-arm-production'
+      - '.github/workflows/pc22-arm-production-gate.yml'
+      - 'patches/apply_playercharacters_v22_canonical_arms.py'
+      - 'patches/finalize_pc22_canonical_arms_production.py'
+      - 'patches/apply_pc22_canonical_arm_candidate.py'
 
 permissions:
   contents: read
