@@ -117,6 +117,8 @@ jobs:
         run: |
           set -euo pipefail
           nl -ba "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd" | sed -n '928,948p'
+          echo "--- draw_line calls in generated runtime ---"
+          grep -n "draw_line" "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd" || true
 
       - name: Install Godot and Xvfb
         shell: bash
