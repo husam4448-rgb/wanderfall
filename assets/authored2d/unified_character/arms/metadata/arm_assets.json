@@ -219,6 +219,46 @@
       "approval_state": "candidate",
       "sha256": "160fed077dfe52a8024501dda17223984931c9506245f9d864e0efeb14adccfd",
       "note": "Only upper butt-stock pixels shifted +4 source px; body/grip/barrel geometry unchanged"
+    },
+    {
+      "filename": "assets/authored2d/unified_character/arms/weapons/SP_PC22_Rifle_Stock_Rear.png",
+      "sex": "shared",
+      "segment": "weapon_rifle_stock_rear",
+      "canvas_size": [
+        44,
+        14
+      ],
+      "pivot": "same canonical PC22 rifle center/pivot",
+      "joint_parent": "weapon",
+      "joint_child": "weapon",
+      "canonical_length": 0.0,
+      "visual_overlap_parent": 0.0,
+      "visual_overlap_child": 0.0,
+      "compatible_rig": "MALE_CANONICAL_ARM_SYSTEM,FEMALE_CANONICAL_ARM_SYSTEM",
+      "mirroring_supported": true,
+      "approval_state": "candidate",
+      "sha256": "5d767cae722f4df2f64fb8f0b8ae831b09bef2e34780ffda91faf5bccb55a1d1",
+      "note": "Upper butt-stock only; render behind torso"
+    },
+    {
+      "filename": "assets/authored2d/unified_character/arms/weapons/SP_PC22_Rifle_Front.png",
+      "sex": "shared",
+      "segment": "weapon_rifle_front",
+      "canvas_size": [
+        44,
+        14
+      ],
+      "pivot": "same canonical PC22 rifle center/pivot",
+      "joint_parent": "weapon",
+      "joint_child": "weapon",
+      "canonical_length": 0.0,
+      "visual_overlap_parent": 0.0,
+      "visual_overlap_child": 0.0,
+      "compatible_rig": "MALE_CANONICAL_ARM_SYSTEM,FEMALE_CANONICAL_ARM_SYSTEM",
+      "mirroring_supported": true,
+      "approval_state": "candidate",
+      "sha256": "3a8525f6e1e8d05b9e294303f258bb2597e59659a2a8629157326d47760ab8e0",
+      "note": "Receiver/barrel/grip only; render in front"
     }
   ]
 }
