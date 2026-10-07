@@ -173,11 +173,11 @@ def make_v3_pivoted_hand(hand_img):
 
 
 def make_v3_shoulder_cap(cap_img):
-    """Tight shoulder-cap sprite with a local socket pivot near its inner edge."""
-    cap=trim(cap_img)
+    """Tight +X shoulder-cap sprite with socket pivot near its inner edge."""
+    cap=trim(cap_img).rotate(90,expand=True,resample=Image.Resampling.BICUBIC)
+    cap=trim(cap)
     w,h=cap.size
-    # Right-facing character: torso is to the left, upper arm exits to the right.
-    pivot=[float(max(1,int(round(w*0.30)))),float(h/2.0)]
+    pivot=[float(max(1,int(round(w*0.24)))),float(h/2.0)]
     return cap,pivot
 
 def _aa_grip_hand(sex, support=False):
