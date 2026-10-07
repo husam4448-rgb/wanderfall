@@ -20,13 +20,14 @@ src_dir=repo/"art_source/characters"
 upper_src_path=src_dir/"hybrid_male_upper_arm.b64"
 fore_src_path=src_dir/"hybrid_male_forearm_hand.b64"
 glove_src_path=repo/"art_source/gear/d2d40/glove.webp"
-if not upper_src_path.is_file() or not fore_src_path.is_file() or not glove_src_path.is_file():
-    raise SystemExit("Authored modular arm/hand sources missing")
+rifle_src_path=repo/"assets/authored2d/gear/rifle.png"
+if not upper_src_path.is_file() or not fore_src_path.is_file() or not glove_src_path.is_file() or not rifle_src_path.is_file():
+    raise SystemExit("Authored modular arm/hand/weapon sources missing")
 
 root=repo/"assets/authored2d/unified_character/arms"
 qa=root/"qa"
 meta=root/"metadata"
-for d in (root/"male",root/"female",qa,meta,
+for d in (root/"male",root/"female",root/"weapons",qa,meta,
           repo/"assets/authored2d/unified_character/core/male",
           repo/"assets/authored2d/unified_character/core/female"):
     d.mkdir(parents=True,exist_ok=True)
@@ -197,6 +198,27 @@ def derive_support_hand(dominant, sex):
 upper_src=load_b64_png(upper_src_path)
 fore_src=load_b64_png(fore_src_path)
 glove_src=Image.open(glove_src_path).convert("RGBA")
+rifle_src=Image.open(rifle_src_path).convert("RGBA")
+
+# Preserve the canonical rifle body/grip geometry, but move only the upper
+# butt-stock pixels forward by 4 source pixels. In the original 44x14 asset,
+# the stock protruded behind the shoulder socket and appeared as a brown
+# triangular chest intrusion at magnified runtime QA. Grip/barrel pixels stay
+# exactly where they are, so hand/socket geometry is unchanged.
+rifle_arm=rifle_src.copy()
+rp=rifle_arm.load()
+moved=[]
+for y in range(min(5,rifle_arm.height)):
+    for x in range(rifle_arm.width):
+        if rp[x,y][3] > 0:
+            moved.append((x,y,rp[x,y]))
+            rp[x,y]=(0,0,0,0)
+for x,y,pix in moved:
+    nx=min(rifle_arm.width-1,x+4)
+    rp[nx,y]=pix
+rifle_arm_path=root/"weapons"/"SP_PC22_Rifle_ArmCompatible.png"
+rifle_arm.save(rifle_arm_path)
+
 female_upper_runtime=embedded_runtime_image("FEMALE_UPPER_ARM_B64")
 female_fore_runtime=embedded_runtime_image("FEMALE_FOREARM_B64")
 
@@ -332,6 +354,19 @@ for sex,s in specs.items():
 for sex,s in specs.items():
     core_spec=repo/f"assets/authored2d/unified_character/core/{sex}/arm_spec.json"
     core_spec.write_text(json.dumps(s,indent=2),encoding="utf-8")
+asset_meta.append({
+  "filename":str(rifle_arm_path.relative_to(repo)),
+  "sex":"shared","segment":"weapon_rifle_arm_compatible",
+  "canvas_size":list(rifle_arm.size),
+  "pivot":"unchanged canonical PC22 weapon pivot",
+  "joint_parent":"dominant_grip","joint_child":"support_grip",
+  "canonical_length":0.0,
+  "visual_overlap_parent":0.0,"visual_overlap_child":0.0,
+  "compatible_rig":"MALE_CANONICAL_ARM_SYSTEM,FEMALE_CANONICAL_ARM_SYSTEM",
+  "mirroring_supported":True,"approval_state":"candidate",
+  "sha256":hashlib.sha256(rifle_arm_path.read_bytes()).hexdigest(),
+  "note":"Only upper butt-stock pixels shifted +4 source px; body/grip/barrel geometry unchanged"
+})
 (meta/"arm_assets.json").write_text(json.dumps({"assets":asset_meta},indent=2),encoding="utf-8")
 
 roles=["player","trader","medic","mechanic","guard","bandit","civilian"]
