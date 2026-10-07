@@ -425,7 +425,7 @@ new_support=support_anchor+'''    var support_tex := _pc22_support_hand_texture(
     if gear_gloves and tex_gear_glove != null:
         support_tex = tex_gear_glove
     if support_tex != null:
-        var support_size := Vector2(5.4,4.9) if female_mode else Vector2(5.8,5.2)
+        var support_size := Vector2(4.2,3.9) if female_mode else Vector2(4.5,4.2)
         _draw_equipment_texture(support_tex,center,support_size*scale,dir_sign<0.0,angle)
         return
     if female_mode:
@@ -444,7 +444,7 @@ old_hand='''    if tex_base_hand != null:
 new_hand='''    var pc22_dom_hand := _pc22_dominant_hand_texture()
     if pc22_dom_hand != null:
         var hand_center := center + _pose_point(Vector2(0.9,0.0) * scale, angle, dir_sign)
-        _draw_equipment_texture(pc22_dom_hand, hand_center, (Vector2(5.8,5.3) if female_mode else Vector2(6.2,5.6)) * scale, dir_sign < 0.0, angle)
+        _draw_equipment_texture(pc22_dom_hand, hand_center, (Vector2(4.5,4.2) if female_mode else Vector2(4.8,4.5)) * scale, dir_sign < 0.0, angle)
         return
 '''
 if old_hand not in s:
@@ -579,6 +579,17 @@ s=s.replace(front_anchor,'''    # Armed dominant forearm is foregrounded after t
         var pc22_rear_fore_tex: Texture2D = _pc22_fore_texture()
         var pc22_rear_fore_w: float = 6.8 if female_mode else 7.6
         _pc22_draw_segment(pc22_rear_fore_tex,pc22_rear_elbow,pc22_dom_wrist,pc22_rear_fore_w,dir_sign<0.0)
+        # VISUAL_FIX_V2_SHOULDER_CAP_FOREGROUND
+        # Re-expose only a short textured proximal portion after torso draw.
+        # This visually joins each armed limb to the deltoid without repainting
+        # a complete upper-arm bar across the chest.
+        var pc22_rear_cap_end: Vector2 = pc22_rear_shoulder.lerp(pc22_rear_elbow,0.24)
+        var pc22_front_cap_end: Vector2 = pc22_front_shoulder.lerp(pc22_front_elbow,0.24)
+        var pc22_cap_tex: Texture2D = _pc22_upper_texture()
+        var pc22_cap_w: float = 7.2 if female_mode else 8.0
+        _pc22_draw_segment(pc22_cap_tex,pc22_rear_shoulder,pc22_rear_cap_end,pc22_cap_w,dir_sign<0.0)
+        _pc22_draw_segment(pc22_cap_tex,pc22_front_shoulder,pc22_front_cap_end,pc22_cap_w,dir_sign<0.0)
+
         # VISUAL_FIX_V2_FRONT_FOREARM_FOREGROUND
         var pc22_front_fore_tex: Texture2D = _pc22_fore_texture()
         var pc22_front_fore_w: float = 6.8 if female_mode else 7.6
