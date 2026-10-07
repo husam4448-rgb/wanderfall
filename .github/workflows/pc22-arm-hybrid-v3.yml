@@ -257,6 +257,8 @@ jobs:
                   ("rifle_max_up","rifle_max_up"),
                   ("rifle_max_down","rifle_max_down"),
                   ("pistol_horizontal","pistol_grip"),
+                  ("pistol_max_up","pistol_max_up"),
+                  ("pistol_max_down","pistol_max_down"),
                   ("full_gear_rifle","full_gear_rifle"),
                   ("full_gear_pistol","full_gear_pistol"),
               ]
