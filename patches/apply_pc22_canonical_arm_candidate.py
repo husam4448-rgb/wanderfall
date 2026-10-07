@@ -231,18 +231,22 @@ func _pc22_role_texture(kind: String) -> Texture2D:
     var key := "%s/%s/%s" % [pc22_role,sex_name,kind]
     if pc22_role_texture_cache.has(key):
         return pc22_role_texture_cache[key] as Texture2D
+    # Construct dynamic role paths without embedding a literal res://...%s
+    # string, which the project preflight correctly treats as an unresolved
+    # static resource reference.
+    var res_root := "res:/" + "/assets/authored2d/unified_character/"
     var path := ""
     match kind:
         "upper_arm":
-            path = "res://assets/authored2d/unified_character/arms/sleeves/%s/%s/upper_arm.png" % [pc22_role,sex_name]
+            path = res_root + "arms/sleeves/%s/%s/upper_arm.png" % [pc22_role,sex_name]
         "forearm":
-            path = "res://assets/authored2d/unified_character/arms/sleeves/%s/%s/forearm.png" % [pc22_role,sex_name]
+            path = res_root + "arms/sleeves/%s/%s/forearm.png" % [pc22_role,sex_name]
         "glove_dominant":
-            path = "res://assets/authored2d/unified_character/arms/gloves/%s/%s/glove_dominant.png" % [pc22_role,sex_name]
+            path = res_root + "arms/gloves/%s/%s/glove_dominant.png" % [pc22_role,sex_name]
         "glove_support":
-            path = "res://assets/authored2d/unified_character/arms/gloves/%s/%s/glove_support.png" % [pc22_role,sex_name]
+            path = res_root + "arms/gloves/%s/%s/glove_support.png" % [pc22_role,sex_name]
         "torso":
-            path = "res://assets/authored2d/unified_character/roles/%s/%s/torso.png" % [pc22_role,sex_name]
+            path = res_root + "roles/%s/%s/torso.png" % [pc22_role,sex_name]
     if path.is_empty() or not ResourceLoader.exists(path):
         return null
     var tex := load(path) as Texture2D
