@@ -146,37 +146,52 @@ def add_joint_caps(img, rgb, top_frac, bottom_frac, depth=11):
     return layer
 
 def derive_bare_hand(glove_img, sex):
-    # Reuse the authored glove palm/finger silhouette, but remove the long wrist
-    # cuff and recolor material to bare-skin shading. This keeps real finger
-    # anatomy while preserving PC22's existing hand draw envelope.
+    # Convert the authored hand/glove silhouette into a compact weapon-grip hand.
+    # The old candidate preserved long straight fingers and looked like a pointing
+    # hand at the grip. Compress/fold the distal finger region toward the palm while
+    # retaining authored pixel texture and skin shading.
     g=glove_img.convert("RGBA")
     bb=g.getchannel("A").getbbox()
     if bb is None:
         raise SystemExit("Empty glove source")
     g=g.crop(bb)
-    # Cuff occupies the left/rear portion of the right-facing source.
-    x0=max(0,int(g.width*0.28))
+    x0=max(0,int(g.width*0.28))  # remove cuff
     g=g.crop((x0,0,g.width,g.height))
     base=(196,132,96) if sex=="male" else (202,140,105)
     g=recolor(g,base,1)
     g=trim(g)
+
+    split=max(2,int(g.width*0.56))
+    palm=g.crop((0,0,split,g.height))
+    fingers=g.crop((split,0,g.width,g.height))
+    fw=max(2,int(round(fingers.width*0.46)))
+    fh=max(2,int(round(fingers.height*0.82)))
+    fingers=fingers.resize((fw,fh),Image.Resampling.LANCZOS)
+
+    folded=Image.new("RGBA",(split+fw+2,g.height),(0,0,0,0))
+    folded.alpha_composite(palm,(0,0))
+    # Fold the fingers slightly downward into the palm/grip instead of extending
+    # straight along the barrel.
+    fy=max(0,int(round((g.height-fh)*0.62)))
+    folded.alpha_composite(fingers,(max(0,split-4),fy))
+    folded=trim(folded)
+
     canvas=Image.new("RGBA",(96,96),(0,0,0,0))
-    max_w=72 if sex=="male" else 68
-    max_h=54 if sex=="male" else 51
-    sc=min(max_w/g.width,max_h/g.height)
-    rs=g.resize((max(1,int(round(g.width*sc))),max(1,int(round(g.height*sc)))),Image.Resampling.LANCZOS)
-    # Put wrist closer to the left edge so the wrist socket enters the forearm.
-    canvas.alpha_composite(rs,(8,(96-rs.height)//2))
+    max_w=58 if sex=="male" else 54
+    max_h=50 if sex=="male" else 47
+    sc=min(max_w/folded.width,max_h/folded.height)
+    rs=folded.resize((max(1,int(round(folded.width*sc))),max(1,int(round(folded.height*sc)))),Image.Resampling.LANCZOS)
+    canvas.alpha_composite(rs,(9,(96-rs.height)//2))
     return canvas
 
 def derive_support_hand(dominant, sex):
-    # Same anatomical hand family, compacted for the fore-end grip.
+    # Same compact grip family, slightly smaller for the fore-end/handguard.
     d=trim(dominant)
-    target=(78,58) if sex=="male" else (73,55)
+    target=(52,46) if sex=="male" else (48,43)
     sc=min(target[0]/d.width,target[1]/d.height)
     rs=d.resize((max(1,int(round(d.width*sc))),max(1,int(round(d.height*sc)))),Image.Resampling.LANCZOS)
     out=Image.new("RGBA",(96,96),(0,0,0,0))
-    out.alpha_composite(rs,(7,(96-rs.height)//2))
+    out.alpha_composite(rs,(9,(96-rs.height)//2))
     return out
 
 upper_src=load_b64_png(upper_src_path)
@@ -198,8 +213,8 @@ specs={
    "upper_arm_width":7.3,
    "forearm_width":6.5,
    "hand_size":canonical["male"]["hand_size"],
-   "dominant_hand_size":canonical["male"]["hand_size"],
-   "support_hand_size":[6.4,5.2],
+   "dominant_hand_size":[7.6,7.0],
+   "support_hand_size":[6.6,5.8],
    "neutral_upper_angle_deg":82.0,
    "neutral_elbow_flex_deg":22.0,
    "source_tint":[78,88,72],
@@ -213,8 +228,8 @@ specs={
    "upper_arm_width":6.2,
    "forearm_width":5.6,
    "hand_size":canonical["female"]["hand_size"],
-   "dominant_hand_size":canonical["female"]["hand_size"],
-   "support_hand_size":[5.9,4.8],
+   "dominant_hand_size":[7.0,6.5],
+   "support_hand_size":[6.1,5.4],
    "neutral_upper_angle_deg":84.0,
    "neutral_elbow_flex_deg":24.0,
    "source_tint":[80,91,75],
