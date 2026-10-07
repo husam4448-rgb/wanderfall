@@ -196,7 +196,11 @@ var pc22_arm_capture_names := PackedStringArray([
     "female_rifle_max_up","female_rifle_down30","female_rifle_down60","female_rifle_max_down",
     "female_recoil","female_walk_right_aim_right","female_walk_left_aim_right","female_walk_right_aim_up",
     "female_walk_left_aim_down","female_run_pistol","female_run_rifle","female_rifle_left",
-    "female_rifle_left_up60","female_rifle_left_down60"
+    "female_rifle_left_up60","female_rifle_left_down60",
+    "male_role_trader","male_role_medic","male_role_mechanic","male_role_guard",
+    "male_role_bandit","male_role_civilian","female_role_trader","female_role_medic",
+    "female_role_mechanic","female_role_guard","female_role_bandit","female_role_civilian",
+    "male_npc_generic_glove","female_npc_generic_glove"
 ])
 '''
 s=s.replace(state_anchor,state_anchor+state,1)
@@ -628,14 +632,32 @@ capture_anchor='func _pc_apply_capture_state(idx: int) -> void:\n'
 if capture_anchor not in s:
     raise SystemExit("Candidate capture helper anchor missing")
 capture_helpers='''func _pc22_apply_arm_capture_state(idx: int) -> void:
-    female_mode = idx >= pc22_arm_states_per_sex
-    var state := idx % pc22_arm_states_per_sex
+    pc22_role = ""
+    var state := 0
+    var generic_glove_state := false
+    var base_capture_count := pc22_arm_states_per_sex*2
+    if idx < base_capture_count:
+        female_mode = idx >= pc22_arm_states_per_sex
+        state = idx % pc22_arm_states_per_sex
+    else:
+        var extra := idx-base_capture_count
+        if extra < 12:
+            var roles := ["trader","medic","mechanic","guard","bandit","civilian"]
+            female_mode = extra >= 6
+            pc22_role = roles[extra%6]
+            state = 12 # horizontal two-handed rifle exposes shoulder/sleeve/glove interface
+        else:
+            # Generic player glove deliberately overrides role glove on an NPC-equivalent rig.
+            female_mode = extra == 13
+            pc22_role = "trader"
+            generic_glove_state = true
+            state = 12
     gear_head = false
     gear_torso = false
     gear_back = false
     gear_legs = false
     gear_boots = false
-    gear_gloves = false
+    gear_gloves = generic_glove_state
     actor_pos = Vector2(640,360)
     visual_zoom = 5.5
     step_phase = 0.0
