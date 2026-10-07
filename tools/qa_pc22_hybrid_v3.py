@@ -147,8 +147,10 @@ require("(3.15 if female_mode else 3.35)" in patch, "support locked hand scale d
 require("Rifle stock is a rear-depth piece" in patch, "rifle stock no longer guaranteed behind torso")
 require(patch.count("_pc22_v3_draw_weapon_piece(tex_pc22_rifle_stock") == 1,
         "rifle stock must be rendered exactly once")
-require("pc22_upper_fg_start" in patch and "_pc22_v3_draw_distal_segment(pc22_upper_fg_tex" in patch,
-        "distal upper-arm anatomical bridge missing")
+require("if weapon_visible and weapon_two_handed:" in patch and "pc22_upper_fg_start" in patch,
+        "conditional rifle upper-arm bridge missing")
+require("0.76 if female_mode else 0.72" in patch,
+        "distal rifle bridge exposure drift")
 
 if errors:
     print("PC22_HYBRID_V3_QA_FAIL")

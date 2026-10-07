@@ -665,15 +665,15 @@ s=s.replace(front_anchor,'''    # HYBRID V3 DEPTH STACK: torso is already drawn.
     if weapon_visible and weapon_two_handed and tex_pc22_rifle_stock != null:
         _pc22_v3_draw_weapon_piece(tex_pc22_rifle_stock,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(36.0,18.0),0.33)
 
-    # Shoulder roots remain behind the torso, but the distal half of each upper
-    # arm must re-emerge before the elbow. This creates a continuous anatomical
-    # bridge without repainting the proximal shoulder across the chest.
-    var pc22_upper_fg_tex: Texture2D = _pc22_upper_texture()
-    var pc22_upper_fg_start: float = 0.48 if female_mode else 0.44
-    _pc22_v3_draw_distal_segment(pc22_upper_fg_tex,pc22_rear_shoulder,pc22_rear_elbow,dir_sign<0.0,pc22_upper_fg_start)
-    _pc22_v3_draw_distal_segment(pc22_upper_fg_tex,pc22_front_shoulder,pc22_front_elbow,dir_sign<0.0,pc22_upper_fg_start)
+    # Only the front/support upper arm needs a tiny distal re-emergence in
+    # two-handed rifle poses. The previous two-arm half-length overlay exposed
+    # large folded polygons across the chest and failed real visual inspection.
+    if weapon_visible and weapon_two_handed:
+        var pc22_upper_fg_tex: Texture2D = _pc22_upper_texture()
+        var pc22_upper_fg_start: float = 0.76 if female_mode else 0.72
+        _pc22_v3_draw_distal_segment(pc22_upper_fg_tex,pc22_front_shoulder,pc22_front_elbow,dir_sign<0.0,pc22_upper_fg_start)
 
-    # Forearms remain foreground and deliberately overlap the distal upper arm.
+    # Forearms remain foreground and deliberately overlap the tiny elbow bridge.
     var pc22_rear_fore_tex: Texture2D = _pc22_fore_texture()
     var pc22_front_fore_tex: Texture2D = _pc22_fore_texture()
     _pc22_v3_draw_segment(pc22_rear_fore_tex,pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)

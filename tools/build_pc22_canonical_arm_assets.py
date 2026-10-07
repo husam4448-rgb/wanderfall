@@ -362,8 +362,15 @@ def _detailed_skin_hand(glove_img, sex, support=False):
     w,h=src.size
     crop_x=max(0,int(round(w*0.10)))
     src=src.crop((crop_x,0,w,h))
-    base=(194,126,92) if sex=="male" else (207,139,103)
-    src=fabric_grade(src,base,1.36)
+    # Keep the authored finger silhouette, but suppress glove fabric/color so
+    # bare hands read as skin rather than brown tactical gloves.
+    gray=ImageOps.grayscale(src).filter(ImageFilter.GaussianBlur(0.42))
+    gray=ImageEnhance.Contrast(gray).enhance(1.22)
+    dark=(104,64,49) if sex=="male" else (116,70,53)
+    light=(236,166,126) if sex=="male" else (242,176,136)
+    recol=ImageOps.colorize(gray,dark,light).convert("RGBA")
+    recol.putalpha(src.getchannel("A"))
+    src=recol
     src=trim(src)
 
     # Compact the open authored fingers toward a gripping silhouette.
