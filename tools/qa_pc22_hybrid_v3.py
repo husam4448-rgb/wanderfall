@@ -44,7 +44,11 @@ for sex, ex in expected.items():
     require(spec["support_hand_vertical_offset_left"] == 0.0, f"{sex}: support left offset drift")
 
 for sex in ("male","female"):
-    for gear_name in (f"SP_PC22_{sex.title()}_UpperArm_Gear_V3.png",f"SP_PC22_{sex.title()}_Forearm_Gear_V3.png"):
+    for gear_name in (
+        f"SP_PC22_{sex.title()}_UpperArm_Gear_V3.png",
+        f"SP_PC22_{sex.title()}_Forearm_Gear_V3.png",
+        f"SP_PC22_{sex.title()}_Elbow_Gear_V3.png",
+    ):
         gp=arms/"hybrid_v3"/sex/gear_name
         require(gp.is_file(), f"{sex}: tactical gear sleeve missing {gear_name}")
         if gp.is_file():
@@ -84,7 +88,7 @@ for sex in ("male","female"):
             limit=(0.44 if key=="upper_arm" else 0.36) if sex=="male" else (0.40 if key=="upper_arm" else 0.33)
             require(ratio <= limit, f"{sex}/{key}: visible thickness ratio too large {ratio:.3f}>{limit:.3f}")
 
-    for key in ("hand_dominant","hand_support","shoulder_cap"):
+    for key in ("hand_dominant","hand_support","elbow","shoulder_cap"):
         a = m[key]
         p = repo / a["filename"]
         require(p.is_file(), f"{sex}/{key}: asset missing")
@@ -120,6 +124,7 @@ for token in (
     "func _pc22_v3_draw_pivoted",
     "func _pc22_v3_draw_segment",
     "func _pc22_v3_draw_distal_segment",
+    "func _pc22_v3_draw_elbow_gusset",
     "func _pc22_v3_draw_hand",
     "func _pc22_v3_draw_grip_hand",
     "func _pc22_v3_draw_cap",
@@ -160,23 +165,21 @@ require("pc22_dom_upper_start" not in patch and "pc22_front_upper_start" not in 
 require("if gear_torso:" in patch and "tex_pc22_female_gear_upper" in patch and "tex_pc22_male_gear_fore" in patch,
         "equipped tactical sleeve selection missing")
 
-if errors:
-    print("PC22_HYBRID_V3_QA_FAIL")
-    for e in errors:
-        print(" -", e)
-    raise SystemExit(1)
-
-print("PC22_HYBRID_V3_QA_OK")
-
 # One-handed off-hand pose is visual-only but must preserve canonical lengths exactly.
 require("func _pc22_relaxed_onehand_arm" in patch, "natural one-handed free-arm helper missing")
 require("upper_dir*upper_len" in patch and "fore_dir*fore_len" in patch,
         "relaxed one-handed free arm no longer preserves canonical lengths")
-require("Do not add a separate elbow overlay" in patch,
-        "explicit no-elbow-pad runtime contract missing")
-require("_pc22_v3_draw_elbow_bridge(pc22_rear_fore_tex" not in patch and
-        "_pc22_v3_draw_elbow_bridge(pc22_front_fore_tex" not in patch,
-        "visible elbow overlay pads reintroduced")
+
+# Dedicated textured elbow gussets are visual-only and must cover both armed elbows.
+require("func _pc22_v3_draw_elbow_gusset" in patch, "textured elbow gusset renderer missing")
+require("_pc22_v3_draw_elbow_gusset(pc22_elbow_tex,pc22_rear_shoulder" in patch,
+        "dominant elbow gusset draw missing")
+require("_pc22_v3_draw_elbow_gusset(pc22_elbow_tex,pc22_front_shoulder" in patch,
+        "support/off-hand elbow gusset draw missing")
+require("tex_pc22_male_elbow" in patch and "tex_pc22_female_gear_elbow" in patch,
+        "base/gear elbow textures not embedded")
+require("_pc22_v3_draw_elbow_bridge" not in patch,
+        "legacy crop-based elbow bridge still present")
 
 # Equipped gloves must use dedicated authored tactical grip sprites.
 for sex in ("male","female"):
@@ -192,3 +195,11 @@ require("if gear_gloves:" in patch and "tex_pc22_female_glove_dom" in patch and 
 # Armed shoulder caps are intentionally suppressed after real-device review.
 require("if not weapon_visible:" in patch and "small shoulder blob" in patch,
         "armed shoulder-cap suppression missing")
+
+if errors:
+    print("PC22_HYBRID_V3_QA_FAIL")
+    for e in errors:
+        print(" -", e)
+    raise SystemExit(1)
+
+print("PC22_HYBRID_V3_QA_OK")
