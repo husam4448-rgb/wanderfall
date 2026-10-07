@@ -831,12 +831,12 @@ func _pc22_arm_capture_after_draw() -> void:
 '''
 s=s.replace(capture_anchor,capture_helpers+capture_anchor,1)
 
-s=s.replace(title_old,'title.text = "PLAYER CHARACTERS V22 ARM CANDIDATE | CANONICAL IK:"',1)
+s=s.replace(title_old,'title.text = "PLAYER CHARACTERS V22 ARM VISUAL FIX V2 | REFERENCE QA:"',1)
 
 runtime.write_text(s,encoding="utf-8")
 s2=runtime.read_text(encoding="utf-8")
 for needle in (
-    "PLAYER CHARACTERS V22 ARM CANDIDATE | CANONICAL IK:",
+    "PLAYER CHARACTERS V22 ARM VISUAL FIX V2 | REFERENCE QA:",
     "func _pc22_solve_elbow(",
     "func _pc22_draw_chain(",
     "var weapon_visible := true",
@@ -861,8 +861,8 @@ for forbidden in ('direction_index','octant_index','eight_direction','8_directio
 # Candidate APK identity is deliberately distinct from the approved PC22 baseline.
 ep=root/"export_presets.cfg"
 e=ep.read_text(encoding="utf-8")
-e,n1=re.subn(r'(?m)^version/code=\d+$','version/code=189',e,count=1)
-e,n2=re.subn(r'(?m)^version/name="[^"]*"$','version/name="0.21.0-PC22-ARM-CANDIDATE"',e,count=1)
+e,n1=re.subn(r'(?m)^version/code=\d+$','version/code=191',e,count=1)
+e,n2=re.subn(r'(?m)^version/name="[^"]*"$','version/name="0.21.0-PC22-ARM-VISUAL-FIX-V2"',e,count=1)
 if n1!=1 or n2!=1:
     raise SystemExit("PC22 arm candidate Android version anchors missing")
 ep.write_text(e,encoding="utf-8")
@@ -870,10 +870,10 @@ ep.write_text(e,encoding="utf-8")
 sm=root/"scripts/save/save_manager.gd"
 if sm.exists():
     q=sm.read_text(encoding="utf-8")
-    q=re.sub(r'const GAME_VERSION := "[^"]+"','const GAME_VERSION := "0.21.0-PC22-ARM-CANDIDATE"',q,count=1)
+    q=re.sub(r'const GAME_VERSION := "[^"]+"','const GAME_VERSION := "0.21.0-PC22-ARM-VISUAL-FIX-V2"',q,count=1)
     sm.write_text(q,encoding="utf-8")
 
 print("PC22 canonical articulated arm candidate integrated")
 print("Male/female share one IK algorithm; geometry remains sex-canonical only")
 print("One-handed pistol, two-handed rifle, recoil, unarmed swing and runtime capture enabled")
-print("Android candidate version: 189 / 0.21.0-PC22-ARM-CANDIDATE")
+print("Android candidate version: 191 / 0.21.0-PC22-ARM-VISUAL-FIX-V2")
