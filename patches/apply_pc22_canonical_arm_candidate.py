@@ -740,10 +740,9 @@ s=s.replace(front_anchor,'''    # HYBRID V3 DEPTH STACK: torso is already drawn.
     var pc22_front_fore_tex: Texture2D = _pc22_fore_texture()
     _pc22_v3_draw_segment(pc22_rear_fore_tex,pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)
     _pc22_v3_draw_segment(pc22_front_fore_tex,pc22_front_elbow,pc22_front_wrist,dir_sign<0.0)
-    # Small cloth gussets cover the exact mathematical hinge while keeping the
-    # same shoulder/elbow/wrist geometry. This removes the sharp V-joint read.
-    _pc22_v3_draw_elbow_bridge(pc22_rear_fore_tex,pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)
-    _pc22_v3_draw_elbow_bridge(pc22_front_fore_tex,pc22_front_shoulder,pc22_front_elbow,pc22_front_wrist,dir_sign<0.0)
+    # Segment pivots are inset deeply enough to overlap the elbow intrinsically.
+    # Do not add a separate elbow overlay: close-up review showed any extra gusset
+    # reads as a visible oval pad rather than continuous cloth.
 
     # Free/front hand remains visible for unarmed locomotion and one-handed pistol.
     if not weapon_visible or not weapon_two_handed:
