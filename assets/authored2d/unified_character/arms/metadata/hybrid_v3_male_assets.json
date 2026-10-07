@@ -1,0 +1,85 @@
+{
+  "sex": "male",
+  "rig_id": "MALE_CANONICAL_ARM_SYSTEM",
+  "renderer": "hybrid_pivoted_sprite_v3",
+  "upper_arm": {
+    "filename": "assets/authored2d/unified_character/arms/hybrid_v3/male/SP_PC22_Male_UpperArm_V3.png",
+    "canvas_size": [
+      128,
+      40
+    ],
+    "parent_pivot_px": [
+      8.0,
+      20.0
+    ],
+    "child_pivot_px": [
+      119.0,
+      20.0
+    ],
+    "canonical_length": 10.9
+  },
+  "forearm": {
+    "filename": "assets/authored2d/unified_character/arms/hybrid_v3/male/SP_PC22_Male_Forearm_V3.png",
+    "canvas_size": [
+      128,
+      37
+    ],
+    "parent_pivot_px": [
+      8.0,
+      18.5
+    ],
+    "child_pivot_px": [
+      119.0,
+      18.5
+    ],
+    "canonical_length": 10.7
+  },
+  "elbow": {
+    "filename": "assets/authored2d/unified_character/arms/hybrid_v3/male/SP_PC22_Male_Elbow_V3.png",
+    "gear_filename": "assets/authored2d/unified_character/arms/hybrid_v3/male/SP_PC22_Male_Elbow_Gear_V3.png",
+    "canvas_size": [
+      42,
+      22
+    ],
+    "joint": "elbow",
+    "canonical_geometry_change": false
+  },
+  "hand_dominant": {
+    "filename": "assets/authored2d/unified_character/arms/hybrid_v3/male/SP_PC22_Male_Hand_Dominant_V3.png",
+    "canvas_size": [
+      49,
+      58
+    ],
+    "wrist_pivot_px": [
+      3.0,
+      29.0
+    ]
+  },
+  "hand_support": {
+    "filename": "assets/authored2d/unified_character/arms/hybrid_v3/male/SP_PC22_Male_Hand_Support_V3.png",
+    "canvas_size": [
+      52,
+      56
+    ],
+    "wrist_pivot_px": [
+      3.0,
+      28.0
+    ]
+  },
+  "shoulder_cap": {
+    "filename": "assets/authored2d/unified_character/arms/hybrid_v3/male/SP_PC22_Male_ShoulderCap_V3.png",
+    "canvas_size": [
+      63,
+      34
+    ],
+    "shoulder_pivot_px": [
+      11.0,
+      17.0
+    ]
+  },
+  "policy": {
+    "anisotropic_scaling": false,
+    "segment_scale": "uniform_from_canonical_length_and_parent_child_pixel_distance",
+    "left_behavior": "mirror_about_parent_pivot_then rotate"
+  }
+}

@@ -1,28 +1,28 @@
 {
   "rig_id": "FEMALE_CANONICAL_ARM_SYSTEM",
   "shoulder_rear": [
-    5.3,
-    -8.0
+    9.6,
+    -9.3
   ],
   "shoulder_front": [
-    3.0,
-    -5.0
+    9.4,
+    -8.9
   ],
   "upper_arm_length": 10.6,
   "forearm_length": 10.5,
-  "upper_arm_width": 6.2,
-  "forearm_width": 5.6,
+  "upper_arm_width": 5.8,
+  "forearm_width": 4.8,
   "hand_size": [
     10.0,
     9.8
   ],
   "dominant_hand_size": [
-    7.0,
-    6.5
+    5.2,
+    4.9
   ],
   "support_hand_size": [
-    6.1,
-    5.4
+    4.9,
+    4.6
   ],
   "neutral_upper_angle_deg": 84.0,
   "neutral_elbow_flex_deg": 24.0,
@@ -32,22 +32,22 @@
     75
   ],
   "standard_id": "PlayerCharacters_v22",
-  "shoulder_source": "PC03 exact articulated socket retained as candidate; active PC22 intentionally has no visible shoulder joint",
+  "shoulder_source": "Visual-fix-v2: moved to visible PC22 deltoid/outer-torso attachment using approved reference sheets",
   "upper_forearm_length_source": "corrected from prior 9.4+10.5 solver to cover the complete active PC22 support-hand aim envelope without stretch",
   "weapon_socket": [
-    6.0,
-    -2.0
+    10.5,
+    -6.0
   ],
   "dominant_hand_grip_socket": [
-    3.0,
-    4.0
+    9.8,
+    0.8
   ],
   "support_hand_grip_socket": [
-    16.0,
-    2.0
+    17.0,
+    -1.0
   ],
-  "support_hand_vertical_offset_right": 1.8,
-  "support_hand_vertical_offset_left": 2.1,
+  "support_hand_vertical_offset_right": 0.0,
+  "support_hand_vertical_offset_left": 0.0,
   "elbow_bend_constraints_deg": {
     "min_flex": 12.0,
     "max_flex": 155.0

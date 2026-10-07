@@ -18,12 +18,37 @@
       "mirroring_supported": true,
       "approval_state": "candidate",
       "alpha_bbox": [
-        13,
+        16,
         0,
-        59,
+        56,
         128
       ],
-      "sha256": "807c6b902aa89da6547061358893abc8d84d9cfa4817249dbcdbf9284cd5258b"
+      "sha256": "bbce34b3131421bca55eb659d8d151783946400f42b1a689bc383fb3fd65816e"
+    },
+    {
+      "filename": "assets/authored2d/unified_character/arms/male/SP_PC22_Male_ShoulderCap_Right.png",
+      "sex": "male",
+      "segment": "shoulder_cap",
+      "canvas_size": [
+        64,
+        64
+      ],
+      "pivot": "segment parent joint / centered draw helper",
+      "joint_parent": "shoulder",
+      "joint_child": "upper_arm",
+      "canonical_length": 0.0,
+      "visual_overlap_parent": 1.0,
+      "visual_overlap_child": 1.0,
+      "compatible_rig": "MALE_CANONICAL_ARM_SYSTEM",
+      "mirroring_supported": true,
+      "approval_state": "candidate",
+      "alpha_bbox": [
+        11,
+        14,
+        52,
+        50
+      ],
+      "sha256": "e264a8a84ddcf8f8c088d9e77ea4a9a0018d0164bbb7bf810fa39d7cf032b901"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/male/SP_PC22_Male_Forearm_Right.png",
@@ -43,12 +68,12 @@
       "mirroring_supported": true,
       "approval_state": "candidate",
       "alpha_bbox": [
-        14,
+        16,
         0,
-        52,
+        53,
         128
       ],
-      "sha256": "75dac4d7c53b4757652938ab3fd2d9fb8e6b05c7b722f455a7d4288c64e922c7"
+      "sha256": "e05790b7dd7756b04445185da49cdd3f6d832fde4826c840e9c77ec5d1d11b47"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/male/SP_PC22_Male_Hand_Dominant_Right.png",
@@ -68,12 +93,12 @@
       "mirroring_supported": true,
       "approval_state": "candidate",
       "alpha_bbox": [
-        9,
-        23,
-        47,
-        73
+        10,
+        19,
+        59,
+        77
       ],
-      "sha256": "22ea1bdb78513b76a595d6c72748e7e6da5fea5306c359975777b8b456f894c3"
+      "sha256": "1b61e4103b971b2d861e85b5c333aaadfa566943cbbdcb9c088b34a892b99d08"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/male/SP_PC22_Male_Hand_Support_Right.png",
@@ -93,12 +118,12 @@
       "mirroring_supported": true,
       "approval_state": "candidate",
       "alpha_bbox": [
-        9,
-        25,
-        44,
-        71
+        10,
+        20,
+        62,
+        76
       ],
-      "sha256": "2e75d027721168a670b820800edc2e8be290b8c586c93f09cefe19d8da1b5acd"
+      "sha256": "1af110ea29a6591ac2ac0c4dcc3c79388a7f29686590c28530f94eab2a37187d"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/female/SP_PC22_Female_UpperArm_Right.png",
@@ -118,12 +143,37 @@
       "mirroring_supported": true,
       "approval_state": "candidate",
       "alpha_bbox": [
-        10,
+        18,
         0,
-        54,
+        53,
         128
       ],
-      "sha256": "6c22fa5fe4b6d0638cdf60f018717834a85b2566f4eb7aaa81fbcf9afbff8e70"
+      "sha256": "dad549cb3a650c373865f50600f1ddece880d9f9ebcaa3145297b8226231327f"
+    },
+    {
+      "filename": "assets/authored2d/unified_character/arms/female/SP_PC22_Female_ShoulderCap_Right.png",
+      "sex": "female",
+      "segment": "shoulder_cap",
+      "canvas_size": [
+        64,
+        64
+      ],
+      "pivot": "segment parent joint / centered draw helper",
+      "joint_parent": "shoulder",
+      "joint_child": "upper_arm",
+      "canonical_length": 0.0,
+      "visual_overlap_parent": 1.0,
+      "visual_overlap_child": 1.0,
+      "compatible_rig": "FEMALE_CANONICAL_ARM_SYSTEM",
+      "mirroring_supported": true,
+      "approval_state": "candidate",
+      "alpha_bbox": [
+        13,
+        14,
+        50,
+        50
+      ],
+      "sha256": "ed2a74c7265b27e40510eeaf7d9ec1c5d9e9ec03e77e73a23b38852227454a99"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/female/SP_PC22_Female_Forearm_Right.png",
@@ -143,12 +193,12 @@
       "mirroring_supported": true,
       "approval_state": "candidate",
       "alpha_bbox": [
-        14,
+        17,
         0,
-        50,
+        51,
         128
       ],
-      "sha256": "29da4b1b772b894dd2037a0debb914969ed0d22d42f2154c562280a0b26c13f9"
+      "sha256": "df849f5890d53cab1f60e7a9f4d690cd4cef7acb0271e70e9f88ac3fc4607def"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/female/SP_PC22_Female_Hand_Dominant_Right.png",
@@ -168,12 +218,12 @@
       "mirroring_supported": true,
       "approval_state": "candidate",
       "alpha_bbox": [
-        9,
-        24,
-        45,
-        71
+        10,
+        19,
+        59,
+        77
       ],
-      "sha256": "d202d8bdd05e709a7652b6bd2255da29bf42858f2df8fccecc854d7221b69b09"
+      "sha256": "ca91eef7f20aa023bed640b380bfb257238aa77d314ed1ec513b98286052cfcf"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/female/SP_PC22_Female_Hand_Support_Right.png",
@@ -193,20 +243,40 @@
       "mirroring_supported": true,
       "approval_state": "candidate",
       "alpha_bbox": [
-        9,
-        26,
-        42,
-        69
+        10,
+        20,
+        62,
+        76
       ],
-      "sha256": "f8d12a08bcefdc05f7532ec1debedf98540aae37b6665cb29e8d8f3fd9d59df1"
+      "sha256": "a5a3a1bec3224e509a89b336da6b549b66b8adf06646b7db7911f779c3c10f08"
+    },
+    {
+      "filename": "assets/authored2d/unified_character/arms/weapons/SP_PC22_Pistol_ArmCompatible.png",
+      "sex": "shared",
+      "segment": "weapon_pistol_arm_compatible",
+      "canvas_size": [
+        48,
+        28
+      ],
+      "pivot": "dominant grip socket",
+      "joint_parent": "dominant_grip",
+      "joint_child": "muzzle",
+      "canonical_length": 0.0,
+      "visual_overlap_parent": 0.0,
+      "visual_overlap_child": 0.0,
+      "compatible_rig": "MALE_CANONICAL_ARM_SYSTEM,FEMALE_CANONICAL_ARM_SYSTEM",
+      "mirroring_supported": true,
+      "approval_state": "candidate_visual_fix_v2",
+      "sha256": "f7d56ab7f0afa53d29fe14e65afe25a12d45744e2c162de30bf6fcce9f341af5",
+      "note": "Reference-driven pistol with readable slide/frame/grip mass"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/weapons/SP_PC22_Rifle_ArmCompatible.png",
       "sex": "shared",
       "segment": "weapon_rifle_arm_compatible",
       "canvas_size": [
-        44,
-        14
+        96,
+        30
       ],
       "pivot": "unchanged canonical PC22 weapon pivot",
       "joint_parent": "dominant_grip",
@@ -217,7 +287,7 @@
       "compatible_rig": "MALE_CANONICAL_ARM_SYSTEM,FEMALE_CANONICAL_ARM_SYSTEM",
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "160fed077dfe52a8024501dda17223984931c9506245f9d864e0efeb14adccfd",
+      "sha256": "68224979c664f17bfa887a040c4fd5f14e9ec46e3905b9ff232c8f82016fd84e",
       "note": "Only upper butt-stock pixels shifted +4 source px; body/grip/barrel geometry unchanged"
     },
     {
@@ -225,8 +295,8 @@
       "sex": "shared",
       "segment": "weapon_rifle_stock_rear",
       "canvas_size": [
-        44,
-        14
+        96,
+        30
       ],
       "pivot": "same canonical PC22 rifle center/pivot",
       "joint_parent": "weapon",
@@ -237,7 +307,7 @@
       "compatible_rig": "MALE_CANONICAL_ARM_SYSTEM,FEMALE_CANONICAL_ARM_SYSTEM",
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "b19bedd6ed9a3a3889462451d60ed129bf1254406aa1c8a25ebdec604d6f43e3",
+      "sha256": "e0c1b440cd14f9dc83f52bf0629e55201cf2ec84fb9b50dbb02ed5274609cf81",
       "note": "Upper butt-stock only; render behind torso"
     },
     {
@@ -245,8 +315,8 @@
       "sex": "shared",
       "segment": "weapon_rifle_front",
       "canvas_size": [
-        44,
-        14
+        96,
+        30
       ],
       "pivot": "same canonical PC22 rifle center/pivot",
       "joint_parent": "weapon",
@@ -257,7 +327,7 @@
       "compatible_rig": "MALE_CANONICAL_ARM_SYSTEM,FEMALE_CANONICAL_ARM_SYSTEM",
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "9c0c717626a1a454394aaba1ef48b93fd0362ec2e95d36ce6608046ea8f82af6",
+      "sha256": "c9c03370ea8f761e784adb1913e83fec275fff831139ab5a211fd1a0e58c46d9",
       "note": "Receiver/barrel/grip only; render in front"
     }
   ]

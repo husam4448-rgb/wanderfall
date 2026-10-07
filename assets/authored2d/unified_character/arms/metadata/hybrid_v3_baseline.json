@@ -1,0 +1,54 @@
+{
+  "standard_id": "PlayerCharacters_v22",
+  "source_branch": "pc22-arm-visual-fix-v2",
+  "status": "verified_v2_ik_baseline",
+  "male": {
+    "rig_id": "MALE_CANONICAL_ARM_SYSTEM",
+    "shoulder_rear": [
+      10,
+      -9.5
+    ],
+    "shoulder_front": [
+      9.8,
+      -9
+    ],
+    "upper_arm_length": 10.9,
+    "forearm_length": 10.7
+  },
+  "female": {
+    "rig_id": "FEMALE_CANONICAL_ARM_SYSTEM",
+    "shoulder_rear": [
+      9.6,
+      -9.3
+    ],
+    "shoulder_front": [
+      9.4,
+      -8.9
+    ],
+    "upper_arm_length": 10.6,
+    "forearm_length": 10.5
+  },
+  "weapon": {
+    "pivot": [
+      10.5,
+      -6
+    ],
+    "dominant_grip": [
+      9.8,
+      0.8
+    ],
+    "support_grip": [
+      17,
+      -1
+    ],
+    "support_vertical_offset_right": 0,
+    "support_vertical_offset_left": 0
+  },
+  "aim_clamp_rad": 1.53938,
+  "renderer_policy": {
+    "preserve_ik": true,
+    "renderer": "hybrid_pivoted_sprite_v3",
+    "prohibit_anisotropic_segment_stretch": true,
+    "left_runtime_mirror": true
+  }
+}
