@@ -224,10 +224,13 @@ rifle_arm.save(rifle_arm_path)
 rifle_stock=Image.new("RGBA",rifle_arm.size,(0,0,0,0))
 rifle_front=rifle_arm.copy()
 srcp=rifle_arm.load(); sp=rifle_stock.load(); fp=rifle_front.load()
-for y in range(min(5,rifle_arm.height)):
+for y in range(min(6,rifle_arm.height)):
     for x in range(rifle_arm.width):
-        if srcp[x,y][3] > 0:
-            sp[x,y]=srcp[x,y]
+        pix=srcp[x,y]
+        # Rear-layer only the brown wooden butt-stock pixels. Preserve the dark
+        # receiver top edge in the foreground even where it shares row 5.
+        if pix[3] > 0 and pix[:3] == (63,49,37):
+            sp[x,y]=pix
             fp[x,y]=(0,0,0,0)
 rifle_stock_path=root/"weapons"/"SP_PC22_Rifle_Stock_Rear.png"
 rifle_front_path=root/"weapons"/"SP_PC22_Rifle_Front.png"
