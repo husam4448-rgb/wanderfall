@@ -341,7 +341,7 @@ func _pc22_verify_sweep_case(label: String, upper_len: float, fore_len: float, r
         var shoulder_sup := Vector2(front_socket.x*dir_sign,front_socket.y)
         var pivot := Vector2(10.5*dir_sign,-6.0)
         var wrist_dom := pivot + _pose_point(Vector2(1,3.4),angle,dir_sign)
-        var wrist_sup := pivot + _pose_point(Vector2(14.7,0.5),angle,dir_sign)
+        var wrist_sup := pivot + _pose_point(Vector2(17.0,0.0),angle,dir_sign)
         wrist_sup += _pose_point(Vector2(0,(1.0 if dir_sign>0.0 else 1.2)),angle,dir_sign)
         var elbow_dom := _pc22_solve_elbow(shoulder_dom,wrist_dom,upper_len,fore_len,previous_dom,has_previous)
         var elbow_sup := _pc22_solve_elbow(shoulder_sup,wrist_sup,upper_len,fore_len,previous_sup,has_previous)
@@ -425,7 +425,7 @@ new_support=support_anchor+'''    var support_tex := _pc22_support_hand_texture(
     if gear_gloves and tex_gear_glove != null:
         support_tex = tex_gear_glove
     if support_tex != null:
-        var support_size := Vector2(8.6,7) if female_mode else Vector2(9.2,7.5)
+        var support_size := Vector2(5.4,4.9) if female_mode else Vector2(5.8,5.2)
         _draw_equipment_texture(support_tex,center,support_size*scale,dir_sign<0.0,angle)
         return
     if female_mode:
@@ -444,7 +444,7 @@ old_hand='''    if tex_base_hand != null:
 new_hand='''    var pc22_dom_hand := _pc22_dominant_hand_texture()
     if pc22_dom_hand != null:
         var hand_center := center + _pose_point(Vector2(0.9,0.0) * scale, angle, dir_sign)
-        _draw_equipment_texture(pc22_dom_hand, hand_center, (Vector2(8.6,7.9) if female_mode else Vector2(9.2,8.5)) * scale, dir_sign < 0.0, angle)
+        _draw_equipment_texture(pc22_dom_hand, hand_center, (Vector2(5.8,5.3) if female_mode else Vector2(6.2,5.6)) * scale, dir_sign < 0.0, angle)
         return
 '''
 if old_hand not in s:
@@ -549,16 +549,16 @@ s=s.replace(rear_anchor,'''    if gear_back and not female_mode:
     # deferred to the foreground so the trigger arm stays visibly connected.
     if weapon_visible:
         var pc22_rear_upper_tex: Texture2D = _pc22_upper_texture()
-        var pc22_rear_upper_w: float = 8.2 if female_mode else 9.2
+        var pc22_rear_upper_w: float = 7.8 if female_mode else 8.8
         _pc22_draw_segment(pc22_rear_upper_tex,pc22_rear_shoulder,pc22_rear_elbow,pc22_rear_upper_w,dir_sign<0.0)
         # VISUAL_FIX_V2_FRONT_UPPER_BEHIND_TORSO
         # The proximal support upper arm belongs behind the torso/clothing;
         # only its distal forearm returns to the foreground after torso draw.
         var pc22_front_upper_tex: Texture2D = _pc22_upper_texture()
-        var pc22_front_upper_w: float = 8.2 if female_mode else 9.2
+        var pc22_front_upper_w: float = 7.8 if female_mode else 8.8
         _pc22_draw_segment(pc22_front_upper_tex,pc22_front_shoulder,pc22_front_elbow,pc22_front_upper_w,dir_sign<0.0)
         if weapon_two_handed and tex_pc22_rifle_stock != null:
-            var pc22_stock_center: Vector2 = pc22_arm_pivot + _pose_point(Vector2(7.0,-1.0),pc22_arm_angle,dir_sign)
+            var pc22_stock_center: Vector2 = pc22_arm_pivot + _pose_point(Vector2(7.5,-1.0),pc22_arm_angle,dir_sign)
             _draw_equipment_texture(tex_pc22_rifle_stock,pc22_stock_center,Vector2(46.0,11.0),dir_sign<0.0,pc22_arm_angle)
     else:
         _pc22_draw_chain(pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist,dir_sign)
@@ -577,11 +577,11 @@ s=s.replace(front_anchor,'''    # Armed dominant forearm is foregrounded after t
     # shoulder occlusion while keeping elbow→wrist continuity visible.
     if weapon_visible:
         var pc22_rear_fore_tex: Texture2D = _pc22_fore_texture()
-        var pc22_rear_fore_w: float = 7.1 if female_mode else 8.0
+        var pc22_rear_fore_w: float = 6.8 if female_mode else 7.6
         _pc22_draw_segment(pc22_rear_fore_tex,pc22_rear_elbow,pc22_dom_wrist,pc22_rear_fore_w,dir_sign<0.0)
         # VISUAL_FIX_V2_FRONT_FOREARM_FOREGROUND
         var pc22_front_fore_tex: Texture2D = _pc22_fore_texture()
-        var pc22_front_fore_w: float = 7.1 if female_mode else 8.0
+        var pc22_front_fore_w: float = 6.8 if female_mode else 7.6
         _pc22_draw_segment(pc22_front_fore_tex,pc22_front_elbow,pc22_front_wrist,pc22_front_fore_w,dir_sign<0.0)
     else:
         _pc22_draw_chain(pc22_front_shoulder,pc22_front_elbow,pc22_front_wrist,dir_sign)
@@ -605,7 +605,7 @@ weapon_block='''    # Weapon is the relationship anchor between the two hands.
     if weapon_visible:
         var active_muzzle: Vector2 = pc22_arm_pivot
         if weapon_two_handed:
-            var rifle_center: Vector2 = pc22_arm_pivot + _pose_point(Vector2(7.0,-1.0),pc22_arm_angle,dir_sign)
+            var rifle_center: Vector2 = pc22_arm_pivot + _pose_point(Vector2(7.5,-1.0),pc22_arm_angle,dir_sign)
             _draw_equipment_texture(tex_pc22_rifle_front,rifle_center,Vector2(46.0,11.0),dir_sign<0.0,pc22_arm_angle)
             active_muzzle = pc22_arm_pivot + _pose_point(Vector2(29.0,-1.7),pc22_arm_angle,dir_sign)
         else:
@@ -844,6 +844,13 @@ func _pc22_arm_capture_after_draw() -> void:
 s=s.replace(capture_anchor,capture_helpers+capture_anchor,1)
 
 s=s.replace(title_old,'title.text = "PLAYER CHARACTERS V22 ARM VISUAL FIX V2 | REFERENCE QA:"',1)
+
+# Visual-fix-v2 removes the legacy full-screen aim guide. The weapon itself
+# and muzzle flash communicate aim direction; the guide was being mistaken
+# for a bar-like gun in runtime QA and is not part of the approved references.
+aim_guide='    draw_line(actor_pos, aim_pos, Color(0.85,0.72,0.35,0.18), 1.0)\n'
+if aim_guide in s:
+    s=s.replace(aim_guide,'',1)
 
 runtime.write_text(s,encoding="utf-8")
 s2=runtime.read_text(encoding="utf-8")
