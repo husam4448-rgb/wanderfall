@@ -118,9 +118,11 @@ jobs:
           CAP="$GITHUB_WORKSPACE/pc22-arm-runtime-captures"
           mkdir -p "$CAP"
           ARM_CAPTURE_DIR="$CAP" timeout 35s xvfb-run -a "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1280x720 --verbose 2>&1 | tee pc22-arm-capture.log
-          test "$(find "$CAP" -maxdepth 1 -name '*.png' | wc -l)" -eq 16
-          grep -q 'PC22_ARM_CAPTURE_COMPLETE:16' pc22-arm-capture.log
+          test "$(find "$CAP" -maxdepth 1 -name '*.png' | wc -l)" -eq 58
+          grep -q 'PC22_ARM_CAPTURE_COMPLETE:58' pc22-arm-capture.log
           grep -q 'PC22_ARM_GEOMETRY_OK:' pc22-arm-capture.log
+          grep -q 'PC22_RUNTIME_SWEEP_OK' pc22-arm-capture.log
+          test "$(grep -c 'PC22_RUNTIME_SWEEP_CASE_OK:' pc22-arm-capture.log)" -ge 4
           if grep -q 'PC22_ARM_GEOMETRY_FAIL' pc22-arm-capture.log; then exit 1; fi
           if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|Compile Error:|Parse Error:|Invalid call|Invalid get index' pc22-arm-capture.log; then exit 1; fi
 
@@ -131,32 +133,68 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           from PIL import Image,ImageDraw
+          import math
+
           root=Path('pc22-arm-runtime-captures')
           out=Path('assets/authored2d/unified_character/arms/qa/runtime_engine')
           out.mkdir(parents=True,exist_ok=True)
-          names=[
-            "idle","walk","run","pistol_horizontal","pistol_up","rifle_horizontal","rifle_up","recoil"
+
+          states=[
+            "idle","walk_a","walk_b","run_a","run_b",
+            "pistol_horizontal","pistol_up30","pistol_up60","pistol_max_up","pistol_down30","pistol_down60","pistol_max_down",
+            "rifle_horizontal","rifle_up30","rifle_up60","rifle_max_up","rifle_down30","rifle_down60","rifle_max_down","recoil",
+            "walk_right_aim_right","walk_left_aim_right","walk_right_aim_up","walk_left_aim_down",
+            "run_pistol","run_rifle","rifle_left","rifle_left_up60","rifle_left_down60"
           ]
+          groups={
+            "locomotion":["idle","walk_a","walk_b","run_a","run_b","run_pistol","run_rifle"],
+            "pistol":["pistol_horizontal","pistol_up30","pistol_up60","pistol_max_up","pistol_down30","pistol_down60","pistol_max_down"],
+            "rifle":["rifle_horizontal","rifle_up30","rifle_up60","rifle_max_up","rifle_down30","rifle_down60","rifle_max_down","recoil"],
+            "movement_aim":["walk_right_aim_right","walk_left_aim_right","walk_right_aim_up","walk_left_aim_down","rifle_left","rifle_left_up60","rifle_left_down60"],
+          }
+
+          def frame(sex,state,w=360,h=420):
+              p=root/f"{sex}_{state}.png"
+              im=Image.open(p).convert("RGB")
+              crop=im.crop((350,50,930,700)).resize((w,h),Image.Resampling.LANCZOS)
+              d=ImageDraw.Draw(crop)
+              d.rectangle((0,h-28,w,h),fill=(8,10,10))
+              d.text((7,h-21),f"{sex.upper()} — {state}",fill=(240,240,235))
+              return crop
+
           for sex in ("male","female"):
-              imgs=[]
-              for state in names:
-                  p=root/f"{sex}_{state}.png"
-                  im=Image.open(p).convert("RGB")
-                  # Full runtime screenshot plus a central crop around the actor.
-                  crop=im.crop((360,60,920,700))
-                  crop=crop.resize((420,480),Image.Resampling.LANCZOS)
-                  d=ImageDraw.Draw(crop)
-                  d.rectangle((0,450,420,480),fill=(8,10,10))
-                  d.text((8,458),f"{sex.upper()} — {state}",fill=(240,240,235))
-                  imgs.append(crop)
-              sheet=Image.new("RGB",(4*420,2*480),(16,20,21))
-              for i,im in enumerate(imgs):
-                  sheet.paste(im,((i%4)*420,(i//4)*480))
+              # One complete acceptance sheet with all 29 actual-engine states.
+              cols=5; w=320; h=380
+              rows=math.ceil(len(states)/cols)
+              sheet=Image.new("RGB",(cols*w,rows*h),(16,20,21))
+              for i,state in enumerate(states):
+                  sheet.paste(frame(sex,state,w,h),((i%cols)*w,(i//cols)*h))
               sheet.save(out/f"{sex}_runtime_contact_sheet.jpg",quality=95,subsampling=0)
-              # Maximum practical close-up uses horizontal-rifle state.
-              ref=Image.open(root/f"{sex}_rifle_horizontal.png").convert("RGB")
-              ref=ref.crop((430,100,850,650)).resize((1260,1650),Image.Resampling.NEAREST)
-              ref.save(out/f"{sex}_runtime_max_inspection.jpg",quality=95)
+
+              # Larger grouped sheets for joint/grip inspection.
+              for group,names in groups.items():
+                  cols=4; w=420; h=480
+                  rows=math.ceil(len(names)/cols)
+                  sh=Image.new("RGB",(cols*w,rows*h),(16,20,21))
+                  for i,state in enumerate(names):
+                      sh.paste(frame(sex,state,w,h),((i%cols)*w,(i//cols)*h))
+                  sh.save(out/f"{sex}_{group}_contact_sheet.jpg",quality=95,subsampling=0)
+
+              for state,label in (
+                  ("rifle_horizontal","rifle"),
+                  ("pistol_max_up","pistol_max_up"),
+                  ("pistol_max_down","pistol_max_down"),
+                  ("rifle_left","rifle_left"),
+              ):
+                  ref=Image.open(root/f"{sex}_{state}.png").convert("RGB")
+                  ref=ref.crop((410,80,870,650)).resize((1380,1710),Image.Resampling.NEAREST)
+                  ref.save(out/f"{sex}_runtime_max_{label}.jpg",quality=95)
+
+              # Actual-Godot aim-range preview; individual frames remain authoritative.
+              seq=["rifle_max_down","rifle_down60","rifle_down30","rifle_horizontal","rifle_up30","rifle_up60","rifle_max_up",
+                   "rifle_up60","rifle_up30","rifle_horizontal","rifle_down30","rifle_down60"]
+              gif=[frame(sex,state,420,480) for state in seq]
+              gif[0].save(out/f"{sex}_runtime_rifle_aim_range.gif",save_all=True,append_images=gif[1:],duration=110,loop=0,disposal=2)
           PY
 
       - name: Persist actual-runtime QA evidence
