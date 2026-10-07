@@ -345,11 +345,11 @@ for sex,s in specs.items():
       "standard_id":"PlayerCharacters_v22",
       "shoulder_source":"Visual-fix-v2: moved to visible PC22 deltoid/outer-torso attachment using approved reference sheets",
       "upper_forearm_length_source":"corrected from prior 9.4+10.5 solver to cover the complete active PC22 support-hand aim envelope without stretch",
-      "weapon_socket":[10.5,-9.0],
+      "weapon_socket":[10.5,-6.0],
       "dominant_hand_grip_socket":[1.0,3.4],
-      "support_hand_grip_socket":[14.7,1.45],
-      "support_hand_vertical_offset_right":1.5,
-      "support_hand_vertical_offset_left":1.8,
+      "support_hand_grip_socket":[14.7,0.5],
+      "support_hand_vertical_offset_right":1.0,
+      "support_hand_vertical_offset_left":1.2,
       "elbow_bend_constraints_deg":{"min_flex":12.0,"max_flex":155.0},
       "wrist_neutral_position":"derived from neutral upper angle + elbow flex; fixed-length FK",
       "torso_overlap_depth":1.15,
@@ -529,11 +529,10 @@ def solve_two_bone(shoulder,wrist,L1,L2,prev=None):
     if prev is None:
         elbow=max(candidates,key=lambda p:(p[1],-abs(p[0]-shoulder[0])))
     else:
-        def score(p):
-            continuity=length(sub(p,prev))
-            upward_penalty=max(0.0,(shoulder[1]-p[1])-1.0)*3.0
-            return continuity+upward_penalty
-        elbow=min(candidates,key=score)
+        # Preserve the previously selected IK branch. A visual "screen-down"
+        # penalty can overpower continuity near vertical aim and flip the elbow
+        # across the body, so after initialization continuity is authoritative.
+        elbow=min(candidates,key=lambda p:length(sub(p,prev)))
     return elbow,{"reachable":True,"distance":d,"range":[lo,hi]}
 
 def flex_deg(L1,L2,d):
