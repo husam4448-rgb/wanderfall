@@ -368,7 +368,7 @@ func _pc22_v3_draw_cap(tex: Texture2D, shoulder: Vector2, elbow: Vector2, dir_si
     var tw: float = float(tex.get_width())
     # Keep the deltoid bridge shallow.  The earlier 5px-class cap read as a
     # separate padded ball at gameplay scale, especially when two caps overlapped.
-    var desired_h: float = 3.35 if female_mode else 3.85
+    var desired_h: float = 2.30 if female_mode else 2.65
     var scale_u: float = desired_h/maxf(1.0,th)
     var pivot_px := Vector2(maxf(1.0,tw*0.18),th*0.5)
     _pc22_v3_draw_pivoted(tex,shoulder,delta.angle(),scale_u,pivot_px,dir_sign<0.0)

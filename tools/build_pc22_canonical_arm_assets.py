@@ -2,7 +2,7 @@
 """Build PlayerCharacters_v22 canonical articulated arm assets and deterministic QA."""
 from pathlib import Path
 from io import BytesIO
-from PIL import Image, ImageDraw, ImageFilter, ImageEnhance, ImageChops
+from PIL import Image, ImageDraw, ImageFilter, ImageEnhance, ImageChops, ImageOps
 import base64, hashlib, json, math, re, sys
 
 repo=Path(sys.argv[1] if len(sys.argv)>1 else ".")
@@ -65,6 +65,28 @@ def recolor(img, base_rgb, grain=2):
             dst[x,y]=(max(0,min(255,base_rgb[0]+delta+gnoise)),
                       max(0,min(255,base_rgb[1]+delta+gnoise)),
                       max(0,min(255,base_rgb[2]+delta+gnoise)),a)
+    return out
+
+def fabric_grade(img, base_rgb, contrast=1.42):
+    """Preserve authored folds/high-frequency shading while retinting to PC22 cloth.
+
+    The previous flat recolor compressed most sleeve values into a narrow olive
+    range, which made runtime arms look like soft blobs beside the detailed torso.
+    This maps the original luminance through a wide cloth palette instead.
+    """
+    src=img.convert("RGBA")
+    alpha=src.getchannel("A")
+    gray=ImageOps.grayscale(src)
+    gray=ImageEnhance.Contrast(gray).enhance(contrast)
+    dark=tuple(max(0,int(c*0.34)) for c in base_rgb)
+    light=tuple(min(255,int(c*1.62+10)) for c in base_rgb)
+    graded=ImageOps.colorize(gray,dark,light).convert("RGBA")
+    graded.putalpha(alpha)
+
+    # Re-introduce a small amount of source chroma/texture so seam/fold detail
+    # survives aggressive runtime down-scaling without changing the cloth hue.
+    out=Image.blend(graded,src,0.10)
+    out.putalpha(alpha)
     return out
 
 def row_warp(img, top_scale, mid_scale, bottom_scale):
@@ -227,37 +249,44 @@ def make_v3_shoulder_cap(upper_x, sex):
     return cap,pivot
 
 def _aa_grip_hand(sex, support=False):
-    """Compact reference-driven gripping hand; no extended/pointing fingers."""
+    """Compact side-view gripping hand with a narrow wrist and readable finger curl."""
     S=4
-    im=Image.new("RGBA",(96*S,96*S),(0,0,0,0))
+    im=Image.new("RGBA",(80*S,96*S),(0,0,0,0))
     d=ImageDraw.Draw(im)
     skin=(190,126,92,255) if sex=="male" else (204,139,103,255)
-    light=(222,159,119,255) if sex=="male" else (229,168,128,255)
-    dark=(105,68,52,255); deep=(68,48,40,255)
+    light=(226,160,120,255) if sex=="male" else (232,172,132,255)
+    mid=(151,94,72,255) if sex=="male" else (164,102,78,255)
+    deep=(63,43,36,255)
     def sc(box): return tuple(int(v*S) for v in box)
+    def poly(points,fill):
+        d.polygon([(int(x*S),int(y*S)) for x,y in points],fill=fill)
+        d.line([(int(x*S),int(y*S)) for x,y in points+[points[0]]],fill=deep,width=2*S)
 
-    # Short wrist and compact palm centered in the canvas.
-    d.rounded_rectangle(sc((15,39,37,57)),radius=7*S,fill=skin,outline=deep,width=2*S)
-    d.rounded_rectangle(sc((30,31,61,65)),radius=9*S,fill=skin,outline=deep,width=2*S)
+    # Narrow wrist entering from the forearm.
+    d.rounded_rectangle(sc((13,39,29,57)),radius=5*S,fill=mid,outline=deep,width=2*S)
 
     if support:
-        # Fore-end grip: knuckles sit over the rail, fingers curl underneath.
-        for b in ((47,31,59,40),(55,33,66,42),(60,37,69,46)):
-            d.rounded_rectangle(sc(b),radius=4*S,fill=light,outline=deep,width=2*S)
-        for b in ((47,50,58,62),(55,49,65,61),(61,47,70,58)):
-            d.rounded_rectangle(sc(b),radius=4*S,fill=skin,outline=deep,width=2*S)
-        d.polygon([tuple(v*S for v in p) for p in ((31,35),(43,29),(55,35),(51,44),(39,43))],
-                  fill=light,outline=dark)
+        # Support hand wraps around the handguard: compact palm with fingers
+        # curling below the rail rather than a horizontal mitten.
+        poly([(25,31),(39,25),(49,31),(50,51),(43,65),(29,62),(23,51)],skin)
+        d.rounded_rectangle(sc((38,23,49,35)),radius=4*S,fill=light,outline=deep,width=2*S)  # thumb
+        for box in ((39,47,49,58),(36,54,46,66),(32,58,42,70)):
+            d.rounded_rectangle(sc(box),radius=4*S,fill=skin,outline=deep,width=2*S)
+        d.line([(27*S,43*S),(45*S,43*S)],fill=mid,width=S)
+        d.line([(31*S,51*S),(46*S,51*S)],fill=mid,width=S)
     else:
-        # Trigger grip: four curled fingers stack around a near-vertical grip.
-        for b in ((48,31,61,40),(50,39,64,48),(50,47,64,56),(47,55,60,64)):
-            d.rounded_rectangle(sc(b),radius=4*S,fill=skin,outline=deep,width=2*S)
-        d.polygon([tuple(v*S for v in p) for p in ((31,35),(43,29),(56,35),(52,43),(39,42))],
-                  fill=light,outline=dark)
+        # Trigger hand: thumb rides over the grip while four fingers curl down.
+        poly([(24,31),(38,26),(49,33),(48,54),(41,66),(28,63),(22,51)],skin)
+        d.rounded_rectangle(sc((37,23,50,35)),radius=4*S,fill=light,outline=deep,width=2*S)
+        for box in ((39,42,49,52),(38,50,48,60),(35,57,45,68)):
+            d.rounded_rectangle(sc(box),radius=4*S,fill=skin,outline=deep,width=2*S)
+        d.arc(sc((28,34,49,59)),285,85,fill=mid,width=2*S)
+        d.line([(27*S,47*S),(43*S,47*S)],fill=mid,width=S)
 
-    d.arc(sc((32,39,57,62)),15,125,fill=dark,width=S)
-    d.ellipse(sc((34,35,39,40)),fill=light)
-    return im.resize((96,96),Image.Resampling.LANCZOS)
+    # Small knuckle highlight and palm shadow survive at gameplay scale.
+    d.ellipse(sc((30,31,35,36)),fill=light)
+    d.line([(26*S,60*S),(39*S,63*S)],fill=deep,width=S)
+    return im.resize((80,96),Image.Resampling.LANCZOS)
 
 def derive_bare_hand(glove_img, sex):
     return _aa_grip_hand(sex,False)
@@ -446,30 +475,32 @@ for sex,s in specs.items():
     cut=0.80 if female else 0.74
     source_fore=source_fore.crop((0,0,source_fore.width,max(2,int(source_fore.height*cut))))
 
-    u=row_warp(source_upper,1.08 if female else 1.12,0.96 if female else 1.00,0.78 if female else 0.80)
-    u=recolor(u,tuple(s["source_tint"]),2)
-    u.putalpha(u.getchannel("A").filter(ImageFilter.GaussianBlur(0.10)))
-    u=recanvas_vertical(u,(64,128),1,0.90 if female else 0.96)
+    # Preserve authored fold/detail structure and stop force-stretching every
+    # limb to almost the full 64px canvas width. Runtime screenshots showed that
+    # the old 0.90-0.96 width fill produced swollen modular arms.
+    u=row_warp(source_upper,1.04 if female else 1.08,0.98 if female else 1.00,0.80 if female else 0.84)
+    u=fabric_grade(u,tuple(s["source_tint"]),1.50 if female else 1.46)
+    u.putalpha(u.getchannel("A").filter(ImageFilter.GaussianBlur(0.08)))
+    u=recanvas_vertical(u,(64,128),1,0.62 if female else 0.70)
     u=keep_largest_alpha_component(u)
-    u=add_joint_caps(u,tuple(s["source_tint"]),0.42 if female else 0.46,0.32 if female else 0.36,4)
+    u=add_joint_caps(u,tuple(s["source_tint"]),0.34 if female else 0.38,0.26 if female else 0.29,3)
 
-    f=row_warp(source_fore,1.04 if female else 1.08,0.88 if female else 0.92,0.62 if female else 0.66)
-    # Convert the full authored forearm/hand source into a sleeve-to-wrist segment.
-    # Distal rows are kept but recolored as a darker wrist cuff so the separate hand overlaps it.
+    f=row_warp(source_fore,1.02 if female else 1.05,0.91 if female else 0.94,0.66 if female else 0.70)
+    f=fabric_grade(f,tuple(s["source_tint"]),1.55 if female else 1.50)
+    # Darken only the distal cuff while retaining the original fold/edge detail.
     f=f.convert("RGBA"); fp=f.load()
     for y in range(f.height):
         t=y/max(1,f.height-1)
+        if t < 0.82:
+            continue
         for x in range(f.width):
             r,g,b,a=fp[x,y]
             if a<4: continue
-            lum=(r+g+b)/3.0
-            base=tuple(s["source_tint"]) if t<0.80 else (70,76,66)
-            d=int(max(-18,min(18,(lum-110)*0.12)))
-            fp[x,y]=(max(0,min(255,base[0]+d)),max(0,min(255,base[1]+d)),max(0,min(255,base[2]+d)),a)
-    f.putalpha(f.getchannel("A").filter(ImageFilter.GaussianBlur(0.09)))
-    f=recanvas_vertical(f,(64,128),1,0.88 if female else 0.92)
+            fp[x,y]=(int(r*0.74),int(g*0.74),int(b*0.74),a)
+    f.putalpha(f.getchannel("A").filter(ImageFilter.GaussianBlur(0.07)))
+    f=recanvas_vertical(f,(64,128),1,0.50 if female else 0.58)
     f=keep_largest_alpha_component(f)
-    f=add_joint_caps(f,tuple(s["source_tint"]),0.38 if female else 0.42,0.24 if female else 0.27,4)
+    f=add_joint_caps(f,tuple(s["source_tint"]),0.29 if female else 0.32,0.18 if female else 0.21,3)
 
     sex_dir=root/sex
     up_name=f"SP_PC22_{sex.title()}_UpperArm_Right.png"

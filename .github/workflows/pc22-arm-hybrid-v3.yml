@@ -238,6 +238,30 @@ jobs:
                   ref=ref.crop((410,80,870,650)).resize((1380,1710),Image.Resampling.NEAREST)
                   ref.save(out/f"{sex}_runtime_max_{label}.jpg",quality=95)
 
+              # Mandatory close-up QA: crop the actual Godot framebuffer around
+              # arm/weapon contact so seams cannot hide in a full-screen sheet.
+              close_states=[
+                  ("rifle_horizontal","rifle_grip"),
+                  ("rifle_max_up","rifle_max_up"),
+                  ("rifle_max_down","rifle_max_down"),
+                  ("pistol_horizontal","pistol_grip"),
+              ]
+              close_frames=[]
+              for state,label in close_states:
+                  src=Image.open(root/f"{sex}_{state}.png").convert("RGB")
+                  # Character is centered at 640x360; this window tightly covers
+                  # torso shoulder, elbows, wrists, hands and weapon contact.
+                  cr=src.crop((470,205,845,505)).resize((750,600),Image.Resampling.NEAREST)
+                  dd=ImageDraw.Draw(cr)
+                  dd.rectangle((0,570,750,600),fill=(8,10,10))
+                  dd.text((8,578),f"{sex.upper()} — {label} — ACTUAL GODOT 2x",fill=(240,240,235))
+                  cr.save(out/f"{sex}_closeup_{label}.png")
+                  close_frames.append(cr)
+              cs=Image.new("RGB",(1500,1200),(16,20,21))
+              for ci,cr in enumerate(close_frames):
+                  cs.paste(cr,((ci%2)*750,(ci//2)*600))
+              cs.save(out/f"{sex}_arm_closeup_contact_sheet.png")
+
               # Actual-Godot aim-range preview; individual frames remain authoritative.
               seq=["rifle_max_down","rifle_down60","rifle_down30","rifle_horizontal","rifle_up30","rifle_up60","rifle_max_up",
                    "rifle_up60","rifle_up30","rifle_horizontal","rifle_down30","rifle_down60"]

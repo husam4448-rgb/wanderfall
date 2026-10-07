@@ -68,7 +68,15 @@ for sex in ("male","female"):
         require(0 <= pp[1] < h and 0 <= cp[1] < h, f"{sex}/{key}: invalid Y pivots {pp}->{cp}")
         require((cp[0] - pp[0]) >= w * 0.75, f"{sex}/{key}: pivot span too short")
         if bb:
-            require((bb[3]-bb[1]) >= h * 0.45, f"{sex}/{key}: excessive transparent vertical padding")
+            bw,bh=bb[2]-bb[0],bb[3]-bb[1]
+            require(bh >= h * 0.45, f"{sex}/{key}: excessive transparent vertical padding")
+            # Horizontal V3 sprite: visual thickness is alpha height relative to
+            # authored bone span. This rejects the swollen blob proportions seen
+            # in the failed Android screenshots.
+            span=max(1.0,cp[0]-pp[0])
+            ratio=bh/span
+            limit=(0.42 if key=="upper_arm" else 0.34) if sex=="male" else (0.38 if key=="upper_arm" else 0.31)
+            require(ratio <= limit, f"{sex}/{key}: visible thickness ratio too large {ratio:.3f}>{limit:.3f}")
 
     for key in ("hand_dominant","hand_support","shoulder_cap"):
         a = m[key]
@@ -76,7 +84,11 @@ for sex in ("male","female"):
         require(p.is_file(), f"{sex}/{key}: asset missing")
         if p.is_file():
             im = Image.open(p).convert("RGBA")
-            require(im.getchannel("A").getbbox() is not None, f"{sex}/{key}: empty alpha")
+            bb=im.getchannel("A").getbbox()
+            require(bb is not None, f"{sex}/{key}: empty alpha")
+            if bb and key.startswith("hand_"):
+                bw,bh=bb[2]-bb[0],bb[3]-bb[1]
+                require(bw/max(1,bh) <= 1.05, f"{sex}/{key}: mitten-like hand aspect {bw}x{bh}")
 
 wp = meta / "hybrid_v3_weapon_assets.json"
 require(wp.is_file(), "V3 weapon metadata missing")
