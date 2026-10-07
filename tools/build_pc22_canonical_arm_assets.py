@@ -594,7 +594,7 @@ v3_weapon_meta={
     "weapon_origin_px":[29.0,13.0],
     "butt_contact_px":[4.0,16.0],
     "dominant_grip_px":[36.0,18.0],
-    "support_grip_px":[66.0,14.0],
+    "support_grip_px":[58.0,13.0],
     "muzzle_px":[94.0,13.0]
   },
   "pistol":{

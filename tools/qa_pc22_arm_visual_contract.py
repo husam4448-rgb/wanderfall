@@ -61,27 +61,35 @@ for label,path in (("rifle",rifle_path),("pistol",pistol_path)):
         fail.append(f"{label}.length_to_height_ratio: {ratio:.2f} > {c['max_length_to_height_ratio']:.2f}")
 
 
-# Runtime weapon scaling is part of the visual contract. A thick source sprite
-# can still become an oversized block when the renderer scales it too tall.
+# Runtime weapon scaling is part of the visual contract. V3 uses uniform
+# sprite scale, so validate that directly rather than obsolete width/height keys.
 patch=(repo/"patches/apply_pc22_canonical_arm_candidate.py").read_text(encoding="utf-8")
 rc=contract["runtime_draw"]
-rifle_sizes=[tuple(map(float,m)) for m in re.findall(r'Vector2\((\d+(?:\.\d+)?),(\d+(?:\.\d+)?)\).*?tex_pc22_rifle_(?:front|stock)',patch)]
-if not rifle_sizes:
-    # Current call order puts texture before Vector2, accept that exact form too.
-    rifle_sizes=[tuple(map(float,m)) for m in re.findall(r'tex_pc22_rifle_(?:front|stock).*?Vector2\((\d+(?:\.\d+)?),(\d+(?:\.\d+)?)\)',patch)]
-pistol_sizes=[tuple(map(float,m)) for m in re.findall(r'tex_pc22_pistol.*?Vector2\((\d+(?:\.\d+)?),(\d+(?:\.\d+)?)\)',patch)]
-if not rifle_sizes:
-    fail.append("runtime.rifle_draw_size: not found")
+rifle_scales=[float(x) for x in re.findall(
+    r'_pc22_v3_draw_weapon_piece\(tex_pc22_rifle_(?:front|stock)[^\n]*?Vector2\([^)]*\),([0-9]+(?:\.[0-9]+)?)\)',patch)]
+pistol_scales=[float(x) for x in re.findall(
+    r'_pc22_v3_draw_weapon_piece\(tex_pc22_pistol[^\n]*?Vector2\([^)]*\),([0-9]+(?:\.[0-9]+)?)\)',patch)]
+if not rifle_scales:
+    fail.append("runtime.rifle_scale: not found")
 else:
-    for w,h in rifle_sizes:
-        ge("runtime.rifle_width",w,rc["rifle_width_min"])
-        le("runtime.rifle_height",h,rc["rifle_height_max"])
-if not pistol_sizes:
-    fail.append("runtime.pistol_draw_size: not found")
+    for sc in rifle_scales:
+        ge("runtime.rifle_scale",sc,rc["rifle_scale_min"])
+        le("runtime.rifle_scale",sc,rc["rifle_scale_max"])
+if not pistol_scales:
+    fail.append("runtime.pistol_scale: not found")
 else:
-    for w,h in pistol_sizes:
-        ge("runtime.pistol_width",w,rc["pistol_width_min"])
-        le("runtime.pistol_height",h,rc["pistol_height_max"])
+    for sc in pistol_scales:
+        ge("runtime.pistol_scale",sc,rc["pistol_scale_min"])
+        le("runtime.pistol_scale",sc,rc["pistol_scale_max"])
+
+for label,key in (("dominant","dominant_grip_pivot_fraction"),("support","support_grip_pivot_fraction")):
+    vals=rc.get(key)
+    if not vals or len(vals)!=2:
+        fail.append(f"runtime.{key}: missing")
+    else:
+        token=f"Vector2({vals[0]:.2f},{vals[1]:.2f})"
+        if token not in patch:
+            fail.append(f"runtime.{label}_grip_pivot: {token} not found")
 
 
 # Armed shoulder layering must not repaint the complete front upper-arm chain

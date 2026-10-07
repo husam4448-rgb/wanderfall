@@ -102,6 +102,7 @@ for token in (
     "func _pc22_v3_draw_pivoted",
     "func _pc22_v3_draw_segment",
     "func _pc22_v3_draw_hand",
+    "func _pc22_v3_draw_grip_hand",
     "func _pc22_v3_draw_cap",
     "func _pc22_v3_draw_weapon_piece",
     "PLAYER CHARACTERS V22 HYBRID ARM V3 | PIVOTED RENDERER:",
@@ -124,7 +125,12 @@ require(bool(pistol_scales), "pistol uniform scale calls not found")
 for sc in rifle_scales:
     require(0.30 <= sc <= 0.36, f"rifle scale out of V3 range: {sc}")
 for sc in pistol_scales:
-    require(0.34 <= sc <= 0.42, f"pistol scale out of V3 range: {sc}")
+    require(0.23 <= sc <= 0.26, f"pistol scale out of V3 range: {sc}")
+
+require("Vector2(0.54,0.50)" in patch, "dominant armed-hand grip pivot drift")
+require("Vector2(0.56,0.48)" in patch, "support armed-hand grip pivot drift")
+require("(3.25 if female_mode else 3.45)" in patch, "dominant locked hand scale drift")
+require("(3.15 if female_mode else 3.35)" in patch, "support locked hand scale drift")
 
 if errors:
     print("PC22_HYBRID_V3_QA_FAIL")

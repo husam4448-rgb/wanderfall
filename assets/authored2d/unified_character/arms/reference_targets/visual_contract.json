@@ -75,14 +75,24 @@
     "Arm mass recalibrated after magnified runtime review: preserve detailed texture and taper while avoiding the oversized forearm/shoulder blobs seen in the prior V2 pass.",
     "Final shoulder rule: no artificial foreground cap. Canonical upper arms remain behind torso and must emerge naturally from outboard deltoid sockets.",
     "Hybrid V3 replaces V2's center-stretched segment rectangles with tight +X sprites rotated about explicit parent pivots and uniformly scaled only from canonical bone length.",
-    "Hybrid V3 restores a compact textured shoulder cap as an intentional deltoid bridge; this is not a full upper-arm redraw and must remain anchored to the canonical shoulder socket."
+    "Hybrid V3 restores a compact textured shoulder cap as an intentional deltoid bridge; this is not a full upper-arm redraw and must remain anchored to the canonical shoulder socket.",
+    "Hybrid V3 armed-hand refinement: locked IK grip sockets now land inside the rendered palm; free-hand wrist anchoring is unchanged.",
+    "Hybrid V3 pistol scale recalibrated from runtime evidence so sidearm length is realistic relative to the 10.5–10.7 unit forearm while preserving the exact locked grip socket."
   ],
   "runtime_draw": {
     "rifle_scale_min": 0.3,
     "rifle_scale_max": 0.36,
-    "pistol_scale_min": 0.34,
-    "pistol_scale_max": 0.42,
-    "require_uniform_weapon_scale": true
+    "pistol_scale_min": 0.23,
+    "pistol_scale_max": 0.26,
+    "require_uniform_weapon_scale": true,
+    "dominant_grip_pivot_fraction": [
+      0.54,
+      0.5
+    ],
+    "support_grip_pivot_fraction": [
+      0.56,
+      0.48
+    ]
   },
   "layering": {
     "armed_front_upper": "behind_torso",

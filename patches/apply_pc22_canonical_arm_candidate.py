@@ -348,6 +348,18 @@ func _pc22_v3_draw_hand(tex: Texture2D, wrist: Vector2, weapon_angle: float, dir
     var world_rot: float = weapon_angle if dir_sign>0.0 else PI-weapon_angle
     _pc22_v3_draw_pivoted(tex,wrist,world_rot,scale_u,pivot_px,dir_sign<0.0)
 
+func _pc22_v3_draw_grip_hand(tex: Texture2D, grip_world: Vector2, weapon_angle: float, dir_sign: float, world_height: float, grip_fraction: Vector2) -> void:
+    if tex == null:
+        return
+    var th: float = float(tex.get_height())
+    var tw: float = float(tex.get_width())
+    var scale_u: float = world_height/maxf(1.0,th)
+    # Armed hands anchor the weapon contact point inside the palm instead of at
+    # the sprite wrist edge. Bone targets and verified IK remain unchanged.
+    var pivot_px := Vector2(tw*grip_fraction.x,th*grip_fraction.y)
+    var world_rot: float = weapon_angle if dir_sign>0.0 else PI-weapon_angle
+    _pc22_v3_draw_pivoted(tex,grip_world,world_rot,scale_u,pivot_px,dir_sign<0.0)
+
 func _pc22_v3_draw_cap(tex: Texture2D, shoulder: Vector2, elbow: Vector2, dir_sign: float) -> void:
     if tex == null:
         return
@@ -662,8 +674,10 @@ weapon_block='''    # HYBRID V3: weapon artwork is anchored directly at the domi
             _pc22_v3_draw_weapon_piece(tex_pc22_rifle_front,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(36.0,18.0),0.33)
             active_muzzle = pc22_dom_wrist + _pose_point(Vector2(19.14,-1.65),pc22_arm_angle,dir_sign)
         else:
-            _pc22_v3_draw_weapon_piece(tex_pc22_pistol,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(15.0,18.0),0.38)
-            active_muzzle = pc22_dom_wrist + _pose_point(Vector2(11.78,-3.42),pc22_arm_angle,dir_sign)
+            # Runtime evidence showed the 0.38 pistol dwarfed the forearm. Keep
+            # the exact locked grip socket and correct only the visual scale.
+            _pc22_v3_draw_weapon_piece(tex_pc22_pistol,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(15.0,18.0),0.24)
+            active_muzzle = pc22_dom_wrist + _pose_point(Vector2(7.44,-2.16),pc22_arm_angle,dir_sign)
 
         if shot_flash > 0.02:
             var flash_len: float = 5.0 * shot_flash
@@ -671,9 +685,19 @@ weapon_block='''    # HYBRID V3: weapon artwork is anchored directly at the domi
             draw_line(active_muzzle,flash_tip,Color(1.0,0.78,0.28,0.85*shot_flash),2.0,true)
             draw_circle(active_muzzle,1.6*shot_flash,Color(1.0,0.92,0.55,0.75*shot_flash))
 
-        _draw_hand(pc22_dom_wrist,pc22_arm_angle,dir_sign,Color("c98e68"))
+        # The locked IK target is the weapon-contact point. In armed poses, put
+        # that point inside the palm so the fingers visibly wrap the grip.
+        var pc22_dom_grip_tex := _pc22_dominant_hand_texture()
+        if pc22_dom_grip_tex != null:
+            _pc22_v3_draw_grip_hand(pc22_dom_grip_tex,pc22_dom_wrist,pc22_arm_angle,dir_sign,(3.25 if female_mode else 3.45),Vector2(0.54,0.50))
+        else:
+            _draw_hand(pc22_dom_wrist,pc22_arm_angle,dir_sign,Color("c98e68"))
         if weapon_two_handed:
-            _draw_support_hand(pc22_front_wrist,pc22_arm_angle,dir_sign,Color("b97755"),1.0)
+            var pc22_sup_grip_tex := _pc22_support_hand_texture()
+            if pc22_sup_grip_tex != null:
+                _pc22_v3_draw_grip_hand(pc22_sup_grip_tex,pc22_front_wrist,pc22_arm_angle,dir_sign,(3.15 if female_mode else 3.35),Vector2(0.56,0.48))
+            else:
+                _draw_support_hand(pc22_front_wrist,pc22_arm_angle,dir_sign,Color("b97755"),1.0)
 '''
 s=s[:start]+weapon_block+s[end:]
 
