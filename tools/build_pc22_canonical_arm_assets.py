@@ -366,38 +366,6 @@ def make_v3_pivoted_hand(hand_img):
     return hand,[float(wrist_x),float(h/2.0)]
 
 
-def make_v3_elbow_patch(upper_x, fore_x, sex):
-    """Create a compact textured elbow gusset to visually hide the two-bone hinge."""
-    u=trim(upper_x).convert("RGBA")
-    f=trim(fore_x).convert("RGBA")
-    W,H=48,32
-    uc=u.crop((max(0,int(u.width*0.64)),0,u.width,u.height)).resize((W,H),Image.Resampling.LANCZOS)
-    fc=f.crop((0,0,max(2,int(f.width*0.36)),f.height)).resize((W,H),Image.Resampling.LANCZOS)
-    tex=Image.blend(uc,fc,0.50).convert("RGBA")
-    mask=Image.new("L",(W,H),0)
-    d=ImageDraw.Draw(mask)
-    pts=[(1,12),(7,6),(18,3),(31,3),(41,7),(47,13),(46,20),(39,26),(28,29),(15,28),(5,23),(1,18)]
-    if sex=="female":
-        pts=[(x,int(round((y-H/2)*0.88+H/2))) for x,y in pts]
-    d.polygon(pts,fill=255)
-    d.ellipse((8,4,40,28),fill=255)
-    mask=mask.filter(ImageFilter.GaussianBlur(0.45))
-    tex.putalpha(mask)
-    inner=mask.filter(ImageFilter.MinFilter(3))
-    edge=ImageChops.subtract(mask,inner)
-    ep=edge.load(); tp=tex.load()
-    for yy in range(H):
-        for xx in range(W):
-            if ep[xx,yy]>0:
-                r,g,b,a=tp[xx,yy]
-                tp[xx,yy]=(max(0,int(r*0.48)),max(0,int(g*0.48)),max(0,int(b*0.48)),a)
-    td=ImageDraw.Draw(tex)
-    fold=(42,48,40,90)
-    td.line((10,13,36,17),fill=fold,width=1)
-    td.line((12,20,34,16),fill=fold,width=1)
-    tex.putalpha(mask)
-    return tex
-
 def make_v3_shoulder_cap(upper_x, sex):
     """Build an asymmetric torso-rooted deltoid from proximal V3 arm texture.
 
@@ -770,7 +738,7 @@ for sex,s in specs.items():
     sleeve_ref=female_torso_ref if female else male_torso_ref
     u=anatomical_sleeve(u,tuple(s["source_tint"]),sex,"upper",sleeve_ref)
     u=keep_largest_alpha_component(u)
-    u=add_joint_caps(u,tuple(s["source_tint"]),0.34 if female else 0.38,0.29 if female else 0.32,3)
+    u=add_joint_caps(u,tuple(s["source_tint"]),0.34 if female else 0.38,0.38 if female else 0.42,4)
 
     f=row_warp(source_fore,1.02 if female else 1.05,0.91 if female else 0.94,0.66 if female else 0.70)
     f=fabric_grade(f,tuple(s["source_tint"]),1.55 if female else 1.50)
@@ -788,7 +756,7 @@ for sex,s in specs.items():
     f=recanvas_vertical(f,(64,128),1,0.55 if female else 0.62)
     f=anatomical_sleeve(f,tuple(s["source_tint"]),sex,"forearm",sleeve_ref)
     f=keep_largest_alpha_component(f)
-    f=add_joint_caps(f,tuple(s["source_tint"]),0.32 if female else 0.35,0.21 if female else 0.24,3)
+    f=add_joint_caps(f,tuple(s["source_tint"]),0.42 if female else 0.46,0.21 if female else 0.24,4)
 
     sex_dir=root/sex
     up_name=f"SP_PC22_{sex.title()}_UpperArm_Right.png"
@@ -824,8 +792,6 @@ for sex,s in specs.items():
     v3_fore,v3_fore_parent,v3_fore_child=make_v3_pivoted_segment(f)
     v3_gear_upper=tactical_sleeve(v3_upper,sex,"upper")
     v3_gear_fore=tactical_sleeve(v3_fore,sex,"forearm")
-    v3_elbow=make_v3_elbow_patch(v3_upper,v3_fore,sex)
-    v3_gear_elbow=make_v3_elbow_patch(v3_gear_upper,v3_gear_fore,sex)
     v3_dom,v3_dom_pivot=make_v3_pivoted_hand(hand)
     v3_sup,v3_sup_pivot=make_v3_pivoted_hand(support_hand)
     v3_glove_dom,v3_glove_dom_pivot=make_v3_pivoted_hand(glove_dom)
@@ -837,8 +803,6 @@ for sex,s in specs.items():
       "forearm":f"SP_PC22_{sex.title()}_Forearm_V3.png",
       "gear_upper_arm":f"SP_PC22_{sex.title()}_UpperArm_Gear_V3.png",
       "gear_forearm":f"SP_PC22_{sex.title()}_Forearm_Gear_V3.png",
-      "elbow":f"SP_PC22_{sex.title()}_Elbow_V3.png",
-      "gear_elbow":f"SP_PC22_{sex.title()}_Elbow_Gear_V3.png",
       "hand_dominant":f"SP_PC22_{sex.title()}_Hand_Dominant_V3.png",
       "hand_support":f"SP_PC22_{sex.title()}_Hand_Support_V3.png",
       "glove_dominant":f"SP_PC22_{sex.title()}_Glove_Dominant_V3.png",
@@ -848,7 +812,6 @@ for sex,s in specs.items():
     for key,img in (
       ("upper_arm",v3_upper),("forearm",v3_fore),
       ("gear_upper_arm",v3_gear_upper),("gear_forearm",v3_gear_fore),
-      ("elbow",v3_elbow),("gear_elbow",v3_gear_elbow),
       ("hand_dominant",v3_dom),("hand_support",v3_sup),
       ("glove_dominant",v3_glove_dom),("glove_support",v3_glove_sup),
       ("shoulder_cap",v3_cap),
