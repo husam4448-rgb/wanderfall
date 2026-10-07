@@ -11,6 +11,10 @@ on:
   pull_request:
     branches: [ main ]
 
+concurrency:
+  group: pc22-arm-visual-unit-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   visual-unit:
     runs-on: ubuntu-latest
@@ -18,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: pc22-arm-visual-fix-v2
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 1
       - run: python3 -m pip install --quiet pillow numpy
       - run: python3 -m py_compile patches/apply_pc22_canonical_arm_candidate.py tools/build_pc22_canonical_arm_assets.py tools/qa_pc22_arm_visual_contract.py

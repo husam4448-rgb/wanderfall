@@ -20,6 +20,10 @@ on:
       - 'tools/render_pc22_arm_qa.py'
       - 'tools/build_pc22_role_overlays.py'
 
+concurrency:
+  group: pc22-arm-audit-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
@@ -35,7 +39,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: pc22-canonical-arm-system
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 1
 
       - name: Reconstruct exact PlayerCharacters_v22 runtime
