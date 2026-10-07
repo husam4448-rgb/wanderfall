@@ -19,10 +19,14 @@ if canonical.get("standard_id")!="PlayerCharacters_v22":
 src_dir=repo/"art_source/characters"
 upper_src_path=src_dir/"hybrid_male_upper_arm.b64"
 fore_src_path=src_dir/"hybrid_male_forearm_hand.b64"
+male_torso_src_path=src_dir/"hybrid_male_torso.b64"
+female_torso_src_path=repo/"assets/authored2d/unified_character/core/female/torso_base.png"
+gear_torso_src_path=repo/"assets/authored2d/unified_character/generic/torso.png"
 glove_src_path=repo/"art_source/gear/d2d40/glove.webp"
 rifle_src_path=repo/"assets/authored2d/gear/rifle.png"
-if not upper_src_path.is_file() or not fore_src_path.is_file() or not glove_src_path.is_file() or not rifle_src_path.is_file():
-    raise SystemExit("Authored modular arm/hand/weapon sources missing")
+for required in (upper_src_path,fore_src_path,male_torso_src_path,female_torso_src_path,gear_torso_src_path,glove_src_path,rifle_src_path):
+    if not required.is_file():
+        raise SystemExit(f"Authored arm/torso/hand/weapon source missing: {required}")
 
 root=repo/"assets/authored2d/unified_character/arms"
 qa=root/"qa"
@@ -89,7 +93,7 @@ def fabric_grade(img, base_rgb, contrast=1.42):
     out.putalpha(alpha)
     return out
 
-def anatomical_sleeve(img, base_rgb, sex, segment):
+def anatomical_sleeve(img, base_rgb, sex, segment, fabric_ref=None):
     """Impose a smooth anatomical silhouette while retaining authored cloth folds.
 
     Real-device V3 screenshots exposed jagged/pointed alpha from the tiny legacy
@@ -146,15 +150,29 @@ def anatomical_sleeve(img, base_rgb, sex, segment):
                      max(0,min(255,int(base_rgb[1]*(light+grain)))),
                      max(0,min(255,int(base_rgb[2]*(light+grain)))),a)
 
-    # Preserve only broad authored luminance variation. Full-strength legacy
-    # texture produced dark angular/origami patches after rotation in Godot.
-    broad=ImageOps.grayscale(img).filter(ImageFilter.GaussianBlur(1.15))
-    low=tuple(max(0,int(c*0.74)) for c in base_rgb)
-    high=tuple(min(255,int(c*1.26+4)) for c in base_rgb)
+    # Preserve broad authored limb luminance without reintroducing jagged legacy
+    # alpha. Then borrow fold structure from the real torso art so the sleeve and
+    # body share the same painted visual language.
+    broad=ImageOps.grayscale(img).filter(ImageFilter.GaussianBlur(1.05))
+    low=tuple(max(0,int(c*0.72)) for c in base_rgb)
+    high=tuple(min(255,int(c*1.30+5)) for c in base_rgb)
     tonal=ImageOps.colorize(broad,low,high).convert("RGBA")
     tonal.putalpha(mask)
-    base=Image.blend(base,tonal,0.18)
+    base=Image.blend(base,tonal,0.20)
     base.putalpha(mask)
+
+    if fabric_ref is not None:
+        ref=trim(fabric_ref).convert("RGBA")
+        # Use luminance only: this transfers folds/weave, not torso silhouette.
+        refgray=ImageOps.grayscale(ref).filter(ImageFilter.GaussianBlur(0.55))
+        refgray=ImageEnhance.Contrast(refgray).enhance(1.38)
+        refgray=refgray.resize((w,h),Image.Resampling.LANCZOS)
+        ref_dark=tuple(max(0,int(c*0.56)) for c in base_rgb)
+        ref_light=tuple(min(255,int(c*1.50+8)) for c in base_rgb)
+        reftex=ImageOps.colorize(refgray,ref_dark,ref_light).convert("RGBA")
+        reftex.putalpha(mask)
+        base=Image.blend(base,reftex,0.34 if sex=="female" else 0.28)
+        base.putalpha(mask)
 
     # Sparse cloth creases give readable fabric structure without jagged source
     # silhouettes. They rotate with the limb and remain subtle at gameplay scale.
@@ -190,6 +208,18 @@ def anatomical_sleeve(img, base_rgb, sex, segment):
         y=int(round(h*0.90))
         d.line((int(w*0.40),y,int(w*0.60),y),fill=crease_dark,width=1)
 
+    # Dark inner edge gives the same pixel-art contour weight as torso/head.
+    inner=mask.filter(ImageFilter.MinFilter(3))
+    edge=ImageChops.subtract(mask,inner)
+    outline=Image.new("RGBA",(w,h),(0,0,0,0))
+    op=outline.load(); ep=edge.load()
+    edge_rgb=tuple(max(0,int(c*0.40)) for c in base_rgb)
+    for yy in range(h):
+        for xx in range(w):
+            ea=ep[xx,yy]
+            if ea>0:
+                op[xx,yy]=(edge_rgb[0],edge_rgb[1],edge_rgb[2],min(150,ea))
+    base.alpha_composite(outline)
     base.putalpha(mask)
     return base
 
@@ -232,6 +262,16 @@ def tactical_sleeve(img, sex, segment):
     else:
         dark=(52,51,41); light=(119,109,80)
     out=ImageOps.colorize(gray,dark,light).convert("RGBA")
+    out.putalpha(alpha)
+    # Transfer only shading/detail from the actual tactical torso/vest art.
+    gref=trim(gear_torso_ref).convert("RGBA")
+    glum=ImageOps.grayscale(gref).filter(ImageFilter.GaussianBlur(0.45))
+    glum=ImageEnhance.Contrast(glum).enhance(1.45).resize(out.size,Image.Resampling.LANCZOS)
+    gdark=tuple(max(0,int(c*0.52)) for c in light)
+    glight=tuple(min(255,int(c*1.35+6)) for c in light)
+    gtex=ImageOps.colorize(glum,gdark,glight).convert("RGBA")
+    gtex.putalpha(alpha)
+    out=Image.blend(out,gtex,0.34)
     out.putalpha(alpha)
     d=ImageDraw.Draw(out)
     w,h=out.size
@@ -477,6 +517,9 @@ def derive_support_hand(dominant, sex):
 
 upper_src=load_b64_png(upper_src_path)
 fore_src=load_b64_png(fore_src_path)
+male_torso_ref=load_b64_png(male_torso_src_path)
+female_torso_ref=Image.open(female_torso_src_path).convert("RGBA")
+gear_torso_ref=Image.open(gear_torso_src_path).convert("RGBA")
 glove_src=Image.open(glove_src_path).convert("RGBA")
 
 def build_reference_rifle():
@@ -663,7 +706,8 @@ for sex,s in specs.items():
     u=fabric_grade(u,tuple(s["source_tint"]),1.50 if female else 1.46)
     u.putalpha(u.getchannel("A").filter(ImageFilter.GaussianBlur(0.08)))
     u=recanvas_vertical(u,(64,128),1,0.66 if female else 0.73)
-    u=anatomical_sleeve(u,tuple(s["source_tint"]),sex,"upper")
+    sleeve_ref=female_torso_ref if female else male_torso_ref
+    u=anatomical_sleeve(u,tuple(s["source_tint"]),sex,"upper",sleeve_ref)
     u=keep_largest_alpha_component(u)
     u=add_joint_caps(u,tuple(s["source_tint"]),0.34 if female else 0.38,0.29 if female else 0.32,3)
 
@@ -681,7 +725,7 @@ for sex,s in specs.items():
             fp[x,y]=(int(r*0.74),int(g*0.74),int(b*0.74),a)
     f.putalpha(f.getchannel("A").filter(ImageFilter.GaussianBlur(0.07)))
     f=recanvas_vertical(f,(64,128),1,0.55 if female else 0.62)
-    f=anatomical_sleeve(f,tuple(s["source_tint"]),sex,"forearm")
+    f=anatomical_sleeve(f,tuple(s["source_tint"]),sex,"forearm",sleeve_ref)
     f=keep_largest_alpha_component(f)
     f=add_joint_caps(f,tuple(s["source_tint"]),0.32 if female else 0.35,0.21 if female else 0.24,3)
 
