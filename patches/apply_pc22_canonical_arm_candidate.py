@@ -19,6 +19,78 @@ arms=base/"arms"
 male_spec=json.loads((base/"core/male/arm_spec.json").read_text(encoding="utf-8"))
 female_spec=json.loads((base/"core/female/arm_spec.json").read_text(encoding="utf-8"))
 
+# Generate the one canonical runtime arm module from the machine-readable specs.
+# Player/NPC roles may select male/female and overlays, but cannot alter geometry.
+rig_module=root/"scripts"/"art"/"pc22_canonical_arm_system.gd"
+rig_module.parent.mkdir(parents=True,exist_ok=True)
+rig_module.write_text(f'''class_name PC22CanonicalArmSystem
+extends RefCounted
+
+const MALE_RIG_ID := "MALE_CANONICAL_ARM_SYSTEM"
+const FEMALE_RIG_ID := "FEMALE_CANONICAL_ARM_SYSTEM"
+var female_mode := false
+
+func configure(is_female: bool) -> void:
+    female_mode = is_female
+
+func rig_id() -> String:
+    return FEMALE_RIG_ID if female_mode else MALE_RIG_ID
+
+func lengths() -> Vector2:
+    return Vector2({female_spec["upper_arm_length"]},{female_spec["forearm_length"]}) if female_mode else Vector2({male_spec["upper_arm_length"]},{male_spec["forearm_length"]})
+
+func upper_width() -> float:
+    return {female_spec["upper_arm_width"]} if female_mode else {male_spec["upper_arm_width"]}
+
+func forearm_width() -> float:
+    return {female_spec["forearm_width"]} if female_mode else {male_spec["forearm_width"]}
+
+func shoulder_rear(base: Vector2, dir_sign: float) -> Vector2:
+    var p := Vector2({female_spec["shoulder_rear"][0]},{female_spec["shoulder_rear"][1]}) if female_mode else Vector2({male_spec["shoulder_rear"][0]},{male_spec["shoulder_rear"][1]})
+    return base+Vector2(p.x*dir_sign,p.y)
+
+func shoulder_front(base: Vector2, dir_sign: float) -> Vector2:
+    var p := Vector2({female_spec["shoulder_front"][0]},{female_spec["shoulder_front"][1]}) if female_mode else Vector2({male_spec["shoulder_front"][0]},{male_spec["shoulder_front"][1]})
+    return base+Vector2(p.x*dir_sign,p.y)
+
+func pose_point(v: Vector2, angle: float, dir_sign: float) -> Vector2:
+    var r := Vector2(v.x*cos(angle)-v.y*sin(angle),v.x*sin(angle)+v.y*cos(angle))
+    return Vector2(r.x*dir_sign,r.y)
+
+func weapon_targets(base: Vector2, angle: float, dir_sign: float, recoil: float) -> Dictionary:
+    var pivot := base+Vector2({male_spec["weapon_socket"][0]}*dir_sign,{male_spec["weapon_socket"][1]})+pose_point(Vector2(-1.45*recoil,0),angle,dir_sign)
+    var dominant := pivot+pose_point(Vector2({male_spec["dominant_hand_grip_socket"][0]},{male_spec["dominant_hand_grip_socket"][1]}),angle,dir_sign)
+    var support := pivot+pose_point(Vector2({male_spec["support_hand_grip_socket"][0]},{male_spec["support_hand_grip_socket"][1]}),angle,dir_sign)
+    support += pose_point(Vector2(0,(1.8 if dir_sign>0.0 else 2.1)),angle,dir_sign)
+    return {{"pivot":pivot,"dominant_wrist":dominant,"support_wrist":support}}
+
+func solve_elbow(shoulder: Vector2, wrist: Vector2, upper_len: float, fore_len: float, previous: Vector2, has_previous: bool) -> Vector2:
+    var dvec := wrist-shoulder
+    var dist := maxf(dvec.length(),0.001)
+    var clamped_dist := clampf(dist,absf(upper_len-fore_len)+0.001,upper_len+fore_len-0.001)
+    var u := dvec/dist
+    var along := (upper_len*upper_len-fore_len*fore_len+clamped_dist*clamped_dist)/(2.0*clamped_dist)
+    var height := sqrt(maxf(upper_len*upper_len-along*along,0.0))
+    var perp := Vector2(-u.y,u.x)
+    var c1 := shoulder+u*along+perp*height
+    var c2 := shoulder+u*along-perp*height
+    if not has_previous:
+        return c1 if c1.y>=c2.y else c2
+    var p1 := c1.distance_to(previous)+maxf(0.0,shoulder.y-c1.y-1.0)*3.0
+    var p2 := c2.distance_to(previous)+maxf(0.0,shoulder.y-c2.y-1.0)*3.0
+    return c1 if p1<=p2 else c2
+
+func free_arm(shoulder: Vector2, upper_len: float, fore_len: float, swing_angle: float, dir_sign: float) -> PackedVector2Array:
+    var upper_dir := Vector2(sin(swing_angle)*dir_sign,cos(swing_angle))
+    var elbow := shoulder+upper_dir*upper_len
+    var fore_angle := swing_angle+0.34*dir_sign
+    var fore_dir := Vector2(sin(fore_angle)*dir_sign,cos(fore_angle))
+    return PackedVector2Array([elbow,elbow+fore_dir*fore_len])
+''',encoding="utf-8")
+
+if 'const PC22CanonicalArmSystemScript = preload("res://scripts/art/pc22_canonical_arm_system.gd")' not in s:
+    s=s.replace('extends Node2D\n','extends Node2D\nconst PC22CanonicalArmSystemScript = preload("res://scripts/art/pc22_canonical_arm_system.gd")\n',1)
+
 asset_paths={
  "MALE_UPPER":arms/"male/SP_PC22_Male_UpperArm_Right.png",
  "MALE_FORE":arms/"male/SP_PC22_Male_Forearm_Right.png",
@@ -86,6 +158,8 @@ state_anchor='var weapon_two_handed := true\n'
 if state_anchor not in s:
     raise SystemExit("Candidate arm state anchor missing")
 state='''var weapon_visible := true
+var pc22_player_arm_rig := PC22CanonicalArmSystemScript.new()
+var pc22_npc_arm_rig := PC22CanonicalArmSystemScript.new()
 var pc22_prev_dom_elbow := Vector2.ZERO
 var pc22_prev_support_elbow := Vector2.ZERO
 var pc22_prev_arm_valid := false
@@ -271,16 +345,17 @@ arm_compute=f'''    var base := actor_pos + Vector2(sway, -bob - breath * 0.28)
     if pc22_prev_arm_valid and pc22_prev_face_right != face_right:
         pc22_prev_arm_valid = false
     pc22_prev_face_right = face_right
-    var pc22_lengths := _pc22_arm_lengths()
-    var pc22_rear_shoulder := base + Vector2(({female_spec["shoulder_rear"][0]} if female_mode else {male_spec["shoulder_rear"][0]})*dir_sign, ({female_spec["shoulder_rear"][1]} if female_mode else {male_spec["shoulder_rear"][1]}))
-    var pc22_front_shoulder := base + Vector2(({female_spec["shoulder_front"][0]} if female_mode else {male_spec["shoulder_front"][0]})*dir_sign, ({female_spec["shoulder_front"][1]} if female_mode else {male_spec["shoulder_front"][1]}))
+    pc22_player_arm_rig.configure(female_mode)
+    var pc22_lengths := pc22_player_arm_rig.lengths()
+    var pc22_rear_shoulder := pc22_player_arm_rig.shoulder_rear(base,dir_sign)
+    var pc22_front_shoulder := pc22_player_arm_rig.shoulder_front(base,dir_sign)
     var pc22_aim_vec := aim_pos-base
     var pc22_local_aim := Vector2(abs(pc22_aim_vec.x),pc22_aim_vec.y)
     var pc22_arm_angle := clampf(pc22_local_aim.angle(),-PI*0.49,PI*0.49)
-    var pc22_arm_pivot := base + Vector2(6.0*dir_sign,-2) + _pose_point(Vector2(-1.45*shot_recoil,0),pc22_arm_angle,dir_sign)
-    var pc22_dom_wrist := pc22_arm_pivot + _pose_point(Vector2(3,4),pc22_arm_angle,dir_sign)
-    var pc22_support_wrist := pc22_arm_pivot + _pose_point(Vector2(16,2),pc22_arm_angle,dir_sign)
-    pc22_support_wrist += _pose_point(Vector2(0,(1.8 if face_right else 2.1)),pc22_arm_angle,dir_sign)
+    var pc22_targets: Dictionary = pc22_player_arm_rig.weapon_targets(base,pc22_arm_angle,dir_sign,shot_recoil)
+    var pc22_arm_pivot: Vector2 = pc22_targets["pivot"]
+    var pc22_dom_wrist: Vector2 = pc22_targets["dominant_wrist"]
+    var pc22_support_wrist: Vector2 = pc22_targets["support_wrist"]
     var pc22_rear_elbow := Vector2.ZERO
     var pc22_front_elbow := Vector2.ZERO
     var pc22_front_wrist := Vector2.ZERO
