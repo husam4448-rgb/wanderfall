@@ -254,6 +254,8 @@ func _pc22_role_texture(kind: String) -> Texture2D:
             path = res_root + "arms/sleeves/%s/%s/upper_arm.png" % [pc22_role,sex_name]
         "forearm":
             path = res_root + "arms/sleeves/%s/%s/forearm.png" % [pc22_role,sex_name]
+        "shoulder_cap":
+            path = res_root + "arms/sleeves/%s/%s/shoulder_cap.png" % [pc22_role,sex_name]
         "glove_dominant":
             path = res_root + "arms/gloves/%s/%s/glove_dominant.png" % [pc22_role,sex_name]
         "glove_support":
@@ -273,6 +275,10 @@ func _pc22_upper_texture() -> Texture2D:
 func _pc22_fore_texture() -> Texture2D:
     var role_tex: Texture2D = _pc22_role_texture("forearm")
     return role_tex if role_tex != null else (tex_pc22_female_fore if female_mode else tex_pc22_male_fore)
+
+func _pc22_shoulder_cap_texture() -> Texture2D:
+    var role_tex: Texture2D = _pc22_role_texture("shoulder_cap")
+    return role_tex if role_tex != null else (tex_pc22_female_shoulder_cap if female_mode else tex_pc22_male_shoulder_cap)
 
 func _pc22_dominant_hand_texture() -> Texture2D:
     var role_tex: Texture2D = _pc22_role_texture("glove_dominant")
@@ -299,7 +305,7 @@ func _pc22_verify_role_assets() -> bool:
         for is_female in [false,true]:
             pc22_role = role
             female_mode = is_female
-            for kind in ["upper_arm","forearm","glove_dominant","glove_support","torso"]:
+            for kind in ["upper_arm","forearm","shoulder_cap","glove_dominant","glove_support","torso"]:
                 if _pc22_role_texture(kind) == null:
                     push_error("PC22_ROLE_ASSET_MISSING %s %s %s" % [role,("female" if is_female else "male"),kind])
                     pc22_role = old_role
@@ -611,7 +617,7 @@ s=s.replace(front_anchor,'''    # HYBRID V3 DEPTH STACK: torso is already drawn.
     if weapon_visible and weapon_two_handed and tex_pc22_rifle_stock != null:
         _pc22_v3_draw_weapon_piece(tex_pc22_rifle_stock,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(36.0,18.0),0.33)
 
-    var pc22_cap_tex: Texture2D = tex_pc22_female_shoulder_cap if female_mode else tex_pc22_male_shoulder_cap
+    var pc22_cap_tex: Texture2D = _pc22_shoulder_cap_texture()
     _pc22_v3_draw_cap(pc22_cap_tex,pc22_rear_shoulder,pc22_rear_elbow,dir_sign)
     _pc22_v3_draw_cap(pc22_cap_tex,pc22_front_shoulder,pc22_front_elbow,dir_sign)
 
