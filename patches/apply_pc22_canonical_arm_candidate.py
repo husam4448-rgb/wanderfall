@@ -101,7 +101,7 @@ asset_paths={
  "FEMALE_DOM_HAND":arms/"female/SP_PC22_Female_Hand_Dominant_Right.png",
  "FEMALE_SUPPORT_HAND":arms/"female/SP_PC22_Female_Hand_Support_Right.png",
  "PISTOL":repo_root/"assets/authored2d/gear/pistol.png",
- "RIFLE":repo_root/"assets/authored2d/gear/rifle.png",
+ "RIFLE":arms/"weapons/SP_PC22_Rifle_ArmCompatible.png",
 }
 for k,p in asset_paths.items():
     if not p.is_file():
