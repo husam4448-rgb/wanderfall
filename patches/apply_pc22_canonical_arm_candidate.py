@@ -280,8 +280,11 @@ func _pc22_relaxed_onehand_arm(shoulder: Vector2, upper_len: float, fore_len: fl
     # preserved; only the free-arm pose changes so it no longer hangs like two rods.
     # Elbow rests slightly forward of the torso, then the forearm returns toward
     # the waist. This avoids the previous rigid diagonal bar across the chest.
-    var upper_dir := Vector2(0.42*dir_sign,0.907).normalized()
-    var fore_dir := Vector2(-0.72*dir_sign,0.694).normalized()
+    # Mild relaxed bend: upper arm hangs just forward of the torso and the
+    # forearm returns slightly toward the hip. This reads as one resting limb
+    # rather than a sharp two-segment V.
+    var upper_dir := Vector2(0.30*dir_sign,0.954).normalized()
+    var fore_dir := Vector2(-0.16*dir_sign,0.987).normalized()
     var elbow := shoulder + upper_dir*upper_len
     var wrist := elbow + fore_dir*fore_len
     return PackedVector2Array([elbow,wrist])
