@@ -28,7 +28,7 @@ def colorize(src,base_rgb,accent_rgb=None,accent_zone=None):
     for y in range(h):
         for x in range(w):
             r,g,b,a=sp[x,y]
-            if a<3: continue
+            if a==0: continue
             lum=(r+g+b)/3.0
             d=max(-34,min(34,int((lum-112.0)*0.22)))
             rgb=base_rgb
