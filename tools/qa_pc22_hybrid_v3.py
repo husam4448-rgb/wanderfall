@@ -116,9 +116,9 @@ require("support += pose_point(Vector2(0,0.0),angle,dir_sign)" in patch,
         "runtime support grip no longer matches zero-offset verified baseline")
 
 rifle_scales = [float(x) for x in re.findall(
-    r'_pc22_v3_draw_weapon_piece\(tex_pc22_rifle_(?:front|stock)[^\n]*?,([0-9]+(?:\.[0-9]+)?)\)', patch)]
+    r'_pc22_v3_draw_weapon_piece\(tex_pc22_rifle_(?:front|stock)[^\n]*?Vector2\([^)]*\),([0-9]+(?:\.[0-9]+)?)\)', patch)]
 pistol_scales = [float(x) for x in re.findall(
-    r'_pc22_v3_draw_weapon_piece\(tex_pc22_pistol[^\n]*?,([0-9]+(?:\.[0-9]+)?)\)', patch)]
+    r'_pc22_v3_draw_weapon_piece\(tex_pc22_pistol[^\n]*?Vector2\([^)]*\),([0-9]+(?:\.[0-9]+)?)\)', patch)]
 require(bool(rifle_scales), "rifle uniform scale calls not found")
 require(bool(pistol_scales), "pistol uniform scale calls not found")
 for sc in rifle_scales:
