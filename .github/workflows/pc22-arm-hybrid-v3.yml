@@ -20,6 +20,10 @@ on:
       - '.github/workflows/pc22-arm-hybrid-v3.yml'
       - 'patches/apply_pc22_canonical_arm_candidate.py'
 
+concurrency:
+  group: pc22-arm-runtime-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
