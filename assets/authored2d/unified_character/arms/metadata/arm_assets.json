@@ -237,7 +237,7 @@
       "compatible_rig": "MALE_CANONICAL_ARM_SYSTEM,FEMALE_CANONICAL_ARM_SYSTEM",
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "5d767cae722f4df2f64fb8f0b8ae831b09bef2e34780ffda91faf5bccb55a1d1",
+      "sha256": "b19bedd6ed9a3a3889462451d60ed129bf1254406aa1c8a25ebdec604d6f43e3",
       "note": "Upper butt-stock only; render behind torso"
     },
     {
@@ -257,7 +257,7 @@
       "compatible_rig": "MALE_CANONICAL_ARM_SYSTEM,FEMALE_CANONICAL_ARM_SYSTEM",
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "3a8525f6e1e8d05b9e294303f258bb2597e59659a2a8629157326d47760ab8e0",
+      "sha256": "9c0c717626a1a454394aaba1ef48b93fd0362ec2e95d36ce6608046ea8f82af6",
       "note": "Receiver/barrel/grip only; render in front"
     }
   ]
