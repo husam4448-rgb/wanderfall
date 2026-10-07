@@ -122,9 +122,11 @@ def anatomical_sleeve(img, base_rgb, sex, segment, fabric_ref=None):
             q=(t-0.52)/0.48
             frac=profile[1]+(profile[2]-profile[1])*(q*q*(3.0-2.0*q))
         half=max(2.0,(w*frac)*0.5)
-        curve=(2.25 if not female else 1.75)*math.sin(math.pi*t)
+        # Visible cloth bows gently around the straight canonical bone. Endpoints
+        # remain centered (sin(0)=sin(pi)=0), so joint pivots/IK are untouched.
+        curve=(4.50 if not female else 3.80)*math.sin(math.pi*t)
         if segment=="forearm":
-            curve*=0.76
+            curve*=0.82
         cx=(w-1)*0.5+curve
         x0=max(0,int(round(cx-half)))
         x1=min(w-1,int(round(cx+half)))
