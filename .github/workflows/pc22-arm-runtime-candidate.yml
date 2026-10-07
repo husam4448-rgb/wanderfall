@@ -166,18 +166,31 @@ jobs:
           OUT=assets/authored2d/unified_character/arms/qa/runtime_engine
           cp pc22-arm-capture.log "$OUT/runtime_capture.log"
           git restore -- patches/apply_v0175_hotbar_sensitivity.py || true
+
+          rm -rf /tmp/pc22-runtime-evidence
+          mkdir -p /tmp/pc22-runtime-evidence
+          cp -a "$OUT"/. /tmp/pc22-runtime-evidence/
+
           git config user.name "Survival Paradise Arm QA Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add "$OUT"
-          if git diff --cached --quiet; then
-            exit 0
-          fi
-          git commit -m "Capture PC22 canonical arm candidate in Godot runtime"
-          git reset --hard HEAD
+
+          # QA lanes can advance the candidate branch concurrently. Preserve the
+          # newly rendered evidence, reset onto the latest remote head, restore
+          # the evidence, then commit. Never rebase conflicting binary screenshots.
           for attempt in 1 2 3; do
-            if git push origin HEAD:pc22-canonical-arm-system; then exit 0; fi
+            git fetch origin pc22-canonical-arm-system
+            git reset --hard origin/pc22-canonical-arm-system
+            mkdir -p "$OUT"
+            rm -rf "$OUT"/*
+            cp -a /tmp/pc22-runtime-evidence/. "$OUT"/
+            git add "$OUT"
+            if git diff --cached --quiet; then
+              exit 0
+            fi
+            git commit -m "Capture PC22 canonical arm candidate in Godot runtime"
+            if git push origin HEAD:pc22-canonical-arm-system; then
+              exit 0
+            fi
             sleep $((attempt*3))
-            git reset --hard HEAD
-            git pull --rebase origin pc22-canonical-arm-system
           done
           exit 1
