@@ -172,35 +172,57 @@ def make_v3_pivoted_hand(hand_img):
     return hand,[float(wrist_x),float(h/2.0)]
 
 
-def make_v3_shoulder_cap(upper_x):
-    """Build a compact rounded deltoid from the proximal V3 upper-arm art.
+def make_v3_shoulder_cap(upper_x, sex):
+    """Build an asymmetric torso-rooted deltoid from proximal V3 arm texture.
 
-    V2/V3's earlier cap was cut from the top of a vertical legacy sprite; after
-    rotation that produced the triangular shoulder spike visible in Godot.
-    This version samples the already-oriented +X upper arm, keeps its authored
-    shading, and applies a rounded/tapered deltoid mask.  It changes artwork
-    only: the canonical shoulder socket and IK geometry remain untouched.
+    The former ellipse-plus-rounded-rectangle mask still read as a separate
+    shoulder pad in Godot.  This mask deliberately has a broad shallow torso
+    root, a single outer-deltoid apex, and a narrow arm-side taper.  Male and
+    female proportions differ while canonical shoulder/IK geometry stays fixed.
     """
     src=trim(upper_x).convert("RGBA")
     sw,sh=src.size
-    cap_w=max(10,min(sw,max(int(round(sh*1.35)),int(round(sw*0.34)))))
-    cap=src.crop((0,0,cap_w,sh)).copy()
+    if sex=="female":
+        cap_w=max(10,min(sw,max(int(round(sh*1.42)),int(round(sw*0.36)))))
+        root_top,root_bottom=0.20,0.80
+        apex_top,apex_bottom=0.08,0.92
+        taper_top,taper_bottom=0.36,0.64
+    else:
+        cap_w=max(10,min(sw,max(int(round(sh*1.58)),int(round(sw*0.40)))))
+        root_top,root_bottom=0.14,0.86
+        apex_top,apex_bottom=0.04,0.96
+        taper_top,taper_bottom=0.32,0.68
 
-    mask=Image.new("L",cap.size,0)
-    d=ImageDraw.Draw(mask)
+    cap=src.crop((0,0,cap_w,sh)).copy()
     w,h=cap.size
-    # Full proximal deltoid mass, gently narrowing toward the upper arm.
-    d.ellipse((0,0,min(w-1,int(round(h*1.10))),h-1),fill=255)
-    neck_x=max(1,int(round(h*0.28)))
-    d.rounded_rectangle(
-        (neck_x,max(0,int(round(h*0.14))),w-1,min(h-1,int(round(h*0.86)))),
-        radius=max(1,int(round(h*0.24))),
-        fill=255,
-    )
+    mask=Image.new("L",(w,h),0)
+    d=ImageDraw.Draw(mask)
+
+    # Broad torso root -> rounded deltoid apex -> narrow upper-arm handoff.
+    pts=[
+        (0,int(round(h*root_top))),
+        (int(round(w*0.24)),int(round(h*apex_top))),
+        (int(round(w*0.50)),int(round(h*0.12 if sex=="female" else h*0.08))),
+        (w-1,int(round(h*taper_top))),
+        (w-1,int(round(h*taper_bottom))),
+        (int(round(w*0.50)),int(round(h*0.88 if sex=="female" else h*0.92))),
+        (int(round(w*0.24)),int(round(h*apex_bottom))),
+        (0,int(round(h*root_bottom))),
+    ]
+    d.polygon(pts,fill=255)
+
+    # Round only the outer deltoid apex; keep root/taper directional.
+    apex_r=max(2,int(round(h*(0.24 if sex=="female" else 0.28))))
+    apex_c=(int(round(w*0.31)),int(round(h*0.50)))
+    d.ellipse((apex_c[0]-apex_r,apex_c[1]-apex_r,
+               apex_c[0]+apex_r,apex_c[1]+apex_r),fill=255)
+
     alpha=ImageChops.multiply(cap.getchannel("A"),mask)
     cap.putalpha(alpha)
     cap=trim(cap)
     w,h=cap.size
+
+    # Keep runtime-compatible proximal pivot ratio; do not move skeleton.
     pivot=[float(max(1,int(round(w*0.18)))),float(h/2.0)]
     return cap,pivot
 
@@ -481,7 +503,7 @@ for sex,s in specs.items():
     v3_fore,v3_fore_parent,v3_fore_child=make_v3_pivoted_segment(f)
     v3_dom,v3_dom_pivot=make_v3_pivoted_hand(hand)
     v3_sup,v3_sup_pivot=make_v3_pivoted_hand(support_hand)
-    v3_cap,v3_cap_pivot=make_v3_shoulder_cap(v3_upper)
+    v3_cap,v3_cap_pivot=make_v3_shoulder_cap(v3_upper,sex)
 
     v3_names={
       "upper_arm":f"SP_PC22_{sex.title()}_UpperArm_V3.png",
