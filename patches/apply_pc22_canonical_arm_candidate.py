@@ -555,13 +555,13 @@ s=s.replace(rear_anchor,'''    if gear_back and not female_mode:
     # deferred to the foreground so the trigger arm stays visibly connected.
     if weapon_visible:
         var pc22_rear_upper_tex: Texture2D = _pc22_upper_texture()
-        var pc22_rear_upper_w: float = 6.8 if female_mode else 7.4
+        var pc22_rear_upper_w: float = 5.8 if female_mode else 6.2
         _pc22_draw_segment(pc22_rear_upper_tex,pc22_rear_shoulder,pc22_rear_elbow,pc22_rear_upper_w,dir_sign<0.0)
         # VISUAL_FIX_V2_FRONT_UPPER_BEHIND_TORSO
         # The proximal support upper arm belongs behind the torso/clothing;
         # only its distal forearm returns to the foreground after torso draw.
         var pc22_front_upper_tex: Texture2D = _pc22_upper_texture()
-        var pc22_front_upper_w: float = 6.8 if female_mode else 7.4
+        var pc22_front_upper_w: float = 5.8 if female_mode else 6.2
         _pc22_draw_segment(pc22_front_upper_tex,pc22_front_shoulder,pc22_front_elbow,pc22_front_upper_w,dir_sign<0.0)
     else:
         _pc22_draw_chain(pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist,dir_sign)
@@ -586,22 +586,16 @@ s=s.replace(front_anchor,'''    # Armed dominant forearm is foregrounded after t
             var pc22_stock_center: Vector2 = pc22_arm_pivot + _pose_point(Vector2(14.5,-1.5),pc22_arm_angle,dir_sign)
             _draw_equipment_texture(tex_pc22_rifle_stock,pc22_stock_center,Vector2(38.0,10.0),dir_sign<0.0,pc22_arm_angle)
         var pc22_rear_fore_tex: Texture2D = _pc22_fore_texture()
-        var pc22_rear_fore_w: float = 5.7 if female_mode else 6.2
+        var pc22_rear_fore_w: float = 4.8 if female_mode else 5.1
         _pc22_draw_segment(pc22_rear_fore_tex,pc22_rear_elbow,pc22_dom_wrist,pc22_rear_fore_w,dir_sign<0.0)
-        # VISUAL_FIX_V2_SHOULDER_CAP_FOREGROUND
-        # Repaint only the proximal ~42% of each textured upper arm after the
-        # torso. This reveals a continuous sleeve from the visible deltoid
-        # without placing a square cap or full arm across the chest.
-        var pc22_cap_tex: Texture2D = _pc22_upper_texture()
-        var pc22_cap_w: float = 5.8 if female_mode else 6.2
-        var pc22_rear_cap_end: Vector2 = pc22_rear_shoulder.lerp(pc22_rear_elbow,0.42)
-        var pc22_front_cap_end: Vector2 = pc22_front_shoulder.lerp(pc22_front_elbow,0.42)
-        _pc22_draw_segment(pc22_cap_tex,pc22_rear_shoulder,pc22_rear_cap_end,pc22_cap_w,dir_sign<0.0)
-        _pc22_draw_segment(pc22_cap_tex,pc22_front_shoulder,pc22_front_cap_end,pc22_cap_w,dir_sign<0.0)
+        # VISUAL_FIX_V2_NO_FOREGROUND_SHOULDER_CAP
+        # Upper arms stay behind the torso and emerge naturally from the
+        # outboard deltoid sockets. No artificial foreground cap is painted
+        # across the chest; torso occlusion itself forms the shoulder seam.
 
         # VISUAL_FIX_V2_FRONT_FOREARM_FOREGROUND
         var pc22_front_fore_tex: Texture2D = _pc22_fore_texture()
-        var pc22_front_fore_w: float = 5.7 if female_mode else 6.2
+        var pc22_front_fore_w: float = 4.8 if female_mode else 5.1
         _pc22_draw_segment(pc22_front_fore_tex,pc22_front_elbow,pc22_front_wrist,pc22_front_fore_w,dir_sign<0.0)
     else:
         _pc22_draw_chain(pc22_front_shoulder,pc22_front_elbow,pc22_front_wrist,dir_sign)
