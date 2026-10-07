@@ -120,7 +120,6 @@ for token in (
     "func _pc22_v3_draw_pivoted",
     "func _pc22_v3_draw_segment",
     "func _pc22_v3_draw_distal_segment",
-    "func _pc22_v3_draw_elbow_bridge",
     "func _pc22_v3_draw_hand",
     "func _pc22_v3_draw_grip_hand",
     "func _pc22_v3_draw_cap",
@@ -173,9 +172,11 @@ print("PC22_HYBRID_V3_QA_OK")
 require("func _pc22_relaxed_onehand_arm" in patch, "natural one-handed free-arm helper missing")
 require("upper_dir*upper_len" in patch and "fore_dir*fore_len" in patch,
         "relaxed one-handed free arm no longer preserves canonical lengths")
-require("_pc22_v3_draw_elbow_bridge(pc22_rear_fore_tex" in patch and
-        "_pc22_v3_draw_elbow_bridge(pc22_front_fore_tex" in patch,
-        "runtime elbow seam bridges missing")
+require("Do not add a separate elbow overlay" in patch,
+        "explicit no-elbow-pad runtime contract missing")
+require("_pc22_v3_draw_elbow_bridge(pc22_rear_fore_tex" not in patch and
+        "_pc22_v3_draw_elbow_bridge(pc22_front_fore_tex" not in patch,
+        "visible elbow overlay pads reintroduced")
 
 # Equipped gloves must use dedicated authored tactical grip sprites.
 for sex in ("male","female"):
