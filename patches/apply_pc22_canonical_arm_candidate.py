@@ -173,7 +173,7 @@ new_support=support_anchor+'''    var support_tex := tex_pc22_female_support_han
     if gear_gloves and tex_gear_glove != null:
         support_tex = tex_gear_glove
     if support_tex != null:
-        var support_size := Vector2(6.4,5.2) if female_mode else Vector2(6.9,5.6)
+        var support_size := Vector2(7.1,5.9) if female_mode else Vector2(7.7,6.4)
         _draw_equipment_texture(support_tex,center,support_size*scale,dir_sign<0.0,angle)
         return
     if female_mode:
@@ -315,8 +315,8 @@ weapon_block='''    # Weapon is the relationship anchor between the two hands.
 
         var active_muzzle := muzzle
         if weapon_two_handed:
-            var rifle_center := pivot + _pose_point(Vector2(12.0,-0.5),angle,dir_sign)
-            _draw_equipment_texture(tex_pc22_rifle,rifle_center,Vector2(36.0,8.2),dir_sign<0.0,angle)
+            var rifle_center := pivot + _pose_point(Vector2(14.0,-0.45),angle,dir_sign)
+            _draw_equipment_texture(tex_pc22_rifle,rifle_center,Vector2(34.0,7.0),dir_sign<0.0,angle)
             active_muzzle = pivot + _pose_point(Vector2(31,0),angle,dir_sign)
         else:
             var pistol_center := pivot + _pose_point(Vector2(5.0,-0.4),angle,dir_sign)
