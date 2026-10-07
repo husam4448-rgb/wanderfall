@@ -68,6 +68,7 @@ for role in roles:
         sex_arm=arms/"hybrid_v3"/sex
         upper=Image.open(sex_arm/f"SP_PC22_{sex.title()}_UpperArm_V3.png").convert("RGBA")
         fore=Image.open(sex_arm/f"SP_PC22_{sex.title()}_Forearm_V3.png").convert("RGBA")
+        shoulder_cap=Image.open(sex_arm/f"SP_PC22_{sex.title()}_ShoulderCap_V3.png").convert("RGBA")
         hand_dom=Image.open(sex_arm/f"SP_PC22_{sex.title()}_Hand_Dominant_V3.png").convert("RGBA")
         hand_sup=Image.open(sex_arm/f"SP_PC22_{sex.title()}_Hand_Support_V3.png").convert("RGBA")
         torso=Image.open(base/f"core/{sex}/torso_base.png").convert("RGBA")
@@ -78,6 +79,7 @@ for role in roles:
 
         su=sleeve_asset(upper,role,"upper")
         sf=sleeve_asset(fore,role,"fore")
+        sc=sleeve_asset(shoulder_cap,role,"upper")
         sg_dom=glove_asset(hand_dom,role)
         sg_sup=glove_asset(hand_sup,role)
         st=torso_asset(torso,role)
@@ -85,22 +87,24 @@ for role in roles:
         files={
           "upper_arm":outdir/"upper_arm.png",
           "forearm":outdir/"forearm.png",
+          "shoulder_cap":outdir/"shoulder_cap.png",
           "glove_dominant":gdir/"glove_dominant.png",
           "glove_support":gdir/"glove_support.png",
           "torso":tdir/"torso.png",
         }
-        for k,img in (("upper_arm",su),("forearm",sf),("glove_dominant",sg_dom),("glove_support",sg_sup),("torso",st)):
+        for k,img in (("upper_arm",su),("forearm",sf),("shoulder_cap",sc),("glove_dominant",sg_dom),("glove_support",sg_sup),("torso",st)):
             img.save(files[k])
 
         spec=json.loads((base/f"core/{sex}/arm_spec.json").read_text(encoding="utf-8"))
         for k,img,parent,child in (
           ("upper_arm",su,"shoulder","elbow"),
           ("forearm",sf,"elbow","wrist"),
+          ("shoulder_cap",sc,"shoulder","upper_arm"),
           ("glove_dominant",sg_dom,"wrist","dominant_hand"),
           ("glove_support",sg_sup,"wrist","support_hand"),
           ("torso",st,"body","shoulder_interface"),
         ):
-            src_ref={"upper_arm":upper,"forearm":fore,"glove_dominant":hand_dom,"glove_support":hand_sup,"torso":torso}[k]
+            src_ref={"upper_arm":upper,"forearm":fore,"shoulder_cap":shoulder_cap,"glove_dominant":hand_dom,"glove_support":hand_sup,"torso":torso}[k]
             if img.size!=src_ref.size:
                 raise SystemExit(f"{role}/{sex}/{k}: canvas mismatch")
             if img.getchannel("A").tobytes()!=src_ref.getchannel("A").tobytes():
@@ -127,6 +131,7 @@ if len(sleeves)!=24:
   "standard_id":"PlayerCharacters_v22",
   "skeleton_policy":"roles cannot override canonical arm geometry",
   "sleeve_asset_count":len(sleeves),
+  "shoulder_cap_count":len([r for r in records if r["asset"]=="shoulder_cap"]),
   "role_glove_count":len([r for r in records if r["asset"] in ("glove_dominant","glove_support")]),
   "role_torso_count":len([r for r in records if r["asset"]=="torso"]),
   "assets":records
