@@ -431,7 +431,7 @@ func _pc22_v3_draw_elbow_gusset(tex: Texture2D, shoulder: Vector2, elbow: Vector
     bisector = bisector.normalized()
     var tw: float = float(tex.get_width())
     var th: float = float(tex.get_height())
-    var desired_w: float = 3.55 if female_mode else 3.90
+    var desired_w: float = 2.85 if female_mode else 3.15
     var scale_u: float = desired_w/maxf(1.0,tw)
     # Pass the canonical world angle; _pc22_v3_draw_pivoted owns mirroring.
     var rot: float = bisector.angle()
