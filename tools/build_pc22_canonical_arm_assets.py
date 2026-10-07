@@ -514,6 +514,31 @@ def derive_support_hand(dominant, sex):
     # Use the same high-detail authored glove source, not the already-cut dominant.
     return _detailed_skin_hand(glove_src,sex,True)
 
+def derive_tactical_glove(glove_img, sex, support=False):
+    """Compact the authored tactical glove into the same weapon-wrap silhouette."""
+    src=trim(glove_img).convert("RGBA")
+    w,h=src.size
+    src=src.crop((max(0,int(w*0.10)),0,w,h))
+    # Keep genuine glove texture/material; only compact the open source fingers.
+    xscale=0.64 if not support else 0.70
+    src=src.resize((max(2,int(round(src.width*xscale))),src.height),Image.Resampling.LANCZOS)
+    src=trim(src)
+    canvas=Image.new("RGBA",(96,96),(0,0,0,0))
+    maxw,maxh=((72,60) if sex=="male" else (68,56))
+    sc=min(maxw/max(1,src.width),maxh/max(1,src.height))
+    rs=src.resize((max(2,int(round(src.width*sc))),max(2,int(round(src.height*sc)))),Image.Resampling.LANCZOS)
+    ox=10; oy=(96-rs.height)//2
+    canvas.alpha_composite(rs,(ox,oy))
+    a=canvas.getchannel("A"); ad=ImageDraw.Draw(a)
+    if support:
+        cy=oy+int(round(rs.height*0.54))
+        ad.rounded_rectangle((ox+int(rs.width*0.38),cy-3,ox+int(rs.width*0.92),cy+3),radius=2,fill=0)
+    else:
+        cx=ox+int(round(rs.width*0.58))
+        ad.rounded_rectangle((cx-3,oy+int(rs.height*0.37),cx+3,oy+int(rs.height*0.90)),radius=2,fill=0)
+    canvas.putalpha(a)
+    return canvas
+
 
 upper_src=load_b64_png(upper_src_path)
 fore_src=load_b64_png(fore_src_path)
@@ -752,6 +777,8 @@ for sex,s in specs.items():
     # Prefer the already-generated PC22 unified hand base so arm and existing equipment remain compatible.
     hand=derive_bare_hand(glove_src,sex)
     support_hand=derive_support_hand(hand,sex)
+    glove_dom=derive_tactical_glove(glove_src,sex,False)
+    glove_sup=derive_tactical_glove(glove_src,sex,True)
     hand.save(sex_dir/f"SP_PC22_{sex.title()}_Hand_Dominant_Right.png")
     support_hand.save(sex_dir/f"SP_PC22_{sex.title()}_Hand_Support_Right.png")
 
@@ -763,6 +790,8 @@ for sex,s in specs.items():
     v3_gear_fore=tactical_sleeve(v3_fore,sex,"forearm")
     v3_dom,v3_dom_pivot=make_v3_pivoted_hand(hand)
     v3_sup,v3_sup_pivot=make_v3_pivoted_hand(support_hand)
+    v3_glove_dom,v3_glove_dom_pivot=make_v3_pivoted_hand(glove_dom)
+    v3_glove_sup,v3_glove_sup_pivot=make_v3_pivoted_hand(glove_sup)
     v3_cap,v3_cap_pivot=make_v3_shoulder_cap(v3_upper,sex)
 
     v3_names={
@@ -772,12 +801,16 @@ for sex,s in specs.items():
       "gear_forearm":f"SP_PC22_{sex.title()}_Forearm_Gear_V3.png",
       "hand_dominant":f"SP_PC22_{sex.title()}_Hand_Dominant_V3.png",
       "hand_support":f"SP_PC22_{sex.title()}_Hand_Support_V3.png",
+      "glove_dominant":f"SP_PC22_{sex.title()}_Glove_Dominant_V3.png",
+      "glove_support":f"SP_PC22_{sex.title()}_Glove_Support_V3.png",
       "shoulder_cap":f"SP_PC22_{sex.title()}_ShoulderCap_V3.png",
     }
     for key,img in (
       ("upper_arm",v3_upper),("forearm",v3_fore),
       ("gear_upper_arm",v3_gear_upper),("gear_forearm",v3_gear_fore),
-      ("hand_dominant",v3_dom),("hand_support",v3_sup),("shoulder_cap",v3_cap),
+      ("hand_dominant",v3_dom),("hand_support",v3_sup),
+      ("glove_dominant",v3_glove_dom),("glove_support",v3_glove_sup),
+      ("shoulder_cap",v3_cap),
     ):
         img.save(v3_sex/v3_names[key])
 
