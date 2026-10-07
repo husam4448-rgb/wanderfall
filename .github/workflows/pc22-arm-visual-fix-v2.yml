@@ -316,7 +316,7 @@ jobs:
             if git diff --cached --quiet; then
               exit 0
             fi
-            git commit -m "Capture PC22 hybrid arm V3 in Godot runtime"
+            git commit -m "Capture PC22 hybrid arm V3 in Godot runtime [skip ci]"
             if git push origin HEAD:pc22-arm-hybrid-render-v3; then
               exit 0
             fi
