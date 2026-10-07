@@ -1,4 +1,4 @@
-name: Wanderfall v0.17.9 Quick-Use Android Build
+name: Survival Paradise PC22 Canonical Arms Android Build
 
 on:
   push:
@@ -21,12 +21,12 @@ env:
   GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
   GODOT_TEMPLATES_TPZ: /tmp/Godot_v4.7.2-stable_export_templates.tpz
   GODOT_TEMPLATES_SHA256: f298490b8d44d934be425a5a65a51bf15f422428b229a06a6e11d9ffea248011
-  APK_PATH: PlayerCharacters_v22.apk
+  APK_PATH: PlayerCharacters_v22_Arms.apk
   MAX_APK_BYTES: '419430400'
 
 jobs:
   build:
-    name: Validate and export Wanderfall v0.17.9 Quick-Use APK
+    name: Validate and export PlayerCharacters_v22 canonical arms APK
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -66,6 +66,13 @@ jobs:
           python3 patches/apply_v0178_dedicated_hotbar_layer.py "$PROJECT_DIR"
           python3 -m pip install --quiet pillow numpy
           python3 patches/apply_v0179_quick_item_buttons.py "$PROJECT_DIR"
+          python3 -m py_compile patches/apply_pc22_canonical_arm_candidate.py patches/finalize_pc22_canonical_arms_production.py patches/apply_playercharacters_v22_canonical_arms.py
+          python3 patches/apply_playercharacters_v22_canonical_arms.py "$PROJECT_DIR"
+          grep -q 'PLAYER CHARACTERS V22 | CANONICAL ARTICULATED ARMS:' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"
+          if grep -q 'ARM_CAPTURE_DIR\|PC22_RUNTIME_SWEEP_OK\|PC22_ARM_CAPTURE_COMPLETE\|draw_line(actor_pos, aim_pos' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"; then
+            echo "Production PC22 arm runtime retained QA/debug code"
+            exit 1
+          fi
           # Fetch Quaternius D3D.1 character assets (same CC0 model contained in the uploaded pack).
           echo "Fetch Quaternius D3D.1 character assets"
           MODEL_DIR="$PROJECT_DIR/assets/models/superhero_male"
@@ -410,8 +417,8 @@ jobs:
           "$APKSIGNER" verify --verbose --print-certs "$APK" | tee apk-signature.txt
           "$AAPT" dump badging "$APK" | tee apk-badging.txt
           grep -q "package: name='org.wanderfall.game'" apk-badging.txt
-          grep -q "versionCode='188'" apk-badging.txt
-          grep -q "versionName='0.21.0-PC22'" apk-badging.txt
+          grep -q "versionCode='190'" apk-badging.txt
+          grep -q "versionName='0.21.0-PC22-ARMS'" apk-badging.txt
           grep -q "application-label:'Wanderfall'" apk-badging.txt
           APK_BYTES="$(stat -c%s "$APK")"
           test "$APK_BYTES" -lt "$MAX_APK_BYTES"
@@ -421,15 +428,15 @@ jobs:
             exit 1
           fi
           echo "APK_BYTES=$APK_BYTES" | tee apk-size.txt
-          sha256sum "$APK" | tee PlayerCharacters_v22.apk.sha256
+          sha256sum "$APK" | tee PlayerCharacters_v22_Arms.apk.sha256
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PlayerCharacters_v22-debug
+          name: PlayerCharacters_v22-Arms-debug
           path: |
-            PlayerCharacters_v22.apk
-            PlayerCharacters_v22.apk.sha256
+            PlayerCharacters_v22_Arms.apk
+            PlayerCharacters_v22_Arms.apk.sha256
             game/scripts/art/d2d29_minimal_token_runtime.gd
             game/assets/playercharacters/female_torso_right_pc03.webp
             game/assets/playercharacters/female_torso_right_pc10.webp
