@@ -4,8 +4,8 @@
   "male": {
     "shoulder_rear_min_x": 9.6,
     "shoulder_front_min_x": 9.2,
-    "upper_arm_width_min": 7.2,
-    "forearm_width_min": 6,
+    "upper_arm_width_min": 6,
+    "forearm_width_min": 4.9,
     "dominant_hand_min": [
       5.3,
       4.9
@@ -30,8 +30,8 @@
   "female": {
     "shoulder_rear_min_x": 9.2,
     "shoulder_front_min_x": 8.9,
-    "upper_arm_width_min": 6.6,
-    "forearm_width_min": 5.5,
+    "upper_arm_width_min": 5.6,
+    "forearm_width_min": 4.6,
     "dominant_hand_min": [
       4.9,
       4.6
@@ -72,7 +72,8 @@
     "Hand bounds were recalibrated after the first v2 runtime pass: generated grip art now occupies most of its canvas, so previous 8–9 unit draw boxes produced oversized open hands.",
     "Visual-fix-v2 shoulder bridge: full armed upper arms remain behind torso; only a short textured proximal cap is redrawn to make the deltoid attachment visible.",
     "V2 grip calibration: rifle stock is visible at the shoulder, weapon art sockets and IK wrist targets share the same geometry, and visible hand occupancy is enlarged to match the approved grip reference.",
-    "Arm mass recalibrated after magnified runtime review: preserve detailed texture and taper while avoiding the oversized forearm/shoulder blobs seen in the prior V2 pass."
+    "Arm mass recalibrated after magnified runtime review: preserve detailed texture and taper while avoiding the oversized forearm/shoulder blobs seen in the prior V2 pass.",
+    "Final shoulder rule: no artificial foreground cap. Canonical upper arms remain behind torso and must emerge naturally from outboard deltoid sockets."
   ],
   "runtime_draw": {
     "rifle_width_min": 36,
@@ -84,7 +85,8 @@
     "armed_front_upper": "behind_torso",
     "armed_front_forearm": "foreground",
     "prohibit_full_front_chain_after_torso": true,
-    "shoulder_cap_foreground": true,
-    "rifle_stock": "foreground_to_torso_behind_forearms_and_hands"
+    "shoulder_cap_foreground": false,
+    "rifle_stock": "foreground_to_torso_behind_forearms_and_hands",
+    "natural_torso_shoulder_occlusion": true
   }
 }
