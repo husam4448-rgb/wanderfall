@@ -607,10 +607,14 @@ s=s.replace(rear_anchor,'''    if gear_back and not female_mode:
     _pc22_v3_draw_segment(pc22_rear_upper_tex,pc22_rear_shoulder,pc22_rear_elbow,dir_sign<0.0)
     _pc22_v3_draw_segment(pc22_front_upper_tex,pc22_front_shoulder,pc22_front_elbow,dir_sign<0.0)
 
-    # The rear deltoid belongs behind the torso.  Drawing both shoulder caps in
-    # front created a doubled padded blob because the two sockets are close in side view.
+    # Both deltoid caps are now composed behind the torso.  Fresh Godot evidence
+    # showed the remaining foreground front cap still read as a pasted-on pad.
+    # With the sockets already outboard, torso occlusion leaves only the distal
+    # deltoid/taper visible and integrates the shoulder root into the clothing.
     var pc22_rear_cap_tex: Texture2D = _pc22_shoulder_cap_texture()
+    var pc22_front_cap_tex: Texture2D = _pc22_shoulder_cap_texture()
     _pc22_v3_draw_cap(pc22_rear_cap_tex,pc22_rear_shoulder,pc22_rear_elbow,dir_sign)
+    _pc22_v3_draw_cap(pc22_front_cap_tex,pc22_front_shoulder,pc22_front_elbow,dir_sign)
 
     # Independent left/right leg gait. Each leg has its own hip, knee, shin and foot.
 ''',1)
@@ -626,11 +630,8 @@ s=s.replace(front_anchor,'''    # HYBRID V3 DEPTH STACK: torso is already drawn.
     if weapon_visible and weapon_two_handed and tex_pc22_rifle_stock != null:
         _pc22_v3_draw_weapon_piece(tex_pc22_rifle_stock,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(36.0,18.0),0.33)
 
-    # Only the front/visible deltoid returns above the torso.  The rear cap was
-    # already rendered behind the torso and is naturally masked by the body.
-    var pc22_front_cap_tex: Texture2D = _pc22_shoulder_cap_texture()
-    _pc22_v3_draw_cap(pc22_front_cap_tex,pc22_front_shoulder,pc22_front_elbow,dir_sign)
-
+    # Shoulder roots are intentionally NOT repainted over the torso here.
+    # Foreground resumes at the forearms so the torso masks the proximal caps.
     var pc22_rear_fore_tex: Texture2D = _pc22_fore_texture()
     var pc22_front_fore_tex: Texture2D = _pc22_fore_texture()
     _pc22_v3_draw_segment(pc22_rear_fore_tex,pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)
