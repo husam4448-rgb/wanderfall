@@ -73,20 +73,24 @@
     "Visual-fix-v2 shoulder bridge: full armed upper arms remain behind torso; only a short textured proximal cap is redrawn to make the deltoid attachment visible.",
     "V2 grip calibration: rifle stock is visible at the shoulder, weapon art sockets and IK wrist targets share the same geometry, and visible hand occupancy is enlarged to match the approved grip reference.",
     "Arm mass recalibrated after magnified runtime review: preserve detailed texture and taper while avoiding the oversized forearm/shoulder blobs seen in the prior V2 pass.",
-    "Final shoulder rule: no artificial foreground cap. Canonical upper arms remain behind torso and must emerge naturally from outboard deltoid sockets."
+    "Final shoulder rule: no artificial foreground cap. Canonical upper arms remain behind torso and must emerge naturally from outboard deltoid sockets.",
+    "Hybrid V3 replaces V2's center-stretched segment rectangles with tight +X sprites rotated about explicit parent pivots and uniformly scaled only from canonical bone length.",
+    "Hybrid V3 restores a compact textured shoulder cap as an intentional deltoid bridge; this is not a full upper-arm redraw and must remain anchored to the canonical shoulder socket."
   ],
   "runtime_draw": {
-    "rifle_width_min": 36,
-    "rifle_height_max": 11,
-    "pistol_width_min": 15,
-    "pistol_height_max": 8
+    "rifle_scale_min": 0.3,
+    "rifle_scale_max": 0.36,
+    "pistol_scale_min": 0.34,
+    "pistol_scale_max": 0.42,
+    "require_uniform_weapon_scale": true
   },
   "layering": {
     "armed_front_upper": "behind_torso",
     "armed_front_forearm": "foreground",
     "prohibit_full_front_chain_after_torso": true,
-    "shoulder_cap_foreground": false,
+    "shoulder_cap_foreground": true,
     "rifle_stock": "foreground_to_torso_behind_forearms_and_hands",
     "natural_torso_shoulder_occlusion": true
-  }
+  },
+  "renderer": "hybrid_pivoted_sprite_v3"
 }
