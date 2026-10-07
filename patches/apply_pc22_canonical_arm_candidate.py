@@ -414,8 +414,8 @@ func _pc22_v3_draw_elbow_bridge(tex: Texture2D, shoulder: Vector2, elbow: Vector
     bisector = bisector.normalized()
     var tw: float = float(tex.get_width())
     var th: float = float(tex.get_height())
-    var src_w: float = clampf(tw*0.28,4.0,tw)
-    var desired_len: float = 3.05 if female_mode else 3.35
+    var src_w: float = clampf(tw*0.34,5.0,tw)
+    var desired_len: float = 3.65 if female_mode else 3.95
     var scale_u: float = desired_len/maxf(1.0,src_w)
     var rot: float = bisector.angle() if not flip_x else bisector.angle()-PI
     var sx: float = scale_u if not flip_x else -scale_u
