@@ -278,8 +278,10 @@ func _pc22_free_arm(shoulder: Vector2, upper_len: float, fore_len: float, swing_
 func _pc22_relaxed_onehand_arm(shoulder: Vector2, upper_len: float, fore_len: float, dir_sign: float) -> PackedVector2Array:
     # Natural off-hand rest for one-handed weapons. Exact canonical lengths are
     # preserved; only the free-arm pose changes so it no longer hangs like two rods.
-    var upper_dir := Vector2(-0.44*dir_sign,0.898).normalized()
-    var fore_dir := Vector2(-0.86*dir_sign,0.510).normalized()
+    # Elbow rests slightly forward of the torso, then the forearm returns toward
+    # the waist. This avoids the previous rigid diagonal bar across the chest.
+    var upper_dir := Vector2(0.42*dir_sign,0.907).normalized()
+    var fore_dir := Vector2(-0.72*dir_sign,0.694).normalized()
     var elbow := shoulder + upper_dir*upper_len
     var wrist := elbow + fore_dir*fore_len
     return PackedVector2Array([elbow,wrist])
@@ -431,7 +433,7 @@ func _pc22_v3_draw_elbow_gusset(tex: Texture2D, shoulder: Vector2, elbow: Vector
     bisector = bisector.normalized()
     var tw: float = float(tex.get_width())
     var th: float = float(tex.get_height())
-    var desired_w: float = 2.85 if female_mode else 3.15
+    var desired_w: float = 3.35 if female_mode else 3.65
     var scale_u: float = desired_w/maxf(1.0,tw)
     # Pass the canonical world angle; _pc22_v3_draw_pivoted owns mirroring.
     var rot: float = bisector.angle()

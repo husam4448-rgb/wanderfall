@@ -125,11 +125,24 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/build_pc22_role_overlays.py "$GITHUB_WORKSPACE"
-          test -s assets/authored2d/unified_character/arms/metadata/role_overlays.json
-          test -s assets/authored2d/unified_character/arms/qa/role_overlays_contact_sheet.jpg
-          test "$(find assets/authored2d/unified_character/arms/sleeves -type f -name '*.png' | wc -l)" -eq 24
-          test "$(find assets/authored2d/unified_character/arms/gloves -type f -name '*.png' | wc -l)" -eq 24
-          test "$(find assets/authored2d/unified_character/roles -type f -name 'torso.png' | wc -l)" -eq 12
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          root=Path("assets/authored2d/unified_character")
+          meta=root/"arms/metadata/role_overlays.json"
+          sheet=root/"arms/qa/role_overlays_contact_sheet.jpg"
+          assert meta.is_file() and meta.stat().st_size>0
+          assert sheet.is_file() and sheet.stat().st_size>0
+          data=json.loads(meta.read_text(encoding="utf-8"))
+          assert data.get("sleeve_asset_count")==24, data
+          assert data.get("glove_asset_count")==24, data
+          assert data.get("torso_asset_count")==12, data
+          assert len(list((root/"arms/sleeves").glob("*/*/*.png")))==24
+          assert len(list((root/"arms/gloves").glob("*/*/glove_dominant.png")))==12
+          assert len(list((root/"arms/gloves").glob("*/*/glove_support.png")))==12
+          assert len(list((root/"roles").glob("*/*/torso.png")))==12
+          print("PC22_ROLE_OVERLAY_WORKSPACE_OK:24_SLEEVES:24_GLOVES:12_TORSOS")
+          PY
 
       - name: Commit audit evidence and passing candidate assets
         shell: bash
