@@ -344,7 +344,7 @@ func _pc22_v3_draw_hand(tex: Texture2D, wrist: Vector2, weapon_angle: float, dir
     var tw: float = float(tex.get_width())
     var scale_u: float = world_height/maxf(1.0,th)
     var pivot_px := Vector2(clampf(tw*0.06,1.0,4.0),th*0.5)
-    var world_rot: float = weapon_angle*dir_sign
+    var world_rot: float = weapon_angle if dir_sign>0.0 else PI-weapon_angle
     _pc22_v3_draw_pivoted(tex,wrist,world_rot,scale_u,pivot_px,dir_sign<0.0)
 
 func _pc22_v3_draw_cap(tex: Texture2D, shoulder: Vector2, elbow: Vector2, dir_sign: float) -> void:
@@ -361,7 +361,8 @@ func _pc22_v3_draw_cap(tex: Texture2D, shoulder: Vector2, elbow: Vector2, dir_si
 func _pc22_v3_draw_weapon_piece(tex: Texture2D, grip_world: Vector2, aim_angle: float, dir_sign: float, pivot_px: Vector2, scale_u: float) -> void:
     if tex == null:
         return
-    _pc22_v3_draw_pivoted(tex,grip_world,aim_angle*dir_sign,scale_u,pivot_px,dir_sign<0.0)
+    var world_rot: float = aim_angle if dir_sign>0.0 else PI-aim_angle
+    _pc22_v3_draw_pivoted(tex,grip_world,world_rot,scale_u,pivot_px,dir_sign<0.0)
 
 func _pc22_draw_segment(tex: Texture2D, a: Vector2, b: Vector2, width: float, flip_x: bool) -> void:
     _pc22_v3_draw_segment(tex,a,b,flip_x)
