@@ -7,22 +7,22 @@
     "upper_arm_width_min": 8.8,
     "forearm_width_min": 7.6,
     "dominant_hand_min": [
-      5.6,
-      5
+      4.3,
+      4
     ],
     "support_hand_min": [
-      5.2,
-      4.6
+      4,
+      3.7
     ],
     "shoulder_rear_max_y": -9.2,
     "shoulder_front_max_y": -8.7,
     "dominant_hand_max": [
-      6.8,
-      6.2
+      5.3,
+      5
     ],
     "support_hand_max": [
-      6.4,
-      5.8
+      5,
+      4.7
     ],
     "weapon_socket_max_y": -5.5,
     "support_grip_x_min": 16.5
@@ -33,22 +33,22 @@
     "upper_arm_width_min": 7.8,
     "forearm_width_min": 6.8,
     "dominant_hand_min": [
-      5.2,
-      4.8
+      4,
+      3.8
     ],
     "support_hand_min": [
-      4.8,
-      4.4
+      3.8,
+      3.5
     ],
     "shoulder_rear_max_y": -9,
     "shoulder_front_max_y": -8.6,
     "dominant_hand_max": [
-      6.4,
-      5.9
+      5,
+      4.7
     ],
     "support_hand_max": [
-      6,
-      5.5
+      4.7,
+      4.4
     ],
     "weapon_socket_max_y": -5.5,
     "support_grip_x_min": 16.5
@@ -69,7 +69,8 @@
     "Weapons must retain distinct stock/receiver/handguard/barrel or slide/grip mass.",
     "This numeric contract is a regression floor; final acceptance still requires human visual comparison against the approved reference sheets.",
     "Visual-fix-v2 second gate: shoulder sockets must sit higher/outboard at the deltoid; runtime weapon draw height must remain reference-like rather than blocky.",
-    "Hand bounds were recalibrated after the first v2 runtime pass: generated grip art now occupies most of its canvas, so previous 8–9 unit draw boxes produced oversized open hands."
+    "Hand bounds were recalibrated after the first v2 runtime pass: generated grip art now occupies most of its canvas, so previous 8–9 unit draw boxes produced oversized open hands.",
+    "Visual-fix-v2 shoulder bridge: full armed upper arms remain behind torso; only a short textured proximal cap is redrawn to make the deltoid attachment visible."
   ],
   "runtime_draw": {
     "rifle_width_min": 38,
@@ -80,6 +81,7 @@
   "layering": {
     "armed_front_upper": "behind_torso",
     "armed_front_forearm": "foreground",
-    "prohibit_full_front_chain_after_torso": true
+    "prohibit_full_front_chain_after_torso": true,
+    "shoulder_cap_foreground": true
   }
 }
