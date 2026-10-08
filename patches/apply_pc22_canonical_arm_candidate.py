@@ -836,7 +836,7 @@ old_support=support_anchor+'''    if female_mode:
 '''
 new_support=support_anchor+'''    var support_tex := _pc22_support_hand_texture()
     if support_tex != null:
-        _pc22_v3_draw_hand(support_tex,center,angle,dir_sign,(3.15 if female_mode else 3.35)*scale)
+        _pc22_v3_draw_hand(support_tex,center,angle,dir_sign,pc22_player_arm_rig.support_hand_height()*scale)
         return
     if female_mode:
         scale *= 0.92
@@ -853,7 +853,7 @@ old_hand='''    if tex_base_hand != null:
 '''
 new_hand='''    var pc22_dom_hand := _pc22_dominant_hand_texture()
     if pc22_dom_hand != null:
-        _pc22_v3_draw_hand(pc22_dom_hand,center,angle,dir_sign,(3.25 if female_mode else 3.45)*scale)
+        _pc22_v3_draw_hand(pc22_dom_hand,center,angle,dir_sign,pc22_player_arm_rig.dominant_hand_height()*scale)
         return
 '''
 if old_hand not in s:
@@ -890,13 +890,10 @@ arm_compute=f'''    var base := actor_pos + Vector2(sway, -bob - breath * 0.28)
     var pc22_front_wrist: Vector2 = Vector2.ZERO
     var pc22_motion_swing: float = sin(step_phase)*(0.55 if running else 0.34) if moving else 0.0
 
-    # Pistol stance extension: keep both hands well forward of the torso so
-    # upper-arm/forearm flex stays human-readable across the full vertical aim
-    # sweep. This moves the weapon contact target only; canonical bone lengths,
-    # shoulders and IK constraints remain unchanged.
+    # Keep the sidearm target in local aim space. The old extra screen-X offset
+    # compensated for the rejected forward shoulder anchor and is no longer used.
     if weapon_visible and not weapon_two_handed:
-        pc22_dom_wrist += _pose_point(Vector2(6.6,0.0),pc22_arm_angle,dir_sign)
-        pc22_dom_wrist += Vector2(1.7*dir_sign,0.0)
+        pc22_dom_wrist += _pose_point(Vector2(6.8,0.0),pc22_arm_angle,dir_sign)
 
     if weapon_visible:
         pc22_rear_elbow = _pc22_solve_elbow(pc22_rear_shoulder,pc22_dom_wrist,pc22_lengths.x,pc22_lengths.y,pc22_prev_dom_elbow,pc22_prev_arm_valid)
