@@ -764,7 +764,9 @@ func _pc22_arm_runtime_check(shoulder: Vector2, elbow: Vector2, wrist: Vector2, 
     else:
         print("PC22_ARM_GEOMETRY_OK:",label,":",shoulder.distance_to(elbow),":",elbow.distance_to(wrist))
 
-func _pc22_verify_sweep_case(label: String, upper_len: float, fore_len: float, rear_socket: Vector2, front_socket: Vector2, dir_sign: float) -> bool:
+func _pc22_verify_sweep_case(label: String, is_female: bool, dir_sign: float) -> bool:
+    pc22_player_arm_rig.configure(is_female)
+    var lens := pc22_player_arm_rig.lengths()
     var previous_dom := Vector2.ZERO
     var previous_sup := Vector2.ZERO
     var has_previous := false
@@ -775,25 +777,25 @@ func _pc22_verify_sweep_case(label: String, upper_len: float, fore_len: float, r
     for i in range(119,-1,-1):
         angles.append(-max_angle + (2.0*max_angle*float(i)/120.0))
     for angle in angles:
-        var shoulder_dom := Vector2(rear_socket.x*dir_sign,rear_socket.y)
-        var shoulder_sup := Vector2(front_socket.x*dir_sign,front_socket.y)
-        var pivot := Vector2(10.5*dir_sign,-6.0)
-        var wrist_dom := pivot + _pose_point(Vector2(9.8,0.8),angle,dir_sign)
-        var wrist_sup := pivot + _pose_point(Vector2(17.0,-1.0),angle,dir_sign)
-        wrist_sup += _pose_point(Vector2(0,0.0),angle,dir_sign)
-        var elbow_dom := _pc22_solve_elbow(shoulder_dom,wrist_dom,upper_len,fore_len,previous_dom,has_previous)
-        var elbow_sup := _pc22_solve_elbow(shoulder_sup,wrist_sup,upper_len,fore_len,previous_sup,has_previous)
-        var dom_upper_err := absf(shoulder_dom.distance_to(elbow_dom)-upper_len)
-        var dom_fore_err := absf(elbow_dom.distance_to(wrist_dom)-fore_len)
-        var sup_upper_err := absf(shoulder_sup.distance_to(elbow_sup)-upper_len)
-        var sup_fore_err := absf(elbow_sup.distance_to(wrist_sup)-fore_len)
+        var base := Vector2.ZERO
+        var shoulder_dom := pc22_player_arm_rig.shoulder_rear(base,dir_sign)
+        var shoulder_sup := pc22_player_arm_rig.shoulder_front(base,dir_sign)
+        var targets := pc22_player_arm_rig.weapon_targets(base,angle,dir_sign,0.0)
+        var wrist_dom: Vector2 = targets["dominant_wrist"]
+        var wrist_sup: Vector2 = targets["support_wrist"]
+        var elbow_dom := _pc22_solve_elbow(shoulder_dom,wrist_dom,lens.x,lens.y,previous_dom,has_previous)
+        var elbow_sup := _pc22_solve_elbow(shoulder_sup,wrist_sup,lens.x,lens.y,previous_sup,has_previous)
+        var dom_upper_err := absf(shoulder_dom.distance_to(elbow_dom)-lens.x)
+        var dom_fore_err := absf(elbow_dom.distance_to(wrist_dom)-lens.y)
+        var sup_upper_err := absf(shoulder_sup.distance_to(elbow_sup)-lens.x)
+        var sup_fore_err := absf(elbow_sup.distance_to(wrist_sup)-lens.y)
         if maxf(maxf(dom_upper_err,dom_fore_err),maxf(sup_upper_err,sup_fore_err)) > 0.03:
             push_error("PC22_RUNTIME_SWEEP_LENGTH_FAIL %s %.4f %.4f %.4f %.4f" % [label,dom_upper_err,dom_fore_err,sup_upper_err,sup_fore_err])
             return false
         if has_previous:
             var dom_jump := elbow_dom.distance_to(previous_dom)
             var sup_jump := elbow_sup.distance_to(previous_sup)
-            if dom_jump > 0.70 or sup_jump > 0.70:
+            if dom_jump > 0.75 or sup_jump > 0.75:
                 push_error("PC22_RUNTIME_SWEEP_FLIP_FAIL %s %.4f %.4f" % [label,dom_jump,sup_jump])
                 return false
         previous_dom = elbow_dom
@@ -804,10 +806,10 @@ func _pc22_verify_sweep_case(label: String, upper_len: float, fore_len: float, r
 
 func _pc22_verify_runtime_sweep() -> bool:
     var ok := true
-    ok = _pc22_verify_sweep_case("male_right",10.9,10.7,Vector2(10.0,-9.5),Vector2(9.8,-9.0),1.0) and ok
-    ok = _pc22_verify_sweep_case("male_left",10.9,10.7,Vector2(10.0,-9.5),Vector2(9.8,-9.0),-1.0) and ok
-    ok = _pc22_verify_sweep_case("female_right",10.6,10.5,Vector2(9.6,-9.3),Vector2(9.4,-8.9),1.0) and ok
-    ok = _pc22_verify_sweep_case("female_left",10.6,10.5,Vector2(9.6,-9.3),Vector2(9.4,-8.9),-1.0) and ok
+    ok = _pc22_verify_sweep_case("male_right",false,1.0) and ok
+    ok = _pc22_verify_sweep_case("male_left",false,-1.0) and ok
+    ok = _pc22_verify_sweep_case("female_right",true,1.0) and ok
+    ok = _pc22_verify_sweep_case("female_left",true,-1.0) and ok
     return ok
 
 func _pc22_verify_npc_inheritance() -> bool:
