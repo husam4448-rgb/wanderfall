@@ -1,36 +1,36 @@
 {
   "standard_id": "PlayerCharacters_v22",
-  "source_branch": "pc22-arm-visual-fix-v2",
-  "status": "verified_v2_ik_baseline",
+  "source_branch": "pc22-arm-hybrid-render-v3",
+  "status": "body_relative_anatomy_recalibrated",
   "male": {
-    "rig_id": "MALE_CANONICAL_ARM_SYSTEM",
+    "rig_id": "HUMANOID_CANONICAL_ARM_SYSTEM",
     "shoulder_rear": [
-      10,
-      -9.5
+      -4.8,
+      -9.8
     ],
     "shoulder_front": [
-      9.8,
-      -9
-    ],
-    "upper_arm_length": 10.9,
-    "forearm_length": 10.7
-  },
-  "female": {
-    "rig_id": "FEMALE_CANONICAL_ARM_SYSTEM",
-    "shoulder_rear": [
-      9.6,
+      -4,
       -9.3
     ],
-    "shoulder_front": [
-      9.4,
-      -8.9
+    "upper_arm_length": 13.3,
+    "forearm_length": 12.5
+  },
+  "female": {
+    "rig_id": "HUMANOID_CANONICAL_ARM_SYSTEM",
+    "shoulder_rear": [
+      -4.5,
+      -9.6
     ],
-    "upper_arm_length": 10.6,
-    "forearm_length": 10.5
+    "shoulder_front": [
+      -3.7,
+      -9.1
+    ],
+    "upper_arm_length": 12.8,
+    "forearm_length": 12.2
   },
   "weapon": {
     "pivot": [
-      10.5,
+      3,
       -6
     ],
     "dominant_grip": [
@@ -49,6 +49,8 @@
     "preserve_ik": true,
     "renderer": "hybrid_pivoted_sprite_v3",
     "prohibit_anisotropic_segment_stretch": true,
-    "left_runtime_mirror": true
+    "left_runtime_mirror": true,
+    "reference_basis": "approved side-profile art + rejected 4x APK captures",
+    "require_body_relative_anatomy": true
   }
 }
