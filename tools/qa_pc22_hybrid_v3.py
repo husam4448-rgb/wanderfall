@@ -184,12 +184,12 @@ require("pc22_front_elbow = _pc22_solve_elbow(pc22_front_shoulder,pc22_front_wri
         "pistol support arm is not solved with fixed-length IK")
 require("var pc22_pistol_sup_tex := _pc22_support_hand_texture()" in patch,
         "pistol support grip hand renderer missing")
-require("var pc22_pistol_sup_visual := pc22_front_wrist + _pose_point(Vector2(-0.35,0.68),pc22_arm_angle,dir_sign)" in patch,
+require("var pc22_pistol_sup_visual := pc22_front_wrist + _pose_point(Vector2(-0.46,0.42),pc22_arm_angle,dir_sign)" in patch,
         "pistol support-hand visual offset missing")
-require("(2.60 if female_mode else 2.78)" in patch and "Vector2(0.50,0.50)" in patch,
+require("(2.34 if female_mode else 2.52)" in patch and "Vector2(0.48,0.50)" in patch,
         "pistol support hand scale/pivot drift")
 require("func _pc22_v3_draw_grip_hand_tinted" in patch and
-        "var pc22_support_depth_tint := Color(0.80,0.76,0.72,1.0) if not gear_gloves else Color(0.78,0.78,0.78,1.0)" in patch and
+        "var pc22_support_depth_tint := Color(0.69,0.65,0.62,1.0) if not gear_gloves else Color(0.70,0.70,0.70,1.0)" in patch and
         "_pc22_v3_draw_grip_hand_tinted(pc22_pistol_sup_tex" in patch,
         "pistol support-hand depth tint/readability layer missing")
 require("The support palm is drawn over the" in patch and
@@ -284,15 +284,15 @@ require('make_v3_pivoted_segment(v3_gear_upper_vertical)' in builder and
         "gear sleeves are not pivoted after anatomical fabric integration")
 require("curve=(1.55 if not female else 1.35)" in builder,
         "sleeve centerline bow regressed to rubber-like curvature")
-require("stitch=(174,157,112,10)" in builder and "shadow=(29,31,27,22)" in builder,
+require("stitch=(174,157,112,8)" in builder and "shadow=(29,31,27,18)" in builder,
         "tactical sleeve micro-detail strength drift")
 require("profile=(0.42,0.52,0.31) if female else (0.46,0.58,0.34)" in builder,
         "upper-arm anatomical taper drift")
 require("profile=(0.34,0.41,0.17) if female else (0.37,0.44,0.18)" in builder,
         "forearm anatomical taper drift")
-require("GaussianBlur(0.55)" in builder and "Image.blend(out,gtex,0.40)" in builder and
-        "enhance(1.72)" in builder,
-        "tactical sleeve texture integration drift")
+require("GaussianBlur(0.80)" in builder and "Image.blend(out,gtex,0.50)" in builder and
+        "enhance(1.88)" in builder and "factor=1.05-0.17*min(1.0,radial)" in builder,
+        "tactical sleeve texture/volume integration drift")
 require('W,H=(28,24) if sex=="female" else (30,26)' in builder,
         "compact elbow bridge dimensions drift")
 require("min(52,ea)" in builder,
