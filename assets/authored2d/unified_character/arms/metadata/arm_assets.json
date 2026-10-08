@@ -93,12 +93,12 @@
       "mirroring_supported": true,
       "approval_state": "candidate",
       "alpha_bbox": [
-        10,
+        6,
         20,
-        56,
-        76
+        59,
+        75
       ],
-      "sha256": "4de4a867bff837daf82c0604c668128b7fae7667b295976eabfc6ae9c394357d"
+      "sha256": "74ebcd1c7d35eaa6525cd0c11c491158e70ecdfae502ef141aeb1bab5f06470e"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/male/SP_PC22_Male_Hand_Support_Right.png",
@@ -118,12 +118,12 @@
       "mirroring_supported": true,
       "approval_state": "candidate",
       "alpha_bbox": [
-        10,
+        6,
         21,
-        56,
-        75
+        58,
+        73
       ],
-      "sha256": "3dfd6a8042791136bc91e52615fdbbe8bdeac89996fbf0bf49b61f0ce758cc16"
+      "sha256": "78244d02719101d37fd486f67dde564f2ee70bd0344e882ed0b67c29e262ab13"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/female/SP_PC22_Female_UpperArm_Right.png",
@@ -218,12 +218,12 @@
       "mirroring_supported": true,
       "approval_state": "candidate",
       "alpha_bbox": [
-        10,
+        6,
         20,
-        56,
-        76
+        59,
+        75
       ],
-      "sha256": "64ed78cc25e4993d533d2e8cd423b434588131f8370010940323a7803907a701"
+      "sha256": "eb4a86742e703078dcf6f4c2be472936ca95064aec64ce93d008286cce230366"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/female/SP_PC22_Female_Hand_Support_Right.png",
@@ -243,12 +243,12 @@
       "mirroring_supported": true,
       "approval_state": "candidate",
       "alpha_bbox": [
-        10,
+        6,
         21,
-        56,
-        75
+        58,
+        73
       ],
-      "sha256": "6fa623665716bd13b18a3b76e9e60beebdea277d30bef4213767bd4818144fa1"
+      "sha256": "2d7f168397a91ce0d509fa0ee707be13a3bc2d1f83e409f16fafadacc0661c85"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/weapons/SP_PC22_Pistol_ArmCompatible.png",

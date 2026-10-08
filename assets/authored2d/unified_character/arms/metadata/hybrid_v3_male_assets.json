@@ -47,23 +47,23 @@
   "hand_dominant": {
     "filename": "assets/authored2d/unified_character/arms/hybrid_v3/male/SP_PC22_Male_Hand_Dominant_V3.png",
     "canvas_size": [
-      46,
-      56
+      53,
+      55
     ],
     "wrist_pivot_px": [
       3.0,
-      28.0
+      27.5
     ]
   },
   "hand_support": {
     "filename": "assets/authored2d/unified_character/arms/hybrid_v3/male/SP_PC22_Male_Hand_Support_V3.png",
     "canvas_size": [
-      46,
-      54
+      52,
+      52
     ],
     "wrist_pivot_px": [
       3.0,
-      27.0
+      26.0
     ]
   },
   "shoulder_cap": {
