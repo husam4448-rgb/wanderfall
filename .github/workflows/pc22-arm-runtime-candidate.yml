@@ -2,7 +2,7 @@ name: PC22 Canonical Arm Runtime Candidate
 
 on:
   push:
-    branches: [ pc22-canonical-arm-system ]
+    branches: [ pc22-canonical-arm-system, pc22-arm-hybrid-render-v3 ]
     paths:
       - '.ci/trigger-pc22-arm-runtime'
       - '.github/workflows/pc22-arm-runtime-candidate.yml'
@@ -256,8 +256,13 @@ jobs:
           "$APKSIGNER" verify --verbose --print-certs "$APK" | tee pc22-arm-apk-signature.txt
           "$AAPT" dump badging "$APK" | tee pc22-arm-apk-badging.txt
           grep -q "package: name='org.wanderfall.game'" pc22-arm-apk-badging.txt
-          grep -q "versionCode='189'" pc22-arm-apk-badging.txt
-          grep -q "versionName='0.21.0-PC22-ARM-CANDIDATE'" pc22-arm-apk-badging.txt
+          EXPECTED_CODE="$(sed -n 's/^version\/code=\([0-9][0-9]*\)$/\1/p' "$PROJECT_DIR/export_presets.cfg" | head -1)"
+          EXPECTED_NAME="$(sed -n 's/^version\/name="\([^"]*\)"$/\1/p' "$PROJECT_DIR/export_presets.cfg" | head -1)"
+          test -n "$EXPECTED_CODE"
+          test -n "$EXPECTED_NAME"
+          grep -Fq "versionCode='$EXPECTED_CODE'" pc22-arm-apk-badging.txt
+          grep -Fq "versionName='$EXPECTED_NAME'" pc22-arm-apk-badging.txt
+          echo "VALIDATED_VERSION=$EXPECTED_CODE / $EXPECTED_NAME" | tee pc22-arm-version-validation.txt
           unzip -l "$APK" | grep -q 'lib/arm64-v8a/libgodot_android.so'
           if unzip -l "$APK" | grep -q 'lib/armeabi-v7a/'; then
             echo "Legacy armeabi-v7a unexpectedly present"
@@ -286,9 +291,11 @@ jobs:
           # QA lanes can advance the candidate branch concurrently. Preserve the
           # newly rendered evidence, reset onto the latest remote head, restore
           # the evidence, then commit. Never rebase conflicting binary screenshots.
+          TARGET_BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+          test -n "$TARGET_BRANCH"
           for attempt in 1 2 3; do
-            git fetch origin pc22-canonical-arm-system
-            git reset --hard origin/pc22-canonical-arm-system
+            git fetch origin "$TARGET_BRANCH"
+            git reset --hard "origin/$TARGET_BRANCH"
             mkdir -p "$OUT"
             rm -rf "$OUT"/*
             cp -a /tmp/pc22-runtime-evidence/. "$OUT"/
@@ -297,7 +304,7 @@ jobs:
               exit 0
             fi
             git commit -m "Capture PC22 canonical arm candidate in Godot runtime"
-            if git push origin HEAD:pc22-canonical-arm-system; then
+            if git push origin "HEAD:$TARGET_BRANCH"; then
               exit 0
             fi
             sleep $((attempt*3))
