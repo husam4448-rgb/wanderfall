@@ -47,6 +47,12 @@ func upper_width() -> float:
 func forearm_width() -> float:
     return {female_spec["forearm_width"]} if female_mode else {male_spec["forearm_width"]}
 
+func dominant_hand_height() -> float:
+    return {female_spec["dominant_hand_size"][1]} if female_mode else {male_spec["dominant_hand_size"][1]}
+
+func support_hand_height() -> float:
+    return {female_spec["support_hand_size"][1]} if female_mode else {male_spec["support_hand_size"][1]}
+
 func shoulder_rear(base: Vector2, dir_sign: float) -> Vector2:
     var p := Vector2({female_spec["shoulder_rear"][0]},{female_spec["shoulder_rear"][1]}) if female_mode else Vector2({male_spec["shoulder_rear"][0]},{male_spec["shoulder_rear"][1]})
     return base+Vector2(p.x*dir_sign,p.y)
@@ -491,14 +497,14 @@ func _pc22_draw_anatomical_arm_shape(shoulder: Vector2, elbow: Vector2, wrist: V
     # Universal three-joint renderer: shoulder -> elbow -> wrist remains the
     # authoritative skeleton. The visual centerline is rounded only inside a
     # short elbow neighborhood so no extra pseudo-joint exists.
-    var start: Vector2 = shoulder.lerp(elbow,0.10)
+    var start: Vector2 = shoulder.lerp(elbow,0.06)
     var udir: Vector2 = (elbow-start).normalized()
     var fdir: Vector2 = (wrist-elbow).normalized()
-    var upper_half: float = (1.72 if female_mode else 1.92)*depth_scale
-    var elbow_half: float = (1.44 if female_mode else 1.60)*depth_scale
-    var fore_half: float = (1.30 if female_mode else 1.44)*depth_scale
-    var wrist_half: float = (0.92 if female_mode else 1.04)*depth_scale
-    var radius: float = minf(2.25,minf(start.distance_to(elbow)*0.28,elbow.distance_to(wrist)*0.28))
+    var upper_half: float = pc22_player_arm_rig.upper_width()*0.50*depth_scale
+    var fore_half: float = pc22_player_arm_rig.forearm_width()*0.50*depth_scale
+    var elbow_half: float = lerpf(upper_half,fore_half,0.56)
+    var wrist_half: float = fore_half*0.68
+    var radius: float = minf(2.70,minf(start.distance_to(elbow)*0.26,elbow.distance_to(wrist)*0.26))
     var pre := elbow-udir*radius
     var post := elbow+fdir*radius
 
@@ -597,10 +603,10 @@ func _pc22_draw_textured_limb_detail(tex: Texture2D, a: Vector2, b: Vector2, hal
 func _pc22_draw_arm_material_detail(shoulder: Vector2, elbow: Vector2, wrist: Vector2, flip_x: bool, depth_scale: float = 1.0) -> void:
     var upper_tex := _pc22_upper_texture()
     var fore_tex := _pc22_fore_texture()
-    var upper_a: float = (1.55 if female_mode else 1.72)*depth_scale
-    var upper_b: float = (1.30 if female_mode else 1.44)*depth_scale
-    var fore_a: float = (1.22 if female_mode else 1.34)*depth_scale
-    var fore_b: float = (0.86 if female_mode else 0.96)*depth_scale
+    var upper_a: float = pc22_player_arm_rig.upper_width()*0.46*depth_scale
+    var upper_b: float = pc22_player_arm_rig.upper_width()*0.39*depth_scale
+    var fore_a: float = pc22_player_arm_rig.forearm_width()*0.46*depth_scale
+    var fore_b: float = pc22_player_arm_rig.forearm_width()*0.32*depth_scale
     # Keep a small overlap at the mathematical elbow so texture transitions
     # disappear inside the continuous base ribbon instead of forming a hinge.
     var ud := (elbow-shoulder).normalized()
@@ -615,7 +621,7 @@ func _pc22_draw_arm_material_detail(shoulder: Vector2, elbow: Vector2, wrist: Ve
         var fd2 := (wrist-elbow).normalized()
         var fn2 := Vector2(-fd2.y,fd2.x)
         var cuff_center := wrist-fd2*1.20
-        var cuff_half: float = 0.82 if female_mode else 0.92
+        var cuff_half: float = pc22_player_arm_rig.forearm_width()*0.25
         var cuff_col := _pc22_arm_outline_color()
         draw_line(cuff_center-fn2*cuff_half,cuff_center+fn2*cuff_half,cuff_col,0.20,false)
 
