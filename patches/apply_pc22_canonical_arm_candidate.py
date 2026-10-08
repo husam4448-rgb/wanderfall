@@ -665,6 +665,24 @@ func _pc22_v3_draw_grip_hand(tex: Texture2D, grip_world: Vector2, weapon_angle: 
     var world_rot: float = weapon_angle if dir_sign>0.0 else PI-weapon_angle
     _pc22_v3_draw_pivoted(tex,grip_world,world_rot,scale_u,pivot_px,dir_sign<0.0)
 
+func _pc22_v3_draw_grip_hand_tinted(tex: Texture2D, grip_world: Vector2, weapon_angle: float, dir_sign: float, world_height: float, grip_fraction: Vector2, tint: Color) -> void:
+    # Same wrist/grip geometry as the normal armed hand, with a visual-only
+    # depth tint. Used for the pistol support palm so two overlapping hands
+    # remain readable without moving either skeletal contact point.
+    if tex == null:
+        return
+    var th: float = float(tex.get_height())
+    var tw: float = float(tex.get_width())
+    var scale_u: float = world_height/maxf(1.0,th)
+    var pivot_px := Vector2(tw*grip_fraction.x,th*grip_fraction.y)
+    var world_rot: float = weapon_angle if dir_sign>0.0 else PI-weapon_angle
+    var flip_x: bool = dir_sign < 0.0
+    var rot: float = world_rot if not flip_x else world_rot-PI
+    var sx: float = scale_u if not flip_x else -scale_u
+    draw_set_transform(grip_world,rot,Vector2(sx,scale_u))
+    draw_texture(tex,-pivot_px,tint)
+    draw_set_transform(Vector2.ZERO,0.0,Vector2.ONE)
+
 func _pc22_v3_draw_cap(tex: Texture2D, shoulder: Vector2, elbow: Vector2, dir_sign: float) -> void:
     if tex == null:
         return
@@ -1009,7 +1027,8 @@ weapon_block='''    # HYBRID V3: weapon artwork is anchored directly at the domi
             var pc22_pistol_sup_tex := _pc22_support_hand_texture()
             var pc22_pistol_sup_visual := pc22_front_wrist + _pose_point(Vector2(-0.25,0.48),pc22_arm_angle,dir_sign)
             if pc22_pistol_sup_tex != null:
-                _pc22_v3_draw_grip_hand(pc22_pistol_sup_tex,pc22_pistol_sup_visual,pc22_arm_angle,dir_sign,(2.52 if female_mode else 2.70),Vector2(0.50,0.50))
+                var pc22_support_depth_tint := Color(0.88,0.84,0.80,1.0) if not gear_gloves else Color(0.86,0.86,0.86,1.0)
+                _pc22_v3_draw_grip_hand_tinted(pc22_pistol_sup_tex,pc22_pistol_sup_visual,pc22_arm_angle,dir_sign,(2.52 if female_mode else 2.70),Vector2(0.50,0.50),pc22_support_depth_tint)
             else:
                 _draw_support_hand(pc22_pistol_sup_visual,pc22_arm_angle,dir_sign,Color("b97755"),0.80)
             active_muzzle = pc22_dom_wrist + _pose_point(Vector2(7.44,-2.16),pc22_arm_angle,dir_sign)
