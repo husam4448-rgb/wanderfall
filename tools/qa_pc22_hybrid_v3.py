@@ -152,14 +152,25 @@ for sc in rifle_scales:
 for sc in pistol_scales:
     require(0.23 <= sc <= 0.26, f"pistol scale out of V3 range: {sc}")
 
-require("Vector2(0.58,0.62)" in patch, "dominant armed-hand grip pivot drift")
-require("Vector2(0.55,0.54)" in patch, "support armed-hand grip pivot drift")
-require("pc22_player_arm_rig.dominant_hand_height()" in patch, "dominant locked hand is not profile-scaled")
-require("pc22_player_arm_rig.support_hand_height()" in patch, "support locked hand is not profile-scaled")
+require("func dominant_wrist_to_grip() -> Vector2:" in patch and
+        "func support_wrist_to_grip() -> Vector2:" in patch and
+        "func wrist_from_grip(" in patch,
+        "anatomical wrist-to-grip rig helpers missing")
+require("_pc22_v3_draw_hand(pc22_dom_grip_tex,pc22_dom_wrist" in patch,
+        "dominant armed hand is not attached at anatomical wrist")
+require("_pc22_v3_draw_hand(pc22_sup_grip_tex,pc22_front_wrist" in patch,
+        "support armed hand is not attached at anatomical wrist")
+require("pc22_player_arm_rig.dominant_hand_height()" in patch,
+        "dominant locked hand is not profile-scaled")
+require("pc22_player_arm_rig.support_hand_height()" in patch,
+        "support locked hand is not profile-scaled")
 require("Rifle rear-depth composition: the universal dominant arm remains fully" in patch,
         "rifle rear-depth full-occlusion marker missing")
 require(patch.count("_pc22_v3_draw_weapon_piece(tex_pc22_rifle_stock") == 1,
         "rifle stock must be rendered exactly once")
+require("_pc22_v3_draw_weapon_piece(tex_pc22_rifle_stock,pc22_dom_grip" in patch and
+        "_pc22_v3_draw_weapon_piece(tex_pc22_rifle_front,pc22_dom_grip" in patch,
+        "rifle artwork is not anchored to the palm grip contact")
 require("func _pc22_draw_rear_rifle_cuff" not in patch and
         "_pc22_draw_rear_rifle_cuff(" not in patch,
         "dangling rear rifle cuff renderer reintroduced")
@@ -175,26 +186,28 @@ require("if not weapon_visible:\n        var pc22_rear_upper_tex" in patch and
 require("if gear_torso:" in patch and "tex_pc22_female_gear_upper" in patch and "tex_pc22_male_gear_fore" in patch,
         "equipped tactical sleeve selection missing")
 
-# Pistol support arm must use fixed-length IK to a compact weapon-local contact.
+# Pistol support arm: weapon contact and anatomical wrist must be distinct.
 require("func _pc22_pistol_support_target" in patch, "pistol support target helper missing")
 require("Vector2(-1.30,1.70)" in patch, "compact pistol support grip offset drift")
-require("pc22_front_wrist = _pc22_pistol_support_target(pc22_dom_wrist,pc22_arm_angle,dir_sign)" in patch,
-        "pistol support wrist is not locked to the weapon grip")
+require("pc22_support_grip = _pc22_pistol_support_target(pc22_dom_grip,pc22_arm_angle,dir_sign)" in patch,
+        "pistol support palm contact is not tied to dominant grip")
+require("pc22_front_wrist = pc22_player_arm_rig.wrist_from_grip(pc22_support_grip,pc22_arm_angle,dir_sign,true)" in patch,
+        "pistol support anatomical wrist is not derived from palm contact")
+require("pc22_dom_wrist = pc22_player_arm_rig.wrist_from_grip(pc22_dom_grip,pc22_arm_angle,dir_sign,false)" in patch,
+        "pistol dominant anatomical wrist is not derived from palm contact")
 require("pc22_front_elbow = _pc22_solve_elbow(pc22_front_shoulder,pc22_front_wrist" in patch,
-        "pistol support arm is not solved with fixed-length IK")
+        "pistol support arm is not solved to anatomical wrist")
 require("var pc22_pistol_sup_tex := _pc22_support_hand_texture()" in patch,
-        "pistol support grip hand renderer missing")
-require("var pc22_pistol_sup_visual := pc22_front_wrist + _pose_point(Vector2(-0.46,0.42),pc22_arm_angle,dir_sign)" in patch,
-        "pistol support-hand visual offset missing")
-require("pc22_player_arm_rig.support_hand_height()*0.92" in patch and "Vector2(0.52,0.54)" in patch,
-        "pistol support hand scale/pivot drift")
-require("func _pc22_v3_draw_grip_hand_tinted" in patch and
-        "var pc22_support_depth_tint := Color(0.69,0.65,0.62,1.0) if not gear_gloves else Color(0.70,0.70,0.70,1.0)" in patch and
-        "_pc22_v3_draw_grip_hand_tinted(pc22_pistol_sup_tex" in patch,
-        "pistol support-hand depth tint/readability layer missing")
-require("Final pistol depth stack: support arm -> support palm -> pistol ->" in patch and
-        "dominant firing palm" in patch,
+        "pistol support hand renderer missing")
+require("func _pc22_v3_draw_hand_tinted" in patch and
+        "_pc22_v3_draw_hand_tinted(pc22_pistol_sup_tex,pc22_front_wrist" in patch and
+        "pc22_player_arm_rig.support_hand_height()*0.94" in patch,
+        "pistol support hand is not wrist-anchored/profile-scaled")
+require("Pistol depth stack: support arm -> wrist-anchored support hand ->" in patch and
+        "pistol contact -> wrist-anchored dominant hand" in patch,
         "pistol support-hand depth stack drift")
+require("_pc22_v3_draw_weapon_piece(tex_pc22_pistol,pc22_dom_grip" in patch,
+        "pistol is not anchored to palm grip contact")
 require("Vector2(6.8,0.0)" in patch and "1.7*dir_sign" not in patch,
         "body-relative sidearm target calibration missing")
 
