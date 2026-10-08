@@ -176,6 +176,9 @@ require("func _pc22_draw_rear_rifle_wrist_bridge" in patch and
         "short solved-chain rear rifle wrist bridge missing")
 require("var bridge_len := minf(3.2,delta.length()*0.28)" in patch,
         "rear rifle wrist bridge exceeded the compact reference-calibrated limit")
+require("Draw only the short firing-side wrist bridge after torso" in patch and
+        patch.count("_pc22_draw_rear_rifle_wrist_bridge(pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)") == 1,
+        "rifle wrist bridge must be visible after torso exactly once")
 require("func _pc22_draw_rear_rifle_cuff" not in patch and
         "_pc22_draw_rear_rifle_cuff(" not in patch,
         "legacy dangling rear rifle cuff renderer reintroduced")
@@ -205,9 +208,10 @@ require("pc22_front_elbow = _pc22_solve_elbow(pc22_front_shoulder,pc22_front_wri
 require("var pc22_pistol_sup_tex := _pc22_dominant_hand_texture()" in patch,
         "pistol support palm is not using the vertical grip-wrap silhouette")
 require("func _pc22_v3_draw_hand_tinted" in patch and
-        "_pc22_v3_draw_hand_tinted(pc22_pistol_sup_tex,pc22_front_wrist" in patch and
-        "pc22_player_arm_rig.support_hand_height()*0.94" in patch,
-        "pistol support hand is not wrist-anchored/profile-scaled")
+        "var pc22_pistol_sup_draw := pc22_front_wrist + _pose_point(Vector2(-0.22,0.30),pc22_arm_angle,dir_sign)" in patch and
+        "_pc22_v3_draw_hand_tinted(pc22_pistol_sup_tex,pc22_pistol_sup_draw" in patch and
+        "pc22_player_arm_rig.support_hand_height()*0.92" in patch,
+        "pistol support hand visual separation/profile scale drift")
 require("Pistol depth stack: support arm -> wrist-anchored support hand ->" in patch and
         "pistol contact -> wrist-anchored dominant hand" in patch,
         "pistol support-hand depth stack drift")
