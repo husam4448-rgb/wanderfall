@@ -893,6 +893,8 @@ arm_compute=f'''    var base := actor_pos + Vector2(sway, -bob - breath * 0.28)
     var pc22_arm_angle: float = clampf(pc22_local_aim.angle(),-PI*0.49,PI*0.49)
     var pc22_targets: Dictionary = pc22_player_arm_rig.weapon_targets(base,pc22_arm_angle,dir_sign,shot_recoil)
     var pc22_arm_pivot: Vector2 = pc22_targets["pivot"]
+    var pc22_dom_grip: Vector2 = pc22_targets["dominant_grip"]
+    var pc22_support_grip: Vector2 = pc22_targets["support_grip"]
     var pc22_dom_wrist: Vector2 = pc22_targets["dominant_wrist"]
     var pc22_support_wrist: Vector2 = pc22_targets["support_wrist"]
     var pc22_rear_elbow: Vector2 = Vector2.ZERO
@@ -900,10 +902,12 @@ arm_compute=f'''    var base := actor_pos + Vector2(sway, -bob - breath * 0.28)
     var pc22_front_wrist: Vector2 = Vector2.ZERO
     var pc22_motion_swing: float = sin(step_phase)*(0.55 if running else 0.34) if moving else 0.0
 
-    # Keep the sidearm target in local aim space. The old extra screen-X offset
-    # compensated for the rejected forward shoulder anchor and is no longer used.
+    # The weapon target is a PALM CONTACT, not the anatomical wrist joint.
+    # Move the sidearm grip in weapon-local space, then derive the true wrist
+    # behind that contact from the authored hand proportions.
     if weapon_visible and not weapon_two_handed:
-        pc22_dom_wrist += _pose_point(Vector2(6.8,0.0),pc22_arm_angle,dir_sign)
+        pc22_dom_grip += _pose_point(Vector2(6.8,0.0),pc22_arm_angle,dir_sign)
+        pc22_dom_wrist = pc22_player_arm_rig.wrist_from_grip(pc22_dom_grip,pc22_arm_angle,dir_sign,false)
 
     if weapon_visible:
         pc22_rear_elbow = _pc22_solve_elbow(pc22_rear_shoulder,pc22_dom_wrist,pc22_lengths.x,pc22_lengths.y,pc22_prev_dom_elbow,pc22_prev_arm_valid)
@@ -911,10 +915,11 @@ arm_compute=f'''    var base := actor_pos + Vector2(sway, -bob - breath * 0.28)
             pc22_front_wrist = pc22_support_wrist
             pc22_front_elbow = _pc22_solve_elbow(pc22_front_shoulder,pc22_front_wrist,pc22_lengths.x,pc22_lengths.y,pc22_prev_support_elbow,pc22_prev_arm_valid)
         else:
-            # Pistol is supported with both hands. The support wrist is locked
-            # to the lower/back portion of the pistol grip; fixed-length IK then
-            # supplies a natural elbow without stretching either arm segment.
-            pc22_front_wrist = _pc22_pistol_support_target(pc22_dom_wrist,pc22_arm_angle,dir_sign)
+            # Support palm contacts the lower/back firing grip. Its anatomical
+            # wrist is derived behind that contact, so forearm -> wrist -> hand
+            # continuity is real rather than ending at the weapon itself.
+            pc22_support_grip = _pc22_pistol_support_target(pc22_dom_grip,pc22_arm_angle,dir_sign)
+            pc22_front_wrist = pc22_player_arm_rig.wrist_from_grip(pc22_support_grip,pc22_arm_angle,dir_sign,true)
             pc22_front_elbow = _pc22_solve_elbow(pc22_front_shoulder,pc22_front_wrist,pc22_lengths.x,pc22_lengths.y,pc22_prev_support_elbow,pc22_prev_arm_valid)
     else:
         var pc22_free_rear: PackedVector2Array = _pc22_free_arm(pc22_rear_shoulder,pc22_lengths.x,pc22_lengths.y,-pc22_motion_swing,dir_sign)
@@ -992,7 +997,7 @@ s=s.replace(rear_anchor,'''    if gear_back and not female_mode:
     # dangling rear-forearm strip from appearing.
     if weapon_visible and weapon_two_handed:
         if tex_pc22_rifle_stock != null:
-            _pc22_v3_draw_weapon_piece(tex_pc22_rifle_stock,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(36.0,18.0),0.33)
+            _pc22_v3_draw_weapon_piece(tex_pc22_rifle_stock,pc22_dom_grip,pc22_arm_angle,dir_sign,Vector2(36.0,18.0),0.33)
 
     # Independent left/right leg gait. Each leg has its own hip, knee, shin and foot.
 ''',1)
