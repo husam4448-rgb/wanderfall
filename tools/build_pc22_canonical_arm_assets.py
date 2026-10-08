@@ -104,11 +104,14 @@ def anatomical_sleeve(img, base_rgb, sex, segment, fabric_ref=None):
     w,h=img.size
     female=(sex=="female")
     if segment=="upper":
-        # broad hidden shoulder root -> biceps -> compact elbow
-        profile=(0.38,0.50,0.40) if female else (0.42,0.56,0.44)
+        # Broad hidden shoulder root -> biceps -> clearly narrower elbow.
+        # The stronger distal taper keeps rotated upper arms from reading as
+        # rigid rectangular links while preserving the canonical bone centerline.
+        profile=(0.42,0.52,0.31) if female else (0.46,0.58,0.34)
     else:
-        # elbow mass -> tapered forearm -> narrow wrist/cuff
-        profile=(0.42,0.46,0.20) if female else (0.46,0.50,0.22)
+        # Compact elbow origin -> forearm belly -> narrow wrist/cuff.
+        # Keep the proximal forearm narrower than the old blocky V3 sleeve.
+        profile=(0.34,0.41,0.17) if female else (0.37,0.44,0.18)
 
     mask=Image.new("L",(w,h),0)
     mp=mask.load()
@@ -276,13 +279,13 @@ def tactical_sleeve(img, sex, segment):
     # Only borrow low-frequency cloth tone from the equipped torso. Copying
     # sharp vest/webbing detail onto sleeves made the limbs look like modular
     # armor plates instead of continuous fabric.
-    glum=ImageOps.grayscale(gref).filter(ImageFilter.GaussianBlur(5.0))
-    glum=ImageEnhance.Contrast(glum).enhance(1.12).resize(out.size,Image.Resampling.LANCZOS)
+    glum=ImageOps.grayscale(gref).filter(ImageFilter.GaussianBlur(2.2))
+    glum=ImageEnhance.Contrast(glum).enhance(1.24).resize(out.size,Image.Resampling.LANCZOS)
     gdark=tuple(max(0,int(c*0.52)) for c in light)
     glight=tuple(min(255,int(c*1.35+6)) for c in light)
     gtex=ImageOps.colorize(glum,gdark,glight).convert("RGBA")
     gtex.putalpha(alpha)
-    out=Image.blend(out,gtex,0.16)
+    out=Image.blend(out,gtex,0.28)
     out.putalpha(alpha)
     d=ImageDraw.Draw(out)
     w,h=out.size
@@ -382,46 +385,44 @@ def make_v3_pivoted_hand(hand_img):
 
 
 def make_v3_elbow_patch(upper_x, fore_x, sex):
-    """Build a feathered cloth elbow bridge from the two adjacent sleeve textures.
+    """Build a compact rounded cloth bridge that visually disappears into the joint.
 
-    It is deliberately low-contrast and directional so it disappears into the
-    sleeve instead of reading as a separate elbow pad. Skeleton geometry is untouched.
+    The previous elongated diamond could still be read as a third arm module at
+    acute aim angles. This patch is deliberately short, rounded and low-contrast;
+    it only fills rotational gaps underneath the two sleeve segments.
     """
     u=trim(upper_x).convert("RGBA")
     f=trim(fore_x).convert("RGBA")
-    W,H=(38,20) if sex=="female" else (42,22)
+    W,H=(28,24) if sex=="female" else (30,26)
 
-    uc=u.crop((max(0,int(round(u.width*0.68))),0,u.width,u.height)).resize((W,H),Image.Resampling.LANCZOS)
-    fc=f.crop((0,0,max(2,int(round(f.width*0.32))),f.height)).resize((W,H),Image.Resampling.LANCZOS)
+    uc=u.crop((max(0,int(round(u.width*0.72))),0,u.width,u.height)).resize((W,H),Image.Resampling.LANCZOS)
+    fc=f.crop((0,0,max(2,int(round(f.width*0.28))),f.height)).resize((W,H),Image.Resampling.LANCZOS)
     tex=Image.blend(uc,fc,0.50).convert("RGBA")
 
-    # Long, tapered cloth crossover. No ellipse, border ring, or rectangular panel.
     mask=Image.new("L",(W,H),0)
     d=ImageDraw.Draw(mask)
-    cy=H/2.0
-    pts=[
-        (0,int(cy-1)),
-        (int(W*0.18),int(H*0.30)),
-        (int(W*0.48),int(H*0.18)),
-        (int(W*0.82),int(H*0.32)),
-        (W-1,int(cy)),
-        (int(W*0.82),int(H*0.68)),
-        (int(W*0.48),int(H*0.82)),
-        (int(W*0.18),int(H*0.70)),
-    ]
-    d.polygon(pts,fill=238)
-    mask=mask.filter(ImageFilter.GaussianBlur(1.15))
-    # Keep the bridge translucent enough to inherit the underlying segment texture.
-    mask=mask.point(lambda a: int(a*0.82))
-
+    # Soft oval with slightly pinched left/right handoff zones. The middle
+    # provides elbow roundness; the tapered tips vanish under adjacent sleeves.
+    d.ellipse((int(W*0.10),int(H*0.08),int(W*0.90),int(H*0.92)),fill=220)
+    d.polygon([
+        (0,int(H*0.50)),(int(W*0.22),int(H*0.30)),
+        (int(W*0.22),int(H*0.70))
+    ],fill=180)
+    d.polygon([
+        (W-1,int(H*0.50)),(int(W*0.78),int(H*0.30)),
+        (int(W*0.78),int(H*0.70))
+    ],fill=180)
+    mask=mask.filter(ImageFilter.GaussianBlur(1.35))
+    mask=mask.point(lambda a: int(a*0.72))
     tex.putalpha(mask)
+
+    # One subdued fold is enough to keep the bridge in the same painted cloth
+    # language without announcing it as a separate elbow component.
     td=ImageDraw.Draw(tex)
-    fold=(47,51,43,34)
-    td.line((int(W*0.22),int(H*0.44),int(W*0.76),int(H*0.54)),fill=fold,width=1)
-    td.line((int(W*0.30),int(H*0.64),int(W*0.70),int(H*0.49)),fill=fold,width=1)
+    fold=(43,47,40,24)
+    td.line((int(W*0.28),int(H*0.54),int(W*0.72),int(H*0.46)),fill=fold,width=1)
     tex.putalpha(mask)
     return tex
-
 
 def make_v3_shoulder_cap(upper_x, sex):
     """Build an asymmetric torso-rooted deltoid from proximal V3 arm texture.
