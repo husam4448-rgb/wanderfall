@@ -320,13 +320,24 @@ require("min(52,ea)" in builder,
         "armed sleeve detail edge contour became too heavy")
 require("def _aa_grip_hand(sex, support=False):" in builder,
         "weapon-wrap grip hand generator missing")
-require("return _aa_grip_hand(sex,False)" in builder and
-        "return _aa_grip_hand(sex,True)" in builder,
-        "bare dominant/support hands are not using dedicated grip silhouettes")
-require("grip=_aa_grip_hand(sex,support).convert(\"RGBA\")" in builder,
-        "tactical gloves are not constrained to the same grip silhouette")
+require("def _materialized_grip_hand(glove_img, sex, support=False, bare=False):" in builder,
+        "authored-detail grip materializer missing")
+require("return _materialized_grip_hand(glove_img,sex,False,True)" in builder and
+        "return _materialized_grip_hand(glove_src,sex,True,True)" in builder,
+        "bare dominant/support hands are not using authored-detail grip silhouettes")
+require("return _materialized_grip_hand(glove_img,sex,support,False)" in builder,
+        "tactical gloves are not constrained to the authored-detail grip silhouette")
+require("ImageOps.fit(src,grip.size" in builder and "ImageEnhance.Contrast(lum).enhance(1.42)" in builder,
+        "authored glove/hand luminance is not mapped into grip silhouettes")
 require("Vertical grip channel" in builder and "horizontal weapon channel" in builder,
         "dominant/support weapon channels missing from grip art")
+require('"dominant_hand_size":[5.3,4.8]' in builder and '"support_hand_size":[5.0,4.6]' in builder,
+        "male reference-calibrated hand extents drift")
+require('"dominant_hand_size":[5.0,4.6]' in builder and '"support_hand_size":[4.8,4.4]' in builder,
+        "female reference-calibrated hand extents drift")
+require("if not (0.35 <= dom_hand_ratio <= 0.40):" in builder and
+        "if not (0.34 <= sup_hand_ratio <= 0.39):" in builder,
+        "body-relative hand/forearm QA range drift")
 
 # Elbow textures remain packaged for backward-compatible/unarmed fallback, but
 # armed rendering must not expose an independent elbow component.
