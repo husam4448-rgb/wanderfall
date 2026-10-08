@@ -171,22 +171,22 @@ require("if gear_torso:" in patch and "tex_pc22_female_gear_upper" in patch and 
 
 # Pistol support arm must use fixed-length IK to a weapon-local contact point.
 require("func _pc22_pistol_support_target" in patch, "pistol support target helper missing")
-require("Vector2(-1.10,1.65)" in patch, "pistol support grip offset drift")
+require("Vector2(-0.85,1.45)" in patch, "pistol support grip offset drift")
 require("pc22_front_wrist = _pc22_pistol_support_target(pc22_dom_wrist,pc22_arm_angle,dir_sign)" in patch,
         "pistol support wrist is not locked to the weapon grip")
 require("pc22_front_elbow = _pc22_solve_elbow(pc22_front_shoulder,pc22_front_wrist" in patch,
         "pistol support arm is not solved with fixed-length IK")
 require("var pc22_pistol_sup_tex := _pc22_support_hand_texture()" in patch,
         "pistol support grip hand renderer missing")
-require("(2.55 if female_mode else 2.75)" in patch,
-        "pistol support grip hand scale drift")
-require("Vector2(5.0,0.0)" in patch and "Vector2(2.0*dir_sign,0.0)" in patch,
+require("(2.45 if female_mode else 2.65)" in patch and "Vector2(0.52,0.52)" in patch,
+        "pistol support grip hand scale/pivot drift")
+require("Vector2(6.6,0.0)" in patch and "Vector2(1.7*dir_sign,0.0)" in patch,
         "pistol forward stance extension missing")
 require("_pc22_v3_draw_distal_segment(pc22_rear_upper_front_tex" in patch and
         "_pc22_v3_draw_distal_segment(pc22_front_upper_front_tex" in patch,
         "armed distal upper-arm continuity layer missing")
-require("0.48)" in patch, "distal upper-arm reveal fraction drift")
-require("var desired_w: float = 3.30 if female_mode else 3.55" in patch,
+require("0.60)" in patch, "distal upper-arm reveal fraction drift")
+require("var desired_w: float = 3.00 if female_mode else 3.20" in patch,
         "elbow gusset visual size drift")
 require("Pistol support hand was already depth-composed behind the weapon." in patch,
         "pistol support-hand depth ordering marker missing")
@@ -205,6 +205,14 @@ require("curve=(1.55 if not female else 1.35)" in builder,
         "sleeve centerline bow regressed to rubber-like curvature")
 require("stitch=(174,157,112,16)" in builder and "shadow=(29,31,27,28)" in builder,
         "tactical sleeve banding strength drift")
+require("profile=(0.42,0.52,0.31) if female else (0.46,0.58,0.34)" in builder,
+        "upper-arm anatomical taper drift")
+require("profile=(0.34,0.41,0.17) if female else (0.37,0.44,0.18)" in builder,
+        "forearm anatomical taper drift")
+require("GaussianBlur(2.2)" in builder and "Image.blend(out,gtex,0.28)" in builder,
+        "tactical sleeve texture integration drift")
+require('W,H=(28,24) if sex=="female" else (30,26)' in builder,
+        "compact elbow bridge dimensions drift")
 
 # Dedicated textured elbow gussets are visual-only and must cover both armed elbows.
 require("func _pc22_v3_draw_elbow_gusset" in patch, "textured elbow gusset renderer missing")
