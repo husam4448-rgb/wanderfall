@@ -184,12 +184,12 @@ require("pc22_front_elbow = _pc22_solve_elbow(pc22_front_shoulder,pc22_front_wri
         "pistol support arm is not solved with fixed-length IK")
 require("var pc22_pistol_sup_tex := _pc22_support_hand_texture()" in patch,
         "pistol support grip hand renderer missing")
-require("var pc22_pistol_sup_visual := pc22_front_wrist + _pose_point(Vector2(-0.25,0.48),pc22_arm_angle,dir_sign)" in patch,
+require("var pc22_pistol_sup_visual := pc22_front_wrist + _pose_point(Vector2(-0.35,0.68),pc22_arm_angle,dir_sign)" in patch,
         "pistol support-hand visual offset missing")
-require("(2.52 if female_mode else 2.70)" in patch and "Vector2(0.50,0.50)" in patch,
+require("(2.60 if female_mode else 2.78)" in patch and "Vector2(0.50,0.50)" in patch,
         "pistol support hand scale/pivot drift")
 require("func _pc22_v3_draw_grip_hand_tinted" in patch and
-        "var pc22_support_depth_tint := Color(0.88,0.84,0.80,1.0) if not gear_gloves else Color(0.86,0.86,0.86,1.0)" in patch and
+        "var pc22_support_depth_tint := Color(0.80,0.76,0.72,1.0) if not gear_gloves else Color(0.78,0.78,0.78,1.0)" in patch and
         "_pc22_v3_draw_grip_hand_tinted(pc22_pistol_sup_tex" in patch,
         "pistol support-hand depth tint/readability layer missing")
 require("The support palm is drawn over the" in patch and
@@ -251,6 +251,15 @@ for token in ("male_pistol_left","male_pistol_left_up60","male_pistol_left_down6
               "female_pistol_left","female_pistol_left_up60","female_pistol_left_down60",
               "male_role_scientist","female_role_scientist"):
     require(token in patch, f"capture matrix missing {token}")
+
+for sex in ("male","female"):
+    for role in ("trader","medic","mechanic","guard","bandit","civilian","scientist"):
+        for pose in ("rifle_up60","rifle_down60","rifle_left"):
+            require(f"{sex}_role_{role}_{pose}" in patch,
+                    f"capture matrix missing {sex} {role} {pose}")
+require("elif extra < 56:" in patch and
+        "state = [14,17,26][pose_index]" in patch,
+        "NPC role visual sweep state mapping missing")
 
 builder = (repo / "tools/build_pc22_canonical_arm_assets.py").read_text(encoding="utf-8")
 require('"universal_rig_id":"HUMANOID_CANONICAL_ARM_SYSTEM"' in builder,
