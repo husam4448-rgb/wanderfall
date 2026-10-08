@@ -31,20 +31,20 @@
       5.5
     ],
     "dominant_hand_min": [
-      5.7,
-      5.3
+      5,
+      4.6
     ],
     "dominant_hand_max": [
-      6.3,
-      5.9
+      5.6,
+      5.1
     ],
     "support_hand_min": [
-      5.3,
-      4.9
+      4.7,
+      4.4
     ],
     "support_hand_max": [
-      5.9,
-      5.5
+      5.3,
+      4.9
     ],
     "torso_runtime_size": [
       26.2,
@@ -67,12 +67,12 @@
       -0.12
     ],
     "dominant_hand_h_over_forearm_range": [
-      0.41,
-      0.47
+      0.35,
+      0.4
     ],
     "support_hand_h_over_forearm_range": [
-      0.39,
-      0.45
+      0.34,
+      0.39
     ],
     "dominant_wrist_to_grip_x_range": [
       2.3,
@@ -121,20 +121,20 @@
       5.1
     ],
     "dominant_hand_min": [
-      5.3,
-      5
+      4.7,
+      4.4
     ],
     "dominant_hand_max": [
-      5.9,
-      5.6
+      5.3,
+      4.9
     ],
     "support_hand_min": [
-      5,
-      4.7
+      4.5,
+      4.2
     ],
     "support_hand_max": [
-      5.6,
-      5.3
+      5.1,
+      4.7
     ],
     "torso_runtime_size": [
       27,
@@ -157,12 +157,12 @@
       -0.11
     ],
     "dominant_hand_h_over_forearm_range": [
-      0.41,
-      0.47
+      0.35,
+      0.4
     ],
     "support_hand_h_over_forearm_range": [
-      0.39,
-      0.45
+      0.34,
+      0.39
     ],
     "dominant_wrist_to_grip_x_range": [
       2.18,
@@ -214,7 +214,9 @@
     "The old 1928/1928 geometry sweep remains necessary but is not sufficient; body-relative torso/arm/hand ratio checks are mandatory.",
     "Visual acceptance requires direct comparison of the newest Godot captures against the approved male/female character art, including gear-off and gear-on.",
     "Grip-contact correction: the weapon contact and anatomical wrist are distinct points. IK terminates at the wrist; the authored palm spans from wrist to grip.",
-    "Armed hand sprites must be wrist-anchored. Reintroducing grip-centered hand pivots would make the forearm terminate inside the palm and visually twist the hand."
+    "Armed hand sprites must be wrist-anchored. Reintroducing grip-centered hand pivots would make the forearm terminate inside the palm and visually twist the hand.",
+    "Direct reference-vs-runtime recalibration: tight closed grip masks require smaller world extents than the former open-hand sprites; hand/forearm ratios are shifted downward while remaining substantially larger and more readable than the rejected pre-recalibration 3px-class hands.",
+    "Hand material rule: connected weapon-wrap alpha masks must be filled with authored glove/hand luminance detail; flat procedural RGB hands are not visually acceptable."
   ],
   "runtime_draw": {
     "rifle_scale_min": 0.3,
