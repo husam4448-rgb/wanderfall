@@ -429,7 +429,7 @@ func _pc22_v3_draw_elbow_gusset(tex: Texture2D, shoulder: Vector2, elbow: Vector
     bisector = bisector.normalized()
     var tw: float = float(tex.get_width())
     var th: float = float(tex.get_height())
-    var desired_w: float = 3.35 if female_mode else 3.65
+    var desired_w: float = 4.65 if female_mode else 4.95
     var scale_u: float = desired_w/maxf(1.0,tw)
     # Pass the canonical world angle; _pc22_v3_draw_pivoted owns mirroring.
     var rot: float = bisector.angle()
@@ -784,14 +784,15 @@ weapon_block='''    # HYBRID V3: weapon artwork is anchored directly at the domi
             _pc22_v3_draw_weapon_piece(tex_pc22_rifle_front,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(36.0,18.0),0.33)
             active_muzzle = pc22_dom_wrist + _pose_point(Vector2(19.14,-1.65),pc22_arm_angle,dir_sign)
         else:
-            # Support hand is behind the pistol frame and meets the same grip
-            # as the firing hand. Drawing it first preserves weapon readability.
+            # Draw the pistol first, then the support hand, then the dominant
+            # hand below. This keeps the second hand visibly wrapped around the
+            # grip instead of disappearing behind the frame.
+            _pc22_v3_draw_weapon_piece(tex_pc22_pistol,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(15.0,18.0),0.24)
             var pc22_pistol_sup_tex := _pc22_support_hand_texture()
             if pc22_pistol_sup_tex != null:
                 _pc22_v3_draw_grip_hand(pc22_pistol_sup_tex,pc22_front_wrist,pc22_arm_angle,dir_sign,(2.80 if female_mode else 3.00),Vector2(0.56,0.48))
             else:
                 _draw_support_hand(pc22_front_wrist,pc22_arm_angle,dir_sign,Color("b97755"),0.88)
-            _pc22_v3_draw_weapon_piece(tex_pc22_pistol,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(15.0,18.0),0.24)
             active_muzzle = pc22_dom_wrist + _pose_point(Vector2(7.44,-2.16),pc22_arm_angle,dir_sign)
 
         if shot_flash > 0.02:
