@@ -124,7 +124,7 @@ if "pc22_player_arm_rig.support_hand_height()" not in patch:
 if "Vector2(6.8,0.0)" not in patch or "1.7*dir_sign" in patch:
     fail.append("runtime.sidearm_target: obsolete screen-X compensation still present")
 
-if rc.get("hand_attachment") != "anatomical_wrist_pivot":
+if rc.get("hand_attachment") != "shared_wrist_to_grip_transform":
     fail.append("runtime.hand_attachment contract drift")
 if rc.get("weapon_attachment") != "palm_grip_contact":
     fail.append("runtime.weapon_attachment contract drift")
@@ -138,10 +138,14 @@ if "_pc22_v3_draw_weapon_piece(tex_pc22_pistol,pc22_dom_grip" not in patch:
     fail.append("runtime.pistol is not anchored to palm grip contact")
 if "_pc22_v3_draw_weapon_piece(tex_pc22_rifle_front,pc22_dom_grip" not in patch:
     fail.append("runtime.rifle is not anchored to palm grip contact")
-if "_pc22_v3_draw_hand(pc22_dom_grip_tex,pc22_dom_wrist" not in patch:
-    fail.append("runtime.dominant hand is not wrist anchored")
-if "_pc22_v3_draw_hand(pc22_sup_grip_tex,pc22_front_wrist" not in patch:
-    fail.append("runtime.support hand is not wrist anchored")
+if "func _pc22_v3_draw_rig_grip_hand(" not in patch:
+    fail.append("runtime.shared wrist-to-grip hand transform missing")
+if "wrist_px + wrist_to_grip_local/maxf(0.0001,scale_u)" not in patch:
+    fail.append("runtime.visual hand pivot is not derived from the canonical wrist-to-grip vector")
+if "_pc22_v3_draw_rig_grip_hand(pc22_dom_grip_tex,pc22_dom_grip" not in patch:
+    fail.append("runtime.dominant palm is not anchored at weapon grip contact")
+if "_pc22_v3_draw_rig_grip_hand(pc22_sup_grip_tex,pc22_support_grip" not in patch:
+    fail.append("runtime.support palm is not anchored at weapon grip contact")
 
 
 # Armed layering contract for the universal three-joint renderer.
