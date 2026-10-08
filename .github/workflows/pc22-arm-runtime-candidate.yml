@@ -157,7 +157,7 @@ jobs:
           grep -q 'PC22_ARM_GEOMETRY_OK:' pc22-arm-capture.log
           grep -q 'PC22_RUNTIME_SWEEP_OK' pc22-arm-capture.log
           grep -q 'PC22_NPC_INHERITANCE_OK' pc22-arm-capture.log
-          grep -q 'PC22_ROLE_ASSETS_OK:24_SLEEVES:24_GLOVES:12_TORSOS' pc22-arm-capture.log
+          grep -q 'PC22_ROLE_ASSETS_OK:UNIVERSAL_ROLES_WITH_SCIENTIST_FALLBACK' pc22-arm-capture.log
           test "$(grep -c 'PC22_RUNTIME_SWEEP_CASE_OK:' pc22-arm-capture.log)" -ge 4
           if grep -q 'PC22_ARM_GEOMETRY_FAIL' pc22-arm-capture.log; then exit 1; fi
           if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|Compile Error:|Parse Error:|Invalid call|Invalid get index' pc22-arm-capture.log; then exit 1; fi
@@ -180,14 +180,15 @@ jobs:
             "pistol_horizontal","pistol_up30","pistol_up60","pistol_max_up","pistol_down30","pistol_down60","pistol_max_down",
             "rifle_horizontal","rifle_up30","rifle_up60","rifle_max_up","rifle_down30","rifle_down60","rifle_max_down","recoil",
             "walk_right_aim_right","walk_left_aim_right","walk_right_aim_up","walk_left_aim_down",
-            "run_pistol","run_rifle","rifle_left","rifle_left_up60","rifle_left_down60"
+            "run_pistol","run_rifle","rifle_left","rifle_left_up60","rifle_left_down60",
+            "pistol_left","pistol_left_up60","pistol_left_down60"
           ]
           groups={
             "locomotion":["idle","walk_a","walk_b","run_a","run_b","run_pistol","run_rifle"],
-            "pistol":["pistol_horizontal","pistol_up30","pistol_up60","pistol_max_up","pistol_down30","pistol_down60","pistol_max_down"],
+            "pistol":["pistol_horizontal","pistol_up30","pistol_up60","pistol_max_up","pistol_down30","pistol_down60","pistol_max_down","pistol_left","pistol_left_up60","pistol_left_down60"],
             "rifle":["rifle_horizontal","rifle_up30","rifle_up60","rifle_max_up","rifle_down30","rifle_down60","rifle_max_down","recoil"],
             "movement_aim":["walk_right_aim_right","walk_left_aim_right","walk_right_aim_up","walk_left_aim_down","rifle_left","rifle_left_up60","rifle_left_down60"],
-            "roles":["role_trader","role_medic","role_mechanic","role_guard","role_bandit","role_civilian","npc_generic_glove"],
+            "roles":["role_trader","role_medic","role_mechanic","role_guard","role_bandit","role_civilian","role_scientist","npc_generic_glove"],
           }
 
           def frame(sex,state,w=360,h=420):
@@ -200,7 +201,7 @@ jobs:
               return crop
 
           for sex in ("male","female"):
-              # One complete acceptance sheet with all 29 actual-engine states.
+              # One complete acceptance sheet with all current actual-engine states.
               cols=5; w=320; h=380
               rows=math.ceil(len(states)/cols)
               sheet=Image.new("RGB",(cols*w,rows*h),(16,20,21))
