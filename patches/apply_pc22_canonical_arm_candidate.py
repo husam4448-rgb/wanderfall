@@ -26,15 +26,17 @@ rig_module.parent.mkdir(parents=True,exist_ok=True)
 rig_module.write_text(f'''class_name PC22CanonicalArmSystem
 extends RefCounted
 
-const MALE_RIG_ID := "MALE_CANONICAL_ARM_SYSTEM"
-const FEMALE_RIG_ID := "FEMALE_CANONICAL_ARM_SYSTEM"
+const UNIVERSAL_RIG_ID := "HUMANOID_CANONICAL_ARM_SYSTEM"
 var female_mode := false
 
 func configure(is_female: bool) -> void:
     female_mode = is_female
 
 func rig_id() -> String:
-    return FEMALE_RIG_ID if female_mode else MALE_RIG_ID
+    return UNIVERSAL_RIG_ID
+
+func profile_id() -> String:
+    return "female" if female_mode else "male"
 
 func lengths() -> Vector2:
     return Vector2({female_spec["upper_arm_length"]},{female_spec["forearm_length"]}) if female_mode else Vector2({male_spec["upper_arm_length"]},{male_spec["forearm_length"]})
@@ -230,13 +232,14 @@ var pc22_player_arm_rig := PC22CanonicalArmSystemScript.new()
 var pc22_npc_arm_rig := PC22CanonicalArmSystemScript.new()
 var pc22_role := ""
 var pc22_role_texture_cache: Dictionary = {}
+var pc22_arm_color_cache: Dictionary = {}
 var pc22_prev_dom_elbow := Vector2.ZERO
 var pc22_prev_support_elbow := Vector2.ZERO
 var pc22_prev_arm_valid := false
 var pc22_prev_face_right := true
 var pc22_arm_capture_dir := ""
 var pc22_arm_capture_index := -1
-var pc22_arm_states_per_sex := 31
+var pc22_arm_states_per_sex := 34
 var pc22_arm_capture_names := PackedStringArray([
     "male_idle","male_walk_a","male_walk_b","male_run_a",
     "male_run_b","male_pistol_horizontal","male_pistol_up30","male_pistol_up60",
@@ -246,6 +249,7 @@ var pc22_arm_capture_names := PackedStringArray([
     "male_walk_right_aim_right","male_walk_left_aim_right","male_walk_right_aim_up","male_walk_left_aim_down",
     "male_run_pistol","male_run_rifle","male_rifle_left","male_rifle_left_up60",
     "male_rifle_left_down60","male_full_gear_rifle","male_full_gear_pistol",
+    "male_pistol_left","male_pistol_left_up60","male_pistol_left_down60",
     "female_idle","female_walk_a","female_walk_b",
     "female_run_a","female_run_b","female_pistol_horizontal","female_pistol_up30",
     "female_pistol_up60","female_pistol_max_up","female_pistol_down30","female_pistol_down60",
@@ -254,9 +258,11 @@ var pc22_arm_capture_names := PackedStringArray([
     "female_recoil","female_walk_right_aim_right","female_walk_left_aim_right","female_walk_right_aim_up",
     "female_walk_left_aim_down","female_run_pistol","female_run_rifle","female_rifle_left",
     "female_rifle_left_up60","female_rifle_left_down60","female_full_gear_rifle","female_full_gear_pistol",
+    "female_pistol_left","female_pistol_left_up60","female_pistol_left_down60",
     "male_role_trader","male_role_medic","male_role_mechanic","male_role_guard",
-    "male_role_bandit","male_role_civilian","female_role_trader","female_role_medic",
-    "female_role_mechanic","female_role_guard","female_role_bandit","female_role_civilian",
+    "male_role_bandit","male_role_civilian","male_role_scientist",
+    "female_role_trader","female_role_medic","female_role_mechanic","female_role_guard",
+    "female_role_bandit","female_role_civilian","female_role_scientist",
     "male_npc_generic_glove","female_npc_generic_glove"
 ])
 '''
@@ -280,7 +286,7 @@ func _pc22_pistol_support_target(dominant_grip: Vector2, weapon_angle: float, di
     # the same pistol grip instead of hanging the entire arm at the character's
     # side. This offset is weapon-local, so it remains stable through the full
     # up/down aim sweep and when left-facing is mirrored.
-    return dominant_grip + _pose_point(Vector2(-2.00,2.40),weapon_angle,dir_sign)
+    return dominant_grip + _pose_point(Vector2(-0.82,1.12),weapon_angle,dir_sign)
 
 func _pc22_role_texture(kind: String) -> Texture2D:
     if pc22_role.is_empty():
@@ -360,7 +366,7 @@ func _pc22_draw_role_torso(base: Vector2, dir_sign: float) -> void:
         _draw_equipment_texture(role_torso,base+Vector2(0,-4),Vector2(26.2,29.6),dir_sign<0.0)
 
 func _pc22_verify_role_assets() -> bool:
-    var roles := ["trader","medic","mechanic","guard","bandit","civilian"]
+    var roles := ["trader","medic","mechanic","guard","bandit","civilian","scientist"]
     var old_role := pc22_role
     var old_female := female_mode
     for role in roles:
@@ -368,14 +374,17 @@ func _pc22_verify_role_assets() -> bool:
             pc22_role = role
             female_mode = is_female
             for kind in ["upper_arm","forearm","shoulder_cap","glove_dominant","glove_support","torso"]:
-                if _pc22_role_texture(kind) == null:
+                # Scientist currently uses the universal player fallback artwork
+                # until dedicated scientist clothing is authored. Geometry and
+                # sockets remain identical, so no scientist-specific rig exists.
+                if role != "scientist" and _pc22_role_texture(kind) == null:
                     push_error("PC22_ROLE_ASSET_MISSING %s %s %s" % [role,("female" if is_female else "male"),kind])
                     pc22_role = old_role
                     female_mode = old_female
                     return false
     pc22_role = old_role
     female_mode = old_female
-    print("PC22_ROLE_ASSETS_OK:24_SLEEVES:24_GLOVES:12_TORSOS")
+    print("PC22_ROLE_ASSETS_OK:UNIVERSAL_ROLES_WITH_SCIENTIST_FALLBACK")
     return true
 
 func _pc22_v3_draw_pivoted(tex: Texture2D, joint: Vector2, world_angle: float, uniform_scale: float, pivot_px: Vector2, flip_x: bool) -> void:
@@ -623,7 +632,7 @@ func _pc22_verify_runtime_sweep() -> bool:
     return ok
 
 func _pc22_verify_npc_inheritance() -> bool:
-    var roles := ["trader","medic","mechanic","guard","bandit","civilian"]
+    var roles := ["trader","medic","mechanic","guard","bandit","civilian","scientist"]
     for is_female in [false,true]:
         pc22_player_arm_rig.configure(is_female)
         pc22_npc_arm_rig.configure(is_female)
