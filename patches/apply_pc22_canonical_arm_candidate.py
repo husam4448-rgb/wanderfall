@@ -280,7 +280,7 @@ func _pc22_pistol_support_target(dominant_grip: Vector2, weapon_angle: float, di
     # the same pistol grip instead of hanging the entire arm at the character's
     # side. This offset is weapon-local, so it remains stable through the full
     # up/down aim sweep and when left-facing is mirrored.
-    return dominant_grip + _pose_point(Vector2(-0.85,1.55),weapon_angle,dir_sign)
+    return dominant_grip + _pose_point(Vector2(-1.10,1.65),weapon_angle,dir_sign)
 
 func _pc22_role_texture(kind: String) -> Texture2D:
     if pc22_role.is_empty():
@@ -727,9 +727,17 @@ s=s.replace(rear_anchor,'''    if gear_back and not female_mode:
         _pc22_v3_draw_cap(pc22_rear_cap_tex,pc22_rear_shoulder,pc22_rear_elbow,dir_sign)
         _pc22_v3_draw_cap(pc22_front_cap_tex,pc22_front_shoulder,pc22_front_elbow,dir_sign)
 
-    # Rifle stock is a rear-depth piece. Draw it BEFORE torso/clothing so the
-    # chest naturally occludes the butt/root instead of showing a brown block
-    # pasted across the character.
+    # Rifle rear-depth composition: dominant forearm/elbow and stock belong
+    # behind the torso/equipment. This prevents the two rifle arms from forming
+    # a flat foreground X while keeping the support arm readable in front.
+    if weapon_visible and weapon_two_handed:
+        var pc22_rear_fore_back_tex: Texture2D = _pc22_fore_texture()
+        _pc22_v3_draw_segment(pc22_rear_fore_back_tex,pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)
+        var pc22_rear_elbow_back_tex: Texture2D = _pc22_elbow_texture()
+        _pc22_v3_draw_elbow_gusset(pc22_rear_elbow_back_tex,pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)
+        if tex_pc22_rifle_stock != null:
+            _pc22_v3_draw_weapon_piece(tex_pc22_rifle_stock,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(36.0,18.0),0.33)
+
     # Independent left/right leg gait. Each leg has its own hip, knee, shin and foot.
 ''',1)
 
@@ -738,25 +746,20 @@ front_anchor='''    # On the left-facing mirror, support hand is drawn first so 
 '''
 if front_anchor not in s:
     raise SystemExit("Candidate front-arm layering anchor missing")
-s=s.replace(front_anchor,'''    # HYBRID V3 DEPTH STACK: torso is already drawn. The rear rifle stock and
-    # proximal shoulder roots were composed before torso; only distal arm art,
-    # weapon front and hands are allowed to re-emerge here.
-    if weapon_visible and weapon_two_handed and tex_pc22_rifle_stock != null:
-        _pc22_v3_draw_weapon_piece(tex_pc22_rifle_stock,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(36.0,18.0),0.33)
-
-    # Upper arms remain torso-masked in armed poses; widened intrinsic joint
-    # overlap now handles elbow continuity without repainting triangular tails.
-
-    # Forearms remain foreground and deliberately overlap the tiny elbow bridges.
+s=s.replace(front_anchor,'''    # HYBRID V3 DEPTH STACK: torso is already drawn. For rifles the rear
+    # dominant forearm/stock were composed behind the torso; only the support
+    # chain re-emerges here. Pistol and unarmed states keep both distal arms.
     var pc22_rear_fore_tex: Texture2D = _pc22_fore_texture()
     var pc22_front_fore_tex: Texture2D = _pc22_fore_texture()
-    _pc22_v3_draw_segment(pc22_rear_fore_tex,pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)
+    if not (weapon_visible and weapon_two_handed):
+        _pc22_v3_draw_segment(pc22_rear_fore_tex,pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)
     _pc22_v3_draw_segment(pc22_front_fore_tex,pc22_front_elbow,pc22_front_wrist,dir_sign<0.0)
     # Dedicated textured anatomical gussets bridge the exact two-bone elbow
     # without changing any shoulder/elbow/wrist geometry.
     if weapon_visible:
         var pc22_elbow_tex: Texture2D = _pc22_elbow_texture()
-        _pc22_v3_draw_elbow_gusset(pc22_elbow_tex,pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)
+        if not weapon_two_handed:
+            _pc22_v3_draw_elbow_gusset(pc22_elbow_tex,pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)
         _pc22_v3_draw_elbow_gusset(pc22_elbow_tex,pc22_front_shoulder,pc22_front_elbow,pc22_front_wrist,dir_sign<0.0)
 
     # Free hands are only used while unarmed. Armed pistol/rifle states use
@@ -784,15 +787,9 @@ weapon_block='''    # HYBRID V3: weapon artwork is anchored directly at the domi
             _pc22_v3_draw_weapon_piece(tex_pc22_rifle_front,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(36.0,18.0),0.33)
             active_muzzle = pc22_dom_wrist + _pose_point(Vector2(19.14,-1.65),pc22_arm_angle,dir_sign)
         else:
-            # Draw the pistol first, then the support hand, then the dominant
-            # hand below. This keeps the second hand visibly wrapped around the
-            # grip instead of disappearing behind the frame.
+            # Pistol stays anchored to the dominant grip; the support hand is
+            # drawn after the dominant hand so both palms remain visibly distinct.
             _pc22_v3_draw_weapon_piece(tex_pc22_pistol,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(15.0,18.0),0.24)
-            var pc22_pistol_sup_tex := _pc22_support_hand_texture()
-            if pc22_pistol_sup_tex != null:
-                _pc22_v3_draw_grip_hand(pc22_pistol_sup_tex,pc22_front_wrist,pc22_arm_angle,dir_sign,(2.80 if female_mode else 3.00),Vector2(0.56,0.48))
-            else:
-                _draw_support_hand(pc22_front_wrist,pc22_arm_angle,dir_sign,Color("b97755"),0.88)
             active_muzzle = pc22_dom_wrist + _pose_point(Vector2(7.44,-2.16),pc22_arm_angle,dir_sign)
 
         if shot_flash > 0.02:
@@ -814,6 +811,14 @@ weapon_block='''    # HYBRID V3: weapon artwork is anchored directly at the domi
                 _pc22_v3_draw_grip_hand(pc22_sup_grip_tex,pc22_front_wrist,pc22_arm_angle,dir_sign,(3.15 if female_mode else 3.35),Vector2(0.56,0.48))
             else:
                 _draw_support_hand(pc22_front_wrist,pc22_arm_angle,dir_sign,Color("b97755"),1.0)
+        else:
+            # Pistol support palm overlays the firing palm slightly lower/back,
+            # matching a compact two-hand grip instead of reading as one hand.
+            var pc22_pistol_sup_tex := _pc22_support_hand_texture()
+            if pc22_pistol_sup_tex != null:
+                _pc22_v3_draw_grip_hand(pc22_pistol_sup_tex,pc22_front_wrist,pc22_arm_angle,dir_sign,(2.70 if female_mode else 2.90),Vector2(0.56,0.48))
+            else:
+                _draw_support_hand(pc22_front_wrist,pc22_arm_angle,dir_sign,Color("b97755"),0.84)
 '''
 s=s[:start]+weapon_block+s[end:]
 
