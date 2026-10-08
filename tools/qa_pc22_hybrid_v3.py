@@ -197,8 +197,8 @@ require("pc22_dom_wrist = pc22_player_arm_rig.wrist_from_grip(pc22_dom_grip,pc22
         "pistol dominant anatomical wrist is not derived from palm contact")
 require("pc22_front_elbow = _pc22_solve_elbow(pc22_front_shoulder,pc22_front_wrist" in patch,
         "pistol support arm is not solved to anatomical wrist")
-require("var pc22_pistol_sup_tex := _pc22_support_hand_texture()" in patch,
-        "pistol support hand renderer missing")
+require("var pc22_pistol_sup_tex := _pc22_dominant_hand_texture()" in patch,
+        "pistol support palm is not using the vertical grip-wrap silhouette")
 require("func _pc22_v3_draw_hand_tinted" in patch and
         "_pc22_v3_draw_hand_tinted(pc22_pistol_sup_tex,pc22_front_wrist" in patch and
         "pc22_player_arm_rig.support_hand_height()*0.94" in patch,
@@ -318,6 +318,15 @@ require('W,H=(28,24) if sex=="female" else (30,26)' in builder,
         "compact elbow bridge dimensions drift")
 require("min(52,ea)" in builder,
         "armed sleeve detail edge contour became too heavy")
+require("def _aa_grip_hand(sex, support=False):" in builder,
+        "weapon-wrap grip hand generator missing")
+require("return _aa_grip_hand(sex,False)" in builder and
+        "return _aa_grip_hand(sex,True)" in builder,
+        "bare dominant/support hands are not using dedicated grip silhouettes")
+require("grip=_aa_grip_hand(sex,support).convert(\"RGBA\")" in builder,
+        "tactical gloves are not constrained to the same grip silhouette")
+require("Vertical grip channel" in builder and "horizontal weapon channel" in builder,
+        "dominant/support weapon channels missing from grip art")
 
 # Elbow textures remain packaged for backward-compatible/unarmed fallback, but
 # armed rendering must not expose an independent elbow component.
