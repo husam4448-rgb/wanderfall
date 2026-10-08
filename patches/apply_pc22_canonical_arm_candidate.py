@@ -1058,30 +1058,24 @@ start=s.find('    # On the left-facing mirror, support hand is drawn first so th
 end=s.find('\n\n    # PC15: base torso keeps its matching collar/belt.',start)
 if start<0 or end<0:
     raise SystemExit("Candidate weapon block boundaries missing")
-weapon_block='''    # HYBRID V3: weapon artwork is anchored directly at the dominant grip
-    # socket.  Stock/front pieces share the exact same transform, eliminating
-    # the old center-offset drift between weapon and hands.
+weapon_block='''    # HYBRID V3: weapon artwork is anchored at the weapon-contact point,
+    # while the arm terminates at a distinct anatomical wrist behind the palm.
     if weapon_visible:
-        var active_muzzle: Vector2 = pc22_dom_wrist
+        var active_muzzle: Vector2 = pc22_dom_grip
         if weapon_two_handed:
-            _pc22_v3_draw_weapon_piece(tex_pc22_rifle_front,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(36.0,18.0),0.33)
-            active_muzzle = pc22_dom_wrist + _pose_point(Vector2(19.14,-1.65),pc22_arm_angle,dir_sign)
+            _pc22_v3_draw_weapon_piece(tex_pc22_rifle_front,pc22_dom_grip,pc22_arm_angle,dir_sign,Vector2(36.0,18.0),0.33)
+            active_muzzle = pc22_dom_grip + _pose_point(Vector2(19.14,-1.65),pc22_arm_angle,dir_sign)
         else:
-            # Final pistol depth stack: support arm -> support palm -> pistol ->
-            # dominant firing palm. The weapon separates the two hands visually
-            # while both remain locked to the same underlying IK grip geometry.
+            # Pistol depth stack: support arm -> wrist-anchored support hand ->
+            # pistol contact -> wrist-anchored dominant hand.
             var pc22_pistol_sup_tex := _pc22_support_hand_texture()
-            # Visual-only support-palm placement: keep the IK wrist/socket
-            # untouched, but reveal a smaller lower/rear palm around the firing
-            # hand so the two-hand grip reads clearly at gameplay scale.
-            var pc22_pistol_sup_visual := pc22_front_wrist + _pose_point(Vector2(-0.46,0.42),pc22_arm_angle,dir_sign)
             if pc22_pistol_sup_tex != null:
-                var pc22_support_depth_tint := Color(0.69,0.65,0.62,1.0) if not gear_gloves else Color(0.70,0.70,0.70,1.0)
-                _pc22_v3_draw_grip_hand_tinted(pc22_pistol_sup_tex,pc22_pistol_sup_visual,pc22_arm_angle,dir_sign,pc22_player_arm_rig.support_hand_height()*0.92,Vector2(0.52,0.54),pc22_support_depth_tint)
+                var pc22_support_depth_tint := Color(0.76,0.72,0.69,1.0) if not gear_gloves else Color(0.78,0.78,0.78,1.0)
+                _pc22_v3_draw_hand_tinted(pc22_pistol_sup_tex,pc22_front_wrist,pc22_arm_angle,dir_sign,pc22_player_arm_rig.support_hand_height()*0.94,pc22_support_depth_tint)
             else:
-                _draw_support_hand(pc22_pistol_sup_visual,pc22_arm_angle,dir_sign,Color("b97755"),0.80)
-            _pc22_v3_draw_weapon_piece(tex_pc22_pistol,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(15.0,18.0),0.24)
-            active_muzzle = pc22_dom_wrist + _pose_point(Vector2(7.44,-2.16),pc22_arm_angle,dir_sign)
+                _draw_support_hand(pc22_front_wrist,pc22_arm_angle,dir_sign,Color("b97755"),0.94)
+            _pc22_v3_draw_weapon_piece(tex_pc22_pistol,pc22_dom_grip,pc22_arm_angle,dir_sign,Vector2(15.0,18.0),0.24)
+            active_muzzle = pc22_dom_grip + _pose_point(Vector2(7.44,-2.16),pc22_arm_angle,dir_sign)
 
         if shot_flash > 0.02:
             var flash_len: float = 5.0 * shot_flash
@@ -1089,21 +1083,21 @@ weapon_block='''    # HYBRID V3: weapon artwork is anchored directly at the domi
             draw_line(active_muzzle,flash_tip,Color(1.0,0.78,0.28,0.85*shot_flash),2.0,true)
             draw_circle(active_muzzle,1.6*shot_flash,Color(1.0,0.92,0.55,0.75*shot_flash))
 
-        # The locked IK target is the weapon-contact point. In armed poses, put
-        # that point inside the palm so the fingers visibly wrap the grip.
+        # The forearm ends at the true wrist. The authored hand is attached at
+        # its wrist edge, so the palm naturally reaches the weapon contact.
         var pc22_dom_grip_tex := _pc22_dominant_hand_texture()
         if pc22_dom_grip_tex != null:
-            _pc22_v3_draw_grip_hand(pc22_dom_grip_tex,pc22_dom_wrist,pc22_arm_angle,dir_sign,pc22_player_arm_rig.dominant_hand_height(),Vector2(0.58,0.62))
+            _pc22_v3_draw_hand(pc22_dom_grip_tex,pc22_dom_wrist,pc22_arm_angle,dir_sign,pc22_player_arm_rig.dominant_hand_height())
         else:
             _draw_hand(pc22_dom_wrist,pc22_arm_angle,dir_sign,Color("c98e68"))
         if weapon_two_handed:
             var pc22_sup_grip_tex := _pc22_support_hand_texture()
             if pc22_sup_grip_tex != null:
-                _pc22_v3_draw_grip_hand(pc22_sup_grip_tex,pc22_front_wrist,pc22_arm_angle,dir_sign,pc22_player_arm_rig.support_hand_height(),Vector2(0.55,0.54))
+                _pc22_v3_draw_hand(pc22_sup_grip_tex,pc22_front_wrist,pc22_arm_angle,dir_sign,pc22_player_arm_rig.support_hand_height())
             else:
                 _draw_support_hand(pc22_front_wrist,pc22_arm_angle,dir_sign,Color("b97755"),1.0)
         else:
-            # Pistol support hand was already composed around the weapon grip.
+            # Pistol support hand was already composed below the weapon.
             pass
 '''
 s=s[:start]+weapon_block+s[end:]
