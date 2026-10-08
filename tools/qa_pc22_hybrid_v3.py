@@ -131,7 +131,7 @@ for token in (
     "func _pc22_v3_draw_weapon_piece",
     "func _pc22_draw_anatomical_arm_shape",
     "PLAYER CHARACTERS V22 HYBRID ARM V3 | PIVOTED RENDERER:",
-    "HYBRID V3: only proximal upper-arm art is drawn behind the torso",
+    "Unarmed locomotion keeps the authored upper-arm sprites behind the torso",
     "UNIVERSAL THREE-JOINT ARM COMPOSITION",
 ):
     require(token in patch, f"patch missing V3 marker: {token}")
@@ -169,6 +169,9 @@ require("pc22_rear_fore_back_tex" not in patch and "pc22_rear_elbow_back_tex" no
         "legacy modular rifle rear forearm/elbow render reintroduced")
 require("pc22_dom_upper_start" not in patch and "pc22_front_upper_start" not in patch,
         "triangular foreground upper-arm tails reintroduced")
+require("if not weapon_visible:\n        var pc22_rear_upper_tex" in patch and
+        "suppressing these hidden construction sprites prevents a protruding" in patch,
+        "armed pre-torso upper-arm construction sprites are not suppressed")
 require("if gear_torso:" in patch and "tex_pc22_female_gear_upper" in patch and "tex_pc22_male_gear_fore" in patch,
         "equipped tactical sleeve selection missing")
 
