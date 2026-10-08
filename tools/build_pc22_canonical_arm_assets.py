@@ -585,36 +585,37 @@ def _detailed_skin_hand(glove_img, sex, support=False):
     return canvas
 
 def derive_bare_hand(glove_img, sex):
-    return _detailed_skin_hand(glove_img,sex,False)
+    # Use the dedicated weapon-wrap silhouette instead of compacting the old
+    # open glove. The old source left extended fingers visible in Godot and made
+    # the gun appear balanced on fingertips rather than enclosed by the palm.
+    return _aa_grip_hand(sex,False)
 
 def derive_support_hand(dominant, sex):
-    # Use the same high-detail authored glove source, not the already-cut dominant.
-    return _detailed_skin_hand(glove_src,sex,True)
+    # Rifle support hand gets a horizontal handguard channel; the forearm still
+    # terminates at the same anatomical wrist and uses the same universal rig.
+    return _aa_grip_hand(sex,True)
 
 def derive_tactical_glove(glove_img, sex, support=False):
-    """Compact the authored tactical glove into the same weapon-wrap silhouette."""
+    """Weapon-wrap tactical glove with authored-material tonal variation."""
+    grip=_aa_grip_hand(sex,support).convert("RGBA")
+    alpha=grip.getchannel("A")
+    # Reuse luminance variation from the approved glove source, but conform it
+    # to the closed weapon-wrap silhouette so equipment cannot reintroduce the
+    # old open-finger/disoriented hand shape.
     src=trim(glove_img).convert("RGBA")
-    w,h=src.size
-    src=src.crop((max(0,int(w*0.10)),0,w,h))
-    # Keep genuine glove texture/material; only compact the open source fingers.
-    xscale=0.64 if not support else 0.70
-    src=src.resize((max(2,int(round(src.width*xscale))),src.height),Image.Resampling.LANCZOS)
-    src=trim(src)
-    canvas=Image.new("RGBA",(96,96),(0,0,0,0))
-    maxw,maxh=((72,60) if sex=="male" else (68,56))
-    sc=min(maxw/max(1,src.width),maxh/max(1,src.height))
-    rs=src.resize((max(2,int(round(src.width*sc))),max(2,int(round(src.height*sc)))),Image.Resampling.LANCZOS)
-    ox=10; oy=(96-rs.height)//2
-    canvas.alpha_composite(rs,(ox,oy))
-    a=canvas.getchannel("A"); ad=ImageDraw.Draw(a)
-    if support:
-        cy=oy+int(round(rs.height*0.54))
-        ad.rounded_rectangle((ox+int(rs.width*0.38),cy-3,ox+int(rs.width*0.92),cy+3),radius=2,fill=0)
+    lum=ImageOps.grayscale(src).resize(grip.size,Image.Resampling.LANCZOS)
+    lum=ImageEnhance.Contrast(lum).enhance(1.28)
+    if sex=="female":
+        dark,light=((35,37,34),(119,113,91))
     else:
-        cx=ox+int(round(rs.width*0.58))
-        ad.rounded_rectangle((cx-3,oy+int(rs.height*0.37),cx+3,oy+int(rs.height*0.90)),radius=2,fill=0)
-    canvas.putalpha(a)
-    return canvas
+        dark,light=((31,34,31),(111,106,85))
+    tex=ImageOps.colorize(lum,dark,light).convert("RGBA")
+    # Preserve the grip artwork's crease/edge language at low opacity.
+    grip_lum=ImageOps.grayscale(grip)
+    crease=ImageOps.colorize(grip_lum,(22,24,22),(132,126,101)).convert("RGBA")
+    tex=Image.blend(tex,crease,0.28)
+    tex.putalpha(alpha)
+    return tex
 
 
 upper_src=load_b64_png(upper_src_path)
