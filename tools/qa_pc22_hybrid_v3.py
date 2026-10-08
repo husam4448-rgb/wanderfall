@@ -318,9 +318,12 @@ for sex in ("male","female"):
 require("if gear_gloves:" in patch and "tex_pc22_female_glove_dom" in patch and "tex_pc22_male_glove_sup" in patch,
         "equipped generic glove override missing")
 
-# Armed shoulder caps are intentionally suppressed after real-device review.
-require("if not weapon_visible:" in patch and "small shoulder blob" in patch,
-        "armed shoulder-cap suppression missing")
+# Armed shoulder caps and authored upper-arm construction sprites are suppressed;
+# the continuous universal ribbon owns the armed silhouette.
+require("if not weapon_visible:\n        var pc22_rear_upper_tex" in patch and
+        "_pc22_v3_draw_cap(pc22_rear_cap_tex" in patch and
+        "suppressing these hidden construction sprites prevents a protruding" in patch,
+        "armed shoulder/upper construction suppression missing")
 
 if errors:
     print("PC22_HYBRID_V3_QA_FAIL")
