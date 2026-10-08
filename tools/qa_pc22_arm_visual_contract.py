@@ -48,6 +48,10 @@ for sex in ("male","female"):
              c["dominant_hand_h_over_forearm_range"])
     in_range(f"{sex}.ratio.sup_hand_h/forearm",spec["support_hand_size"][1]/spec["forearm_length"],
              c["support_hand_h_over_forearm_range"])
+    in_range(f"{sex}.dominant_wrist_to_grip.x",spec["dominant_wrist_to_grip_local"][0],c["dominant_wrist_to_grip_x_range"])
+    in_range(f"{sex}.dominant_wrist_to_grip.y",spec["dominant_wrist_to_grip_local"][1],c["dominant_wrist_to_grip_y_range"])
+    in_range(f"{sex}.support_wrist_to_grip.x",spec["support_wrist_to_grip_local"][0],c["support_wrist_to_grip_x_range"])
+    in_range(f"{sex}.support_wrist_to_grip.y",spec["support_wrist_to_grip_local"][1],c["support_wrist_to_grip_y_range"])
 
 shared=contract["shared_anatomy"]
 male_spec=json.loads((root/"core/male/arm_spec.json").read_text(encoding="utf-8"))
@@ -120,14 +124,24 @@ if "pc22_player_arm_rig.support_hand_height()" not in patch:
 if "Vector2(6.8,0.0)" not in patch or "1.7*dir_sign" in patch:
     fail.append("runtime.sidearm_target: obsolete screen-X compensation still present")
 
-for label,key in (("dominant","dominant_grip_pivot_fraction"),("support","support_grip_pivot_fraction")):
-    vals=rc.get(key)
-    if not vals or len(vals)!=2:
-        fail.append(f"runtime.{key}: missing")
-    else:
-        token=f"Vector2({vals[0]:.2f},{vals[1]:.2f})"
-        if token not in patch:
-            fail.append(f"runtime.{label}_grip_pivot: {token} not found")
+if rc.get("hand_attachment") != "anatomical_wrist_pivot":
+    fail.append("runtime.hand_attachment contract drift")
+if rc.get("weapon_attachment") != "palm_grip_contact":
+    fail.append("runtime.weapon_attachment contract drift")
+if "func wrist_from_grip(" not in patch:
+    fail.append("runtime.wrist_from_grip helper missing")
+if 'var pc22_dom_grip: Vector2 = pc22_targets["dominant_grip"]' not in patch:
+    fail.append("runtime.dominant grip contact not separated from wrist")
+if "pc22_dom_wrist = pc22_player_arm_rig.wrist_from_grip(pc22_dom_grip" not in patch:
+    fail.append("runtime.sidearm does not derive anatomical wrist from grip")
+if "_pc22_v3_draw_weapon_piece(tex_pc22_pistol,pc22_dom_grip" not in patch:
+    fail.append("runtime.pistol is not anchored to palm grip contact")
+if "_pc22_v3_draw_weapon_piece(tex_pc22_rifle_front,pc22_dom_grip" not in patch:
+    fail.append("runtime.rifle is not anchored to palm grip contact")
+if "_pc22_v3_draw_hand(pc22_dom_grip_tex,pc22_dom_wrist" not in patch:
+    fail.append("runtime.dominant hand is not wrist anchored")
+if "_pc22_v3_draw_hand(pc22_sup_grip_tex,pc22_front_wrist" not in patch:
+    fail.append("runtime.support hand is not wrist anchored")
 
 
 # Armed layering contract for the universal three-joint renderer.
