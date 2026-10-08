@@ -214,10 +214,10 @@
     "The old 1928/1928 geometry sweep remains necessary but is not sufficient; body-relative torso/arm/hand ratio checks are mandatory.",
     "Visual acceptance requires direct comparison of the newest Godot captures against the approved male/female character art, including gear-off and gear-on.",
     "Grip-contact correction: the weapon contact and anatomical wrist are distinct points. IK terminates at the wrist; the authored palm spans from wrist to grip.",
-    "Armed hand sprites must be wrist-anchored. Reintroducing grip-centered hand pivots would make the forearm terminate inside the palm and visually twist the hand.",
     "Direct reference-vs-runtime recalibration: tight closed grip masks require smaller world extents than the former open-hand sprites; hand/forearm ratios are shifted downward while remaining substantially larger and more readable than the rejected pre-recalibration 3px-class hands.",
     "Hand material rule: connected weapon-wrap alpha masks must be filled with authored glove/hand luminance detail; flat procedural RGB hands are not visually acceptable.",
-    "Reference-vs-runtime rifle correction: the dominant upper arm remains torso/stock-occluded, but a short solved-chain distal wrist bridge must remain visible so the firing hand does not float."
+    "Reference-vs-runtime rifle correction: the dominant upper arm remains torso/stock-occluded, but a short solved-chain distal wrist bridge must remain visible so the firing hand does not float.",
+    "Armed hand transform rule: IK still terminates at the anatomical wrist, but the rendered palm pivot is derived from the same canonical wrist-to-grip vector and anchored at the weapon contact. This simultaneously preserves wrist continuity and keeps the weapon inside the palm."
   ],
   "runtime_draw": {
     "rifle_scale_min": 0.3,
@@ -225,7 +225,7 @@
     "pistol_scale_min": 0.23,
     "pistol_scale_max": 0.26,
     "require_uniform_weapon_scale": true,
-    "hand_attachment": "anatomical_wrist_pivot",
+    "hand_attachment": "shared_wrist_to_grip_transform",
     "weapon_attachment": "palm_grip_contact"
   },
   "layering": {
