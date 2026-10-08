@@ -156,13 +156,13 @@ require("Vector2(0.54,0.50)" in patch, "dominant armed-hand grip pivot drift")
 require("Vector2(0.56,0.48)" in patch, "support armed-hand grip pivot drift")
 require("(3.05 if female_mode else 3.25)" in patch, "dominant locked hand scale drift")
 require("(3.15 if female_mode else 3.35)" in patch, "support locked hand scale drift")
-require("Rifle rear-depth composition: the dominant arm remains fully solved by" in patch,
-        "rifle rear-depth occlusion marker missing")
+require("Rifle rear-depth composition: the universal dominant arm remains fully" in patch,
+        "rifle rear-depth full-occlusion marker missing")
 require(patch.count("_pc22_v3_draw_weapon_piece(tex_pc22_rifle_stock") == 1,
         "rifle stock must be rendered exactly once")
-require("func _pc22_draw_rear_rifle_cuff" in patch and
-        "_pc22_draw_rear_rifle_cuff(pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)" in patch,
-        "rifle dominant arm distal-cuff occlusion renderer missing")
+require("func _pc22_draw_rear_rifle_cuff" not in patch and
+        "_pc22_draw_rear_rifle_cuff(" not in patch,
+        "dangling rear rifle cuff renderer reintroduced")
 require("_pc22_draw_anatomical_arm_shape(pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist,0.84)" not in patch,
         "full rear rifle arm reintroduced and may recreate the X/triangle")
 require("pc22_rear_fore_back_tex" not in patch and "pc22_rear_elbow_back_tex" not in patch,
