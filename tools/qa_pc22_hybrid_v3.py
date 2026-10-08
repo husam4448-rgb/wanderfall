@@ -156,10 +156,15 @@ require("func dominant_wrist_to_grip() -> Vector2:" in patch and
         "func support_wrist_to_grip() -> Vector2:" in patch and
         "func wrist_from_grip(" in patch,
         "anatomical wrist-to-grip rig helpers missing")
-require("_pc22_v3_draw_hand(pc22_dom_grip_tex,pc22_dom_wrist" in patch,
-        "dominant armed hand is not attached at anatomical wrist")
-require("_pc22_v3_draw_hand(pc22_sup_grip_tex,pc22_front_wrist" in patch,
-        "support armed hand is not attached at anatomical wrist")
+require("func _pc22_v3_draw_rig_grip_hand(" in patch and
+        "wrist_px + wrist_to_grip_local/maxf(0.0001,scale_u)" in patch,
+        "shared wrist-to-grip visual transform missing")
+require("_pc22_v3_draw_rig_grip_hand(pc22_dom_grip_tex,pc22_dom_grip" in patch and
+        "pc22_player_arm_rig.dominant_wrist_to_grip()" in patch,
+        "dominant armed palm is not locked to the same wrist-to-grip geometry as IK")
+require("_pc22_v3_draw_rig_grip_hand(pc22_sup_grip_tex,pc22_support_grip" in patch and
+        "pc22_player_arm_rig.support_wrist_to_grip()" in patch,
+        "support armed palm is not locked to the same wrist-to-grip geometry as IK")
 require("pc22_player_arm_rig.dominant_hand_height()" in patch,
         "dominant locked hand is not profile-scaled")
 require("pc22_player_arm_rig.support_hand_height()" in patch,
@@ -207,13 +212,12 @@ require("pc22_front_elbow = _pc22_solve_elbow(pc22_front_shoulder,pc22_front_wri
         "pistol support arm is not solved to anatomical wrist")
 require("var pc22_pistol_sup_tex := _pc22_dominant_hand_texture()" in patch,
         "pistol support palm is not using the vertical grip-wrap silhouette")
-require("func _pc22_v3_draw_hand_tinted" in patch and
-        "var pc22_pistol_sup_draw := pc22_front_wrist + _pose_point(Vector2(-0.22,0.30),pc22_arm_angle,dir_sign)" in patch and
-        "_pc22_v3_draw_hand_tinted(pc22_pistol_sup_tex,pc22_pistol_sup_draw" in patch and
+require("_pc22_v3_draw_rig_grip_hand(pc22_pistol_sup_tex,pc22_support_grip" in patch and
+        "pc22_player_arm_rig.support_wrist_to_grip()" in patch and
         "pc22_player_arm_rig.support_hand_height()*0.92" in patch,
-        "pistol support hand visual separation/profile scale drift")
-require("Pistol depth stack: support arm -> wrist-anchored support hand ->" in patch and
-        "pistol contact -> wrist-anchored dominant hand" in patch,
+        "pistol support hand is not using shared grip/contact geometry")
+require("Pistol depth stack: support arm -> support palm -> pistol ->" in patch and
+        "dominant palm" in patch,
         "pistol support-hand depth stack drift")
 require("_pc22_v3_draw_weapon_piece(tex_pc22_pistol,pc22_dom_grip" in patch,
         "pistol is not anchored to palm grip contact")
