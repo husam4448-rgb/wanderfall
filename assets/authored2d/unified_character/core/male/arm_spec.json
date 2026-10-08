@@ -24,6 +24,14 @@
     5.6,
     5.2
   ],
+  "dominant_wrist_to_grip_local": [
+    2.45,
+    0.67
+  ],
+  "support_wrist_to_grip_local": [
+    2.38,
+    0.21
+  ],
   "neutral_upper_angle_deg": 82.0,
   "neutral_elbow_flex_deg": 22.0,
   "source_tint": [
@@ -76,7 +84,9 @@
     "upper_width_over_torso_width": 0.2366412213740458,
     "forearm_width_over_torso_width": 0.1946564885496183,
     "dominant_hand_height_over_forearm": 0.44799999999999995,
-    "support_hand_height_over_forearm": 0.41600000000000004
+    "support_hand_height_over_forearm": 0.41600000000000004,
+    "dominant_wrist_to_grip_over_hand_height": 0.43750000000000006,
+    "support_wrist_to_grip_over_hand_height": 0.4576923076923077
   },
   "layering": {
     "rear_arm": "behind torso/weapon as appropriate",
