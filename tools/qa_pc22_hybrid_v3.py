@@ -153,7 +153,7 @@ for sc in pistol_scales:
 
 require("Vector2(0.54,0.50)" in patch, "dominant armed-hand grip pivot drift")
 require("Vector2(0.56,0.48)" in patch, "support armed-hand grip pivot drift")
-require("(3.25 if female_mode else 3.45)" in patch, "dominant locked hand scale drift")
+require("(3.05 if female_mode else 3.25)" in patch, "dominant locked hand scale drift")
 require("(3.15 if female_mode else 3.35)" in patch, "support locked hand scale drift")
 require("Rifle rear-depth composition" in patch, "rifle rear-depth composition marker missing")
 require(patch.count("_pc22_v3_draw_weapon_piece(tex_pc22_rifle_stock") == 1,
@@ -171,23 +171,31 @@ require("if gear_torso:" in patch and "tex_pc22_female_gear_upper" in patch and 
 
 # Pistol support arm must use fixed-length IK to a weapon-local contact point.
 require("func _pc22_pistol_support_target" in patch, "pistol support target helper missing")
-require("Vector2(-0.85,1.45)" in patch, "pistol support grip offset drift")
+require("Vector2(-1.45,2.05)" in patch, "pistol support grip offset drift")
 require("pc22_front_wrist = _pc22_pistol_support_target(pc22_dom_wrist,pc22_arm_angle,dir_sign)" in patch,
         "pistol support wrist is not locked to the weapon grip")
 require("pc22_front_elbow = _pc22_solve_elbow(pc22_front_shoulder,pc22_front_wrist" in patch,
         "pistol support arm is not solved with fixed-length IK")
 require("var pc22_pistol_sup_tex := _pc22_support_hand_texture()" in patch,
         "pistol support grip hand renderer missing")
-require("(2.45 if female_mode else 2.65)" in patch and "Vector2(0.52,0.52)" in patch,
+require("(2.35 if female_mode else 2.55)" in patch and "Vector2(0.50,0.53)" in patch,
         "pistol support grip hand scale/pivot drift")
 require("Vector2(6.6,0.0)" in patch and "Vector2(1.7*dir_sign,0.0)" in patch,
         "pistol forward stance extension missing")
 require("_pc22_v3_draw_distal_segment(pc22_rear_upper_front_tex" in patch and
         "_pc22_v3_draw_distal_segment(pc22_front_upper_front_tex" in patch,
         "armed distal upper-arm continuity layer missing")
-require("0.60)" in patch, "distal upper-arm reveal fraction drift")
+require("0.64,0.70)" in patch, "distal upper-arm reveal/thickness drift")
 require("var desired_w: float = 3.00 if female_mode else 3.20" in patch,
         "elbow gusset visual size drift")
+require("func _pc22_draw_anatomical_arm_underlay" in patch,
+        "continuous anatomical arm underlay missing")
+require("func _pc22_v3_draw_segment_detail" in patch,
+        "inset sleeve detail renderer missing")
+require("CONTINUOUS ARMED-ARM COMPOSITION" in patch,
+        "continuous armed-arm composition marker missing")
+require("draw_circle(elbow,maxf(upper_w,fore_w)*0.48,body)" in patch,
+        "rounded elbow silhouette missing")
 require("Pistol support hand was already depth-composed behind the weapon." in patch,
         "pistol support-hand depth ordering marker missing")
 require("_pc22_relaxed_onehand_arm" not in patch,
