@@ -36,11 +36,13 @@ def colorize(src,base_rgb,accent_rgb=None,accent_zone=None):
             r,g,b,a=sp[x,y]
             if a==0: continue
             lum=(r+g+b)/3.0
-            d=max(-34,min(34,int((lum-112.0)*0.22)))
+            # Preserve the authored V3 cloth folds instead of flattening every
+            # role sleeve to a single block color.
+            d=max(-58,min(58,int((lum-112.0)*0.46)))
             rgb=base_rgb
             if accent_rgb and accent_zone and accent_zone(x,y,w,h):
                 rgb=accent_rgb
-            grain=((x*13+y*17)%7)-3
+            grain=(((x*13+y*17)%7)-3)//2
             op[x,y]=(max(0,min(255,rgb[0]+d+grain)),
                      max(0,min(255,rgb[1]+d+grain)),
                      max(0,min(255,rgb[2]+d+grain)),a)
@@ -48,10 +50,13 @@ def colorize(src,base_rgb,accent_rgb=None,accent_zone=None):
 
 def sleeve_asset(src,role,segment):
     p=roles[role]
+    # V3 sleeve assets are horizontal (+X). Role accents therefore belong near
+    # the distal X end as a cuff/trim, not along the lower Y edge. The old Y
+    # test created the artificial diagonal stripe visible in runtime captures.
     if segment=="upper":
-        zone=lambda x,y,w,h: y>h*0.72 and ((x+y)//4)%2==0
+        zone=lambda x,y,w,h: x>w*0.90
     else:
-        zone=lambda x,y,w,h: y>h*0.80
+        zone=lambda x,y,w,h: x>w*0.92
     return colorize(src,p["cloth"],p["accent"],zone)
 
 def glove_asset(src,role):
