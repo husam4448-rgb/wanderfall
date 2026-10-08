@@ -164,16 +164,21 @@ require("pc22_player_arm_rig.dominant_hand_height()" in patch,
         "dominant locked hand is not profile-scaled")
 require("pc22_player_arm_rig.support_hand_height()" in patch,
         "support locked hand is not profile-scaled")
-require("Rifle rear-depth composition: the universal dominant arm remains fully" in patch,
-        "rifle rear-depth full-occlusion marker missing")
+require("Rifle rear-depth composition: keep the solved dominant upper arm hidden" in patch,
+        "rifle rear-depth wrist-continuity marker missing")
 require(patch.count("_pc22_v3_draw_weapon_piece(tex_pc22_rifle_stock") == 1,
         "rifle stock must be rendered exactly once")
 require("_pc22_v3_draw_weapon_piece(tex_pc22_rifle_stock,pc22_dom_grip" in patch and
         "_pc22_v3_draw_weapon_piece(tex_pc22_rifle_front,pc22_dom_grip" in patch,
         "rifle artwork is not anchored to the palm grip contact")
+require("func _pc22_draw_rear_rifle_wrist_bridge" in patch and
+        "_pc22_draw_rear_rifle_wrist_bridge(pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)" in patch,
+        "short solved-chain rear rifle wrist bridge missing")
+require("var bridge_len := minf(3.2,delta.length()*0.28)" in patch,
+        "rear rifle wrist bridge exceeded the compact reference-calibrated limit")
 require("func _pc22_draw_rear_rifle_cuff" not in patch and
         "_pc22_draw_rear_rifle_cuff(" not in patch,
-        "dangling rear rifle cuff renderer reintroduced")
+        "legacy dangling rear rifle cuff renderer reintroduced")
 require("_pc22_draw_anatomical_arm_shape(pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist,0.84)" not in patch,
         "full rear rifle arm reintroduced and may recreate the X/triangle")
 require("pc22_rear_fore_back_tex" not in patch and "pc22_rear_elbow_back_tex" not in patch,
