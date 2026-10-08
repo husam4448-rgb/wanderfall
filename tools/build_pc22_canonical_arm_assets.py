@@ -171,14 +171,14 @@ def anatomical_sleeve(img, base_rgb, sex, segment, fabric_ref=None):
     if fabric_ref is not None:
         ref=trim(fabric_ref).convert("RGBA")
         # Use luminance only: this transfers folds/weave, not torso silhouette.
-        refgray=ImageOps.grayscale(ref).filter(ImageFilter.GaussianBlur(0.55))
-        refgray=ImageEnhance.Contrast(refgray).enhance(1.62)
+        refgray=ImageOps.grayscale(ref).filter(ImageFilter.GaussianBlur(0.28))
+        refgray=ImageEnhance.Contrast(refgray).enhance(1.92)
         refgray=refgray.resize((w,h),Image.Resampling.LANCZOS)
         ref_dark=tuple(max(0,int(c*0.56)) for c in base_rgb)
         ref_light=tuple(min(255,int(c*1.50+8)) for c in base_rgb)
         reftex=ImageOps.colorize(refgray,ref_dark,ref_light).convert("RGBA")
         reftex.putalpha(mask)
-        base=Image.blend(base,reftex,0.62 if sex=="female" else 0.48)
+        base=Image.blend(base,reftex,0.72 if sex=="female" else 0.66)
         base.putalpha(mask)
 
     # Sparse cloth creases give readable fabric structure without jagged source
@@ -270,7 +270,7 @@ def tactical_sleeve(img, sex, segment):
     src=img.convert("RGBA")
     alpha=src.getchannel("A")
     gray=ImageOps.grayscale(src)
-    gray=ImageEnhance.Contrast(gray).enhance(1.28)
+    gray=ImageEnhance.Contrast(gray).enhance(1.72)
     if sex=="female":
         dark=(55,55,44); light=(126,118,86)
     else:
@@ -282,18 +282,18 @@ def tactical_sleeve(img, sex, segment):
     # Only borrow low-frequency cloth tone from the equipped torso. Copying
     # sharp vest/webbing detail onto sleeves made the limbs look like modular
     # armor plates instead of continuous fabric.
-    glum=ImageOps.grayscale(gref).filter(ImageFilter.GaussianBlur(2.2))
-    glum=ImageEnhance.Contrast(glum).enhance(1.24).resize(out.size,Image.Resampling.LANCZOS)
+    glum=ImageOps.grayscale(gref).filter(ImageFilter.GaussianBlur(1.0))
+    glum=ImageEnhance.Contrast(glum).enhance(1.38).resize(out.size,Image.Resampling.LANCZOS)
     gdark=tuple(max(0,int(c*0.52)) for c in light)
     glight=tuple(min(255,int(c*1.35+6)) for c in light)
     gtex=ImageOps.colorize(glum,gdark,glight).convert("RGBA")
     gtex.putalpha(alpha)
-    out=Image.blend(out,gtex,0.28)
+    out=Image.blend(out,gtex,0.16)
     out.putalpha(alpha)
     d=ImageDraw.Draw(out)
     w,h=out.size
-    stitch=(174,157,112,16)
-    shadow=(29,31,27,28)
+    stitch=(174,157,112,10)
+    shadow=(29,31,27,18)
     # Short staggered seams and folds preserve tactical fabric detail without
     # tracing the whole limb axis like a rigid strap.
     seam_rows=(0.46,) if segment=="upper" else (0.52,)
