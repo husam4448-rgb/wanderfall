@@ -178,8 +178,18 @@ require("pc22_front_elbow = _pc22_solve_elbow(pc22_front_shoulder,pc22_front_wri
         "pistol support arm is not solved with fixed-length IK")
 require("var pc22_pistol_sup_tex := _pc22_support_hand_texture()" in patch,
         "pistol support grip hand renderer missing")
-require("(2.70 if female_mode else 2.90)" in patch,
+require("(2.55 if female_mode else 2.75)" in patch,
         "pistol support grip hand scale drift")
+require("Vector2(5.0,0.0)" in patch and "Vector2(2.0*dir_sign,0.0)" in patch,
+        "pistol forward stance extension missing")
+require("_pc22_v3_draw_distal_segment(pc22_rear_upper_front_tex" in patch and
+        "_pc22_v3_draw_distal_segment(pc22_front_upper_front_tex" in patch,
+        "armed distal upper-arm continuity layer missing")
+require("0.48)" in patch, "distal upper-arm reveal fraction drift")
+require("var desired_w: float = 3.30 if female_mode else 3.55" in patch,
+        "elbow gusset visual size drift")
+require("Pistol support hand was already depth-composed behind the weapon." in patch,
+        "pistol support-hand depth ordering marker missing")
 require("_pc22_relaxed_onehand_arm" not in patch,
         "legacy dangling one-handed off-arm helper reintroduced")
 
@@ -191,6 +201,10 @@ require('v3_gear_fore_vertical=tactical_sleeve(f,sex,"forearm")' in builder,
 require('make_v3_pivoted_segment(v3_gear_upper_vertical)' in builder and
         'make_v3_pivoted_segment(v3_gear_fore_vertical)' in builder,
         "gear sleeves are not pivoted after anatomical fabric integration")
+require("curve=(1.55 if not female else 1.35)" in builder,
+        "sleeve centerline bow regressed to rubber-like curvature")
+require("stitch=(174,157,112,16)" in builder and "shadow=(29,31,27,28)" in builder,
+        "tactical sleeve banding strength drift")
 
 # Dedicated textured elbow gussets are visual-only and must cover both armed elbows.
 require("func _pc22_v3_draw_elbow_gusset" in patch, "textured elbow gusset renderer missing")
