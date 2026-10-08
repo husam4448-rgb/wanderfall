@@ -22,15 +22,15 @@
     "filename": "assets/authored2d/unified_character/arms/hybrid_v3/female/SP_PC22_Female_Forearm_V3.png",
     "canvas_size": [
       128,
-      34
+      32
     ],
     "parent_pivot_px": [
       8.0,
-      17.0
+      16.0
     ],
     "child_pivot_px": [
       119.0,
-      17.0
+      16.0
     ],
     "canonical_length": 10.5
   },

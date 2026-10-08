@@ -13,13 +13,13 @@
       "filename": "assets/authored2d/unified_character/arms/sleeves/trader/male/upper_arm.png",
       "canvas_size": [
         128,
-        40
+        39
       ],
       "alpha_bbox": [
         0,
         0,
         128,
-        40
+        39
       ],
       "joint_parent": "shoulder",
       "joint_child": "elbow",
@@ -27,7 +27,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "99f28b0486e801858a16806bd2f79770d09f60c80ea801aaf08fc64ceffee102"
+      "sha256": "204ec0f8b02102153bc556cb37cbc6b9cf6a058717e7978b80752e77e27398ff"
     },
     {
       "role": "trader",
@@ -36,13 +36,13 @@
       "filename": "assets/authored2d/unified_character/arms/sleeves/trader/male/forearm.png",
       "canvas_size": [
         128,
-        37
+        35
       ],
       "alpha_bbox": [
         0,
         0,
         128,
-        37
+        35
       ],
       "joint_parent": "elbow",
       "joint_child": "wrist",
@@ -50,7 +50,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "192906418cf906f3e463276eae0d429bd9ac8bbf8352825ec488f00e4927d5b7"
+      "sha256": "8bf05df7ea40da7ebf838b790f616ee8885fd071962efc3c80c491d7fdee4870"
     },
     {
       "role": "trader",
@@ -58,13 +58,13 @@
       "asset": "shoulder_cap",
       "filename": "assets/authored2d/unified_character/arms/sleeves/trader/male/shoulder_cap.png",
       "canvas_size": [
-        63,
+        62,
         34
       ],
       "alpha_bbox": [
         0,
         0,
-        63,
+        62,
         34
       ],
       "joint_parent": "shoulder",
@@ -73,7 +73,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "fb75b18c715cf31769ebc2562cb99ad46e44eed0488ca1aedcad7a7ba21593d7"
+      "sha256": "ccfd6b453f17585f80d9eba6e8fb0f691593b2a1d9868c9edb17f5cc7a39c868"
     },
     {
       "role": "trader",
@@ -165,7 +165,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "980ae0836bf49a4288148f97fcb5b4c01c916728d31f51846c44ff4c07836c23"
+      "sha256": "f316b55e48f51feec0815cc3b72bfcec8c7470ff60bcc672befe311813b3ba6d"
     },
     {
       "role": "trader",
@@ -174,13 +174,13 @@
       "filename": "assets/authored2d/unified_character/arms/sleeves/trader/female/forearm.png",
       "canvas_size": [
         128,
-        34
+        32
       ],
       "alpha_bbox": [
         0,
         0,
         128,
-        34
+        32
       ],
       "joint_parent": "elbow",
       "joint_child": "wrist",
@@ -188,7 +188,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "f4816bbc7969b7c477d1281e0bbd5bf19fe2299ccd04f70fb264361f123a755f"
+      "sha256": "664958a741c35572f5f13765885d969599371f7b6a3b17bfda26e7e5bda7653a"
     },
     {
       "role": "trader",
@@ -211,7 +211,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "6e99a47f6122e6777864c7bec971b187ffd112bcdf588272541d62ff6ef93512"
+      "sha256": "ababeb6a2b39c4049452173d6ee7b08c5c2b6df632a713c5582f6cdd9533bb5f"
     },
     {
       "role": "trader",
@@ -289,13 +289,13 @@
       "filename": "assets/authored2d/unified_character/arms/sleeves/medic/male/upper_arm.png",
       "canvas_size": [
         128,
-        40
+        39
       ],
       "alpha_bbox": [
         0,
         0,
         128,
-        40
+        39
       ],
       "joint_parent": "shoulder",
       "joint_child": "elbow",
@@ -303,7 +303,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "f4f8538e15a7bde2c33b0b3ebdf6569d4a4ab6fd095e2ac0832a1105f0955469"
+      "sha256": "11828eeef6c51c208e4b00450b205d9cad4fe3723b180d259f0333ea7b71b058"
     },
     {
       "role": "medic",
@@ -312,13 +312,13 @@
       "filename": "assets/authored2d/unified_character/arms/sleeves/medic/male/forearm.png",
       "canvas_size": [
         128,
-        37
+        35
       ],
       "alpha_bbox": [
         0,
         0,
         128,
-        37
+        35
       ],
       "joint_parent": "elbow",
       "joint_child": "wrist",
@@ -326,7 +326,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "5631daec166dc72127d33d617725b3487988e4b24c1eee56705a0582f41527b6"
+      "sha256": "2c7e061bd92b587c2a71ce68fa9bf91096aa1f8c235b95217f660ed02ca5183f"
     },
     {
       "role": "medic",
@@ -334,13 +334,13 @@
       "asset": "shoulder_cap",
       "filename": "assets/authored2d/unified_character/arms/sleeves/medic/male/shoulder_cap.png",
       "canvas_size": [
-        63,
+        62,
         34
       ],
       "alpha_bbox": [
         0,
         0,
-        63,
+        62,
         34
       ],
       "joint_parent": "shoulder",
@@ -349,7 +349,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "6c30d141edeb104765efe6b6a921e05e33e76e3305dec751004ee56868d8dc44"
+      "sha256": "56a512851f6e7ea674560136de6c655cec3e64dbe87afd18bfda6e2c840c2249"
     },
     {
       "role": "medic",
@@ -441,7 +441,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "3b933486ecd0be27efa9505c1028ee0049ad31fede2eeed3c1246b590ed92ff8"
+      "sha256": "a5f6b37eb20d563a26795bf67c3a58da921874a6b33377a6cdf087f6e6f1d172"
     },
     {
       "role": "medic",
@@ -450,13 +450,13 @@
       "filename": "assets/authored2d/unified_character/arms/sleeves/medic/female/forearm.png",
       "canvas_size": [
         128,
-        34
+        32
       ],
       "alpha_bbox": [
         0,
         0,
         128,
-        34
+        32
       ],
       "joint_parent": "elbow",
       "joint_child": "wrist",
@@ -464,7 +464,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "0d99bb86d8f14a87a10d4c8bdb33ebada57865edb1ee7bca35c4799283c067f5"
+      "sha256": "f1d7709bc54c539ff2f415aaa6d0c7759335e0259fd7d3f72a8461f784648d79"
     },
     {
       "role": "medic",
@@ -487,7 +487,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "8f4c126b3d9da367763e5fc859829974c6002e1332b1acbdc80ff85249b30bc4"
+      "sha256": "b1572ab2ef392400a7e0e3854163efc3a631b802f658d93357837458e662e23d"
     },
     {
       "role": "medic",
@@ -565,13 +565,13 @@
       "filename": "assets/authored2d/unified_character/arms/sleeves/mechanic/male/upper_arm.png",
       "canvas_size": [
         128,
-        40
+        39
       ],
       "alpha_bbox": [
         0,
         0,
         128,
-        40
+        39
       ],
       "joint_parent": "shoulder",
       "joint_child": "elbow",
@@ -579,7 +579,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "95d6c26dfb42964be400d9695756f8a1b949bad6e4870f1090e17e84e2cbe172"
+      "sha256": "f2fec67c80ab21b0b88a8a39f1508c29242587580e1f9d8ffd715422147aa8fc"
     },
     {
       "role": "mechanic",
@@ -588,13 +588,13 @@
       "filename": "assets/authored2d/unified_character/arms/sleeves/mechanic/male/forearm.png",
       "canvas_size": [
         128,
-        37
+        35
       ],
       "alpha_bbox": [
         0,
         0,
         128,
-        37
+        35
       ],
       "joint_parent": "elbow",
       "joint_child": "wrist",
@@ -602,7 +602,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "823a45c9a6a037dd5d692693242250c5ed306089fb7f094f59d9db5e71ae5379"
+      "sha256": "1129bcdd81b754a48dc2dfa61e9420f92814f68473ae587883afd1a2564551fc"
     },
     {
       "role": "mechanic",
@@ -610,13 +610,13 @@
       "asset": "shoulder_cap",
       "filename": "assets/authored2d/unified_character/arms/sleeves/mechanic/male/shoulder_cap.png",
       "canvas_size": [
-        63,
+        62,
         34
       ],
       "alpha_bbox": [
         0,
         0,
-        63,
+        62,
         34
       ],
       "joint_parent": "shoulder",
@@ -625,7 +625,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "d1f2bc3d42c0e98f2a3171d51d71908e47423b64ca0de957749e98ca14fd5e1f"
+      "sha256": "251915fe1a1e666dcc7365e4151ff55dc8a6989f6808934457105830ff9d2b7a"
     },
     {
       "role": "mechanic",
@@ -717,7 +717,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "7b727ee8e8fa2c8b5194f0f6372be3bf04466be026fdd9a9c935eafcd6f72ae7"
+      "sha256": "e41acc6fb512d560bc254367a86432c40320b97087cd661fca136b1c74f689b7"
     },
     {
       "role": "mechanic",
@@ -726,13 +726,13 @@
       "filename": "assets/authored2d/unified_character/arms/sleeves/mechanic/female/forearm.png",
       "canvas_size": [
         128,
-        34
+        32
       ],
       "alpha_bbox": [
         0,
         0,
         128,
-        34
+        32
       ],
       "joint_parent": "elbow",
       "joint_child": "wrist",
@@ -740,7 +740,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "436e2a9782e40175f24966ec769a6e385e4a40cfd23307c79b3dbf14cfda7eee"
+      "sha256": "941c2620caf08d745d3d75a45de7e9a0921504d6d97e14f1b881753ab19bd29d"
     },
     {
       "role": "mechanic",
@@ -763,7 +763,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "45232d291be61cb8c797ed87577f501405525a4a3ab8631f3d0faa2702fa1e98"
+      "sha256": "e94fcd1f7064b83043a50589e7a78f5ca6ef6892aa55389bd883a92e09755db9"
     },
     {
       "role": "mechanic",
@@ -841,13 +841,13 @@
       "filename": "assets/authored2d/unified_character/arms/sleeves/guard/male/upper_arm.png",
       "canvas_size": [
         128,
-        40
+        39
       ],
       "alpha_bbox": [
         0,
         0,
         128,
-        40
+        39
       ],
       "joint_parent": "shoulder",
       "joint_child": "elbow",
@@ -855,7 +855,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "4c7ca8101c17a57fe15b855ed29a35c2c128e021b729bad7a53acfb6dbf1113c"
+      "sha256": "261fcd0bc0d304be6c19c37ceca239c878b6d694c79001075e93d76c28ea163c"
     },
     {
       "role": "guard",
@@ -864,13 +864,13 @@
       "filename": "assets/authored2d/unified_character/arms/sleeves/guard/male/forearm.png",
       "canvas_size": [
         128,
-        37
+        35
       ],
       "alpha_bbox": [
         0,
         0,
         128,
-        37
+        35
       ],
       "joint_parent": "elbow",
       "joint_child": "wrist",
@@ -878,7 +878,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "bf94c8b4492d7e52362abc3c648c28d9e84ca8d3de86125681fd966d360d4c34"
+      "sha256": "60f69bae4a1f3c5df70c7f74b6359c97ef44fe697201d25e3f823fc5556b9a14"
     },
     {
       "role": "guard",
@@ -886,13 +886,13 @@
       "asset": "shoulder_cap",
       "filename": "assets/authored2d/unified_character/arms/sleeves/guard/male/shoulder_cap.png",
       "canvas_size": [
-        63,
+        62,
         34
       ],
       "alpha_bbox": [
         0,
         0,
-        63,
+        62,
         34
       ],
       "joint_parent": "shoulder",
@@ -901,7 +901,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "f618bb43f2d8724811f8663a5898cc5afe058025b813a6039d911d033bf12f91"
+      "sha256": "63ca5dfd0c69bc925f85f1eb37f356c28659d2148d07ad80cdb5dddd98c723b6"
     },
     {
       "role": "guard",
@@ -993,7 +993,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "da8499d9483b23cb9a2863f4a63d8ec567d85ef68395fed8de708d551ee89011"
+      "sha256": "61fdb05f84662e92c80137d46e0c318e28f81634082f1217b4789f944586c55f"
     },
     {
       "role": "guard",
@@ -1002,13 +1002,13 @@
       "filename": "assets/authored2d/unified_character/arms/sleeves/guard/female/forearm.png",
       "canvas_size": [
         128,
-        34
+        32
       ],
       "alpha_bbox": [
         0,
         0,
         128,
-        34
+        32
       ],
       "joint_parent": "elbow",
       "joint_child": "wrist",
@@ -1016,7 +1016,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "ff0a3929b3fef23cadb9a981974eb19586781e0606ba54c690b82c64ea7a875c"
+      "sha256": "3ff66acf2ae3ba43163b75533aedcfd46d71bdeed66af2fc7a410669d2859480"
     },
     {
       "role": "guard",
@@ -1039,7 +1039,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "c4e4680138625a9e74596af76cbdf4c8cae48966b71065a5b788de971c383d95"
+      "sha256": "a2bf643aa142f3d9625d8e6508a8981cdaf2fea10e1bc30c61638608c4821749"
     },
     {
       "role": "guard",
@@ -1117,13 +1117,13 @@
       "filename": "assets/authored2d/unified_character/arms/sleeves/bandit/male/upper_arm.png",
       "canvas_size": [
         128,
-        40
+        39
       ],
       "alpha_bbox": [
         0,
         0,
         128,
-        40
+        39
       ],
       "joint_parent": "shoulder",
       "joint_child": "elbow",
@@ -1131,7 +1131,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "223b88ea86c812349aa27d0e31eb1cb1bdc865b9258aff6e911858d329bb81a4"
+      "sha256": "1890d3dbbba092c61ffd149c2ae16f4a24df72a7b739f96108fb74a2a7942879"
     },
     {
       "role": "bandit",
@@ -1140,13 +1140,13 @@
       "filename": "assets/authored2d/unified_character/arms/sleeves/bandit/male/forearm.png",
       "canvas_size": [
         128,
-        37
+        35
       ],
       "alpha_bbox": [
         0,
         0,
         128,
-        37
+        35
       ],
       "joint_parent": "elbow",
       "joint_child": "wrist",
@@ -1154,7 +1154,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "41bc1230cabf90b5d13d0fc4743dedc22f05d64782b4a670ee17cb16d35ea460"
+      "sha256": "088a38349e6b761659a513ca5daf830097330c5cf056557cc0b7a989e76df064"
     },
     {
       "role": "bandit",
@@ -1162,13 +1162,13 @@
       "asset": "shoulder_cap",
       "filename": "assets/authored2d/unified_character/arms/sleeves/bandit/male/shoulder_cap.png",
       "canvas_size": [
-        63,
+        62,
         34
       ],
       "alpha_bbox": [
         0,
         0,
-        63,
+        62,
         34
       ],
       "joint_parent": "shoulder",
@@ -1177,7 +1177,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "ccab8b378e6681e2717ca45256472777cf801a80b39e0b165be559a4c3c95b37"
+      "sha256": "e375639a71070200e2926fefadb2f56ae0722b98cf276fb4867bc8f9ff57f61d"
     },
     {
       "role": "bandit",
@@ -1269,7 +1269,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "098fbd4d189462ab8474533f744a9a2e5e81761bf68ce0dde7c534439387de94"
+      "sha256": "4e9d7f5dc92eaa47ae71c6fc35a4fc87268acecb67e204c3a9188d6a1a72adb9"
     },
     {
       "role": "bandit",
@@ -1278,13 +1278,13 @@
       "filename": "assets/authored2d/unified_character/arms/sleeves/bandit/female/forearm.png",
       "canvas_size": [
         128,
-        34
+        32
       ],
       "alpha_bbox": [
         0,
         0,
         128,
-        34
+        32
       ],
       "joint_parent": "elbow",
       "joint_child": "wrist",
@@ -1292,7 +1292,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "d4cdc074d9fc39b7fcfdc1b012ed1d7d3c89ce73b3612375437e9134365e049e"
+      "sha256": "78b3897a8a676518261922b087cefb5451cae190d61bddfde0a4e14793bab737"
     },
     {
       "role": "bandit",
@@ -1315,7 +1315,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "000467e7c029c344fc513b1f17366d696ad1de8bb73cb08c82ba15b7155b10fd"
+      "sha256": "a1309a6e9ea794104b241cf8c661d791e3f28065d414b5c6865d8f4282a1b990"
     },
     {
       "role": "bandit",
@@ -1393,13 +1393,13 @@
       "filename": "assets/authored2d/unified_character/arms/sleeves/civilian/male/upper_arm.png",
       "canvas_size": [
         128,
-        40
+        39
       ],
       "alpha_bbox": [
         0,
         0,
         128,
-        40
+        39
       ],
       "joint_parent": "shoulder",
       "joint_child": "elbow",
@@ -1407,7 +1407,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "bed7fae1fd118aca5fab5a89245bc700713fc24ecccd82cf5cd4ad114e549c90"
+      "sha256": "c9232337f9ad9342e9fd636457d611ad2c25bc0d2b07e3c008122851eb1ba422"
     },
     {
       "role": "civilian",
@@ -1416,13 +1416,13 @@
       "filename": "assets/authored2d/unified_character/arms/sleeves/civilian/male/forearm.png",
       "canvas_size": [
         128,
-        37
+        35
       ],
       "alpha_bbox": [
         0,
         0,
         128,
-        37
+        35
       ],
       "joint_parent": "elbow",
       "joint_child": "wrist",
@@ -1430,7 +1430,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "6fd4ecb6d161c694d9f45b90fc19beba6a6754675e15cc75a87d7b94322b269f"
+      "sha256": "4856ca9dd3f197ba7ba8cb30377b1bb7e73dea99263e35a872746f77d7c5552b"
     },
     {
       "role": "civilian",
@@ -1438,13 +1438,13 @@
       "asset": "shoulder_cap",
       "filename": "assets/authored2d/unified_character/arms/sleeves/civilian/male/shoulder_cap.png",
       "canvas_size": [
-        63,
+        62,
         34
       ],
       "alpha_bbox": [
         0,
         0,
-        63,
+        62,
         34
       ],
       "joint_parent": "shoulder",
@@ -1453,7 +1453,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "270400a79626146503871ef3faec6ecb0eebd12f38a8e67a0d892ca671d5da78"
+      "sha256": "18cbc07e3d9a0e110eb37467f3c4ececa9b05903d0bd9914d9d32eb6b9de968d"
     },
     {
       "role": "civilian",
@@ -1545,7 +1545,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "770fc95fdcc9a54244bc8562dbd6176879104e25ac294d2ea687419a9a957831"
+      "sha256": "59b8eaf6490a618e283dc0b77d52729ed4935909a6f362433e1a1c707941391a"
     },
     {
       "role": "civilian",
@@ -1554,13 +1554,13 @@
       "filename": "assets/authored2d/unified_character/arms/sleeves/civilian/female/forearm.png",
       "canvas_size": [
         128,
-        34
+        32
       ],
       "alpha_bbox": [
         0,
         0,
         128,
-        34
+        32
       ],
       "joint_parent": "elbow",
       "joint_child": "wrist",
@@ -1568,7 +1568,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "d89612caf4ff16b0fbdad2c8bbb8eb48293513523d3d430f50c0635f1502be29"
+      "sha256": "93b08235855cd89091c8eef3ef5f4638c5f3c0c046923fcc42e97abb903a04ac"
     },
     {
       "role": "civilian",
@@ -1591,7 +1591,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "0702f938ed0f7c98c846d30e17822816e3dc76768fb13a771ecb21353d36c2a4"
+      "sha256": "1ae44cd62a6c69d7e645e4776403c3d2b1de32b4b402efdeb2b27f1a7612d8ac"
     },
     {
       "role": "civilian",

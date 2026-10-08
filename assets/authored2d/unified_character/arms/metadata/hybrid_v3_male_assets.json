@@ -6,15 +6,15 @@
     "filename": "assets/authored2d/unified_character/arms/hybrid_v3/male/SP_PC22_Male_UpperArm_V3.png",
     "canvas_size": [
       128,
-      40
+      39
     ],
     "parent_pivot_px": [
       8.0,
-      20.0
+      19.5
     ],
     "child_pivot_px": [
       119.0,
-      20.0
+      19.5
     ],
     "canonical_length": 10.9
   },
@@ -22,15 +22,15 @@
     "filename": "assets/authored2d/unified_character/arms/hybrid_v3/male/SP_PC22_Male_Forearm_V3.png",
     "canvas_size": [
       128,
-      37
+      35
     ],
     "parent_pivot_px": [
       8.0,
-      18.5
+      17.5
     ],
     "child_pivot_px": [
       119.0,
-      18.5
+      17.5
     ],
     "canonical_length": 10.7
   },
@@ -69,7 +69,7 @@
   "shoulder_cap": {
     "filename": "assets/authored2d/unified_character/arms/hybrid_v3/male/SP_PC22_Male_ShoulderCap_V3.png",
     "canvas_size": [
-      63,
+      62,
       34
     ],
     "shoulder_pivot_px": [
