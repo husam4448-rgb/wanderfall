@@ -192,8 +192,8 @@ require("func _pc22_v3_draw_grip_hand_tinted" in patch and
         "var pc22_support_depth_tint := Color(0.69,0.65,0.62,1.0) if not gear_gloves else Color(0.70,0.70,0.70,1.0)" in patch and
         "_pc22_v3_draw_grip_hand_tinted(pc22_pistol_sup_tex" in patch,
         "pistol support-hand depth tint/readability layer missing")
-require("The support palm is drawn over the" in patch and
-        "grip but under the firing palm" in patch,
+require("Final pistol depth stack: support arm -> support palm -> pistol ->" in patch and
+        "dominant firing palm" in patch,
         "pistol support-hand depth stack drift")
 require("Vector2(6.6,0.0)" in patch and "Vector2(1.7*dir_sign,0.0)" in patch,
         "pistol forward stance extension missing")
