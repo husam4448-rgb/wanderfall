@@ -996,7 +996,7 @@ asset_meta.append({
   "joint_parent":"dominant_grip","joint_child":"muzzle",
   "canonical_length":0.0,
   "visual_overlap_parent":0.0,"visual_overlap_child":0.0,
-  "compatible_rig":"MALE_CANONICAL_ARM_SYSTEM,FEMALE_CANONICAL_ARM_SYSTEM",
+  "compatible_rig":"HUMANOID_CANONICAL_ARM_SYSTEM",
   "mirroring_supported":True,"approval_state":"candidate_visual_fix_v2",
   "sha256":hashlib.sha256(pistol_arm_path.read_bytes()).hexdigest(),
   "note":"Reference-driven pistol with readable slide/frame/grip mass"
@@ -1009,7 +1009,7 @@ asset_meta.append({
   "joint_parent":"dominant_grip","joint_child":"support_grip",
   "canonical_length":0.0,
   "visual_overlap_parent":0.0,"visual_overlap_child":0.0,
-  "compatible_rig":"MALE_CANONICAL_ARM_SYSTEM,FEMALE_CANONICAL_ARM_SYSTEM",
+  "compatible_rig":"HUMANOID_CANONICAL_ARM_SYSTEM",
   "mirroring_supported":True,"approval_state":"candidate",
   "sha256":hashlib.sha256(rifle_arm_path.read_bytes()).hexdigest(),
   "note":"Only upper butt-stock pixels shifted +4 source px; body/grip/barrel geometry unchanged"
@@ -1025,24 +1025,27 @@ for wp,seg,note in (
       "joint_parent":"weapon","joint_child":"weapon",
       "canonical_length":0.0,
       "visual_overlap_parent":0.0,"visual_overlap_child":0.0,
-      "compatible_rig":"MALE_CANONICAL_ARM_SYSTEM,FEMALE_CANONICAL_ARM_SYSTEM",
+      "compatible_rig":"HUMANOID_CANONICAL_ARM_SYSTEM",
       "mirroring_supported":True,"approval_state":"candidate",
       "sha256":hashlib.sha256(wp.read_bytes()).hexdigest(),
       "note":note,
     })
 (meta/"arm_assets.json").write_text(json.dumps({"assets":asset_meta},indent=2),encoding="utf-8")
 
-roles=["player","trader","medic","mechanic","guard","bandit","civilian"]
+roles=["player","trader","medic","mechanic","guard","bandit","civilian","scientist"]
 inheritance={
   "standard_id":"PlayerCharacters_v22",
+  "universal_rig_id":"HUMANOID_CANONICAL_ARM_SYSTEM",
   "policy":{
     "npc_specific_skeletons":False,
     "role_specialization_changes_geometry":False,
+    "sex_profile_changes_solver":False,
+    "appearance_changes_geometry":False,
     "left_is_runtime_mirror":True,
     "role_specialization":["sleeve_overlay","glove_overlay","armor_overlay","equipment","weapon","held_tool"]
   },
-  "male":{"rig_id":"MALE_CANONICAL_ARM_SYSTEM","users":[f"{r}_male" for r in roles]},
-  "female":{"rig_id":"FEMALE_CANONICAL_ARM_SYSTEM","users":[f"{r}_female" for r in roles]},
+  "male":{"rig_id":"HUMANOID_CANONICAL_ARM_SYSTEM","profile":"male","users":[f"{r}_male" for r in roles]},
+  "female":{"rig_id":"HUMANOID_CANONICAL_ARM_SYSTEM","profile":"female","users":[f"{r}_female" for r in roles]},
 }
 (meta/"rig_inheritance.json").write_text(json.dumps(inheritance,indent=2),encoding="utf-8")
 
