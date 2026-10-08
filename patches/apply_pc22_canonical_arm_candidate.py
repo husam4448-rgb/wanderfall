@@ -1073,7 +1073,10 @@ weapon_block='''    # HYBRID V3: weapon artwork is anchored at the weapon-contac
         else:
             # Pistol depth stack: support arm -> wrist-anchored support hand ->
             # pistol contact -> wrist-anchored dominant hand.
-            var pc22_pistol_sup_tex := _pc22_support_hand_texture()
+            # The pistol support palm wraps the same near-vertical grip axis
+            # as the firing hand. Reuse the dominant weapon-wrap silhouette here;
+            # the rifle-only support silhouette has a horizontal handguard channel.
+            var pc22_pistol_sup_tex := _pc22_dominant_hand_texture()
             if pc22_pistol_sup_tex != null:
                 var pc22_support_depth_tint := Color(0.76,0.72,0.69,1.0) if not gear_gloves else Color(0.78,0.78,0.78,1.0)
                 _pc22_v3_draw_hand_tinted(pc22_pistol_sup_tex,pc22_front_wrist,pc22_arm_angle,dir_sign,pc22_player_arm_rig.support_hand_height()*0.94,pc22_support_depth_tint)
