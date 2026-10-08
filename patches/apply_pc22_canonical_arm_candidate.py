@@ -683,6 +683,21 @@ func _pc22_v3_draw_hand(tex: Texture2D, wrist: Vector2, weapon_angle: float, dir
     var world_rot: float = weapon_angle if dir_sign>0.0 else PI-weapon_angle
     _pc22_v3_draw_pivoted(tex,wrist,world_rot,scale_u,pivot_px,dir_sign<0.0)
 
+func _pc22_v3_draw_hand_tinted(tex: Texture2D, wrist: Vector2, weapon_angle: float, dir_sign: float, world_height: float, tint: Color) -> void:
+    if tex == null:
+        return
+    var th: float = float(tex.get_height())
+    var tw: float = float(tex.get_width())
+    var scale_u: float = world_height/maxf(1.0,th)
+    var pivot_px := Vector2(clampf(tw*0.06,1.0,4.0),th*0.5)
+    var world_rot: float = weapon_angle if dir_sign>0.0 else PI-weapon_angle
+    var flip_x := dir_sign < 0.0
+    var rot: float = world_rot if not flip_x else world_rot-PI
+    var sx: float = scale_u if not flip_x else -scale_u
+    draw_set_transform(wrist,rot,Vector2(sx,scale_u))
+    draw_texture(tex,-pivot_px,tint)
+    draw_set_transform(Vector2.ZERO,0.0,Vector2.ONE)
+
 func _pc22_v3_draw_grip_hand(tex: Texture2D, grip_world: Vector2, weapon_angle: float, dir_sign: float, world_height: float, grip_fraction: Vector2) -> void:
     if tex == null:
         return
