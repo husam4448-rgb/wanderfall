@@ -417,7 +417,7 @@ func _pc22_v3_draw_segment_detail(tex: Texture2D, a: Vector2, b: Vector2, flip_x
 
 func _pc22_arm_body_color() -> Color:
     if gear_torso:
-        return Color("5a5642")
+        return Color("625b47")
     return Color("465540") if not female_mode else Color("4b5945")
 
 func _pc22_arm_outline_color() -> Color:
@@ -465,17 +465,20 @@ func _pc22_draw_anatomical_arm_shape(shoulder: Vector2, elbow: Vector2, wrist: V
         start - un*shoulder_half
     ])
     var body := _pc22_arm_body_color()
-    var outline := _pc22_arm_outline_color()
     draw_colored_polygon(pts,body)
-    var edge := PackedVector2Array(pts)
-    edge.append(pts[0])
-    draw_polyline(edge,outline,0.34,false)
 
-    # Subtle directional cloth lights keep the base in the same painted family
-    # while authored sleeve sprites supply the high-frequency folds.
+    # Round the three visible handoff zones with the same opaque cloth tone.
+    # No dark perimeter is drawn: the authored torso and narrow sleeve-detail
+    # sprites already provide contour information, and an explicit outline made
+    # the limb look like a mechanical exoskeleton.
+    draw_circle(start,shoulder_half*0.62,body)
+    draw_circle(elbow,elbow_half*1.03,body)
+    draw_circle(wrist,wrist_half*0.96,body)
+
+    # Subtle directional cloth lights keep the base in the same painted family.
     var hi := _pc22_arm_highlight_color()
-    draw_line(start.lerp(elbow,0.24)+un*0.52,start.lerp(elbow,0.68)+un*0.52,hi,0.34,false)
-    draw_line(elbow.lerp(wrist,0.18)+fn*0.38,elbow.lerp(wrist,0.68)+fn*0.38,hi,0.30,false)
+    draw_line(start.lerp(elbow,0.28)+un*0.42,start.lerp(elbow,0.64)+un*0.42,hi,0.28,false)
+    draw_line(elbow.lerp(wrist,0.22)+fn*0.32,elbow.lerp(wrist,0.64)+fn*0.32,hi,0.25,false)
 
 func _pc22_v3_draw_distal_segment(tex: Texture2D, a: Vector2, b: Vector2, flip_x: bool, start_fraction: float, thickness_scale: float = 1.0) -> void:
     if tex == null:
