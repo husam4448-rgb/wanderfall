@@ -594,9 +594,40 @@ func _pc22_draw_arm_material_detail(shoulder: Vector2, elbow: Vector2, wrist: Ve
     var upper_start := shoulder.lerp(elbow,0.12)
     var upper_end := elbow+ud*0.38
     var fore_start := elbow-fd*0.38
-    var opacity: float = (0.78 if gear_torso else 0.68)*(0.78 if depth_scale < 0.99 else 1.0)
+    var opacity: float = (0.92 if gear_torso else 0.76)*(0.74 if depth_scale < 0.99 else 1.0)
     _pc22_draw_textured_limb_detail(upper_tex,upper_start,upper_end,upper_a,upper_b,flip_x,opacity)
     _pc22_draw_textured_limb_detail(fore_tex,fore_start,wrist,fore_a,fore_b,flip_x,opacity)
+    if gear_torso:
+        var fd2 := (wrist-elbow).normalized()
+        var fn2 := Vector2(-fd2.y,fd2.x)
+        var cuff_center := wrist-fd2*1.20
+        var cuff_half: float = 0.82 if female_mode else 0.92
+        var cuff_col := _pc22_arm_outline_color()
+        draw_line(cuff_center-fn2*cuff_half,cuff_center+fn2*cuff_half,cuff_col,0.20,false)
+
+func _pc22_draw_rear_rifle_cuff(elbow: Vector2, wrist: Vector2, flip_x: bool) -> void:
+    # The dominant rifle arm is geometrically complete but mostly hidden by the
+    # torso/stock in side view. Render only the distal cuff that must remain
+    # visible at the trigger hand; this removes the false X/triangle without
+    # altering shoulder, elbow, wrist, IK, or weapon sockets.
+    var start := elbow.lerp(wrist,0.58)
+    var delta := wrist-start
+    if delta.length() < 0.01:
+        return
+    var tangent := delta.normalized()
+    var normal := Vector2(-tangent.y,tangent.x)
+    var half_start: float = 1.16 if female_mode else 1.28
+    var half_wrist: float = 0.88 if female_mode else 0.98
+    var body := _pc22_arm_body_color()
+    body = Color(body.r*0.80,body.g*0.80,body.b*0.80,1.0)
+    var pts := PackedVector2Array([
+        start+normal*half_start,
+        wrist+normal*half_wrist,
+        wrist-normal*half_wrist,
+        start-normal*half_start
+    ])
+    draw_colored_polygon(pts,body)
+    _pc22_draw_textured_limb_detail(_pc22_fore_texture(),start,wrist,half_start*0.90,half_wrist*0.90,flip_x,0.66)
 
 func _pc22_v3_draw_distal_segment(tex: Texture2D, a: Vector2, b: Vector2, flip_x: bool, start_fraction: float, thickness_scale: float = 1.0) -> void:
     if tex == null:
@@ -936,11 +967,11 @@ s=s.replace(rear_anchor,'''    if gear_back and not female_mode:
         _pc22_v3_draw_cap(pc22_rear_cap_tex,pc22_rear_shoulder,pc22_rear_elbow,dir_sign)
         _pc22_v3_draw_cap(pc22_front_cap_tex,pc22_front_shoulder,pc22_front_elbow,dir_sign)
 
-    # Rifle rear-depth composition uses the same universal shoulder/elbow/wrist
-    # ribbon as every other armed humanoid. Only depth changes; geometry does not.
+    # Rifle rear-depth composition: the dominant arm remains fully solved by
+    # the universal rig, but side-view artwork only exposes the distal cuff.
+    # Torso and stock occlude the rest, eliminating the artificial X/triangle.
     if weapon_visible and weapon_two_handed:
-        _pc22_draw_anatomical_arm_shape(pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist,0.84)
-        _pc22_draw_arm_material_detail(pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0,0.84)
+        _pc22_draw_rear_rifle_cuff(pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)
         if tex_pc22_rifle_stock != null:
             _pc22_v3_draw_weapon_piece(tex_pc22_rifle_stock,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(36.0,18.0),0.33)
 
@@ -1002,10 +1033,11 @@ weapon_block='''    # HYBRID V3: weapon artwork is anchored directly at the domi
             # without letting either hand float away from the weapon.
             _pc22_v3_draw_weapon_piece(tex_pc22_pistol,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(15.0,18.0),0.24)
             var pc22_pistol_sup_tex := _pc22_support_hand_texture()
+            var pc22_pistol_sup_visual := pc22_front_wrist + _pose_point(Vector2(-0.25,0.48),pc22_arm_angle,dir_sign)
             if pc22_pistol_sup_tex != null:
-                _pc22_v3_draw_grip_hand(pc22_pistol_sup_tex,pc22_front_wrist,pc22_arm_angle,dir_sign,(2.28 if female_mode else 2.46),Vector2(0.54,0.52))
+                _pc22_v3_draw_grip_hand(pc22_pistol_sup_tex,pc22_pistol_sup_visual,pc22_arm_angle,dir_sign,(2.52 if female_mode else 2.70),Vector2(0.50,0.50))
             else:
-                _draw_support_hand(pc22_front_wrist,pc22_arm_angle,dir_sign,Color("b97755"),0.76)
+                _draw_support_hand(pc22_pistol_sup_visual,pc22_arm_angle,dir_sign,Color("b97755"),0.80)
             active_muzzle = pc22_dom_wrist + _pose_point(Vector2(7.44,-2.16),pc22_arm_angle,dir_sign)
 
         if shot_flash > 0.02:
