@@ -129,9 +129,10 @@ for token in (
     "func _pc22_v3_draw_grip_hand",
     "func _pc22_v3_draw_cap",
     "func _pc22_v3_draw_weapon_piece",
+    "func _pc22_draw_anatomical_arm_shape",
     "PLAYER CHARACTERS V22 HYBRID ARM V3 | PIVOTED RENDERER:",
     "HYBRID V3: only proximal upper-arm art is drawn behind the torso",
-    "CONTINUOUS POLYGON ARM COMPOSITION",
+    "UNIVERSAL THREE-JOINT ARM COMPOSITION",
 ):
     require(token in patch, f"patch missing V3 marker: {token}")
 
@@ -155,57 +156,82 @@ require("Vector2(0.54,0.50)" in patch, "dominant armed-hand grip pivot drift")
 require("Vector2(0.56,0.48)" in patch, "support armed-hand grip pivot drift")
 require("(3.05 if female_mode else 3.25)" in patch, "dominant locked hand scale drift")
 require("(3.15 if female_mode else 3.35)" in patch, "support locked hand scale drift")
-require("Rifle rear-depth composition" in patch, "rifle rear-depth composition marker missing")
+require("Rifle rear-depth composition uses the same universal shoulder/elbow/wrist" in patch,
+        "rifle rear-depth universal-rig marker missing")
 require(patch.count("_pc22_v3_draw_weapon_piece(tex_pc22_rifle_stock") == 1,
         "rifle stock must be rendered exactly once")
-require("if not (weapon_visible and weapon_two_handed):" in patch,
-        "rifle rear forearm is not suppressed from the foreground depth stack")
-require("pc22_rear_fore_back_tex" in patch and "pc22_rear_elbow_back_tex" in patch,
-        "rifle dominant arm rear-depth render is missing")
-require("dominant forearm/elbow and stock belong" in patch,
-        "rifle rear forearm depth-layering marker missing")
+require("_pc22_draw_anatomical_arm_shape(pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist)" in patch,
+        "rifle dominant arm does not use the universal smooth arm renderer")
+require("pc22_rear_fore_back_tex" not in patch and "pc22_rear_elbow_back_tex" not in patch,
+        "legacy modular rifle rear forearm/elbow render reintroduced")
 require("pc22_dom_upper_start" not in patch and "pc22_front_upper_start" not in patch,
         "triangular foreground upper-arm tails reintroduced")
 require("if gear_torso:" in patch and "tex_pc22_female_gear_upper" in patch and "tex_pc22_male_gear_fore" in patch,
         "equipped tactical sleeve selection missing")
 
-# Pistol support arm must use fixed-length IK to a weapon-local contact point.
+# Pistol support arm must use fixed-length IK to a compact weapon-local contact.
 require("func _pc22_pistol_support_target" in patch, "pistol support target helper missing")
-require("Vector2(-2.00,2.40)" in patch, "pistol support grip offset drift")
+require("Vector2(-0.82,1.12)" in patch, "compact pistol support grip offset drift")
 require("pc22_front_wrist = _pc22_pistol_support_target(pc22_dom_wrist,pc22_arm_angle,dir_sign)" in patch,
         "pistol support wrist is not locked to the weapon grip")
 require("pc22_front_elbow = _pc22_solve_elbow(pc22_front_shoulder,pc22_front_wrist" in patch,
         "pistol support arm is not solved with fixed-length IK")
 require("var pc22_pistol_sup_tex := _pc22_support_hand_texture()" in patch,
         "pistol support grip hand renderer missing")
-require("(2.48 if female_mode else 2.68)" in patch and "Vector2(0.50,0.54)" in patch,
-        "pistol support grip hand scale/pivot drift")
+require("(2.30 if female_mode else 2.48)" in patch and "Vector2(0.50,0.52)" in patch,
+        "pistol support hand scale/pivot drift")
 require("Vector2(6.6,0.0)" in patch and "Vector2(1.7*dir_sign,0.0)" in patch,
         "pistol forward stance extension missing")
-require("_pc22_v3_draw_distal_segment(pc22_rear_upper_front_tex" in patch and
-        "_pc22_v3_draw_distal_segment(pc22_front_upper_front_tex" in patch,
-        "armed distal upper-arm continuity layer missing")
-require("0.18,0.56)" in patch, "distal upper-arm reveal/thickness drift")
-require("var desired_w: float = 3.00 if female_mode else 3.20" in patch,
-        "elbow gusset visual size drift")
+
+# Universal three-joint architecture: one solver, sex-specific profile only.
+require('const UNIVERSAL_RIG_ID := "HUMANOID_CANONICAL_ARM_SYSTEM"' in patch,
+        "universal humanoid rig id missing")
+require('func profile_id() -> String:' in patch,
+        "male/female proportion profile selector missing")
+require("MALE_RIG_ID" not in patch and "FEMALE_RIG_ID" not in patch,
+        "sex-specific rig identities reintroduced")
+require('var roles := ["trader","medic","mechanic","guard","bandit","civilian","scientist"]' in patch,
+        "universal NPC inheritance does not include scientist")
+require('role != "scientist"' in patch and "scientist-specific rig" in patch,
+        "scientist universal fallback policy missing")
+
+# Armed visuals are a single smooth ribbon around shoulder -> elbow -> wrist.
 require("func _pc22_draw_anatomical_arm_shape" in patch,
-        "continuous anatomical arm polygon helper missing")
-require("CONTINUOUS POLYGON ARM COMPOSITION" in patch,
-        "continuous polygon arm composition marker missing")
+        "smooth universal arm renderer missing")
+require("var centers := PackedVector2Array()" in patch and "var widths := PackedFloat32Array()" in patch,
+        "sampled smooth arm ribbon missing")
+require("var q := pre*(omt*omt)+elbow*(2.0*omt*t)+post*(t*t)" in patch,
+        "rounded elbow centerline missing")
 require("draw_colored_polygon(pts,body)" in patch,
-        "continuous arm polygon fill missing")
-require("draw_circle(elbow,elbow_half*1.03,body)" in patch,
-        "rounded elbow silhouette fill missing")
-require("draw_polyline(edge,outline" not in patch,
-        "mechanical perimeter outline reintroduced")
-require("_pc22_draw_anatomical_arm_underlay" not in patch,
-        "legacy blurred arm underlay helper reintroduced")
-require("Pistol support hand was already depth-composed behind the weapon." in patch,
-        "pistol support-hand depth ordering marker missing")
+        "continuous arm ribbon fill missing")
+require("UNIVERSAL THREE-JOINT ARM COMPOSITION" in patch,
+        "universal armed composition marker missing")
+require(patch.count("_pc22_v3_draw_distal_segment(") == 1,
+        "armed distal upper-arm module renderer is still called")
+require(patch.count("_pc22_v3_draw_segment_detail(") == 1,
+        "armed modular sleeve detail renderer is still called")
+require(patch.count("_pc22_v3_draw_elbow_gusset(") == 1,
+        "armed separate elbow-gusset renderer is still called")
 require("_pc22_relaxed_onehand_arm" not in patch,
         "legacy dangling one-handed off-arm helper reintroduced")
 
+# Runtime capture must exercise both facing directions and scientist fallback.
+require("var pc22_arm_states_per_sex := 34" in patch,
+        "left-facing pistol capture states missing")
+for token in ("male_pistol_left","male_pistol_left_up60","male_pistol_left_down60",
+              "female_pistol_left","female_pistol_left_up60","female_pistol_left_down60",
+              "male_role_scientist","female_role_scientist"):
+    require(token in patch, f"capture matrix missing {token}")
+
 builder = (repo / "tools/build_pc22_canonical_arm_assets.py").read_text(encoding="utf-8")
+require('"universal_rig_id":"HUMANOID_CANONICAL_ARM_SYSTEM"' in builder,
+        "builder does not declare one universal humanoid rig")
+require('"sex_profile_changes_solver":False' in builder and '"appearance_changes_geometry":False' in builder,
+        "builder universal appearance/sex-profile separation policy missing")
+require('"scientist"' in builder,
+        "scientist missing from universal inheritance matrix")
+require("MALE_CANONICAL_ARM_SYSTEM,FEMALE_CANONICAL_ARM_SYSTEM" not in builder,
+        "legacy split compatible-rig metadata reintroduced")
 require('v3_gear_upper_vertical=tactical_sleeve(u,sex,"upper")' in builder,
         "gear upper sleeve is no longer generated along the anatomical limb axis")
 require('v3_gear_fore_vertical=tactical_sleeve(f,sex,"forearm")' in builder,
@@ -228,16 +254,27 @@ require('W,H=(28,24) if sex=="female" else (30,26)' in builder,
 require("min(52,ea)" in builder,
         "armed sleeve detail edge contour became too heavy")
 
-# Dedicated textured elbow gussets are visual-only and must cover both armed elbows.
-require("func _pc22_v3_draw_elbow_gusset" in patch, "textured elbow gusset renderer missing")
-require("_pc22_v3_draw_elbow_gusset(pc22_elbow_tex,pc22_rear_shoulder" in patch,
-        "dominant elbow gusset draw missing")
-require("_pc22_v3_draw_elbow_gusset(pc22_elbow_tex,pc22_front_shoulder" in patch,
-        "support/off-hand elbow gusset draw missing")
+# Elbow textures remain packaged for backward-compatible/unarmed fallback, but
+# armed rendering must not expose an independent elbow component.
+require("func _pc22_v3_draw_elbow_gusset" in patch, "fallback elbow helper missing")
 require("tex_pc22_male_elbow" in patch and "tex_pc22_female_gear_elbow" in patch,
         "base/gear elbow textures not embedded")
 require("_pc22_v3_draw_elbow_bridge" not in patch,
         "legacy crop-based elbow bridge still present")
+
+inheritance_path = meta / "rig_inheritance.json"
+require(inheritance_path.is_file(), "universal rig inheritance metadata missing")
+if inheritance_path.is_file():
+    inheritance = json.loads(inheritance_path.read_text(encoding="utf-8"))
+    require(inheritance.get("universal_rig_id") == "HUMANOID_CANONICAL_ARM_SYSTEM",
+            "emitted universal rig id mismatch")
+    for sex in ("male","female"):
+        require(inheritance.get(sex,{}).get("rig_id") == "HUMANOID_CANONICAL_ARM_SYSTEM",
+                f"{sex}: emitted rig is not universal")
+        require(inheritance.get(sex,{}).get("profile") == sex,
+                f"{sex}: profile id mismatch")
+        require(f"scientist_{sex}" in inheritance.get(sex,{}).get("users",[]),
+                f"{sex}: scientist missing from universal rig users")
 
 # Equipped gloves must use dedicated authored tactical grip sprites.
 for sex in ("male","female"):
