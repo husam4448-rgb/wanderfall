@@ -1035,11 +1035,9 @@ s=s.replace(rear_anchor,'''    if gear_back and not female_mode:
         _pc22_v3_draw_cap(pc22_rear_cap_tex,pc22_rear_shoulder,pc22_rear_elbow,dir_sign)
         _pc22_v3_draw_cap(pc22_front_cap_tex,pc22_front_shoulder,pc22_front_elbow,dir_sign)
 
-    # Rifle rear-depth composition: keep the solved dominant upper arm hidden
-    # by torso/stock, but expose only a short wrist bridge so the trigger hand
-    # remains physically connected. The torso masks the bridge root.
+    # Rifle stock remains rear-depth. The short firing-wrist bridge is deferred
+    # until after torso draw so it cannot disappear completely under the body.
     if weapon_visible and weapon_two_handed:
-        _pc22_draw_rear_rifle_wrist_bridge(pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)
         if tex_pc22_rifle_stock != null:
             _pc22_v3_draw_weapon_piece(tex_pc22_rifle_stock,pc22_dom_grip,pc22_arm_angle,dir_sign,Vector2(36.0,18.0),0.33)
 
@@ -1063,6 +1061,10 @@ s=s.replace(front_anchor,'''    # UNIVERSAL THREE-JOINT ARM COMPOSITION. Armed a
             _pc22_draw_anatomical_arm_shape(pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist)
             _pc22_draw_arm_material_detail(pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)
         else:
+            # Draw only the short firing-side wrist bridge after torso, then the
+            # readable support arm. This preserves depth without a floating
+            # trigger hand or the old full-arm X/triangle.
+            _pc22_draw_rear_rifle_wrist_bridge(pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)
             _pc22_draw_anatomical_arm_shape(pc22_front_shoulder,pc22_front_elbow,pc22_front_wrist)
             _pc22_draw_arm_material_detail(pc22_front_shoulder,pc22_front_elbow,pc22_front_wrist,dir_sign<0.0)
     else:
@@ -1101,11 +1103,15 @@ weapon_block='''    # HYBRID V3: weapon artwork is anchored at the weapon-contac
             # as the firing hand. Reuse the dominant weapon-wrap silhouette here;
             # the rifle-only support silhouette has a horizontal handguard channel.
             var pc22_pistol_sup_tex := _pc22_dominant_hand_texture()
+            # Visual-only palm separation: keep the solved wrist untouched, but
+            # expose a small lower/rear crescent of the support hand so a genuine
+            # two-hand grip remains readable at gameplay scale.
+            var pc22_pistol_sup_draw := pc22_front_wrist + _pose_point(Vector2(-0.22,0.30),pc22_arm_angle,dir_sign)
             if pc22_pistol_sup_tex != null:
-                var pc22_support_depth_tint := Color(0.76,0.72,0.69,1.0) if not gear_gloves else Color(0.78,0.78,0.78,1.0)
-                _pc22_v3_draw_hand_tinted(pc22_pistol_sup_tex,pc22_front_wrist,pc22_arm_angle,dir_sign,pc22_player_arm_rig.support_hand_height()*0.94,pc22_support_depth_tint)
+                var pc22_support_depth_tint := Color(0.70,0.67,0.64,1.0) if not gear_gloves else Color(0.72,0.72,0.72,1.0)
+                _pc22_v3_draw_hand_tinted(pc22_pistol_sup_tex,pc22_pistol_sup_draw,pc22_arm_angle,dir_sign,pc22_player_arm_rig.support_hand_height()*0.92,pc22_support_depth_tint)
             else:
-                _draw_support_hand(pc22_front_wrist,pc22_arm_angle,dir_sign,Color("b97755"),0.94)
+                _draw_support_hand(pc22_pistol_sup_draw,pc22_arm_angle,dir_sign,Color("b97755"),0.92)
             _pc22_v3_draw_weapon_piece(tex_pc22_pistol,pc22_dom_grip,pc22_arm_angle,dir_sign,Vector2(15.0,18.0),0.24)
             active_muzzle = pc22_dom_grip + _pose_point(Vector2(7.44,-2.16),pc22_arm_angle,dir_sign)
 
