@@ -53,6 +53,16 @@ func dominant_hand_height() -> float:
 func support_hand_height() -> float:
     return {female_spec["support_hand_size"][1]} if female_mode else {male_spec["support_hand_size"][1]}
 
+func dominant_wrist_to_grip() -> Vector2:
+    return Vector2({female_spec["dominant_wrist_to_grip_local"][0]},{female_spec["dominant_wrist_to_grip_local"][1]}) if female_mode else Vector2({male_spec["dominant_wrist_to_grip_local"][0]},{male_spec["dominant_wrist_to_grip_local"][1]})
+
+func support_wrist_to_grip() -> Vector2:
+    return Vector2({female_spec["support_wrist_to_grip_local"][0]},{female_spec["support_wrist_to_grip_local"][1]}) if female_mode else Vector2({male_spec["support_wrist_to_grip_local"][0]},{male_spec["support_wrist_to_grip_local"][1]})
+
+func wrist_from_grip(grip_world: Vector2, angle: float, dir_sign: float, support: bool) -> Vector2:
+    var local_offset := support_wrist_to_grip() if support else dominant_wrist_to_grip()
+    return grip_world+pose_point(-local_offset,angle,dir_sign)
+
 func shoulder_rear(base: Vector2, dir_sign: float) -> Vector2:
     var p := Vector2({female_spec["shoulder_rear"][0]},{female_spec["shoulder_rear"][1]}) if female_mode else Vector2({male_spec["shoulder_rear"][0]},{male_spec["shoulder_rear"][1]})
     return base+Vector2(p.x*dir_sign,p.y)
@@ -67,11 +77,11 @@ func pose_point(v: Vector2, angle: float, dir_sign: float) -> Vector2:
 
 func weapon_targets(base: Vector2, angle: float, dir_sign: float, recoil: float) -> Dictionary:
     var pivot := base+Vector2({male_spec["weapon_socket"][0]}*dir_sign,{male_spec["weapon_socket"][1]})+pose_point(Vector2(-1.45*recoil,0),angle,dir_sign)
-    var dominant := pivot+pose_point(Vector2({male_spec["dominant_hand_grip_socket"][0]},{male_spec["dominant_hand_grip_socket"][1]}),angle,dir_sign)
-    var support := pivot+pose_point(Vector2({male_spec["support_hand_grip_socket"][0]},{male_spec["support_hand_grip_socket"][1]}),angle,dir_sign)
-    # V3 grip sockets are already calibrated in weapon-local space; no extra support-hand drift.
-    support += pose_point(Vector2(0,0.0),angle,dir_sign)
-    return {{"pivot":pivot,"dominant_wrist":dominant,"support_wrist":support}}
+    var dominant_grip := pivot+pose_point(Vector2({male_spec["dominant_hand_grip_socket"][0]},{male_spec["dominant_hand_grip_socket"][1]}),angle,dir_sign)
+    var support_grip := pivot+pose_point(Vector2({male_spec["support_hand_grip_socket"][0]},{male_spec["support_hand_grip_socket"][1]}),angle,dir_sign)
+    var dominant_wrist := wrist_from_grip(dominant_grip,angle,dir_sign,false)
+    var support_wrist := wrist_from_grip(support_grip,angle,dir_sign,true)
+    return {{"pivot":pivot,"dominant_grip":dominant_grip,"support_grip":support_grip,"dominant_wrist":dominant_wrist,"support_wrist":support_wrist}}
 
 func solve_elbow(shoulder: Vector2, wrist: Vector2, upper_len: float, fore_len: float, previous: Vector2, has_previous: bool) -> Vector2:
     var dvec := wrist-shoulder
