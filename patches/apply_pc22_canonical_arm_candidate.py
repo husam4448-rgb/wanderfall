@@ -1008,14 +1008,14 @@ capture_helpers='''func _pc22_apply_arm_capture_state(idx: int) -> void:
         state = idx % pc22_arm_states_per_sex
     else:
         var extra := idx-base_capture_count
-        if extra < 12:
-            var roles := ["trader","medic","mechanic","guard","bandit","civilian"]
-            female_mode = extra >= 6
-            pc22_role = roles[extra%6]
+        if extra < 14:
+            var roles := ["trader","medic","mechanic","guard","bandit","civilian","scientist"]
+            female_mode = extra >= 7
+            pc22_role = roles[extra%7]
             state = 12 # horizontal two-handed rifle exposes shoulder/sleeve/glove interface
         else:
             # Generic player glove deliberately overrides role glove on an NPC-equivalent rig.
-            female_mode = extra == 13
+            female_mode = extra == 15
             pc22_role = "trader"
             generic_glove_state = true
             state = 12
@@ -1174,6 +1174,18 @@ capture_helpers='''func _pc22_apply_arm_capture_state(idx: int) -> void:
             gear_gloves = true
             weapon_visible = true
             weapon_two_handed = false
+        31:
+            weapon_visible = true
+            weapon_two_handed = false
+            aim_pos = actor_pos + Vector2(-250,0)
+        32:
+            weapon_visible = true
+            weapon_two_handed = false
+            aim_pos = actor_pos + Vector2(-125,-216.5)
+        33:
+            weapon_visible = true
+            weapon_two_handed = false
+            aim_pos = actor_pos + Vector2(-125,216.5)
     pc22_prev_arm_valid = false
     _refresh_gear_buttons()
     _apply_visual_zoom()
