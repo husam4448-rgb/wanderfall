@@ -50,7 +50,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "d971e4d7dacc485a695fcaeee7a84ea40cc73398247fb0adafc954a54fcf6c62"
+      "sha256": "192906418cf906f3e463276eae0d429bd9ac8bbf8352825ec488f00e4927d5b7"
     },
     {
       "role": "trader",
@@ -188,7 +188,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "da916f8f617b87f51f48415e91b022aac2d4e993577b7bad67b34f23566b2684"
+      "sha256": "f4816bbc7969b7c477d1281e0bbd5bf19fe2299ccd04f70fb264361f123a755f"
     },
     {
       "role": "trader",
@@ -326,7 +326,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "5f302be220fa2ee6f40558679571f965162da1dcdffc737fb5f795f30f7fe5b0"
+      "sha256": "5631daec166dc72127d33d617725b3487988e4b24c1eee56705a0582f41527b6"
     },
     {
       "role": "medic",
@@ -464,7 +464,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "76a3945915c66d74028a27b243d5721e90a9a29b3e696bbad0798d8bdf696fcd"
+      "sha256": "0d99bb86d8f14a87a10d4c8bdb33ebada57865edb1ee7bca35c4799283c067f5"
     },
     {
       "role": "medic",
@@ -602,7 +602,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "f2f69272fe2ba7b4a7941d5ff11eae849b76ce428401a4a192c77950ccf70fae"
+      "sha256": "823a45c9a6a037dd5d692693242250c5ed306089fb7f094f59d9db5e71ae5379"
     },
     {
       "role": "mechanic",
@@ -740,7 +740,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "5898f019e66fe07e11e4c5a64f81c1378ecde308413923c26f48542451a224bc"
+      "sha256": "436e2a9782e40175f24966ec769a6e385e4a40cfd23307c79b3dbf14cfda7eee"
     },
     {
       "role": "mechanic",
@@ -878,7 +878,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "552eae069c8ddd70ab69a4d36fe7723fe992e497d1822d362054496b21a9b935"
+      "sha256": "bf94c8b4492d7e52362abc3c648c28d9e84ca8d3de86125681fd966d360d4c34"
     },
     {
       "role": "guard",
@@ -1016,7 +1016,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "63499c87bddc9de709a5d5bb8d905f93093bea457e4ba0c7e145f0496889d285"
+      "sha256": "ff0a3929b3fef23cadb9a981974eb19586781e0606ba54c690b82c64ea7a875c"
     },
     {
       "role": "guard",
@@ -1154,7 +1154,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "81dbfd0ebadee464db291f07b368a2a87500a35e06d876454ef3a9d831050ec5"
+      "sha256": "41bc1230cabf90b5d13d0fc4743dedc22f05d64782b4a670ee17cb16d35ea460"
     },
     {
       "role": "bandit",
@@ -1292,7 +1292,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "3493757f127a2a8b38cb577bae06886adf8d5e5af5fe48e68faf442a77cf1d00"
+      "sha256": "d4cdc074d9fc39b7fcfdc1b012ed1d7d3c89ce73b3612375437e9134365e049e"
     },
     {
       "role": "bandit",
@@ -1430,7 +1430,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "973e1b3c1d2c583f1c2db602303db4d806cfd6b0e477d75ec2ec19fab390edeb"
+      "sha256": "6fd4ecb6d161c694d9f45b90fc19beba6a6754675e15cc75a87d7b94322b269f"
     },
     {
       "role": "civilian",
@@ -1568,7 +1568,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "a0b4471ca7c73a89167613f5fc44e9f01be9479bfc2471fe143e9a6867e7f103"
+      "sha256": "d89612caf4ff16b0fbdad2c8bbb8eb48293513523d3d430f50c0635f1502be29"
     },
     {
       "role": "civilian",
