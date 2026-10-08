@@ -1,7 +1,7 @@
 name: PC22 Arm Visual Unit Gate
 on:
   push:
-    branches: [ pc22-arm-visual-fix-v2 ]
+    branches: [ pc22-arm-visual-fix-v2, pc22-arm-hybrid-render-v3 ]
     paths:
       - '.github/workflows/pc22-arm-visual-unit.yml'
       - 'tools/qa_pc22_arm_visual_contract.py'
