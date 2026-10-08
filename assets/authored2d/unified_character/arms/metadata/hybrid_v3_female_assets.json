@@ -47,23 +47,23 @@
   "hand_dominant": {
     "filename": "assets/authored2d/unified_character/arms/hybrid_v3/female/SP_PC22_Female_Hand_Dominant_V3.png",
     "canvas_size": [
-      49,
-      58
-    ],
-    "wrist_pivot_px": [
-      3.0,
-      29.0
-    ]
-  },
-  "hand_support": {
-    "filename": "assets/authored2d/unified_character/arms/hybrid_v3/female/SP_PC22_Female_Hand_Support_V3.png",
-    "canvas_size": [
-      52,
+      46,
       56
     ],
     "wrist_pivot_px": [
       3.0,
       28.0
+    ]
+  },
+  "hand_support": {
+    "filename": "assets/authored2d/unified_character/arms/hybrid_v3/female/SP_PC22_Female_Hand_Support_V3.png",
+    "canvas_size": [
+      46,
+      54
+    ],
+    "wrist_pivot_px": [
+      3.0,
+      27.0
     ]
   },
   "shoulder_cap": {

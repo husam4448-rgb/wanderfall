@@ -81,14 +81,14 @@
       "asset": "glove_dominant",
       "filename": "assets/authored2d/unified_character/arms/gloves/trader/male/glove_dominant.png",
       "canvas_size": [
-        49,
-        58
+        46,
+        56
       ],
       "alpha_bbox": [
         0,
         0,
-        49,
-        58
+        46,
+        56
       ],
       "joint_parent": "wrist",
       "joint_child": "dominant_hand",
@@ -96,7 +96,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "a1dfc8967706418da183a457c3acb00f1eae282937dfe6b20c3bc243520102c3"
+      "sha256": "736b714029f564c109cddfcf943f41a625e945716a57de74fb45d5230dd87d84"
     },
     {
       "role": "trader",
@@ -104,14 +104,14 @@
       "asset": "glove_support",
       "filename": "assets/authored2d/unified_character/arms/gloves/trader/male/glove_support.png",
       "canvas_size": [
-        52,
-        56
+        46,
+        54
       ],
       "alpha_bbox": [
         0,
         0,
-        52,
-        56
+        46,
+        54
       ],
       "joint_parent": "wrist",
       "joint_child": "support_hand",
@@ -119,7 +119,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "1748ac5e025b4428cdd3cb9bbb3ab78778e56600086017a341c518ea2720c967"
+      "sha256": "bbdd52c96535274437d4680a00f0f3fe86863bc7821db54fb66bffc285c232a9"
     },
     {
       "role": "trader",
@@ -219,14 +219,14 @@
       "asset": "glove_dominant",
       "filename": "assets/authored2d/unified_character/arms/gloves/trader/female/glove_dominant.png",
       "canvas_size": [
-        49,
-        58
+        46,
+        56
       ],
       "alpha_bbox": [
         0,
         0,
-        49,
-        58
+        46,
+        56
       ],
       "joint_parent": "wrist",
       "joint_child": "dominant_hand",
@@ -234,7 +234,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "8e6b0e8ab758dc571bfee2a9893e4c8dbc0e6b8eb42c2b2f34b9a64d4ae0f029"
+      "sha256": "c0764346258ec6c6ac5ff3c6b6253d386d830538f9db11df607b6adffd3fd18a"
     },
     {
       "role": "trader",
@@ -242,14 +242,14 @@
       "asset": "glove_support",
       "filename": "assets/authored2d/unified_character/arms/gloves/trader/female/glove_support.png",
       "canvas_size": [
-        52,
-        56
+        46,
+        54
       ],
       "alpha_bbox": [
         0,
         0,
-        52,
-        56
+        46,
+        54
       ],
       "joint_parent": "wrist",
       "joint_child": "support_hand",
@@ -257,7 +257,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "30dda61490381bc52bc312a2351b8b978b39ec72589aaf6ecbfebab7b61b0d0f"
+      "sha256": "86eaf5b93c524187003a241bf819785c87eb437d56179bd2f921f64aa84990e7"
     },
     {
       "role": "trader",
@@ -357,14 +357,14 @@
       "asset": "glove_dominant",
       "filename": "assets/authored2d/unified_character/arms/gloves/medic/male/glove_dominant.png",
       "canvas_size": [
-        49,
-        58
+        46,
+        56
       ],
       "alpha_bbox": [
         0,
         0,
-        49,
-        58
+        46,
+        56
       ],
       "joint_parent": "wrist",
       "joint_child": "dominant_hand",
@@ -372,7 +372,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "b1e6b0fa25cb550eb6de6d076bc1f4f69181a29d65f1d98de1109d648dc70418"
+      "sha256": "0e9a24c8ab95301ce2ab7c67c9284cdcd6aca86313e47e4e539482e9e21a7d44"
     },
     {
       "role": "medic",
@@ -380,14 +380,14 @@
       "asset": "glove_support",
       "filename": "assets/authored2d/unified_character/arms/gloves/medic/male/glove_support.png",
       "canvas_size": [
-        52,
-        56
+        46,
+        54
       ],
       "alpha_bbox": [
         0,
         0,
-        52,
-        56
+        46,
+        54
       ],
       "joint_parent": "wrist",
       "joint_child": "support_hand",
@@ -395,7 +395,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "22843b54a1de455ebd6147ebc993f2b4cbd152b2e46c003049a1ed1db7956cd3"
+      "sha256": "7aee176bfba3dfb56049c53fca76cdc49cc3e42f9e305ed224e39e8b367037f7"
     },
     {
       "role": "medic",
@@ -495,14 +495,14 @@
       "asset": "glove_dominant",
       "filename": "assets/authored2d/unified_character/arms/gloves/medic/female/glove_dominant.png",
       "canvas_size": [
-        49,
-        58
+        46,
+        56
       ],
       "alpha_bbox": [
         0,
         0,
-        49,
-        58
+        46,
+        56
       ],
       "joint_parent": "wrist",
       "joint_child": "dominant_hand",
@@ -510,7 +510,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "792e147c0282e670cc3c5ca9904070b668620b0668477b22621e8c58dac873b6"
+      "sha256": "b702dba03eaa0dc50e39abe706bbc1c175fc471d25e9e2a9810da7b63b8e6fde"
     },
     {
       "role": "medic",
@@ -518,14 +518,14 @@
       "asset": "glove_support",
       "filename": "assets/authored2d/unified_character/arms/gloves/medic/female/glove_support.png",
       "canvas_size": [
-        52,
-        56
+        46,
+        54
       ],
       "alpha_bbox": [
         0,
         0,
-        52,
-        56
+        46,
+        54
       ],
       "joint_parent": "wrist",
       "joint_child": "support_hand",
@@ -533,7 +533,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "30c572dd54b796d27622250e1a143a3051961f7aaa97e69f869bd8bf83aaa6b3"
+      "sha256": "95fc9e052dace138348129e2626c08b1f986f5766398d4d4d43910b60f186e1c"
     },
     {
       "role": "medic",
@@ -633,14 +633,14 @@
       "asset": "glove_dominant",
       "filename": "assets/authored2d/unified_character/arms/gloves/mechanic/male/glove_dominant.png",
       "canvas_size": [
-        49,
-        58
+        46,
+        56
       ],
       "alpha_bbox": [
         0,
         0,
-        49,
-        58
+        46,
+        56
       ],
       "joint_parent": "wrist",
       "joint_child": "dominant_hand",
@@ -648,7 +648,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "e171d993adfa27c8a4e73c5fbc39b040f6e58ddab98da290274c2b191524cb0c"
+      "sha256": "abf2a1c6996cb0cd15261d44d97ed8feb0c37c5ec291d4a7da7215c7edceb0d1"
     },
     {
       "role": "mechanic",
@@ -656,14 +656,14 @@
       "asset": "glove_support",
       "filename": "assets/authored2d/unified_character/arms/gloves/mechanic/male/glove_support.png",
       "canvas_size": [
-        52,
-        56
+        46,
+        54
       ],
       "alpha_bbox": [
         0,
         0,
-        52,
-        56
+        46,
+        54
       ],
       "joint_parent": "wrist",
       "joint_child": "support_hand",
@@ -671,7 +671,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "4bd75a52141c4f79ce7417b70867ce0128ff8b7762cc8298d1bf61638601c6a8"
+      "sha256": "c8090c1bd738ffb3f54191efd4f78aefeec2559b41ce41d25b0f64049acadd06"
     },
     {
       "role": "mechanic",
@@ -771,14 +771,14 @@
       "asset": "glove_dominant",
       "filename": "assets/authored2d/unified_character/arms/gloves/mechanic/female/glove_dominant.png",
       "canvas_size": [
-        49,
-        58
+        46,
+        56
       ],
       "alpha_bbox": [
         0,
         0,
-        49,
-        58
+        46,
+        56
       ],
       "joint_parent": "wrist",
       "joint_child": "dominant_hand",
@@ -786,7 +786,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "c1e3a1dc7d4f4562074496ecfb1cd16caf804ca65ceb6124e3bde0cfb039db3a"
+      "sha256": "093e969c8a534375f00e42d64bbf5c7282254c9aba092c61cbbc9d22915c952e"
     },
     {
       "role": "mechanic",
@@ -794,14 +794,14 @@
       "asset": "glove_support",
       "filename": "assets/authored2d/unified_character/arms/gloves/mechanic/female/glove_support.png",
       "canvas_size": [
-        52,
-        56
+        46,
+        54
       ],
       "alpha_bbox": [
         0,
         0,
-        52,
-        56
+        46,
+        54
       ],
       "joint_parent": "wrist",
       "joint_child": "support_hand",
@@ -809,7 +809,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "c706650e27586f720b6efdf99322377c6712657d2fd203fd82bb8929cf8690a9"
+      "sha256": "5febdf6267790c9bd431fcb478097e60fe1bfd4f753b82da1a21d38b0620a8ef"
     },
     {
       "role": "mechanic",
@@ -909,14 +909,14 @@
       "asset": "glove_dominant",
       "filename": "assets/authored2d/unified_character/arms/gloves/guard/male/glove_dominant.png",
       "canvas_size": [
-        49,
-        58
+        46,
+        56
       ],
       "alpha_bbox": [
         0,
         0,
-        49,
-        58
+        46,
+        56
       ],
       "joint_parent": "wrist",
       "joint_child": "dominant_hand",
@@ -924,7 +924,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "6c7f48dcb415ffbead3503a73cdf853606658f1a7c06019bd7a5954a4aeaffb0"
+      "sha256": "5920c7017ee957489efa140e7d29afd6a994d14dc35c3e9c0cc2e6136dacc198"
     },
     {
       "role": "guard",
@@ -932,14 +932,14 @@
       "asset": "glove_support",
       "filename": "assets/authored2d/unified_character/arms/gloves/guard/male/glove_support.png",
       "canvas_size": [
-        52,
-        56
+        46,
+        54
       ],
       "alpha_bbox": [
         0,
         0,
-        52,
-        56
+        46,
+        54
       ],
       "joint_parent": "wrist",
       "joint_child": "support_hand",
@@ -947,7 +947,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "fa65f6ecbbe308df99df249b93ecfdd042340ff60855603db7571b1fa4c7578c"
+      "sha256": "f174365624b9a6eebb64153b2185918be9bf71d86eba85db10cb34b3ec763883"
     },
     {
       "role": "guard",
@@ -1047,14 +1047,14 @@
       "asset": "glove_dominant",
       "filename": "assets/authored2d/unified_character/arms/gloves/guard/female/glove_dominant.png",
       "canvas_size": [
-        49,
-        58
+        46,
+        56
       ],
       "alpha_bbox": [
         0,
         0,
-        49,
-        58
+        46,
+        56
       ],
       "joint_parent": "wrist",
       "joint_child": "dominant_hand",
@@ -1062,7 +1062,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "740aeab2a8c9291265908ec66fae0ec075550ecb9c1b7431bf1ed6d7003693eb"
+      "sha256": "f00796dc6eb3ace995993da44e7bde33d2ea31eedd0b3a293706a3ba8b19871e"
     },
     {
       "role": "guard",
@@ -1070,14 +1070,14 @@
       "asset": "glove_support",
       "filename": "assets/authored2d/unified_character/arms/gloves/guard/female/glove_support.png",
       "canvas_size": [
-        52,
-        56
+        46,
+        54
       ],
       "alpha_bbox": [
         0,
         0,
-        52,
-        56
+        46,
+        54
       ],
       "joint_parent": "wrist",
       "joint_child": "support_hand",
@@ -1085,7 +1085,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "d4f7937f167e72a84822873085d0f36fef9a5e066c574e02237c340a4cc52336"
+      "sha256": "6f444f7aaa2abd29cb16e5a1b735d95ccd9446b8f6aa16824a256049c6bcef43"
     },
     {
       "role": "guard",
@@ -1185,14 +1185,14 @@
       "asset": "glove_dominant",
       "filename": "assets/authored2d/unified_character/arms/gloves/bandit/male/glove_dominant.png",
       "canvas_size": [
-        49,
-        58
+        46,
+        56
       ],
       "alpha_bbox": [
         0,
         0,
-        49,
-        58
+        46,
+        56
       ],
       "joint_parent": "wrist",
       "joint_child": "dominant_hand",
@@ -1200,7 +1200,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "8794062f0f93c808aa421e62254564688c1507ab2dd7f7dd1f70c04bf55b4b83"
+      "sha256": "22a3933aaef852319950e05989e53c4f141dbb00733d9ee41706560f3dce638d"
     },
     {
       "role": "bandit",
@@ -1208,14 +1208,14 @@
       "asset": "glove_support",
       "filename": "assets/authored2d/unified_character/arms/gloves/bandit/male/glove_support.png",
       "canvas_size": [
-        52,
-        56
+        46,
+        54
       ],
       "alpha_bbox": [
         0,
         0,
-        52,
-        56
+        46,
+        54
       ],
       "joint_parent": "wrist",
       "joint_child": "support_hand",
@@ -1223,7 +1223,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "68ba5c4432bd7c278fe4212d2284e473a9ac3f5690005b0c0fc6db73aab094c0"
+      "sha256": "d432f93878c58d32b49620231e7c381c486eb505675af45cb8aebdf40b3f9169"
     },
     {
       "role": "bandit",
@@ -1323,14 +1323,14 @@
       "asset": "glove_dominant",
       "filename": "assets/authored2d/unified_character/arms/gloves/bandit/female/glove_dominant.png",
       "canvas_size": [
-        49,
-        58
+        46,
+        56
       ],
       "alpha_bbox": [
         0,
         0,
-        49,
-        58
+        46,
+        56
       ],
       "joint_parent": "wrist",
       "joint_child": "dominant_hand",
@@ -1338,7 +1338,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "042f866d30214d2f253c7360bc881bf3563e98a6dca270a561b4ad6acb06259b"
+      "sha256": "e158dd65e841df1f1c1a8c47cd9474f4af2879bbcb41977281a04b037a24f40f"
     },
     {
       "role": "bandit",
@@ -1346,14 +1346,14 @@
       "asset": "glove_support",
       "filename": "assets/authored2d/unified_character/arms/gloves/bandit/female/glove_support.png",
       "canvas_size": [
-        52,
-        56
+        46,
+        54
       ],
       "alpha_bbox": [
         0,
         0,
-        52,
-        56
+        46,
+        54
       ],
       "joint_parent": "wrist",
       "joint_child": "support_hand",
@@ -1361,7 +1361,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "473cfbca45e600ddbc5734aa278754180cab1141bf3e1d2d3015b626c8ac4a19"
+      "sha256": "7e4113b0b929b82d8660e613db5e3fa2a78ac08dfacf82741804ae6f78e31d8d"
     },
     {
       "role": "bandit",
@@ -1461,14 +1461,14 @@
       "asset": "glove_dominant",
       "filename": "assets/authored2d/unified_character/arms/gloves/civilian/male/glove_dominant.png",
       "canvas_size": [
-        49,
-        58
+        46,
+        56
       ],
       "alpha_bbox": [
         0,
         0,
-        49,
-        58
+        46,
+        56
       ],
       "joint_parent": "wrist",
       "joint_child": "dominant_hand",
@@ -1476,7 +1476,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "5eb426305fc4175d65311f990ac6d7e00aa7e5c34cb62df6675c86ebb1af71df"
+      "sha256": "07a6336b311273c5e4505e8046fd514c7942dd2a7d8cbab465d30166a9b8068d"
     },
     {
       "role": "civilian",
@@ -1484,14 +1484,14 @@
       "asset": "glove_support",
       "filename": "assets/authored2d/unified_character/arms/gloves/civilian/male/glove_support.png",
       "canvas_size": [
-        52,
-        56
+        46,
+        54
       ],
       "alpha_bbox": [
         0,
         0,
-        52,
-        56
+        46,
+        54
       ],
       "joint_parent": "wrist",
       "joint_child": "support_hand",
@@ -1499,7 +1499,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "7edefe737dd54de4462fde55ce37b562a1ce4e5fe0402f75430e672848bc97c2"
+      "sha256": "0a982538c3ac701c81395c4f66989b239f6cf1dd18d84e890e02017e06b68321"
     },
     {
       "role": "civilian",
@@ -1599,14 +1599,14 @@
       "asset": "glove_dominant",
       "filename": "assets/authored2d/unified_character/arms/gloves/civilian/female/glove_dominant.png",
       "canvas_size": [
-        49,
-        58
+        46,
+        56
       ],
       "alpha_bbox": [
         0,
         0,
-        49,
-        58
+        46,
+        56
       ],
       "joint_parent": "wrist",
       "joint_child": "dominant_hand",
@@ -1614,7 +1614,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "abc40216a06ae7f827575eeae1f0feb47ccc1070fed9234d6bd233abcc4a7cfb"
+      "sha256": "b427ad55a223adbc7451a776a06e1f81ec79b805412f94d7362212ac199bdfd5"
     },
     {
       "role": "civilian",
@@ -1622,14 +1622,14 @@
       "asset": "glove_support",
       "filename": "assets/authored2d/unified_character/arms/gloves/civilian/female/glove_support.png",
       "canvas_size": [
-        52,
-        56
+        46,
+        54
       ],
       "alpha_bbox": [
         0,
         0,
-        52,
-        56
+        46,
+        54
       ],
       "joint_parent": "wrist",
       "joint_child": "support_hand",
@@ -1637,7 +1637,7 @@
       "geometry_override": false,
       "mirroring_supported": true,
       "approval_state": "candidate",
-      "sha256": "5cb25cc426ac0e1ef0bd666a51a582081cd1c439cff4d4eeddb321ae91208b8e"
+      "sha256": "f8cb060d928f63c1abbae031839cf668ac0be84778de81e918a4ab7687a999be"
     },
     {
       "role": "civilian",

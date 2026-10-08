@@ -80,7 +80,7 @@
       "sex": "male",
       "segment": "hand_dominant",
       "canvas_size": [
-        96,
+        80,
         96
       ],
       "pivot": "segment parent joint / centered draw helper",
@@ -94,18 +94,18 @@
       "approval_state": "candidate",
       "alpha_bbox": [
         10,
-        19,
-        59,
-        77
+        20,
+        56,
+        76
       ],
-      "sha256": "1b61e4103b971b2d861e85b5c333aaadfa566943cbbdcb9c088b34a892b99d08"
+      "sha256": "4de4a867bff837daf82c0604c668128b7fae7667b295976eabfc6ae9c394357d"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/male/SP_PC22_Male_Hand_Support_Right.png",
       "sex": "male",
       "segment": "hand_support",
       "canvas_size": [
-        96,
+        80,
         96
       ],
       "pivot": "segment parent joint / centered draw helper",
@@ -119,11 +119,11 @@
       "approval_state": "candidate",
       "alpha_bbox": [
         10,
-        20,
-        62,
-        76
+        21,
+        56,
+        75
       ],
-      "sha256": "1af110ea29a6591ac2ac0c4dcc3c79388a7f29686590c28530f94eab2a37187d"
+      "sha256": "3dfd6a8042791136bc91e52615fdbbe8bdeac89996fbf0bf49b61f0ce758cc16"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/female/SP_PC22_Female_UpperArm_Right.png",
@@ -205,7 +205,7 @@
       "sex": "female",
       "segment": "hand_dominant",
       "canvas_size": [
-        96,
+        80,
         96
       ],
       "pivot": "segment parent joint / centered draw helper",
@@ -219,18 +219,18 @@
       "approval_state": "candidate",
       "alpha_bbox": [
         10,
-        19,
-        59,
-        77
+        20,
+        56,
+        76
       ],
-      "sha256": "ca91eef7f20aa023bed640b380bfb257238aa77d314ed1ec513b98286052cfcf"
+      "sha256": "64ed78cc25e4993d533d2e8cd423b434588131f8370010940323a7803907a701"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/female/SP_PC22_Female_Hand_Support_Right.png",
       "sex": "female",
       "segment": "hand_support",
       "canvas_size": [
-        96,
+        80,
         96
       ],
       "pivot": "segment parent joint / centered draw helper",
@@ -244,11 +244,11 @@
       "approval_state": "candidate",
       "alpha_bbox": [
         10,
-        20,
-        62,
-        76
+        21,
+        56,
+        75
       ],
-      "sha256": "a5a3a1bec3224e509a89b336da6b549b66b8adf06646b7db7911f779c3c10f08"
+      "sha256": "6fa623665716bd13b18a3b76e9e60beebdea277d30bef4213767bd4818144fa1"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/weapons/SP_PC22_Pistol_ArmCompatible.png",
