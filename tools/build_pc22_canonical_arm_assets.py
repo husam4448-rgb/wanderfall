@@ -731,47 +731,51 @@ rifle_front.save(rifle_front_path)
 female_upper_runtime=embedded_runtime_image("FEMALE_UPPER_ARM_B64")
 female_fore_runtime=embedded_runtime_image("FEMALE_FOREARM_B64")
 
-# Canonical geometry: PC22 has no active shoulders by design (PC08 removed visible arms).
-# Therefore shoulder sockets come from the last exact PC03 articulated implementation,
-# while weapon/hand sockets and aim range come from the active PC22 runtime/manifest.
+# Body-relative anatomical calibration derived from the approved Survival Paradise
+# east-facing male/female reference art and the rejected 4x runtime captures.
+# The old PC03-derived +X shoulder sockets were mathematically valid but sat on
+# the front chest. These sockets place the humeral head back at the visible
+# deltoid while preserving one universal two-bone IK architecture.
 specs={
  "male":{
-   "rig_id":"MALE_CANONICAL_ARM_SYSTEM",
-   "shoulder_rear":[10.0,-9.5],
-   "shoulder_front":[9.8,-9.0],
-   "upper_arm_length":10.9,
-   "forearm_length":10.7,
+   "rig_id":"HUMANOID_CANONICAL_ARM_SYSTEM",
+   "shoulder_rear":[-4.8,-9.8],
+   "shoulder_front":[-4.0,-9.3],
+   "upper_arm_length":13.3,
+   "forearm_length":12.5,
    "upper_arm_width":6.2,
    "forearm_width":5.1,
    "hand_size":canonical["male"]["hand_size"],
-   "dominant_hand_size":[5.6,5.2],
-   "support_hand_size":[5.2,4.8],
+   "dominant_hand_size":[6.0,5.6],
+   "support_hand_size":[5.6,5.2],
    "neutral_upper_angle_deg":82.0,
    "neutral_elbow_flex_deg":22.0,
    "source_tint":[78,88,72],
+   "torso_runtime_size":[26.2,29.6],
  },
  "female":{
-   "rig_id":"FEMALE_CANONICAL_ARM_SYSTEM",
-   "shoulder_rear":[9.6,-9.3],
-   "shoulder_front":[9.4,-8.9],
-   "upper_arm_length":10.6,
-   "forearm_length":10.5,
+   "rig_id":"HUMANOID_CANONICAL_ARM_SYSTEM",
+   "shoulder_rear":[-4.5,-9.6],
+   "shoulder_front":[-3.7,-9.1],
+   "upper_arm_length":12.8,
+   "forearm_length":12.2,
    "upper_arm_width":5.8,
    "forearm_width":4.8,
    "hand_size":canonical["female"]["hand_size"],
-   "dominant_hand_size":[5.2,4.9],
-   "support_hand_size":[4.9,4.6],
+   "dominant_hand_size":[5.6,5.3],
+   "support_hand_size":[5.3,5.0],
    "neutral_upper_angle_deg":84.0,
    "neutral_elbow_flex_deg":24.0,
    "source_tint":[80,91,75],
+   "torso_runtime_size":[27.0,27.5],
  }
 }
 for sex,s in specs.items():
     s.update({
       "standard_id":"PlayerCharacters_v22",
-      "shoulder_source":"Visual-fix-v2: moved to visible PC22 deltoid/outer-torso attachment using approved reference sheets",
-      "upper_forearm_length_source":"corrected from prior 9.4+10.5 solver to cover the complete active PC22 support-hand aim envelope without stretch",
-      "weapon_socket":[10.5,-6.0],
+      "shoulder_source":"Body-relative calibration from approved east-facing character art; negative local X places the humeral head behind torso center instead of on the front chest",
+      "upper_forearm_length_source":"Recalibrated against torso/head scale after rejected 4x APK review; longer anatomical chain replaces the short PC03-derived proportions",
+      "weapon_socket":[3.0,-6.0],
       "dominant_hand_grip_socket":[9.8,0.8],
       "support_hand_grip_socket":[17.0,-1.0],
       "support_hand_vertical_offset_right":0.0,
@@ -785,6 +789,17 @@ for sex,s in specs.items():
       "maximum_downward_aim_angle_rad":-canonical["shared_motion"]["aim_angle_clamp_rad"],
       "left_right_mirror_behavior":"right-authored; left runtime mirror",
       "body_scale":"PlayerCharacters_v22 runtime units",
+      "anatomy_reference":"approved Survival Paradise side-profile art + rejected 4x runtime screenshots",
+      "body_relative_ratios":{
+        "shoulder_rear_x_over_torso_width":s["shoulder_rear"][0]/s["torso_runtime_size"][0],
+        "shoulder_front_x_over_torso_width":s["shoulder_front"][0]/s["torso_runtime_size"][0],
+        "upper_length_over_torso_height":s["upper_arm_length"]/s["torso_runtime_size"][1],
+        "forearm_length_over_torso_height":s["forearm_length"]/s["torso_runtime_size"][1],
+        "upper_width_over_torso_width":s["upper_arm_width"]/s["torso_runtime_size"][0],
+        "forearm_width_over_torso_width":s["forearm_width"]/s["torso_runtime_size"][0],
+        "dominant_hand_height_over_forearm":s["dominant_hand_size"][1]/s["forearm_length"],
+        "support_hand_height_over_forearm":s["support_hand_size"][1]/s["forearm_length"],
+      },
       "layering":{"rear_arm":"behind torso/weapon as appropriate","front_arm":"ahead of torso, behind hands","hands":"weapon-contact layer"},
     })
 
@@ -1143,6 +1158,45 @@ for sex,s in specs.items():
                 if disp>2.2:
                     failures.append({"sex":sex,"chain":chain,"reason":"ik_discontinuity","disp":disp,"angle":a})
                 prev=elbow
+
+# Body-relative anatomy QA: this prevents a self-consistent but visibly wrong
+# front-chest/short-arm rig from passing merely because bone lengths close.
+for sex,s in specs.items():
+    tw,th=s["torso_runtime_size"]
+    rear_x=s["shoulder_rear"][0]/tw
+    front_x=s["shoulder_front"][0]/tw
+    upper_ratio=s["upper_arm_length"]/th
+    fore_ratio=s["forearm_length"]/th
+    dom_hand_ratio=s["dominant_hand_size"][1]/s["forearm_length"]
+    sup_hand_ratio=s["support_hand_size"][1]/s["forearm_length"]
+    if not (-0.22 <= rear_x <= -0.13):
+        failures.append({"sex":sex,"reason":"shoulder_rear_body_ratio","value":rear_x})
+    if not (-0.19 <= front_x <= -0.11):
+        failures.append({"sex":sex,"reason":"shoulder_front_body_ratio","value":front_x})
+    if not (0.43 <= upper_ratio <= 0.48):
+        failures.append({"sex":sex,"reason":"upper_torso_ratio","value":upper_ratio})
+    if not (0.41 <= fore_ratio <= 0.46):
+        failures.append({"sex":sex,"reason":"fore_torso_ratio","value":fore_ratio})
+    if not (0.39 <= dom_hand_ratio <= 0.46):
+        failures.append({"sex":sex,"reason":"dominant_hand_forearm_ratio","value":dom_hand_ratio})
+    if not (0.38 <= sup_hand_ratio <= 0.44):
+        failures.append({"sex":sex,"reason":"support_hand_forearm_ratio","value":sup_hand_ratio})
+
+    # Pistol target includes the runtime-only forward extension. Verify the
+    # corrected shoulder and longer arm can still reach the complete aim sweep.
+    L1,L2=s["upper_arm_length"],s["forearm_length"]
+    clamp=canonical["shared_motion"]["aim_angle_clamp_rad"]
+    for facing in (1,-1):
+        for i in range(121):
+            a=-clamp+i*(2*clamp/120.0)
+            shoulder=mirror(tuple(s["shoulder_rear"]),facing)
+            pivot=mirror(tuple(s["weapon_socket"]),facing)
+            grip=pose_point((s["dominant_hand_grip_socket"][0]+6.8,
+                             s["dominant_hand_grip_socket"][1]),a,facing)
+            wrist=add(pivot,grip)
+            if length(sub(wrist,shoulder)) > L1+L2-0.001:
+                failures.append({"sex":sex,"facing":facing,"reason":"pistol_unreachable","angle":a})
+                break
 
 summary={"pass":not failures,"failure_count":len(failures),"samples":len(samples)}
 for sex in specs:
