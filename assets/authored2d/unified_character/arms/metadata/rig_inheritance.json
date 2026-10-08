@@ -1,8 +1,11 @@
 {
   "standard_id": "PlayerCharacters_v22",
+  "universal_rig_id": "HUMANOID_CANONICAL_ARM_SYSTEM",
   "policy": {
     "npc_specific_skeletons": false,
     "role_specialization_changes_geometry": false,
+    "sex_profile_changes_solver": false,
+    "appearance_changes_geometry": false,
     "left_is_runtime_mirror": true,
     "role_specialization": [
       "sleeve_overlay",
@@ -14,7 +17,8 @@
     ]
   },
   "male": {
-    "rig_id": "MALE_CANONICAL_ARM_SYSTEM",
+    "rig_id": "HUMANOID_CANONICAL_ARM_SYSTEM",
+    "profile": "male",
     "users": [
       "player_male",
       "trader_male",
@@ -22,11 +26,13 @@
       "mechanic_male",
       "guard_male",
       "bandit_male",
-      "civilian_male"
+      "civilian_male",
+      "scientist_male"
     ]
   },
   "female": {
-    "rig_id": "FEMALE_CANONICAL_ARM_SYSTEM",
+    "rig_id": "HUMANOID_CANONICAL_ARM_SYSTEM",
+    "profile": "female",
     "users": [
       "player_female",
       "trader_female",
@@ -34,7 +40,8 @@
       "mechanic_female",
       "guard_female",
       "bandit_female",
-      "civilian_female"
+      "civilian_female",
+      "scientist_female"
     ]
   }
 }
