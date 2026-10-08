@@ -155,11 +155,15 @@ require("Vector2(0.54,0.50)" in patch, "dominant armed-hand grip pivot drift")
 require("Vector2(0.56,0.48)" in patch, "support armed-hand grip pivot drift")
 require("(3.25 if female_mode else 3.45)" in patch, "dominant locked hand scale drift")
 require("(3.15 if female_mode else 3.35)" in patch, "support locked hand scale drift")
-require("Rifle stock is a rear-depth piece" in patch, "rifle stock no longer guaranteed behind torso")
+require("Rifle rear-depth composition" in patch, "rifle rear-depth composition marker missing")
 require(patch.count("_pc22_v3_draw_weapon_piece(tex_pc22_rifle_stock") == 1,
         "rifle stock must be rendered exactly once")
-require("Upper arms remain torso-masked in armed poses" in patch,
-        "armed upper-arm torso masking marker missing")
+require("if not (weapon_visible and weapon_two_handed):" in patch,
+        "rifle rear forearm is not suppressed from the foreground depth stack")
+require("pc22_rear_fore_back_tex" in patch and "pc22_rear_elbow_back_tex" in patch,
+        "rifle dominant arm rear-depth render is missing")
+require("dominant forearm/elbow and stock belong" in patch,
+        "rifle rear forearm depth-layering marker missing")
 require("pc22_dom_upper_start" not in patch and "pc22_front_upper_start" not in patch,
         "triangular foreground upper-arm tails reintroduced")
 require("if gear_torso:" in patch and "tex_pc22_female_gear_upper" in patch and "tex_pc22_male_gear_fore" in patch,
@@ -167,14 +171,14 @@ require("if gear_torso:" in patch and "tex_pc22_female_gear_upper" in patch and 
 
 # Pistol support arm must use fixed-length IK to a weapon-local contact point.
 require("func _pc22_pistol_support_target" in patch, "pistol support target helper missing")
-require("Vector2(-0.85,1.55)" in patch, "pistol support grip offset drift")
+require("Vector2(-1.10,1.65)" in patch, "pistol support grip offset drift")
 require("pc22_front_wrist = _pc22_pistol_support_target(pc22_dom_wrist,pc22_arm_angle,dir_sign)" in patch,
         "pistol support wrist is not locked to the weapon grip")
 require("pc22_front_elbow = _pc22_solve_elbow(pc22_front_shoulder,pc22_front_wrist" in patch,
         "pistol support arm is not solved with fixed-length IK")
 require("var pc22_pistol_sup_tex := _pc22_support_hand_texture()" in patch,
         "pistol support grip hand renderer missing")
-require("(2.80 if female_mode else 3.00)" in patch,
+require("(2.70 if female_mode else 2.90)" in patch,
         "pistol support grip hand scale drift")
 require("_pc22_relaxed_onehand_arm" not in patch,
         "legacy dangling one-handed off-arm helper reintroduced")
