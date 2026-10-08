@@ -1034,10 +1034,9 @@ weapon_block='''    # HYBRID V3: weapon artwork is anchored directly at the domi
             _pc22_v3_draw_weapon_piece(tex_pc22_rifle_front,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(36.0,18.0),0.33)
             active_muzzle = pc22_dom_wrist + _pose_point(Vector2(19.14,-1.65),pc22_arm_angle,dir_sign)
         else:
-            # Pistol is the depth anchor. The support palm is drawn over the
-            # grip but under the firing palm, making the two-hand wrap visible
-            # without letting either hand float away from the weapon.
-            _pc22_v3_draw_weapon_piece(tex_pc22_pistol,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(15.0,18.0),0.24)
+            # Final pistol depth stack: support arm -> support palm -> pistol ->
+            # dominant firing palm. The weapon separates the two hands visually
+            # while both remain locked to the same underlying IK grip geometry.
             var pc22_pistol_sup_tex := _pc22_support_hand_texture()
             # Visual-only support-palm placement: keep the IK wrist/socket
             # untouched, but reveal a smaller lower/rear palm around the firing
@@ -1048,6 +1047,7 @@ weapon_block='''    # HYBRID V3: weapon artwork is anchored directly at the domi
                 _pc22_v3_draw_grip_hand_tinted(pc22_pistol_sup_tex,pc22_pistol_sup_visual,pc22_arm_angle,dir_sign,(2.34 if female_mode else 2.52),Vector2(0.48,0.50),pc22_support_depth_tint)
             else:
                 _draw_support_hand(pc22_pistol_sup_visual,pc22_arm_angle,dir_sign,Color("b97755"),0.80)
+            _pc22_v3_draw_weapon_piece(tex_pc22_pistol,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(15.0,18.0),0.24)
             active_muzzle = pc22_dom_wrist + _pose_point(Vector2(7.44,-2.16),pc22_arm_angle,dir_sign)
 
         if shot_flash > 0.02:
