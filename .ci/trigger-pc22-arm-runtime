@@ -1,15 +1,1 @@
-runtime-candidate-v2-jointcaps-weapons
-retry-runtime-qa-persist
-post-grip-asset-audit-runtime
-post-rifle-stock-asset-audit-runtime
-post-stock-depth-split-runtime
-visual-fix-v2-green-candidate
-visual-fix-v2-ik-recovery-current
-hybrid-v3-full-qa-retry
-hybrid-v3-repair-run-20261007
-hybrid-v3-pistol-support-sleeve-integration-20261008
-hybrid-v3-iteration2-prep-20261008
-hybrid-v3-iteration2-final-20261008
-hybrid-v3-iteration3-final-20261008
-body-relative-anatomy-recalibration-20261008
-anatomical-wrist-grip-separation-20261008
+body-relative-grip-transform-iteration3-20261009-0122
