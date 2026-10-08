@@ -229,7 +229,10 @@ def anatomical_sleeve(img, base_rgb, sex, segment, fabric_ref=None):
         for xx in range(w):
             ea=ep[xx,yy]
             if ea>0:
-                op[xx,yy]=(edge_rgb[0],edge_rgb[1],edge_rgb[2],min(150,ea))
+                # Keep only a restrained cloth-edge shadow. The former strong
+                # 150-alpha contour became a visible rectangular "frame" when
+                # arm sprites were inset over the continuous armed silhouette.
+                op[xx,yy]=(edge_rgb[0],edge_rgb[1],edge_rgb[2],min(52,ea))
     base.alpha_composite(outline)
     base.putalpha(mask)
     return base
