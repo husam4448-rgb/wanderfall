@@ -78,9 +78,7 @@
     "Hybrid V3 restores a compact textured shoulder cap as an intentional deltoid bridge; this is not a full upper-arm redraw and must remain anchored to the canonical shoulder socket.",
     "Hybrid V3 armed-hand refinement: locked IK grip sockets now land inside the rendered palm; free-hand wrist anchoring is unchanged.",
     "Hybrid V3 pistol scale recalibrated from runtime evidence so sidearm length is realistic relative to the 10.5–10.7 unit forearm while preserving the exact locked grip socket.",
-    "Hybrid V3 final shoulder composition: compact deltoid caps are rendered behind the torso so torso occlusion hides their root and prevents a pasted-on shoulder-pad silhouette.",
-    "Universal-rig refinement: armed poses use one continuous shoulder→elbow→wrist ribbon after torso composition; authored modular upper/forearm sprites are suppressed for armed silhouettes.",
-    "Rifle side-view depth rule: the solved dominant arm may be fully occluded by torso/stock until the firing hand emerges at the trigger; this prevents artificial X/triangle construction without changing IK."
+    "Hybrid V3 final shoulder composition: compact deltoid caps are rendered behind the torso so torso occlusion hides their root and prevents a pasted-on shoulder-pad silhouette."
   ],
   "runtime_draw": {
     "rifle_scale_min": 0.3,
@@ -98,16 +96,13 @@
     ]
   },
   "layering": {
-    "armed_front_upper": "continuous_ribbon_after_torso",
-    "armed_front_forearm": "continuous_ribbon_after_torso",
+    "armed_front_upper": "behind_torso",
+    "armed_front_forearm": "foreground",
+    "prohibit_full_front_chain_after_torso": true,
     "shoulder_cap_foreground": false,
     "rifle_stock": "foreground_to_torso_behind_forearms_and_hands",
     "natural_torso_shoulder_occlusion": true,
-    "shoulder_cap": "behind_torso",
-    "armed_pre_torso_authored_upper": false,
-    "armed_shoulder_cap": false,
-    "rifle_dominant_arm_visibility": "occluded_until_firing_hand",
-    "prohibit_legacy_modular_front_chain": true
+    "shoulder_cap": "behind_torso"
   },
   "renderer": "hybrid_pivoted_sprite_v3"
 }
