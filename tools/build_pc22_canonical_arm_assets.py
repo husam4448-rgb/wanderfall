@@ -283,17 +283,17 @@ def tactical_sleeve(img, sex, segment):
     # sharp vest/webbing detail onto sleeves made the limbs look like modular
     # armor plates instead of continuous fabric.
     glum=ImageOps.grayscale(gref).filter(ImageFilter.GaussianBlur(1.0))
-    glum=ImageEnhance.Contrast(glum).enhance(1.38).resize(out.size,Image.Resampling.LANCZOS)
+    glum=ImageEnhance.Contrast(glum).enhance(1.55).resize(out.size,Image.Resampling.LANCZOS)
     gdark=tuple(max(0,int(c*0.52)) for c in light)
     glight=tuple(min(255,int(c*1.35+6)) for c in light)
     gtex=ImageOps.colorize(glum,gdark,glight).convert("RGBA")
     gtex.putalpha(alpha)
-    out=Image.blend(out,gtex,0.16)
+    out=Image.blend(out,gtex,0.26)
     out.putalpha(alpha)
     d=ImageDraw.Draw(out)
     w,h=out.size
-    stitch=(174,157,112,10)
-    shadow=(29,31,27,18)
+    stitch=(174,157,112,6)
+    shadow=(29,31,27,12)
     # Short staggered seams and folds preserve tactical fabric detail without
     # tracing the whole limb axis like a rigid strap.
     seam_rows=(0.46,) if segment=="upper" else (0.52,)

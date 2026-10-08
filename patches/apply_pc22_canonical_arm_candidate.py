@@ -594,7 +594,7 @@ func _pc22_draw_arm_material_detail(shoulder: Vector2, elbow: Vector2, wrist: Ve
     var upper_start := shoulder.lerp(elbow,0.12)
     var upper_end := elbow+ud*0.38
     var fore_start := elbow-fd*0.38
-    var opacity: float = (0.66 if gear_torso else 0.52)*(0.78 if depth_scale < 0.99 else 1.0)
+    var opacity: float = (0.78 if gear_torso else 0.68)*(0.78 if depth_scale < 0.99 else 1.0)
     _pc22_draw_textured_limb_detail(upper_tex,upper_start,upper_end,upper_a,upper_b,flip_x,opacity)
     _pc22_draw_textured_limb_detail(fore_tex,fore_start,wrist,fore_a,fore_b,flip_x,opacity)
 
@@ -997,15 +997,15 @@ weapon_block='''    # HYBRID V3: weapon artwork is anchored directly at the domi
             _pc22_v3_draw_weapon_piece(tex_pc22_rifle_front,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(36.0,18.0),0.33)
             active_muzzle = pc22_dom_wrist + _pose_point(Vector2(19.14,-1.65),pc22_arm_angle,dir_sign)
         else:
-            # Draw the support palm first, then pistol, then firing hand. This
-            # produces a readable two-hand stack instead of two skin sprites
-            # merging on top of the weapon.
+            # Pistol is the depth anchor. The support palm is drawn over the
+            # grip but under the firing palm, making the two-hand wrap visible
+            # without letting either hand float away from the weapon.
+            _pc22_v3_draw_weapon_piece(tex_pc22_pistol,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(15.0,18.0),0.24)
             var pc22_pistol_sup_tex := _pc22_support_hand_texture()
             if pc22_pistol_sup_tex != null:
-                _pc22_v3_draw_grip_hand(pc22_pistol_sup_tex,pc22_front_wrist,pc22_arm_angle,dir_sign,(2.42 if female_mode else 2.62),Vector2(0.52,0.52))
+                _pc22_v3_draw_grip_hand(pc22_pistol_sup_tex,pc22_front_wrist,pc22_arm_angle,dir_sign,(2.28 if female_mode else 2.46),Vector2(0.54,0.52))
             else:
-                _draw_support_hand(pc22_front_wrist,pc22_arm_angle,dir_sign,Color("b97755"),0.80)
-            _pc22_v3_draw_weapon_piece(tex_pc22_pistol,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(15.0,18.0),0.24)
+                _draw_support_hand(pc22_front_wrist,pc22_arm_angle,dir_sign,Color("b97755"),0.76)
             active_muzzle = pc22_dom_wrist + _pose_point(Vector2(7.44,-2.16),pc22_arm_angle,dir_sign)
 
         if shot_flash > 0.02:
@@ -1028,7 +1028,7 @@ weapon_block='''    # HYBRID V3: weapon artwork is anchored directly at the domi
             else:
                 _draw_support_hand(pc22_front_wrist,pc22_arm_angle,dir_sign,Color("b97755"),1.0)
         else:
-            # Pistol support hand was already depth-composed behind the weapon.
+            # Pistol support hand was already composed around the weapon grip.
             pass
 '''
 s=s[:start]+weapon_block+s[end:]
