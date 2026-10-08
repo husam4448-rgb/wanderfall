@@ -842,8 +842,13 @@ for sex,s in specs.items():
     v3_sex=v3_root/sex
     v3_upper,v3_upper_parent,v3_upper_child=make_v3_pivoted_segment(u)
     v3_fore,v3_fore_parent,v3_fore_child=make_v3_pivoted_segment(f)
-    v3_gear_upper=tactical_sleeve(v3_upper,sex,"upper")
-    v3_gear_fore=tactical_sleeve(v3_fore,sex,"forearm")
+    # Build equipped sleeves while the authored limb is still vertical. Fabric
+    # seams/folds therefore follow anatomy before the final +X pivot conversion,
+    # rather than being painted as long rigid bands along an already-rotated arm.
+    v3_gear_upper_vertical=tactical_sleeve(u,sex,"upper")
+    v3_gear_fore_vertical=tactical_sleeve(f,sex,"forearm")
+    v3_gear_upper,_,_=make_v3_pivoted_segment(v3_gear_upper_vertical)
+    v3_gear_fore,_,_=make_v3_pivoted_segment(v3_gear_fore_vertical)
     v3_elbow=make_v3_elbow_patch(v3_upper,v3_fore,sex)
     v3_gear_elbow=make_v3_elbow_patch(v3_gear_upper,v3_gear_fore,sex)
     v3_dom,v3_dom_pivot=make_v3_pivoted_hand(hand)
