@@ -171,14 +171,14 @@ require("if gear_torso:" in patch and "tex_pc22_female_gear_upper" in patch and 
 
 # Pistol support arm must use fixed-length IK to a compact weapon-local contact.
 require("func _pc22_pistol_support_target" in patch, "pistol support target helper missing")
-require("Vector2(-0.82,1.12)" in patch, "compact pistol support grip offset drift")
+require("Vector2(-1.10,1.48)" in patch, "compact pistol support grip offset drift")
 require("pc22_front_wrist = _pc22_pistol_support_target(pc22_dom_wrist,pc22_arm_angle,dir_sign)" in patch,
         "pistol support wrist is not locked to the weapon grip")
 require("pc22_front_elbow = _pc22_solve_elbow(pc22_front_shoulder,pc22_front_wrist" in patch,
         "pistol support arm is not solved with fixed-length IK")
 require("var pc22_pistol_sup_tex := _pc22_support_hand_texture()" in patch,
         "pistol support grip hand renderer missing")
-require("(2.30 if female_mode else 2.48)" in patch and "Vector2(0.50,0.52)" in patch,
+require("(2.36 if female_mode else 2.54)" in patch and "Vector2(0.52,0.52)" in patch,
         "pistol support hand scale/pivot drift")
 require("Vector2(6.6,0.0)" in patch and "Vector2(1.7*dir_sign,0.0)" in patch,
         "pistol forward stance extension missing")
@@ -206,6 +206,13 @@ require("draw_colored_polygon(pts,body)" in patch,
         "continuous arm ribbon fill missing")
 require("UNIVERSAL THREE-JOINT ARM COMPOSITION" in patch,
         "universal armed composition marker missing")
+require("func _pc22_draw_textured_limb_detail" in patch and
+        "func _pc22_draw_arm_material_detail" in patch,
+        "appearance-independent texture-mapped sleeve detail missing")
+require("draw_polygon(pts,colors,uvs,tex)" in patch,
+        "textured limb detail is not clipped to the tapered arm mesh")
+require("var opacity: float = 0.46 if gear_torso else 0.34" in patch,
+        "gear/base material-detail opacity drift")
 require(patch.count("_pc22_v3_draw_distal_segment(") == 1,
         "armed distal upper-arm module renderer is still called")
 require(patch.count("_pc22_v3_draw_segment_detail(") == 1,
