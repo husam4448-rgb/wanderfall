@@ -2,7 +2,7 @@ name: PC22 Canonical Arm Production Gate
 
 on:
   push:
-    branches: [ pc22-canonical-arm-system ]
+    branches: [ pc22-canonical-arm-system, pc22-arm-hybrid-render-v3 ]
     paths:
       - '.ci/trigger-pc22-arm-production'
       - '.github/workflows/pc22-arm-production-gate.yml'
