@@ -194,8 +194,10 @@ require("CONTINUOUS POLYGON ARM COMPOSITION" in patch,
         "continuous polygon arm composition marker missing")
 require("draw_colored_polygon(pts,body)" in patch,
         "continuous arm polygon fill missing")
-require("draw_polyline(edge,outline,0.34,false)" in patch,
-        "clean non-glowing arm contour missing")
+require("draw_circle(elbow,elbow_half*1.03,body)" in patch,
+        "rounded elbow silhouette fill missing")
+require("draw_polyline(edge,outline" not in patch,
+        "mechanical perimeter outline reintroduced")
 require("_pc22_draw_anatomical_arm_underlay" not in patch,
         "legacy blurred arm underlay helper reintroduced")
 require("Pistol support hand was already depth-composed behind the weapon." in patch,
@@ -223,6 +225,8 @@ require("GaussianBlur(2.2)" in builder and "Image.blend(out,gtex,0.28)" in build
         "tactical sleeve texture integration drift")
 require('W,H=(28,24) if sex=="female" else (30,26)' in builder,
         "compact elbow bridge dimensions drift")
+require("min(52,ea)" in builder,
+        "armed sleeve detail edge contour became too heavy")
 
 # Dedicated textured elbow gussets are visual-only and must cover both armed elbows.
 require("func _pc22_v3_draw_elbow_gusset" in patch, "textured elbow gusset renderer missing")
