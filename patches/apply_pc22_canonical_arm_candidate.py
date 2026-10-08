@@ -1122,8 +1122,8 @@ capture_helpers='''func _pc22_apply_arm_capture_state(idx: int) -> void:
             var role_pose_extra := extra-14
             female_mode = role_pose_extra >= 21
             var role_pose_local := role_pose_extra%21
-            var role_index := role_pose_local/3
-            var pose_index := role_pose_local%3
+            var role_index: int = int(role_pose_local/3)
+            var pose_index: int = role_pose_local%3
             pc22_role = roles[role_index]
             state = [14,17,26][pose_index]
         else:
