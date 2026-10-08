@@ -18,12 +18,12 @@
       "mirroring_supported": true,
       "approval_state": "candidate",
       "alpha_bbox": [
-        14,
+        13,
         0,
-        53,
+        54,
         128
       ],
-      "sha256": "19a0f376b36b8056d324711b07a866c30fe28b0ab6a5116bba3d14da72714fd3"
+      "sha256": "4c2fbe0f2c5dc29d77fcb52b31f0803c5bc26e8841765d5577fae5380321fadb"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/male/SP_PC22_Male_ShoulderCap_Right.png",
@@ -43,12 +43,12 @@
       "mirroring_supported": true,
       "approval_state": "candidate",
       "alpha_bbox": [
-        12,
+        11,
         14,
-        51,
+        53,
         50
       ],
-      "sha256": "9cf23a9996507bc01cd4de374bb28c27f4c0e09033750808d609edb120957ff7"
+      "sha256": "c8049a991559bda9eb63e9701e2a6307a00a1d8ce328e18944f01c8de73b2d96"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/male/SP_PC22_Male_Forearm_Right.png",
@@ -68,12 +68,12 @@
       "mirroring_supported": true,
       "approval_state": "candidate",
       "alpha_bbox": [
-        16,
+        17,
         0,
-        51,
+        49,
         128
       ],
-      "sha256": "6f390555afd44f29ce7e1518dc7dab1242a0b4409de228e9c54ce201d83ce5ee"
+      "sha256": "551c6736e204cde27b6ad1d9d692aaeef5737aa6b32da19d995741ba210c6aa2"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/male/SP_PC22_Male_Hand_Dominant_Right.png",
@@ -143,12 +143,12 @@
       "mirroring_supported": true,
       "approval_state": "candidate",
       "alpha_bbox": [
-        16,
+        15,
         0,
         51,
         128
       ],
-      "sha256": "b30f53219180fe6245bb7e566e7102ee4ad84873bf1529f519e5bae72a3053f3"
+      "sha256": "4b038d082761d6f9cbe3ef12bd9407b19112a869acbb7bc53ec5a692f5057385"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/female/SP_PC22_Female_ShoulderCap_Right.png",
@@ -168,12 +168,12 @@
       "mirroring_supported": true,
       "approval_state": "candidate",
       "alpha_bbox": [
+        13,
         14,
-        14,
-        49,
+        50,
         50
       ],
-      "sha256": "7e0e15ca3a1859ac7ea66d1d1d431724ed95abec34725a89c4de30ff9d77800b"
+      "sha256": "2829a539ab4372566e6eafc44da14b50bf0e60db728f2aceaf5d7f5477e6eb8a"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/female/SP_PC22_Female_Forearm_Right.png",
@@ -193,12 +193,12 @@
       "mirroring_supported": true,
       "approval_state": "candidate",
       "alpha_bbox": [
-        17,
+        18,
         0,
-        49,
+        48,
         128
       ],
-      "sha256": "dd7753026194d8953bf81526a49f978a1b507cd135ce413c3438deb9ac078eb8"
+      "sha256": "b73016c3012afd72eb2bd59c633104a1aeb65042bb573373cc890fdba479f4a2"
     },
     {
       "filename": "assets/authored2d/unified_character/arms/female/SP_PC22_Female_Hand_Dominant_Right.png",
