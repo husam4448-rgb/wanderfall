@@ -494,45 +494,63 @@ def make_v3_shoulder_cap(upper_x, sex):
     return cap,pivot
 
 def _aa_grip_hand(sex, support=False):
-    """Weapon-wrap hand: palm/wrist plus visible thumb/fingers around a clear gun channel."""
+    """Organic weapon-wrap hand with one connected palm/finger mass.
+
+    This replaces the old separated rounded-rectangle fingers that remained
+    mechanically correct but read as blocky/disoriented in 2x Godot captures.
+    The weapon channel is retained, but finger separations are shading lines
+    rather than alpha gaps so the hand still reads as one adult human hand.
+    """
     S=4
     im=Image.new("RGBA",(80*S,96*S),(0,0,0,0))
     d=ImageDraw.Draw(im)
     skin=(190,126,92,255) if sex=="male" else (204,139,103,255)
-    light=(226,160,120,255) if sex=="male" else (232,172,132,255)
-    mid=(145,88,67,255) if sex=="male" else (160,98,75,255)
-    deep=(58,39,33,255)
+    light=(229,164,124,255) if sex=="male" else (235,176,136,255)
+    mid=(146,88,67,255) if sex=="male" else (160,98,75,255)
+    deep=(61,39,32,255)
     def sc(box): return tuple(int(v*S) for v in box)
-    def rr(box,r,fill):
-        d.rounded_rectangle(sc(box),radius=r*S,fill=fill,outline=deep,width=2*S)
+    def rr(box,r,fill,outline=deep,w=1):
+        d.rounded_rectangle(sc(box),radius=r*S,fill=fill,outline=outline,width=w*S)
 
-    # Wrist enters from the forearm; keep it distinctly narrower than the palm.
-    rr((13,39,29,57),5,mid)
+    # Wrist is narrower than the palm and overlaps it enough that the hand never
+    # looks detached when rotated with the weapon.
+    rr((9,39,28,58),7,mid,w=2)
+    rr((18,29,49,66),10,skin,w=2)
 
     if support:
-        # Handguard runs horizontally through the middle of this C-shape.
-        rr((24,28,48,62),8,skin)
-        rr((39,24,53,36),4,light)  # thumb over rail
-        rr((38,52,50,66),4,skin)
-        rr((33,57,45,71),4,skin)
-        rr((28,59,40,72),4,skin)
-        # Cut a horizontal weapon channel so rail remains visibly inside the hand.
-        d.rounded_rectangle(sc((31,41,58,50)),radius=3*S,fill=(0,0,0,0))
-        d.line([(28*S,37*S),(47*S,37*S)],fill=light,width=S)
-        d.line([(29*S,56*S),(45*S,60*S)],fill=deep,width=S)
+        # Support handguard grip: thumb rests above the rail while a single
+        # curled finger mass closes underneath it. No fingers extend along the
+        # barrel; the silhouette remains compact like the approved gun art.
+        rr((35,24,55,38),6,light,w=2)
+        rr((25,49,49,70),7,skin,w=2)
+        # horizontal weapon channel
+        d.rounded_rectangle(sc((30,42,55,49)),radius=3*S,fill=(0,0,0,0))
+        # Retain small bridges at both sides of the channel so the hand remains
+        # visually connected around the handguard.
+        rr((26,39,34,53),3,skin,outline=None,w=1)
+        rr((48,38,54,54),3,mid,outline=None,w=1)
+        # Finger/knuckle definition comes from shading, not separated blocks.
+        for yy,x0,x1 in ((55,29,46),(60,28,44),(65,27,41)):
+            d.arc(sc((x0,yy-4,x1,yy+4)),15,165,fill=deep,width=S)
+        d.line([(35*S,31*S),(49*S,30*S)],fill=light,width=S)
     else:
-        # Pistol/rifle grip falls vertically through the palm.
-        rr((23,27,48,64),8,skin)
-        rr((38,23,53,36),4,light)  # thumb web over backstrap
-        rr((34,52,47,67),4,skin)
-        rr((31,58,43,72),4,skin)
-        rr((27,60,39,73),4,skin)
-        # Vertical grip channel: weapon remains visible between thumb and fingers.
-        d.rounded_rectangle(sc((36,41,44,70)),radius=3*S,fill=(0,0,0,0))
-        d.arc(sc((25,31,48,58)),280,85,fill=mid,width=2*S)
-        d.line([(27*S,48*S),(35*S,49*S)],fill=deep,width=S)
+        # Dominant firing hand: palm encloses the near-vertical pistol/rifle
+        # grip, thumb web closes over the backstrap, and fingers remain one
+        # curled mass around the front strap.
+        rr((36,23,56,38),6,light,w=2)
+        rr((27,48,48,72),7,skin,w=2)
+        # Vertical grip channel
+        d.rounded_rectangle(sc((37,41,45,64)),radius=3*S,fill=(0,0,0,0))
+        # Keep palm/fingers connected below the grip channel.
+        rr((34,61,47,70),4,skin,outline=None,w=1)
+        d.arc(sc((23,31,49,59)),275,88,fill=mid,width=2*S)
+        for yy in (53,59,65):
+            d.arc(sc((27,yy-4,46,yy+5)),12,168,fill=deep,width=S)
+        d.line([(27*S,46*S),(36*S,48*S)],fill=deep,width=S)
 
-    d.ellipse(sc((29,31,34,36)),fill=light)
+    # Knuckle highlight + subtle wrist crease retain the painted-art language.
+    d.ellipse(sc((28,31,34,37)),fill=light)
+    d.arc(sc((11,41,28,57)),285,70,fill=deep,width=S)
     return im.resize((80,96),Image.Resampling.LANCZOS)
 
 def _detailed_skin_hand(glove_img, sex, support=False):
