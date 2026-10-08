@@ -1047,7 +1047,7 @@ weapon_block='''    # HYBRID V3: weapon artwork is anchored directly at the domi
             var pc22_pistol_sup_visual := pc22_front_wrist + _pose_point(Vector2(-0.46,0.42),pc22_arm_angle,dir_sign)
             if pc22_pistol_sup_tex != null:
                 var pc22_support_depth_tint := Color(0.69,0.65,0.62,1.0) if not gear_gloves else Color(0.70,0.70,0.70,1.0)
-                _pc22_v3_draw_grip_hand_tinted(pc22_pistol_sup_tex,pc22_pistol_sup_visual,pc22_arm_angle,dir_sign,(2.34 if female_mode else 2.52),Vector2(0.48,0.50),pc22_support_depth_tint)
+                _pc22_v3_draw_grip_hand_tinted(pc22_pistol_sup_tex,pc22_pistol_sup_visual,pc22_arm_angle,dir_sign,pc22_player_arm_rig.support_hand_height()*0.92,Vector2(0.52,0.54),pc22_support_depth_tint)
             else:
                 _draw_support_hand(pc22_pistol_sup_visual,pc22_arm_angle,dir_sign,Color("b97755"),0.80)
             _pc22_v3_draw_weapon_piece(tex_pc22_pistol,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(15.0,18.0),0.24)
@@ -1063,13 +1063,13 @@ weapon_block='''    # HYBRID V3: weapon artwork is anchored directly at the domi
         # that point inside the palm so the fingers visibly wrap the grip.
         var pc22_dom_grip_tex := _pc22_dominant_hand_texture()
         if pc22_dom_grip_tex != null:
-            _pc22_v3_draw_grip_hand(pc22_dom_grip_tex,pc22_dom_wrist,pc22_arm_angle,dir_sign,(3.05 if female_mode else 3.25),Vector2(0.54,0.50))
+            _pc22_v3_draw_grip_hand(pc22_dom_grip_tex,pc22_dom_wrist,pc22_arm_angle,dir_sign,pc22_player_arm_rig.dominant_hand_height(),Vector2(0.58,0.62))
         else:
             _draw_hand(pc22_dom_wrist,pc22_arm_angle,dir_sign,Color("c98e68"))
         if weapon_two_handed:
             var pc22_sup_grip_tex := _pc22_support_hand_texture()
             if pc22_sup_grip_tex != null:
-                _pc22_v3_draw_grip_hand(pc22_sup_grip_tex,pc22_front_wrist,pc22_arm_angle,dir_sign,(3.15 if female_mode else 3.35),Vector2(0.56,0.48))
+                _pc22_v3_draw_grip_hand(pc22_sup_grip_tex,pc22_front_wrist,pc22_arm_angle,dir_sign,pc22_player_arm_rig.support_hand_height(),Vector2(0.55,0.54))
             else:
                 _draw_support_hand(pc22_front_wrist,pc22_arm_angle,dir_sign,Color("b97755"),1.0)
         else:
