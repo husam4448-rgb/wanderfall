@@ -124,16 +124,18 @@ def anatomical_sleeve(img, base_rgb, sex, segment, fabric_ref=None):
         half=max(2.0,(w*frac)*0.5)
         # Visible cloth bows gently around the straight canonical bone. Endpoints
         # remain centered (sin(0)=sin(pi)=0), so joint pivots/IK are untouched.
-        curve=(4.50 if not female else 3.80)*math.sin(math.pi*t)
+        # Keep the sleeve centerline close to the canonical bone. The earlier
+        # large bow made rotated limbs read as rubbery/curved at extreme aim.
+        curve=(1.55 if not female else 1.35)*math.sin(math.pi*t)
         if segment=="forearm":
-            curve*=0.82
+            curve*=0.72
         cx=(w-1)*0.5+curve
         x0=max(0,int(round(cx-half)))
         x1=min(w-1,int(round(cx+half)))
         for x in range(x0,x1+1):
             mp[x,y]=255
     # Soften only one pixel-class at the edge; do not create a blurred blob.
-    mask=mask.filter(ImageFilter.GaussianBlur(0.38))
+    mask=mask.filter(ImageFilter.GaussianBlur(0.62))
 
     # Fill the silhouette with cloth-toned edge shading first so any transparent
     # holes in the legacy source cannot become visible black gaps at runtime.
@@ -179,9 +181,9 @@ def anatomical_sleeve(img, base_rgb, sex, segment, fabric_ref=None):
     # Sparse cloth creases give readable fabric structure without jagged source
     # silhouettes. They rotate with the limb and remain subtle at gameplay scale.
     d=ImageDraw.Draw(base)
-    crease_dark=tuple(max(0,int(c*0.60)) for c in base_rgb)+(58,)
-    crease_light=tuple(min(255,int(c*1.38+6)) for c in base_rgb)+(42,)
-    crease_rows=(0.34,0.61,0.82) if segment=="upper" else (0.28,0.55,0.78)
+    crease_dark=tuple(max(0,int(c*0.60)) for c in base_rgb)+(34,)
+    crease_light=tuple(min(255,int(c*1.38+6)) for c in base_rgb)+(24,)
+    crease_rows=(0.38,0.70) if segment=="upper" else (0.34,0.68)
     for idx,yf in enumerate(crease_rows):
         y=int(round(h*yf))
         t=y/max(1,h-1)
@@ -201,7 +203,7 @@ def anatomical_sleeve(img, base_rgb, sex, segment, fabric_ref=None):
 
     # Avoid a long straight stitch that makes the limb read as a rigid strap.
     # Short diagonal cloth breaks reinforce fabric without exposing the segment axis.
-    for yf,sgn in ((0.43,1),(0.69,-1)):
+    for yf,sgn in ((0.52,1),):
         y=int(round(h*yf))
         cx=int(round(w*0.50))
         span=max(3,int(round(w*0.13)))
@@ -284,11 +286,11 @@ def tactical_sleeve(img, sex, segment):
     out.putalpha(alpha)
     d=ImageDraw.Draw(out)
     w,h=out.size
-    stitch=(174,157,112,34)
-    shadow=(29,31,27,55)
+    stitch=(174,157,112,16)
+    shadow=(29,31,27,28)
     # Short staggered seams and folds preserve tactical fabric detail without
     # tracing the whole limb axis like a rigid strap.
-    seam_rows=(0.31,0.58) if segment=="upper" else (0.35,0.64)
+    seam_rows=(0.46,) if segment=="upper" else (0.52,)
     for idx,yf in enumerate(seam_rows):
         y=int(h*yf)
         x0=int(w*(0.30 if idx==0 else 0.40))
