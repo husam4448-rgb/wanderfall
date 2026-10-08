@@ -926,18 +926,15 @@ if rear_anchor not in s:
 s=s.replace(rear_anchor,'''    if gear_back and not female_mode:
         _draw_backpack(base, dir_sign)
 
-    # HYBRID V3: only proximal upper-arm art is drawn behind the torso.
-    # Forearms/hands are deferred until after torso/clothing so they can remain
-    # readable without painting a full upper-arm rectangle across the chest.
-    var pc22_rear_upper_tex: Texture2D = _pc22_upper_texture()
-    var pc22_front_upper_tex: Texture2D = _pc22_upper_texture()
-    _pc22_v3_draw_segment(pc22_rear_upper_tex,pc22_rear_shoulder,pc22_rear_elbow,dir_sign<0.0)
-    _pc22_v3_draw_segment(pc22_front_upper_tex,pc22_front_shoulder,pc22_front_elbow,dir_sign<0.0)
-
-    # Both deltoid caps are now composed behind the torso. Armed poses suppress
-    # them entirely because close-up review still exposed a small shoulder blob;
-    # the torso-masked upper-arm root is sufficient and reads more naturally.
+    # Unarmed locomotion keeps the authored upper-arm sprites behind the torso.
+    # Armed poses use only the continuous universal arm ribbon after torso draw;
+    # suppressing these hidden construction sprites prevents a protruding
+    # upper-arm strip from appearing below/behind the rifle.
     if not weapon_visible:
+        var pc22_rear_upper_tex: Texture2D = _pc22_upper_texture()
+        var pc22_front_upper_tex: Texture2D = _pc22_upper_texture()
+        _pc22_v3_draw_segment(pc22_rear_upper_tex,pc22_rear_shoulder,pc22_rear_elbow,dir_sign<0.0)
+        _pc22_v3_draw_segment(pc22_front_upper_tex,pc22_front_shoulder,pc22_front_elbow,dir_sign<0.0)
         var pc22_rear_cap_tex: Texture2D = _pc22_shoulder_cap_texture()
         var pc22_front_cap_tex: Texture2D = _pc22_shoulder_cap_texture()
         _pc22_v3_draw_cap(pc22_rear_cap_tex,pc22_rear_shoulder,pc22_rear_elbow,dir_sign)
