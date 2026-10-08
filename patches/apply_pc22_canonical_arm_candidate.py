@@ -275,19 +275,12 @@ func _pc22_solve_elbow(shoulder: Vector2, wrist: Vector2, upper_len: float, fore
 func _pc22_free_arm(shoulder: Vector2, upper_len: float, fore_len: float, swing_angle: float, dir_sign: float) -> PackedVector2Array:
     return pc22_player_arm_rig.free_arm(shoulder,upper_len,fore_len,swing_angle,dir_sign)
 
-func _pc22_relaxed_onehand_arm(shoulder: Vector2, upper_len: float, fore_len: float, dir_sign: float) -> PackedVector2Array:
-    # Natural off-hand rest for one-handed weapons. Exact canonical lengths are
-    # preserved; only the free-arm pose changes so it no longer hangs like two rods.
-    # Elbow rests slightly forward of the torso, then the forearm returns toward
-    # the waist. This avoids the previous rigid diagonal bar across the chest.
-    # Mild relaxed bend: upper arm hangs just forward of the torso and the
-    # forearm returns slightly toward the hip. This reads as one resting limb
-    # rather than a sharp two-segment V.
-    var upper_dir := Vector2(0.30*dir_sign,0.954).normalized()
-    var fore_dir := Vector2(-0.16*dir_sign,0.987).normalized()
-    var elbow := shoulder + upper_dir*upper_len
-    var wrist := elbow + fore_dir*fore_len
-    return PackedVector2Array([elbow,wrist])
+func _pc22_pistol_support_target(dominant_grip: Vector2, weapon_angle: float, dir_sign: float) -> Vector2:
+    # Two-hand pistol stance: keep the support palm on the lower/back face of
+    # the same pistol grip instead of hanging the entire arm at the character's
+    # side. This offset is weapon-local, so it remains stable through the full
+    # up/down aim sweep and when left-facing is mirrored.
+    return dominant_grip + _pose_point(Vector2(-0.85,1.55),weapon_angle,dir_sign)
 
 func _pc22_role_texture(kind: String) -> Texture2D:
     if pc22_role.is_empty():
@@ -657,9 +650,11 @@ arm_compute=f'''    var base := actor_pos + Vector2(sway, -bob - breath * 0.28)
             pc22_front_wrist = pc22_support_wrist
             pc22_front_elbow = _pc22_solve_elbow(pc22_front_shoulder,pc22_front_wrist,pc22_lengths.x,pc22_lengths.y,pc22_prev_support_elbow,pc22_prev_arm_valid)
         else:
-            var pc22_free_front: PackedVector2Array = _pc22_relaxed_onehand_arm(pc22_front_shoulder,pc22_lengths.x,pc22_lengths.y,dir_sign)
-            pc22_front_elbow = pc22_free_front[0]
-            pc22_front_wrist = pc22_free_front[1]
+            # Pistol is supported with both hands. The support wrist is locked
+            # to the lower/back portion of the pistol grip; fixed-length IK then
+            # supplies a natural elbow without stretching either arm segment.
+            pc22_front_wrist = _pc22_pistol_support_target(pc22_dom_wrist,pc22_arm_angle,dir_sign)
+            pc22_front_elbow = _pc22_solve_elbow(pc22_front_shoulder,pc22_front_wrist,pc22_lengths.x,pc22_lengths.y,pc22_prev_support_elbow,pc22_prev_arm_valid)
     else:
         var pc22_free_rear: PackedVector2Array = _pc22_free_arm(pc22_rear_shoulder,pc22_lengths.x,pc22_lengths.y,-pc22_motion_swing,dir_sign)
         var pc22_free_front: PackedVector2Array = _pc22_free_arm(pc22_front_shoulder,pc22_lengths.x,pc22_lengths.y,pc22_motion_swing,dir_sign)
@@ -764,11 +759,11 @@ s=s.replace(front_anchor,'''    # HYBRID V3 DEPTH STACK: torso is already drawn.
         _pc22_v3_draw_elbow_gusset(pc22_elbow_tex,pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)
         _pc22_v3_draw_elbow_gusset(pc22_elbow_tex,pc22_front_shoulder,pc22_front_elbow,pc22_front_wrist,dir_sign<0.0)
 
-    # Free/front hand remains visible for unarmed locomotion and one-handed pistol.
-    if not weapon_visible or not weapon_two_handed:
+    # Free hands are only used while unarmed. Armed pistol/rifle states use
+    # authored grip hands at the actual weapon contact points.
+    if not weapon_visible:
         var pc22_front_free_angle: float = (pc22_front_wrist-pc22_front_elbow).angle()
         _draw_hand(pc22_front_wrist,pc22_front_free_angle,dir_sign,Color("c98e68"),0.80)
-    if not weapon_visible:
         var pc22_rear_free_angle: float = (pc22_dom_wrist-pc22_rear_elbow).angle()
         _draw_hand(pc22_dom_wrist,pc22_rear_free_angle,dir_sign,Color("c98e68"),0.82)
 
@@ -789,8 +784,13 @@ weapon_block='''    # HYBRID V3: weapon artwork is anchored directly at the domi
             _pc22_v3_draw_weapon_piece(tex_pc22_rifle_front,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(36.0,18.0),0.33)
             active_muzzle = pc22_dom_wrist + _pose_point(Vector2(19.14,-1.65),pc22_arm_angle,dir_sign)
         else:
-            # Runtime evidence showed the 0.38 pistol dwarfed the forearm. Keep
-            # the exact locked grip socket and correct only the visual scale.
+            # Support hand is behind the pistol frame and meets the same grip
+            # as the firing hand. Drawing it first preserves weapon readability.
+            var pc22_pistol_sup_tex := _pc22_support_hand_texture()
+            if pc22_pistol_sup_tex != null:
+                _pc22_v3_draw_grip_hand(pc22_pistol_sup_tex,pc22_front_wrist,pc22_arm_angle,dir_sign,(2.80 if female_mode else 3.00),Vector2(0.56,0.48))
+            else:
+                _draw_support_hand(pc22_front_wrist,pc22_arm_angle,dir_sign,Color("b97755"),0.88)
             _pc22_v3_draw_weapon_piece(tex_pc22_pistol,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(15.0,18.0),0.24)
             active_muzzle = pc22_dom_wrist + _pose_point(Vector2(7.44,-2.16),pc22_arm_angle,dir_sign)
 
