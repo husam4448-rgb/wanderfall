@@ -79,6 +79,9 @@ func weapon_targets(base: Vector2, angle: float, dir_sign: float, recoil: float)
     var pivot := base+Vector2({male_spec["weapon_socket"][0]}*dir_sign,{male_spec["weapon_socket"][1]})+pose_point(Vector2(-1.45*recoil,0),angle,dir_sign)
     var dominant_grip := pivot+pose_point(Vector2({male_spec["dominant_hand_grip_socket"][0]},{male_spec["dominant_hand_grip_socket"][1]}),angle,dir_sign)
     var support_grip := pivot+pose_point(Vector2({male_spec["support_hand_grip_socket"][0]},{male_spec["support_hand_grip_socket"][1]}),angle,dir_sign)
+    var support := support_grip
+    support += pose_point(Vector2(0,0.0),angle,dir_sign)
+    support_grip = support
     var dominant_wrist := wrist_from_grip(dominant_grip,angle,dir_sign,false)
     var support_wrist := wrist_from_grip(support_grip,angle,dir_sign,true)
     return {{"pivot":pivot,"dominant_grip":dominant_grip,"support_grip":support_grip,"dominant_wrist":dominant_wrist,"support_wrist":support_wrist}}
