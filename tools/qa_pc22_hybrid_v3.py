@@ -156,12 +156,15 @@ require("Vector2(0.54,0.50)" in patch, "dominant armed-hand grip pivot drift")
 require("Vector2(0.56,0.48)" in patch, "support armed-hand grip pivot drift")
 require("(3.05 if female_mode else 3.25)" in patch, "dominant locked hand scale drift")
 require("(3.15 if female_mode else 3.35)" in patch, "support locked hand scale drift")
-require("Rifle rear-depth composition uses the same universal shoulder/elbow/wrist" in patch,
-        "rifle rear-depth universal-rig marker missing")
+require("Rifle rear-depth composition: the dominant arm remains fully solved by" in patch,
+        "rifle rear-depth occlusion marker missing")
 require(patch.count("_pc22_v3_draw_weapon_piece(tex_pc22_rifle_stock") == 1,
         "rifle stock must be rendered exactly once")
-require("_pc22_draw_anatomical_arm_shape(pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist,0.84)" in patch,
-        "rifle dominant arm does not use the universal smooth arm renderer")
+require("func _pc22_draw_rear_rifle_cuff" in patch and
+        "_pc22_draw_rear_rifle_cuff(pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)" in patch,
+        "rifle dominant arm distal-cuff occlusion renderer missing")
+require("_pc22_draw_anatomical_arm_shape(pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist,0.84)" not in patch,
+        "full rear rifle arm reintroduced and may recreate the X/triangle")
 require("pc22_rear_fore_back_tex" not in patch and "pc22_rear_elbow_back_tex" not in patch,
         "legacy modular rifle rear forearm/elbow render reintroduced")
 require("pc22_dom_upper_start" not in patch and "pc22_front_upper_start" not in patch,
@@ -178,7 +181,9 @@ require("pc22_front_elbow = _pc22_solve_elbow(pc22_front_shoulder,pc22_front_wri
         "pistol support arm is not solved with fixed-length IK")
 require("var pc22_pistol_sup_tex := _pc22_support_hand_texture()" in patch,
         "pistol support grip hand renderer missing")
-require("(2.28 if female_mode else 2.46)" in patch and "Vector2(0.54,0.52)" in patch,
+require("var pc22_pistol_sup_visual := pc22_front_wrist + _pose_point(Vector2(-0.25,0.48),pc22_arm_angle,dir_sign)" in patch,
+        "pistol support-hand visual offset missing")
+require("(2.52 if female_mode else 2.70)" in patch and "Vector2(0.50,0.50)" in patch,
         "pistol support hand scale/pivot drift")
 require("The support palm is drawn over the" in patch and
         "grip but under the firing palm" in patch,
@@ -215,8 +220,11 @@ require("func _pc22_draw_textured_limb_detail" in patch and
         "appearance-independent texture-mapped sleeve detail missing")
 require("draw_polygon(pts,colors,uvs,tex)" in patch,
         "textured limb detail is not clipped to the tapered arm mesh")
-require("var opacity: float = (0.78 if gear_torso else 0.68)*(0.78 if depth_scale < 0.99 else 1.0)" in patch,
+require("var opacity: float = (0.92 if gear_torso else 0.76)*(0.74 if depth_scale < 0.99 else 1.0)" in patch,
         "gear/base material-detail opacity drift")
+require("var cuff_center := wrist-fd2*1.20" in patch and
+        "draw_line(cuff_center-fn2*cuff_half,cuff_center+fn2*cuff_half,cuff_col,0.20,false)" in patch,
+        "tactical cuff integration cue missing")
 require("draw_polyline(left,edge_light,0.16,false)" in patch and
         "draw_polyline(right,edge_dark,0.20,false)" in patch,
         "subtle anatomical edge shading missing")
