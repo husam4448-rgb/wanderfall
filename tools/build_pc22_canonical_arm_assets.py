@@ -602,38 +602,49 @@ def _detailed_skin_hand(glove_img, sex, support=False):
     canvas.putalpha(a)
     return canvas
 
+def _materialized_grip_hand(glove_img, sex, support=False, bare=False):
+    """Clip authored hand/glove shading into the compact grip silhouette.
+
+    The alpha silhouette defines the wrap geometry, while luminance and crease
+    detail come from the approved authored glove source. Bare hands reuse the
+    same high-frequency shading, recolored to skin, so they do not become flat
+    procedural blocks at 2x/4x runtime zoom.
+    """
+    grip=_aa_grip_hand(sex,support).convert("RGBA")
+    mask=grip.getchannel("A")
+    src=trim(glove_img).convert("RGBA")
+    src=ImageOps.fit(src,grip.size,method=Image.Resampling.LANCZOS,centering=(0.56,0.50))
+    lum=ImageOps.grayscale(src).filter(ImageFilter.GaussianBlur(0.18))
+    lum=ImageEnhance.Contrast(lum).enhance(1.42)
+    if bare:
+        if sex=="female":
+            dark,light=((105,61,46),(236,167,128))
+        else:
+            dark,light=((92,55,43),(226,154,116))
+        tex=ImageOps.colorize(lum,dark,light).convert("RGBA")
+    else:
+        if sex=="female":
+            dark,light=((32,35,32),(126,119,94))
+        else:
+            dark,light=((28,31,28),(118,112,88))
+        tex=ImageOps.colorize(lum,dark,light).convert("RGBA")
+
+    # Preserve a subdued version of the organic knuckle/finger shading encoded
+    # in the connected grip template, without exposing its flat base colors.
+    template_lum=ImageOps.grayscale(grip)
+    template_detail=ImageOps.colorize(template_lum,(45,32,27),(205,145,108)).convert("RGBA") if bare else ImageOps.colorize(template_lum,(22,24,22),(126,120,96)).convert("RGBA")
+    tex=Image.blend(tex,template_detail,0.16)
+    tex.putalpha(mask)
+    return tex
+
 def derive_bare_hand(glove_img, sex):
-    # Use the dedicated weapon-wrap silhouette instead of compacting the old
-    # open glove. The old source left extended fingers visible in Godot and made
-    # the gun appear balanced on fingertips rather than enclosed by the palm.
-    return _aa_grip_hand(sex,False)
+    return _materialized_grip_hand(glove_img,sex,False,True)
 
 def derive_support_hand(dominant, sex):
-    # Rifle support hand gets a horizontal handguard channel; the forearm still
-    # terminates at the same anatomical wrist and uses the same universal rig.
-    return _aa_grip_hand(sex,True)
+    return _materialized_grip_hand(glove_src,sex,True,True)
 
 def derive_tactical_glove(glove_img, sex, support=False):
-    """Weapon-wrap tactical glove with authored-material tonal variation."""
-    grip=_aa_grip_hand(sex,support).convert("RGBA")
-    alpha=grip.getchannel("A")
-    # Reuse luminance variation from the approved glove source, but conform it
-    # to the closed weapon-wrap silhouette so equipment cannot reintroduce the
-    # old open-finger/disoriented hand shape.
-    src=trim(glove_img).convert("RGBA")
-    lum=ImageOps.grayscale(src).resize(grip.size,Image.Resampling.LANCZOS)
-    lum=ImageEnhance.Contrast(lum).enhance(1.28)
-    if sex=="female":
-        dark,light=((35,37,34),(119,113,91))
-    else:
-        dark,light=((31,34,31),(111,106,85))
-    tex=ImageOps.colorize(lum,dark,light).convert("RGBA")
-    # Preserve the grip artwork's crease/edge language at low opacity.
-    grip_lum=ImageOps.grayscale(grip)
-    crease=ImageOps.colorize(grip_lum,(22,24,22),(132,126,101)).convert("RGBA")
-    tex=Image.blend(tex,crease,0.28)
-    tex.putalpha(alpha)
-    return tex
+    return _materialized_grip_hand(glove_img,sex,support,False)
 
 
 upper_src=load_b64_png(upper_src_path)
@@ -765,8 +776,8 @@ specs={
    "upper_arm_width":6.2,
    "forearm_width":5.1,
    "hand_size":canonical["male"]["hand_size"],
-   "dominant_hand_size":[6.0,5.6],
-   "support_hand_size":[5.6,5.2],
+   "dominant_hand_size":[5.3,4.8],
+   "support_hand_size":[5.0,4.6],
    "dominant_wrist_to_grip_local":[2.45,0.67],
    "support_wrist_to_grip_local":[2.38,0.21],
    "neutral_upper_angle_deg":82.0,
@@ -783,8 +794,8 @@ specs={
    "upper_arm_width":5.8,
    "forearm_width":4.8,
    "hand_size":canonical["female"]["hand_size"],
-   "dominant_hand_size":[5.6,5.3],
-   "support_hand_size":[5.3,5.0],
+   "dominant_hand_size":[5.0,4.6],
+   "support_hand_size":[4.8,4.4],
    "dominant_wrist_to_grip_local":[2.32,0.64],
    "support_wrist_to_grip_local":[2.29,0.20],
    "neutral_upper_angle_deg":84.0,
@@ -1204,9 +1215,9 @@ for sex,s in specs.items():
         failures.append({"sex":sex,"reason":"upper_torso_ratio","value":upper_ratio})
     if not (0.41 <= fore_ratio <= 0.46):
         failures.append({"sex":sex,"reason":"fore_torso_ratio","value":fore_ratio})
-    if not (0.39 <= dom_hand_ratio <= 0.46):
+    if not (0.35 <= dom_hand_ratio <= 0.40):
         failures.append({"sex":sex,"reason":"dominant_hand_forearm_ratio","value":dom_hand_ratio})
-    if not (0.38 <= sup_hand_ratio <= 0.44):
+    if not (0.34 <= sup_hand_ratio <= 0.39):
         failures.append({"sex":sex,"reason":"support_hand_forearm_ratio","value":sup_hand_ratio})
 
     # Pistol target includes the runtime-only forward extension. Verify the
