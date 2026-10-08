@@ -605,30 +605,6 @@ func _pc22_draw_arm_material_detail(shoulder: Vector2, elbow: Vector2, wrist: Ve
         var cuff_col := _pc22_arm_outline_color()
         draw_line(cuff_center-fn2*cuff_half,cuff_center+fn2*cuff_half,cuff_col,0.20,false)
 
-func _pc22_draw_rear_rifle_cuff(elbow: Vector2, wrist: Vector2, flip_x: bool) -> void:
-    # The dominant rifle arm is geometrically complete but mostly hidden by the
-    # torso/stock in side view. Render only the distal cuff that must remain
-    # visible at the trigger hand; this removes the false X/triangle without
-    # altering shoulder, elbow, wrist, IK, or weapon sockets.
-    var start := elbow.lerp(wrist,0.58)
-    var delta := wrist-start
-    if delta.length() < 0.01:
-        return
-    var tangent := delta.normalized()
-    var normal := Vector2(-tangent.y,tangent.x)
-    var half_start: float = 1.16 if female_mode else 1.28
-    var half_wrist: float = 0.88 if female_mode else 0.98
-    var body := _pc22_arm_body_color()
-    body = Color(body.r*0.80,body.g*0.80,body.b*0.80,1.0)
-    var pts := PackedVector2Array([
-        start+normal*half_start,
-        wrist+normal*half_wrist,
-        wrist-normal*half_wrist,
-        start-normal*half_start
-    ])
-    draw_colored_polygon(pts,body)
-    _pc22_draw_textured_limb_detail(_pc22_fore_texture(),start,wrist,half_start*0.90,half_wrist*0.90,flip_x,0.66)
-
 func _pc22_v3_draw_distal_segment(tex: Texture2D, a: Vector2, b: Vector2, flip_x: bool, start_fraction: float, thickness_scale: float = 1.0) -> void:
     if tex == null:
         return
@@ -967,11 +943,12 @@ s=s.replace(rear_anchor,'''    if gear_back and not female_mode:
         _pc22_v3_draw_cap(pc22_rear_cap_tex,pc22_rear_shoulder,pc22_rear_elbow,dir_sign)
         _pc22_v3_draw_cap(pc22_front_cap_tex,pc22_front_shoulder,pc22_front_elbow,dir_sign)
 
-    # Rifle rear-depth composition: the dominant arm remains fully solved by
-    # the universal rig, but side-view artwork only exposes the distal cuff.
-    # Torso and stock occlude the rest, eliminating the artificial X/triangle.
+    # Rifle rear-depth composition: the universal dominant arm remains fully
+    # solved, but in this side-view presentation it is completely occluded by
+    # torso + stock until the firing hand emerges at the trigger. This is normal
+    # visual occlusion, not alternate geometry, and prevents any X/triangle or
+    # dangling rear-forearm strip from appearing.
     if weapon_visible and weapon_two_handed:
-        _pc22_draw_rear_rifle_cuff(pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)
         if tex_pc22_rifle_stock != null:
             _pc22_v3_draw_weapon_piece(tex_pc22_rifle_stock,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(36.0,18.0),0.33)
 
