@@ -1039,10 +1039,13 @@ weapon_block='''    # HYBRID V3: weapon artwork is anchored directly at the domi
             # without letting either hand float away from the weapon.
             _pc22_v3_draw_weapon_piece(tex_pc22_pistol,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(15.0,18.0),0.24)
             var pc22_pistol_sup_tex := _pc22_support_hand_texture()
-            var pc22_pistol_sup_visual := pc22_front_wrist + _pose_point(Vector2(-0.35,0.68),pc22_arm_angle,dir_sign)
+            # Visual-only support-palm placement: keep the IK wrist/socket
+            # untouched, but reveal a smaller lower/rear palm around the firing
+            # hand so the two-hand grip reads clearly at gameplay scale.
+            var pc22_pistol_sup_visual := pc22_front_wrist + _pose_point(Vector2(-0.46,0.42),pc22_arm_angle,dir_sign)
             if pc22_pistol_sup_tex != null:
-                var pc22_support_depth_tint := Color(0.80,0.76,0.72,1.0) if not gear_gloves else Color(0.78,0.78,0.78,1.0)
-                _pc22_v3_draw_grip_hand_tinted(pc22_pistol_sup_tex,pc22_pistol_sup_visual,pc22_arm_angle,dir_sign,(2.60 if female_mode else 2.78),Vector2(0.50,0.50),pc22_support_depth_tint)
+                var pc22_support_depth_tint := Color(0.69,0.65,0.62,1.0) if not gear_gloves else Color(0.70,0.70,0.70,1.0)
+                _pc22_v3_draw_grip_hand_tinted(pc22_pistol_sup_tex,pc22_pistol_sup_visual,pc22_arm_angle,dir_sign,(2.34 if female_mode else 2.52),Vector2(0.48,0.50),pc22_support_depth_tint)
             else:
                 _draw_support_hand(pc22_pistol_sup_visual,pc22_arm_angle,dir_sign,Color("b97755"),0.80)
             active_muzzle = pc22_dom_wrist + _pose_point(Vector2(7.44,-2.16),pc22_arm_angle,dir_sign)
