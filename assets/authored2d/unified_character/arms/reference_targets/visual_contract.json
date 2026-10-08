@@ -216,8 +216,7 @@
     "Grip-contact correction: the weapon contact and anatomical wrist are distinct points. IK terminates at the wrist; the authored palm spans from wrist to grip.",
     "Armed hand sprites must be wrist-anchored. Reintroducing grip-centered hand pivots would make the forearm terminate inside the palm and visually twist the hand.",
     "Direct reference-vs-runtime recalibration: tight closed grip masks require smaller world extents than the former open-hand sprites; hand/forearm ratios are shifted downward while remaining substantially larger and more readable than the rejected pre-recalibration 3px-class hands.",
-    "Hand material rule: connected weapon-wrap alpha masks must be filled with authored glove/hand luminance detail; flat procedural RGB hands are not visually acceptable.",
-    "Reference-vs-runtime rifle correction: the dominant upper arm remains torso/stock-occluded, but a short solved-chain distal wrist bridge must remain visible so the firing hand does not float."
+    "Hand material rule: connected weapon-wrap alpha masks must be filled with authored glove/hand luminance detail; flat procedural RGB hands are not visually acceptable."
   ],
   "runtime_draw": {
     "rifle_scale_min": 0.3,
@@ -237,7 +236,7 @@
     "shoulder_cap": "behind_torso",
     "armed_pre_torso_authored_upper": false,
     "armed_shoulder_cap": false,
-    "rifle_dominant_arm_visibility": "distal_wrist_bridge_only",
+    "rifle_dominant_arm_visibility": "occluded_until_firing_hand",
     "prohibit_legacy_modular_front_chain": true
   },
   "renderer": "hybrid_pivoted_sprite_v3",
