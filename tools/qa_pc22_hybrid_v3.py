@@ -131,7 +131,7 @@ for token in (
     "func _pc22_v3_draw_weapon_piece",
     "PLAYER CHARACTERS V22 HYBRID ARM V3 | PIVOTED RENDERER:",
     "HYBRID V3: only proximal upper-arm art is drawn behind the torso",
-    "CONTINUOUS ARMED-ARM COMPOSITION",
+    "ORGANIC SPRITE ARM COMPOSITION",
 ):
     require(token in patch, f"patch missing V3 marker: {token}")
 
@@ -178,24 +178,24 @@ require("pc22_front_elbow = _pc22_solve_elbow(pc22_front_shoulder,pc22_front_wri
         "pistol support arm is not solved with fixed-length IK")
 require("var pc22_pistol_sup_tex := _pc22_support_hand_texture()" in patch,
         "pistol support grip hand renderer missing")
-require("(2.35 if female_mode else 2.55)" in patch and "Vector2(0.50,0.53)" in patch,
+require("(2.55 if female_mode else 2.75)" in patch and "Vector2(0.50,0.53)" in patch,
         "pistol support grip hand scale/pivot drift")
 require("Vector2(6.6,0.0)" in patch and "Vector2(1.7*dir_sign,0.0)" in patch,
         "pistol forward stance extension missing")
 require("_pc22_v3_draw_distal_segment(pc22_rear_upper_front_tex" in patch and
         "_pc22_v3_draw_distal_segment(pc22_front_upper_front_tex" in patch,
         "armed distal upper-arm continuity layer missing")
-require("0.64,0.70)" in patch, "distal upper-arm reveal/thickness drift")
+require("0.46,0.92)" in patch, "distal upper-arm reveal/thickness drift")
 require("var desired_w: float = 3.00 if female_mode else 3.20" in patch,
         "elbow gusset visual size drift")
-require("func _pc22_draw_anatomical_arm_underlay" in patch,
-        "continuous anatomical arm underlay missing")
-require("func _pc22_v3_draw_segment_detail" in patch,
-        "inset sleeve detail renderer missing")
-require("CONTINUOUS ARMED-ARM COMPOSITION" in patch,
-        "continuous armed-arm composition marker missing")
-require("draw_circle(elbow,maxf(upper_w,fore_w)*0.48,body)" in patch,
-        "rounded elbow silhouette missing")
+require("func _pc22_draw_elbow_fill" in patch,
+        "compact elbow fill helper missing")
+require("ORGANIC SPRITE ARM COMPOSITION" in patch,
+        "organic sprite arm composition marker missing")
+require("draw_circle(elbow,r,body)" in patch,
+        "rounded opaque elbow fill missing")
+require("_pc22_draw_anatomical_arm_underlay(pc22_" not in patch,
+        "blurred anatomical arm underlay reintroduced into armed rendering")
 require("Pistol support hand was already depth-composed behind the weapon." in patch,
         "pistol support-hand depth ordering marker missing")
 require("_pc22_relaxed_onehand_arm" not in patch,
