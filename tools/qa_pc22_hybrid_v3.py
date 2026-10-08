@@ -131,7 +131,7 @@ for token in (
     "func _pc22_v3_draw_weapon_piece",
     "PLAYER CHARACTERS V22 HYBRID ARM V3 | PIVOTED RENDERER:",
     "HYBRID V3: only proximal upper-arm art is drawn behind the torso",
-    "HYBRID V3 DEPTH STACK",
+    "CONTINUOUS ARMED-ARM COMPOSITION",
 ):
     require(token in patch, f"patch missing V3 marker: {token}")
 
