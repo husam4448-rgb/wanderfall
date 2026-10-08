@@ -286,12 +286,16 @@ func _pc22_pistol_support_target(dominant_grip: Vector2, weapon_angle: float, di
     # the same pistol grip instead of hanging the entire arm at the character's
     # side. This offset is weapon-local, so it remains stable through the full
     # up/down aim sweep and when left-facing is mirrored.
-    return dominant_grip + _pose_point(Vector2(-1.10,1.48),weapon_angle,dir_sign)
+    return dominant_grip + _pose_point(Vector2(-1.30,1.70),weapon_angle,dir_sign)
 
 func _pc22_role_texture(kind: String) -> Texture2D:
     if pc22_role.is_empty():
         return null
     var sex_name: String = "female" if female_mode else "male"
+    # Scientist temporarily aliases the medic appearance slots only. It keeps
+    # the same universal humanoid rig; dedicated scientist art can replace
+    # these visuals later without changing IK, pivots or weapon sockets.
+    var asset_role: String = "medic" if pc22_role == "scientist" else pc22_role
     var key: String = "%s/%s/%s" % [pc22_role,sex_name,kind]
     if pc22_role_texture_cache.has(key):
         return pc22_role_texture_cache[key] as Texture2D
@@ -302,17 +306,17 @@ func _pc22_role_texture(kind: String) -> Texture2D:
     var path: String = ""
     match kind:
         "upper_arm":
-            path = res_root + "arms/sleeves/%s/%s/upper_arm.png" % [pc22_role,sex_name]
+            path = res_root + "arms/sleeves/%s/%s/upper_arm.png" % [asset_role,sex_name]
         "forearm":
-            path = res_root + "arms/sleeves/%s/%s/forearm.png" % [pc22_role,sex_name]
+            path = res_root + "arms/sleeves/%s/%s/forearm.png" % [asset_role,sex_name]
         "shoulder_cap":
-            path = res_root + "arms/sleeves/%s/%s/shoulder_cap.png" % [pc22_role,sex_name]
+            path = res_root + "arms/sleeves/%s/%s/shoulder_cap.png" % [asset_role,sex_name]
         "glove_dominant":
-            path = res_root + "arms/gloves/%s/%s/glove_dominant.png" % [pc22_role,sex_name]
+            path = res_root + "arms/gloves/%s/%s/glove_dominant.png" % [asset_role,sex_name]
         "glove_support":
-            path = res_root + "arms/gloves/%s/%s/glove_support.png" % [pc22_role,sex_name]
+            path = res_root + "arms/gloves/%s/%s/glove_support.png" % [asset_role,sex_name]
         "torso":
-            path = res_root + "roles/%s/%s/torso.png" % [pc22_role,sex_name]
+            path = res_root + "roles/%s/%s/torso.png" % [asset_role,sex_name]
     if path.is_empty() or not ResourceLoader.exists(path):
         return null
     var tex: Texture2D = load(path) as Texture2D
@@ -374,10 +378,9 @@ func _pc22_verify_role_assets() -> bool:
             pc22_role = role
             female_mode = is_female
             for kind in ["upper_arm","forearm","shoulder_cap","glove_dominant","glove_support","torso"]:
-                # Scientist currently uses the universal player fallback artwork
-                # until dedicated scientist clothing is authored. Geometry and
-                # sockets remain identical, so no scientist-specific rig exists.
-                if role != "scientist" and _pc22_role_texture(kind) == null:
+                # Scientist currently resolves to medic appearance slots, while
+                # geometry and sockets remain owned by the universal rig.
+                if _pc22_role_texture(kind) == null:
                     push_error("PC22_ROLE_ASSET_MISSING %s %s %s" % [role,("female" if is_female else "male"),kind])
                     pc22_role = old_role
                     female_mode = old_female
@@ -470,17 +473,17 @@ func _pc22_arm_highlight_color() -> Color:
     var c := _pc22_arm_body_color()
     return Color(lerpf(c.r,1.0,0.24),lerpf(c.g,1.0,0.24),lerpf(c.b,1.0,0.24),0.34)
 
-func _pc22_draw_anatomical_arm_shape(shoulder: Vector2, elbow: Vector2, wrist: Vector2) -> void:
+func _pc22_draw_anatomical_arm_shape(shoulder: Vector2, elbow: Vector2, wrist: Vector2, depth_scale: float = 1.0) -> void:
     # Universal three-joint renderer: shoulder -> elbow -> wrist remains the
     # authoritative skeleton. The visual centerline is rounded only inside a
     # short elbow neighborhood so no extra pseudo-joint exists.
     var start: Vector2 = shoulder.lerp(elbow,0.10)
     var udir: Vector2 = (elbow-start).normalized()
     var fdir: Vector2 = (wrist-elbow).normalized()
-    var upper_half: float = 1.72 if female_mode else 1.92
-    var elbow_half: float = 1.44 if female_mode else 1.60
-    var fore_half: float = 1.30 if female_mode else 1.44
-    var wrist_half: float = 0.92 if female_mode else 1.04
+    var upper_half: float = (1.72 if female_mode else 1.92)*depth_scale
+    var elbow_half: float = (1.44 if female_mode else 1.60)*depth_scale
+    var fore_half: float = (1.30 if female_mode else 1.44)*depth_scale
+    var wrist_half: float = (0.92 if female_mode else 1.04)*depth_scale
     var radius: float = minf(2.25,minf(start.distance_to(elbow)*0.28,elbow.distance_to(wrist)*0.28))
     var pre := elbow-udir*radius
     var post := elbow+fdir*radius
@@ -524,6 +527,8 @@ func _pc22_draw_anatomical_arm_shape(shoulder: Vector2, elbow: Vector2, wrist: V
         pts.append(right[i])
 
     var body := _pc22_arm_body_color()
+    if depth_scale < 0.99:
+        body = Color(body.r*0.82,body.g*0.82,body.b*0.82,1.0)
     draw_colored_polygon(pts,body)
     draw_circle(start,upper_half*0.72,body)
     draw_circle(wrist,wrist_half*0.94,body)
@@ -537,6 +542,13 @@ func _pc22_draw_anatomical_arm_shape(shoulder: Vector2, elbow: Vector2, wrist: V
     draw_line(start.lerp(pre,0.36)+un*0.42,start.lerp(pre,0.62)+un*0.34,hi,0.22,false)
     draw_line(post.lerp(wrist,0.30)+fn*0.30,post.lerp(wrist,0.56)+fn*0.22,hi,0.20,false)
     draw_line(pre.lerp(elbow,0.44)-un*0.36,post.lerp(elbow,0.44)-fn*0.30,lo,0.18,false)
+
+    # Low-contrast rim shading gives the sleeve volume while keeping the joint
+    # visually continuous; there is no hard mechanical perimeter.
+    var edge_dark := Color(body.r*0.48,body.g*0.48,body.b*0.48,0.26)
+    var edge_light := Color(lerpf(body.r,1.0,0.20),lerpf(body.g,1.0,0.20),lerpf(body.b,1.0,0.20),0.18)
+    draw_polyline(left,edge_light,0.16,false)
+    draw_polyline(right,edge_dark,0.20,false)
 
 func _pc22_draw_textured_limb_detail(tex: Texture2D, a: Vector2, b: Vector2, half_a: float, half_b: float, flip_x: bool, alpha: float = 0.38) -> void:
     # Appearance-only texture mapping. The smooth ribbon remains the silhouette
@@ -568,13 +580,13 @@ func _pc22_draw_textured_limb_detail(tex: Texture2D, a: Vector2, b: Vector2, hal
     var colors := PackedColorArray([tint,tint,tint,tint])
     draw_polygon(pts,colors,uvs,tex)
 
-func _pc22_draw_arm_material_detail(shoulder: Vector2, elbow: Vector2, wrist: Vector2, flip_x: bool) -> void:
+func _pc22_draw_arm_material_detail(shoulder: Vector2, elbow: Vector2, wrist: Vector2, flip_x: bool, depth_scale: float = 1.0) -> void:
     var upper_tex := _pc22_upper_texture()
     var fore_tex := _pc22_fore_texture()
-    var upper_a: float = 1.55 if female_mode else 1.72
-    var upper_b: float = 1.30 if female_mode else 1.44
-    var fore_a: float = 1.22 if female_mode else 1.34
-    var fore_b: float = 0.86 if female_mode else 0.96
+    var upper_a: float = (1.55 if female_mode else 1.72)*depth_scale
+    var upper_b: float = (1.30 if female_mode else 1.44)*depth_scale
+    var fore_a: float = (1.22 if female_mode else 1.34)*depth_scale
+    var fore_b: float = (0.86 if female_mode else 0.96)*depth_scale
     # Keep a small overlap at the mathematical elbow so texture transitions
     # disappear inside the continuous base ribbon instead of forming a hinge.
     var ud := (elbow-shoulder).normalized()
@@ -582,7 +594,7 @@ func _pc22_draw_arm_material_detail(shoulder: Vector2, elbow: Vector2, wrist: Ve
     var upper_start := shoulder.lerp(elbow,0.12)
     var upper_end := elbow+ud*0.38
     var fore_start := elbow-fd*0.38
-    var opacity: float = 0.46 if gear_torso else 0.34
+    var opacity: float = (0.66 if gear_torso else 0.52)*(0.78 if depth_scale < 0.99 else 1.0)
     _pc22_draw_textured_limb_detail(upper_tex,upper_start,upper_end,upper_a,upper_b,flip_x,opacity)
     _pc22_draw_textured_limb_detail(fore_tex,fore_start,wrist,fore_a,fore_b,flip_x,opacity)
 
@@ -927,8 +939,8 @@ s=s.replace(rear_anchor,'''    if gear_back and not female_mode:
     # Rifle rear-depth composition uses the same universal shoulder/elbow/wrist
     # ribbon as every other armed humanoid. Only depth changes; geometry does not.
     if weapon_visible and weapon_two_handed:
-        _pc22_draw_anatomical_arm_shape(pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist)
-        _pc22_draw_arm_material_detail(pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)
+        _pc22_draw_anatomical_arm_shape(pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist,0.84)
+        _pc22_draw_arm_material_detail(pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0,0.84)
         if tex_pc22_rifle_stock != null:
             _pc22_v3_draw_weapon_piece(tex_pc22_rifle_stock,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(36.0,18.0),0.33)
 
@@ -990,7 +1002,7 @@ weapon_block='''    # HYBRID V3: weapon artwork is anchored directly at the domi
             # merging on top of the weapon.
             var pc22_pistol_sup_tex := _pc22_support_hand_texture()
             if pc22_pistol_sup_tex != null:
-                _pc22_v3_draw_grip_hand(pc22_pistol_sup_tex,pc22_front_wrist,pc22_arm_angle,dir_sign,(2.36 if female_mode else 2.54),Vector2(0.52,0.52))
+                _pc22_v3_draw_grip_hand(pc22_pistol_sup_tex,pc22_front_wrist,pc22_arm_angle,dir_sign,(2.42 if female_mode else 2.62),Vector2(0.52,0.52))
             else:
                 _draw_support_hand(pc22_front_wrist,pc22_arm_angle,dir_sign,Color("b97755"),0.80)
             _pc22_v3_draw_weapon_piece(tex_pc22_pistol,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(15.0,18.0),0.24)
