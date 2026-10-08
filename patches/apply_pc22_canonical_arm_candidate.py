@@ -430,6 +430,15 @@ func _pc22_arm_highlight_color() -> Color:
         return Color(0.54,0.51,0.38,0.42)
     return Color(0.47,0.56,0.43,0.38)
 
+func _pc22_draw_elbow_fill(elbow: Vector2) -> void:
+    # Tiny opaque round joint fill only. It sits behind the authored upper and
+    # forearm sprites and prevents a sharp V-shaped hole without creating a halo.
+    var outline := _pc22_arm_outline_color()
+    var body := _pc22_arm_body_color()
+    var r: float = 1.62 if female_mode else 1.78
+    draw_circle(elbow,r+0.28,outline)
+    draw_circle(elbow,r,body)
+
 func _pc22_draw_anatomical_arm_underlay(shoulder: Vector2, elbow: Vector2, wrist: Vector2) -> void:
     # One continuous rounded silhouette beneath the authored detail sprites.
     # This makes shoulder->elbow->forearm read as one limb while keeping exact
@@ -815,22 +824,19 @@ front_anchor='''    # On the left-facing mirror, support hand is drawn first so 
 '''
 if front_anchor not in s:
     raise SystemExit("Candidate front-arm layering anchor missing")
-s=s.replace(front_anchor,'''    # CONTINUOUS ARMED-ARM COMPOSITION. A rounded anatomical underlay defines
-    # the visible silhouette; inset authored sleeve sprites provide texture and
-    # folds. Joint pieces therefore no longer define the outside contour.
+s=s.replace(front_anchor,'''    # ORGANIC SPRITE ARM COMPOSITION. The authored tapered sleeve sprites own
+    # the silhouette again; a tiny opaque elbow fill and compact cloth gusset
+    # merely hide the mathematical joint. No blurred/vector arm tube is drawn.
     if weapon_visible:
-        if not weapon_two_handed:
-            _pc22_draw_anatomical_arm_underlay(pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist)
-        _pc22_draw_anatomical_arm_underlay(pc22_front_shoulder,pc22_front_elbow,pc22_front_wrist)
-
         var pc22_rear_upper_front_tex: Texture2D = _pc22_upper_texture()
         var pc22_front_upper_front_tex: Texture2D = _pc22_upper_texture()
         if not weapon_two_handed:
-            _pc22_v3_draw_distal_segment(pc22_rear_upper_front_tex,pc22_rear_shoulder,pc22_rear_elbow,dir_sign<0.0,0.64,0.70)
-        _pc22_v3_draw_distal_segment(pc22_front_upper_front_tex,pc22_front_shoulder,pc22_front_elbow,dir_sign<0.0,0.64,0.70)
+            _pc22_draw_elbow_fill(pc22_rear_elbow)
+            _pc22_v3_draw_distal_segment(pc22_rear_upper_front_tex,pc22_rear_shoulder,pc22_rear_elbow,dir_sign<0.0,0.46,0.92)
+        _pc22_draw_elbow_fill(pc22_front_elbow)
+        _pc22_v3_draw_distal_segment(pc22_front_upper_front_tex,pc22_front_shoulder,pc22_front_elbow,dir_sign<0.0,0.46,0.92)
 
-        # Compact low-alpha bridge is buried under the sleeve detail and serves
-        # only as a texture transition; it no longer controls elbow silhouette.
+        # Compact low-alpha bridge is buried between the two authored segments.
         var pc22_elbow_tex: Texture2D = _pc22_elbow_texture()
         if not weapon_two_handed:
             _pc22_v3_draw_elbow_gusset(pc22_elbow_tex,pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)
@@ -839,8 +845,8 @@ s=s.replace(front_anchor,'''    # CONTINUOUS ARMED-ARM COMPOSITION. A rounded an
     var pc22_rear_fore_tex: Texture2D = _pc22_fore_texture()
     var pc22_front_fore_tex: Texture2D = _pc22_fore_texture()
     if not (weapon_visible and weapon_two_handed):
-        _pc22_v3_draw_segment_detail(pc22_rear_fore_tex,pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0,0.70)
-    _pc22_v3_draw_segment_detail(pc22_front_fore_tex,pc22_front_elbow,pc22_front_wrist,dir_sign<0.0,0.70)
+        _pc22_v3_draw_segment(pc22_rear_fore_tex,pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)
+    _pc22_v3_draw_segment(pc22_front_fore_tex,pc22_front_elbow,pc22_front_wrist,dir_sign<0.0)
 
     # Free hands are only used while unarmed. Armed pistol/rifle states use
     # authored grip hands at the actual weapon contact points.
@@ -872,7 +878,7 @@ weapon_block='''    # HYBRID V3: weapon artwork is anchored directly at the domi
             # merging on top of the weapon.
             var pc22_pistol_sup_tex := _pc22_support_hand_texture()
             if pc22_pistol_sup_tex != null:
-                _pc22_v3_draw_grip_hand(pc22_pistol_sup_tex,pc22_front_wrist,pc22_arm_angle,dir_sign,(2.35 if female_mode else 2.55),Vector2(0.50,0.53))
+                _pc22_v3_draw_grip_hand(pc22_pistol_sup_tex,pc22_front_wrist,pc22_arm_angle,dir_sign,(2.55 if female_mode else 2.75),Vector2(0.50,0.53))
             else:
                 _draw_support_hand(pc22_front_wrist,pc22_arm_angle,dir_sign,Color("b97755"),0.80)
             _pc22_v3_draw_weapon_piece(tex_pc22_pistol,pc22_dom_wrist,pc22_arm_angle,dir_sign,Vector2(15.0,18.0),0.24)
