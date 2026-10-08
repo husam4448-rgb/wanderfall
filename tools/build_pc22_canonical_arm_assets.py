@@ -748,6 +748,8 @@ specs={
    "hand_size":canonical["male"]["hand_size"],
    "dominant_hand_size":[6.0,5.6],
    "support_hand_size":[5.6,5.2],
+   "dominant_wrist_to_grip_local":[2.45,0.67],
+   "support_wrist_to_grip_local":[2.38,0.21],
    "neutral_upper_angle_deg":82.0,
    "neutral_elbow_flex_deg":22.0,
    "source_tint":[78,88,72],
@@ -764,6 +766,8 @@ specs={
    "hand_size":canonical["female"]["hand_size"],
    "dominant_hand_size":[5.6,5.3],
    "support_hand_size":[5.3,5.0],
+   "dominant_wrist_to_grip_local":[2.32,0.64],
+   "support_wrist_to_grip_local":[2.29,0.20],
    "neutral_upper_angle_deg":84.0,
    "neutral_elbow_flex_deg":24.0,
    "source_tint":[80,91,75],
@@ -799,6 +803,8 @@ for sex,s in specs.items():
         "forearm_width_over_torso_width":s["forearm_width"]/s["torso_runtime_size"][0],
         "dominant_hand_height_over_forearm":s["dominant_hand_size"][1]/s["forearm_length"],
         "support_hand_height_over_forearm":s["support_hand_size"][1]/s["forearm_length"],
+        "dominant_wrist_to_grip_over_hand_height":s["dominant_wrist_to_grip_local"][0]/s["dominant_hand_size"][1],
+        "support_wrist_to_grip_over_hand_height":s["support_wrist_to_grip_local"][0]/s["support_hand_size"][1],
       },
       "layering":{"rear_arm":"behind torso/weapon as appropriate","front_arm":"ahead of torso, behind hands","hands":"weapon-contact layer"},
     })
@@ -1137,7 +1143,9 @@ for sex,s in specs.items():
                 shoulder=add((0,0),mirror(tuple(s["shoulder_rear" if chain=="dominant" else "shoulder_front"]),facing))
                 pivot=add((0,0),mirror(tuple(s["weapon_socket"]),facing))
                 grip=tuple(s["dominant_hand_grip_socket" if chain=="dominant" else "support_hand_grip_socket"])
-                wrist=add(pivot,pose_point(grip,a,facing))
+                grip_world=add(pivot,pose_point(grip,a,facing))
+                wrist_to_grip=tuple(s["dominant_wrist_to_grip_local" if chain=="dominant" else "support_wrist_to_grip_local"])
+                wrist=add(grip_world,pose_point((-wrist_to_grip[0],-wrist_to_grip[1]),a,facing))
                 if chain=="support":
                     off=s["support_hand_vertical_offset_right"] if facing==1 else s["support_hand_vertical_offset_left"]
                     wrist=add(wrist,pose_point((0,off),a,facing))
@@ -1193,7 +1201,9 @@ for sex,s in specs.items():
             pivot=mirror(tuple(s["weapon_socket"]),facing)
             grip=pose_point((s["dominant_hand_grip_socket"][0]+6.8,
                              s["dominant_hand_grip_socket"][1]),a,facing)
-            wrist=add(pivot,grip)
+            grip_world=add(pivot,grip)
+            wg=s["dominant_wrist_to_grip_local"]
+            wrist=add(grip_world,pose_point((-wg[0],-wg[1]),a,facing))
             if length(sub(wrist,shoulder)) > L1+L2-0.001:
                 failures.append({"sex":sex,"facing":facing,"reason":"pistol_unreachable","angle":a})
                 break
