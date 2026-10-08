@@ -168,7 +168,7 @@ jobs:
           set -euo pipefail
           CAP="$GITHUB_WORKSPACE/pc22-hybrid-v3-runtime-captures"
           mkdir -p "$CAP"
-          ARM_CAPTURE_DIR="$CAP" timeout 35s xvfb-run -a "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1280x720 --verbose 2>&1 | tee pc22-hybrid-v3-capture.log
+          ARM_CAPTURE_DIR="$CAP" timeout 55s xvfb-run -a "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1280x720 --verbose 2>&1 | tee pc22-hybrid-v3-capture.log
           CAP_COUNT="$(find "$CAP" -maxdepth 1 -name '*.png' | wc -l | tr -d ' ')"
           LOG_COUNT="$(grep -o 'PC22_ARM_CAPTURE_COMPLETE:[0-9]*' pc22-hybrid-v3-capture.log | tail -1 | cut -d: -f2)"
           test -n "$LOG_COUNT"
@@ -210,7 +210,7 @@ jobs:
             "pistol":["pistol_horizontal","pistol_up30","pistol_up60","pistol_max_up","pistol_down30","pistol_down60","pistol_max_down","pistol_left","pistol_left_up60","pistol_left_down60"],
             "rifle":["rifle_horizontal","rifle_up30","rifle_up60","rifle_max_up","rifle_down30","rifle_down60","rifle_max_down","recoil"],
             "movement_aim":["walk_right_aim_right","walk_left_aim_right","walk_right_aim_up","walk_left_aim_down","rifle_left","rifle_left_up60","rifle_left_down60"],
-            "roles":["role_trader","role_medic","role_mechanic","role_guard","role_bandit","role_civilian","role_scientist","npc_generic_glove"],
+            "roles":["role_trader","role_trader_rifle_up60","role_trader_rifle_down60","role_trader_rifle_left","role_medic","role_medic_rifle_up60","role_medic_rifle_down60","role_medic_rifle_left","role_mechanic","role_mechanic_rifle_up60","role_mechanic_rifle_down60","role_mechanic_rifle_left","role_guard","role_guard_rifle_up60","role_guard_rifle_down60","role_guard_rifle_left","role_bandit","role_bandit_rifle_up60","role_bandit_rifle_down60","role_bandit_rifle_left","role_civilian","role_civilian_rifle_up60","role_civilian_rifle_down60","role_civilian_rifle_left","role_scientist","role_scientist_rifle_up60","role_scientist_rifle_down60","role_scientist_rifle_left","npc_generic_glove"],
             "equipment":["full_gear_rifle","full_gear_pistol","rifle_horizontal","pistol_horizontal"],
           }
 
