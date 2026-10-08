@@ -17,26 +17,53 @@ def le(label, actual, maximum):
     if actual > maximum:
         fail.append(f"{label}: {actual} > {maximum}")
 
+def in_range(label, actual, bounds):
+    lo,hi=bounds
+    if actual < lo or actual > hi:
+        fail.append(f"{label}: {actual} not in [{lo}, {hi}]")
+
 for sex in ("male","female"):
     spec=json.loads((root/f"core/{sex}/arm_spec.json").read_text(encoding="utf-8"))
     c=contract[sex]
-    ge(f"{sex}.shoulder_rear.x",abs(spec["shoulder_rear"][0]),c["shoulder_rear_min_x"])
-    ge(f"{sex}.shoulder_front.x",abs(spec["shoulder_front"][0]),c["shoulder_front_min_x"])
-    le(f"{sex}.shoulder_rear.y",spec["shoulder_rear"][1],c["shoulder_rear_max_y"])
-    le(f"{sex}.shoulder_front.y",spec["shoulder_front"][1],c["shoulder_front_max_y"])
-    ge(f"{sex}.upper_arm_width",spec["upper_arm_width"],c["upper_arm_width_min"])
-    ge(f"{sex}.forearm_width",spec["forearm_width"],c["forearm_width_min"])
+    in_range(f"{sex}.shoulder_rear.x",spec["shoulder_rear"][0],c["shoulder_rear_x_range"])
+    in_range(f"{sex}.shoulder_front.x",spec["shoulder_front"][0],c["shoulder_front_x_range"])
+    in_range(f"{sex}.shoulder_rear.y",spec["shoulder_rear"][1],c["shoulder_y_range"])
+    in_range(f"{sex}.shoulder_front.y",spec["shoulder_front"][1],c["shoulder_y_range"])
+    in_range(f"{sex}.upper_arm_length",spec["upper_arm_length"],c["upper_arm_length_range"])
+    in_range(f"{sex}.forearm_length",spec["forearm_length"],c["forearm_length_range"])
+    in_range(f"{sex}.upper_arm_width",spec["upper_arm_width"],c["upper_arm_width_range"])
+    in_range(f"{sex}.forearm_width",spec["forearm_width"],c["forearm_width_range"])
     for i,axis in enumerate(("x","y")):
-        ge(f"{sex}.dominant_hand_size.{axis}",spec["dominant_hand_size"][i],c["dominant_hand_min"][i])
-        ge(f"{sex}.support_hand_size.{axis}",spec["support_hand_size"][i],c["support_hand_min"][i])
-        if "dominant_hand_max" in c:
-            le(f"{sex}.dominant_hand_size.{axis}",spec["dominant_hand_size"][i],c["dominant_hand_max"][i])
-        if "support_hand_max" in c:
-            le(f"{sex}.support_hand_size.{axis}",spec["support_hand_size"][i],c["support_hand_max"][i])
-    if "weapon_socket_max_y" in c:
-        le(f"{sex}.weapon_socket.y",spec["weapon_socket"][1],c["weapon_socket_max_y"])
-    if "support_grip_x_min" in c:
-        ge(f"{sex}.support_hand_grip_socket.x",spec["support_hand_grip_socket"][0],c["support_grip_x_min"])
+        in_range(f"{sex}.dominant_hand_size.{axis}",spec["dominant_hand_size"][i],
+                 [c["dominant_hand_min"][i],c["dominant_hand_max"][i]])
+        in_range(f"{sex}.support_hand_size.{axis}",spec["support_hand_size"][i],
+                 [c["support_hand_min"][i],c["support_hand_max"][i]])
+
+    tw,th=c["torso_runtime_size"]
+    in_range(f"{sex}.ratio.upper/torso_h",spec["upper_arm_length"]/th,c["upper_over_torso_h_range"])
+    in_range(f"{sex}.ratio.forearm/torso_h",spec["forearm_length"]/th,c["fore_over_torso_h_range"])
+    in_range(f"{sex}.ratio.rear_shoulder_x/torso_w",spec["shoulder_rear"][0]/tw,c["rear_shoulder_x_over_torso_w_range"])
+    in_range(f"{sex}.ratio.front_shoulder_x/torso_w",spec["shoulder_front"][0]/tw,c["front_shoulder_x_over_torso_w_range"])
+    in_range(f"{sex}.ratio.dom_hand_h/forearm",spec["dominant_hand_size"][1]/spec["forearm_length"],
+             c["dominant_hand_h_over_forearm_range"])
+    in_range(f"{sex}.ratio.sup_hand_h/forearm",spec["support_hand_size"][1]/spec["forearm_length"],
+             c["support_hand_h_over_forearm_range"])
+
+shared=contract["shared_anatomy"]
+male_spec=json.loads((root/"core/male/arm_spec.json").read_text(encoding="utf-8"))
+female_spec=json.loads((root/"core/female/arm_spec.json").read_text(encoding="utf-8"))
+for sex,spec in (("male",male_spec),("female",female_spec)):
+    in_range(f"{sex}.weapon_socket.x",spec["weapon_socket"][0],shared["weapon_socket_x_range"])
+    in_range(f"{sex}.weapon_socket.y",spec["weapon_socket"][1],shared["weapon_socket_y_range"])
+    if spec["dominant_hand_grip_socket"] != shared["dominant_grip"]:
+        fail.append(f"{sex}.dominant_grip mismatch")
+    if spec["support_hand_grip_socket"] != shared["support_grip"]:
+        fail.append(f"{sex}.support_grip mismatch")
+    if spec.get("rig_id") != "HUMANOID_CANONICAL_ARM_SYSTEM":
+        fail.append(f"{sex}.rig_id is not universal humanoid rig")
+if male_spec["weapon_socket"] != female_spec["weapon_socket"]:
+    fail.append("gear/sex independent weapon socket policy violated")
+
 
 def alpha_bbox_metrics(path):
     im=Image.open(path).convert("RGBA")
@@ -81,6 +108,17 @@ else:
     for sc in pistol_scales:
         ge("runtime.pistol_scale",sc,rc["pistol_scale_min"])
         le("runtime.pistol_scale",sc,rc["pistol_scale_max"])
+
+if "pc22_player_arm_rig.upper_width()*0.50*depth_scale" not in patch:
+    fail.append("runtime.arm_width: silhouette does not use profile upper width")
+if "pc22_player_arm_rig.forearm_width()*0.50*depth_scale" not in patch:
+    fail.append("runtime.forearm_width: silhouette does not use profile forearm width")
+if "pc22_player_arm_rig.dominant_hand_height()" not in patch:
+    fail.append("runtime.dominant_hand: profile hand height not used")
+if "pc22_player_arm_rig.support_hand_height()" not in patch:
+    fail.append("runtime.support_hand: profile hand height not used")
+if "Vector2(6.8,0.0)" not in patch or "1.7*dir_sign" in patch:
+    fail.append("runtime.sidearm_target: obsolete screen-X compensation still present")
 
 for label,key in (("dominant","dominant_grip_pivot_fraction"),("support","support_grip_pivot_fraction")):
     vals=rc.get(key)
