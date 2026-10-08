@@ -165,10 +165,28 @@ require("pc22_dom_upper_start" not in patch and "pc22_front_upper_start" not in 
 require("if gear_torso:" in patch and "tex_pc22_female_gear_upper" in patch and "tex_pc22_male_gear_fore" in patch,
         "equipped tactical sleeve selection missing")
 
-# One-handed off-hand pose is visual-only but must preserve canonical lengths exactly.
-require("func _pc22_relaxed_onehand_arm" in patch, "natural one-handed free-arm helper missing")
-require("upper_dir*upper_len" in patch and "fore_dir*fore_len" in patch,
-        "relaxed one-handed free arm no longer preserves canonical lengths")
+# Pistol support arm must use fixed-length IK to a weapon-local contact point.
+require("func _pc22_pistol_support_target" in patch, "pistol support target helper missing")
+require("Vector2(-0.85,1.55)" in patch, "pistol support grip offset drift")
+require("pc22_front_wrist = _pc22_pistol_support_target(pc22_dom_wrist,pc22_arm_angle,dir_sign)" in patch,
+        "pistol support wrist is not locked to the weapon grip")
+require("pc22_front_elbow = _pc22_solve_elbow(pc22_front_shoulder,pc22_front_wrist" in patch,
+        "pistol support arm is not solved with fixed-length IK")
+require("var pc22_pistol_sup_tex := _pc22_support_hand_texture()" in patch,
+        "pistol support grip hand renderer missing")
+require("(2.80 if female_mode else 3.00)" in patch,
+        "pistol support grip hand scale drift")
+require("_pc22_relaxed_onehand_arm" not in patch,
+        "legacy dangling one-handed off-arm helper reintroduced")
+
+builder = (repo / "tools/build_pc22_canonical_arm_assets.py").read_text(encoding="utf-8")
+require('v3_gear_upper_vertical=tactical_sleeve(u,sex,"upper")' in builder,
+        "gear upper sleeve is no longer generated along the anatomical limb axis")
+require('v3_gear_fore_vertical=tactical_sleeve(f,sex,"forearm")' in builder,
+        "gear forearm sleeve is no longer generated along the anatomical limb axis")
+require('make_v3_pivoted_segment(v3_gear_upper_vertical)' in builder and
+        'make_v3_pivoted_segment(v3_gear_fore_vertical)' in builder,
+        "gear sleeves are not pivoted after anatomical fabric integration")
 
 # Dedicated textured elbow gussets are visual-only and must cover both armed elbows.
 require("func _pc22_v3_draw_elbow_gusset" in patch, "textured elbow gusset renderer missing")
