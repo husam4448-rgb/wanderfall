@@ -263,6 +263,20 @@ var pc22_arm_capture_names := PackedStringArray([
     "male_role_bandit","male_role_civilian","male_role_scientist",
     "female_role_trader","female_role_medic","female_role_mechanic","female_role_guard",
     "female_role_bandit","female_role_civilian","female_role_scientist",
+    "male_role_trader_rifle_up60","male_role_trader_rifle_down60","male_role_trader_rifle_left",
+    "male_role_medic_rifle_up60","male_role_medic_rifle_down60","male_role_medic_rifle_left",
+    "male_role_mechanic_rifle_up60","male_role_mechanic_rifle_down60","male_role_mechanic_rifle_left",
+    "male_role_guard_rifle_up60","male_role_guard_rifle_down60","male_role_guard_rifle_left",
+    "male_role_bandit_rifle_up60","male_role_bandit_rifle_down60","male_role_bandit_rifle_left",
+    "male_role_civilian_rifle_up60","male_role_civilian_rifle_down60","male_role_civilian_rifle_left",
+    "male_role_scientist_rifle_up60","male_role_scientist_rifle_down60","male_role_scientist_rifle_left",
+    "female_role_trader_rifle_up60","female_role_trader_rifle_down60","female_role_trader_rifle_left",
+    "female_role_medic_rifle_up60","female_role_medic_rifle_down60","female_role_medic_rifle_left",
+    "female_role_mechanic_rifle_up60","female_role_mechanic_rifle_down60","female_role_mechanic_rifle_left",
+    "female_role_guard_rifle_up60","female_role_guard_rifle_down60","female_role_guard_rifle_left",
+    "female_role_bandit_rifle_up60","female_role_bandit_rifle_down60","female_role_bandit_rifle_left",
+    "female_role_civilian_rifle_up60","female_role_civilian_rifle_down60","female_role_civilian_rifle_left",
+    "female_role_scientist_rifle_up60","female_role_scientist_rifle_down60","female_role_scientist_rifle_left",
     "male_npc_generic_glove","female_npc_generic_glove"
 ])
 '''
@@ -1097,14 +1111,24 @@ capture_helpers='''func _pc22_apply_arm_capture_state(idx: int) -> void:
         state = idx % pc22_arm_states_per_sex
     else:
         var extra := idx-base_capture_count
+        var roles := ["trader","medic","mechanic","guard","bandit","civilian","scientist"]
         if extra < 14:
-            var roles := ["trader","medic","mechanic","guard","bandit","civilian","scientist"]
             female_mode = extra >= 7
             pc22_role = roles[extra%7]
-            state = 12 # horizontal two-handed rifle exposes shoulder/sleeve/glove interface
+            state = 12 # horizontal rifle
+        elif extra < 56:
+            # Three additional visual aim/facing states per role and sex:
+            # rifle up60, rifle down60, rifle left.
+            var role_pose_extra := extra-14
+            female_mode = role_pose_extra >= 21
+            var role_pose_local := role_pose_extra%21
+            var role_index := role_pose_local/3
+            var pose_index := role_pose_local%3
+            pc22_role = roles[role_index]
+            state = [14,17,26][pose_index]
         else:
             # Generic player glove deliberately overrides role glove on an NPC-equivalent rig.
-            female_mode = extra == 15
+            female_mode = extra == 57
             pc22_role = "trader"
             generic_glove_state = true
             state = 12
