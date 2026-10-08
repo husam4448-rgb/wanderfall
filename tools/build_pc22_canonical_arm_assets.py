@@ -179,8 +179,8 @@ def anatomical_sleeve(img, base_rgb, sex, segment, fabric_ref=None):
     # Sparse cloth creases give readable fabric structure without jagged source
     # silhouettes. They rotate with the limb and remain subtle at gameplay scale.
     d=ImageDraw.Draw(base)
-    crease_dark=tuple(max(0,int(c*0.60)) for c in base_rgb)+(112,)
-    crease_light=tuple(min(255,int(c*1.38+6)) for c in base_rgb)+(84,)
+    crease_dark=tuple(max(0,int(c*0.60)) for c in base_rgb)+(58,)
+    crease_light=tuple(min(255,int(c*1.38+6)) for c in base_rgb)+(42,)
     crease_rows=(0.34,0.61,0.82) if segment=="upper" else (0.28,0.55,0.78)
     for idx,yf in enumerate(crease_rows):
         y=int(round(h*yf))
@@ -271,18 +271,21 @@ def tactical_sleeve(img, sex, segment):
     out.putalpha(alpha)
     # Transfer only shading/detail from the actual tactical torso/vest art.
     gref=trim(gear_torso_ref).convert("RGBA")
-    glum=ImageOps.grayscale(gref).filter(ImageFilter.GaussianBlur(0.45))
-    glum=ImageEnhance.Contrast(glum).enhance(1.68).resize(out.size,Image.Resampling.LANCZOS)
+    # Only borrow low-frequency cloth tone from the equipped torso. Copying
+    # sharp vest/webbing detail onto sleeves made the limbs look like modular
+    # armor plates instead of continuous fabric.
+    glum=ImageOps.grayscale(gref).filter(ImageFilter.GaussianBlur(5.0))
+    glum=ImageEnhance.Contrast(glum).enhance(1.12).resize(out.size,Image.Resampling.LANCZOS)
     gdark=tuple(max(0,int(c*0.52)) for c in light)
     glight=tuple(min(255,int(c*1.35+6)) for c in light)
     gtex=ImageOps.colorize(glum,gdark,glight).convert("RGBA")
     gtex.putalpha(alpha)
-    out=Image.blend(out,gtex,0.62)
+    out=Image.blend(out,gtex,0.16)
     out.putalpha(alpha)
     d=ImageDraw.Draw(out)
     w,h=out.size
-    stitch=(174,157,112,62)
-    shadow=(29,31,27,92)
+    stitch=(174,157,112,34)
+    shadow=(29,31,27,55)
     # Short staggered seams and folds preserve tactical fabric detail without
     # tracing the whole limb axis like a rigid strap.
     seam_rows=(0.31,0.58) if segment=="upper" else (0.35,0.64)
