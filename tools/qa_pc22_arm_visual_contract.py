@@ -159,11 +159,15 @@ if layering.get("armed_pre_torso_authored_upper") is False:
 if layering.get("armed_shoulder_cap") is False:
     if "if not weapon_visible:" not in patch or "_pc22_v3_draw_cap(pc22_rear_cap_tex" not in patch:
         fail.append("layering.armed_shoulder_cap: shoulder caps are not restricted to unarmed poses")
-if layering.get("rifle_dominant_arm_visibility")=="occluded_until_firing_hand":
-    if "completely occluded by" not in patch or "dangling rear-forearm strip" not in patch:
-        fail.append("layering.rifle_dominant_arm_visibility: full rear-arm occlusion marker missing")
+if layering.get("rifle_dominant_arm_visibility")=="distal_wrist_bridge_only":
+    if "func _pc22_draw_rear_rifle_wrist_bridge" not in patch:
+        fail.append("layering.rifle_dominant_arm_visibility: short wrist bridge helper missing")
+    if "_pc22_draw_rear_rifle_wrist_bridge(pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)" not in patch:
+        fail.append("layering.rifle_dominant_arm_visibility: solved-chain wrist bridge draw missing")
+    if "var bridge_len := minf(3.2,delta.length()*0.28)" not in patch:
+        fail.append("layering.rifle_dominant_arm_visibility: wrist bridge length exceeds compact contract")
     if "_pc22_draw_rear_rifle_cuff(" in patch:
-        fail.append("layering.rifle_dominant_arm_visibility: dangling rear rifle cuff renderer present")
+        fail.append("layering.rifle_dominant_arm_visibility: legacy dangling rear rifle cuff renderer present")
 if layering.get("prohibit_legacy_modular_front_chain") is True:
     if "_pc22_draw_chain(pc22_front_shoulder" in patch:
         fail.append("layering.front_chain: legacy modular full front chain repainted after torso")
