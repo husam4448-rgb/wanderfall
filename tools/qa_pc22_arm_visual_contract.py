@@ -92,23 +92,38 @@ for label,key in (("dominant","dominant_grip_pivot_fraction"),("support","suppor
             fail.append(f"runtime.{label}_grip_pivot: {token} not found")
 
 
-# Armed layering contract for the V3 renderer.
-if contract.get("layering",{}).get("armed_front_upper")=="behind_torso":
-    if "HYBRID V3: only proximal upper-arm art is drawn behind the torso." not in patch:
-        fail.append("layering.armed_front_upper: V3 behind-torso upper-arm marker missing")
-if contract.get("layering",{}).get("armed_front_forearm")=="foreground":
-    rear_ok = ("_pc22_v3_draw_segment(pc22_rear_fore_tex" in patch or
-               "_pc22_v3_draw_segment_detail(pc22_rear_fore_tex" in patch)
-    front_ok = ("_pc22_v3_draw_segment(pc22_front_fore_tex" in patch or
-                "_pc22_v3_draw_segment_detail(pc22_front_fore_tex" in patch)
-    if not rear_ok or not front_ok:
-        fail.append("layering.armed_front_forearm: foreground forearm draw calls missing")
-if contract.get("layering",{}).get("shoulder_cap_foreground") is False:
-    if "Both deltoid caps are now composed behind the torso." not in patch:
-        fail.append("layering.shoulder_cap: V3 behind-torso shoulder-cap marker missing")
-if contract.get("layering",{}).get("prohibit_full_front_chain_after_torso") is True:
+# Armed layering contract for the universal three-joint renderer.
+layering=contract.get("layering",{})
+if layering.get("armed_front_upper")=="continuous_ribbon_after_torso":
+    if "UNIVERSAL THREE-JOINT ARM COMPOSITION" not in patch:
+        fail.append("layering.armed_front_upper: universal after-torso arm ribbon marker missing")
+if layering.get("armed_front_forearm")=="continuous_ribbon_after_torso":
+    if "_pc22_draw_anatomical_arm_shape(pc22_front_shoulder,pc22_front_elbow,pc22_front_wrist)" not in patch:
+        fail.append("layering.armed_front_forearm: support arm continuous ribbon draw missing")
+if layering.get("armed_pre_torso_authored_upper") is False:
+    marker="if not weapon_visible:\n        var pc22_rear_upper_tex"
+    if marker not in patch:
+        fail.append("layering.armed_pre_torso_authored_upper: armed authored upper sprites are not suppressed")
+if layering.get("armed_shoulder_cap") is False:
+    if "if not weapon_visible:" not in patch or "_pc22_v3_draw_cap(pc22_rear_cap_tex" not in patch:
+        fail.append("layering.armed_shoulder_cap: shoulder caps are not restricted to unarmed poses")
+if layering.get("rifle_dominant_arm_visibility")=="occluded_until_firing_hand":
+    if "completely occluded by" not in patch or "dangling rear-forearm strip" not in patch:
+        fail.append("layering.rifle_dominant_arm_visibility: full rear-arm occlusion marker missing")
+    if "_pc22_draw_rear_rifle_cuff(" in patch:
+        fail.append("layering.rifle_dominant_arm_visibility: dangling rear rifle cuff renderer present")
+if layering.get("prohibit_legacy_modular_front_chain") is True:
     if "_pc22_draw_chain(pc22_front_shoulder" in patch:
-        fail.append("layering.front_chain: full front chain repainted after torso")
+        fail.append("layering.front_chain: legacy modular full front chain repainted after torso")
+    if "pc22_rear_fore_back_tex" in patch or "pc22_rear_elbow_back_tex" in patch:
+        fail.append("layering.rifle_rear: legacy modular rear forearm/elbow renderer present")
+if layering.get("shoulder_cap_foreground") is False:
+    # No armed foreground cap is allowed. The only cap draw calls must live in
+    # the unarmed block guarded by if not weapon_visible.
+    cap_guard=patch.find("if not weapon_visible:\n        var pc22_rear_upper_tex")
+    cap_call=patch.find("_pc22_v3_draw_cap(pc22_rear_cap_tex")
+    if cap_guard<0 or cap_call<cap_guard:
+        fail.append("layering.shoulder_cap: armed/foreground shoulder cap reintroduced")
 
 
 if fail:
