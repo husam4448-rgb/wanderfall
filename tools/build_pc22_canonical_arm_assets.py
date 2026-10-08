@@ -282,18 +282,30 @@ def tactical_sleeve(img, sex, segment):
     # Only borrow low-frequency cloth tone from the equipped torso. Copying
     # sharp vest/webbing detail onto sleeves made the limbs look like modular
     # armor plates instead of continuous fabric.
-    glum=ImageOps.grayscale(gref).filter(ImageFilter.GaussianBlur(0.55))
-    glum=ImageEnhance.Contrast(glum).enhance(1.72).resize(out.size,Image.Resampling.LANCZOS)
+    glum=ImageOps.grayscale(gref).filter(ImageFilter.GaussianBlur(0.80))
+    glum=ImageEnhance.Contrast(glum).enhance(1.88).resize(out.size,Image.Resampling.LANCZOS)
     gdark=tuple(max(0,int(c*0.52)) for c in light)
     glight=tuple(min(255,int(c*1.35+6)) for c in light)
     gtex=ImageOps.colorize(glum,gdark,glight).convert("RGBA")
     gtex.putalpha(alpha)
-    out=Image.blend(out,gtex,0.40)
+    out=Image.blend(out,gtex,0.50)
     out.putalpha(alpha)
-    d=ImageDraw.Draw(out)
+    # Cylindrical cross-lighting gives the sleeve the same volumetric material
+    # read as the tactical torso without adding armor bands or changing geometry.
+    px=out.load()
     w,h=out.size
-    stitch=(174,157,112,10)
-    shadow=(29,31,27,22)
+    center=max(1.0,(w-1)/2.0)
+    for y in range(h):
+        for x in range(w):
+            rr,gg,bb,aa=px[x,y]
+            if aa<=0:
+                continue
+            radial=abs(x-center)/center
+            factor=1.05-0.17*min(1.0,radial)
+            px[x,y]=(min(255,int(rr*factor)),min(255,int(gg*factor)),min(255,int(bb*factor)),aa)
+    d=ImageDraw.Draw(out)
+    stitch=(174,157,112,8)
+    shadow=(29,31,27,18)
     # Short staggered seams and folds preserve tactical fabric detail without
     # tracing the whole limb axis like a rigid strap.
     seam_rows=(0.46,) if segment=="upper" else (0.52,)
