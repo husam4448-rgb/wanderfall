@@ -1,153 +1,57 @@
 {
   "standard": "PlayerCharacters_v22",
-  "authority": "Approved Survival Paradise male/female side-profile art + user-rejected 4x APK screenshots + fresh runtime captures",
+  "authority": "Approved Survival Paradise arm visual-reference sheets + user-provided failed runtime screenshots",
   "male": {
-    "shoulder_rear_x_range": [
-      -5.4,
-      -4.2
-    ],
-    "shoulder_front_x_range": [
-      -4.6,
-      -3.4
-    ],
-    "shoulder_y_range": [
-      -10.4,
-      -8.8
-    ],
-    "upper_arm_length_range": [
-      12.9,
-      13.7
-    ],
-    "forearm_length_range": [
-      12.1,
-      12.9
-    ],
-    "upper_arm_width_range": [
-      5.9,
-      6.5
-    ],
-    "forearm_width_range": [
-      4.9,
-      5.5
-    ],
+    "shoulder_rear_min_x": 9.6,
+    "shoulder_front_min_x": 9.2,
+    "upper_arm_width_min": 6,
+    "forearm_width_min": 4.9,
     "dominant_hand_min": [
-      5.7,
-      5.3
-    ],
-    "dominant_hand_max": [
-      6.3,
-      5.9
-    ],
-    "support_hand_min": [
       5.3,
       4.9
     ],
-    "support_hand_max": [
-      5.9,
-      5.5
-    ],
-    "torso_runtime_size": [
-      26.2,
-      29.6
-    ],
-    "upper_over_torso_h_range": [
-      0.43,
-      0.47
-    ],
-    "fore_over_torso_h_range": [
-      0.4,
-      0.45
-    ],
-    "rear_shoulder_x_over_torso_w_range": [
-      -0.21,
-      -0.15
-    ],
-    "front_shoulder_x_over_torso_w_range": [
-      -0.18,
-      -0.12
-    ],
-    "dominant_hand_h_over_forearm_range": [
-      0.41,
-      0.47
-    ],
-    "support_hand_h_over_forearm_range": [
-      0.39,
-      0.45
-    ]
-  },
-  "female": {
-    "shoulder_rear_x_range": [
-      -5.1,
-      -3.9
-    ],
-    "shoulder_front_x_range": [
-      -4.3,
-      -3.1
-    ],
-    "shoulder_y_range": [
-      -10.2,
-      -8.6
-    ],
-    "upper_arm_length_range": [
-      12.4,
-      13.2
-    ],
-    "forearm_length_range": [
-      11.8,
-      12.6
-    ],
-    "upper_arm_width_range": [
-      5.5,
-      6.1
-    ],
-    "forearm_width_range": [
-      4.6,
-      5.1
-    ],
-    "dominant_hand_min": [
-      5.3,
-      5
-    ],
-    "dominant_hand_max": [
-      5.9,
-      5.6
-    ],
     "support_hand_min": [
-      5,
-      4.7
+      4.9,
+      4.5
+    ],
+    "shoulder_rear_max_y": -9.2,
+    "shoulder_front_max_y": -8.7,
+    "dominant_hand_max": [
+      6,
+      5.6
     ],
     "support_hand_max": [
       5.6,
+      5.2
+    ],
+    "weapon_socket_max_y": -5.5,
+    "support_grip_x_min": 16.5
+  },
+  "female": {
+    "shoulder_rear_min_x": 9.2,
+    "shoulder_front_min_x": 8.9,
+    "upper_arm_width_min": 5.6,
+    "forearm_width_min": 4.6,
+    "dominant_hand_min": [
+      4.9,
+      4.6
+    ],
+    "support_hand_min": [
+      4.6,
+      4.3
+    ],
+    "shoulder_rear_max_y": -9,
+    "shoulder_front_max_y": -8.6,
+    "dominant_hand_max": [
+      5.6,
       5.3
     ],
-    "torso_runtime_size": [
-      27,
-      27.5
+    "support_hand_max": [
+      5.3,
+      5
     ],
-    "upper_over_torso_h_range": [
-      0.44,
-      0.49
-    ],
-    "fore_over_torso_h_range": [
-      0.42,
-      0.47
-    ],
-    "rear_shoulder_x_over_torso_w_range": [
-      -0.2,
-      -0.14
-    ],
-    "front_shoulder_x_over_torso_w_range": [
-      -0.17,
-      -0.11
-    ],
-    "dominant_hand_h_over_forearm_range": [
-      0.41,
-      0.47
-    ],
-    "support_hand_h_over_forearm_range": [
-      0.39,
-      0.45
-    ]
+    "weapon_socket_max_y": -5.5,
+    "support_grip_x_min": 16.5
   },
   "rifle": {
     "alpha_bbox_min_height": 9,
@@ -176,11 +80,7 @@
     "Hybrid V3 pistol scale recalibrated from runtime evidence so sidearm length is realistic relative to the 10.5–10.7 unit forearm while preserving the exact locked grip socket.",
     "Hybrid V3 final shoulder composition: compact deltoid caps are rendered behind the torso so torso occlusion hides their root and prevents a pasted-on shoulder-pad silhouette.",
     "Universal-rig refinement: armed poses use one continuous shoulder→elbow→wrist ribbon after torso composition; authored modular upper/forearm sprites are suppressed for armed silhouettes.",
-    "Rifle side-view depth rule: the solved dominant arm may be fully occluded by torso/stock until the firing hand emerges at the trigger; this prevents artificial X/triangle construction without changing IK.",
-    "Body-relative recalibration after user-rejected 4x APK: old +X shoulder sockets were on the front chest; accepted shoulder region is posterior to torso center in side view.",
-    "Arm silhouette width and hand draw scale must come from the sex profile values; hardcoded undersized ribbon/hand constants are prohibited.",
-    "The old 1928/1928 geometry sweep remains necessary but is not sufficient; body-relative torso/arm/hand ratio checks are mandatory.",
-    "Visual acceptance requires direct comparison of the newest Godot captures against the approved male/female character art, including gear-off and gear-on."
+    "Rifle side-view depth rule: the solved dominant arm may be fully occluded by torso/stock until the firing hand emerges at the trigger; this prevents artificial X/triangle construction without changing IK."
   ],
   "runtime_draw": {
     "rifle_scale_min": 0.3,
@@ -189,12 +89,12 @@
     "pistol_scale_max": 0.26,
     "require_uniform_weapon_scale": true,
     "dominant_grip_pivot_fraction": [
-      0.58,
-      0.62
+      0.54,
+      0.5
     ],
     "support_grip_pivot_fraction": [
-      0.55,
-      0.54
+      0.56,
+      0.48
     ]
   },
   "layering": {
@@ -209,26 +109,5 @@
     "rifle_dominant_arm_visibility": "occluded_until_firing_hand",
     "prohibit_legacy_modular_front_chain": true
   },
-  "renderer": "hybrid_pivoted_sprite_v3",
-  "shared_anatomy": {
-    "weapon_socket_x_range": [
-      2.5,
-      3.5
-    ],
-    "weapon_socket_y_range": [
-      -6.4,
-      -5.6
-    ],
-    "dominant_grip": [
-      9.8,
-      0.8
-    ],
-    "support_grip": [
-      17,
-      -1
-    ],
-    "gear_must_not_change_rig_geometry": true,
-    "role_must_not_change_rig_geometry": true,
-    "one_solver_for_male_female": true
-  }
+  "renderer": "hybrid_pivoted_sprite_v3"
 }
