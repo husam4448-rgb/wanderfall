@@ -1,6 +1,6 @@
 {
   "sex": "female",
-  "rig_id": "FEMALE_CANONICAL_ARM_SYSTEM",
+  "rig_id": "HUMANOID_CANONICAL_ARM_SYSTEM",
   "renderer": "hybrid_pivoted_sprite_v3",
   "upper_arm": {
     "filename": "assets/authored2d/unified_character/arms/hybrid_v3/female/SP_PC22_Female_UpperArm_V3.png",
@@ -16,7 +16,7 @@
       119.0,
       18.0
     ],
-    "canonical_length": 10.6
+    "canonical_length": 12.8
   },
   "forearm": {
     "filename": "assets/authored2d/unified_character/arms/hybrid_v3/female/SP_PC22_Female_Forearm_V3.png",
@@ -32,7 +32,7 @@
       119.0,
       15.0
     ],
-    "canonical_length": 10.5
+    "canonical_length": 12.2
   },
   "elbow": {
     "filename": "assets/authored2d/unified_character/arms/hybrid_v3/female/SP_PC22_Female_Elbow_V3.png",

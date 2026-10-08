@@ -1,6 +1,6 @@
 {
   "sex": "male",
-  "rig_id": "MALE_CANONICAL_ARM_SYSTEM",
+  "rig_id": "HUMANOID_CANONICAL_ARM_SYSTEM",
   "renderer": "hybrid_pivoted_sprite_v3",
   "upper_arm": {
     "filename": "assets/authored2d/unified_character/arms/hybrid_v3/male/SP_PC22_Male_UpperArm_V3.png",
@@ -16,7 +16,7 @@
       119.0,
       20.5
     ],
-    "canonical_length": 10.9
+    "canonical_length": 13.3
   },
   "forearm": {
     "filename": "assets/authored2d/unified_character/arms/hybrid_v3/male/SP_PC22_Male_Forearm_V3.png",
@@ -32,7 +32,7 @@
       119.0,
       16.0
     ],
-    "canonical_length": 10.7
+    "canonical_length": 12.5
   },
   "elbow": {
     "filename": "assets/authored2d/unified_character/arms/hybrid_v3/male/SP_PC22_Male_Elbow_V3.png",
