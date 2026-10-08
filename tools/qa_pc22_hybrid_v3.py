@@ -20,8 +20,8 @@ def require(cond, msg):
 
 baseline = json.loads((meta / "hybrid_v3_baseline.json").read_text(encoding="utf-8"))
 expected = {
-    "male": {"upper": 10.9, "fore": 10.7, "rear": [10.0,-9.5], "front": [9.8,-9.0]},
-    "female": {"upper": 10.6, "fore": 10.5, "rear": [9.6,-9.3], "front": [9.4,-8.9]},
+    "male": {"upper": 13.3, "fore": 12.5, "rear": [-4.8,-9.8], "front": [-4.0,-9.3]},
+    "female": {"upper": 12.8, "fore": 12.2, "rear": [-4.5,-9.6], "front": [-3.7,-9.1]},
 }
 for sex, ex in expected.items():
     b = baseline[sex]
@@ -37,7 +37,7 @@ for sex, ex in expected.items():
     require(abs(spec["forearm_length"] - ex["fore"]) < 1e-9, f"{sex}: generated forearm length drift")
     require(spec["shoulder_rear"] == ex["rear"], f"{sex}: generated rear shoulder drift")
     require(spec["shoulder_front"] == ex["front"], f"{sex}: generated front shoulder drift")
-    require(spec["weapon_socket"] == [10.5,-6.0], f"{sex}: weapon pivot drift")
+    require(spec["weapon_socket"] == [3.0,-6.0], f"{sex}: weapon pivot drift")
     require(spec["dominant_hand_grip_socket"] == [9.8,0.8], f"{sex}: dominant grip drift")
     require(spec["support_hand_grip_socket"] == [17.0,-1.0], f"{sex}: support grip drift")
     require(spec["support_hand_vertical_offset_right"] == 0.0, f"{sex}: support right offset drift")
@@ -152,10 +152,10 @@ for sc in rifle_scales:
 for sc in pistol_scales:
     require(0.23 <= sc <= 0.26, f"pistol scale out of V3 range: {sc}")
 
-require("Vector2(0.54,0.50)" in patch, "dominant armed-hand grip pivot drift")
-require("Vector2(0.56,0.48)" in patch, "support armed-hand grip pivot drift")
-require("(3.05 if female_mode else 3.25)" in patch, "dominant locked hand scale drift")
-require("(3.15 if female_mode else 3.35)" in patch, "support locked hand scale drift")
+require("Vector2(0.58,0.62)" in patch, "dominant armed-hand grip pivot drift")
+require("Vector2(0.55,0.54)" in patch, "support armed-hand grip pivot drift")
+require("pc22_player_arm_rig.dominant_hand_height()" in patch, "dominant locked hand is not profile-scaled")
+require("pc22_player_arm_rig.support_hand_height()" in patch, "support locked hand is not profile-scaled")
 require("Rifle rear-depth composition: the universal dominant arm remains fully" in patch,
         "rifle rear-depth full-occlusion marker missing")
 require(patch.count("_pc22_v3_draw_weapon_piece(tex_pc22_rifle_stock") == 1,
@@ -186,7 +186,7 @@ require("var pc22_pistol_sup_tex := _pc22_support_hand_texture()" in patch,
         "pistol support grip hand renderer missing")
 require("var pc22_pistol_sup_visual := pc22_front_wrist + _pose_point(Vector2(-0.46,0.42),pc22_arm_angle,dir_sign)" in patch,
         "pistol support-hand visual offset missing")
-require("(2.34 if female_mode else 2.52)" in patch and "Vector2(0.48,0.50)" in patch,
+require("pc22_player_arm_rig.support_hand_height()*0.92" in patch and "Vector2(0.52,0.54)" in patch,
         "pistol support hand scale/pivot drift")
 require("func _pc22_v3_draw_grip_hand_tinted" in patch and
         "var pc22_support_depth_tint := Color(0.69,0.65,0.62,1.0) if not gear_gloves else Color(0.70,0.70,0.70,1.0)" in patch and
@@ -195,8 +195,8 @@ require("func _pc22_v3_draw_grip_hand_tinted" in patch and
 require("Final pistol depth stack: support arm -> support palm -> pistol ->" in patch and
         "dominant firing palm" in patch,
         "pistol support-hand depth stack drift")
-require("Vector2(6.6,0.0)" in patch and "Vector2(1.7*dir_sign,0.0)" in patch,
-        "pistol forward stance extension missing")
+require("Vector2(6.8,0.0)" in patch and "1.7*dir_sign" not in patch,
+        "body-relative sidearm target calibration missing")
 
 # Universal three-joint architecture: one solver, sex-specific profile only.
 require('const UNIVERSAL_RIG_ID := "HUMANOID_CANONICAL_ARM_SYSTEM"' in patch,
@@ -210,6 +210,14 @@ require('var roles := ["trader","medic","mechanic","guard","bandit","civilian","
 require('var asset_role: String = "medic" if pc22_role == "scientist" else pc22_role' in patch and
         "same universal humanoid rig" in patch,
         "scientist appearance alias must not create a separate rig")
+
+# Body-relative mass must come from the canonical sex profile, not magic thin constants.
+require("pc22_player_arm_rig.upper_width()*0.50*depth_scale" in patch,
+        "armed upper-arm silhouette ignores calibrated profile width")
+require("pc22_player_arm_rig.forearm_width()*0.50*depth_scale" in patch,
+        "armed forearm silhouette ignores calibrated profile width")
+require("func dominant_hand_height() -> float:" in patch and "func support_hand_height() -> float:" in patch,
+        "canonical rig does not expose calibrated hand dimensions")
 
 # Armed visuals are a single smooth ribbon around shoulder -> elbow -> wrist.
 require("func _pc22_draw_anatomical_arm_shape" in patch,
