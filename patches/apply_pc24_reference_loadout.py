@@ -62,6 +62,31 @@ if s.count(old_title)!=1:
 s=s.replace(old_title,new_title,1)
 runtime.write_text(s,encoding="utf-8")
 
+# PC24 corrective pistol aiming pass. Keeping the firing palm fixed at chest
+# height in a steep DOWN aim folds gun/hand into face/neck in runtime captures.
+# Shift the palm gradually forward and down as the weapon points down.
+# Keep shoulder location, limb lengths, and existing rifle contract unchanged.
+rig_path=root/"scripts"/"art"/"pc23_humanoid_rig_system.gd"
+rig_src=rig_path.read_text(encoding="utf-8")
+pistol_anchor='''    if weapon_id == "pistol":
+        var dom_anchor := Vector2(9.000000,-11.500000)
+        dominant_grip = base+Vector2(dom_anchor.x*dir_sign,dom_anchor.y)
+'''
+if rig_src.count(pistol_anchor)!=1:
+    raise SystemExit("PC24 aiming corrective pistol contract anchor missing")
+pistol_new='''    if weapon_id == "pistol":
+        var dom_anchor := Vector2(9.000000,-11.500000)
+        dominant_grip = base+Vector2(dom_anchor.x*dir_sign,dom_anchor.y)
+        # Screen-down aim: move the *weapon palm* away from chin toward chest.
+        # The weapon remains aligned with the same aim angle as both hands.
+        var down_weight: float = maxf(0.0,sin(angle))
+        var up_weight: float = maxf(0.0,-sin(angle))
+        dominant_grip += Vector2((3.6*down_weight+0.4*up_weight)*dir_sign,3.0*down_weight-0.5*up_weight)
+'''
+rig_src=rig_src.replace(pistol_anchor,pistol_new,1)
+rig_path.write_text(rig_src,encoding="utf-8")
+
+
 ep=root/"export_presets.cfg"
 txt=ep.read_text(encoding="utf-8")
 txt,n=re.subn(r'(?m)^version/code=193$','version/code=194',txt,count=1)
@@ -89,3 +114,4 @@ for token in ("PC24_UNEQUIPPED_START","PC24_REFERENCE_OUTFIT_CAPTURE",
 print("PC24 reference survivor loadout: detailed authentic equipment on both sexes; helmet off")
 print("Optional PC24_UNEQUIPPED_START restores original unarmored launch.")
 print("Separate dressed-reference QA via PC24_REFERENCE_OUTFIT_CAPTURE=1.")
+print("PC24 pistol extreme-down shoulder-independent palm posture adjustment applied.")
