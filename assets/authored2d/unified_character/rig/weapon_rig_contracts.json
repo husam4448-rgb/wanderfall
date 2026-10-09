@@ -50,7 +50,7 @@
         0.8
       ],
       "support_grip_socket": [
-        19.2,
+        18.8,
         2.8
       ],
       "dominant_palm_rotation_offset_deg": -18,
@@ -75,7 +75,7 @@
         18
       ],
       "stock_render_scale": 0.33,
-      "notes": "PC23 measured recalibration: weapon pivot moved back/up to match approved EAST rifle art while body shoulder/bones remain fixed; dominant palm rotates -18° so the template's vertical grip channel aligns to the rifle's ~72° pistol-grip axis.",
+      "notes": "PC23 measured rifle contract. Aim rotation now pivots around the body-relative dominant firing grip; support grip rotates relative to that hand. body_mount_offset and legacy sockets remain only as visual-pivot compatibility metadata, not body anatomy.",
       "reference_measurements": {
         "male_east_rifle_px": {
           "torso_center_x": 108,
@@ -109,7 +109,28 @@
           ],
           "note": "world y uses registered runtime foot offset 35 and reference feet_y 244; contract remains shared across sexes"
         }
-      }
+      },
+      "aim_pivot_model": "dominant_grip_anchor",
+      "dominant_grip_body_anchor": [
+        7.1,
+        -14
+      ],
+      "support_grip_relative_to_dominant": [
+        9,
+        2
+      ],
+      "visual_pivot_to_dominant_grip": [
+        9.8,
+        0.8
+      ],
+      "muzzle_relative_to_dominant": [
+        23.7,
+        3.7
+      ],
+      "stock_relative_to_dominant": [
+        -13,
+        -1.3
+      ]
     }
   },
   "invariants": {
@@ -123,28 +144,28 @@
   "qa_ranges": {
     "rifle": {
       "dominant_grip_x_world": [
-        6.5,
-        7.8
+        6.7,
+        7.5
       ],
       "dominant_grip_y_world": [
-        -14.8,
-        -13.2
+        -14.5,
+        -13.5
       ],
       "support_grip_x_world": [
         15.5,
-        17.5
+        16.7
       ],
       "support_grip_y_world": [
-        -12.8,
-        -11
+        -12.6,
+        -11.4
       ],
       "grip_separation_world": [
-        8.5,
-        10.5
+        8.8,
+        9.4
       ],
       "muzzle_x_world": [
-        29,
-        32.5
+        30.2,
+        31.5
       ],
       "dominant_palm_rotation_offset_deg": [
         -22,
