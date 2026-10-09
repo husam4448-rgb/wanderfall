@@ -55,3 +55,16 @@ Create an isolated PC28 branch from PC27 verified source and test genuine knee a
 - **Independent monitoring:** `tools/sp_ci_status.py` updates GitHub Issue #35 with exact current run, immutable milestone comments, stage timestamps and stale-run protection. An active GitHub job is independent from assistant execution.
 - **Last signed APK:** PC33, source `209ce0b117ec66009c2e0b441032c01a06c81452`, workflow 37918163875, artifact 11610127605, technically valid but visually rejected.
 - **Next:** inspect PC37 actual rendered images. If still visually wrong, reject, diagnose full source-alpha collision and coordinate torso/weapon/neck poses before attempting APK. After rifle pass, pistol, grounded gait and integration remain.
+
+## PC37 tested + PC38 untested recovery — 2026-10-09
+
+- **Last fully tested source**: PC37 `09c486ef323e35e48b23f2818bd15cba4c28ecfb`, workflow https://github.com/husam4448-rgb/wanderfall/actions/runs/37928890541 (19/19 PASS).
+- **PC37 evidence**: https://github.com/husam4448-rgb/wanderfall/actions/runs/37928890541/artifacts/11615875792. Includes four gender/facing transition GIFs and real 200 Godot comparison screenshots.
+- **PC37 human visual verdict**: PARTIAL IMPROVEMENT only, NOT production accepted. Old almost-vertical downward rifle was replaced with a guarded 28° provisional visual pose and blocked firing outside the supported range. Remaining issues include stiff arms and stock-to-shoulder alignment.
+- **PC37 full QA**: https://github.com/husam4448-rgb/wanderfall/blob/pc37-pose-feasibility-gate/docs/PC37_VISUAL_QA.md
+- **PC38 experimental branch**: `pc38-stock-shoulder-contact-solver`, candidate source commit `3ab3429913b24095f6aa3f04690daf7f7ac01a66`.
+- **PC38 code**: `patches/apply_pc38_stock_ik.py` derives the stock contact from actual existing artwork grip/butt pixels and reference shoulder position while projecting shared weapon/contact targets into anatomical wrist reach. **NOT COMPILED OR VISUALLY TESTED**; no APK.
+- **Current blocker**: creation of automated PC38 QA file was blocked by a tool safety check. No PC38 workflow was started. Do not represent this change as successful or run continuously.
+- **Required next step**: review PC38 patch, complete CI/QA only if tool access permits; rebuild the actual Godot runtime, compare male/female left/right rifle contact with PC37, assess full-alpha head collision and wrist reach, and reject any visual regression. Then finish pistol grip/recoil, PC29 gait/foot-lock and equipped transitions.
+- **Latest signed APK remains PC33**: source `209ce0b117ec66009c2e0b441032c01a06c81452`, https://github.com/husam4448-rgb/wanderfall/actions/runs/37918163875/artifacts/11610127605 — technical PASS, visual FAIL.
+- **Independent dashboard**: https://github.com/husam4448-rgb/wanderfall/issues/35; as of checkpoint no independently active GitHub job was identified.
