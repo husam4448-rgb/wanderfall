@@ -1,8 +1,8 @@
-name: PC32 Source-Art-Driven Two-Bone Arm Renderer
+name: PC33 Rifle Down-Aim Head Clearance and IK Contact QA
 
 on:
   push:
-    branches: [ pc23-humanoid-rig-calibration, pc23-clean-visual-review, pc24-art-fidelity-reference-loadout, pc24-pistol-aim-posture, pc25-articulated-sleeve-fidelity, pc26-gait-cycle-evidence, pc27-balanced-alternating-gait, pc28-articulated-knees, pc28-knee-cuff-repair, pc29-knee-stance-proportions, pc30-weapon-hand-wrist-consistency, pc30-weapon-art-contact-fitting, pc31-reference-shoulder-aim-body, pc32-authored-arm-bone-renderer ]
+    branches: [ pc23-humanoid-rig-calibration, pc23-clean-visual-review, pc24-art-fidelity-reference-loadout, pc24-pistol-aim-posture, pc25-articulated-sleeve-fidelity, pc26-gait-cycle-evidence, pc27-balanced-alternating-gait, pc28-articulated-knees, pc28-knee-cuff-repair, pc29-knee-stance-proportions, pc30-weapon-hand-wrist-consistency, pc30-weapon-art-contact-fitting, pc31-reference-shoulder-aim-body, pc32-authored-arm-bone-renderer, pc33-aim-pose-head-clearance ]
     paths:
       - '.ci/trigger-pc23-rig-calibration'
       - '.github/workflows/pc23-rig-calibration.yml'
@@ -30,6 +30,8 @@ on:
       - 'tools/qa_pc31_reference_shoulders.py'
       - 'patches/apply_pc32_authored_arm_bones.py'
       - 'tools/qa_pc32_arm_art.py'
+      - 'patches/apply_pc33_rifle_low_ready.py'
+      - 'tools/qa_pc33_rifle_low_ready.py'
       - 'tools/build_pc22_canonical_arm_assets.py'
       - 'tools/build_pc22_role_overlays.py'
       - 'tools/qa_pc22_arm_visual_contract.py'
@@ -54,7 +56,7 @@ env:
   GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
   GODOT_TEMPLATES_TPZ: /tmp/Godot_v4.7.2-stable_export_templates.tpz
   GODOT_TEMPLATES_SHA256: f298490b8d44d934be425a5a65a51bf15f422428b229a06a6e11d9ffea248011
-  APK_PATH: SurvivalParadise_PC32_AuthoredArmBones.apk
+  APK_PATH: SurvivalParadise_PC33_RifleLowReady.apk
   MAX_APK_BYTES: '419430400'
 
 jobs:
@@ -102,6 +104,8 @@ jobs:
           python3 -m py_compile tools/qa_pc31_reference_shoulders.py
           python3 -m py_compile patches/apply_pc32_authored_arm_bones.py
           python3 -m py_compile tools/qa_pc32_arm_art.py
+          python3 -m py_compile patches/apply_pc33_rifle_low_ready.py
+          python3 -m py_compile tools/qa_pc33_rifle_low_ready.py
           python3 -m py_compile tools/qa_pc23_anatomy.py
           python3 tools/qa_pc23_anatomy.py "$GITHUB_WORKSPACE" | tee pc23-anatomy-qa.json
 
@@ -174,11 +178,12 @@ jobs:
           python3 patches/apply_pc30_rifle_contact_fit.py "$PROJECT_DIR"
           python3 patches/apply_pc31_reference_shoulder_aim.py "$PROJECT_DIR"
           python3 patches/apply_pc32_authored_arm_bones.py "$PROJECT_DIR"
+          python3 patches/apply_pc33_rifle_low_ready.py "$PROJECT_DIR"
 
           grep -q 'PC23 HUMANOID RIG CALIBRATION' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"
           grep -q 'pc23_humanoid_rig_system.gd' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"
-          grep -q 'version/code=204' "$PROJECT_DIR/export_presets.cfg"
-          grep -q 'version/name="0.22.0-PC32-AUTHORED-ARM-BONES"' "$PROJECT_DIR/export_presets.cfg"
+          grep -q 'version/code=205' "$PROJECT_DIR/export_presets.cfg"
+          grep -q 'version/name="0.22.0-PC33-RIFLE-LOW-READY"' "$PROJECT_DIR/export_presets.cfg"
 
       - name: Install Godot and export templates
         shell: bash
@@ -479,6 +484,29 @@ jobs:
           GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python3 tools/pc28_ci_status.py EVIDENCE_READY "PC32 authored upper/forearm source sprites rendered against old flat tubes; pending manual visual approval"
 
+      - name: Capture unchanged PC32 shouldered rifle for PC33 comparison
+        shell: bash
+        run: |
+          set -euo pipefail
+          OLD="$GITHUB_WORKSPACE/pc33-original-rifle-captures"
+          mkdir -p "$OLD"
+          PC33_LEGACY_RIFLE_POSE=1 PC24_REFERENCE_OUTFIT_CAPTURE=1 ARM_CAPTURE_DIR="$OLD" timeout 90s xvfb-run -a "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1280x720 --verbose 2>&1 | tee pc33-original-rifle-capture.log
+          test "$(find "$OLD" -maxdepth 1 -name '*.png' | wc -l)" -ge 72
+          grep -q 'PC22_RUNTIME_SWEEP_OK' pc33-original-rifle-capture.log
+          if grep -E 'SCRIPT ERROR:|Parse Error:|PC22_ARM_GEOMETRY_FAIL' pc33-original-rifle-capture.log; then exit 1; fi
+
+      - name: PC33 verify stock clearance, wrist reach, actual Godot rifle renders
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/qa_pc33_rifle_low_ready.py | tee pc33-rifle-clearance-qa.log
+
+      - name: Independently record PC33 head-clearance visual review ready
+        shell: bash
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/pc28_ci_status.py EVIDENCE_READY "PC33 stock-head collision clearance and rifle/hand A-B captures produced; visual acceptance pending"
+
       - name: Verify PC24 outfit actually changes rendered male and female artwork
         shell: bash
         run: |
@@ -581,8 +609,8 @@ jobs:
           "$APKSIGNER" verify --verbose --print-certs "$APK" | tee pc23-apk-signature.txt
           "$AAPT" dump badging "$APK" | tee pc23-apk-badging.txt
           grep -q "package: name='org.wanderfall.game'" pc23-apk-badging.txt
-          grep -q "versionCode='204'" pc23-apk-badging.txt
-          grep -q "versionName='0.22.0-PC32-AUTHORED-ARM-BONES'" pc23-apk-badging.txt
+          grep -q "versionCode='205'" pc23-apk-badging.txt
+          grep -q "versionName='0.22.0-PC33-RIFLE-LOW-READY'" pc23-apk-badging.txt
           unzip -l "$APK" | grep -q 'lib/arm64-v8a/libgodot_android.so'
           if unzip -l "$APK" | grep -q 'lib/armeabi-v7a/'; then exit 1; fi
           test "$(stat -c%s "$APK")" -lt "$MAX_APK_BYTES"
@@ -597,9 +625,9 @@ jobs:
       - name: Upload deterministic PC24 reference-loadout artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SurvivalParadise-PC32-AuthoredArmBones-${{ github.sha }}
+          name: SurvivalParadise-PC33-RifleLowReady-${{ github.sha }}
           path: |
-            SurvivalParadise_PC32_AuthoredArmBones.apk
+            SurvivalParadise_PC33_RifleLowReady.apk
             pc23-apk.sha256
             pc23-apk-badging.txt
             pc23-apk-signature.txt
@@ -630,6 +658,8 @@ jobs:
             pc31-reference-shoulder-qa.log
             pc32-procedural-capture.log
             pc32-arm-art-qa.log
+            pc33-original-rifle-capture.log
+            pc33-rifle-clearance-qa.log
             pc23-runtime-captures/
             pc23-diagnostic-captures/
             pc24-reference-outfit-captures/
@@ -654,6 +684,8 @@ jobs:
             pc31-reference-shoulder-evidence/
             pc32-procedural-arm-captures/
             pc32-arm-visual-evidence/
+            pc33-original-rifle-captures/
+            pc33-aim-pose-evidence/
             pc23-calibration-evidence/
       - name: PC28 final independent workflow status
         if: always()
