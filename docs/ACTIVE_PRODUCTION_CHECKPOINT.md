@@ -28,3 +28,17 @@ Live development issue: https://github.com/husam4448-rgb/wanderfall/issues/35
 
 ## Next step
 Create an isolated PC28 branch from PC27 verified source and test genuine knee articulation with the existing trouser artwork split into controllable thigh and shin sprites. Keep legacy PC27 rendering as a selectable A/B comparator. Inspect actual male/female gait frames before accepting.
+
+## PC35 Structural Reconstruction Checkpoint — 2026-10-09
+
+- **Latest Android APK:** PC33 code `205`, **TESTED source** `209ce0b117ec66009c2e0b441032c01a06c81452`.
+- **APK artifact:** https://github.com/husam4448-rgb/wanderfall/actions/runs/37918163875/artifacts/11610127605
+- **CI:** PC33 50 steps PASS, **VISUAL FAIL**. Male/female steep-down rifle still vertically intersects/passes beside the face.
+- **PC33 review:** https://github.com/husam4448-rgb/wanderfall/blob/pc33-aim-pose-head-clearance/docs/PC33_VISUAL_QA.md
+- **PC34 actual weapon alpha feasibility:** https://github.com/husam4448-rgb/wanderfall/actions/runs/37919262766 (PASS, no APK). Fixed-body pose search cannot find valid female angle at 36°, 42°, 48° down; male solution path has a discontinuity. Report: https://github.com/husam4448-rgb/wanderfall/blob/pc34-weapon-silhouette-feasibility/docs/PC34_SILHOUETTE_FEASIBILITY.md
+- **PC35 full runtime source recovery:** https://github.com/husam4448-rgb/wanderfall/actions/runs/37919774532, artifact https://github.com/husam4448-rgb/wanderfall/actions/runs/37919774532/artifacts/11610944886 (SUCCESS, no APK). Initial PC35 run 37919576680 failed from a duplicate PC33 patch in the inspection workflow, corrected before successful run.
+- **PC35 fully grounded actual architecture review:** https://github.com/husam4448-rgb/wanderfall/blob/pc35-full-runtime-pose-inspection/docs/PC35_REAL_RUNTIME_ARCHITECTURE.md
+- **Current documentation source branch:** `pc35-full-runtime-pose-inspection`. This branch does NOT include a newer tested playable build; source recovery/analysis only. Verify HEAD, because documents may follow tested workflow commit.
+- **Next mandatory phase:** PC36 coherent 2D aiming pose state/torso-pelvis/clavicle/neck/weapon/hand integration, with full painted collision and continuous trajectories; actual Godot 24+ phase GIFs/closeups before APK. Then pistol, grounded locomotion and full Android on-device verification.
+- **Last quality verdict:** Technical previous APK PASS; *gameplay visual acceptance remains FAIL*. Do not declare characters finished.
+- **Monitoring:** GitHub Issue #35 + workflow link; no assistant work continues outside an active chat without an independent job.
