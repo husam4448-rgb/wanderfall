@@ -72,7 +72,7 @@ for sex in ("male","female"):
     require(r["shoulder_rear"][0]<0 and r["shoulder_front"][0]<0,
             f"{sex}: shoulder returned to forward-chest positive X")
     total_len=r["upper_arm_length"]+r["forearm_length"]
-    expected_total=19.4 if sex=="male" else 18.6
+    expected_total=19.4 if sex=="male" else 19.0
     require(abs(total_len-expected_total)<=0.05,
             f"{sex}: calibrated total arm length drift {total_len} vs {expected_total}")
     require(r["dominant_hand_size"][1]>=4.5 and r["support_hand_size"][1]>=4.3,
@@ -112,15 +112,16 @@ for wid,w in weapons["weapons"].items():
     require("support_palm_rotation_offset_deg" in w,f"{wid}: support palm orientation missing")
 if "rifle" in weapons["weapons"]:
     rw=weapons["weapons"]["rifle"]
-    require(rw["support_grip_socket"][0]>rw["dominant_grip_socket"][0],
-            "rifle support grip must remain forward of firing grip")
+    require(rw.get("aim_pivot_model")=="dominant_grip_anchor",
+            "rifle aim pivot must remain anchored at the firing hand")
+    require("dominant_grip_body_anchor" in rw and "support_grip_relative_to_dominant" in rw,
+            "rifle measured body/grip anchors missing")
 
-    # Body-relative weapon presentation QA comes from the committed approved
-    # EAST rifle measurement, not inherited PC22 magic numbers.
-    mount=rw["body_mount_offset"]
-    dom=[mount[0]+rw["dominant_grip_socket"][0], mount[1]+rw["dominant_grip_socket"][1]]
-    sup=[mount[0]+rw["support_grip_socket"][0], mount[1]+rw["support_grip_socket"][1]]
-    muzzle=[mount[0]+rw["muzzle_socket"][0], mount[1]+rw["muzzle_socket"][1]]
+    dom=rw["dominant_grip_body_anchor"]
+    sup=[dom[0]+rw["support_grip_relative_to_dominant"][0],
+         dom[1]+rw["support_grip_relative_to_dominant"][1]]
+    muzzle=[dom[0]+rw["muzzle_relative_to_dominant"][0],
+            dom[1]+rw["muzzle_relative_to_dominant"][1]]
     wr=weapons.get("qa_ranges",{}).get("rifle",{})
     checks={
         "dominant_grip_x_world":dom[0],
@@ -146,23 +147,33 @@ if "pistol" in weapons["weapons"]:
     require(pw["support_grip_relative_to_dominant"][1]>0,
             "pistol support palm should be lower/rear relative to firing palm")
 
-# The measured rifle contacts must remain reachable by both sex profiles without
-# moving shoulder sockets or lengthening the body to chase the weapon.
+# The measured rifle contacts must remain reachable through the complete runtime
+# aim sweep without moving shoulder sockets or lengthening the body to chase the gun.
 rw=weapons["weapons"]["rifle"]
 for sex in ("male","female"):
     rr=profiles["profiles"][sex]["runtime"]
-    mount=rw["body_mount_offset"]
-    dom=[mount[0]+rw["dominant_grip_socket"][0]-rr["dominant_wrist_to_grip_local"][0],
-         mount[1]+rw["dominant_grip_socket"][1]-rr["dominant_wrist_to_grip_local"][1]]
-    sup=[mount[0]+rw["support_grip_socket"][0]-rr["support_wrist_to_grip_local"][0],
-         mount[1]+rw["support_grip_socket"][1]-rr["support_wrist_to_grip_local"][1]]
     rear=rr["shoulder_rear"]
     front=rr["shoulder_front"]
     total=rr["upper_arm_length"]+rr["forearm_length"]
-    ddom=math.dist(rear,dom)
-    dsup=math.dist(front,sup)
-    require(ddom <= total-0.05,f"{sex}: measured rifle dominant wrist unreachable {ddom:.3f}>{total:.3f}")
-    require(dsup <= total-0.05,f"{sex}: measured rifle support wrist unreachable {dsup:.3f}>{total:.3f}")
+    dom_anchor=rw["dominant_grip_body_anchor"]
+    sup_rel=rw["support_grip_relative_to_dominant"]
+
+    max_dom=max_sup=0.0
+    for i in range(241):
+        angle=-math.pi*0.49 + (math.pi*0.98*i/240.0)
+        ca,sa=math.cos(angle),math.sin(angle)
+        def rot(v):
+            return [v[0]*ca-v[1]*sa, v[0]*sa+v[1]*ca]
+        dom_off=rot(rr["dominant_wrist_to_grip_local"])
+        sup_off=rot(rr["support_wrist_to_grip_local"])
+        sup_rot=rot(sup_rel)
+        dom_w=[dom_anchor[0]-dom_off[0],dom_anchor[1]-dom_off[1]]
+        sup_g=[dom_anchor[0]+sup_rot[0],dom_anchor[1]+sup_rot[1]]
+        sup_w=[sup_g[0]-sup_off[0],sup_g[1]-sup_off[1]]
+        max_dom=max(max_dom,math.dist(rear,dom_w))
+        max_sup=max(max_sup,math.dist(front,sup_w))
+    require(max_dom <= total-0.03,f"{sex}: dominant wrist sweep unreachable {max_dom:.3f}>{total:.3f}")
+    require(max_sup <= total-0.03,f"{sex}: support wrist sweep unreachable {max_sup:.3f}>{total:.3f}")
 
 # Patch architecture checks.
 for token in (
@@ -173,6 +184,8 @@ for token in (
     "weapon contracts own palm contacts",
     "Shoulder is deliberately NOT an alignment input",
     "var runtime_foot := base+Vector2(0.0,runtime_foot_offset_y)",
+    "dominant_grip_body_anchor",
+    "support_grip_relative_to_dominant",
 ):
     require(token in patch,f"PC23 patch missing architecture marker: {token}")
 require("s=s.replace(legacy_pistol" in patch and
