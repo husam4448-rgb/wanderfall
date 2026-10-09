@@ -1,8 +1,8 @@
-name: PC42C Weapon-Grip Two-Bone IK Visual QA
+name: PC42D Approved Far-Arm Source-Art and Both IK Contact Visual QA
 on:
   push:
     branches: [pc42d-approved-far-arm-source-ik]
-    paths: ['.github/workflows/pc42d-two-arm-visual.yml', 'pc42-static-prototype/**', 'tools/qa_pc42c_grip_ik.py']
+    paths: ['.github/workflows/pc42d-two-arm-visual.yml', 'pc42-static-prototype/**', 'tools/qa_pc42c_grip_ik.py', 'tools/qa_pc42d_far_arm.py', 'tools/pc42d_far_arm_atlas.py']
   workflow_dispatch:
 permissions:
   contents: read
