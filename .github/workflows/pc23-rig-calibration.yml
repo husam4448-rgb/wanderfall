@@ -1,8 +1,8 @@
-name: PC28 Articulated Knees + Independent CI Status
+name: PC28 Knee Cuff Repair / Live Status
 
 on:
   push:
-    branches: [ pc23-humanoid-rig-calibration, pc23-clean-visual-review, pc24-art-fidelity-reference-loadout, pc24-pistol-aim-posture, pc25-articulated-sleeve-fidelity, pc26-gait-cycle-evidence, pc27-balanced-alternating-gait, pc28-articulated-knees ]
+    branches: [ pc23-humanoid-rig-calibration, pc23-clean-visual-review, pc24-art-fidelity-reference-loadout, pc24-pistol-aim-posture, pc25-articulated-sleeve-fidelity, pc26-gait-cycle-evidence, pc27-balanced-alternating-gait, pc28-articulated-knees, pc28-knee-cuff-repair ]
     paths:
       - '.ci/trigger-pc23-rig-calibration'
       - '.github/workflows/pc23-rig-calibration.yml'
@@ -18,6 +18,8 @@ on:
       - 'patches/apply_pc28_articulated_knees.py'
       - 'tools/qa_pc28_knees.py'
       - 'tools/pc28_ci_status.py'
+      - 'patches/apply_pc28_cuff_repair.py'
+      - 'tools/qa_pc28_cuff.py'
       - 'tools/build_pc22_canonical_arm_assets.py'
       - 'tools/build_pc22_role_overlays.py'
       - 'tools/qa_pc22_arm_visual_contract.py'
@@ -42,7 +44,7 @@ env:
   GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
   GODOT_TEMPLATES_TPZ: /tmp/Godot_v4.7.2-stable_export_templates.tpz
   GODOT_TEMPLATES_SHA256: f298490b8d44d934be425a5a65a51bf15f422428b229a06a6e11d9ffea248011
-  APK_PATH: SurvivalParadise_PC28_ArticulatedKnees.apk
+  APK_PATH: SurvivalParadise_PC28_KneeCuffRepair.apk
   MAX_APK_BYTES: '419430400'
 
 jobs:
@@ -78,6 +80,8 @@ jobs:
           python3 -m py_compile patches/apply_pc28_articulated_knees.py
           python3 -m py_compile tools/qa_pc28_knees.py
           python3 -m py_compile tools/pc28_ci_status.py
+          python3 -m py_compile patches/apply_pc28_cuff_repair.py
+          python3 -m py_compile tools/qa_pc28_cuff.py
           python3 -m py_compile tools/qa_pc23_anatomy.py
           python3 tools/qa_pc23_anatomy.py "$GITHUB_WORKSPACE" | tee pc23-anatomy-qa.json
 
@@ -144,11 +148,12 @@ jobs:
           python3 patches/apply_pc26_gait_capture.py "$PROJECT_DIR"
           python3 patches/apply_pc27_balanced_gait.py "$PROJECT_DIR"
           python3 patches/apply_pc28_articulated_knees.py "$PROJECT_DIR"
+          python3 patches/apply_pc28_cuff_repair.py "$PROJECT_DIR"
 
           grep -q 'PC23 HUMANOID RIG CALIBRATION' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"
           grep -q 'pc23_humanoid_rig_system.gd' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"
-          grep -q 'version/code=198' "$PROJECT_DIR/export_presets.cfg"
-          grep -q 'version/name="0.22.0-PC28-ARTICULATED-KNEES"' "$PROJECT_DIR/export_presets.cfg"
+          grep -q 'version/code=199' "$PROJECT_DIR/export_presets.cfg"
+          grep -q 'version/name="0.22.0-PC28-KNEE-CUFF-REPAIR"' "$PROJECT_DIR/export_presets.cfg"
 
       - name: Install Godot and export templates
         shell: bash
@@ -321,6 +326,24 @@ jobs:
           GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python3 tools/pc28_ci_status.py EVIDENCE_READY "Godot knee visual comparison captured; APK not yet verified"
 
+      - name: Capture original PC28 disconnected cuff comparator
+        shell: bash
+        run: |
+          set -euo pipefail
+          OLD="$GITHUB_WORKSPACE/pc28-cuff-legacy"
+          mkdir -p "$OLD"
+          PC28_CUFF_LEGACY=1 PC26_GAIT_CAPTURE=1 ARM_CAPTURE_DIR="$OLD" timeout 90s xvfb-run -a "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1280x720 --verbose 2>&1 | tee pc28-cuff-legacy.log
+          test "$(find "$OLD" -maxdepth 1 -name '*.png' | wc -l)" -eq 32
+          grep -q 'PC22_ARM_CAPTURE_COMPLETE:32' pc28-cuff-legacy.log
+          grep -q 'PC22_RUNTIME_SWEEP_OK' pc28-cuff-legacy.log
+          if grep -E 'SCRIPT ERROR:|Parse Error:|PC22_ARM_GEOMETRY_FAIL' pc28-cuff-legacy.log; then exit 1; fi
+
+      - name: Verify PC28 repaired cuff differs from initial candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/qa_pc28_cuff.py | tee pc28-cuff-qa.log
+
       - name: Verify PC24 outfit actually changes rendered male and female artwork
         shell: bash
         run: |
@@ -423,8 +446,8 @@ jobs:
           "$APKSIGNER" verify --verbose --print-certs "$APK" | tee pc23-apk-signature.txt
           "$AAPT" dump badging "$APK" | tee pc23-apk-badging.txt
           grep -q "package: name='org.wanderfall.game'" pc23-apk-badging.txt
-          grep -q "versionCode='198'" pc23-apk-badging.txt
-          grep -q "versionName='0.22.0-PC28-ARTICULATED-KNEES'" pc23-apk-badging.txt
+          grep -q "versionCode='199'" pc23-apk-badging.txt
+          grep -q "versionName='0.22.0-PC28-KNEE-CUFF-REPAIR'" pc23-apk-badging.txt
           unzip -l "$APK" | grep -q 'lib/arm64-v8a/libgodot_android.so'
           if unzip -l "$APK" | grep -q 'lib/armeabi-v7a/'; then exit 1; fi
           test "$(stat -c%s "$APK")" -lt "$MAX_APK_BYTES"
@@ -439,9 +462,9 @@ jobs:
       - name: Upload deterministic PC24 reference-loadout artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SurvivalParadise-PC28-ArticulatedKnees-${{ github.sha }}
+          name: SurvivalParadise-PC28-KneeCuffRepair-${{ github.sha }}
           path: |
-            SurvivalParadise_PC28_ArticulatedKnees.apk
+            SurvivalParadise_PC28_KneeCuffRepair.apk
             pc23-apk.sha256
             pc23-apk-badging.txt
             pc23-apk-signature.txt
@@ -460,6 +483,8 @@ jobs:
             pc28-legacy-capture.log
             pc28-knee-diagnostic.log
             pc28-knee-qa.log
+            pc28-cuff-legacy.log
+            pc28-cuff-qa.log
             pc23-runtime-captures/
             pc23-diagnostic-captures/
             pc24-reference-outfit-captures/
@@ -472,6 +497,8 @@ jobs:
             pc28-legacy-gait-captures/
             pc28-knee-diagnostics/
             pc28-knee-evidence/
+            pc28-cuff-legacy/
+            pc28-cuff-evidence/
             pc23-calibration-evidence/
       - name: PC28 final independent workflow status
         if: always()
