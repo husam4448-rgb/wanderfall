@@ -12,6 +12,7 @@ repo=Path(sys.argv[1] if len(sys.argv)>1 else ".").resolve()
 profile_path=repo/"assets/authored2d/unified_character/rig/humanoid_rig_profiles.json"
 weapon_path=repo/"assets/authored2d/unified_character/rig/weapon_rig_contracts.json"
 patch_path=repo/"patches/apply_pc23_humanoid_rig_calibration.py"
+builder_path=repo/"tools/build_pc22_canonical_arm_assets.py"
 fail=[]
 
 def require(ok,msg):
@@ -21,6 +22,7 @@ def require(ok,msg):
 profiles=json.loads(profile_path.read_text(encoding="utf-8"))
 weapons=json.loads(weapon_path.read_text(encoding="utf-8"))
 patch=patch_path.read_text(encoding="utf-8")
+builder=builder_path.read_text(encoding="utf-8")
 
 require(profiles.get("schema_version")=="PC23-rig-profile-v1","profile schema drift")
 require(weapons.get("schema_version")=="PC23-weapon-contract-v1","weapon schema drift")
@@ -108,6 +110,31 @@ if "rifle" in weapons["weapons"]:
     rw=weapons["weapons"]["rifle"]
     require(rw["support_grip_socket"][0]>rw["dominant_grip_socket"][0],
             "rifle support grip must remain forward of firing grip")
+
+    # Body-relative weapon presentation QA comes from the committed approved
+    # EAST rifle measurement, not inherited PC22 magic numbers.
+    mount=rw["body_mount_offset"]
+    dom=[mount[0]+rw["dominant_grip_socket"][0], mount[1]+rw["dominant_grip_socket"][1]]
+    sup=[mount[0]+rw["support_grip_socket"][0], mount[1]+rw["support_grip_socket"][1]]
+    muzzle=[mount[0]+rw["muzzle_socket"][0], mount[1]+rw["muzzle_socket"][1]]
+    wr=weapons.get("qa_ranges",{}).get("rifle",{})
+    checks={
+        "dominant_grip_x_world":dom[0],
+        "dominant_grip_y_world":dom[1],
+        "support_grip_x_world":sup[0],
+        "support_grip_y_world":sup[1],
+        "muzzle_x_world":muzzle[0],
+        "dominant_palm_rotation_offset_deg":rw["dominant_palm_rotation_offset_deg"],
+        "support_palm_rotation_offset_deg":rw["support_palm_rotation_offset_deg"],
+    }
+    for k,val in checks.items():
+        lo,hi=wr[k]
+        require(lo<=val<=hi,f"rifle: measured contract {k}={val:.4f} outside [{lo},{hi}]")
+    grip_sep=math.dist(dom,sup)
+    lo,hi=wr["grip_separation_world"]
+    require(lo<=grip_sep<=hi,f"rifle: grip separation {grip_sep:.4f} outside [{lo},{hi}]")
+    require(abs(rw["dominant_grip_axis_deg"]+rw["dominant_palm_rotation_offset_deg"]-54.0)<=1e-6,
+            "rifle dominant palm/grip-axis calibration drift")
 if "pistol" in weapons["weapons"]:
     pw=weapons["weapons"]["pistol"]
     require(pw["support_grip_relative_to_dominant"][1]>0,
@@ -129,6 +156,9 @@ require("s=s.replace(legacy_pistol" in patch and
         "PC23 patch does not actively remove/guard legacy pistol reach compensation")
 require("var ref_shoulder :=" not in patch and "shoulder_rear-ref_shoulder" not in patch,
         "calibration overlay must not align itself to the shoulder under test")
+require("grip=trim(grip)" in builder and
+        "ImageOps.expand(grip,border=8,fill=(0,0,0,0))" in builder,
+        "hand template visible-palm occupancy calibration missing")
 
 if fail:
     print(json.dumps({"pass":False,"failure_count":len(fail),"failures":fail},indent=2))
