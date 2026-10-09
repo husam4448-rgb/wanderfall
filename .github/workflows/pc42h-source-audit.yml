@@ -1,0 +1,31 @@
+name: PC42H Approved Arm Donor Audit
+on:
+  push:
+    branches: [pc42h-segmented-source-arm]
+    paths: ['.github/workflows/pc42h-source-audit.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  recover-approved-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify approved in-repository character materials
+        run: |
+          set -euo pipefail
+          d=assets/authored2d/unified_character/arms/hybrid_v3/male
+          for part in UpperArm_Gear Forearm_Gear Elbow_Gear ShoulderCap Glove_Support Hand_Support; do
+            test -s "$d/SP_PC22_Male_${part}_V3.png"
+            file "$d/SP_PC22_Male_${part}_V3.png"
+          done
+          sha256sum "$d"/*.png > /tmp/PC42H-donor-sha256.txt
+      - name: Preserve original source pixels for anatomical authoring
+        uses: actions/upload-artifact@v4
+        with:
+          name: SurvivalParadise-PC42H-Approved-Arm-Donors
+          path: |
+            assets/authored2d/unified_character/arms/hybrid_v3/male/*.png
+            assets/authored2d/unified_character/rig/reference/male_east_rifle.png
+          retention-days: 14
