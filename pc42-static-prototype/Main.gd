@@ -172,30 +172,53 @@ func _pc42h_build_far_arm() -> void:
     # The donor sleeve, elbow, cuff and glove are independently authored
     # to exact rest joint frames, not one resized rectangle.
     var support_socket: Bone2D = pc42_bones["support_hand"]
-    for spec in [
+    # PC42J opt-in for ORIGINAL painted source art only. The previously
+    # verified PC42H fallback stays pixel-equivalent when flag is absent.
+    # No generated placeholder meshes, no source-cutout warped cuffs.
+    var enable_painted_art: bool = OS.get_environment("PC42J_USE_PAINTED_ART") == "1"
+    var art_specs: Array[Dictionary] = [
         {"name":"pc42h_far_shoulder","parent":upper,"pivot":PC42CGripIK.FAR_SHOULDER},
         {"name":"pc42h_far_upper","parent":upper,"pivot":PC42CGripIK.FAR_SHOULDER},
         {"name":"pc42h_far_elbow","parent":fore,"pivot":PC42CGripIK.FAR_REST_ELBOW},
         {"name":"pc42h_far_forearm","parent":fore,"pivot":PC42CGripIK.FAR_REST_ELBOW},
         {"name":"pc42h_far_cuff","parent":fore,"pivot":PC42CGripIK.FAR_REST_ELBOW},
         {"name":"pc42h_far_glove_backing","parent":support_socket,"pivot":PC42CGripIK.REST_SUPPORT_WRIST}
-    ]:
+    ]
+    if enable_painted_art:
+        # These images are copied in from original painter-authored source
+        # ONLY AFTER independent native-pixel inspection has passed.
+        # Seven separate RGBA atlas parts use the same anatomical rest pivots.
+        art_specs = [
+            {"name":"pc42j_painted_upper_sleeve","parent":upper,"pivot":PC42CGripIK.FAR_SHOULDER},
+            {"name":"pc42j_painted_elbow_backcloth","parent":upper,"pivot":PC42CGripIK.FAR_SHOULDER},
+            {"name":"pc42j_painted_exposed_forearm","parent":fore,"pivot":PC42CGripIK.FAR_REST_ELBOW},
+            {"name":"pc42j_painted_elbow_transition","parent":fore,"pivot":PC42CGripIK.FAR_REST_ELBOW},
+            {"name":"pc42j_painted_inner_rolled_sleeve","parent":upper,"pivot":PC42CGripIK.FAR_SHOULDER},
+            {"name":"pc42j_painted_outer_cuff_stitch","parent":upper,"pivot":PC42CGripIK.FAR_SHOULDER},
+            {"name":"pc42j_painted_wrist_glove_overlap","parent":support_socket,"pivot":PC42CGripIK.REST_SUPPORT_WRIST}
+        ]
+    for spec in art_specs:
         var texture: Texture2D = _load_image("assets/" + str(spec["name"]) + ".png")
         if texture == null:
-            push_error("PC42H approved far arm texture missing: " + str(spec["name"]))
-            get_tree().quit(15)
+            push_error("PC42J artwork unavailable — no runtime acceptance: " + str(spec["name"]))
+            get_tree().quit(18)
             return
         var sprite: Sprite2D = Sprite2D.new()
-        sprite.name = "ApprovedArt_" + str(spec["name"])
+        sprite.name = "OriginalPaintedArt_" + str(spec["name"])
         sprite.texture = texture
         sprite.centered = false
         sprite.position = -Vector2(spec["pivot"])
         var parent: Bone2D = spec["parent"]
         parent.add_child(sprite)
-        if str(spec["name"]) == "pc42h_far_glove_backing":
-            # Authored, but don't paint a second glove over approved source hand.
-            # The original rifle-socket hand already tracks the weapon exactly.
+        if str(spec["name"]) == "pc42j_painted_elbow_backcloth":
+            # Behind the articulated forearm, not a fake overlaid elbow disk.
+            upper.move_child(sprite,0)
+        if str(spec["name"]) == "pc42h_far_glove_backing" or str(spec["name"]) == "pc42j_painted_wrist_glove_overlap":
+            # The accepted visible support-hand art already follows the rifle.
+            # Backing stays available as an art layer but must not double-draw.
             sprite.visible = false
+    if enable_painted_art:
+        print("PC42J_PAINTED_ART_BINDINGS_READY seven independently painted RGBA source-part sprites")
     print("PC42H_SEGMENTED_FAR_ARM_READY 2 independently solved Bone2D plus source-clothing shoulder/elbow/forearm/cuff and weapon socket glove")
     print("PC42F_FAR_ARM_DEPTH_RESOLVED visible=" + str(upper.visible) + " z_index=" + str(upper.z_index))
 
