@@ -169,8 +169,9 @@ require("pc22_player_arm_rig.dominant_hand_height()" in patch,
         "dominant locked hand is not profile-scaled")
 require("pc22_player_arm_rig.support_hand_height()" in patch,
         "support locked hand is not profile-scaled")
-require("Rifle rear-depth composition: keep the solved dominant upper arm hidden" in patch,
-        "rifle rear-depth wrist-continuity marker missing")
+require("func _pc22_draw_rear_rifle_wrist_bridge" in patch and
+        "_pc22_draw_rear_rifle_wrist_bridge(pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)" in patch,
+        "rifle rear-depth wrist continuity is not derived from the solved elbow-to-wrist chain")
 require(patch.count("_pc22_v3_draw_weapon_piece(tex_pc22_rifle_stock") == 1,
         "rifle stock must be rendered exactly once")
 require("_pc22_v3_draw_weapon_piece(tex_pc22_rifle_stock,pc22_dom_grip" in patch and
