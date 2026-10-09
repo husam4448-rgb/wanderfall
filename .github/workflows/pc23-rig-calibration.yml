@@ -2,7 +2,7 @@ name: PC24 Character Art Fidelity / Rig Calibration
 
 on:
   push:
-    branches: [ pc23-humanoid-rig-calibration, pc23-clean-visual-review, pc24-art-fidelity-reference-loadout ]
+    branches: [ pc23-humanoid-rig-calibration, pc23-clean-visual-review, pc24-art-fidelity-reference-loadout, pc24-pistol-aim-posture ]
     paths:
       - '.ci/trigger-pc23-rig-calibration'
       - '.github/workflows/pc23-rig-calibration.yml'
@@ -213,7 +213,7 @@ jobs:
               if delta<=3.0:
                   raise SystemExit(f'PC24_VISUAL_FAIL {sex}: outfit did not materially alter rendered body')
               print(f'PC24_VISUAL_OUTFIT_OK {sex} change={delta:.3f}')
-          Path('pc24-visual-material-qa.json').write_text(json.dumps(results,indent=2)+'\\n')
+          Path('pc24-visual-material-qa.json').write_text(json.dumps(results,indent=2))
           PY
 
       - name: Build reference-vs-runtime comparison evidence
