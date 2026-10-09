@@ -19,7 +19,7 @@ alpha=np.asarray(Image.open(out/"approved_foreground_matte.png").convert("RGBA")
 source_base=root/"assets/authored2d/unified_character/arms/hybrid_v3/male"
 assets=[
 ("pc42d_far_upper",source_base/"SP_PC22_Male_UpperArm_Gear_V3.png",(8.0,20.5),(119.0,20.5),(101.,74.),(126.,96.)),
-("pc42d_far_forearm",source_base/"SP_PC22_Male_Forearm_Gear_V3.png",(8.,16.),(119.,16.),(138.,112.),(170.,81.)),
+("pc42d_far_forearm",source_base/"SP_PC22_Male_Forearm_Gear_V3.png",(8.,16.),(119.,16.),(126.,96.),(170.,81.)),
 ("pc42d_far_elbow",source_base/"SP_PC22_Male_Elbow_Gear_V3.png",(15.,13.),(16.,13.),(138.,112.),(139.,112.))
 ]
 for name,src_path,p0,p1,target0,target1 in assets:
