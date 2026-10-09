@@ -2,13 +2,13 @@
 
 Review: 2026-10-09 (UTC)
 Branch: `pc42h-segmented-source-arm`
-**LAST TECHNICALLY TESTED SOURCE**: `d8c567d2ba2298c3814799ab2c17f5379ba0cc19`
-**Last successful technical workflow**: https://github.com/husam4448-rgb/wanderfall/actions/runs/37964537514
-**Actual Godot QA artifact**: https://github.com/husam4448-rgb/wanderfall/actions/runs/37964537514/artifacts/11631924889
+**LAST TECHNICALLY TESTED SOURCE**: `1cfaab1c8198dbfc8a14f73f2a92dad953a8ba78`
+**Last successful technical workflow**: https://github.com/husam4448-rgb/wanderfall/actions/runs/37964976264
+**Actual Godot QA artifact**: https://github.com/husam4448-rgb/wanderfall/actions/runs/37964976264/artifacts/11633050981
 
 ## Exact result
 
-**Technical: PASS**, completed GitHub Actions job with no failed steps.
+**Technical: PASS**, completed GitHub Actions job with 18 successful steps and no failed steps. The final run also corrected the QA JSON phase label, using the actual generated source-atlas metadata.
 **Visual: PARTIAL IMPROVEMENT — NOT APPROVED FOR FULL ANIMATION OR APK.**
 
 PC42H v3 runs the real Godot 4.7.2 `Skeleton2D/Bone2D/Sprite2D` prototype with the weapon-owned contact frame. Male RIGHT, rifle only. Thirty-two continuous real-Godot frames, five actual five-angle screenshots at −10°, −5°, 0°, +5° and +10°, upper-body/elbow/hand closeups, 32-frame GIF and independent hidden-vs-visible render have been captured.
@@ -26,7 +26,7 @@ On close inspection at moving ±10° poses, the elbow/cuff overlap has a soft bu
 
 ### Precise next task — PC42I
 
-1. Start isolated PC42I branch from **last tested PC42H v3 source** `d8c567d2ba2298c3814799ab2c17f5379ba0cc19`, or from later documentation HEAD only after explicitly verifying no newer tested code. Preserve all existing recovery refs and latest PC33 signed APK.
+1. Start isolated PC42I branch from **last tested PC42H v3 source** `1cfaab1c8198dbfc8a14f73f2a92dad953a8ba78`, or from later documentation HEAD only after explicitly verifying no newer tested code. Preserve all existing recovery refs and latest PC33 signed APK.
 2. Author a detailed original-outfit-compatible, *separate rolled sleeve/elbow opening and cuff interface*, including real occlusion backing. Do not return to PC42G triangles, alpha-only polygon masks, arbitrary aim offsets or unrelated replacement apparel.
 3. Keep real Bone2D dual arm IK and rifle stock/handguard/trigger contact points unchanged. Test only male RIGHT rifle −10/−5/0/+5/+10; compare original PC42 static, PC42H v2/v3 and revised actual Godot screenshots.
 4. Render 32 full frames, static five-angle stills, elbow/upper material closeups and clear diagnostic overlay. Manually examine every pose/transition and reject source-color discontinuities or hard joints. Mark small-motion visual gate PASS only with evidence.
