@@ -28,3 +28,20 @@ Live development issue: https://github.com/husam4448-rgb/wanderfall/issues/35
 
 ## Next step
 Create an isolated PC28 branch from PC27 verified source and test genuine knee articulation with the existing trouser artwork split into controllable thigh and shin sprites. Keep legacy PC27 rendering as a selectable A/B comparator. Inspect actual male/female gait frames before accepting.
+
+## PC30–PC31 upper-body recovery checkpoint — 2026-10-09
+
+**Official visual/technical QA:** https://github.com/husam4448-rgb/wanderfall/blob/pc31-reference-shoulder-aim-body/docs/PC31_UPPER_BODY_VISUAL_QA.md
+
+- Tested source: `84771da55f9c7ad5f244fa0103f0453cfe5d11b8` (PC31)
+- Branch: `pc31-reference-shoulder-aim-body`
+- Verified build: https://github.com/husam4448-rgb/wanderfall/actions/runs/37912651291
+- Signed Android APK artifact: https://github.com/husam4448-rgb/wanderfall/actions/runs/37912651291/artifacts/11606304749
+- APK: `SurvivalParadise_PC31_ReferenceShoulders.apk`, version 203
+- Automated CI: **44/44 PASS** (source, runtime, aim sweep, 10 visual A/B captures, Android export/signature)
+- Visual QA: **PARTIAL, NOT APPROVED.** Rifle artwork socket fit and reference-based shoulder flex improved; thick/tubular sleeve style, shoulder stock interaction, handgun and gait still fail accepted reference quality.
+- Rifle support neutral elbow bend increased measured: male 46.11° -> 68.71°; female 42.70° -> 76.68°; original grip contacts and arm bone lengths unchanged.
+- PC30 source/palm wrist mismatch fixed, rifle bitmap fitted from exact approved grip/source landmarks. Geometric muzzle error 0.377 world units.
+- Unarmed and pistol shoulder anchors remain unchanged from PC29; previous stable PC29 recovery APK and branch protected.
+- **NEXT:** PC32 remodel upper-arm and forearm sprite compositing along existing IK bones to use full approved texture, with clean+diagnostic A/B visual gate before new APK. Then dedicated pistol grip/face clearance and temporal weapon-action GIFs. Lower body PC29 visually failed and remains pending independent PC33 foot-lock/gait work.
+- No autonomous chat agent or new workflow is running merely because this checkpoint exists; GitHub Issue #35 tracks the last real job state.
