@@ -49,12 +49,23 @@ def choose(runs):
     return active[0] if active else (valid[0] if valid else None)
 
 def latest_comment_lease(now):
+    # GitHub issue comments are oldest-first. Inspect the LAST page,
+    # including when the Link header is missing, lowercase or incomplete.
     items,headers=call("GET","/issues/35/comments?per_page=100&page=1")
-    last=re.search(r'[?&]page=([0-9]+)>;\s*rel="last"',headers.get("Link",""))
-    if last and int(last.group(1))>1:
-        items,_=call("GET","/issues/35/comments?per_page=100&page="+last.group(1))
+    link=headers.get("Link",headers.get("link",""))
+    pages=[int(x) for x in re.findall(r'[?&]page=([0-9]+)',link)]
+    if pages:
+        page=max(pages)
+        if page>1:items,_=call("GET","/issues/35/comments?per_page=100&page="+str(page))
+    elif len(items)>=100:
+        for page in range(2,51):
+            extra,_=call("GET","/issues/35/comments?per_page=100&page="+str(page))
+            if not extra: break
+            items=extra
+            if len(extra)<100: break
     for entry in reversed(items):
-        m=re.search(r"<!-- SP_ASSISTANT_LEASE expires=([0-9TZ:\-]+) -->",entry.get("body") or "")
+        # Fractional seconds are emitted by ISO 8601 (e.g. 19:21:16.920Z).
+        m=re.search(r"<!-- SP_ASSISTANT_LEASE expires=([0-9TZ:.+\\-]+) -->",entry.get("body") or "")
         if not m: continue
         expiry=dt.datetime.fromisoformat(m.group(1).replace("Z","+00:00"))
         return ("RECENT SELF-REPORT; expires "+m.group(1)+" (not independently verified)" if expiry>now
@@ -88,13 +99,15 @@ def dashboard(original, run, stage, owner, lease, when):
     fail=last_manual(original,"LAST FAILED TEST","See visual QA document")
     source=last_manual(original,"EXACT LAST TECHNICALLY TESTED SOURCE","PC42H 1cfaab1c8198dbfc8a14f73f2a92dad953a8ba78")
     next_step=last_manual(original,"NEXT REQUIRED ACTION","PC42J true painted elbow/cuff, test in Godot")
+    manual_status=last_manual(original,"STATUS","").upper()
     if run:
         rid=run["id"]
         url=run.get("html_url") or "https://github.com/"+REPO+"/actions/runs/"+str(rid)
         branch=run.get("head_branch") or "UNKNOWN"
         sha=run.get("head_sha") or "UNKNOWN"
         status=("WAITING FOR GITHUB" if owner=="GITHUB ACTIONS" else
-                ("FAILED" if run.get("conclusion")=="failure" else "HALTED — no active CI"))
+                ("FAILED" if run.get("conclusion")=="failure" else
+                 ("BLOCKED — awaiting genuine character art" if "BLOCKED" in manual_status else "HALTED — no active CI")))
     else:
         rid=0;url="NONE";branch="NONE";sha="NONE";status="HALTED — no development workflow"
     stamp=when.strftime("%Y-%m-%d %H:%M:%S UTC")
@@ -151,6 +164,14 @@ def event(stage,detail):
     print("SP_MONITOR_EVENT_RECORDED "+stage+" "+now,flush=True)
     reconcile()
 
+def _test_lease_fractional():
+    sample="<!-- SP_ASSISTANT_LEASE expires=2026-10-09T19:21:16.920Z -->"
+    m=re.search(r"<!-- SP_ASSISTANT_LEASE expires=([0-9TZ:.+\\-]+) -->",sample)
+    if m:
+        dt.datetime.fromisoformat(m.group(1).replace("Z","+00:00"))
+        return "RECENT"
+    return "INVALID"
+
 def selftest():
     tests=[
         {"id":5,"name":"PC42J test","head_branch":"pc42j-art","status":"completed"},
@@ -161,6 +182,9 @@ def selftest():
     new=re.compile(re.escape(OPEN)+r".*?"+re.escape(CLOSE),re.S).sub(OPEN+"fresh"+CLOSE,source)
     assert "Human QA FAIL" in new and "Protected" in new
     assert not is_dev(tests[2])
+    # Regression: newest comment may use milliseconds and must not be ignored.
+    assert "RECENT" in _test_lease_fractional()
+
     print("SP_MONITOR_SELF_TEST_PASS monitor-exclusion older-active-run human-QA-preservation")
 
 if __name__=="__main__":
