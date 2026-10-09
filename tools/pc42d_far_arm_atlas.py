@@ -43,6 +43,20 @@ for name,src_path,p0,p1,target0,target1 in assets:
     # source canvas itself limits this anatomical region; no procedural
     # rectangular patch or weapon-position offsets are used.
     if name == "pc42d_far_forearm":
+        # Keep the approved detailed textile pixels; remove the overly
+        # triangular outline using anatomical elbow-to-wrist taper.
+        yy,xx=np.indices((h,w),dtype=np.float32)
+        start=np.array((126.,96.),np.float32)
+        end=np.array((170.,81.),np.float32)
+        direction=end-start
+        length=float(np.linalg.norm(direction))
+        projection=np.clip(((xx-start[0])*direction[0]+
+                           (yy-start[1])*direction[1])/(length*length),0.,1.)
+        perpendicular=np.abs(direction[0]*(yy-start[1])-
+                             direction[1]*(xx-start[0]))/length
+        radius=5.5+(3.8-5.5)*projection
+        taper=np.clip((radius-perpendicular)/1.0,0.,1.).astype(np.float32)
+        warped*=taper[:,:,None]
         mask=np.ones((h,w),dtype=np.float32)
     else:
         # Concealed upper/elbow backing stays beneath the authored source
