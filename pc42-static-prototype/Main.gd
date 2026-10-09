@@ -22,7 +22,7 @@ func _load_image(relative_path: String) -> Texture2D:
 
 func _ready() -> void:
     var path := "res://assets/manifest.json"
-    var manifest := JSON.parse_string(FileAccess.get_file_as_string(path))
+    var manifest: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
     if not manifest is Dictionary:
         push_error("PC42 invalid pose manifest")
         get_tree().quit(3)
