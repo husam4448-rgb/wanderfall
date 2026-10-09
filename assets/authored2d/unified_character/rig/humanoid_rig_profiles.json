@@ -1,0 +1,303 @@
+{
+  "schema_version": "PC23-rig-profile-v1",
+  "status": "provisional-reference-measured",
+  "coordinate_convention": {
+    "runtime": "local character units; +x faces right before mirror, +y screen-down",
+    "reference_pixels": "pixel coordinates inside committed calibration crop; origin top-left",
+    "rule": "body profile owns shoulders, bone lengths, limb mass and wrist anatomy; weapon contracts never move these"
+  },
+  "references": {
+    "male": {
+      "east_base": "assets/authored2d/unified_character/rig/reference/male_east_base.png",
+      "south_base": "assets/authored2d/unified_character/rig/reference/male_south_base.png",
+      "east_rifle": "assets/authored2d/unified_character/rig/reference/male_east_rifle.png",
+      "source": "approved SP_Player_Male_8Directions and male gun-idle directional artwork"
+    },
+    "female": {
+      "east_base": "assets/authored2d/unified_character/rig/reference/female_east_base.png",
+      "south_base": "assets/authored2d/unified_character/rig/reference/female_south_base.png",
+      "east_rifle": "assets/authored2d/unified_character/rig/reference/female_east_rifle.png",
+      "source": "approved SP_Player_Female_8Directions and female gun-idle directional artwork"
+    }
+  },
+  "profiles": {
+    "male": {
+      "reference_measurements_px": {
+        "east_image_size": [
+          310,
+          315
+        ],
+        "south_image_size": [
+          275,
+          285
+        ],
+        "east_feet_mid": [
+          112,
+          243
+        ],
+        "east_head_top_y": 12,
+        "east_anatomical_shoulder": [
+          100,
+          79
+        ],
+        "east_elbow_reference": [
+          102,
+          119
+        ],
+        "east_wrist_reference": [
+          104,
+          139
+        ],
+        "east_hand_bbox": [
+          96,
+          129,
+          114,
+          149
+        ],
+        "south_body_center_x": 155,
+        "south_left_shoulder": [
+          111,
+          87
+        ],
+        "south_right_shoulder": [
+          198,
+          87
+        ],
+        "south_shoulder_width": 87,
+        "south_head_width_estimate": 50,
+        "measurement_note": "landmarks visually measured from committed approved reference crops; elbow/wrist are neutral-pose projection guides, not IK lengths"
+      },
+      "runtime": {
+        "torso_size": [
+          26.2,
+          29.6
+        ],
+        "shoulder_rear": [
+          -4.8,
+          -9.8
+        ],
+        "shoulder_front": [
+          -4,
+          -9.3
+        ],
+        "upper_arm_length": 13.3,
+        "forearm_length": 12.5,
+        "upper_arm_width": 6.2,
+        "forearm_width": 5.1,
+        "wrist_width": 3.45,
+        "dominant_hand_size": [
+          5.3,
+          4.8
+        ],
+        "support_hand_size": [
+          5,
+          4.6
+        ],
+        "dominant_wrist_to_grip_local": [
+          2.45,
+          0.67
+        ],
+        "support_wrist_to_grip_local": [
+          2.38,
+          0.21
+        ],
+        "neutral_upper_angle_deg": 82,
+        "neutral_elbow_flex_deg": 22
+      },
+      "ratios": {
+        "shoulder_rear_x_over_torso_width": -0.1832061069,
+        "shoulder_front_x_over_torso_width": -0.1526717557,
+        "upper_length_over_torso_height": 0.4493243243,
+        "forearm_length_over_torso_height": 0.4222972973,
+        "total_arm_length_over_torso_height": 0.8716216216,
+        "upper_width_over_torso_width": 0.2366412214,
+        "forearm_width_over_torso_width": 0.1946564885,
+        "wrist_width_over_torso_width": 0.1316793893,
+        "dominant_hand_height_over_forearm": 0.384,
+        "support_hand_height_over_forearm": 0.368,
+        "reference_shoulder_width_over_head_width": 1.74
+      },
+      "qa_ranges": {
+        "shoulder_rear_x_over_torso_width": [
+          -0.195,
+          -0.17
+        ],
+        "shoulder_front_x_over_torso_width": [
+          -0.165,
+          -0.14
+        ],
+        "upper_length_over_torso_height": [
+          0.435,
+          0.465
+        ],
+        "forearm_length_over_torso_height": [
+          0.408,
+          0.438
+        ],
+        "total_arm_length_over_torso_height": [
+          0.845,
+          0.895
+        ],
+        "upper_width_over_torso_width": [
+          0.225,
+          0.248
+        ],
+        "forearm_width_over_torso_width": [
+          0.184,
+          0.205
+        ],
+        "dominant_hand_height_over_forearm": [
+          0.365,
+          0.405
+        ],
+        "support_hand_height_over_forearm": [
+          0.35,
+          0.39
+        ]
+      }
+    },
+    "female": {
+      "reference_measurements_px": {
+        "east_image_size": [
+          310,
+          315
+        ],
+        "south_image_size": [
+          275,
+          285
+        ],
+        "east_feet_mid": [
+          108,
+          234
+        ],
+        "east_head_top_y": 4,
+        "east_anatomical_shoulder": [
+          100,
+          70
+        ],
+        "east_elbow_reference": [
+          101,
+          108
+        ],
+        "east_wrist_reference": [
+          105,
+          130
+        ],
+        "east_hand_bbox": [
+          98,
+          121,
+          114,
+          141
+        ],
+        "south_body_center_x": 155,
+        "south_left_shoulder": [
+          117,
+          68
+        ],
+        "south_right_shoulder": [
+          195,
+          68
+        ],
+        "south_shoulder_width": 78,
+        "south_head_width_estimate": 43,
+        "measurement_note": "landmarks visually measured from committed approved reference crops; elbow/wrist are neutral-pose projection guides, not IK lengths"
+      },
+      "runtime": {
+        "torso_size": [
+          27,
+          27.5
+        ],
+        "shoulder_rear": [
+          -4.5,
+          -9.6
+        ],
+        "shoulder_front": [
+          -3.7,
+          -9.1
+        ],
+        "upper_arm_length": 12.8,
+        "forearm_length": 12.2,
+        "upper_arm_width": 5.8,
+        "forearm_width": 4.8,
+        "wrist_width": 3.2,
+        "dominant_hand_size": [
+          5,
+          4.6
+        ],
+        "support_hand_size": [
+          4.8,
+          4.4
+        ],
+        "dominant_wrist_to_grip_local": [
+          2.32,
+          0.64
+        ],
+        "support_wrist_to_grip_local": [
+          2.29,
+          0.2
+        ],
+        "neutral_upper_angle_deg": 84,
+        "neutral_elbow_flex_deg": 24
+      },
+      "ratios": {
+        "shoulder_rear_x_over_torso_width": -0.1666666667,
+        "shoulder_front_x_over_torso_width": -0.137037037,
+        "upper_length_over_torso_height": 0.4654545455,
+        "forearm_length_over_torso_height": 0.4436363636,
+        "total_arm_length_over_torso_height": 0.9090909091,
+        "upper_width_over_torso_width": 0.2148148148,
+        "forearm_width_over_torso_width": 0.1777777778,
+        "wrist_width_over_torso_width": 0.1185185185,
+        "dominant_hand_height_over_forearm": 0.3770491803,
+        "support_hand_height_over_forearm": 0.3606557377,
+        "reference_shoulder_width_over_head_width": 1.8139534884
+      },
+      "qa_ranges": {
+        "shoulder_rear_x_over_torso_width": [
+          -0.178,
+          -0.155
+        ],
+        "shoulder_front_x_over_torso_width": [
+          -0.148,
+          -0.126
+        ],
+        "upper_length_over_torso_height": [
+          0.45,
+          0.48
+        ],
+        "forearm_length_over_torso_height": [
+          0.428,
+          0.458
+        ],
+        "total_arm_length_over_torso_height": [
+          0.88,
+          0.935
+        ],
+        "upper_width_over_torso_width": [
+          0.202,
+          0.226
+        ],
+        "forearm_width_over_torso_width": [
+          0.167,
+          0.188
+        ],
+        "dominant_hand_height_over_forearm": [
+          0.358,
+          0.397
+        ],
+        "support_hand_height_over_forearm": [
+          0.343,
+          0.38
+        ]
+      }
+    }
+  },
+  "invariants": {
+    "shared_solver": true,
+    "gear_changes_geometry": false,
+    "role_changes_geometry": false,
+    "left_is_runtime_mirror": true,
+    "weapon_may_change_body_profile": false,
+    "calibration_lock_required_before_npc_propagation": true
+  }
+}
