@@ -134,7 +134,7 @@ func _build_actual_skeleton2d() -> void:
         get_tree().quit(11)
         return
     print("PC42B_SKELETON2D_BUILT " + str(pc42_bones.size()) + " actual Bone2D nodes")
-    _pc42d_build_far_arm()
+    _pc42h_build_far_arm()
     if OS.get_environment("PC42B_POSE_STRESS") == "1":
         # Deliberate low-amplitude stress: INSPECTION ONLY. It is not
         # accepted as an actual animation until hidden deltoid/forearm
@@ -145,7 +145,7 @@ func _build_actual_skeleton2d() -> void:
         fore.rotation = deg_to_rad(12.0)
         print("PC42B_ROTATION_STRESS_DIAGNOSTIC -8 degree shoulder +12 degree forearm; EXPECT ARTICULATION QA PENDING")
 
-func _pc42d_build_far_arm() -> void:
+func _pc42h_build_far_arm() -> void:
     # The far arm uses original male apparel source textures aligned by the
     # PC42D atlas generator to the two authored anatomical rest segments.
     # It lives behind near-side source-color clothing and rifle layers.
@@ -167,14 +167,22 @@ func _pc42d_build_far_arm() -> void:
     upper.add_child(fore)
     pc42_bones["far_upper_arm"] = upper
     pc42_bones["far_forearm"] = fore
+    # PC42H genuinely independent paint pieces. Maintain the existing
+    # unchanged rifle-owned two-arm Bone2D IK and original near-side art.
+    # The donor sleeve, elbow, cuff and glove are independently authored
+    # to exact rest joint frames, not one resized rectangle.
+    var support_socket: Bone2D = pc42_bones["support_hand"]
     for spec in [
-        {"name":"pc42d_far_upper","parent":upper,"pivot":PC42CGripIK.FAR_SHOULDER},
-        {"name":"pc42d_far_forearm","parent":fore,"pivot":PC42CGripIK.FAR_REST_ELBOW},
-        {"name":"pc42d_far_elbow","parent":fore,"pivot":PC42CGripIK.FAR_REST_ELBOW}
+        {"name":"pc42h_far_shoulder","parent":upper,"pivot":PC42CGripIK.FAR_SHOULDER},
+        {"name":"pc42h_far_upper","parent":upper,"pivot":PC42CGripIK.FAR_SHOULDER},
+        {"name":"pc42h_far_elbow","parent":fore,"pivot":PC42CGripIK.FAR_REST_ELBOW},
+        {"name":"pc42h_far_forearm","parent":fore,"pivot":PC42CGripIK.FAR_REST_ELBOW},
+        {"name":"pc42h_far_cuff","parent":fore,"pivot":PC42CGripIK.FAR_REST_ELBOW},
+        {"name":"pc42h_far_glove_backing","parent":support_socket,"pivot":PC42CGripIK.REST_SUPPORT_WRIST}
     ]:
         var texture: Texture2D = _load_image("assets/" + str(spec["name"]) + ".png")
         if texture == null:
-            push_error("PC42D approved far arm texture missing: " + str(spec["name"]))
+            push_error("PC42H approved far arm texture missing: " + str(spec["name"]))
             get_tree().quit(15)
             return
         var sprite: Sprite2D = Sprite2D.new()
@@ -184,7 +192,7 @@ func _pc42d_build_far_arm() -> void:
         sprite.position = -Vector2(spec["pivot"])
         var parent: Bone2D = spec["parent"]
         parent.add_child(sprite)
-    print("PC42D_FAR_ARM_SOURCE_BONES_READY 2 independent actual Bone2D plus authored elbow source")
+    print("PC42H_SEGMENTED_FAR_ARM_READY 2 independently solved Bone2D plus source-clothing shoulder/elbow/forearm/cuff and weapon socket glove")
     print("PC42F_FAR_ARM_DEPTH_RESOLVED visible=" + str(upper.visible) + " z_index=" + str(upper.z_index))
 
 func _pc42c_apply_weapon_ik(angle: float) -> Dictionary:
