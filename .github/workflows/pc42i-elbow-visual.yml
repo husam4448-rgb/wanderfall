@@ -1,0 +1,128 @@
+name: PC42I Original-Painted Rolled Elbow, Two-Arm Godot A/B Visual QA
+on:
+  push:
+    branches: [pc42i-authored-rolled-elbow-seam]
+    paths:
+      - '.github/workflows/pc42h-arm-visual.yml'
+      - 'pc42-static-prototype/**'
+      - 'tools/pc42h_articulated_arm_atlas.py'
+      - 'tools/pc42i_authored_elbow_hem.py'
+      - 'tools/qa_pc42i_elbow.py'
+      - 'tools/qa_pc42h_segmented_arm.py'
+      - 'tools/sp_pc42i_ci_status.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+env:
+  SP_PHASE: PC42I
+  GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
+jobs:
+  actual-godot-art-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - name: Status — workflow started
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/sp_pc42i_ci_status.py STARTED "Beginning six-part far-arm source artwork and Bone2D weapon socket sweep"
+      - name: Source reconstruction completed
+        run: |
+          python3 -m pip install --quiet pillow numpy opencv-python-headless
+          python3 -m py_compile tools/pc42h_articulated_arm_atlas.py tools/pc42i_authored_elbow_hem.py tools/qa_pc42h_segmented_arm.py tools/qa_pc42i_elbow.py tools/sp_pc42i_ci_status.py
+          python3 tools/pc42_reference_cutout.py
+          python3 tools/pc42h_articulated_arm_atlas.py
+          python3 tools/pc42i_authored_elbow_hem.py
+      - name: Status — source reconstruction complete
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/sp_pc42i_ci_status.py SOURCE_RECONSTRUCTED "Original elbow seam texture and separate fold authored over six retained source-arm assets"
+      - name: Static art validation
+        run: |
+          test -s pc42-static-prototype/assets/manifest.json
+          test -s pc42-static-prototype/assets/pc42h_arm_sources.json
+          test -s pc42-static-prototype/assets/pc42i_arm_hem_sources.json
+          test -s pc42-static-prototype/assets/pc42i_far_rolled_fold.png
+          test -s pc42-static-prototype/assets/pc42i_far_rolled_hem.png
+          for p in shoulder upper elbow forearm cuff glove_backing; do
+            test -s "pc42-static-prototype/assets/pc42h_far_$p.png"
+          done
+      - name: Status — static validation complete
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/sp_pc42i_ci_status.py STATIC_VALIDATED "Six retained parts plus two original-reference painted elbow hem/fold assets validated"
+      - name: Install pinned Godot 4.7.2
+        run: |
+          curl -fL --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip" | sha256sum -c -
+          unzip -q /tmp/godot.zip -d /tmp
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb >/dev/null
+      - name: Compile actual Godot Skeleton2D and Sprite2D rig
+        run: |
+          "$GODOT_BIN" --headless --editor --path pc42-static-prototype --quit >pc42h-import.log 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|Compile Error' pc42h-import.log; then cat pc42h-import.log; exit 1; fi
+      - name: Status — Godot compiled
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/sp_pc42i_ci_status.py GODOT_COMPILED "Actual Godot 4.7.2 project import and script compilation passed"
+      - name: Actual Godot runtime, five-angle shots and 32 frames
+        run: |
+          mkdir -p pc42-static-prototype/evidence
+          # Capture the PREVIOUS PC42H art in actual Godot at all five angles,
+          # keeping the exact same real Bone2D IK and source references.
+          PC42I_ROLL_BASELINE=1 PC42C_CAPTURE=1 timeout 150s xvfb-run -a "$GODOT_BIN" --path pc42-static-prototype --resolution 1580x660 >pc42i-baseline.log 2>&1
+          for angle in m10 m05 p00 p05 p10; do
+            cp "pc42-static-prototype/evidence/pc42c_pose_${angle}.png" "pc42-static-prototype/evidence/pc42i_prev_pose_${angle}.png"
+          done
+          PC42F_HIDE_FAR_ARM=1 timeout 90s xvfb-run -a "$GODOT_BIN" --path pc42-static-prototype --resolution 1580x660 >pc42h-hidden.log 2>&1
+          cp pc42-static-prototype/evidence/godot_pc42_static_first_pose.png pc42-static-prototype/evidence/pc42h_hidden_baseline.png
+          timeout 90s xvfb-run -a "$GODOT_BIN" --path pc42-static-prototype --resolution 1580x660 >pc42h-rest.log 2>&1
+          PC42C_CAPTURE=1 timeout 150s xvfb-run -a "$GODOT_BIN" --path pc42-static-prototype --resolution 1580x660 >pc42c-motion.log 2>&1
+          grep -q 'PC42I_SEGMENTED_FAR_ARM_READY' pc42h-rest.log
+          grep -q 'PC42D_FAR_ARM_TWO_BONE_IK_OK' pc42c-motion.log
+          grep -q 'PC42C_REAL_IK_CONTACT_SWEEP_OK' pc42c-motion.log
+          test "$(find pc42-static-prototype/evidence -maxdepth 1 -name 'pc42c_motion_*.png' | wc -l)" -eq 32
+      - name: Status — runtime and arm sweep passed
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/sp_pc42i_ci_status.py RUNTIME_TESTED "Actual Godot capture rendered 32 dynamic Bone2D frames and all five specified rifle aim poses"
+      - name: Quantitative art, grip, and clean visual evidence
+        run: |
+          python3 tools/qa_pc42_static_reference.py
+          python3 tools/qa_pc42c_grip_ik.py
+          python3 tools/qa_pc42h_segmented_arm.py
+          python3 tools/qa_pc42i_elbow.py
+          test -s pc42-static-prototype/evidence/pc42i_elbow_pc42h_vs_pc42i_five_angles.jpg
+          test -s pc42-static-prototype/evidence/pc42h_upper_body_five_angles.jpg
+          test -s pc42-static-prototype/evidence/pc42h_shoulder_elbow_five_angles.jpg
+          test -s pc42-static-prototype/evidence/pc42h_rifle_support_grip_five_angles.jpg
+          test -s pc42-static-prototype/evidence/pc42c_32frame_weapon_ik.gif
+      - name: Status — visual evidence generated
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/sp_pc42i_ci_status.py VISUAL_EVIDENCE_READY "Five-angle actual-Godot PC42H vs PC42I elbow A/B and 32-frame GIF generated; visual approval pending"
+      - name: Upload exact evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SurvivalParadise-PC42I-ActualGodot-${{ github.sha }}
+          path: |
+            pc42-static-prototype/evidence/
+            pc42-static-prototype/assets/
+            pc42c-motion.log
+            pc42h-hidden.log
+            pc42h-rest.log
+            pc42h-import.log
+          retention-days: 14
+      - name: Terminal status even on failure
+        if: always()
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            python3 tools/sp_pc42i_ci_status.py COMPLETED "PC42I real Godot technical checks complete; elbow aesthetic inspection and human visual approval pending; no APK"
+          else
+            python3 tools/sp_pc42i_ci_status.py FAILED "Inspect failed step logs and preserved artifact; PC42I NOT APPROVED; last signed APK unchanged"
+          fi
