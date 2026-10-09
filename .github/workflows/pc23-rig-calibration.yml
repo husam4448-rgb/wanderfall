@@ -1,0 +1,269 @@
+name: PC23 Humanoid Rig Calibration
+
+on:
+  push:
+    branches: [ pc23-humanoid-rig-calibration ]
+    paths:
+      - '.ci/trigger-pc23-rig-calibration'
+      - '.github/workflows/pc23-rig-calibration.yml'
+      - 'patches/apply_pc22_canonical_arm_candidate.py'
+      - 'patches/apply_pc23_humanoid_rig_calibration.py'
+      - 'tools/build_pc22_canonical_arm_assets.py'
+      - 'tools/build_pc22_role_overlays.py'
+      - 'tools/qa_pc22_arm_visual_contract.py'
+      - 'tools/qa_pc22_hybrid_v3.py'
+      - 'tools/qa_pc23_anatomy.py'
+      - 'assets/authored2d/unified_character/rig/**'
+  workflow_dispatch:
+
+concurrency:
+  group: pc23-rig-calibration-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  SOURCE_SHA256: ae4eff17e5f281f5867ac2d82207fcf96e6c8b649432acd48816aebab76fa308
+  SOURCE_ARCHIVE: /tmp/Wanderfall_Phase16_Game_Source.tar.xz
+  PROJECT_DIR: game
+  GODOT_ZIP: /tmp/Godot_v4.7.2-stable_linux.x86_64.zip
+  GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
+  GODOT_TEMPLATES_TPZ: /tmp/Godot_v4.7.2-stable_export_templates.tpz
+  GODOT_TEMPLATES_SHA256: f298490b8d44d934be425a5a65a51bf15f422428b229a06a6e11d9ffea248011
+  APK_PATH: SurvivalParadise_PC23_RigCalibration.apk
+  MAX_APK_BYTES: '419430400'
+
+jobs:
+  calibrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+
+      - name: Static PC23 anatomy and patch validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pillow numpy
+          python3 -m py_compile patches/apply_pc22_canonical_arm_candidate.py
+          python3 -m py_compile patches/apply_pc23_humanoid_rig_calibration.py
+          python3 -m py_compile tools/qa_pc23_anatomy.py
+          python3 tools/qa_pc23_anatomy.py "$GITHUB_WORKSPACE" | tee pc23-anatomy-qa.json
+
+      - name: Reconstruct exact game and apply PC22 recovery then PC23 calibration
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat source_parts/part_*.b64 > /tmp/wanderfall_source.b64
+          base64 --decode /tmp/wanderfall_source.b64 > "$SOURCE_ARCHIVE"
+          echo "$SOURCE_SHA256  $SOURCE_ARCHIVE" | sha256sum -c -
+          mkdir -p "$PROJECT_DIR"
+          tar -xJf "$SOURCE_ARCHIVE" -C "$PROJECT_DIR"
+
+          python3 patches/apply_godot_47_fixes.py "$PROJECT_DIR"
+          python3 patches/apply_v017_ui_overhaul.py "$PROJECT_DIR"
+          python3 patches/apply_v0171_inventory_polish.py "$PROJECT_DIR"
+          python3 patches/apply_v0172_hud_customization.py "$PROJECT_DIR"
+          python3 patches/fix_v0173_applicator_path.py
+          python3 patches/apply_v0173_touch_layout_fixes.py "$PROJECT_DIR"
+          python3 patches/apply_v0174_ui_pause_completion.py "$PROJECT_DIR"
+
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('patches/apply_v0175_hotbar_sensitivity.py')
+          s=p.read_text(encoding='utf-8')
+          old='''replace_once(
+              "scripts/settings/settings_hud.gd",
+              '    if ui_buttons.has("quickbar_visible"):\\n        ui_buttons["quickbar_visible"].text = "QUICKBAR: %s" % ("ON" if GameSettings.quickbar_visible else "OFF")\\n\\n    var pause_names :=',
+              '    if ui_buttons.has("quickbar_visible"):\\n        ui_buttons["quickbar_visible"].text = "QUICKBAR: %s" % ("ON" if GameSettings.quickbar_visible else "OFF")\\n'
+              '    if movement_sensitivity_slider != null:\\n'
+              '        movement_sensitivity_slider.set_value_no_signal(GameSettings.movement_stick_sensitivity)\\n'
+              '    if movement_sensitivity_label != null:\\n'
+              '        movement_sensitivity_label.text = "×%.2f" % GameSettings.movement_stick_sensitivity\\n\\n'
+              '    var pause_names :=',
+          )'''
+          new='''replace_once(
+              "scripts/settings/settings_hud.gd",
+              '    var pause_names :=',
+              '    if movement_sensitivity_slider != null:\\n'
+              '        movement_sensitivity_slider.set_value_no_signal(GameSettings.movement_stick_sensitivity)\\n'
+              '    if movement_sensitivity_label != null:\\n'
+              '        movement_sensitivity_label.text = "×%.2f" % GameSettings.movement_stick_sensitivity\\n\\n'
+              '    var pause_names :=',
+          )'''
+          if old not in s:
+              raise SystemExit('Expected v0.17.5 applicator block not found')
+          p.write_text(s.replace(old,new,1),encoding='utf-8')
+          PY
+
+          python3 patches/apply_v0175_hotbar_sensitivity.py "$PROJECT_DIR"
+          python3 patches/apply_v0176_hotbar_deadzone.py "$PROJECT_DIR"
+          python3 patches/apply_v0177_mobile_hotbar_layers.py "$PROJECT_DIR"
+          python3 patches/apply_v0178_dedicated_hotbar_layer.py "$PROJECT_DIR"
+          python3 patches/apply_v0179_quick_item_buttons.py "$PROJECT_DIR"
+
+          python3 tools/build_pc22_canonical_arm_assets.py "$GITHUB_WORKSPACE" "$PROJECT_DIR"
+          python3 tools/build_pc22_role_overlays.py "$GITHUB_WORKSPACE"
+          python3 tools/qa_pc22_arm_visual_contract.py "$GITHUB_WORKSPACE"
+          python3 tools/qa_pc22_hybrid_v3.py "$GITHUB_WORKSPACE"
+          python3 patches/apply_pc22_canonical_arm_candidate.py "$PROJECT_DIR"
+          python3 patches/apply_pc23_humanoid_rig_calibration.py "$PROJECT_DIR"
+
+          grep -q 'PC23 HUMANOID RIG CALIBRATION' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"
+          grep -q 'pc23_humanoid_rig_system.gd' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"
+          grep -q 'version/code=193' "$PROJECT_DIR/export_presets.cfg"
+          grep -q 'version/name="0.22.0-PC23-RIG-CALIBRATION"' "$PROJECT_DIR/export_presets.cfg"
+
+      - name: Install Godot and export templates
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 2 -o "$GODOT_ZIP" "https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip"
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  $GODOT_ZIP" | sha256sum -c -
+          unzip -q "$GODOT_ZIP" -d /tmp
+          curl -fL --retry 3 --retry-delay 2 -o "$GODOT_TEMPLATES_TPZ" "https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_export_templates.tpz"
+          echo "$GODOT_TEMPLATES_SHA256  $GODOT_TEMPLATES_TPZ" | sha256sum -c -
+          rm -rf /tmp/godot_export_templates
+          mkdir -p /tmp/godot_export_templates
+          unzip -q "$GODOT_TEMPLATES_TPZ" -d /tmp/godot_export_templates
+          TEMPLATE_DIR="$HOME/.local/share/godot/export_templates/4.7.2.stable"
+          mkdir -p "$TEMPLATE_DIR"
+          cp -a /tmp/godot_export_templates/templates/. "$TEMPLATE_DIR/"
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb >/dev/null
+
+      - name: Godot import and parser validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --editor --path "$PROJECT_DIR" --quit --verbose 2>&1 | tee pc23-import.log
+          if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|ERROR: Failed to create an autoload|Compile Error:|Parse Error:' pc23-import.log; then exit 1; fi
+
+      - name: Runtime smoke test
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 20s "$GODOT_BIN" --headless --path "$PROJECT_DIR" --quit-after 120 --verbose 2>&1 | tee pc23-smoke.log
+          if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|Compile Error:|Parse Error:|Invalid call|Invalid get index' pc23-smoke.log; then exit 1; fi
+
+      - name: Capture actual Godot calibration states
+        shell: bash
+        run: |
+          set -euo pipefail
+          CAP="$GITHUB_WORKSPACE/pc23-runtime-captures"
+          mkdir -p "$CAP"
+          ARM_CAPTURE_DIR="$CAP" PC23_CALIBRATION_CAPTURE=1 timeout 60s xvfb-run -a "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1280x720 --verbose 2>&1 | tee pc23-capture.log
+          CAP_COUNT="$(find "$CAP" -maxdepth 1 -name '*.png' | wc -l | tr -d ' ')"
+          LOG_COUNT="$(grep -o 'PC22_ARM_CAPTURE_COMPLETE:[0-9]*' pc23-capture.log | tail -1 | cut -d: -f2)"
+          test -n "$LOG_COUNT"
+          test "$CAP_COUNT" -eq "$LOG_COUNT"
+          test "$CAP_COUNT" -ge 72
+          grep -q 'PC22_ARM_GEOMETRY_OK:' pc23-capture.log
+          grep -q 'PC22_RUNTIME_SWEEP_OK' pc23-capture.log
+          if grep -q 'PC22_ARM_GEOMETRY_FAIL' pc23-capture.log; then exit 1; fi
+          if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|Compile Error:|Parse Error:|Invalid call|Invalid get index' pc23-capture.log; then exit 1; fi
+
+      - name: Build reference-vs-runtime comparison evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image,ImageDraw
+          import math
+
+          cap=Path('pc23-runtime-captures')
+          refs=Path('assets/authored2d/unified_character/rig/reference')
+          out=Path('pc23-calibration-evidence')
+          out.mkdir(parents=True,exist_ok=True)
+
+          states=[
+              ('pistol_horizontal','base'),('pistol_max_up','base'),('pistol_max_down','base'),
+              ('rifle_horizontal','rifle'),('rifle_max_up','rifle'),('rifle_max_down','rifle'),
+              ('full_gear_pistol','base'),('full_gear_rifle','rifle'),
+              ('pistol_left','base'),('rifle_left','rifle'),
+              ('run_pistol','base'),('run_rifle','rifle'),('recoil','rifle'),
+          ]
+
+          def ref_image(sex,kind):
+              p=refs/f'{sex}_east_{"rifle" if kind=="rifle" else "base"}.png'
+              im=Image.open(p).convert('RGB').crop((0,0,220,250))
+              return im
+
+          def runtime_crop(sex,state):
+              im=Image.open(cap/f'{sex}_{state}.png').convert('RGB')
+              return im.crop((430,120,850,620))
+
+          for sex in ('male','female'):
+              panels=[]
+              for state,kind in states:
+                  ref=ref_image(sex,kind)
+                  rt=runtime_crop(sex,state)
+                  canvas=Image.new('RGB',(900,520),(13,16,17))
+                  rr=ref.copy()
+                  rr.thumbnail((410,470),Image.Resampling.LANCZOS)
+                  rt.thumbnail((410,470),Image.Resampling.LANCZOS)
+                  canvas.paste(rr,(20,30))
+                  canvas.paste(rt,(470,30))
+                  d=ImageDraw.Draw(canvas)
+                  d.text((20,8),f'{sex.upper()} REFERENCE — {kind}',fill=(240,240,235))
+                  d.text((470,8),f'ACTUAL GODOT — {state}',fill=(240,240,235))
+                  canvas.save(out/f'{sex}_{state}_reference_vs_runtime.png')
+                  panels.append(canvas)
+
+              cols=2
+              rows=math.ceil(len(panels)/cols)
+              sheet=Image.new('RGB',(cols*900,rows*520),(10,12,13))
+              for i,p in enumerate(panels):
+                  sheet.paste(p,((i%cols)*900,(i//cols)*520))
+              sheet.save(out/f'{sex}_golden_comparison_sheet.jpg',quality=94,subsampling=0)
+          PY
+
+      - name: Export PC23 calibration APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          export GODOT_ANDROID_KEYSTORE_DEBUG_PATH="$HOME/.local/share/godot/keystores/debug.keystore"
+          export GODOT_ANDROID_KEYSTORE_DEBUG_USER="androiddebugkey"
+          export GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD="android"
+          test -s "$GODOT_ANDROID_KEYSTORE_DEBUG_PATH"
+          "$GODOT_BIN" --headless --path "$PROJECT_DIR" --export-debug Android "$GITHUB_WORKSPACE/$APK_PATH" 2>&1 | tee pc23-android-export.log
+          test -s "$APK_PATH"
+
+      - name: Validate PC23 APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="$GITHUB_WORKSPACE/$APK_PATH"
+          APKSIGNER="$ANDROID_HOME/build-tools/35.0.1/apksigner"
+          AAPT="$ANDROID_HOME/build-tools/35.0.1/aapt"
+          unzip -t "$APK" > pc23-apk-zip-test.txt
+          "$APKSIGNER" verify --verbose --print-certs "$APK" | tee pc23-apk-signature.txt
+          "$AAPT" dump badging "$APK" | tee pc23-apk-badging.txt
+          grep -q "package: name='org.wanderfall.game'" pc23-apk-badging.txt
+          grep -q "versionCode='193'" pc23-apk-badging.txt
+          grep -q "versionName='0.22.0-PC23-RIG-CALIBRATION'" pc23-apk-badging.txt
+          unzip -l "$APK" | grep -q 'lib/arm64-v8a/libgodot_android.so'
+          if unzip -l "$APK" | grep -q 'lib/armeabi-v7a/'; then exit 1; fi
+          test "$(stat -c%s "$APK")" -lt "$MAX_APK_BYTES"
+          sha256sum "$APK" | tee pc23-apk.sha256
+
+      - name: Upload deterministic PC23 calibration artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SurvivalParadise-PC23-RigCalibration-${{ github.sha }}
+          path: |
+            SurvivalParadise_PC23_RigCalibration.apk
+            pc23-apk.sha256
+            pc23-apk-badging.txt
+            pc23-apk-signature.txt
+            pc23-anatomy-qa.json
+            pc23-import.log
+            pc23-smoke.log
+            pc23-capture.log
+            pc23-runtime-captures/
+            pc23-calibration-evidence/
