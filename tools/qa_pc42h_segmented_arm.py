@@ -79,7 +79,7 @@ comp.paste(after.resize((after.width*3,after.height*3)),(before.width*3,0))
 comp.save(e/"pc42h_hidden_vs_visible_source_art.png")
 assert (e/"pc42c_32frame_weapon_ik.gif").stat().st_size>50000
 record={
- "phase":"PC42H v2 source-skin shorter rest-forearm and dual Bone2D rifle constraint",
+ "phase":json.loads((a/"pc42h_arm_sources.json").read_text())["phase"],
  "godot_frames":32,"aim_angles_degrees":[-10,-5,0,5,10],
  "independent_painted_parts":names,
  "forearm_cross_section_width_px":cross_sections,
