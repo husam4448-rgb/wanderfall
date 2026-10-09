@@ -1,6 +1,6 @@
 {
   "schema_version": "PC23-rig-profile-v1",
-  "status": "provisional-reference-measured",
+  "status": "reference-measured-weapon-and-limb-iteration-2",
   "coordinate_convention": {
     "runtime": "local character units; +x faces right before mirror, +y screen-down",
     "reference_pixels": "pixel coordinates inside committed calibration crop; origin top-left",
@@ -80,8 +80,8 @@
           -4,
           -9.3
         ],
-        "upper_arm_length": 13.3,
-        "forearm_length": 12.5,
+        "upper_arm_length": 12.2,
+        "forearm_length": 7.2,
         "upper_arm_width": 6.2,
         "forearm_width": 5.1,
         "wrist_width": 3.45,
@@ -107,14 +107,14 @@
       "ratios": {
         "shoulder_rear_x_over_torso_width": -0.1832061069,
         "shoulder_front_x_over_torso_width": -0.1526717557,
-        "upper_length_over_torso_height": 0.4493243243,
-        "forearm_length_over_torso_height": 0.4222972973,
-        "total_arm_length_over_torso_height": 0.8716216216,
+        "upper_length_over_torso_height": 0.4121621621621621,
+        "forearm_length_over_torso_height": 0.24324324324324323,
+        "total_arm_length_over_torso_height": 0.6554054054054054,
         "upper_width_over_torso_width": 0.2366412214,
         "forearm_width_over_torso_width": 0.1946564885,
         "wrist_width_over_torso_width": 0.1316793893,
-        "dominant_hand_height_over_forearm": 0.384,
-        "support_hand_height_over_forearm": 0.368,
+        "dominant_hand_height_over_forearm": 0.6666666666666666,
+        "support_hand_height_over_forearm": 0.6388888888888888,
         "reference_shoulder_width_over_head_width": 1.74
       },
       "qa_ranges": {
@@ -127,16 +127,16 @@
           -0.14
         ],
         "upper_length_over_torso_height": [
-          0.435,
-          0.465
+          0.4001621621621621,
+          0.4241621621621621
         ],
         "forearm_length_over_torso_height": [
-          0.408,
-          0.438
+          0.23124324324324322,
+          0.2552432432432432
         ],
         "total_arm_length_over_torso_height": [
-          0.845,
-          0.895
+          0.6374054054054054,
+          0.6734054054054054
         ],
         "upper_width_over_torso_width": [
           0.225,
@@ -147,12 +147,12 @@
           0.205
         ],
         "dominant_hand_height_over_forearm": [
-          0.365,
-          0.405
+          0.6366666666666666,
+          0.6966666666666667
         ],
         "support_hand_height_over_forearm": [
-          0.35,
-          0.39
+          0.6088888888888888,
+          0.6688888888888889
         ]
       },
       "reference_registration": {
@@ -170,6 +170,16 @@
           "world_per_reference_px": 0.285
         },
         "rule": "align reference by runtime body origin (torso center X + feet Y); never align by shoulder"
+      },
+      "length_calibration": {
+        "source": "approved east/base artwork plus armed rifle reach envelope",
+        "reference_vertical_projection_px": {
+          "shoulder_y": 79,
+          "elbow_y": 119,
+          "wrist_y": 139
+        },
+        "rationale": "PC23 previous forearm length produced a deep V-shaped elbow far below the approved armed silhouette. New lengths preserve a reference-scale upper arm while shortening the forearm to the measured artwork range, with enough reach for the measured rifle support contact.",
+        "status": "provisional_visual_iteration_2"
       }
     },
     "female": {
@@ -231,8 +241,8 @@
           -3.7,
           -9.1
         ],
-        "upper_arm_length": 12.8,
-        "forearm_length": 12.2,
+        "upper_arm_length": 11.6,
+        "forearm_length": 7,
         "upper_arm_width": 5.8,
         "forearm_width": 4.8,
         "wrist_width": 3.2,
@@ -258,14 +268,14 @@
       "ratios": {
         "shoulder_rear_x_over_torso_width": -0.1666666667,
         "shoulder_front_x_over_torso_width": -0.137037037,
-        "upper_length_over_torso_height": 0.4654545455,
-        "forearm_length_over_torso_height": 0.4436363636,
-        "total_arm_length_over_torso_height": 0.9090909091,
+        "upper_length_over_torso_height": 0.4218181818181818,
+        "forearm_length_over_torso_height": 0.2545454545454545,
+        "total_arm_length_over_torso_height": 0.6763636363636364,
         "upper_width_over_torso_width": 0.2148148148,
         "forearm_width_over_torso_width": 0.1777777778,
         "wrist_width_over_torso_width": 0.1185185185,
-        "dominant_hand_height_over_forearm": 0.3770491803,
-        "support_hand_height_over_forearm": 0.3606557377,
+        "dominant_hand_height_over_forearm": 0.6571428571428571,
+        "support_hand_height_over_forearm": 0.6285714285714287,
         "reference_shoulder_width_over_head_width": 1.8139534884
       },
       "qa_ranges": {
@@ -278,16 +288,16 @@
           -0.126
         ],
         "upper_length_over_torso_height": [
-          0.45,
-          0.48
+          0.4098181818181818,
+          0.4338181818181818
         ],
         "forearm_length_over_torso_height": [
-          0.428,
-          0.458
+          0.2425454545454545,
+          0.26654545454545453
         ],
         "total_arm_length_over_torso_height": [
-          0.88,
-          0.935
+          0.6583636363636364,
+          0.6943636363636364
         ],
         "upper_width_over_torso_width": [
           0.202,
@@ -298,12 +308,12 @@
           0.188
         ],
         "dominant_hand_height_over_forearm": [
-          0.358,
-          0.397
+          0.6271428571428571,
+          0.6871428571428572
         ],
         "support_hand_height_over_forearm": [
-          0.343,
-          0.38
+          0.5985714285714286,
+          0.6585714285714287
         ]
       },
       "reference_registration": {
@@ -321,6 +331,16 @@
           "world_per_reference_px": 0.267
         },
         "rule": "align reference by runtime body origin (torso center X + feet Y); never align by shoulder"
+      },
+      "length_calibration": {
+        "source": "approved east/base artwork plus armed rifle reach envelope",
+        "reference_vertical_projection_px": {
+          "shoulder_y": 70,
+          "elbow_y": 108,
+          "wrist_y": 130
+        },
+        "rationale": "PC23 previous forearm length produced a deep V-shaped elbow far below the approved armed silhouette. New lengths preserve a reference-scale upper arm while shortening the forearm to the measured artwork range, with enough reach for the measured rifle support contact.",
+        "status": "provisional_visual_iteration_2"
       }
     }
   },
