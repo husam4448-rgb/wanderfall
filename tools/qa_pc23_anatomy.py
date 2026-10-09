@@ -81,6 +81,16 @@ for sex in ("male","female"):
             f"{sex}: reference shoulder/elbow/wrist vertical ordering invalid")
     require(lm["south_shoulder_width"]/lm["south_head_width_estimate"]>1.6,
             f"{sex}: reference shoulder/head ratio measurement implausible")
+    reg=p.get("reference_registration",{})
+    require("runtime_foot_offset_y" in reg and "base" in reg and "rifle" in reg,
+            f"{sex}: body/feet reference registration missing")
+    require("never align by shoulder" in reg.get("rule",""),
+            f"{sex}: calibration overlay policy does not prohibit shoulder alignment")
+    for kind in ("base","rifle"):
+        rr=reg.get(kind,{})
+        require(rr.get("world_per_reference_px",0)>0.20 and rr.get("world_per_reference_px",0)<0.35,
+                f"{sex}/{kind}: reference world scale implausible")
+        require(rr.get("feet_y",0)>200,f"{sex}/{kind}: feet registration missing")
 
 # Male/female share algorithm but remain distinct proportion profiles.
 m=profiles["profiles"]["male"]["runtime"]
@@ -110,11 +120,15 @@ for token in (
     "pc23_weapon_id",
     "_pc23_draw_calibration_overlay",
     "weapon contracts own palm contacts",
+    "Shoulder is deliberately NOT an alignment input",
+    "var runtime_foot := base+Vector2(0.0,runtime_foot_offset_y)",
 ):
     require(token in patch,f"PC23 patch missing architecture marker: {token}")
 require("s=s.replace(legacy_pistol" in patch and
         'if "pc22_dom_grip += _pose_point(Vector2(6.8,0.0)" in verify:' in patch,
         "PC23 patch does not actively remove/guard legacy pistol reach compensation")
+require("var ref_shoulder :=" not in patch and "shoulder_rear-ref_shoulder" not in patch,
+        "calibration overlay must not align itself to the shoulder under test")
 
 if fail:
     print(json.dumps({"pass":False,"failure_count":len(fail),"failures":fail},indent=2))
