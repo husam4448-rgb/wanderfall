@@ -1,0 +1,108 @@
+name: PC42 Static Artwork Fidelity First-Gate (No APK)
+on:
+  push:
+    branches: [pc42-character-visual-reconstruction]
+    paths:
+      - '.github/workflows/pc42-static-visual.yml'
+      - 'tools/pc42_reference_cutout.py'
+      - 'tools/qa_pc42_static_reference.py'
+      - 'tools/sp_live_ci.py'
+      - 'pc42-static-prototype/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+concurrency:
+  group: pc42-static-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  SP_PHASE: PC42
+  GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
+  GODOT_ZIP: /tmp/Godot_v4.7.2-stable_linux.x86_64.zip
+jobs:
+  first-static-pose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v5
+      - name: Independent GitHub Issue STARTED
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/sp_live_ci.py STARTED "Extracting source artwork into independent anatomy layers, NOT extending legacy weapon-offset chain"
+      - name: Validate PC42 source segmentation tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet Pillow numpy opencv-python-headless
+          python3 -m py_compile tools/pc42_reference_cutout.py tools/qa_pc42_static_reference.py tools/sp_live_ci.py
+          test -s assets/authored2d/unified_character/rig/reference/male_east_rifle.png
+          test -s pc42-static-prototype/Main.gd
+      - name: Extract first static male-right approved art to skeletal layers
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/pc42_reference_cutout.py | tee pc42-reference-segmentation.log
+          test -s pc42-static-prototype/assets/manifest.json
+          test -s pc42-static-prototype/assets/matte_review.png
+          test "$(find pc42-static-prototype/assets/parts -maxdepth 1 -name '*.png' | wc -l)" -ge 13
+      - name: Independent status SOURCE_READY
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/sp_live_ci.py SOURCE_READY "Approved source RGB partitioned into original-source anatomical layers; no artwork recoloring"
+      - name: Install verified Godot desktop runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 2 -o "$GODOT_ZIP" "https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip"
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  $GODOT_ZIP" | sha256sum -c -
+          unzip -q "$GODOT_ZIP" -d /tmp
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb >/dev/null
+      - name: Godot parser/source validation for isolated first pose
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --editor --path pc42-static-prototype --quit --verbose 2>&1 | tee pc42-godot-import.log
+          if grep -E 'SCRIPT ERROR:|Parse Error:|Compile Error:|ERROR: Failed to load script' pc42-godot-import.log; then exit 1; fi
+      - name: Render actual static pose from anatomical source sprites
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p pc42-static-prototype/evidence
+          timeout 90s xvfb-run -a "$GODOT_BIN" --path pc42-static-prototype --rendering-method gl_compatibility --resolution 1580x660 --verbose 2>&1 | tee pc42-actual-godot.log
+          grep -q "PC42_ACTUAL_GODOT_STATIC_CAPTURE_OK" pc42-actual-godot.log
+          test -s pc42-static-prototype/evidence/godot_pc42_static_first_pose.png
+          if grep -E 'SCRIPT ERROR:|Parse Error:|Compile Error:|ERROR: Failed to load script' pc42-actual-godot.log; then exit 1; fi
+      - name: Independently report Godot graphics capture
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/sp_live_ci.py GODOT_CAPTURE_READY "Original image, 16 anatomical source-RGB layers and diagnostic pivots rendered from actual Godot"
+      - name: Verify artwork fidelity against approved source pixel geometry
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/qa_pc42_static_reference.py | tee pc42-static-qa.log
+          test -s pc42-static-prototype/evidence/pc42-static-qa.json
+      - name: Independent live status VISUAL_EVIDENCE_READY
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/sp_live_ci.py VISUAL_EVIDENCE_READY "First male RIGHT horizontal-rifle static screenshot available. Human visual QA PENDING. NO APK."
+      - name: Preserve all first-pose visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SurvivalParadise-PC42-StaticFirstPose-${{ github.sha }}
+          if-no-files-found: warn
+          retention-days: 30
+          path: |
+            pc42-static-prototype/assets/
+            pc42-static-prototype/evidence/
+            pc42-reference-segmentation.log
+            pc42-godot-import.log
+            pc42-actual-godot.log
+            pc42-static-qa.log
+      - name: Final independently visible GitHub CI status
+        if: always()
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/sp_live_ci.py "${{ job.status == 'success' && 'COMPLETED' || 'FAILED' }}" "PC42 static source-art and independent Godot visual gate ${{ job.status }}; actual artistic approval requires screenshot review; no APK"
