@@ -68,3 +68,14 @@ Create an isolated PC28 branch from PC27 verified source and test genuine knee a
 - **Required next step**: review PC38 patch, complete CI/QA only if tool access permits; rebuild the actual Godot runtime, compare male/female left/right rifle contact with PC37, assess full-alpha head collision and wrist reach, and reject any visual regression. Then finish pistol grip/recoil, PC29 gait/foot-lock and equipped transitions.
 - **Latest signed APK remains PC33**: source `209ce0b117ec66009c2e0b441032c01a06c81452`, https://github.com/husam4448-rgb/wanderfall/actions/runs/37918163875/artifacts/11610127605 — technical PASS, visual FAIL.
 - **Independent dashboard**: https://github.com/husam4448-rgb/wanderfall/issues/35; as of checkpoint no independently active GitHub job was identified.
+
+## PC42C–PC42G — actual two-arm Godot reconstruction and visual rejection (2026-10-09)
+
+- **Latest tested source SHA:** `4b838329e23d08bf6ecb0b4e2a6fb224b8518305`; isolated branch `pc42g-tapered-source-sleeve-masking`. Documentation commits may follow, but are **not** newer tested game builds.
+- **CI:** https://github.com/husam4448-rgb/wanderfall/actions/runs/37961132043 (PC42G, 12/12 PASS). Artifact https://github.com/husam4448-rgb/wanderfall/actions/runs/37961132043/artifacts/11630174517
+- **Confirmed improvement:** weapon-owned grip frame, two genuine Bone2D IK chains, numerically stable original rifle trigger/support contacts across 32 Godot frames; actual source-art apparel and elbow extracted from approved PC22 companion sprites; correct far-arm draw ordering above scene background.
+- **Visual verdict:** **FAIL / NOT APPROVED**. PC42G alpha-tapered support forearm forms an artificial slab rather than a natural sleeve despite passing all technical checks. The original PC42 static male-right reference remains approved only at rest.
+- **Detailed QA and comparison:** https://github.com/husam4448-rgb/wanderfall/blob/pc42g-tapered-source-sleeve-masking/docs/PC42G_TWO_ARM_VISUAL_QA.md
+- **Last signed APK:** PC33 v205, source `209ce0b117ec66009c2e0b441032c01a06c81452`; technical pass, visual FAIL. **No newer APK**.
+- **Next:** PC42H author the missing truly segmented far upper/forearm/elbow/wrist/glove art from approved character materials, register to existing two-arm IK, and redo exact actual Godot clean and diagnostic 32-frame visual checks. Stop repeating single straight sleeve alpha/z/offset adjustments. Then other facings/sexes, pistol, gait, equipment, Android build.
+- **Independent status:** GitHub Issue #35 and Actions run link; no autonomous ChatGPT iteration continues after the assistant stops.
