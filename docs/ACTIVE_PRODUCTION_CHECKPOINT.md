@@ -68,3 +68,16 @@ Create an isolated PC28 branch from PC27 verified source and test genuine knee a
 - **Required next step**: review PC38 patch, complete CI/QA only if tool access permits; rebuild the actual Godot runtime, compare male/female left/right rifle contact with PC37, assess full-alpha head collision and wrist reach, and reject any visual regression. Then finish pistol grip/recoil, PC29 gait/foot-lock and equipped transitions.
 - **Latest signed APK remains PC33**: source `209ce0b117ec66009c2e0b441032c01a06c81452`, https://github.com/husam4448-rgb/wanderfall/actions/runs/37918163875/artifacts/11610127605 — technical PASS, visual FAIL.
 - **Independent dashboard**: https://github.com/husam4448-rgb/wanderfall/issues/35; as of checkpoint no independently active GitHub job was identified.
+
+## PC42B real Godot Skeleton2D first-motion check — 2026-10-09
+
+- **Branch:** `pc42b-skeleton2d-rest-equivalence`
+- **Exact tested SHA:** `73b6ae3c1503ff25bc00ba48573d43cf92ff27a0`
+- **Workflow:** https://github.com/husam4448-rgb/wanderfall/actions/runs/37952726604 — completed success (12/12).
+- **Artifact:** https://github.com/husam4448-rgb/wanderfall/actions/runs/37952726604/artifacts/11626501881
+- **Static source-art appearance:** PASS for male RIGHT-facing horizontal rifle rest pose only.
+- **Actual Bone2D:** 14 nodes, Godot-controlled shoulder (-8°) / forearm (+12°) stress visibly changes the art.
+- **Animated rig verdict:** **FAIL/UNAPPROVED** — hand/rifle geometry is not constrained in one IK contact frame, and hidden elbow/shoulder surfaces are missing. Do not export APK.
+- **Detailed actual visual QA:** https://github.com/husam4448-rgb/wanderfall/blob/pc42b-skeleton2d-rest-equivalence/docs/PC42B_REAL_BONE_VISUAL_QA.md
+- **Next:** PC42C anatomical weapon-grip contact solver, source-faithful joint backing, real Godot angle captures and actual visual review. No other gender/facing/aim/gait extension before this gate passes.
+- **Previous signed APK:** PC33 version 205, technical pass/visual fail. All recovery sources preserved.
