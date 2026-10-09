@@ -154,6 +154,22 @@
           0.35,
           0.39
         ]
+      },
+      "reference_registration": {
+        "runtime_foot_offset_y": 35,
+        "base": {
+          "torso_center_x": 105,
+          "feet_y": 243,
+          "head_top_y": 12,
+          "world_per_reference_px": 0.289
+        },
+        "rifle": {
+          "torso_center_x": 108,
+          "feet_y": 244,
+          "head_top_y": 10,
+          "world_per_reference_px": 0.285
+        },
+        "rule": "align reference by runtime body origin (torso center X + feet Y); never align by shoulder"
       }
     },
     "female": {
@@ -289,6 +305,22 @@
           0.343,
           0.38
         ]
+      },
+      "reference_registration": {
+        "runtime_foot_offset_y": 35,
+        "base": {
+          "torso_center_x": 103,
+          "feet_y": 234,
+          "head_top_y": 4,
+          "world_per_reference_px": 0.274
+        },
+        "rifle": {
+          "torso_center_x": 104,
+          "feet_y": 236,
+          "head_top_y": 0,
+          "world_per_reference_px": 0.267
+        },
+        "rule": "align reference by runtime body origin (torso center X + feet Y); never align by shoulder"
       }
     }
   },
