@@ -39,7 +39,7 @@ source_polygons={
   "pc42j_original_elbow_backing":[(88,98),(101,99),(105,102),(107,105),
                                   (106,108),(103,110),(93,110),(88,107),(86,103)],
   "pc42j_original_rolled_cuff":[(88,103),(94,104),(103,104),(107,106),
-                                (108,108),(106,110),(101,111),(93,111),(88,109)]}
+                                (108,108),(106,109),(101,109),(93,109),(88,108)]}
 reports={}
 for name,polygon in source_polygons.items():
     mask=np.zeros(source.shape[:2],np.uint8)
