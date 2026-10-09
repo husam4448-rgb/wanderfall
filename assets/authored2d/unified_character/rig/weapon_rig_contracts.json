@@ -1,6 +1,6 @@
 {
   "schema_version": "PC23-weapon-contract-v1",
-  "status": "reference-measured-iteration-1",
+  "status": "reference-measured-rifle-pistol-reach-iteration-4",
   "coordinate_convention": "+x weapon-forward for right-facing; +y screen-down; mirrored at runtime for left-facing",
   "architectural_rule": "weapon contract owns presentation/grip/stock/recoil/muzzle data; it may not alter shoulder sockets, bone lengths or limb mass",
   "weapons": {
@@ -36,7 +36,20 @@
         18
       ],
       "render_scale": 0.24,
-      "notes": "Pistol contract intentionally unchanged in rifle-first calibration iteration; recalibrate only after rifle horizontal states visually pass."
+      "notes": "PC23 compact pistol contract: firing grip is body-stable and the support grip rotates around the dominant palm. This replaces the unreachable PC22 mount/socket presentation without changing shoulder or bone anatomy.",
+      "aim_pivot_model": "dominant_grip_anchor",
+      "dominant_grip_body_anchor": [
+        9,
+        -11.5
+      ],
+      "visual_pivot_to_dominant_grip": [
+        0,
+        0
+      ],
+      "muzzle_relative_to_dominant": [
+        7.44,
+        -2.16
+      ]
     },
     "rifle": {
       "reference_male": "assets/authored2d/unified_character/rig/reference/male_east_rifle.png",
@@ -179,6 +192,28 @@
     "architecture": {
       "weapon_cannot_move_shoulder": true,
       "weapon_cannot_change_bone_lengths": true
+    },
+    "pistol": {
+      "dominant_grip_x_world": [
+        8.5,
+        9.5
+      ],
+      "dominant_grip_y_world": [
+        -12,
+        -11
+      ],
+      "support_grip_distance_world": [
+        1.9,
+        2.4
+      ],
+      "dominant_palm_rotation_offset_deg": [
+        -3,
+        3
+      ],
+      "support_palm_rotation_offset_deg": [
+        -3,
+        3
+      ]
     }
   }
 }
