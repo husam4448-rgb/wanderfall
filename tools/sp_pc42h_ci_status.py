@@ -28,8 +28,8 @@ body=f"""# Survival Paradise — Live Development Status
 **STATUS:** {status}
 **EXECUTION OWNER:** {owner}
 **CURRENT DEVELOPMENT PHASE:** {phase} dedicated far-arm source artwork and first rifle small-motion gate
-**ACTIVE DEVELOPMENT BRANCH:** \`{branch}\`
-**EXACT SOURCE COMMIT:** \`{sha}\`
+**ACTIVE DEVELOPMENT BRANCH:** `{branch}`
+**EXACT SOURCE COMMIT:** `{sha}`
 **CURRENT WORKFLOW RUN ID:** {run}
 **CURRENT WORKFLOW URL:** {url}
 **CURRENT BUILD STAGE:** {stage}
@@ -72,7 +72,7 @@ try:
         sys.exit(0)
     request("PATCH",issue_api,{"body":body})
     if stage in ("STARTED","RUNTIME_TESTED","VISUAL_EVIDENCE_READY","FAILED","COMPLETED"):
-        comment=f"**{phase} {stage}** · {now} · [{run}]({url}) · \`{sha[:12]}\` · {detail}. Visual review remains independent from CI. No APK."
+        comment=f"**{phase} {stage}** · {now} · [{run}]({url}) · `{sha[:12]}` · {detail}. Visual review remains independent from CI. No APK."
         request("POST",issue_api+"/comments",{"body":comment})
     print(f"PC42H_STATUS_RECORDED {stage} {now} {url}",flush=True)
 except Exception as exc:
