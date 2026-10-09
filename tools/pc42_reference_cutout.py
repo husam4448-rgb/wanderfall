@@ -131,9 +131,11 @@ for layer in layer_objs:
     # Since layers have disjoint alpha, paste at exact pixel coordinates.
     composed.alpha_composite(layer)
 composed.save(out/"reconstructed_static_pose.png")
-if np.max(np.abs(np.asarray(composed).astype(np.int16)-
-                 np.asarray(source_rgba).astype(np.int16)))>0:
-    raise RuntimeError("PC42 reconstructed original RGB/alpha mismatch")
+# Transparent RGB values are undefined under alpha compositing.
+a0=np.asarray(composed); a1=np.asarray(source_rgba)
+visible=a1[:,:,3]>0
+if not np.array_equal(a0[:,:,3],a1[:,:,3]) or not np.array_equal(a0[:,:,:3][visible],a1[:,:,:3][visible]):
+    raise RuntimeError("PC42 reconstructed visible original RGB/alpha mismatch")
 mask_review=Image.new("RGB",(W*3,H+26),(20,23,26))
 for i,img in enumerate((crop,source_rgba,composed)):
     if i==0:mask_review.paste(img,(i*W,26))
