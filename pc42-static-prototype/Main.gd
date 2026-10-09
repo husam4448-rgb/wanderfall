@@ -211,8 +211,20 @@ func _pc42h_build_far_arm() -> void:
         var parent: Bone2D = spec["parent"]
         parent.add_child(sprite)
         if str(spec["name"]) == "pc42j_painted_elbow_backcloth":
-            # Behind the articulated forearm, not a fake overlaid elbow disk.
+            # Behind articulated skin; show only authentic uncovered backing.
             upper.move_child(sprite,0)
+        if str(spec["name"]) in [
+            "pc42j_painted_inner_rolled_sleeve",
+            "pc42j_painted_outer_cuff_stitch",
+            "pc42j_painted_elbow_transition"
+        ]:
+            # PC42J V2 true occlusion: the newly painted EXPOSED FOREARM
+            # already includes a complete rolled cuff. Drawing separate
+            # additional large rolled rings simultaneously created a hanging
+            # fabric disc in actual Godot (-10 to +10). Keep these layers
+            # available for future pose-specific reveal, but do not double
+            # render covered surfaces in the small-angle rifle pose.
+            sprite.visible = false
         if str(spec["name"]) == "pc42h_far_glove_backing" or str(spec["name"]) == "pc42j_painted_wrist_glove_overlap":
             # The accepted visible support-hand art already follows the rifle.
             # Backing stays available as an art layer but must not double-draw.
