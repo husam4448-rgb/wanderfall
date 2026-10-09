@@ -1,0 +1,95 @@
+name: PC42J Generated Painted Elbow Real Godot Visual Gate
+on:
+  push:
+    branches: [pc42j-painted-elbow-rebuild]
+    paths:
+      - '.github/workflows/pc42j-generated-art-godot.yml'
+      - 'assets/authored2d/pc42j_painted_elbow/pc42j_candidate_generated_atlas_64.png'
+      - 'tools/pc42j_unpack_generated_candidate.py'
+      - 'tools/qa_pc42j_generated_art.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+  issues: write
+env:
+  SP_PHASE: PC42J_GENERATED_ELBOW_GODOT
+  GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
+jobs:
+  painted-arm-first-godot-motion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+      - name: Report workflow started
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/sp_ci_monitor.py emit STARTED "New seven-piece generated painted elbow visual test (no APK)." || true
+      - name: Prepare original art and seven new transparent sprite images
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pillow numpy opencv-python-headless
+          python3 -m py_compile tools/pc42j_unpack_generated_candidate.py tools/qa_pc42j_generated_art.py
+          python3 tools/pc42_reference_cutout.py
+          python3 tools/pc42h_articulated_arm_atlas.py
+          python3 tools/pc42j_unpack_generated_candidate.py
+          python3 tools/pc42j_native_art_intake.py >pc42j-art-intake.log
+          grep -q '"result": "BLOCKED_VISUAL_REVIEW"' pc42-static-prototype/evidence/pc42j-art-intake/ART_INTAKE_STATUS.json
+      - name: Report art prepared for visual QA
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/sp_ci_monitor.py emit SOURCE_READY "Seven real generated painted PNGs built and structurally validated. Visual approval pending." || true
+      - name: Download pinned Godot 4.7.2
+        run: |
+          curl -fL --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip" | sha256sum -c -
+          unzip -q /tmp/godot.zip -d /tmp
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb >/dev/null
+      - name: Compile actual Godot Skeleton2D and Sprite2D layers
+        run: |
+          "$GODOT_BIN" --headless --editor --path pc42-static-prototype --quit >pc42j-import.log 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|Compile Error' pc42j-import.log; then cat pc42j-import.log; exit 1; fi
+      - name: Report Godot compilation
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/sp_ci_monitor.py emit GODOT_COMPILED "Actual Godot compiled; baseline and generated painted-art movement render next." || true
+      - name: Capture original and generated-art Godot 32-frame animations
+        run: |
+          set -euo pipefail
+          mkdir -p pc42-static-prototype/evidence
+          PC42C_CAPTURE=1 timeout 150s xvfb-run -a "$GODOT_BIN" --path pc42-static-prototype --resolution 1580x660 >pc42j-original.log 2>&1
+          for a in m10 m05 p00 p05 p10; do
+            cp "pc42-static-prototype/evidence/pc42c_pose_$a.png" "pc42-static-prototype/evidence/pc42j_original_$a.png"
+          done
+          PC42J_USE_PAINTED_ART=1 timeout 90s xvfb-run -a "$GODOT_BIN" --path pc42-static-prototype --resolution 1580x660 >pc42j-rest.log 2>&1
+          PC42J_USE_PAINTED_ART=1 PC42C_CAPTURE=1 timeout 150s xvfb-run -a "$GODOT_BIN" --path pc42-static-prototype --resolution 1580x660 >pc42j-motion-painted.log 2>&1
+          grep -q 'PC42J_PAINTED_ART_BINDINGS_READY' pc42j-rest.log
+          grep -q 'PC42C_REAL_IK_CONTACT_SWEEP_OK' pc42j-motion-painted.log
+          grep -q 'PC42D_FAR_ARM_TWO_BONE_IK_OK' pc42j-motion-painted.log
+          python3 tools/qa_pc42j_generated_art.py
+      - name: Report real runtime evidence generated
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/sp_ci_monitor.py emit VISUAL_QA_PENDING "Real Godot 32-frame GIF and five-angle A/B captured. Technically tested only; human visual review still pending." || true
+      - name: Upload evidence even if validation fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SP-PC42J-Generated-Painted-Arm-Godot-${{ github.sha }}
+          path: |
+            pc42-static-prototype/evidence/
+            assets/authored2d/pc42j_painted_elbow/*.png
+            assets/authored2d/pc42j_painted_elbow/*.json
+            pc42j-*.log
+          retention-days: 14
+      - name: Terminal state
+        if: always()
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            python3 tools/sp_ci_monitor.py emit COMPLETED "Real Godot test finished. Visual acceptance still requires inspection; no APK." || true
+          else
+            python3 tools/sp_ci_monitor.py emit FAILED "Godot/art test failed. Inspect artifact and resume from checkpoint; no APK." || true
+          fi
