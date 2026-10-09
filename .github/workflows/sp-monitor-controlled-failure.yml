@@ -1,0 +1,25 @@
+name: SP Monitor Controlled Failure Drill
+on:
+  push:
+    branches: [sp-monitor-failure-drill]
+    paths: ['.github/workflows/sp-monitor-controlled-failure.yml']
+permissions:
+  contents: read
+jobs:
+  intentional-failure:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Preserve drill purpose
+        run: |
+          echo "This intentionally failing workflow validates GitHub terminal failure observability." | tee sp_failure_drill.log
+      - name: Controlled failure for watchdog verification
+        run: |
+          echo "SP_CONTROLLED_FAILURE_EXPECTED: no game source is changed."
+          exit 27
+      - name: Upload evidence even after controlled failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SP-Monitor-Controlled-Failure-Evidence
+          path: sp_failure_drill.log
+          retention-days: 2
