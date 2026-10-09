@@ -92,3 +92,15 @@ Create an isolated PC28 branch from PC27 verified source and test genuine knee a
 - **Precise next isolated step:** PC42I: hand-author the anatomical far elbow rolled-sleeve opening and actual occlusion transition, keeping source-faithful palette and dual arm IK. Test the same male RIGHT first-aim five angles with 32 Godot frames and clean/zoomed QA. Do not advance to male LEFT, female, shooting, running or an APK before the moving seam is visually approved.
 - **Last signed APK remains PC33 version 205**, commit `209ce0b117ec66009c2e0b441032c01a06c81452`, https://github.com/husam4448-rgb/wanderfall/actions/runs/37918163875/artifacts/11610127605. No new PC42H APK. Android device visual/performance verification remains untested.
 - **Monitoring:** https://github.com/husam4448-rgb/wanderfall/issues/35. The final GitHub Actions job has finished, and this chat's assistant execution does not persist after its response.
+
+## PC42I — actual original-cuff donor experiment (2026-10-09)
+
+- **Tested source SHA:** `f639ed837d32176a5a013b7d49fa032f2b75ed08` on `pc42i-authored-rolled-elbow-seam`. Later documentation commits are NOT newer tested builds.
+- **Real Godot Actions:** https://github.com/husam4448-rgb/wanderfall/actions/runs/37966767915 — SUCCESS, 32 Godot frames, five aim-angle screenshots, source-art validations, unchanged dual-grip constraint, and actual PC42H-vs-PC42I A/B.
+- **Evidence:** https://github.com/husam4448-rgb/wanderfall/actions/runs/37966767915/artifacts/11633991912
+- **Visual review:** **FAILED** despite technical pass. The new original-photo hem/fold overlays form a bulky artificial camouflaged elbow flap at the positive angles. Do not promote source as accepted artwork.
+- **Report:** https://github.com/husam4448-rgb/wanderfall/blob/pc42i-authored-rolled-elbow-seam/docs/PC42I_ELBOW_VISUAL_QA.md
+- **Best experimental visual comparator:** PC42H v3 tested `1cfaab1c8198dbfc8a14f73f2a92dad953a8ba78`, also only partially acceptable. The protected PC42 original male RIGHT horizontal static pose remains the only fully accepted visual identity.
+- **Exact next step:** PC42J separately author a finished far upper-elbow rolled-cuff *sprite with authentic contour/texture and concealed surface*, aligned to existing true Bone2D IK. Do not reuse PC42G/H/I tapered/warped masks or offset tricks. Run 0°/±5°/±10° genuine Godot 32-frame clean renders and compare to PC42H; no APK unless true visual gate passes.
+- **APK:** PC33 version 205 still latest signed test build; its visual QA is failed. No PC42I APK.
+- **Monitoring:** Issue #35 remains authoritative. No assistant-directed background development after execution ends.
