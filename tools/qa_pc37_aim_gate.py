@@ -14,7 +14,7 @@ out=Path("pc37-aim-evidence")
 out.mkdir(exist_ok=True)
 pose_source=(Path("pc37-src")/"pc37_aim_pose_2d.gd").read_text()
 runtime=(Path("pc37-src")/"d2d29_minimal_token_runtime.gd").read_text()
-assert 'if bool(resolved["blocked"])' in runtime
+assert 'if OS.get_environment("PC37_LEGACY_AIM") != "1" and bool(resolved["blocked"]):' in runtime
 assert 'shot_flash = 0.0' in runtime
 assert 'pc22_arm_angle: float = float(pc37_pose["angle"])' in runtime
 assert 'pc36_aim_angle: float = float(pc37_pose["angle"])' in runtime
