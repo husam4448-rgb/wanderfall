@@ -98,16 +98,22 @@ func palm_rotation_offset(weapon_id: String, support: bool) -> float:
     return deg_to_rad({rifle["support_palm_rotation_offset_deg"]} if support else {rifle["dominant_palm_rotation_offset_deg"]})
 
 func weapon_targets(base: Vector2, angle: float, dir_sign: float, recoil: float, weapon_id: String = "rifle") -> Dictionary:
-    var mount := {v2(rifle["body_mount_offset"])}
-    var dom_local := {v2(rifle["dominant_grip_socket"])}
-    var sup_local := {v2(rifle["support_grip_socket"])}
+    var pivot: Vector2
+    var dominant_grip: Vector2
+    var support_grip: Vector2
     if weapon_id == "pistol":
-        mount = {v2(pistol["body_mount_offset"])}
-        dom_local = {v2(pistol["dominant_grip_socket"])}
-        sup_local = dom_local + {v2(pistol["support_grip_relative_to_dominant"])}
-    var pivot := base+Vector2(mount.x*dir_sign,mount.y)+pose_point(Vector2(-{rifle["recoil_distance"]}*recoil,0),angle,dir_sign)
-    var dominant_grip := pivot+pose_point(dom_local,angle,dir_sign)
-    var support_grip := pivot+pose_point(sup_local,angle,dir_sign)
+        var mount := {v2(pistol["body_mount_offset"])}
+        var dom_local := {v2(pistol["dominant_grip_socket"])}
+        var sup_local := dom_local + {v2(pistol["support_grip_relative_to_dominant"])}
+        pivot = base+Vector2(mount.x*dir_sign,mount.y)+pose_point(Vector2(-{pistol["recoil_distance"]}*recoil,0),angle,dir_sign)
+        dominant_grip = pivot+pose_point(dom_local,angle,dir_sign)
+        support_grip = pivot+pose_point(sup_local,angle,dir_sign)
+    else:
+        var dom_anchor := {v2(rifle["dominant_grip_body_anchor"])}
+        dominant_grip = base+Vector2(dom_anchor.x*dir_sign,dom_anchor.y)
+        dominant_grip += pose_point(Vector2(-{rifle["recoil_distance"]}*recoil,0),angle,dir_sign)
+        support_grip = dominant_grip+pose_point({v2(rifle["support_grip_relative_to_dominant"])},angle,dir_sign)
+        pivot = dominant_grip-pose_point({v2(rifle["visual_pivot_to_dominant_grip"])},angle,dir_sign)
     return {{
         "pivot":pivot,
         "dominant_grip":dominant_grip,
