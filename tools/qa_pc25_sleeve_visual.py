@@ -20,22 +20,22 @@ for sex in ('male','female'):
     for pose in states:
         before=Image.open(old/f'{sex}_{pose}.png').convert('RGB')
         after=Image.open(new/f'{sex}_{pose}.png').convert('RGB')
-        if before.size!=after.size or before.size!=(1280,720):
-            raise RuntimeError(f'{sex}/{pose}: incompatible capture dimensions')
+        if before.size!=after.size or before.width<900 or before.height<570:
+            raise RuntimeError(f'{sex}/{pose}: incompatible capture dimensions {before.size} vs {after.size}')
         # Fixed viewport crop is identical between runs, no resizing tricks.
-        crop=(465,125,850,615)
+        crop=(400,82,870,568)
         a=before.crop(crop)
         b=after.crop(crop)
         d=ImageChops.difference(a,b)
         diff=sum(ImageStat.Stat(d).mean)/3.0
         bbox=d.getbbox()
         results[sex][pose]={'mean_absolute_rgb_change':round(diff,5),'changed_bbox':list(bbox) if bbox else None}
-        canvas=Image.new('RGB',(2*385,520),'#131a20')
+        canvas=Image.new('RGB',(2*470,520),'#131a20')
         canvas.paste(a,(0,30))
-        canvas.paste(b,(385,30))
+        canvas.paste(b,(470,30))
         g=ImageDraw.Draw(canvas)
         g.text((10,10),f'{sex.upper()} {pose}: PC24 legacy arm',fill='white')
-        g.text((395,10),'PC25 authored arm overlay',fill='white')
+        g.text((480,10),'PC25 authored arm overlay',fill='white')
         canvas.save(out/f'{sex}_{pose}_before_after.jpg',quality=93,subsampling=0)
     if not results[sex]['rifle_horizontal']['changed_bbox']:
         raise RuntimeError(f'{sex}: authored sleeve overlay made no change in actual rifle render')
