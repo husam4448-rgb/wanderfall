@@ -1,0 +1,89 @@
+{
+  "schema_version": "PC23-weapon-contract-v1",
+  "status": "provisional-calibration",
+  "coordinate_convention": "+x weapon-forward for right-facing; +y screen-down; mirrored at runtime for left-facing",
+  "architectural_rule": "weapon contract owns presentation/grip/stock/recoil/muzzle data; it may not alter shoulder sockets, bone lengths or limb mass",
+  "weapons": {
+    "pistol": {
+      "reference": "existing PC22 pistol art; grip relation to be visually locked in PC23 calibration harness",
+      "body_mount_offset": [
+        3,
+        -6
+      ],
+      "dominant_grip_socket": [
+        16.6,
+        0.8
+      ],
+      "support_grip_relative_to_dominant": [
+        -1.3,
+        1.7
+      ],
+      "dominant_palm_rotation_offset_deg": 0,
+      "support_palm_rotation_offset_deg": 0,
+      "dominant_grip_axis_deg": 90,
+      "support_grip_axis_deg": 90,
+      "recoil_axis_local": [
+        -1,
+        0
+      ],
+      "recoil_distance": 1.45,
+      "muzzle_socket": [
+        24.04,
+        -1.36
+      ],
+      "visual_pivot_px": [
+        15,
+        18
+      ],
+      "render_scale": 0.24,
+      "notes": "initial contract preserves the accepted PC22 weapon art placement while PC23 calibrates body-relative anatomy first"
+    },
+    "rifle": {
+      "reference_male": "assets/authored2d/unified_character/rig/reference/male_east_rifle.png",
+      "reference_female": "assets/authored2d/unified_character/rig/reference/female_east_rifle.png",
+      "body_mount_offset": [
+        3,
+        -6
+      ],
+      "dominant_grip_socket": [
+        9.8,
+        0.8
+      ],
+      "support_grip_socket": [
+        17,
+        -1
+      ],
+      "dominant_palm_rotation_offset_deg": 0,
+      "support_palm_rotation_offset_deg": 0,
+      "dominant_grip_axis_deg": 72,
+      "support_grip_axis_deg": 0,
+      "stock_socket": [
+        -3.2,
+        -0.5
+      ],
+      "recoil_axis_local": [
+        -1,
+        0
+      ],
+      "recoil_distance": 1.45,
+      "muzzle_socket": [
+        31,
+        -1
+      ],
+      "visual_pivot_px": [
+        36,
+        18
+      ],
+      "stock_render_scale": 0.33,
+      "notes": "grip sockets are initial values inherited from PC22; PC23 visual overlay must prove or recalibrate them without moving body anatomy"
+    }
+  },
+  "invariants": {
+    "body_profile_is_external": true,
+    "weapon_cannot_move_shoulder": true,
+    "weapon_cannot_change_bone_lengths": true,
+    "gear_cannot_change_weapon_sockets": true,
+    "role_cannot_change_weapon_sockets": true,
+    "left_facing_uses_mirror": true
+  }
+}
