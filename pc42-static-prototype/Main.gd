@@ -269,6 +269,10 @@ func _pc42c_capture_full_test() -> void:
         max_dom = maxf(max_dom,float(result["dominant_contact_error_world"]))
         max_sup = maxf(max_sup,float(result["support_contact_error_world"]))
         max_far = maxf(max_far,float(result["far_contact_error_world"]))
+        var shoulder_world: Vector2 = pc42_bones["far_upper_arm"].global_position
+        var elbow_world: Vector2 = pc42_bones["far_forearm"].global_position
+        var wrist_world: Vector2 = pc42_bones["far_forearm"].to_global(PC42CGripIK.REST_SUPPORT_WRIST - PC42CGripIK.FAR_REST_ELBOW)
+        print("PC42J_BONE_FRAME %02d %.3f %.3f %.3f %.3f %.3f %.3f" % [frame,shoulder_world.x,shoulder_world.y,elbow_world.x,elbow_world.y,wrist_world.x,wrist_world.y])
         await _pc42c_capture_png("pc42c_motion_%02d.png" % frame)
         print("PC42C_GRIP_FRAME %02d angle=%.3f dominant_error=%.6f support_error=%.6f far_arm_error=%.6f" % [frame,angle_deg,result["dominant_contact_error_world"],result["support_contact_error_world"],result["far_contact_error_world"]])
     for angle_int in [-10,-5,0,5,10]:
