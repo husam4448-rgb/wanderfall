@@ -3,7 +3,7 @@ on:
   push:
     branches: [pc38-stock-shoulder-contact-solver]
     paths:
-      - '.github/workflows/pc37-aim-visual.yml'
+      - '.github/workflows/pc38-stock-contact-visual.yml'
       - 'patches/apply_pc37_shared_aim_gate.py'
       - 'patches/apply_pc37_aim_capture.py'
       - 'tools/qa_pc37_aim_gate.py'
