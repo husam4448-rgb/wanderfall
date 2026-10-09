@@ -152,8 +152,15 @@ func _pc42d_build_far_arm() -> void:
     var upper: Bone2D = Bone2D.new()
     upper.name = "Bone_far_upper_arm"
     upper.position = PC42CGripIK.FAR_SHOULDER
-    upper.z_index = -8
+    # PC42F: PC42D/E mistakenly drew the far arm at z=-8, BEHIND the
+    # opaque canvas background. Draw it first among the Skeleton2D children
+    # at normal z=0 so the character's original near-art occludes it, while
+    # authentic far sleeve pixels can appear through visible gaps.
+    upper.z_index = 0
     pc42_skeleton.add_child(upper)
+    pc42_skeleton.move_child(upper,0)
+    if OS.get_environment("PC42F_HIDE_FAR_ARM") == "1":
+        upper.visible = false
     var fore: Bone2D = Bone2D.new()
     fore.name = "Bone_far_forearm"
     fore.position = PC42CGripIK.FAR_REST_ELBOW-PC42CGripIK.FAR_SHOULDER
@@ -178,6 +185,7 @@ func _pc42d_build_far_arm() -> void:
         var parent: Bone2D = spec["parent"]
         parent.add_child(sprite)
     print("PC42D_FAR_ARM_SOURCE_BONES_READY 2 independent actual Bone2D plus authored elbow source")
+    print("PC42F_FAR_ARM_DEPTH_RESOLVED visible=" + str(upper.visible) + " z_index=" + str(upper.z_index))
 
 func _pc42c_apply_weapon_ik(angle: float) -> Dictionary:
     # The weapon owns all grip landmarks. Solve arm AFTER selecting rifle pose.
