@@ -1,0 +1,52 @@
+name: PC34 Full Painted Rifle Silhouette Feasibility
+on:
+  push:
+    branches: [pc34-weapon-silhouette-feasibility]
+    paths:
+      - '.github/workflows/pc34-rifle-silhouette.yml'
+      - 'tools/qa_pc34_weapon_silhouette_geometry.py'
+      - 'tools/pc34_ci_status.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+jobs:
+  silhouette:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v5
+      - name: PC34 independent workflow started
+        shell: bash
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/pc34_ci_status.py STARTED "Analyzing committed source alpha rifle and body anatomical reach"
+      - name: Validate geometry tooling
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet Pillow
+          python3 -m py_compile tools/qa_pc34_weapon_silhouette_geometry.py tools/pc34_ci_status.py
+      - name: Measure painted rifle against head and full IK arc
+        run: |
+          set -euo pipefail
+          python3 tools/qa_pc34_weapon_silhouette_geometry.py | tee pc34-silhouette-qa.log
+          test -s pc34-silhouette-evidence/pc34-full-weapon-feasibility.png
+          test -s pc34-silhouette-evidence/pc34-weapon-feasibility.csv
+      - name: PC34 report evidence ready
+        shell: bash
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/pc34_ci_status.py EVIDENCE_READY "Full rifle alpha, anatomical reach and aim-angle maps generated; no APK exported"
+      - name: Preserve PC34 diagnostics
+        uses: actions/upload-artifact@v4
+        with:
+          name: SurvivalParadise-PC34-FullSilhouette-${{ github.sha }}
+          path: |
+            pc34-silhouette-evidence/
+            pc34-silhouette-qa.log
+      - name: PC34 independently report final job status
+        if: always()
+        shell: bash
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/pc34_ci_status.py "${{ job.status == 'success' && 'COMPLETED' || 'FAILED' }}" "Full painted rifle feasibility diagnostics; read artifact to design torso pose system"
