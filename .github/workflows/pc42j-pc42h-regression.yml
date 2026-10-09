@@ -1,0 +1,90 @@
+name: PC42J Preserve PC42H IK Regression
+on:
+  push:
+    branches: [pc42j-painted-elbow-rebuild]
+    paths:
+      - '.github/workflows/pc42j-pc42h-regression.yml'
+      - 'pc42-static-prototype/Main.gd'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+  issues: write
+env:
+  SP_PHASE: PC42J_FALLBACK_RIG_TEST
+  GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
+jobs:
+  protected-original-rig:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - name: Report verified-fallback start
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/sp_ci_monitor.py emit STARTED "Testing unmodified PC42H fallback IK under new optional PC42J native art loader; no original painted art provided yet." || true
+      - name: Reconstruct existing approved source sprites
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pillow numpy opencv-python-headless
+          python3 tools/pc42_reference_cutout.py
+          python3 tools/pc42h_articulated_arm_atlas.py
+      - name: Install tested Godot
+        run: |
+          curl -fL --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip" | sha256sum -c -
+          unzip -q /tmp/godot.zip -d /tmp
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb >/dev/null
+      - name: Compile actual Godot and optional source-art binding
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --editor --path pc42-static-prototype --quit >pc42j-compile.log 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|Compile Error' pc42j-compile.log; then cat pc42j-compile.log; exit 1; fi
+      - name: Capture original untouched male RIGHT pose and 32-frame IK
+        run: |
+          set -euo pipefail
+          mkdir -p pc42-static-prototype/evidence
+          PC42F_HIDE_FAR_ARM=1 timeout 90s xvfb-run -a "$GODOT_BIN" --path pc42-static-prototype --resolution 1580x660 >pc42j-hidden.log 2>&1
+          cp pc42-static-prototype/evidence/godot_pc42_static_first_pose.png pc42-static-prototype/evidence/pc42h_hidden_baseline.png
+          timeout 90s xvfb-run -a "$GODOT_BIN" --path pc42-static-prototype --resolution 1580x660 >pc42j-rest.log 2>&1
+          PC42C_CAPTURE=1 timeout 150s xvfb-run -a "$GODOT_BIN" --path pc42-static-prototype --resolution 1580x660 >pc42c-motion.log 2>&1
+          grep -q 'PC42C_REAL_IK_CONTACT_SWEEP_OK' pc42c-motion.log
+          grep -q 'PC42D_FAR_ARM_TWO_BONE_IK_OK' pc42c-motion.log
+          grep -q 'PC42H_SEGMENTED_FAR_ARM_READY' pc42j-rest.log
+          if grep -q 'PC42J_PAINTED_ART_BINDINGS_READY' pc42j-rest.log; then
+            echo 'ERROR: unreviewed new art was improperly activated' >&2
+            exit 1
+          fi
+      - name: Verify original approved static and rifle grip correctness
+        run: |
+          set -euo pipefail
+          python3 tools/qa_pc42_static_reference.py
+          python3 tools/qa_pc42c_grip_ik.py
+          python3 tools/qa_pc42h_segmented_arm.py
+          test -s pc42-static-prototype/evidence/pc42c_32frame_weapon_ik.gif
+          test -s pc42-static-prototype/evidence/pc42h_upper_body_five_angles.jpg
+      - name: Report fallback actual Godot validation
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/sp_ci_monitor.py emit RIG_REGRESSION_PASS "Original male RIGHT PC42H source textures, 32-frame real Godot and both hand contacts passed. PC42J genuine art remains BLOCKED; no visual art approval or APK." || true
+      - name: Upload reproducible actual Godot evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SP-PC42J-PC42H-FallbackEvidence-${{ github.sha }}
+          path: |
+            pc42-static-prototype/evidence/
+            pc42j-*.log
+            pc42c-motion.log
+          retention-days: 14
+      - name: Final state even on compilation or runtime failure
+        if: always()
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            python3 tools/sp_ci_monitor.py emit COMPLETED "Fallback regression technically passed; new painted elbow artwork not yet present. NO APK." || true
+          else
+            python3 tools/sp_ci_monitor.py emit FAILED "Protected rig fallback regression failed; review exact Godot logs. Do not merge source or export APK." || true
+          fi
