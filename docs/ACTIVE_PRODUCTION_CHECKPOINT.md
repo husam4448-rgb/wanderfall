@@ -79,3 +79,14 @@ Create an isolated PC28 branch from PC27 verified source and test genuine knee a
 - **Last signed APK:** PC33 v205, source `209ce0b117ec66009c2e0b441032c01a06c81452`; technical pass, visual FAIL. **No newer APK**.
 - **Next:** PC42H author the missing truly segmented far upper/forearm/elbow/wrist/glove art from approved character materials, register to existing two-arm IK, and redo exact actual Godot clean and diagnostic 32-frame visual checks. Stop repeating single straight sleeve alpha/z/offset adjustments. Then other facings/sexes, pistol, gait, equipment, Android build.
 - **Independent status:** GitHub Issue #35 and Actions run link; no autonomous ChatGPT iteration continues after the assistant stops.
+
+
+## PC42J 2026-10-09 — experimental elbow topology and monitoring recovery
+
+- Protected tested source: PC42H 1cfaab1c8198dbfc8a14f73f2a92dad953a8ba78. Only the original PC42 male RIGHT static appearance was accepted; moving art not approved.
+- Isolated branch: pc42j-authored-elbow-topology, from PC42H tested source (never from visually rejected PC42I).
+- PC42J revision 1 tested SHA 352832c9740f1d7097403cb88606ce1d5c1f9f6a: workflow https://github.com/husam4448-rgb/wanderfall/actions/runs/37969022557 SUCCESS (technical); evidence https://github.com/husam4448-rgb/wanderfall/actions/runs/37969022557/artifacts/11633899990. Actual Godot compile, 32 frames, five rifle angles, IK contacts and Bone2D overlays passed. **VISUAL FAIL**: painted cuff looked like an oversized circular disc on exposed elbow. Do NOT promote.
+- Revision 2 candidate SHA c4ed5195b0e35e31e8d8eaa9afc080926f06a3fd, GitHub run https://github.com/husam4448-rgb/wanderfall/actions/runs/37969403585. V2 changes independent drawn backing paint order to BELOW bare support forearm and narrows the visible sewn cuff; retains rifle sockets/IK and approved original static near-side art.
+- CRITICAL NEXT: Inspect run 37969403585 and its real-Godot five-angle A/B screenshot, 32 frames and actual Bone2D overlays. If another significant visual defect remains, stop the programmatically hand-drawn cuff method and mark requirement for an independently commissioned/authored source-compatible original painted joint; do not repeat offsets/alpha tricks.
+- LIVE MONITOR: default-branch main scheduled watchdog workflow https://github.com/husam4448-rgb/wanderfall/actions/workflows/sp-live-status-watchdog.yml ; first verified run https://github.com/husam4448-rgb/wanderfall/actions/runs/37968317640 successful. It maintains a bounded automatic section in Issue #35 and cannot legitimately prove ChatGPT continues after a chat stops. PC42J Actions sends meaningful events directly to Issue #35. GitHub scheduled jobs can be delayed.
+- Last signed APK: PC33 code 205 only, visual FAIL. No PC42J APK.
