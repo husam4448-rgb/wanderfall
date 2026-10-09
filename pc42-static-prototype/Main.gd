@@ -200,6 +200,10 @@ func _pc42h_build_far_arm() -> void:
         sprite.position = -Vector2(spec["pivot"])
         var parent: Bone2D = spec["parent"]
         parent.add_child(sprite)
+        if str(spec["name"]) == "pc42j_far_elbow_backcloth":
+            # Physically concealed textile: put UNDER independently painted
+            # forearm, never render an opaque circular backing above skin.
+            upper.move_child(sprite,0)
         if str(spec["name"]) == "pc42h_far_glove_backing":
             # Authored, but don't paint a second glove over approved source hand.
             # The original rifle-socket hand already tracks the weapon exactly.

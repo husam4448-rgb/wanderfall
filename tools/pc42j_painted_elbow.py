@@ -74,30 +74,28 @@ poly(d,[(-5,2.5),(-3.4,1.1),(-1.7,2.5),(-1.4,4.8),(-4.2,5.1)],cloth_light)
 stroke(d,[(-6.1,4.1),(-5,5),(-3.9,5.3)],dark_hem,.75)
 stroke(d,[(-5.8,-4.8),(-3.4,-5.8),(-1,-5.3)],cloth_light,.55)
 
-# Physically separate rolled tubular cloth RIM, asymmetrical sewn hem and
-# genuine cuff opening. Its interior is darker; skin is rendered by the
-# existing far-forearm on a DIFFERENT Bone2D, so the elbow remains functional.
+# Revised PC42J: the previous fully painted ellipse looked like a leather
+# medallion. Actual physical sleeve opening is a NARROW folded hem spanning
+# the elbow circumference; exposed forearm SKIN owns the middle.
+# Deliberately draw only an irregular 2–3 px sewn lip, not an opaque disk.
 rim=layer();d=ImageDraw.Draw(rim)
-poly(d,[(-2.2,-5.9),(.2,-6.1),(1.7,-5.3),(3.0,-3.3),
-        (3.5,-.6),(2.9,2.3),(1.8,4.6),(-.9,5.9),
-        (-2.7,5.0),(-3.9,3.2),(-4,1.3),(-3.3,-1.5)],dark_hem)
-poly(d,[(-2.5,-4.9),(-.5,-5.4),(1,-4.8),(2,-2.6),
-        (2.1,-.2),(1.3,2.5),(-.4,4.7),(-2.1,4),
-        (-3.1,2.7),(-3.1,0),(-2.6,-2.7)],cloth_base)
-poly(d,[(-2.1,-3.8),(-1,-4.4),(.4,-3.9),(1.1,-2.2),
-        (1.3,-.9),(.1,-1.8),(-.9,-1.5),(-2.6,-.2)],cloth_light)
-poly(d,[(-1,3.0),(.4,2.2),(1.1,.9),(.8,3.5),(-.8,4.8),(-2,3.9)],warm_pleat)
-stroke(d,[(-2.6,-4.3),(-3.5,-2.2),(-3.8,.7),(-2.9,3.2),
-          (-1.1,5.1),(.7,4.4)],dark_hem,.9)
-stroke(d,[(-.9,-5.1),(.7,-4.3),(1.9,-2.6),(2.5,-.1),
-          (1.8,2.4)],cloth_light,.65)
-stroke(d,[(1.7,-4.1),(2.8,-1.8),(2.6,1.5),(1.5,3.7)],cloth_shadow,.6)
-# Localized hand-authored stitch highlights to avoid a featureless cuff tube.
-for u,v in [(-2.8,-2.4),(-2.9,-.2),(-2.1,2),(-1.1,4.2),(1.9,-2.2),(2,0)]:
-    center=xy(u,v)
-    rr=max(1,round(.20*S))
-    d.ellipse((center[0]-rr,center[1]-rr,center[0]+rr,center[1]+rr),
-              fill=tuple(skin_bounce)+(205,))
+poly(d,[(-2.4,-5.0),(-.9,-5.5),(.5,-4.9),(1.3,-3.4),
+        (1.4,-1.4),(.9,.9),(.2,3.2),(-1.0,4.7),
+        (-2.4,4.4),(-3.1,2.3),(-3.2,-.3),(-2.8,-2.9)],dark_hem)
+poly(d,[(-2.3,-4.4),(-.9,-4.7),(.1,-4.4),(.4,-3.2),
+        (.5,-1.2),(.1,1.0),(-.4,2.5),(-1.3,3.9),
+        (-2.1,3.5),(-2.4,1.4),(-2.5,-.6)],cloth_base)
+stroke(d,[(-2.1,-4.1),(-.7,-4.5),(.6,-3.2),(1,-.7),
+          (.6,1.3),(-.2,3.2),(-1.4,4.2)],cloth_light,.60)
+stroke(d,[(-2.8,-2.3),(-2.9,-.3),(-2.7,1.5),(-2.1,3.3)],
+       dark_hem,.60)
+stroke(d,[(-1.5,-3.2),(-1.7,-1.3),(-1.7,.8),(-1.5,2.4)],
+       warm_pleat,.38)
+for u,v in [(-1.8,-3.9),(-2.4,-1.2),(-2.0,1.7)]:
+    x,y=xy(u,v)
+    rad=max(1,round(.17*S))
+    d.ellipse((x-rad,y-rad,x+rad,y+rad),fill=tuple(skin_bounce)+(185,))
+
 report={
     "pc42j_far_elbow_backcloth":finish(backing,"pc42j_far_elbow_backcloth"),
     "pc42j_far_rolled_cuff":finish(rim,"pc42j_far_rolled_cuff")
