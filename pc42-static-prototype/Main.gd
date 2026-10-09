@@ -4,6 +4,7 @@ extends Node2D
 ## source pixels. No angular aiming/IK acceptance is claimed at this stage.
 
 const SCALE: float = 2.0
+const PC42CGripIK = preload("res://pc42c_weapon_grip_ik.gd")
 const LEFT: Vector2 = Vector2(26.0, 82.0)
 const CENTER: Vector2 = Vector2(534.0, 82.0)
 const RIGHT: Vector2 = Vector2(1040.0, 82.0)
@@ -19,10 +20,10 @@ var pc42_bones: Dictionary = {}
 const PARENTS: Dictionary = {
     "head_neck":"torso",
     "dominant_hand":"near_forearm",
-    "support_hand":"near_forearm",
+    "support_hand":"rifle_stock",
     "near_forearm":"near_upper_arm",
     "near_upper_arm":"torso",
-    "rifle_stock":"torso",
+    "rifle_stock":"",
     "rifle_receiver":"rifle_stock",
     "torso":"pelvis",
     "backpack":"torso",
@@ -60,6 +61,10 @@ func _ready() -> void:
                       "texture":img,
                       "pivot":Vector2(float(pivot_data[0]),float(pivot_data[1]))})
     _build_actual_skeleton2d()
+    if OS.get_environment("PC42C_CAPTURE") == "1":
+        await _pc42c_capture_full_test()
+        get_tree().quit()
+        return
     queue_redraw()
     await get_tree().process_frame
     await RenderingServer.frame_post_draw
@@ -138,6 +143,69 @@ func _build_actual_skeleton2d() -> void:
         upper.rotation = deg_to_rad(-8.0)
         fore.rotation = deg_to_rad(12.0)
         print("PC42B_ROTATION_STRESS_DIAGNOSTIC -8 degree shoulder +12 degree forearm; EXPECT ARTICULATION QA PENDING")
+
+func _pc42c_apply_weapon_ik(angle: float) -> Dictionary:
+    # The weapon owns all grip landmarks. Solve arm AFTER selecting rifle pose.
+    # This is not a generic procedural limb renderer: original source RGB
+    # remains attached to real Bone2D/Sprite2D parts.
+    var solution: Dictionary = PC42CGripIK.solve_dominant(angle)
+    if not solution["valid"]:
+        push_error("PC42C unreachable rifle grip at angle " + str(rad_to_deg(angle)))
+        return solution
+    var shoulder: Bone2D = pc42_bones["near_upper_arm"]
+    var forearm: Bone2D = pc42_bones["near_forearm"]
+    var dominant: Bone2D = pc42_bones["dominant_hand"]
+    var support: Bone2D = pc42_bones["support_hand"]
+    var stock: Bone2D = pc42_bones["rifle_stock"]
+    shoulder.rotation = float(solution["shoulder_rotation"])
+    forearm.rotation = float(solution["forearm_rotation"])
+    # Dominant glove follows rifle in world space without disconnecting
+    # its pivot from the analytically solved elbow and wrist chain.
+    dominant.rotation = angle - shoulder.rotation - forearm.rotation
+    stock.rotation = angle
+    support.rotation = 0.0
+    var expected_dom: Vector2 = pc42_skeleton.to_global(solution["dominant_wrist"])
+    var expected_sup: Vector2 = pc42_skeleton.to_global(solution["support_wrist"])
+    solution["dominant_contact_error_world"] = dominant.global_position.distance_to(expected_dom)
+    solution["support_contact_error_world"] = support.global_position.distance_to(expected_sup)
+    solution["elbow_reach_error_px"] = absf((solution["elbow"] - PC42CGripIK.SHOULDER).length() - PC42CGripIK.SHOULDER.distance_to(PC42CGripIK.REST_ELBOW))
+    return solution
+
+func _pc42c_capture_png(filename: String) -> void:
+    queue_redraw()
+    await get_tree().process_frame
+    await RenderingServer.frame_post_draw
+    var im: Image = get_viewport().get_texture().get_image()
+    var filepath: String = ProjectSettings.globalize_path("res://evidence/" + filename)
+    var save_error: Error = im.save_png(filepath)
+    if save_error != OK:
+        push_error("PC42C screenshot failure " + filepath + " err=" + str(save_error))
+        get_tree().quit(12)
+
+func _pc42c_capture_full_test() -> void:
+    var max_dom: float = 0.0
+    var max_sup: float = 0.0
+    for frame in range(32):
+        var angle_deg: float = 10.0*sin(TAU*float(frame)/32.0)
+        var result: Dictionary = _pc42c_apply_weapon_ik(deg_to_rad(angle_deg))
+        if not result["valid"]:
+            get_tree().quit(13)
+            return
+        max_dom = maxf(max_dom,float(result["dominant_contact_error_world"]))
+        max_sup = maxf(max_sup,float(result["support_contact_error_world"]))
+        await _pc42c_capture_png("pc42c_motion_%02d.png" % frame)
+        print("PC42C_GRIP_FRAME %02d angle=%.3f dominant_error=%.6f support_error=%.6f" % [frame,angle_deg,result["dominant_contact_error_world"],result["support_contact_error_world"]])
+    for angle_int in [-10,-5,0,5,10]:
+        _pc42c_apply_weapon_ik(deg_to_rad(float(angle_int)))
+        var label: String = "m%02d" % absi(angle_int) if angle_int < 0 else "p%02d" % angle_int
+        await _pc42c_capture_png("pc42c_pose_" + label + ".png")
+    _pc42c_apply_weapon_ik(0.0)
+    if max_dom > 0.025 or max_sup > 0.025:
+        push_error("PC42C contact slip is not permissible: dominant=" + str(max_dom) + " support=" + str(max_sup))
+        get_tree().quit(14)
+        return
+    print("PC42C_REAL_IK_CONTACT_SWEEP_OK frames=32 max_dominant_px_world=" + str(max_dom) + " max_support_px_world=" + str(max_sup))
+    print("PC42C_SECOND_ARM_AND_HIDDEN_TEXTURE_VISUAL_ACCEPTANCE_PENDING")
 
 func _draw_parts(origin: Vector2, show_pivots: bool) -> void:
     # Source RGBA textures all occupy the original art canvas.
