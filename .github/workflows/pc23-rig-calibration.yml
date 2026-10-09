@@ -204,8 +204,10 @@ jobs:
                   ref=ref_image(sex,kind)
                   rt=runtime_crop(sex,state)
                   canvas=Image.new('RGB',(900,520),(13,16,17))
-                  rr=ref.copy()
-                  rr.thumbnail((410,470),Image.Resampling.LANCZOS)
+                  # Enlarge the approved reference to the same review
+                  # envelope as the Godot crop. The old thumbnail call left the
+                  # 220x250 reference tiny and made proportion review unreliable.
+                  rr=ref.resize((410,466),Image.Resampling.LANCZOS)
                   rt.thumbnail((410,470),Image.Resampling.LANCZOS)
                   canvas.paste(rr,(20,30))
                   canvas.paste(rt,(470,30))
