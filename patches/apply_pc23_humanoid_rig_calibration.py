@@ -214,13 +214,26 @@ func _pc23_draw_calibration_overlay(base: Vector2, dir_sign: float, shoulder_rea
     if not pc23_calibration_enabled:
         return
 
-    # Direct reference-art overlay aligned from the measured shoulder landmark.
-    # Crop excludes panel text/city art; opacity makes silhouette mismatch obvious.
+    # Direct reference-art overlay registered from body landmarks only:
+    # torso-center X + feet Y. Shoulder is deliberately NOT an alignment input,
+    # so a wrong shoulder remains visibly wrong instead of being hidden.
     var ref := _pc23_reference_texture(weapon_id)
     if ref != null and dir_sign > 0.0:
-        var ref_shoulder := Vector2(100,79) if not female_mode else Vector2(100,70)
-        var scale_ref := 0.2305 if not female_mode else 0.2293
-        var top_left := shoulder_rear-ref_shoulder*scale_ref
+        var use_rifle := weapon_id == "rifle"
+        var torso_center_x: float
+        var feet_y: float
+        var scale_ref: float
+        var runtime_foot_offset_y: float = 35.0
+        if female_mode:
+            torso_center_x = 104.0 if use_rifle else 103.0
+            feet_y = 236.0 if use_rifle else 234.0
+            scale_ref = 0.2670 if use_rifle else 0.2740
+        else:
+            torso_center_x = 108.0 if use_rifle else 105.0
+            feet_y = 244.0 if use_rifle else 243.0
+            scale_ref = 0.2850 if use_rifle else 0.2890
+        var runtime_foot := base+Vector2(0.0,runtime_foot_offset_y)
+        var top_left := Vector2(base.x-torso_center_x*scale_ref,runtime_foot.y-feet_y*scale_ref)
         draw_texture_rect_region(ref,Rect2(top_left,Vector2(220,250)*scale_ref),Rect2(0,0,220,250),Color(1,1,1,pc23_reference_alpha))
 
     var rear_col := Color(1.0,0.28,0.18,0.95)
