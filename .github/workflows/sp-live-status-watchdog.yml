@@ -11,6 +11,7 @@ on:
   workflow_run:
     workflows:
       - 'PC42J Paint Art Native QA'
+      - 'PC42J Generated Painted Elbow Real Godot Visual Gate'
       - 'PC42J Preserve PC42H IK Regression'
       - 'PC42J Approved Original Cuff Bone2D Godot Visual QA'
       - 'PC42J Hand-Painted Elbow Real Godot A-B Visual Gate'
