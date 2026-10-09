@@ -103,11 +103,10 @@ outputs={
 }
 # Concealed parts remain FULL artwork even where currently occluded by torso.
 # Don't reuse the PC42D/G fixed rest-matte that clips surfaces on articulation.
-# The source support-hand reference is the visible foreground glove/fingers;
-# the new glove is backing only, under it, at the same rifle contact socket.
-matte=np.asarray(Image.open(DEST/"approved_foreground_matte.png").convert("RGBA"))
-outputs["pc42h_far_glove_backing"][:,:,3]*=(
-    np.clip((240.-matte[:,:,3])/80.,0,1).astype(np.float32))
+# Preserve the complete concealed glove donor even when the existing approved
+# foreground hides it at rest. The runtime keeps this backing art disabled
+# while the exact approved support-hand source is the visible hand.
+# A near-empty, rest-matte-clipped atlas cannot serve as rotating joint backing.
 report={}
 for key,rgba in outputs.items():report[key]=save(key,rgba)
 (DEST/"pc42h_arm_sources.json").write_text(json.dumps({
