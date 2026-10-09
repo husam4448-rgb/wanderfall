@@ -8,6 +8,12 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '*/5 * * * *'
+  workflow_run:
+    workflows:
+      - 'PC42J Paint Art Native QA'
+      - 'PC42J Approved Original Cuff Bone2D Godot Visual QA'
+      - 'PC42J Hand-Painted Elbow Real Godot A-B Visual Gate'
+    types: [completed]
 permissions:
   contents: read
   actions: read
