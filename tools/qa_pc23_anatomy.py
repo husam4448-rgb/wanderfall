@@ -167,33 +167,42 @@ if "pistol" in weapons["weapons"]:
     require(abs(90.0+pw["support_palm_rotation_offset_deg"]-pw["support_grip_axis_deg"])<=1e-6,
             "sidearm support palm channel alignment drift")
 
-# The measured rifle contacts must remain reachable through the complete runtime
-# aim sweep without moving shoulder sockets or lengthening the body to chase the gun.
-rw=weapons["weapons"]["rifle"]
-for sex in ("male","female"):
-    rr=profiles["profiles"][sex]["runtime"]
-    rear=rr["shoulder_rear"]
-    front=rr["shoulder_front"]
-    total=rr["upper_arm_length"]+rr["forearm_length"]
-    dom_anchor=rw["dominant_grip_body_anchor"]
-    sup_rel=rw["support_grip_relative_to_dominant"]
+# Calibrated grip targets for both long gun and sidearm must remain reachable
+# through the complete runtime aim sweep without moving body anatomy.
+for wid in ("rifle","pistol"):
+    w=weapons["weapons"][wid]
+    for sex in ("male","female"):
+        rr=profiles["profiles"][sex]["runtime"]
+        rear=rr["shoulder_rear"]
+        front=rr["shoulder_front"]
+        total=rr["upper_arm_length"]+rr["forearm_length"]
+        minimum=abs(rr["upper_arm_length"]-rr["forearm_length"])
+        dom_anchor=w["dominant_grip_body_anchor"]
+        sup_rel=w["support_grip_relative_to_dominant"]
 
-    max_dom=max_sup=0.0
-    for i in range(241):
-        angle=-math.pi*0.49 + (math.pi*0.98*i/240.0)
-        ca,sa=math.cos(angle),math.sin(angle)
-        def rot(v):
-            return [v[0]*ca-v[1]*sa, v[0]*sa+v[1]*ca]
-        dom_off=rot(rr["dominant_wrist_to_grip_local"])
-        sup_off=rot(rr["support_wrist_to_grip_local"])
-        sup_rot=rot(sup_rel)
-        dom_w=[dom_anchor[0]-dom_off[0],dom_anchor[1]-dom_off[1]]
-        sup_g=[dom_anchor[0]+sup_rot[0],dom_anchor[1]+sup_rot[1]]
-        sup_w=[sup_g[0]-sup_off[0],sup_g[1]-sup_off[1]]
-        max_dom=max(max_dom,math.dist(rear,dom_w))
-        max_sup=max(max_sup,math.dist(front,sup_w))
-    require(max_dom <= total-0.03,f"{sex}: dominant wrist sweep unreachable {max_dom:.3f}>{total:.3f}")
-    require(max_sup <= total-0.03,f"{sex}: support wrist sweep unreachable {max_sup:.3f}>{total:.3f}")
+        min_dom=min_sup=1e9
+        max_dom=max_sup=0.0
+        for i in range(241):
+            angle=-math.pi*0.49 + (math.pi*0.98*i/240.0)
+            ca,sa=math.cos(angle),math.sin(angle)
+            def rot(v):
+                return [v[0]*ca-v[1]*sa, v[0]*sa+v[1]*ca]
+            dom_off=rot(rr["dominant_wrist_to_grip_local"])
+            sup_off=rot(rr["support_wrist_to_grip_local"])
+            sup_rot=rot(sup_rel)
+            dom_w=[dom_anchor[0]-dom_off[0],dom_anchor[1]-dom_off[1]]
+            sup_g=[dom_anchor[0]+sup_rot[0],dom_anchor[1]+sup_rot[1]]
+            sup_w=[sup_g[0]-sup_off[0],sup_g[1]-sup_off[1]]
+            ddom=math.dist(rear,dom_w)
+            dsup=math.dist(front,sup_w)
+            min_dom=min(min_dom,ddom)
+            max_dom=max(max_dom,ddom)
+            min_sup=min(min_sup,dsup)
+            max_sup=max(max_sup,dsup)
+        require(min_dom >= minimum+0.03,f"{sex}/{wid}: dominant target inside minimum reach")
+        require(min_sup >= minimum+0.03,f"{sex}/{wid}: support target inside minimum reach")
+        require(max_dom <= total-0.03,f"{sex}/{wid}: dominant target outside maximum reach")
+        require(max_sup <= total-0.03,f"{sex}/{wid}: support target outside maximum reach")
 
 # Patch architecture checks.
 for token in (
