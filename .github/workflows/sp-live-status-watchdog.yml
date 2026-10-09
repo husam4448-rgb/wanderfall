@@ -1,0 +1,39 @@
+name: Survival Paradise Live Status Watchdog
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/sp_monitor/monitor.py
+      - .github/workflows/sp-live-status-watchdog.yml
+  workflow_dispatch:
+  schedule:
+    - cron: '*/5 * * * *'
+permissions:
+  contents: read
+  actions: read
+  issues: write
+concurrency:
+  group: survival-paradise-issue35-independent-watchdog
+  cancel-in-progress: false
+jobs:
+  verify-current-state:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test watchdog guards and manual QA preservation
+        run: |
+          python3 -m py_compile .github/sp_monitor/monitor.py
+          python3 .github/sp_monitor/monitor.py self-test
+      - name: Refresh independent GitHub and ChatGPT lease status
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 .github/sp_monitor/monitor.py check | tee sp_monitor_live_check.log
+      - name: Preserve monitor diagnostic logs even if issue updates fail
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SP-Monitor-Diagnostics-${{ github.sha }}
+          path: sp_monitor_live_check.log
+          if-no-files-found: ignore
+          retention-days: 7
