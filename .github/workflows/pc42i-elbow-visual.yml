@@ -3,7 +3,7 @@ on:
   push:
     branches: [pc42i-authored-rolled-elbow-seam]
     paths:
-      - '.github/workflows/pc42h-arm-visual.yml'
+      - '.github/workflows/pc42i-elbow-visual.yml'
       - 'pc42-static-prototype/**'
       - 'tools/pc42h_articulated_arm_atlas.py'
       - 'tools/pc42i_authored_elbow_hem.py'
@@ -80,7 +80,7 @@ jobs:
           cp pc42-static-prototype/evidence/godot_pc42_static_first_pose.png pc42-static-prototype/evidence/pc42h_hidden_baseline.png
           timeout 90s xvfb-run -a "$GODOT_BIN" --path pc42-static-prototype --resolution 1580x660 >pc42h-rest.log 2>&1
           PC42C_CAPTURE=1 timeout 150s xvfb-run -a "$GODOT_BIN" --path pc42-static-prototype --resolution 1580x660 >pc42c-motion.log 2>&1
-          grep -q 'PC42I_SEGMENTED_FAR_ARM_READY' pc42h-rest.log
+          grep -q 'PC42I_AUTHORED_ROLLED_ELBOW_READY' pc42h-rest.log
           grep -q 'PC42D_FAR_ARM_TWO_BONE_IK_OK' pc42c-motion.log
           grep -q 'PC42C_REAL_IK_CONTACT_SWEEP_OK' pc42c-motion.log
           test "$(find pc42-static-prototype/evidence -maxdepth 1 -name 'pc42c_motion_*.png' | wc -l)" -eq 32
@@ -115,6 +115,7 @@ jobs:
             pc42h-hidden.log
             pc42h-rest.log
             pc42h-import.log
+            pc42i-baseline.log
           retention-days: 14
       - name: Terminal status even on failure
         if: always()
