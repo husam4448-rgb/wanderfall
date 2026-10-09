@@ -172,14 +172,22 @@ func _pc42h_build_far_arm() -> void:
     # The donor sleeve, elbow, cuff and glove are independently authored
     # to exact rest joint frames, not one resized rectangle.
     var support_socket: Bone2D = pc42_bones["support_hand"]
-    for spec in [
+    var donor_sprites: Array[Dictionary] = [
         {"name":"pc42h_far_shoulder","parent":upper,"pivot":PC42CGripIK.FAR_SHOULDER},
         {"name":"pc42h_far_upper","parent":upper,"pivot":PC42CGripIK.FAR_SHOULDER},
-        {"name":"pc42h_far_elbow","parent":fore,"pivot":PC42CGripIK.FAR_REST_ELBOW},
         {"name":"pc42h_far_forearm","parent":fore,"pivot":PC42CGripIK.FAR_REST_ELBOW},
         {"name":"pc42h_far_cuff","parent":fore,"pivot":PC42CGripIK.FAR_REST_ELBOW},
         {"name":"pc42h_far_glove_backing","parent":support_socket,"pivot":PC42CGripIK.REST_SUPPORT_WRIST}
-    ]:
+    ]
+    if OS.get_environment("PC42J_DONOR_BASELINE") == "1":
+        donor_sprites.append({"name":"pc42h_far_elbow","parent":fore,"pivot":PC42CGripIK.FAR_REST_ELBOW})
+    else:
+        # The real approved same-character unarmed art is used as the cuff,
+        # rather than procedural material bands. Original painted cloth
+        # underside is behind independently articulated bare forearm.
+        donor_sprites.append({"name":"pc42j_original_elbow_backing","parent":upper,"pivot":PC42CGripIK.FAR_SHOULDER})
+        donor_sprites.append({"name":"pc42j_original_rolled_cuff","parent":upper,"pivot":PC42CGripIK.FAR_SHOULDER})
+    for spec in donor_sprites:
         var texture: Texture2D = _load_image("assets/" + str(spec["name"]) + ".png")
         if texture == null:
             push_error("PC42H approved far arm texture missing: " + str(spec["name"]))
@@ -192,10 +200,14 @@ func _pc42h_build_far_arm() -> void:
         sprite.position = -Vector2(spec["pivot"])
         var parent: Bone2D = spec["parent"]
         parent.add_child(sprite)
+        if str(spec["name"]) == "pc42j_original_elbow_backing":
+            # Concealed body fabric: render underneath independent forearm.
+            upper.move_child(sprite,0)
         if str(spec["name"]) == "pc42h_far_glove_backing":
             # Authored, but don't paint a second glove over approved source hand.
             # The original rifle-socket hand already tracks the weapon exactly.
             sprite.visible = false
+    print("PC42J_AUTHENTIC_CUFF_REGISTERED baseline=" + str(OS.get_environment("PC42J_DONOR_BASELINE") == "1"))
     print("PC42H_SEGMENTED_FAR_ARM_READY 2 independently solved Bone2D plus source-clothing shoulder/elbow/forearm/cuff and weapon socket glove")
     print("PC42F_FAR_ARM_DEPTH_RESOLVED visible=" + str(upper.visible) + " z_index=" + str(upper.z_index))
 
@@ -260,6 +272,10 @@ func _pc42c_capture_full_test() -> void:
         max_dom = maxf(max_dom,float(result["dominant_contact_error_world"]))
         max_sup = maxf(max_sup,float(result["support_contact_error_world"]))
         max_far = maxf(max_far,float(result["far_contact_error_world"]))
+        var far_sh: Vector2 = pc42_bones["far_upper_arm"].global_position
+        var far_el: Vector2 = pc42_bones["far_forearm"].global_position
+        var far_wr: Vector2 = pc42_bones["far_forearm"].to_global(PC42CGripIK.REST_SUPPORT_WRIST-PC42CGripIK.FAR_REST_ELBOW)
+        print("PC42J_REAL_DONOR_BONES %02d %.3f %.3f %.3f %.3f %.3f %.3f" % [frame,far_sh.x,far_sh.y,far_el.x,far_el.y,far_wr.x,far_wr.y])
         await _pc42c_capture_png("pc42c_motion_%02d.png" % frame)
         print("PC42C_GRIP_FRAME %02d angle=%.3f dominant_error=%.6f support_error=%.6f far_arm_error=%.6f" % [frame,angle_deg,result["dominant_contact_error_world"],result["support_contact_error_world"],result["far_contact_error_world"]])
     for angle_int in [-10,-5,0,5,10]:
