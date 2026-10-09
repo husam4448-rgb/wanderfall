@@ -65,11 +65,11 @@ for needle in ('func _pc25_draw_bone_art','PC25_LEGACY_ARM_ART','pc23_humanoid_r
 ep=game/'export_presets.cfg'
 ex=ep.read_text(encoding='utf-8')
 import re
-ex,n1=re.subn(r'(?m)^version/code=194
-, 'version/code=195',ex,count=1)
-ex,n2=re.subn(r'(?m)^version/name="0.22.0-PC24-REFERENCE-LOADOUT"
-,
-               'version/name="0.22.0-PC25-AUTHORED-SLEEVES"',ex,count=1)
+n1=ex.count('version/code=194')
+ex=ex.replace('version/code=194','version/code=195',1)
+n2=ex.count('version/name="0.22.0-PC24-REFERENCE-LOADOUT"')
+ex=ex.replace('version/name="0.22.0-PC24-REFERENCE-LOADOUT"',
+              'version/name="0.22.0-PC25-AUTHORED-SLEEVES"',1)
 if n1 != 1 or n2 != 1:
     raise SystemExit('PC25 export version anchors missing')
 ep.write_text(ex,encoding='utf-8')
