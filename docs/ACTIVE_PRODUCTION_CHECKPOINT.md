@@ -79,3 +79,15 @@ Create an isolated PC28 branch from PC27 verified source and test genuine knee a
 - **Last signed APK:** PC33 v205, source `209ce0b117ec66009c2e0b441032c01a06c81452`; technical pass, visual FAIL. **No newer APK**.
 - **Next:** PC42H author the missing truly segmented far upper/forearm/elbow/wrist/glove art from approved character materials, register to existing two-arm IK, and redo exact actual Godot clean and diagnostic 32-frame visual checks. Stop repeating single straight sleeve alpha/z/offset adjustments. Then other facings/sexes, pistol, gait, equipment, Android build.
 - **Independent status:** GitHub Issue #35 and Actions run link; no autonomous ChatGPT iteration continues after the assistant stops.
+
+
+## PC42J original-donor sleeve: latest authoritative checkpoint (2026-10-09)
+
+- Last TECHNICALLY TESTED source: `91e17d5a8ac2cd394d3cb9081e3e9689c11a5e58`; branch `pc42j-approved-unarmed-cuff-donor`. Documentation-only HEAD is not a newer tested game build.
+- [Actual Godot 4.7.2 run](https://github.com/husam4448-rgb/wanderfall/actions/runs/37971077792): SUCCESS, 16 steps, two Bone2D rifle-constrained arms, 32 frames, five aiming angles. [Art, runtime captures, and GIF evidence](https://github.com/husam4448-rgb/wanderfall/actions/runs/37971077792/artifacts/11636760225).
+- **VISUAL FAIL:** Even with the approved same-character `male_east_base.png` cuff, the latest corrected source-cutout renders a pointed, incomplete interior roll, particularly at +10°. DO NOT mark as accepted or export APK.
+- This experimental donor is distinct from earlier polygon-based PC42J V1/V2; neither method achieved visual approval. Stop alpha-polygon/source-cutout adjustments and arbitrary offsets. The hidden cloth and folded elbow interior are absent from flattened references.
+- **Next action:** genuinely author new matching painted sleeve interior, cuff thickness, elbow folds and hidden overlapping arm surfaces for both bends; inspect native source pixels and pivots before binding to the preserved PC42H tested IK source `1cfaab1c8198dbfc8a14f73f2a92dad953a8ba78`. Then test male RIGHT 0°/±5°/±10° with Godot screenshots and 32-frame GIF. Advance to other characters/motions and APK only after true visual acceptance.
+- Full details: [PC42J original donor QA](https://github.com/husam4448-rgb/wanderfall/blob/pc42j-approved-unarmed-cuff-donor/docs/PC42J_ORIGINAL_SOURCE_DONOR_QA.md).
+- **Status:** BLOCKED — NEW PAINTED ELBOW ART. No active GitHub character-development workflow observed at final check. Latest signed APK remains PC33 code 205, technically valid but visually rejected.
+- Monitoring: [Issue #35](https://github.com/husam4448-rgb/wanderfall/issues/35); watchdog runs independently on GitHub scheduled workflow. ChatGPT does not continue after its execution terminates.
