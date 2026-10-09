@@ -63,6 +63,27 @@ for i in range(1,count):
     x,y,w,h,area=map(int,stats[i])
     if area>=5 and x>=43 and x+w<=229:
         valid[labels==i]=255
+# GrabCut alone discards near-black authored hair tips and the distal rifle
+# barrel because these RGB values resemble the dark painted background.
+# Restore ONLY pixels that demonstrably differ from same-row background
+# samples inside narrow human-identified source silhouette regions.
+background=np.median(np.concatenate([rgb[:,5:35,:],rgb[:,228:235,:]],axis=1).astype(np.int16),axis=1)
+delta=np.max(np.abs(rgb.astype(np.int16)-background[:,None,:]),axis=2)
+restored={}
+for name,points,threshold,kernel in [
+    ("hair",[(86,5),(130,5),(144,25),(140,57),(104,57),(87,36)],7,(2,2)),
+    ("rifle_muzzle",[(165,60),(210,61),(224,70),(225,90),(186,94),(167,84)],6,(3,3))
+]:
+    bound=np.zeros((H,W),np.uint8)
+    cv2.fillPoly(bound,[np.asarray(points,np.int32)],1)
+    certainty=((delta>threshold)&(bound>0)).astype(np.uint8)
+    certainty=cv2.morphologyEx(certainty,cv2.MORPH_CLOSE,np.ones(kernel,np.uint8))
+    n,lbl,stats,_=cv2.connectedComponentsWithStats(certainty,8)
+    for component in range(1,n):
+        if int(stats[component,cv2.CC_STAT_AREA])<3:
+            certainty[lbl==component]=0
+    restored[name]=int(np.count_nonzero((certainty>0)&(valid==0)))
+    valid[certainty>0]=255
 # Source image is 2D low-resolution; feather only cutout boundary subpixel.
 alpha=np.array(Image.fromarray(valid,"L").filter(ImageFilter.GaussianBlur(.48)))
 alpha[np.asarray(valid)==255]=np.maximum(alpha[np.asarray(valid)==255],240)
@@ -144,5 +165,5 @@ d=ImageDraw.Draw(mask_review)
 for i,title in enumerate(("Approved reference","Cutout alpha mask","Anatomical layer composite")):
     d.text((i*W+4,6),title,fill=(220,220,220))
 mask_review.save(out/"matte_review.png")
-print(f"PC42_SOURCE_FAITHFUL_STATIC: {len(parts_data)} source-derived parts, {int(np.count_nonzero(alpha))} nonzero-alpha pixels, exact per-pixel compositing PASS")
+print(f"PC42_SOURCE_FAITHFUL_STATIC: {len(parts_data)} source-derived parts, {int(np.count_nonzero(alpha))} nonzero-alpha pixels, recovered hair+barrel RGB={restored}, exact per-pixel compositing PASS")
 print("PC42 visual/articulated/anatomy acceptance remains PENDING; independent Godot capture required.")
