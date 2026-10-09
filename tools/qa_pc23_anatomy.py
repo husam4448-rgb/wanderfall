@@ -144,8 +144,28 @@ if "rifle" in weapons["weapons"]:
             "rifle support hand's horizontal template channel is not aligned to the handguard axis")
 if "pistol" in weapons["weapons"]:
     pw=weapons["weapons"]["pistol"]
+    require(pw.get("aim_pivot_model")=="dominant_grip_anchor",
+            "sidearm pivot must remain body-stable at the dominant grip")
+    require("dominant_grip_body_anchor" in pw and "support_grip_relative_to_dominant" in pw,
+            "sidearm compact grip anchors missing")
     require(pw["support_grip_relative_to_dominant"][1]>0,
-            "pistol support palm should be lower/rear relative to firing palm")
+            "sidearm support palm should remain lower/rear")
+    pr=weapons.get("qa_ranges",{}).get("pistol",{})
+    pdom=pw["dominant_grip_body_anchor"]
+    pchecks={
+        "dominant_grip_x_world":pdom[0],
+        "dominant_grip_y_world":pdom[1],
+        "support_grip_distance_world":math.dist([0,0],pw["support_grip_relative_to_dominant"]),
+        "dominant_palm_rotation_offset_deg":pw["dominant_palm_rotation_offset_deg"],
+        "support_palm_rotation_offset_deg":pw["support_palm_rotation_offset_deg"],
+    }
+    for k,val in pchecks.items():
+        lo,hi=pr[k]
+        require(lo<=val<=hi,f"sidearm contract {k}={val:.4f} outside [{lo},{hi}]")
+    require(abs(90.0+pw["dominant_palm_rotation_offset_deg"]-pw["dominant_grip_axis_deg"])<=1e-6,
+            "sidearm dominant palm channel alignment drift")
+    require(abs(90.0+pw["support_palm_rotation_offset_deg"]-pw["support_grip_axis_deg"])<=1e-6,
+            "sidearm support palm channel alignment drift")
 
 # The measured rifle contacts must remain reachable through the complete runtime
 # aim sweep without moving shoulder sockets or lengthening the body to chase the gun.
