@@ -93,36 +93,57 @@ source_rgba.save(out/"approved_foreground_matte.png")
 crop.save(out/"approved_reference_panel.png")
 # Part ownership is semantic / joint-aware, and always EXCLUSIVE.
 # Geometry is not regenerated: all RGB samples come from approved screenshot.
+# Only visible source artwork is extracted. Far arm segments fully covered
+# by torso/weapon are NOT fabricated; reconstruction of the invisible geometry
+# will use approved companion arm sprites at the subsequent motion gate.
 layers=[
- ("far_arm",[(102,72),(123,74),(144,80),(150,95),(135,110),(107,115),(98,96)],(105,79)),
- ("rear_rifle_stock",[(117,59),(146,57),(156,66),(158,78),(126,87),(118,82)],(129,73)),
- ("backpack",[(53,48),(95,34),(115,62),(114,110),(109,151),(79,172),(50,144),(45,80)],(88,95)),
- ("back_shin",[(112,171),(145,162),(154,197),(145,226),(157,235),(156,249),(118,251),(112,220)],(125,207)),
- ("front_shin",[(62,170),(109,174),(107,221),(116,242),(105,253),(50,253),(54,225)],(84,213)),
- ("back_thigh",[(104,138),(145,136),(155,174),(142,204),(112,203),(105,183)],(122,169)),
- ("front_thigh",[(79,133),(119,132),(126,163),(107,198),(69,190),(66,159)],(99,165)),
- ("pelvis",[(87,125),(142,119),(147,161),(101,172),(75,157)],(110,150)),
- ("torso",[(81,56),(130,51),(146,91),(139,142),(96,149),(78,113)],(111,102)),
- ("near_upper_arm",[(90,68),(119,63),(134,89),(127,117),(109,133),(93,118),(85,91)],(102,78)),
- ("near_forearm",[(108,105),(133,92),(165,73),(173,92),(143,109),(125,131)],(120,115)),
- ("head_neck",[(86,5),(144,4),(143,60),(120,71),(93,58)],(118,59)),
- ("rifle_receiver",[(126,56),(228,56),(229,91),(150,93),(124,84)],(136,75)),
- ("trigger_hand",[(124,72),(150,65),(151,91),(130,99),(122,88)],(135,84)),
- ("support_hand",[(150,64),(183,64),(186,92),(155,98)],(166,80))
+ ("head_neck",[(88,6),(136,6),(141,29),(138,56),(116,68),(91,62)],(118,59)),
+ ("dominant_hand",[(123,73),(143,73),(149,91),(132,99),(121,87)],(134,84)),
+ ("support_hand",[(157,72),(180,69),(185,91),(155,94)],(170,81)),
+ ("near_forearm",[(118,80),(140,77),(145,92),(130,108),(115,105)],(120,103)),
+ ("near_upper_arm",[(89,57),(117,56),(128,72),(121,98),(109,111),(89,93)],(104,78)),
+ ("rifle_stock",[(119,59),(142,58),(144,76),(121,81)],(129,71)),
+ ("rifle_receiver",[(131,59),(225,68),(225,92),(182,90),(180,83),(143,82),(142,88),(136,81)],(153,70)),
+ ("torso",[(82,47),(130,47),(138,96),(139,144),(89,143),(79,96)],(114,105)),
+ ("backpack",[(45,43),(98,37),(110,66),(103,126),(90,143),(49,134)],(76,95)),
+ ("pelvis",[(78,126),(135,124),(146,158),(121,165),(84,167)],(112,140)),
+ ("front_thigh",[(70,139),(108,137),(121,169),(107,188),(73,191),(69,162)],(88,160)),
+ ("back_thigh",[(104,142),(143,135),(159,171),(146,185),(110,185)],(132,155)),
+ ("front_shin",[(64,170),(110,167),(111,203),(95,241),(64,252),(50,226)],(79,182)),
+ ("back_shin",[(114,172),(151,159),(154,195),(159,229),(112,232)],(131,184)),
 ]
-# Assign from frontmost to backmost to avoid double painting:
-# partition at anatomical boundaries (foreground pixels always retained).
+# Priority is frontmost first. At the static pose every foreground pixel
+# belongs to exactly one genuinely drawn visible part.
 parts_data={}
 remaining=(alpha>0)
-for name,points,pivot in reversed(layers):
+for name,points,pivot in layers:
     domain=np.zeros((H,W),np.uint8)
     cv2.fillPoly(domain,[np.asarray(points,np.int32)],1)
     belongs=remaining & (domain>0)
     remaining[belongs]=False
     parts_data[name]=np.where(belongs,alpha,0).astype(np.uint8)
-# Any pixels not falling inside a provisional body polygon go into a real
-# source-derived "unclassified detail" layer rather than being discarded.
-parts_data["source_detail_unassigned"]=np.where(remaining,alpha,0).astype(np.uint8)
+# Tiny edge fragments beyond provisional hand-drawn anatomical envelopes
+# follow the closest actual visible part. No orphan procedural filler sprite
+# may be moved independently in a later skeletal animation.
+if remaining.any():
+    maps=[]
+    names=list(parts_data)
+    for name in names:
+        occupied=(parts_data[name]>0)
+        if not occupied.any():raise RuntimeError("PC42 authored body segment empty: "+name)
+        maps.append(cv2.distanceTransform((~occupied).astype(np.uint8),cv2.DIST_L2,3))
+    nearest=np.argmin(np.stack(maps,axis=0),axis=0)
+    for i,name in enumerate(names):
+        belongs=remaining & (nearest==i)
+        parts_data[name][belongs]=alpha[belongs]
+essential={"near_upper_arm":700,"near_forearm":120,"rifle_stock":70,
+           "rifle_receiver":450,"torso":1200,"head_neck":900,
+           "dominant_hand":120,"support_hand":120,"backpack":700,
+           "front_shin":600,"back_shin":200}
+for name,minimum in essential.items():
+    count=int(np.count_nonzero(parts_data[name]>0))
+    if count<minimum:
+        raise RuntimeError(f"PC42 {name} semantic layer underfilled {count}<{minimum}")
 assert np.array_equal(sum((a.astype(np.uint16) for a in parts_data.values()),
                           np.zeros((H,W),np.uint16)),alpha.astype(np.uint16))
 manifest={"schema":"pc42-static-reference-layers-v1",
@@ -131,10 +152,10 @@ manifest={"schema":"pc42-static-reference-layers-v1",
           "status":"PROVISIONAL_SEGMENTATION_VISUAL_QA_REQUIRED",
           "image_size":[W,H],"original_reference_size":list(original.size),
           "part_count":len(parts_data),"pixel_rule":"exclusive alpha ownership; no RGB changes",
-          "ordering":[name for name,_,_ in layers]+["source_detail_unassigned"],
+          "ordering":[name for name,_,_ in layers],
+          "covered_not_synthesized":["far_arm_upper","far_arm_forearm"],
           "segments":[]}
 pivots={name:list(piv) for name,points,piv in layers}
-pivots["source_detail_unassigned"]=[112,145]
 layer_objs=[]
 for name in manifest["ordering"]:
     m=parts_data[name]
