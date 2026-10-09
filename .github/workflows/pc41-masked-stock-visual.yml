@@ -119,7 +119,7 @@ jobs:
           python3 patches/apply_pc37_aim_capture.py "$PROJECT_DIR"
           python3 patches/apply_pc38_stock_ik.py "$PROJECT_DIR"
           python3 patches/apply_pc39_clavicle_priority.py "$PROJECT_DIR"
-          python3 patches/apply_pc41_stock_layer.py "$PROJECT_DIR"
+          python3 patches/apply_pc40_stock_layer.py "$PROJECT_DIR"
           python3 patches/apply_pc41_masked_stock_composite.py "$PROJECT_DIR"
 
           grep -q 'PC23 HUMANOID RIG CALIBRATION' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"
