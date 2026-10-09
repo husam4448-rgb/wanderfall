@@ -133,8 +133,10 @@ if "rifle" in weapons["weapons"]:
     grip_sep=math.dist(dom,sup)
     lo,hi=wr["grip_separation_world"]
     require(lo<=grip_sep<=hi,f"rifle: grip separation {grip_sep:.4f} outside [{lo},{hi}]")
-    require(abs(rw["dominant_grip_axis_deg"]+rw["dominant_palm_rotation_offset_deg"]-54.0)<=1e-6,
-            "rifle dominant palm/grip-axis calibration drift")
+    require(abs(90.0+rw["dominant_palm_rotation_offset_deg"]-rw["dominant_grip_axis_deg"])<=1e-6,
+            "rifle dominant hand's vertical template channel is not aligned to the measured grip axis")
+    require(abs(0.0+rw["support_palm_rotation_offset_deg"]-rw["support_grip_axis_deg"])<=1e-6,
+            "rifle support hand's horizontal template channel is not aligned to the handguard axis")
 if "pistol" in weapons["weapons"]:
     pw=weapons["weapons"]["pistol"]
     require(pw["support_grip_relative_to_dominant"][1]>0,
