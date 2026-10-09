@@ -134,6 +134,7 @@ func _build_actual_skeleton2d() -> void:
         get_tree().quit(11)
         return
     print("PC42B_SKELETON2D_BUILT " + str(pc42_bones.size()) + " actual Bone2D nodes")
+    _pc42d_build_far_arm()
     if OS.get_environment("PC42B_POSE_STRESS") == "1":
         # Deliberate low-amplitude stress: INSPECTION ONLY. It is not
         # accepted as an actual animation until hidden deltoid/forearm
@@ -143,6 +144,40 @@ func _build_actual_skeleton2d() -> void:
         upper.rotation = deg_to_rad(-8.0)
         fore.rotation = deg_to_rad(12.0)
         print("PC42B_ROTATION_STRESS_DIAGNOSTIC -8 degree shoulder +12 degree forearm; EXPECT ARTICULATION QA PENDING")
+
+func _pc42d_build_far_arm() -> void:
+    # The far arm uses original male apparel source textures aligned by the
+    # PC42D atlas generator to the two authored anatomical rest segments.
+    # It lives behind near-side source-color clothing and rifle layers.
+    var upper: Bone2D = Bone2D.new()
+    upper.name = "Bone_far_upper_arm"
+    upper.position = PC42CGripIK.FAR_SHOULDER
+    upper.z_index = -8
+    pc42_skeleton.add_child(upper)
+    var fore: Bone2D = Bone2D.new()
+    fore.name = "Bone_far_forearm"
+    fore.position = PC42CGripIK.FAR_REST_ELBOW-PC42CGripIK.FAR_SHOULDER
+    upper.add_child(fore)
+    pc42_bones["far_upper_arm"] = upper
+    pc42_bones["far_forearm"] = fore
+    for spec in [
+        {"name":"pc42d_far_upper","parent":upper,"pivot":PC42CGripIK.FAR_SHOULDER},
+        {"name":"pc42d_far_forearm","parent":fore,"pivot":PC42CGripIK.FAR_REST_ELBOW},
+        {"name":"pc42d_far_elbow","parent":fore,"pivot":PC42CGripIK.FAR_REST_ELBOW}
+    ]:
+        var texture: Texture2D = _load_image("assets/" + str(spec["name"]) + ".png")
+        if texture == null:
+            push_error("PC42D approved far arm texture missing: " + str(spec["name"]))
+            get_tree().quit(15)
+            return
+        var sprite: Sprite2D = Sprite2D.new()
+        sprite.name = "ApprovedArt_" + str(spec["name"])
+        sprite.texture = texture
+        sprite.centered = false
+        sprite.position = -Vector2(spec["pivot"])
+        var parent: Bone2D = spec["parent"]
+        parent.add_child(sprite)
+    print("PC42D_FAR_ARM_SOURCE_BONES_READY 2 independent actual Bone2D plus authored elbow source")
 
 func _pc42c_apply_weapon_ik(angle: float) -> Dictionary:
     # The weapon owns all grip landmarks. Solve arm AFTER selecting rifle pose.
@@ -166,6 +201,16 @@ func _pc42c_apply_weapon_ik(angle: float) -> Dictionary:
     support.rotation = 0.0
     var expected_dom: Vector2 = pc42_skeleton.to_global(solution["dominant_wrist"])
     var expected_sup: Vector2 = pc42_skeleton.to_global(solution["support_wrist"])
+    var far_solution: Dictionary = PC42CGripIK.solve_support(angle)
+    if not far_solution["valid"]:
+        push_error("PC42D far support arm cannot reach handguard")
+        return {"valid":false,"reason":"far support arm IK unreachable"}
+    var far_upper: Bone2D = pc42_bones["far_upper_arm"]
+    var far_fore: Bone2D = pc42_bones["far_forearm"]
+    far_upper.rotation = float(far_solution["shoulder_rotation"])
+    far_fore.rotation = float(far_solution["forearm_rotation"])
+    var far_wrist_world: Vector2 = far_fore.to_global(PC42CGripIK.REST_SUPPORT_WRIST - PC42CGripIK.FAR_REST_ELBOW)
+    solution["far_contact_error_world"] = far_wrist_world.distance_to(expected_sup)
     solution["dominant_contact_error_world"] = dominant.global_position.distance_to(expected_dom)
     solution["support_contact_error_world"] = support.global_position.distance_to(expected_sup)
     solution["elbow_reach_error_px"] = absf((solution["elbow"] - PC42CGripIK.SHOULDER).length() - PC42CGripIK.SHOULDER.distance_to(PC42CGripIK.REST_ELBOW))
@@ -185,6 +230,7 @@ func _pc42c_capture_png(filename: String) -> void:
 func _pc42c_capture_full_test() -> void:
     var max_dom: float = 0.0
     var max_sup: float = 0.0
+    var max_far: float = 0.0
     for frame in range(32):
         var angle_deg: float = 10.0*sin(TAU*float(frame)/32.0)
         var result: Dictionary = _pc42c_apply_weapon_ik(deg_to_rad(angle_deg))
@@ -193,18 +239,20 @@ func _pc42c_capture_full_test() -> void:
             return
         max_dom = maxf(max_dom,float(result["dominant_contact_error_world"]))
         max_sup = maxf(max_sup,float(result["support_contact_error_world"]))
+        max_far = maxf(max_far,float(result["far_contact_error_world"]))
         await _pc42c_capture_png("pc42c_motion_%02d.png" % frame)
-        print("PC42C_GRIP_FRAME %02d angle=%.3f dominant_error=%.6f support_error=%.6f" % [frame,angle_deg,result["dominant_contact_error_world"],result["support_contact_error_world"]])
+        print("PC42C_GRIP_FRAME %02d angle=%.3f dominant_error=%.6f support_error=%.6f far_arm_error=%.6f" % [frame,angle_deg,result["dominant_contact_error_world"],result["support_contact_error_world"],result["far_contact_error_world"]])
     for angle_int in [-10,-5,0,5,10]:
         _pc42c_apply_weapon_ik(deg_to_rad(float(angle_int)))
         var label: String = "m%02d" % absi(angle_int) if angle_int < 0 else "p%02d" % angle_int
         await _pc42c_capture_png("pc42c_pose_" + label + ".png")
     _pc42c_apply_weapon_ik(0.0)
-    if max_dom > 0.025 or max_sup > 0.025:
+    if max_dom > 0.025 or max_sup > 0.025 or max_far > 0.025:
         push_error("PC42C contact slip is not permissible: dominant=" + str(max_dom) + " support=" + str(max_sup))
         get_tree().quit(14)
         return
     print("PC42C_REAL_IK_CONTACT_SWEEP_OK frames=32 max_dominant_px_world=" + str(max_dom) + " max_support_px_world=" + str(max_sup))
+    print("PC42D_FAR_ARM_TWO_BONE_IK_OK max_far_wrist_contact_world=" + str(max_far))
     print("PC42C_SECOND_ARM_AND_HIDDEN_TEXTURE_VISUAL_ACCEPTANCE_PENDING")
 
 func _draw_parts(origin: Vector2, show_pivots: bool) -> void:
