@@ -1,0 +1,131 @@
+name: PC35 Reconstruct Verified Runtime For Structural Aim Review
+on:
+  push:
+    branches: [pc35-full-runtime-pose-inspection]
+    paths:
+      - '.github/workflows/pc35-runtime-inspection.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+env:
+  SOURCE_SHA256: ae4eff17e5f281f5867ac2d82207fcf96e6c8b649432acd48816aebab76fa308
+  SOURCE_ARCHIVE: /tmp/Wanderfall_Phase16_Game_Source.tar.xz
+  PROJECT_DIR: game
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - name: PC35 report independent inspection started
+        shell: bash
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/pc34_ci_status.py STARTED "Reconstruct full actual PC33 runtime for PC35 torso, head, shoulder and weapon pose inspection"
+      - name: Prepare reconstruction dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pillow numpy
+      - name: Reconstruct complete actual PC33 Godot runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat source_parts/part_*.b64 > /tmp/wanderfall_source.b64
+          base64 --decode /tmp/wanderfall_source.b64 > "$SOURCE_ARCHIVE"
+          echo "$SOURCE_SHA256  $SOURCE_ARCHIVE" | sha256sum -c -
+          mkdir -p "$PROJECT_DIR"
+          tar -xJf "$SOURCE_ARCHIVE" -C "$PROJECT_DIR"
+
+          python3 patches/apply_godot_47_fixes.py "$PROJECT_DIR"
+          python3 patches/apply_v017_ui_overhaul.py "$PROJECT_DIR"
+          python3 patches/apply_v0171_inventory_polish.py "$PROJECT_DIR"
+          python3 patches/apply_v0172_hud_customization.py "$PROJECT_DIR"
+          python3 patches/fix_v0173_applicator_path.py
+          python3 patches/apply_v0173_touch_layout_fixes.py "$PROJECT_DIR"
+          python3 patches/apply_v0174_ui_pause_completion.py "$PROJECT_DIR"
+
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('patches/apply_v0175_hotbar_sensitivity.py')
+          s=p.read_text(encoding='utf-8')
+          old='''replace_once(
+              "scripts/settings/settings_hud.gd",
+              '    if ui_buttons.has("quickbar_visible"):\\n        ui_buttons["quickbar_visible"].text = "QUICKBAR: %s" % ("ON" if GameSettings.quickbar_visible else "OFF")\\n\\n    var pause_names :=',
+              '    if ui_buttons.has("quickbar_visible"):\\n        ui_buttons["quickbar_visible"].text = "QUICKBAR: %s" % ("ON" if GameSettings.quickbar_visible else "OFF")\\n'
+              '    if movement_sensitivity_slider != null:\\n'
+              '        movement_sensitivity_slider.set_value_no_signal(GameSettings.movement_stick_sensitivity)\\n'
+              '    if movement_sensitivity_label != null:\\n'
+              '        movement_sensitivity_label.text = "×%.2f" % GameSettings.movement_stick_sensitivity\\n\\n'
+              '    var pause_names :=',
+          )'''
+          new='''replace_once(
+              "scripts/settings/settings_hud.gd",
+              '    var pause_names :=',
+              '    if movement_sensitivity_slider != null:\\n'
+              '        movement_sensitivity_slider.set_value_no_signal(GameSettings.movement_stick_sensitivity)\\n'
+              '    if movement_sensitivity_label != null:\\n'
+              '        movement_sensitivity_label.text = "×%.2f" % GameSettings.movement_stick_sensitivity\\n\\n'
+              '    var pause_names :=',
+          )'''
+          if old not in s:
+              raise SystemExit('Expected v0.17.5 applicator block not found')
+          p.write_text(s.replace(old,new,1),encoding='utf-8')
+          PY
+
+          python3 patches/apply_v0175_hotbar_sensitivity.py "$PROJECT_DIR"
+          python3 patches/apply_v0176_hotbar_deadzone.py "$PROJECT_DIR"
+          python3 patches/apply_v0177_mobile_hotbar_layers.py "$PROJECT_DIR"
+          python3 patches/apply_v0178_dedicated_hotbar_layer.py "$PROJECT_DIR"
+          python3 patches/apply_v0179_quick_item_buttons.py "$PROJECT_DIR"
+
+          python3 tools/build_pc22_canonical_arm_assets.py "$GITHUB_WORKSPACE" "$PROJECT_DIR"
+          python3 tools/build_pc22_role_overlays.py "$GITHUB_WORKSPACE"
+          python3 tools/qa_pc22_arm_visual_contract.py "$GITHUB_WORKSPACE"
+          python3 tools/qa_pc22_hybrid_v3.py "$GITHUB_WORKSPACE"
+          python3 patches/apply_pc22_canonical_arm_candidate.py "$PROJECT_DIR"
+          python3 patches/apply_pc23_humanoid_rig_calibration.py "$PROJECT_DIR"
+          python3 patches/apply_pc24_reference_loadout.py "$PROJECT_DIR"
+          python3 patches/apply_pc25_sleeve_art.py "$PROJECT_DIR"
+          python3 patches/apply_pc26_gait_capture.py "$PROJECT_DIR"
+          python3 patches/apply_pc27_balanced_gait.py "$PROJECT_DIR"
+          python3 patches/apply_pc28_articulated_knees.py "$PROJECT_DIR"
+          python3 patches/apply_pc28_cuff_repair.py "$PROJECT_DIR"
+          python3 patches/apply_pc29_knee_stance.py "$PROJECT_DIR"
+          python3 patches/apply_pc30_wrist_grip_consistency.py "$PROJECT_DIR"
+          python3 patches/apply_pc30_rifle_contact_fit.py "$PROJECT_DIR"
+          python3 patches/apply_pc31_reference_shoulder_aim.py "$PROJECT_DIR"
+          python3 patches/apply_pc32_authored_arm_bones.py "$PROJECT_DIR"
+          python3 patches/apply_pc33_rifle_low_ready.py "$PROJECT_DIR"
+          python3 patches/apply_pc33_rifle_low_ready.py "$PROJECT_DIR"
+
+          grep -q 'PC23 HUMANOID RIG CALIBRATION' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"
+          grep -q 'pc23_humanoid_rig_system.gd' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"
+          grep -q 'version/code=205' "$PROJECT_DIR/export_presets.cfg"
+          grep -q 'version/name="0.22.0-PC33-RIFLE-LOW-READY"' "$PROJECT_DIR/export_presets.cfg"
+
+
+      - name: Capture source-only runtime evidence without APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p pc35-runtime-inspection
+          cp "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd" pc35-runtime-inspection/d2d29_minimal_token_runtime.gd
+          cp "$PROJECT_DIR/scripts/art/pc23_humanoid_rig_system.gd" pc35-runtime-inspection/pc23_humanoid_rig_system.gd
+          cp "$PROJECT_DIR/export_presets.cfg" pc35-runtime-inspection/export_presets.cfg
+          wc -l pc35-runtime-inspection/*.gd | tee pc35-runtime-inspection/code-line-count.txt
+          grep -n -E 'func _draw|head|torso|pc22_arm_angle|_pc22_draw_arm|pc33_rifle_low_ready_drop|pc33_stock_head_margin|pc22_player_arm_rig' pc35-runtime-inspection/d2d29_minimal_token_runtime.gd > pc35-runtime-inspection/structural-index.txt || true
+          test -s pc35-runtime-inspection/d2d29_minimal_token_runtime.gd
+          test -s pc35-runtime-inspection/pc23_humanoid_rig_system.gd
+      - name: Save PC35 full runtime source evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: SurvivalParadise-PC35-ReconstructedPoseSource-${{ github.sha }}
+          path: pc35-runtime-inspection/
+      - name: PC35 report independent final status
+        if: always()
+        shell: bash
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/pc34_ci_status.py "${{ job.status == 'success' && 'COMPLETED' || 'FAILED' }}" "PC35 reconstructed runtime, torso/head/layer code preserved as artifact; no APK exported"
