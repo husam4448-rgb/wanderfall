@@ -172,14 +172,23 @@ func _pc42h_build_far_arm() -> void:
     # The donor sleeve, elbow, cuff and glove are independently authored
     # to exact rest joint frames, not one resized rectangle.
     var support_socket: Bone2D = pc42_bones["support_hand"]
-    for spec in [
+    var sleeve_specs: Array[Dictionary] = [
         {"name":"pc42h_far_shoulder","parent":upper,"pivot":PC42CGripIK.FAR_SHOULDER},
         {"name":"pc42h_far_upper","parent":upper,"pivot":PC42CGripIK.FAR_SHOULDER},
-        {"name":"pc42h_far_elbow","parent":fore,"pivot":PC42CGripIK.FAR_REST_ELBOW},
         {"name":"pc42h_far_forearm","parent":fore,"pivot":PC42CGripIK.FAR_REST_ELBOW},
         {"name":"pc42h_far_cuff","parent":fore,"pivot":PC42CGripIK.FAR_REST_ELBOW},
         {"name":"pc42h_far_glove_backing","parent":support_socket,"pivot":PC42CGripIK.REST_SUPPORT_WRIST}
-    ]:
+    ]
+    if OS.get_environment("PC42I_ROLL_BASELINE") == "1":
+        # Capture a true same-source PC42H A/B comparison within Godot.
+        sleeve_specs.append({"name":"pc42h_far_elbow","parent":fore,"pivot":PC42CGripIK.FAR_REST_ELBOW})
+    else:
+        # Original painted camouflage cuff bends with UPPER sleeve; it does
+        # not follow the bare forearm or double-paint the weapon-owned hand.
+        # Ordered last among far-upper children to overdraw only local skin.
+        sleeve_specs.append({"name":"pc42i_far_rolled_fold","parent":upper,"pivot":PC42CGripIK.FAR_SHOULDER})
+        sleeve_specs.append({"name":"pc42i_far_rolled_hem","parent":upper,"pivot":PC42CGripIK.FAR_SHOULDER})
+    for spec in sleeve_specs:
         var texture: Texture2D = _load_image("assets/" + str(spec["name"]) + ".png")
         if texture == null:
             push_error("PC42H approved far arm texture missing: " + str(spec["name"]))
@@ -197,6 +206,7 @@ func _pc42h_build_far_arm() -> void:
             # The original rifle-socket hand already tracks the weapon exactly.
             sprite.visible = false
     print("PC42H_SEGMENTED_FAR_ARM_READY 2 independently solved Bone2D plus source-clothing shoulder/elbow/forearm/cuff and weapon socket glove")
+    print("PC42I_AUTHORED_ROLLED_ELBOW_READY baseline=" + str(OS.get_environment("PC42I_ROLL_BASELINE") == "1"))
     print("PC42F_FAR_ARM_DEPTH_RESOLVED visible=" + str(upper.visible) + " z_index=" + str(upper.z_index))
 
 func _pc42c_apply_weapon_ik(angle: float) -> Dictionary:
