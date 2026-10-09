@@ -33,3 +33,16 @@
 **Latest signed APK:** PC33 version code 205, technically valid but visually rejected. **No new APK.**
 
 **Live dashboard:** https://github.com/husam4448-rgb/wanderfall/issues/35
+
+
+## 2026-10-09 — Native bind/Fallback Godot verification
+
+- **Latest actually tested source:** `ca0f215440ba2fb853052ffd4564aa502c71dafe` on `pc42j-painted-elbow-rebuild`. Subsequent documentation-only commits are **not** new tested builds.
+- [Actual Godot regression run 37980719700](https://github.com/husam4448-rgb/wanderfall/actions/runs/37980719700) — SUCCESS (13 completed steps, none failed). Exact evidence: [artifact 11641286619](https://github.com/husam4448-rgb/wanderfall/actions/runs/37980719700/artifacts/11641286619).
+- Verified Godot 4.7.2 imports the new opt-in loader, preserves PC42H default artwork, and executes the existing true two-arm rifle-constrained IK across **32 frames and five angles**. Source static-fidelity and weapon-grip quantitative checks passed. This verifies **fallback technical integrity**, NOT the unpainted new outfit or visual approval.
+- [Art-intake run 37980127960](https://github.com/husam4448-rgb/wanderfall/actions/runs/37980127960) reported `BLOCKED_ART_NOT_READY`. Seven isolated original-painted RGBA sources remain absent. CI itself completed successfully because the blocker was detected and recorded, not because new art was completed.
+- Independent monitoring validation: [controlled failure 37979671444](https://github.com/husam4448-rgb/wanderfall/actions/runs/37979671444) failed as designed; [fractional heartbeat/paginated comments fix 37980396234](https://github.com/husam4448-rgb/wanderfall/actions/runs/37980396234) passed; and [event-triggered post-Godot watchdog 37980876978](https://github.com/husam4448-rgb/wanderfall/actions/runs/37980876978) completed automatically after regression. Dashboard reports blocked and owner NONE when no workflow is active.
+- **VISUAL ART STATUS: BLOCKED/NOT APPROVED.** No actual independently painted concealed surfaces have passed review. Attempts to generate a suitable raster image during this session did not produce an identifiable independent arm-parts asset and were rejected, not integrated.
+- **APK:** none; PC33 version 205 remains last signed, previously visually rejected. No expansion to other facings, sex, weapons, gait, equipment or gameplay accepted.
+
+**NEXT REQUIRED ACTION:** genuinely author/review the seven specified painted source PNGs, ensure native rest-space registration; only then run the opt-in Godot male-right five-angle 32-frame visual gate. Do not substitute procedural polygons, alpha-cutouts or synthetic sleeve strips.
