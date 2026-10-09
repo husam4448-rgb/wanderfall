@@ -2,7 +2,7 @@ name: PC23 Humanoid Rig Calibration
 
 on:
   push:
-    branches: [ pc23-humanoid-rig-calibration ]
+    branches: [ pc23-humanoid-rig-calibration, pc23-clean-visual-review ]
     paths:
       - '.ci/trigger-pc23-rig-calibration'
       - '.github/workflows/pc23-rig-calibration.yml'
@@ -167,6 +167,18 @@ jobs:
           if grep -q 'PC22_ARM_GEOMETRY_FAIL' pc23-capture.log; then exit 1; fi
           if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|Compile Error:|Parse Error:|Invalid call|Invalid get index' pc23-capture.log; then exit 1; fi
 
+      - name: Capture optional instrumented PC23 anatomy diagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          DIAG="$GITHUB_WORKSPACE/pc23-diagnostic-captures"
+          mkdir -p "$DIAG"
+          PC23_SHOW_RIG_DIAGNOSTICS=1 ARM_CAPTURE_DIR="$DIAG" PC23_CALIBRATION_CAPTURE=1 timeout 90s xvfb-run -a "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1280x720 --verbose 2>&1 | tee pc23-diagnostic-capture.log
+          DIAG_COUNT="$(find "$DIAG" -maxdepth 1 -name '*.png' | wc -l | tr -d ' ')"
+          test "$DIAG_COUNT" -ge 72
+          grep -q 'PC22_RUNTIME_SWEEP_OK' pc23-diagnostic-capture.log
+          if grep -E 'SCRIPT ERROR:|Compile Error:|Parse Error:|PC22_ARM_GEOMETRY_FAIL' pc23-diagnostic-capture.log; then exit 1; fi
+
       - name: Build reference-vs-runtime comparison evidence
         shell: bash
         run: |
@@ -267,5 +279,7 @@ jobs:
             pc23-import.log
             pc23-smoke.log
             pc23-capture.log
+            pc23-diagnostic-capture.log
             pc23-runtime-captures/
+            pc23-diagnostic-captures/
             pc23-calibration-evidence/
