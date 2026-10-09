@@ -37,9 +37,17 @@ for name,src_path,p0,p1,target0,target1 in assets:
     premul[:,:,:3]*=premul[:,:,3:4]/255.0
     warped=cv2.warpAffine(premul,matrix,(w,h),flags=cv2.INTER_LINEAR,
                          borderMode=cv2.BORDER_CONSTANT,borderValue=(0,0,0,0))
-    # Real companion detail is masked to originally painted silhouette:
-    # at rest it must not produce any new pixels on painted dark background.
-    mask=(alpha>=248).astype(np.float32)
+    # PC42E: the PC42D fully-hidden far forearm did not visibly connect
+    # the support glove. Show REAL existing approved apparel artwork only
+    # along this independently bone-solved forearm. The imported, tapered
+    # source canvas itself limits this anatomical region; no procedural
+    # rectangular patch or weapon-position offsets are used.
+    if name == "pc42d_far_forearm":
+        mask=np.ones((h,w),dtype=np.float32)
+    else:
+        # Concealed upper/elbow backing stays beneath the authored source
+        # silhouette to preserve the original character appearance.
+        mask=(alpha>=248).astype(np.float32)
     warped[:,:,3]*=mask
     outarr=np.zeros((h,w,4),dtype=np.uint8)
     area=warped[:,:,3]>0.4
