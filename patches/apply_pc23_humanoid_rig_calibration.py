@@ -196,7 +196,7 @@ s=s.replace('_pc22_v3_draw_rig_grip_hand(pc22_sup_grip_tex,pc22_support_grip,pc2
 state_anchor='var pc22_arm_capture_index := -1\n'
 if state_anchor not in s:
     raise SystemExit("PC23 state anchor missing")
-s=s.replace(state_anchor,state_anchor+'''var pc23_calibration_enabled := true
+s=s.replace(state_anchor,state_anchor+'''var pc23_calibration_enabled := OS.get_environment("PC23_SHOW_RIG_DIAGNOSTICS") == "1"
 var pc23_reference_alpha := 0.34
 var pc23_reference_cache: Dictionary = {}
 ''',1)
