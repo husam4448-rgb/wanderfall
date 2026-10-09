@@ -1,6 +1,6 @@
 {
   "schema_version": "PC23-weapon-contract-v1",
-  "status": "provisional-calibration",
+  "status": "reference-measured-iteration-1",
   "coordinate_convention": "+x weapon-forward for right-facing; +y screen-down; mirrored at runtime for left-facing",
   "architectural_rule": "weapon contract owns presentation/grip/stock/recoil/muzzle data; it may not alter shoulder sockets, bone lengths or limb mass",
   "weapons": {
@@ -36,24 +36,24 @@
         18
       ],
       "render_scale": 0.24,
-      "notes": "initial contract preserves the accepted PC22 weapon art placement while PC23 calibrates body-relative anatomy first"
+      "notes": "Pistol contract intentionally unchanged in rifle-first calibration iteration; recalibrate only after rifle horizontal states visually pass."
     },
     "rifle": {
       "reference_male": "assets/authored2d/unified_character/rig/reference/male_east_rifle.png",
       "reference_female": "assets/authored2d/unified_character/rig/reference/female_east_rifle.png",
       "body_mount_offset": [
-        3,
-        -6
+        -2.7,
+        -14.8
       ],
       "dominant_grip_socket": [
         9.8,
         0.8
       ],
       "support_grip_socket": [
-        17,
-        -1
+        19.2,
+        2.8
       ],
-      "dominant_palm_rotation_offset_deg": 0,
+      "dominant_palm_rotation_offset_deg": -18,
       "support_palm_rotation_offset_deg": 0,
       "dominant_grip_axis_deg": 72,
       "support_grip_axis_deg": 0,
@@ -67,15 +67,49 @@
       ],
       "recoil_distance": 1.45,
       "muzzle_socket": [
-        31,
-        -1
+        33.5,
+        4.5
       ],
       "visual_pivot_px": [
         36,
         18
       ],
       "stock_render_scale": 0.33,
-      "notes": "grip sockets are initial values inherited from PC22; PC23 visual overlay must prove or recalibrate them without moving body anatomy"
+      "notes": "PC23 measured recalibration: weapon pivot moved back/up to match approved EAST rifle art while body shoulder/bones remain fixed; dominant palm rotates -18° so the template's vertical grip channel aligns to the rifle's ~72° pistol-grip axis.",
+      "reference_measurements": {
+        "male_east_rifle_px": {
+          "torso_center_x": 108,
+          "dominant_grip": [
+            133,
+            72
+          ],
+          "support_grip": [
+            166,
+            79
+          ],
+          "muzzle": [
+            216,
+            85
+          ],
+          "world_per_reference_px": 0.285,
+          "note": "measured from committed approved male EAST rifle reference"
+        },
+        "derived_body_relative_world": {
+          "dominant_grip": [
+            7.125,
+            -14.02
+          ],
+          "support_grip": [
+            16.53,
+            -12.025
+          ],
+          "muzzle": [
+            30.78,
+            -10.315
+          ],
+          "note": "world y uses registered runtime foot offset 35 and reference feet_y 244; contract remains shared across sexes"
+        }
+      }
     }
   },
   "invariants": {
@@ -85,5 +119,45 @@
     "gear_cannot_change_weapon_sockets": true,
     "role_cannot_change_weapon_sockets": true,
     "left_facing_uses_mirror": true
+  },
+  "qa_ranges": {
+    "rifle": {
+      "dominant_grip_x_world": [
+        6.5,
+        7.8
+      ],
+      "dominant_grip_y_world": [
+        -14.8,
+        -13.2
+      ],
+      "support_grip_x_world": [
+        15.5,
+        17.5
+      ],
+      "support_grip_y_world": [
+        -12.8,
+        -11
+      ],
+      "grip_separation_world": [
+        8.5,
+        10.5
+      ],
+      "muzzle_x_world": [
+        29,
+        32.5
+      ],
+      "dominant_palm_rotation_offset_deg": [
+        -22,
+        -14
+      ],
+      "support_palm_rotation_offset_deg": [
+        -4,
+        4
+      ]
+    },
+    "architecture": {
+      "weapon_cannot_move_shoulder": true,
+      "weapon_cannot_change_bone_lengths": true
+    }
   }
 }
