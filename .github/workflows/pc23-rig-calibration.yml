@@ -1,8 +1,8 @@
-name: PC33 Rifle Down-Aim Head Clearance and IK Contact QA
+name: PC36 Coordinated Torso Neck Shoulder Visual Gate
 
 on:
   push:
-    branches: [ pc23-humanoid-rig-calibration, pc23-clean-visual-review, pc24-art-fidelity-reference-loadout, pc24-pistol-aim-posture, pc25-articulated-sleeve-fidelity, pc26-gait-cycle-evidence, pc27-balanced-alternating-gait, pc28-articulated-knees, pc28-knee-cuff-repair, pc29-knee-stance-proportions, pc30-weapon-hand-wrist-consistency, pc30-weapon-art-contact-fitting, pc31-reference-shoulder-aim-body, pc32-authored-arm-bone-renderer, pc33-aim-pose-head-clearance ]
+    branches: [ pc23-humanoid-rig-calibration, pc23-clean-visual-review, pc24-art-fidelity-reference-loadout, pc24-pistol-aim-posture, pc25-articulated-sleeve-fidelity, pc26-gait-cycle-evidence, pc27-balanced-alternating-gait, pc28-articulated-knees, pc28-knee-cuff-repair, pc29-knee-stance-proportions, pc30-weapon-hand-wrist-consistency, pc30-weapon-art-contact-fitting, pc31-reference-shoulder-aim-body, pc32-authored-arm-bone-renderer, pc33-aim-pose-head-clearance, pc36-coordinated-upper-body-pose ]
     paths:
       - '.ci/trigger-pc23-rig-calibration'
       - '.github/workflows/pc23-rig-calibration.yml'
@@ -32,6 +32,8 @@ on:
       - 'tools/qa_pc32_arm_art.py'
       - 'patches/apply_pc33_rifle_low_ready.py'
       - 'tools/qa_pc33_rifle_low_ready.py'
+      - 'patches/apply_pc36_coordinated_upper_pose.py'
+      - 'tools/qa_pc36_upper_pose.py'
       - 'tools/build_pc22_canonical_arm_assets.py'
       - 'tools/build_pc22_role_overlays.py'
       - 'tools/qa_pc22_arm_visual_contract.py'
@@ -56,7 +58,7 @@ env:
   GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
   GODOT_TEMPLATES_TPZ: /tmp/Godot_v4.7.2-stable_export_templates.tpz
   GODOT_TEMPLATES_SHA256: f298490b8d44d934be425a5a65a51bf15f422428b229a06a6e11d9ffea248011
-  APK_PATH: SurvivalParadise_PC33_RifleLowReady.apk
+  APK_PATH: NO_APK_PC36_VISUAL_QA_ONLY.apk
   MAX_APK_BYTES: '419430400'
 
 jobs:
@@ -73,7 +75,7 @@ jobs:
         shell: bash
         env:
           GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python3 tools/pc28_ci_status.py STARTED "GitHub workflow initiated"
+        run: python3 tools/pc34_ci_status.py STARTED "GitHub workflow initiated"
 
       - name: Static PC23 anatomy and patch validation
         shell: bash
@@ -106,6 +108,8 @@ jobs:
           python3 -m py_compile tools/qa_pc32_arm_art.py
           python3 -m py_compile patches/apply_pc33_rifle_low_ready.py
           python3 -m py_compile tools/qa_pc33_rifle_low_ready.py
+          python3 -m py_compile patches/apply_pc36_coordinated_upper_pose.py
+          python3 -m py_compile tools/qa_pc36_upper_pose.py
           python3 -m py_compile tools/qa_pc23_anatomy.py
           python3 tools/qa_pc23_anatomy.py "$GITHUB_WORKSPACE" | tee pc23-anatomy-qa.json
 
@@ -179,11 +183,12 @@ jobs:
           python3 patches/apply_pc31_reference_shoulder_aim.py "$PROJECT_DIR"
           python3 patches/apply_pc32_authored_arm_bones.py "$PROJECT_DIR"
           python3 patches/apply_pc33_rifle_low_ready.py "$PROJECT_DIR"
+          python3 patches/apply_pc36_coordinated_upper_pose.py "$PROJECT_DIR"
 
           grep -q 'PC23 HUMANOID RIG CALIBRATION' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"
           grep -q 'pc23_humanoid_rig_system.gd' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"
-          grep -q 'version/code=205' "$PROJECT_DIR/export_presets.cfg"
-          grep -q 'version/name="0.22.0-PC33-RIFLE-LOW-READY"' "$PROJECT_DIR/export_presets.cfg"
+          grep -q 'version/code=206' "$PROJECT_DIR/export_presets.cfg"
+          grep -q 'version/name="0.22.0-PC36-COORDINATED-UPPER"' "$PROJECT_DIR/export_presets.cfg"
 
       - name: Install Godot and export templates
         shell: bash
@@ -221,7 +226,7 @@ jobs:
         shell: bash
         env:
           GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python3 tools/pc28_ci_status.py GODOT_PASS "Godot source import and runtime smoke passed"
+        run: python3 tools/pc34_ci_status.py GODOT_PASS "Godot source import and runtime smoke passed"
 
       - name: Capture actual Godot calibration states
         shell: bash
@@ -354,7 +359,7 @@ jobs:
         shell: bash
         env:
           GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python3 tools/pc28_ci_status.py EVIDENCE_READY "Godot knee visual comparison captured; APK not yet verified"
+        run: python3 tools/pc34_ci_status.py EVIDENCE_READY "Godot knee visual comparison captured; APK not yet verified"
 
       - name: Capture original PC28 disconnected cuff comparator
         shell: bash
@@ -413,7 +418,7 @@ jobs:
         shell: bash
         env:
           GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python3 tools/pc28_ci_status.py EVIDENCE_READY "PC30 full aim sweep and 12 arm/weapon A-B renders completed; upper-body visual approval pending"
+        run: python3 tools/pc34_ci_status.py EVIDENCE_READY "PC30 full aim sweep and 12 arm/weapon A-B renders completed; upper-body visual approval pending"
 
       - name: Capture original PC30 rifle before visual socket fit
         shell: bash
@@ -436,7 +441,7 @@ jobs:
         shell: bash
         env:
           GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python3 tools/pc28_ci_status.py EVIDENCE_READY "PC30 weapon art aligned to measured handguard and muzzle; actual visual acceptance pending"
+        run: python3 tools/pc34_ci_status.py EVIDENCE_READY "PC30 weapon art aligned to measured handguard and muzzle; actual visual acceptance pending"
 
       - name: Capture legacy rifle shoulders before PC31 body-owned stance
         shell: bash
@@ -459,7 +464,7 @@ jobs:
         shell: bash
         env:
           GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python3 tools/pc28_ci_status.py EVIDENCE_READY "PC31 shoulders calibrated to approved male/female art; 10 Godot before/after views captured"
+        run: python3 tools/pc34_ci_status.py EVIDENCE_READY "PC31 shoulders calibrated to approved male/female art; 10 Godot before/after views captured"
 
       - name: Capture legacy PC31 procedural sleeves for direct A/B comparison
         shell: bash
@@ -482,7 +487,7 @@ jobs:
         shell: bash
         env:
           GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python3 tools/pc28_ci_status.py EVIDENCE_READY "PC32 authored upper/forearm source sprites rendered against old flat tubes; pending manual visual approval"
+        run: python3 tools/pc34_ci_status.py EVIDENCE_READY "PC32 authored upper/forearm source sprites rendered against old flat tubes; pending manual visual approval"
 
       - name: Capture unchanged PC32 shouldered rifle for PC33 comparison
         shell: bash
@@ -505,7 +510,30 @@ jobs:
         shell: bash
         env:
           GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python3 tools/pc28_ci_status.py EVIDENCE_READY "PC33 stock-head collision clearance and rifle/hand A-B captures produced; visual acceptance pending"
+        run: python3 tools/pc34_ci_status.py EVIDENCE_READY "PC33 stock-head collision clearance and rifle/hand A-B captures produced; visual acceptance pending"
+
+      - name: Capture original PC33 body art without linked torso lean
+        shell: bash
+        run: |
+          set -euo pipefail
+          LEGACY="$GITHUB_WORKSPACE/pc36-static-body-comparator"
+          mkdir -p "$LEGACY"
+          PC36_LEGACY_BODY_POSE=1 PC24_REFERENCE_OUTFIT_CAPTURE=1 ARM_CAPTURE_DIR="$LEGACY" timeout 90s xvfb-run -a "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1280x720 --verbose 2>&1 | tee pc36-static-body-capture.log
+          test "$(find "$LEGACY" -maxdepth 1 -name '*.png' | wc -l)" -ge 72
+          grep -q 'PC22_RUNTIME_SWEEP_OK' pc36-static-body-capture.log
+          if grep -E 'SCRIPT ERROR:|Parse Error:|PC22_ARM_GEOMETRY_FAIL' pc36-static-body-capture.log; then exit 1; fi
+
+      - name: PC36 verify actual joint-body torso linked rendering
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/qa_pc36_upper_pose.py | tee pc36-body-visual-qa.log
+
+      - name: Independently report PC36 body pose visual evidence
+        shell: bash
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/pc34_ci_status.py EVIDENCE_READY "PC36 male/female torso-clavicle-neck A-B rendered; no APK until visually approved"
 
       - name: Verify PC24 outfit actually changes rendered male and female artwork
         shell: bash
@@ -588,6 +616,7 @@ jobs:
           PY
 
       - name: Export PC24 reference-loadout APK
+        if: false # PC36 is a pre-APK visual gate; do not export unapproved characters.
         shell: bash
         run: |
           set -euo pipefail
@@ -599,6 +628,7 @@ jobs:
           test -s "$APK_PATH"
 
       - name: Validate PC24 reference-loadout APK
+        if: false # PC36 is a pre-APK visual gate; do not export unapproved characters.
         shell: bash
         run: |
           set -euo pipefail
@@ -617,17 +647,17 @@ jobs:
           sha256sum "$APK" | tee pc23-apk.sha256
 
       - name: PC28 independently report APK validation
+        if: false # PC36 is a pre-APK visual gate; do not export unapproved characters.
         shell: bash
         env:
           GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python3 tools/pc28_ci_status.py APK_VALIDATED "Signed arm64 APK passed all checks; uploading artifact"
+        run: python3 tools/pc34_ci_status.py APK_VALIDATED "Signed arm64 APK passed all checks; uploading artifact"
 
       - name: Upload deterministic PC24 reference-loadout artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SurvivalParadise-PC33-RifleLowReady-${{ github.sha }}
+          name: SurvivalParadise-PC36-BodyVisualGate-${{ github.sha }}
           path: |
-            SurvivalParadise_PC33_RifleLowReady.apk
             pc23-apk.sha256
             pc23-apk-badging.txt
             pc23-apk-signature.txt
@@ -660,6 +690,8 @@ jobs:
             pc32-arm-art-qa.log
             pc33-original-rifle-capture.log
             pc33-rifle-clearance-qa.log
+            pc36-static-body-capture.log
+            pc36-body-visual-qa.log
             pc23-runtime-captures/
             pc23-diagnostic-captures/
             pc24-reference-outfit-captures/
@@ -686,10 +718,12 @@ jobs:
             pc32-arm-visual-evidence/
             pc33-original-rifle-captures/
             pc33-aim-pose-evidence/
+            pc36-static-body-comparator/
+            pc36-upper-body-visual/
             pc23-calibration-evidence/
       - name: PC28 final independent workflow status
         if: always()
         shell: bash
         env:
           GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python3 tools/pc28_ci_status.py "${{ job.status == 'success' && 'COMPLETED' || 'FAILED' }}" "Complete workflow outcome; see run logs and artifacts"
+        run: python3 tools/pc34_ci_status.py "${{ job.status == 'success' && 'COMPLETED' || 'FAILED' }}" "Complete workflow outcome; see run logs and artifacts"
