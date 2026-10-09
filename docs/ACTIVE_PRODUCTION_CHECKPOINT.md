@@ -68,3 +68,14 @@ Create an isolated PC28 branch from PC27 verified source and test genuine knee a
 - **Required next step**: review PC38 patch, complete CI/QA only if tool access permits; rebuild the actual Godot runtime, compare male/female left/right rifle contact with PC37, assess full-alpha head collision and wrist reach, and reject any visual regression. Then finish pistol grip/recoil, PC29 gait/foot-lock and equipped transitions.
 - **Latest signed APK remains PC33**: source `209ce0b117ec66009c2e0b441032c01a06c81452`, https://github.com/husam4448-rgb/wanderfall/actions/runs/37918163875/artifacts/11610127605 — technical PASS, visual FAIL.
 - **Independent dashboard**: https://github.com/husam4448-rgb/wanderfall/issues/35; as of checkpoint no independently active GitHub job was identified.
+
+## PC41 visual gate — 2026-10-09
+
+- **Branch:** `pc41-alpha-masked-stock-compositing`. Exact tested source: `144d318e2fcf05a5440796be46037fda512e65e1`. Documentation-only HEAD may be newer; do not treat that as a tested source.
+- **Workflow:** https://github.com/husam4448-rgb/wanderfall/actions/runs/37943967646 — completed SUCCESS (19 successful steps).
+- **Artifact:** https://github.com/husam4448-rgb/wanderfall/actions/runs/37943967646/artifacts/11623242359 (100 real Godot male/female mirrored frames; four transition GIFs and 20 comparative JPGs).
+- **Technical:** PASS. Original approved rifle source RGB retained, alpha masked on 338 pixels and source body/weapon IK retained.
+- **Visual verdict:** **PARTIAL localized butt edge reduction; overall FAIL**. Rifle still appears to originate from chest, sleeves/hands/stock layering unconvincing. Exact inspected [PC41 QA](https://github.com/husam4448-rgb/wanderfall/blob/pc41-alpha-masked-stock-compositing/docs/PC41_VISUAL_QA.md).
+- **APK:** None from PC41. Last signed PC33 code 205, source `209ce0b117ec66009c2e0b441032c01a06c81452`, technically valid but visually rejected.
+- **Next:** PC42 rework anatomical near/far alpha compositing and shoulder/weapon/forearm segmentation from actual approved source images—not further stock offsets. Actual clean+diagnostic visual gate with 25+ temporal poses, then pistol grips, grounded gait, equipment integration and Android device QA.
+- **Independent monitoring:** GitHub Issue #35 and workflow page. Finished CI does not indicate ongoing assistant execution.
