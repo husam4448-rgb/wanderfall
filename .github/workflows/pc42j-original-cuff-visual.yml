@@ -1,0 +1,113 @@
+name: PC42J Approved Original Cuff Bone2D Godot Visual QA
+on:
+  push:
+    branches: [pc42j-approved-unarmed-cuff-donor]
+    paths:
+      - '.github/workflows/pc42j-original-cuff-visual.yml'
+      - 'pc42-static-prototype/**'
+      - 'tools/pc42j_original_cuff_donor.py'
+      - 'tools/qa_pc42j_original_donor.py'
+      - 'tools/sp_ci_monitor.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+  issues: write
+env:
+  SP_PHASE: PC42J
+  GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
+jobs:
+  male-right-first-rifle-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Report workflow started
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/sp_ci_monitor.py emit STARTED "Recovering tested PC42H and auditing hand-authored PC42J source art." || true
+      - name: Reconstruct original art and authored cuff
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pillow numpy opencv-python-headless
+          python3 -m py_compile tools/sp_ci_monitor.py tools/pc42j_original_cuff_donor.py tools/qa_pc42j_original_donor.py tools/pc42h_articulated_arm_atlas.py
+          python3 tools/pc42_reference_cutout.py
+          python3 tools/pc42h_articulated_arm_atlas.py
+          python3 tools/pc42j_original_cuff_donor.py
+          test -s pc42-static-prototype/assets/pc42j_original_donor_manifest.json
+          test -s pc42-static-prototype/assets/pc42j_original_rolled_cuff.png
+          test -s pc42-static-prototype/assets/pc42j_original_elbow_backing.png
+      - name: Report source validation
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/sp_ci_monitor.py emit SOURCE_VALIDATED "Real artist-painted cuff recovered from approved same-character unarmed EAST source. Actual appearance NOT yet approved." || true
+      - name: Install checksum-pinned Godot
+        run: |
+          curl -fL --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip" | sha256sum -c -
+          unzip -q /tmp/godot.zip -d /tmp
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb >/dev/null
+      - name: Compile actual Godot Skeleton2D/Bone2D
+        run: |
+          "$GODOT_BIN" --headless --editor --path pc42-static-prototype --quit >pc42j-godot-import.log 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|Compile Error' pc42j-godot-import.log; then cat pc42j-godot-import.log; exit 1; fi
+      - name: Report Godot compilation and runtime start
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/sp_ci_monitor.py emit GODOT_COMPILED "Compilation passed. Beginning authentic approved original-source cuff vs PC42H five-angle Godot motion captures." || true
+      - name: Capture actual PC42H comparison and PC42J 32 frames
+        run: |
+          set -euo pipefail
+          mkdir -p pc42-static-prototype/evidence
+          PC42J_DONOR_BASELINE=1 PC42C_CAPTURE=1 timeout 150s xvfb-run -a "$GODOT_BIN" --path pc42-static-prototype --resolution 1580x660 >pc42j-baseline.log 2>&1
+          for p in m10 m05 p00 p05 p10; do
+            cp "pc42-static-prototype/evidence/pc42c_pose_$p.png" "pc42-static-prototype/evidence/pc42j_pc42h_$p.png"
+          done
+          PC42F_HIDE_FAR_ARM=1 timeout 90s xvfb-run -a "$GODOT_BIN" --path pc42-static-prototype --resolution 1580x660 >pc42j-hidden.log 2>&1
+          cp pc42-static-prototype/evidence/godot_pc42_static_first_pose.png pc42-static-prototype/evidence/pc42h_hidden_baseline.png
+          timeout 90s xvfb-run -a "$GODOT_BIN" --path pc42-static-prototype --resolution 1580x660 >pc42j-rest.log 2>&1
+          PC42C_CAPTURE=1 timeout 150s xvfb-run -a "$GODOT_BIN" --path pc42-static-prototype --resolution 1580x660 >pc42c-motion.log 2>&1
+          grep -q 'PC42J_AUTHENTIC_CUFF_REGISTERED' pc42j-rest.log
+          grep -q 'PC42C_REAL_IK_CONTACT_SWEEP_OK' pc42c-motion.log
+          grep -q 'PC42D_FAR_ARM_TWO_BONE_IK_OK' pc42c-motion.log
+          test "$(find pc42-static-prototype/evidence -maxdepth 1 -name 'pc42c_motion_*.png' | wc -l)" -eq 32
+      - name: Report skeletal runtime passed
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/sp_ci_monitor.py emit RUNTIME_TESTED "Godot executed five angles, 32 continuous frames, two weapon-owned IK arms." || true
+      - name: Verify art, contacts and visual evidence
+        run: |
+          set -euo pipefail
+          python3 tools/qa_pc42_static_reference.py
+          python3 tools/qa_pc42c_grip_ik.py
+          python3 tools/qa_pc42h_segmented_arm.py
+          python3 tools/qa_pc42j_original_donor.py
+          test -s pc42-static-prototype/evidence/pc42j_pc42h_vs_pc42j_actual_godot.jpg
+          test -s pc42-static-prototype/evidence/pc42j_32frame_actual_godot.gif
+          test -s pc42-static-prototype/evidence/pc42j_bone_overlay_08.png
+      - name: Report actual visual evidence ready
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/sp_ci_monitor.py emit VISUAL_EVIDENCE_READY "Native Godot five-angle A/B stills, 32-frame GIF, real Bone2D joint overlays captured. Human visual QA PENDING; no APK." || true
+      - name: Preserve evidence and logs even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SurvivalParadise-PC42J-OriginalDonor-${{ github.sha }}
+          path: |
+            pc42-static-prototype/evidence/
+            pc42-static-prototype/assets/
+            pc42j-*.log
+            pc42c-motion.log
+          retention-days: 14
+      - name: Terminal independently reported status
+        if: always()
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            python3 tools/sp_ci_monitor.py emit COMPLETED "Authentic original-source PC42J technical checks passed; true visual acceptance pending, no APK." || true
+          else
+            python3 tools/sp_ci_monitor.py emit FAILED "PC42J job failed; preserve logs/evidence, no visual approval or APK." || true
+          fi
