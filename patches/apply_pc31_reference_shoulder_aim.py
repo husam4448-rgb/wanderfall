@@ -21,7 +21,7 @@ sh={}
 for sex in ("male","female"):
     entry=profiles[sex]
     px=entry["reference_measurements_px"]["east_anatomical_shoulder"][0]
-    reg=entry["runtime"]["reference_registration"]["rifle"]
+    reg=entry.get("reference_registration",entry["runtime"].get("reference_registration",{}))["rifle"]
     sh[sex]=(px-reg["torso_center_x"])*reg["world_per_reference_px"]
     if sh[sex]<-4 or sh[sex]>1:
         raise SystemExit(f"PC31 measured shoulder {sex} unsupported: {sh[sex]}")
@@ -46,9 +46,9 @@ runtime=root/"scripts/art/d2d29_minimal_token_runtime.gd"
 r=runtime.read_text(encoding="utf-8")
 pairs=[
 ('    var pc22_rear_shoulder: Vector2 = pc22_player_arm_rig.shoulder_rear(base,dir_sign)',
- '''    var pc22_rear_shoulder: Vector2 = pc22_player_arm_rig.shoulder_for_aim(base,dir_sign,true) if weapon_visible else pc22_player_arm_rig.shoulder_rear(base,dir_sign)'''),
+ '''    var pc22_rear_shoulder: Vector2 = pc22_player_arm_rig.shoulder_for_aim(base,dir_sign,true) if weapon_visible and weapon_two_handed else pc22_player_arm_rig.shoulder_rear(base,dir_sign)'''),
 ('    var pc22_front_shoulder: Vector2 = pc22_player_arm_rig.shoulder_front(base,dir_sign)',
- '''    var pc22_front_shoulder: Vector2 = pc22_player_arm_rig.shoulder_for_aim(base,dir_sign,false) if weapon_visible else pc22_player_arm_rig.shoulder_front(base,dir_sign)''')
+ '''    var pc22_front_shoulder: Vector2 = pc22_player_arm_rig.shoulder_for_aim(base,dir_sign,false) if weapon_visible and weapon_two_handed else pc22_player_arm_rig.shoulder_front(base,dir_sign)''')
 ]
 for old,new in pairs:
     if r.count(old)!=1:
@@ -70,4 +70,4 @@ if sm.is_file():
         raise SystemExit("PC31 save version input mismatch")
     sm.write_text(ss.replace(a,'const GAME_VERSION := "0.22.0-PC31-REFERENCE-SHOULDERS"',1),encoding="utf-8")
 print("PC31 actual reference shoulder X:",sh)
-print("PC31 body-owned shoulder positions apply ONLY to armed aim; unarmed and grip sockets unchanged.")
+print("PC31 body-owned shoulder positions apply ONLY to shouldered rifle aim; unarmed/pistol and grip sockets unchanged.")
