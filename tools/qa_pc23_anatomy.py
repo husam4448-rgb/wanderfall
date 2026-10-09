@@ -71,10 +71,14 @@ for sex in ("male","female"):
     # Explicit anti-regression checks for the PC22 visual failure.
     require(r["shoulder_rear"][0]<0 and r["shoulder_front"][0]<0,
             f"{sex}: shoulder returned to forward-chest positive X")
-    require(r["upper_arm_length"]+r["forearm_length"]>=24.5,
-            f"{sex}: total arm reach regressed to short PC22 scale")
+    total_len=r["upper_arm_length"]+r["forearm_length"]
+    expected_total=19.4 if sex=="male" else 18.6
+    require(abs(total_len-expected_total)<=0.05,
+            f"{sex}: calibrated total arm length drift {total_len} vs {expected_total}")
     require(r["dominant_hand_size"][1]>=4.5 and r["support_hand_size"][1]>=4.3,
             f"{sex}: hand height regressed to miniature scale")
+    require(r["forearm_length"] < r["upper_arm_length"]*0.66,
+            f"{sex}: forearm returned to the overlong PC23 deep-V proportion")
     require(0.62<=r["wrist_width"]/r["forearm_width"]<=0.70,
             f"{sex}: wrist/forearm taper implausible")
 
@@ -141,6 +145,24 @@ if "pistol" in weapons["weapons"]:
     pw=weapons["weapons"]["pistol"]
     require(pw["support_grip_relative_to_dominant"][1]>0,
             "pistol support palm should be lower/rear relative to firing palm")
+
+# The measured rifle contacts must remain reachable by both sex profiles without
+# moving shoulder sockets or lengthening the body to chase the weapon.
+rw=weapons["weapons"]["rifle"]
+for sex in ("male","female"):
+    rr=profiles["profiles"][sex]["runtime"]
+    mount=rw["body_mount_offset"]
+    dom=[mount[0]+rw["dominant_grip_socket"][0]-rr["dominant_wrist_to_grip_local"][0],
+         mount[1]+rw["dominant_grip_socket"][1]-rr["dominant_wrist_to_grip_local"][1]]
+    sup=[mount[0]+rw["support_grip_socket"][0]-rr["support_wrist_to_grip_local"][0],
+         mount[1]+rw["support_grip_socket"][1]-rr["support_wrist_to_grip_local"][1]]
+    rear=rr["shoulder_rear"]
+    front=rr["shoulder_front"]
+    total=rr["upper_arm_length"]+rr["forearm_length"]
+    ddom=math.dist(rear,dom)
+    dsup=math.dist(front,sup)
+    require(ddom <= total-0.05,f"{sex}: measured rifle dominant wrist unreachable {ddom:.3f}>{total:.3f}")
+    require(dsup <= total-0.05,f"{sex}: measured rifle support wrist unreachable {dsup:.3f}>{total:.3f}")
 
 # Patch architecture checks.
 for token in (
