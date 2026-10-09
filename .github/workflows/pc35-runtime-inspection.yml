@@ -98,7 +98,6 @@ jobs:
           python3 patches/apply_pc31_reference_shoulder_aim.py "$PROJECT_DIR"
           python3 patches/apply_pc32_authored_arm_bones.py "$PROJECT_DIR"
           python3 patches/apply_pc33_rifle_low_ready.py "$PROJECT_DIR"
-          python3 patches/apply_pc33_rifle_low_ready.py "$PROJECT_DIR"
 
           grep -q 'PC23 HUMANOID RIG CALIBRATION' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"
           grep -q 'pc23_humanoid_rig_system.gd' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"
