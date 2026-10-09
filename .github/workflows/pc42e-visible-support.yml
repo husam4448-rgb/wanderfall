@@ -1,0 +1,71 @@
+name: PC42E Visible Original Forearm Source-Art and Dual IK QA
+on:
+  push:
+    branches: [pc42e-visible-approved-support-forearm]
+    paths: ['.github/workflows/pc42e-visible-support.yml', 'pc42-static-prototype/**', 'tools/qa_pc42c_grip_ik.py', 'tools/qa_pc42d_far_arm.py', 'tools/qa_pc42e_visible_support.py', 'tools/pc42d_far_arm_atlas.py']
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+env:
+  SP_PHASE: PC42E
+  GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - name: Report started
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/sp_live_ci.py STARTED "PC42D real two-arm source-art rig with weapon-constrained wrist targets"
+      - name: Prepare source layers
+        run: |
+          python3 -m pip install --quiet pillow numpy opencv-python-headless
+          python3 -m py_compile tools/qa_pc42c_grip_ik.py tools/qa_pc42d_far_arm.py tools/qa_pc42e_visible_support.py tools/pc42d_far_arm_atlas.py tools/sp_live_ci.py
+          python3 tools/pc42_reference_cutout.py
+          python3 tools/pc42d_far_arm_atlas.py
+      - name: Install Godot runtime
+        run: |
+          curl -fL --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip" | sha256sum -c -
+          unzip -q /tmp/godot.zip -d /tmp
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb >/dev/null
+      - name: Validate real Godot bones
+        run: |
+          "$GODOT_BIN" --headless --editor --path pc42-static-prototype --quit >pc42c-import.log 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|Compile Error' pc42c-import.log; then cat pc42c-import.log; exit 1; fi
+      - name: Capture actual rest and small pose stress
+        run: |
+          mkdir -p pc42-static-prototype/evidence
+          timeout 90s xvfb-run -a "$GODOT_BIN" --path pc42-static-prototype --resolution 1580x660 >pc42c-rest.log 2>&1
+          PC42C_CAPTURE=1 timeout 90s xvfb-run -a "$GODOT_BIN" --path pc42-static-prototype --resolution 1580x660 >pc42c-motion.log 2>&1
+          grep -q 'PC42B_SKELETON2D_BUILT' pc42c-rest.log
+          grep -q 'PC42C_REAL_IK_CONTACT_SWEEP_OK' pc42c-motion.log
+          grep -q 'PC42D_FAR_ARM_TWO_BONE_IK_OK' pc42c-motion.log
+          test "$(find pc42-static-prototype/evidence -maxdepth 1 -name 'pc42c_motion_*.png' | wc -l)" -eq 32
+          python3 tools/qa_pc42_static_reference.py
+          python3 tools/qa_pc42c_grip_ik.py
+          python3 tools/qa_pc42d_far_arm.py
+          python3 tools/qa_pc42e_visible_support.py
+          test -s pc42-static-prototype/evidence/pc42c_32frame_weapon_ik.gif
+      - name: Evidence status
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/sp_live_ci.py VISUAL_EVIDENCE_READY "PC42E newly visible original forearm between elbow and rifle handguard captured; actual visual QA pending"
+      - name: Preserve images and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SurvivalParadise-PC42E-VisibleSupport-${{ github.sha }}
+          path: |
+            pc42-static-prototype/evidence/
+            pc42-static-prototype/assets/
+            pc42c-*.log
+      - name: Terminal independent status
+        if: always()
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/sp_live_ci.py "${{ job.status == 'success' && 'COMPLETED' || 'FAILED' }}" "PC42E locally restored far forearm against original authorized textures and dual-arm IK; visual review separate; NO APK"
