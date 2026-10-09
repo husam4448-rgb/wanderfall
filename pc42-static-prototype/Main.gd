@@ -172,14 +172,22 @@ func _pc42h_build_far_arm() -> void:
     # The donor sleeve, elbow, cuff and glove are independently authored
     # to exact rest joint frames, not one resized rectangle.
     var support_socket: Bone2D = pc42_bones["support_hand"]
-    for spec in [
+    var paint_specs: Array[Dictionary] = [
         {"name":"pc42h_far_shoulder","parent":upper,"pivot":PC42CGripIK.FAR_SHOULDER},
         {"name":"pc42h_far_upper","parent":upper,"pivot":PC42CGripIK.FAR_SHOULDER},
-        {"name":"pc42h_far_elbow","parent":fore,"pivot":PC42CGripIK.FAR_REST_ELBOW},
         {"name":"pc42h_far_forearm","parent":fore,"pivot":PC42CGripIK.FAR_REST_ELBOW},
         {"name":"pc42h_far_cuff","parent":fore,"pivot":PC42CGripIK.FAR_REST_ELBOW},
         {"name":"pc42h_far_glove_backing","parent":support_socket,"pivot":PC42CGripIK.REST_SUPPORT_WRIST}
-    ]:
+    ]
+    if OS.get_environment("PC42J_ART_BASELINE") == "1":
+        paint_specs.append({"name":"pc42h_far_elbow","parent":fore,"pivot":PC42CGripIK.FAR_REST_ELBOW})
+    else:
+        # PC42J: independently DRAWN closed cloth backing and layered sewn
+        # rim own their real shoulder/elbow rest frames. Add after far
+        # forearm Bone2D paint so the physical sleeve opening occludes skin.
+        paint_specs.append({"name":"pc42j_far_elbow_backcloth","parent":upper,"pivot":PC42CGripIK.FAR_SHOULDER})
+        paint_specs.append({"name":"pc42j_far_rolled_cuff","parent":upper,"pivot":PC42CGripIK.FAR_SHOULDER})
+    for spec in paint_specs:
         var texture: Texture2D = _load_image("assets/" + str(spec["name"]) + ".png")
         if texture == null:
             push_error("PC42H approved far arm texture missing: " + str(spec["name"]))
@@ -196,6 +204,7 @@ func _pc42h_build_far_arm() -> void:
             # Authored, but don't paint a second glove over approved source hand.
             # The original rifle-socket hand already tracks the weapon exactly.
             sprite.visible = false
+    print("PC42J_AUTHORED_ART_REGISTERED baseline=" + str(OS.get_environment("PC42J_ART_BASELINE") == "1"))
     print("PC42H_SEGMENTED_FAR_ARM_READY 2 independently solved Bone2D plus source-clothing shoulder/elbow/forearm/cuff and weapon socket glove")
     print("PC42F_FAR_ARM_DEPTH_RESOLVED visible=" + str(upper.visible) + " z_index=" + str(upper.z_index))
 
