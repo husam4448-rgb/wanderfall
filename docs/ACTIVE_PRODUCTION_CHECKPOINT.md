@@ -42,3 +42,14 @@ Create an isolated PC28 branch from PC27 verified source and test genuine knee a
 - **Next mandatory phase:** PC36 coherent 2D aiming pose state/torso-pelvis/clavicle/neck/weapon/hand integration, with full painted collision and continuous trajectories; actual Godot 24+ phase GIFs/closeups before APK. Then pistol, grounded locomotion and full Android on-device verification.
 - **Last quality verdict:** Technical previous APK PASS; *gameplay visual acceptance remains FAIL*. Do not declare characters finished.
 - **Monitoring:** GitHub Issue #35 + workflow link; no assistant work continues outside an active chat without an independent job.
+
+## PC36 Visual Review — 2026-10-09
+
+- **Exact tested source SHA:** `dd51929313041c3ce5433304bf61db3754f4538a`; branch `pc36-coordinated-upper-body-pose`.
+- **Workflow:** https://github.com/husam4448-rgb/wanderfall/actions/runs/37920967137 — 50 steps successful, no failed tests.
+- **Evidence:** https://github.com/husam4448-rgb/wanderfall/actions/runs/37920967137/artifacts/11611632633
+- **Visual verdict:** **FAIL**. Actual male/female downward-rifle renders still have near-vertical rifle at face/chest despite coherent torso and head lean. Pistol grip/arm remains visually implausible.
+- **Full review:** https://github.com/husam4448-rgb/wanderfall/blob/pc36-coordinated-upper-body-pose/docs/PC36_VISUAL_REJECTION.md
+- **No PC36 APK by design** (unaccepted visual gate). Last signed PC33 code 205: https://github.com/husam4448-rgb/wanderfall/actions/runs/37918163875/artifacts/11610127605
+- **Next:** PC37 continuous shared shouldered/low-ready/steep-down pose solver with actual full sprite collision, anatomically reachable arm targets, coordinated layering, 24+ time-sequenced Godot captures and separate pistol visual gate BEFORE export.
+- GitHub Issue #35 tracks last known state. There is no ongoing chat development after tool execution terminates.
