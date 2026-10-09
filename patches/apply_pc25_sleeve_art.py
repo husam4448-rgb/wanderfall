@@ -61,4 +61,25 @@ runtime.write_text(s,encoding='utf-8')
 for needle in ('func _pc25_draw_bone_art','PC25_LEGACY_ARM_ART','pc23_humanoid_rig_system.gd'):
     if needle not in s:
         raise SystemExit('PC25 invariant failed: '+needle)
+# Version PC25 independently so Android tests distinguish it from PC24.
+ep=game/'export_presets.cfg'
+ex=ep.read_text(encoding='utf-8')
+import re
+ex,n1=re.subn(r'(?m)^version/code=194
+, 'version/code=195',ex,count=1)
+ex,n2=re.subn(r'(?m)^version/name="0.22.0-PC24-REFERENCE-LOADOUT"
+,
+               'version/name="0.22.0-PC25-AUTHORED-SLEEVES"',ex,count=1)
+if n1 != 1 or n2 != 1:
+    raise SystemExit('PC25 export version anchors missing')
+ep.write_text(ex,encoding='utf-8')
+save=game/'scripts/save/save_manager.gd'
+if save.is_file():
+    value=save.read_text(encoding='utf-8')
+    value,n3=re.subn(r'const GAME_VERSION := "0.22.0-PC24-REFERENCE-LOADOUT"',
+                     'const GAME_VERSION := "0.22.0-PC25-AUTHORED-SLEEVES"',value,count=1)
+    if n3 != 1:
+        raise SystemExit('PC25 save version anchor missing')
+    save.write_text(value,encoding='utf-8')
 print('PC25 real authored sleeves follow canonical rig; PC25_LEGACY_ARM_ART=1 restores old rendering')
+print('PC25 Android build version: 195 / 0.22.0-PC25-AUTHORED-SLEEVES')
