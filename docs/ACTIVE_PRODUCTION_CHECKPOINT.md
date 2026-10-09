@@ -1,36 +1,38 @@
 # Survival Paradise — Active Production Checkpoint
-Last updated: 2026-10-09 (PC25 iteration 1)
 
-## Authoritative live status
-- Dashboard: https://github.com/husam4448-rgb/wanderfall/issues/35
-- Active correction branch: `pc25-articulated-sleeve-fidelity`
-- Source commit being verified: `7038b89629bcdb405706b75dcae7484f4b22f0c5`
-- Active build: https://github.com/husam4448-rgb/wanderfall/actions/runs/37896294070
-- Current state when this file was committed: **workflow running; visual review not yet performed**
-- Previous safe checkpoint: `8aa1cc35b52cddf7530ce9774e003fb7321a2123` on `pc24-pistol-aim-posture`
-- Previous verified APK source: `33541ce421d775d3ca73a89d336f760e51b11932`
-- Previous signed APK artifact: https://github.com/husam4448-rgb/wanderfall/actions/runs/37894898947/artifacts/11599609683
-- Protected original PC23 recovery: `d133658b539bcf8d38c964fe7e7c0880fd78fed4`
+Last verified iteration: PC25 / 2026-10-09
 
-## PC25 changes
-- Add `patches/apply_pc25_sleeve_art.py` after the verified PC24 patch to draw authentic textured upper-arm and forearm art along the **existing** shoulder/elbow/wrist bones; preserve the continuous anatomical backing ribbon and all weapon contacts.
-- Toggle original arm visuals with `PC25_LEGACY_ARM_ART=1`.
-- Add `tools/qa_pc25_sleeve_visual.py` to compare real screenshot images, six poses per sex, and generate side-by-side evidence.
-- Extend the existing GitHub workflow to run an unchanged PC24 visual comparator, new PC25 runtime captures, tests, and Android APK export.
+## Recoverable production source
+- GitHub dashboard: https://github.com/husam4448-rgb/wanderfall/issues/35
+- Branch: `pc25-articulated-sleeve-fidelity`
+- **PC25 verified APK source commit:** `138489bdb62748594ab38749f8214289cbb40a28`
+- **PC25 workflow:** https://github.com/husam4448-rgb/wanderfall/actions/runs/37896778015
+- **PC25 signed APK artifact ID:** `11601170232`; https://github.com/husam4448-rgb/wanderfall/actions/runs/37896778015/artifacts/11601170232
+- **Baseline protected PC24 branch:** `pc24-pistol-aim-posture` at `8aa1cc35b52cddf7530ce9774e003fb7321a2123`
+- **Original PC23 baseline:** `d133658b539bcf8d38c964fe7e7c0880fd78fed4`
+- Current technical status: **PASS**
+- Current visual acceptance: **FAIL — do not lock player characters**
 
-## Acceptance status
-- PC23 arm geometry: PASS in previous workflow.
-- PC24 Android signed build: PASS in previous workflow.
-- PC25 Godot and APK: **PENDING current workflow**.
-- Character visual similarity: NOT APPROVED.
-- Pistol extreme-angle grip: improved in PC24, not locked.
-- Rifle support-hand: not locked.
-- Gait animation loops / breathing / on-device Android: not production verified.
+## What was built and verified
+1. Authored textured upper and forearm art now follows the existing canonical skeletal endpoints, behind a continuous sleeve ribbon to prevent elbow gaps.
+2. Existing hand weapon contacts, rig geometry, equipment toggles and gender profiles are unchanged.
+3. `PC25_LEGACY_ARM_ART=1` switches to the prior visual renderer for exact A/B comparison.
+4. Godot Actions validates static scripts, project reconstruction, parser, smoke tests, full aim sweep, 3 render capture sets, male/female A/B images, APK export, signature, package ID and version `195`.
+5. Visual evidence is stored inside the PC25 workflow artifact: `pc25-sleeve-review` (12 before/after pose images + QA JSON) and standard dressed-reference comparison sheets.
 
-## After workflow completes
-1. Inspect PC25 side-by-side screenshots; reject any new seams or oversized disconnected shoulder sprites.
-2. If worse than PC24, switch off/rollback new overlays without modifying protected PC24.
-3. If better, retain new texture layer and improve rifle support hand and pistol pose, maintaining contacts and 2D left/right only.
-4. Test actual gait loop via frame sequence and verify Android build, packaging and loadout behavior.
-5. Update issue #35 and checkpoint with exact current commit, workflow, QA evidence and remaining work.
-6. Never claim the chat is still executing after it ends. Only independent GitHub Actions jobs continue.
+## Visual review results
+- Male/female rifle horizontal images show small genuine garment pixel changes but inadequate visual increase versus authoritative detailed art.
+- No obvious catastrophic break from those reviewed captures. That is *not* a full acceptance across poses or a real device test.
+- The previous default sleeve was mostly flat olive; authored overlay remains understated.
+- Images of running poses have timing-dependent differences and must not be treated as proof of improved animation.
+- Rigged gait loops, rifle handguard, pistol extreme angle, boot/clothing fidelity and visual proportions are **still open**.
+
+## Outstanding work / next iteration
+1. Add deterministic gait phase capture that covers an entire walk and run cycle for male/female, including arms and knee bending.
+2. Generate ordered contact sheets and GIF previews, detect static limb bug and frame-to-frame discontinuity using landmark sampling.
+3. Improve armed sleeve material shade and silhouette while preserving skeletal constraints; do not overfit an isolated image.
+4. Correct rifle support-hand and dominant trigger-grip placement against approved reference silhouettes.
+5. Maintain autonomous loop with per-run GitHub Issue updates, versioned safe APKs, and visual acceptance policy.
+
+## Resume instructions
+Read issue #35 and this file. Inspect the latest branch HEAD (it may include documentation commits newer than the tested APK source), continue on a new isolated branch from the tested source, and do not rewrite the PC23/PC24/PC25 safe baselines. When chat ends, only independently running GitHub Actions jobs continue.
