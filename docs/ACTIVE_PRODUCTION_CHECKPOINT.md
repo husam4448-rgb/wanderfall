@@ -28,3 +28,15 @@ Live development issue: https://github.com/husam4448-rgb/wanderfall/issues/35
 
 ## Next step
 Create an isolated PC28 branch from PC27 verified source and test genuine knee articulation with the existing trouser artwork split into controllable thigh and shin sprites. Keep legacy PC27 rendering as a selectable A/B comparator. Inspect actual male/female gait frames before accepting.
+
+## PC32 verified workflow + rejected visual review — 2026-10-09
+
+- Tested code source SHA: `a5f34e1f51c9bac36cc1bfbc8e667be1fc9a01fa`
+- GitHub workflow: https://github.com/husam4448-rgb/wanderfall/actions/runs/37913653492 — **47/47 successful steps**
+- Artifact: https://github.com/husam4448-rgb/wanderfall/actions/runs/37913653492/artifacts/11607627845
+- APK: `SurvivalParadise_PC32_AuthoredArmBones.apk` (version code 204)
+- **Visual outcome: FAIL**. Independent upper/forearm source-art textures rendered, but shoulders/elbows and hand/weapon poses remain unsatisfactory, particularly downward aiming. Numerical image differences are not aesthetic approval.
+- Full evidence and rejection: [PC32_VISUAL_REVIEW.md](https://github.com/husam4448-rgb/wanderfall/blob/pc32-authored-arm-bone-renderer/docs/PC32_VISUAL_REVIEW.md)
+- Next branch: `pc33-aim-pose-art-quality` (create from *tested PC32 commit*, not document-only HEAD).
+- Next task: structurally resolve anatomically impossible extreme rifle/pistol poses, correct occlusion/shoulder/elbow source-art silhouettes, prove with Godot screenshots, then revisit motion/locomotion.
+- No new functional build or assistant-driven loop runs automatically after this checkpoint.
