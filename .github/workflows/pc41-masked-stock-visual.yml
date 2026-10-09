@@ -12,8 +12,6 @@ on:
       - 'patches/apply_pc41_masked_stock_composite.py'
       - 'patches/apply_pc39_clavicle_priority.py'
       - 'patches/apply_pc40_stock_layer.py'
-      - 'tools/qa_pc41_stock_mask.py'
-      - 'patches/apply_pc41_masked_stock_composite.py'
       - 'tools/sp_ci_status.py'
   workflow_dispatch:
 permissions:
