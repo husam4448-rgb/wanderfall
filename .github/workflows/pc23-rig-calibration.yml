@@ -1,8 +1,8 @@
-name: PC27 Balanced Alternating Foot Plant
+name: PC28 Articulated Knees + Independent CI Status
 
 on:
   push:
-    branches: [ pc23-humanoid-rig-calibration, pc23-clean-visual-review, pc24-art-fidelity-reference-loadout, pc24-pistol-aim-posture, pc25-articulated-sleeve-fidelity, pc26-gait-cycle-evidence, pc27-balanced-alternating-gait ]
+    branches: [ pc23-humanoid-rig-calibration, pc23-clean-visual-review, pc24-art-fidelity-reference-loadout, pc24-pistol-aim-posture, pc25-articulated-sleeve-fidelity, pc26-gait-cycle-evidence, pc27-balanced-alternating-gait, pc28-articulated-knees ]
     paths:
       - '.ci/trigger-pc23-rig-calibration'
       - '.github/workflows/pc23-rig-calibration.yml'
@@ -15,6 +15,9 @@ on:
       - 'tools/qa_pc26_gait_cycle.py'
       - 'patches/apply_pc27_balanced_gait.py'
       - 'tools/qa_pc27_foot_cycle.py'
+      - 'patches/apply_pc28_articulated_knees.py'
+      - 'tools/qa_pc28_knees.py'
+      - 'tools/pc28_ci_status.py'
       - 'tools/build_pc22_canonical_arm_assets.py'
       - 'tools/build_pc22_role_overlays.py'
       - 'tools/qa_pc22_arm_visual_contract.py'
@@ -29,6 +32,7 @@ concurrency:
 
 permissions:
   contents: read
+  issues: write
 
 env:
   SOURCE_SHA256: ae4eff17e5f281f5867ac2d82207fcf96e6c8b649432acd48816aebab76fa308
@@ -38,7 +42,7 @@ env:
   GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
   GODOT_TEMPLATES_TPZ: /tmp/Godot_v4.7.2-stable_export_templates.tpz
   GODOT_TEMPLATES_SHA256: f298490b8d44d934be425a5a65a51bf15f422428b229a06a6e11d9ffea248011
-  APK_PATH: SurvivalParadise_PC27_BalancedGait.apk
+  APK_PATH: SurvivalParadise_PC28_ArticulatedKnees.apk
   MAX_APK_BYTES: '419430400'
 
 jobs:
@@ -50,6 +54,12 @@ jobs:
         with:
           ref: ${{ github.sha }}
           fetch-depth: 1
+
+      - name: PC28 independently report workflow start
+        shell: bash
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/pc28_ci_status.py STARTED "GitHub workflow initiated"
 
       - name: Static PC23 anatomy and patch validation
         shell: bash
@@ -65,6 +75,9 @@ jobs:
           python3 -m py_compile tools/qa_pc26_gait_cycle.py
           python3 -m py_compile patches/apply_pc27_balanced_gait.py
           python3 -m py_compile tools/qa_pc27_foot_cycle.py
+          python3 -m py_compile patches/apply_pc28_articulated_knees.py
+          python3 -m py_compile tools/qa_pc28_knees.py
+          python3 -m py_compile tools/pc28_ci_status.py
           python3 -m py_compile tools/qa_pc23_anatomy.py
           python3 tools/qa_pc23_anatomy.py "$GITHUB_WORKSPACE" | tee pc23-anatomy-qa.json
 
@@ -130,11 +143,12 @@ jobs:
           python3 patches/apply_pc25_sleeve_art.py "$PROJECT_DIR"
           python3 patches/apply_pc26_gait_capture.py "$PROJECT_DIR"
           python3 patches/apply_pc27_balanced_gait.py "$PROJECT_DIR"
+          python3 patches/apply_pc28_articulated_knees.py "$PROJECT_DIR"
 
           grep -q 'PC23 HUMANOID RIG CALIBRATION' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"
           grep -q 'pc23_humanoid_rig_system.gd' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"
-          grep -q 'version/code=197' "$PROJECT_DIR/export_presets.cfg"
-          grep -q 'version/name="0.22.0-PC27-BALANCED-GAIT"' "$PROJECT_DIR/export_presets.cfg"
+          grep -q 'version/code=198' "$PROJECT_DIR/export_presets.cfg"
+          grep -q 'version/name="0.22.0-PC28-ARTICULATED-KNEES"' "$PROJECT_DIR/export_presets.cfg"
 
       - name: Install Godot and export templates
         shell: bash
@@ -167,6 +181,12 @@ jobs:
           set -euo pipefail
           timeout 20s "$GODOT_BIN" --headless --path "$PROJECT_DIR" --quit-after 120 --verbose 2>&1 | tee pc23-smoke.log
           if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|Compile Error:|Parse Error:|Invalid call|Invalid get index' pc23-smoke.log; then exit 1; fi
+
+      - name: PC28 independently report Godot smoke test result
+        shell: bash
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/pc28_ci_status.py GODOT_PASS "Godot source import and runtime smoke passed"
 
       - name: Capture actual Godot calibration states
         shell: bash
@@ -264,6 +284,42 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/qa_pc27_foot_cycle.py | tee pc27-foot-qa.log
+
+      - name: Capture PC27 original one-piece leg comparator
+        shell: bash
+        run: |
+          set -euo pipefail
+          LEGACY="$GITHUB_WORKSPACE/pc28-legacy-gait-captures"
+          mkdir -p "$LEGACY"
+          PC28_LEGACY_KNEE=1 PC26_GAIT_CAPTURE=1 ARM_CAPTURE_DIR="$LEGACY" timeout 90s xvfb-run -a "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1280x720 --verbose 2>&1 | tee pc28-legacy-capture.log
+          test "$(find "$LEGACY" -maxdepth 1 -name '*.png' | wc -l)" -eq 32
+          grep -q 'PC22_ARM_CAPTURE_COMPLETE:32' pc28-legacy-capture.log
+          grep -q 'PC22_RUNTIME_SWEEP_OK' pc28-legacy-capture.log
+          if grep -E 'SCRIPT ERROR:|Parse Error:|PC22_ARM_GEOMETRY_FAIL' pc28-legacy-capture.log; then exit 1; fi
+
+      - name: Capture PC28 hip-knee-ankle diagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          DIAG="$GITHUB_WORKSPACE/pc28-knee-diagnostics"
+          mkdir -p "$DIAG"
+          PC28_SHOW_KNEES=1 PC26_GAIT_CAPTURE=1 ARM_CAPTURE_DIR="$DIAG" timeout 90s xvfb-run -a "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1280x720 --verbose 2>&1 | tee pc28-knee-diagnostic.log
+          test "$(find "$DIAG" -maxdepth 1 -name '*.png' | wc -l)" -eq 32
+          grep -q 'PC22_ARM_CAPTURE_COMPLETE:32' pc28-knee-diagnostic.log
+          grep -q 'PC22_RUNTIME_SWEEP_OK' pc28-knee-diagnostic.log
+          if grep -E 'SCRIPT ERROR:|Parse Error:|PC22_ARM_GEOMETRY_FAIL|PC28_KNEE_BONE_MISMATCH' pc28-knee-diagnostic.log; then exit 1; fi
+
+      - name: Verify PC28 knee movement and compare PC27
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/qa_pc28_knees.py | tee pc28-knee-qa.log
+
+      - name: PC28 publish visual evidence milestone
+        shell: bash
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/pc28_ci_status.py EVIDENCE_READY "Godot knee visual comparison captured; APK not yet verified"
 
       - name: Verify PC24 outfit actually changes rendered male and female artwork
         shell: bash
@@ -367,19 +423,25 @@ jobs:
           "$APKSIGNER" verify --verbose --print-certs "$APK" | tee pc23-apk-signature.txt
           "$AAPT" dump badging "$APK" | tee pc23-apk-badging.txt
           grep -q "package: name='org.wanderfall.game'" pc23-apk-badging.txt
-          grep -q "versionCode='197'" pc23-apk-badging.txt
-          grep -q "versionName='0.22.0-PC27-BALANCED-GAIT'" pc23-apk-badging.txt
+          grep -q "versionCode='198'" pc23-apk-badging.txt
+          grep -q "versionName='0.22.0-PC28-ARTICULATED-KNEES'" pc23-apk-badging.txt
           unzip -l "$APK" | grep -q 'lib/arm64-v8a/libgodot_android.so'
           if unzip -l "$APK" | grep -q 'lib/armeabi-v7a/'; then exit 1; fi
           test "$(stat -c%s "$APK")" -lt "$MAX_APK_BYTES"
           sha256sum "$APK" | tee pc23-apk.sha256
 
+      - name: PC28 independently report APK validation
+        shell: bash
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/pc28_ci_status.py APK_VALIDATED "Signed arm64 APK passed all checks; uploading artifact"
+
       - name: Upload deterministic PC24 reference-loadout artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SurvivalParadise-PC27-BalancedGait-${{ github.sha }}
+          name: SurvivalParadise-PC28-ArticulatedKnees-${{ github.sha }}
           path: |
-            SurvivalParadise_PC27_BalancedGait.apk
+            SurvivalParadise_PC28_ArticulatedKnees.apk
             pc23-apk.sha256
             pc23-apk-badging.txt
             pc23-apk-signature.txt
@@ -395,6 +457,9 @@ jobs:
             pc26-gait-qa.log
             pc27-legacy-gait-capture.log
             pc27-foot-qa.log
+            pc28-legacy-capture.log
+            pc28-knee-diagnostic.log
+            pc28-knee-qa.log
             pc23-runtime-captures/
             pc23-diagnostic-captures/
             pc24-reference-outfit-captures/
@@ -404,4 +469,13 @@ jobs:
             pc26-animation-evidence/
             pc27-legacy-gait-captures/
             pc27-gait-comparison/
+            pc28-legacy-gait-captures/
+            pc28-knee-diagnostics/
+            pc28-knee-evidence/
             pc23-calibration-evidence/
+      - name: PC28 final independent workflow status
+        if: always()
+        shell: bash
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/pc28_ci_status.py "${{ job.status == 'success' && 'COMPLETED' || 'FAILED' }}" "Complete workflow outcome; see run logs and artifacts"
