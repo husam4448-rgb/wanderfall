@@ -102,3 +102,16 @@ Create an isolated PC28 branch from PC27 verified source and test genuine knee a
 - **Latest visual QA:** original PC42 static male-right rifle approved; PC42H experimental moving art only partial; PC42I and PC42J original-cuff attempts visually FAIL. No later visual art candidate accepted. Keep PC33 signed APK code 205 (visual FAIL), do not export another yet.
 - Full recovery: `docs/PC42J_NATIVE_ART_RECOVERY.md`, `assets/authored2d/pc42j_painted_elbow/ART_REQUIREMENTS.md`.
 - **NEXT:** create authentic original-style individually painted concealed sleeve, cuff and elbow parts (seven separate transparent 236×254 rest-space PNGs), inspect at native size; then re-run male RIGHT rifle 0°/±5°/±10°, 32 frames and real visual acceptance. Later characters/pistols/gait/equipment and APK follow only after this visual gate passes. No chat can continue assistant-directed work after execution terminates.
+
+## PC42J generated original-art candidates V1/V2 — final actual Godot review (2026-10-09)
+
+- The previously missing seven independent candidate painted body-part textures were created from new image-generation output, recovered and stored as a SHA256-pinned binary Git asset: `assets/authored2d/pc42j_painted_elbow/pc42j_candidate_generated_atlas_64.png`. They expand to 236×254 transparent RGBA arm parts using `tools/pc42j_unpack_generated_candidate.py`, preserve independently paintable structure, and are **NOT accepted art**.
+- **Latest actually tested experimental source:** `6e92cb4cebb7aa815565fbba27ac95e52d0a0dfd`; [Godot workflow 37989480113](https://github.com/husam4448-rgb/wanderfall/actions/runs/37989480113) SUCCESS technically; [real A/B screenshots and 32-frame GIF](https://github.com/husam4448-rgb/wanderfall/actions/runs/37989480113/artifacts/11644701462).
+- **Earlier tested V1 source:** `8190ebe7dffe838428ca9a20d5a0a726b5bd2519`; [Godot workflow 37989111094](https://github.com/husam4448-rgb/wanderfall/actions/runs/37989111094) SUCCESS technically; [evidence](https://github.com/husam4448-rgb/wanderfall/actions/runs/37989111094/artifacts/11644456233).
+- **Visual FAIL V1:** large unnatural folded cuff disc. **Visual FAIL V2:** after removing hidden duplicate cuff layers, beige rolled forearm still has an unnatural dangling arc, breaks original jacket continuity. Source design inconsistent with approved character. Both hands remain on weapon grips (<0.00007 world px max error). The source art cannot be promoted to playable game.
+- Original PC42H fallback remains intact, tested again by [37989465598](https://github.com/husam4448-rgb/wanderfall/actions/runs/37989465598) technical SUCCESS.
+- Complete report: `docs/PC42J_GENERATED_ART_VISUAL_QA.md`.
+- **Next:** create a genuinely new isolated-art reference-conditioned generation based on approved `male_east_rifle.png` (not another infographic, source polygon patch or resized source). Inspect carefully and integrate only after art and 32-frame Godot visual PASS.
+- **Visual acceptance:** male RIGHT static ORIGINAL approved; no animated candidate passed. Latest Android signed APK PC33 version code 205, previously visually rejected. No new APK.
+- **Monitoring:** Issue #35 watchdog on default branch, automatic workflow terminal state tracking and expiring chat heartbeat. Assistant work stops when this execution ends; independent GitHub may finish submitted jobs.
+
