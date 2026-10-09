@@ -40,3 +40,12 @@ Live status issue: https://github.com/husam4448-rgb/wanderfall/issues/35
 
 ## Independent status policy
 The workflow now issues authenticated updates to GitHub Issue #35 at STARTED, GODOT_PASS, EVIDENCE_READY, APK_VALIDATED, and COMPLETED or FAILED (via an unconditional final step). Verified effective for PC28 and subsequent runs. Status from Actions is independent of ChatGPT execution. A completed GitHub workflow never means more assistant iterations are automatically running.
+
+## PC29 independently reviewed visual verification — 2026-10-09
+
+- **Official review:** [docs/PC29_VISUAL_VERIFICATION.md](https://github.com/husam4448-rgb/wanderfall/blob/pc29-knee-stance-proportions/docs/PC29_VISUAL_VERIFICATION.md)
+- **Verdict:** FAIL / visual acceptance withheld; CI PASS remains valid for source and APK.
+- **Reviewed:** four male/female walk/run 8-phase sheets and GIFs, male/female reference-vs-runtime weapon sheets, and PC28-to-PC29 knee posture comparisons.
+- **Prioritized unresolved faults:** gait near-duplicate phases 1–2 and 5–6; bulky/tucked knees; foot contact not verified in world space; reference styling and weapon-hand contact mismatch.
+- **Next iteration:** PC30 16+-phase grounded step and foot-lock capture with landmark data, correct stance/swing continuity and trouser deformations, then weapon contact QA.
+- **Tested APK source remains:** `3deec75ea0820c6d6c61ac4f713a8d53f34fa485`; the review commits are documents only and do not modify/test a new APK.
