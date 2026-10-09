@@ -1,0 +1,57 @@
+name: PC42J Approved Original Elbow Art Donor Audit
+on:
+  push:
+    branches: [pc42j-authored-elbow-topology]
+    paths: ['.github/workflows/pc42j-elbow-donor-audit.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+  issues: write
+env:
+  SP_PHASE: PC42J_DONOR_RECOVERY
+jobs:
+  inspect-real-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify unarmed same-actor sleeve exists
+        run: |
+          python3 -m pip install --quiet pillow
+          mkdir -p donor-evidence
+          python3 - <<'PY'
+          from PIL import Image,ImageDraw
+          from pathlib import Path
+          p=Path("assets/authored2d/unified_character/rig/reference")
+          items=[]
+          for name in ["male_east_base.png","male_east_rifle.png"]:
+              f=p/name
+              assert f.is_file() and f.stat().st_size>20000
+              src=Image.open(f).convert("RGB")
+              assert src.size==(310,315)
+              arm=src.crop((72,60,168,161)).resize((576,606),Image.Resampling.NEAREST)
+              items.append(arm)
+              arm.save(Path("donor-evidence")/name)
+          board=Image.new("RGB",(1152,642),(14,18,23))
+          d=ImageDraw.Draw(board)
+          for i,n in enumerate(["APPROVED UNARMED ORIGINAL","APPROVED RIFLE REFERENCE"]):
+              board.paste(items[i],(i*576,36))
+              d.text((i*576+8,9),n,fill="white")
+          board.save("donor-evidence/pc42j_original_art_elbow_comparison.png")
+          print("PC42J_APPROVED_NATIVE_ELBOW_SOURCE_VERIFIED 310x315 original RGB, same male EAST character")
+          PY
+      - name: Report real original sleeve donor recovered
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/sp_ci_monitor.py emit DONOR_RECOVERED "Same approved male EAST unarmed source contains exposed elbow and rolled cuff; inspect enlarged original pixels before authoring new arm." || true
+      - name: Upload source and exact enlarged comparison
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PC42J-Approved-Original-Elbow-Donor-${{ github.sha }}
+          path: |
+            donor-evidence/
+            assets/authored2d/unified_character/rig/reference/male_east_base.png
+            assets/authored2d/unified_character/rig/reference/male_east_rifle.png
+          retention-days: 14
