@@ -551,7 +551,15 @@ def _aa_grip_hand(sex, support=False):
     # Knuckle highlight + subtle wrist crease retain the painted-art language.
     d.ellipse(sc((28,31,34,37)),fill=light)
     d.arc(sc((11,41,28,57)),285,70,fill=deep,width=S)
-    return im.resize((80,96),Image.Resampling.LANCZOS)
+
+    # Runtime hand height must describe the VISIBLE adult hand, not a mostly
+    # transparent 80x96 canvas. Tighten the alpha bounds and keep a modest
+    # eight-pixel safety border so wrist/palm proportions remain stable while
+    # the visible palm mass reaches the calibrated hand scale.
+    grip=im.resize((80,96),Image.Resampling.LANCZOS)
+    grip=trim(grip)
+    grip=ImageOps.expand(grip,border=8,fill=(0,0,0,0))
+    return grip
 
 def _detailed_skin_hand(glove_img, sex, support=False):
     """Derive a compact articulated-looking bare hand from the authored glove.
