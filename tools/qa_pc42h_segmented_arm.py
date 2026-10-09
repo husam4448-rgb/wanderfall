@@ -22,7 +22,7 @@ foreground=np.asarray(Image.open(a/"approved_foreground_matte.png").convert("RGB
 fore=layers["forearm"]
 cuff=layers["cuff"]
 ys,xs=np.mgrid[:254,:236]
-s=np.array([126.,96.]);end=np.array([170.,81.]);v=end-s
+s=np.array([143.,95.]);end=np.array([170.,81.]);v=end-s
 t=((xs-s[0])*v[0]+(ys-s[1])*v[1])/np.dot(v,v)
 perp=((xs-s[0])*v[1]-(ys-s[1])*v[0])/np.linalg.norm(v)
 valid=fore[:,:,3]>12
@@ -79,7 +79,7 @@ comp.paste(after.resize((after.width*3,after.height*3)),(before.width*3,0))
 comp.save(e/"pc42h_hidden_vs_visible_source_art.png")
 assert (e/"pc42c_32frame_weapon_ik.gif").stat().st_size>50000
 record={
- "phase":"PC42H source-segmented real Bone2D rifle constraint",
+ "phase":"PC42H v2 source-skin shorter rest-forearm and dual Bone2D rifle constraint",
  "godot_frames":32,"aim_angles_degrees":[-10,-5,0,5,10],
  "independent_painted_parts":names,
  "forearm_cross_section_width_px":cross_sections,

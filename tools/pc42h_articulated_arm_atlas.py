@@ -16,8 +16,8 @@ ROOT = Path(__file__).resolve().parents[1]
 DEST = ROOT / "pc42-static-prototype/assets"
 SOURCE = ROOT / "assets/authored2d/unified_character/arms/hybrid_v3/male"
 W, H = json.loads((DEST/"manifest.json").read_text())["image_size"]
-SHOULDER=np.array([101.0,74.0], np.float32)
-ELBOW=np.array([126.0,96.0], np.float32)
+SHOULDER=np.array([117.0,78.0], np.float32)
+ELBOW=np.array([143.0,95.0], np.float32)
 WRIST=np.array([170.0,81.0], np.float32)
 yy,xx=np.mgrid[:H,:W].astype(np.float32)
 coords=np.stack((xx,yy),axis=-1)
@@ -45,7 +45,13 @@ def sleeve(name, start,end, radius0,radius1, band, source_name):
     shaft and an overlapping distal seam. The joint frames stay owned by Bone2D.
     This is *not* a rectangular source strip alpha-tapered as one rigid panel.
     """
-    src=donor(source_name)
+    # PC42H v2: The approved rifle character wears rolled sleeves and has
+    # an exposed near forearm, whereas the PC22 gear strip produced a false
+    # solid-green SECOND forearm. Resample original visible skin/fabric tones
+    # from that character's own photograph for the anatomically shorter
+    # concealed support forearm. No unrelated skin-tone fill or solid mesh.
+    use_original_skin = source_name == "ApprovedSkin"
+    src = None if use_original_skin else donor(source_name)
     tangent=end-start
     length=float(np.linalg.norm(tangent))
     tangent/=length
@@ -62,9 +68,18 @@ def sleeve(name, start,end, radius0,radius1, band, source_name):
            +0.25*np.sin(4*np.pi*t))
     radius=radius0+(radius1-radius0)*np.clip(t,0,1)+folds
     width=np.maximum(radius,1.0)
-    sx=(6.0 + np.clip(t,0,1)*(src.shape[1]-12.0)).astype(np.float32)
-    sy=(src.shape[0]/2 + (perp/width)*(src.shape[0]*.37)).astype(np.float32)
-    sampled=sample(src,sx,sy)
+    if use_original_skin:
+        photo=np.asarray(Image.open(DEST/"approved_reference_panel.png").convert("RGB"),np.float32)
+        u=perp/width
+        sx=(123.0+10.0*np.clip(t,0,1)+1.5*u).astype(np.float32)
+        sy=(98.0-10.0*np.clip(t,0,1)+1.1*u).astype(np.float32)
+        colors=cv2.remap(photo,sx,sy,cv2.INTER_LINEAR,
+                         borderMode=cv2.BORDER_REPLICATE)
+        sampled=np.concatenate((colors,np.full((H,W,1),255,np.float32)),axis=2)
+    else:
+        sx=(6.0 + np.clip(t,0,1)*(src.shape[1]-12.0)).astype(np.float32)
+        sy=(src.shape[0]/2 + (perp/width)*(src.shape[0]*.37)).astype(np.float32)
+        sampled=sample(src,sx,sy)
     edge=np.clip(width+0.60-np.abs(perp),0,1)
     # Independent cuff is segmented and overlaps forearm by 0.08 bone lengths.
     if band=="shaft": longitudinal=np.clip((.87-t)/.04,0,1)
@@ -97,8 +112,8 @@ outputs={
  "pc42h_far_shoulder":joint("ShoulderCap",SHOULDER,15,10),
  "pc42h_far_upper":sleeve("upper",SHOULDER,ELBOW,7.6,6.0,"all","UpperArm_Gear"),
  "pc42h_far_elbow":joint("Elbow_Gear",ELBOW,12,11),
- "pc42h_far_forearm":sleeve("fore",ELBOW,WRIST,5.8,4.0,"shaft","Forearm_Gear"),
- "pc42h_far_cuff":sleeve("cuff",ELBOW,WRIST,5.8,4.0,"cuff","Forearm_Gear"),
+ "pc42h_far_forearm":sleeve("fore",ELBOW,WRIST,5.1,3.6,"shaft","ApprovedSkin"),
+ "pc42h_far_cuff":sleeve("cuff",ELBOW,WRIST,5.1,3.6,"cuff","Forearm_Gear"),
  "pc42h_far_glove_backing":joint("Glove_Support",WRIST,11.5,11.0),
 }
 # Concealed parts remain FULL artwork even where currently occluded by torso.
@@ -110,8 +125,8 @@ outputs={
 report={}
 for key,rgba in outputs.items():report[key]=save(key,rgba)
 (DEST/"pc42h_arm_sources.json").write_text(json.dumps({
- "phase":"PC42H dedicated six-piece source-art experiment",
- "art_origin":"approved SP_PC22 male gear sleeves, elbow, shoulder and glove",
+ "phase":"PC42H v2 near-arm-length source skin donor + independently articulated far-sleeve joints",
+ "art_origin":"approved PC42 male near-forearm exposed skin, PC22 sleeve/elbow/cuff/shoulder and glove donors",
  "joint_frames":{"far_shoulder":SHOULDER.tolist(),
                  "far_elbow":ELBOW.tolist(),"weapon_support_grip":WRIST.tolist()},
  "source_texture_parts":report,

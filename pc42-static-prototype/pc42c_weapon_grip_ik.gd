@@ -42,8 +42,11 @@ static func solve_dominant(angle: float) -> Dictionary:
 
 ## The actual far support arm has its own anatomical shoulder, elbow and
 ## forearm. Existing approved source-art sleeves are fitted to its rest bones.
-const FAR_SHOULDER: Vector2 = Vector2(101.0,74.0)
-const FAR_REST_ELBOW: Vector2 = Vector2(126.0,96.0)
+const FAR_SHOULDER: Vector2 = Vector2(117.0,78.0)
+# PC42H v2 recalibration: hidden far shoulder under rifle/chest; a ~30 px
+# upper arm and ~30 px forearm (vs PC42H v1 upper ~33, forearm ~47).
+# Rest elbow remains concealed behind the near arm, not an arbitrary aim offset.
+const FAR_REST_ELBOW: Vector2 = Vector2(143.0,95.0)
 
 static func solve_support(angle: float) -> Dictionary:
     var target: Vector2 = socket_at(REST_SUPPORT_WRIST,angle)

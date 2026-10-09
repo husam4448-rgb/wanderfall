@@ -34,7 +34,7 @@ body=f"""# Survival Paradise — Live Development Status
 **CURRENT WORKFLOW URL:** {url}
 **CURRENT BUILD STAGE:** {stage}
 **LAST COMPLETED OPERATION:** {detail if stage!="FAILED" else "See preceding successful workflow step in GitHub logs"}
-**LAST FAILED TEST:** {detail if stage=="FAILED" else "PC42G human visual QA — far-arm flat triangular textile"}
+**LAST FAILED TEST:** {detail if stage=="FAILED" else "PC42H first render visual QA — far-arm artificial long textile; v2 source-faithful exposed forearm pending review"}
 **LATEST VISUAL QA VERDICT:** PENDING independent inspection; all technical CI checks are necessary but NEVER constitute visual acceptance.
 **LATEST VERIFIED APK:** PC33 version code 205 (technical pass, visual fail); https://github.com/{repo}/actions/runs/37918163875/artifacts/11610127605
 **REMAINING DEFECTS:** Missing visually approved realistic bent support forearm, correct elbow/cuff occlusion; remaining male/female LEFT/RIGHT, rifle/pistol motions, grounded gait and equipment.
