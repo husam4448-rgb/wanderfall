@@ -24,18 +24,18 @@ body=f"""## Survival Paradise — Independent Development Status
 **LAST UPDATE (UTC):** {now}
 **STATUS:** {state}
 **EXECUTION OWNER:** {owner}
-**CURRENT PHASE:** {phase} — male right-facing static rifle reference reconstruction
+**CURRENT PHASE:** {phase} — approved male-right rifle grip-constrained Bone2D motion gate
 **CURRENT MILESTONE:** {stage}
 **DETAIL:** {detail}
 **BRANCH:** \`{branch}\`
 **TESTED/CURRENT SOURCE SHA:** \`{sha}\`
 **WORKFLOW RUN ID:** {run_id}
 **WORKFLOW:** {run_url}
-**LAST VISUAL ACCEPTANCE:** None for complete articulated characters. PC41 visually FAILED; {phase} visual review PENDING.
+**LAST VISUAL ACCEPTANCE:** PC42 male-right STATIC only. PC42B moving grip FAILED. {phase} moving two-hand grip visual review PENDING.
 **LATEST VERIFIED APK:** PC33 version code 205, [workflow](https://github.com/{repo}/actions/runs/37918163875), artifact 11610127605; technical PASS, visual FAIL.
-**LAST FAILED VISUAL CHECK:** PC41 shoulder/arm/stock contact still unconvincing.
-**NEXT:** Visually inspect actual Godot PC42 male-right static pose vs approved source. Refine anatomical segmentation if needed. Do not begin dynamic aiming, female, gait, or APK without static approval.
-**RECOVERY:** https://github.com/{repo}/blob/pc42-character-visual-reconstruction/docs/PC42_STATIC_FIRST_POSE.md
+**LAST FAILED VISUAL CHECK:** PC42B dominant/support grips drift under Bone2D rotation; concealed far arm and elbow backing missing.
+**NEXT:** Inspect {phase} 32 real Godot frames and 5 aiming angles; fix disconnected/covered joint artwork and missing second arm IK before full motion approval; no APK.
+**RECOVERY:** https://github.com/{repo}/blob/pc42b-skeleton2d-rest-equivalence/docs/PC42B_REAL_BONE_VISUAL_QA.md
 
 **IMPORTANT:** This is independently reported GitHub CI, not an active ChatGPT agent. A stale issue status never proves ChatGPT continues running.
 """
