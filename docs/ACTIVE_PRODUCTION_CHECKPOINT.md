@@ -28,3 +28,14 @@ Live development issue: https://github.com/husam4448-rgb/wanderfall/issues/35
 
 ## Next step
 Create an isolated PC28 branch from PC27 verified source and test genuine knee articulation with the existing trouser artwork split into controllable thigh and shin sprites. Keep legacy PC27 rendering as a selectable A/B comparator. Inspect actual male/female gait frames before accepting.
+
+
+## PC33 safe technical checkpoint; VISUAL REJECTED — 2026-10-09
+
+- **Verified tested source commit:** `209ce0b117ec66009c2e0b441032c01a06c81452`
+- **Branch:** `pc33-aim-pose-head-clearance` (later commits may only update documents)
+- **GitHub run:** https://github.com/husam4448-rgb/wanderfall/actions/runs/37918163875
+- **APK artifact:** https://github.com/husam4448-rgb/wanderfall/actions/runs/37918163875/artifacts/11610127605 (APK version code 205)
+- **Technical:** 50/50 PASS, actual Godot male/female rifle A/B captures and full mirrored aim reach tests.
+- **Visual:** FAIL, as reviewed in [PC33_VISUAL_QA.md](https://github.com/husam4448-rgb/wanderfall/blob/pc33-aim-pose-head-clearance/docs/PC33_VISUAL_QA.md). Low-ready vertical shift alone did not fix near-vertical rifle/face presentation.
+- **Next:** PC34 full source-weapon alpha silhouette collision model + articulated head/neck/torso and shoulder pose states; prove feasible human pose and continuous hand IK before any visually accepted new APK. Preserve PC32 and PC33.
