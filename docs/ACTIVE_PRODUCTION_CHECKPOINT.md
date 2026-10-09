@@ -42,3 +42,16 @@ Create an isolated PC28 branch from PC27 verified source and test genuine knee a
 - **Next mandatory phase:** PC36 coherent 2D aiming pose state/torso-pelvis/clavicle/neck/weapon/hand integration, with full painted collision and continuous trajectories; actual Godot 24+ phase GIFs/closeups before APK. Then pistol, grounded locomotion and full Android on-device verification.
 - **Last quality verdict:** Technical previous APK PASS; *gameplay visual acceptance remains FAIL*. Do not declare characters finished.
 - **Monitoring:** GitHub Issue #35 + workflow link; no assistant work continues outside an active chat without an independent job.
+
+## PC37 pre-APK structural safety gate — 2026-10-09
+
+- **Candidate tested-source SHA (GitHub workflow):** `35ea60dc0f3cf2f8e2e59758d7ee507da28c8714`
+- **Working branch:** `pc37-pose-feasibility-gate`
+- **Current independent CI run:** https://github.com/husam4448-rgb/wanderfall/actions/runs/37928581549
+- **Current visual verdict:** PENDING. **Do not claim approved visual fidelity.**
+- **APK:** No PC37 APK exported; visual QA gate deliberately precedes Android build.
+- **Change:** PC37 independent shared aim-state returns requested/presented angles and explicit blocked-fire status; both wrist targets, rendered gun/head/torso and firing respect one resolved pose. Current conservative rifle down cap is 28° while a validated alternate pose is unavailable.
+- **Verification:** 25 actual Godot screen frames × male/female × left/right, old PC36 vs new guarded PC37, animated GIF review plus Godot smoke and source checks.
+- **Independent monitoring:** `tools/sp_ci_status.py` updates GitHub Issue #35 with exact current run, immutable milestone comments, stage timestamps and stale-run protection. An active GitHub job is independent from assistant execution.
+- **Last signed APK:** PC33, source `209ce0b117ec66009c2e0b441032c01a06c81452`, workflow 37918163875, artifact 11610127605, technically valid but visually rejected.
+- **Next:** inspect PC37 actual rendered images. If still visually wrong, reject, diagnose full source-alpha collision and coordinate torso/weapon/neck poses before attempting APK. After rifle pass, pistol, grounded gait and integration remain.
