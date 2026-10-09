@@ -194,6 +194,28 @@ jobs:
           grep -q 'PC22_RUNTIME_SWEEP_OK' pc24-reference-capture.log
           if grep -E 'SCRIPT ERROR:|Compile Error:|Parse Error:|PC22_ARM_GEOMETRY_FAIL' pc24-reference-capture.log; then exit 1; fi
 
+      - name: Verify PC24 outfit actually changes rendered male and female artwork
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from PIL import Image, ImageChops, ImageStat
+          from pathlib import Path
+          import json
+          p=Path('.')
+          results={}
+          for sex in ('male','female'):
+              original=Image.open(p/'pc23-runtime-captures'/f'{sex}_rifle_horizontal.png').convert('RGB').crop((430,120,850,620))
+              dressed=Image.open(p/'pc24-reference-outfit-captures'/f'{sex}_rifle_horizontal.png').convert('RGB').crop((430,120,850,620))
+              delta=sum(ImageStat.Stat(ImageChops.difference(original,dressed)).mean)/3.0
+              results[sex]={'mean_absolute_rgb_change':round(delta,3),'min_change':3.0,
+                            'pass':delta>3.0}
+              if delta<=3.0:
+                  raise SystemExit(f'PC24_VISUAL_FAIL {sex}: outfit did not materially alter rendered body')
+              print(f'PC24_VISUAL_OUTFIT_OK {sex} change={delta:.3f}')
+          Path('pc24-visual-material-qa.json').write_text(json.dumps(results,indent=2)+'\\n')
+          PY
+
       - name: Build reference-vs-runtime comparison evidence
         shell: bash
         run: |
@@ -252,7 +274,7 @@ jobs:
               sheet.save(out/f'{sex}_golden_comparison_sheet.jpg',quality=94,subsampling=0)
           PY
 
-      - name: Export PC23 calibration APK
+      - name: Export PC24 reference-loadout APK
         shell: bash
         run: |
           set -euo pipefail
@@ -263,7 +285,7 @@ jobs:
           "$GODOT_BIN" --headless --path "$PROJECT_DIR" --export-debug Android "$GITHUB_WORKSPACE/$APK_PATH" 2>&1 | tee pc23-android-export.log
           test -s "$APK_PATH"
 
-      - name: Validate PC23 APK
+      - name: Validate PC24 reference-loadout APK
         shell: bash
         run: |
           set -euo pipefail
@@ -281,16 +303,17 @@ jobs:
           test "$(stat -c%s "$APK")" -lt "$MAX_APK_BYTES"
           sha256sum "$APK" | tee pc23-apk.sha256
 
-      - name: Upload deterministic PC23 calibration artifact
+      - name: Upload deterministic PC24 reference-loadout artifact
         uses: actions/upload-artifact@v4
         with:
           name: SurvivalParadise-PC24-ReferenceLoadout-${{ github.sha }}
           path: |
-            SurvivalParadise_PC23_RigCalibration.apk
+            SurvivalParadise_PC24_ReferenceLoadout.apk
             pc23-apk.sha256
             pc23-apk-badging.txt
             pc23-apk-signature.txt
             pc23-anatomy-qa.json
+            pc24-visual-material-qa.json
             pc23-import.log
             pc23-smoke.log
             pc23-capture.log
