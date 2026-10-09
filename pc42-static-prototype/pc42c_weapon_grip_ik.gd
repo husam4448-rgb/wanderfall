@@ -39,3 +39,34 @@ static func solve_dominant(angle: float) -> Dictionary:
         "support_wrist":socket_at(REST_SUPPORT_WRIST,angle),
         "rifle_angle":angle
     }
+
+## The actual far support arm has its own anatomical shoulder, elbow and
+## forearm. Existing approved source-art sleeves are fitted to its rest bones.
+const FAR_SHOULDER: Vector2 = Vector2(101.0,74.0)
+const FAR_REST_ELBOW: Vector2 = Vector2(138.0,112.0)
+
+static func solve_support(angle: float) -> Dictionary:
+    var target: Vector2 = socket_at(REST_SUPPORT_WRIST,angle)
+    var upper_length: float = FAR_SHOULDER.distance_to(FAR_REST_ELBOW)
+    var lower_length: float = FAR_REST_ELBOW.distance_to(REST_SUPPORT_WRIST)
+    var offset: Vector2 = target-FAR_SHOULDER
+    var dist: float = offset.length()
+    if dist<0.001 or dist>upper_length+lower_length-.00001 or dist<absf(upper_length-lower_length)+.00001:
+        return {"valid":false,"reason":"far arm cannot reach rifle handguard"}
+    var projection: float = (upper_length*upper_length-lower_length*lower_length+dist*dist)/(2.0*dist)
+    var height: float = sqrt(maxf(0.0,upper_length*upper_length-projection*projection))
+    var direction: Vector2 = offset/dist
+    var perpendicular: Vector2 = Vector2(-direction.y,direction.x)
+    var base: Vector2 = FAR_SHOULDER+projection*direction
+    var a: Vector2 = base+height*perpendicular
+    var b: Vector2 = base-height*perpendicular
+    var elbow: Vector2 = a if a.distance_squared_to(FAR_REST_ELBOW)<=b.distance_squared_to(FAR_REST_ELBOW) else b
+    var upper_rotation: float = (elbow-FAR_SHOULDER).angle()-(FAR_REST_ELBOW-FAR_SHOULDER).angle()
+    var fore_global: float = (target-elbow).angle()-(REST_SUPPORT_WRIST-FAR_REST_ELBOW).angle()
+    return {
+        "valid":true,
+        "shoulder_rotation":upper_rotation,
+        "forearm_rotation":fore_global-upper_rotation,
+        "elbow":elbow,
+        "support_wrist":target
+    }
