@@ -51,7 +51,8 @@ def sleeve(name, start,end, radius0,radius1, band, source_name):
     # from that character's own photograph for the anatomically shorter
     # concealed support forearm. No unrelated skin-tone fill or solid mesh.
     use_original_skin = source_name == "ApprovedSkin"
-    src = None if use_original_skin else donor(source_name)
+    use_original_sleeve = source_name == "ApprovedSleeve"
+    src = None if (use_original_skin or use_original_sleeve) else donor(source_name)
     tangent=end-start
     length=float(np.linalg.norm(tangent))
     tangent/=length
@@ -73,6 +74,17 @@ def sleeve(name, start,end, radius0,radius1, band, source_name):
         u=perp/width
         sx=(123.0+10.0*np.clip(t,0,1)+1.5*u).astype(np.float32)
         sy=(98.0-10.0*np.clip(t,0,1)+1.1*u).astype(np.float32)
+        colors=cv2.remap(photo,sx,sy,cv2.INTER_LINEAR,
+                         borderMode=cv2.BORDER_REPLICATE)
+        sampled=np.concatenate((colors,np.full((H,W,1),255,np.float32)),axis=2)
+    elif use_original_sleeve:
+        # Source-faithful camouflaged rolled jacket sleeve: take RGB from
+        # the actual approved actor near shoulder/upper-arm cloth rather
+        # than transplanting an unrelated olive sleeve strip.
+        photo=np.asarray(Image.open(DEST/"approved_reference_panel.png").convert("RGB"),np.float32)
+        u=perp/width
+        sx=(104.0+14.0*np.clip(t,0,1)-3.76*u).astype(np.float32)
+        sy=(78.0+19.0*np.clip(t,0,1)+2.82*u).astype(np.float32)
         colors=cv2.remap(photo,sx,sy,cv2.INTER_LINEAR,
                          borderMode=cv2.BORDER_REPLICATE)
         sampled=np.concatenate((colors,np.full((H,W,1),255,np.float32)),axis=2)
@@ -110,7 +122,7 @@ def save(name,pixels):
 # backing follows the *weapon-owned* support hand/socket node.
 outputs={
  "pc42h_far_shoulder":joint("ShoulderCap",SHOULDER,15,10),
- "pc42h_far_upper":sleeve("upper",SHOULDER,ELBOW,7.6,6.0,"all","UpperArm_Gear"),
+ "pc42h_far_upper":sleeve("upper",SHOULDER,ELBOW,7.6,6.0,"all","ApprovedSleeve"),
  "pc42h_far_elbow":joint("Elbow_Gear",ELBOW,12,11),
  "pc42h_far_forearm":sleeve("fore",ELBOW,WRIST,5.1,3.6,"shaft","ApprovedSkin"),
  "pc42h_far_cuff":sleeve("cuff",ELBOW,WRIST,5.1,3.6,"cuff","Forearm_Gear"),
@@ -125,8 +137,8 @@ outputs={
 report={}
 for key,rgba in outputs.items():report[key]=save(key,rgba)
 (DEST/"pc42h_arm_sources.json").write_text(json.dumps({
- "phase":"PC42H v2 near-arm-length source skin donor + independently articulated far-sleeve joints",
- "art_origin":"approved PC42 male near-forearm exposed skin, PC22 sleeve/elbow/cuff/shoulder and glove donors",
+ "phase":"PC42H v3 authentic photo-jacket sleeve and exposed skin with weapon-owned IK",
+ "art_origin":"approved PC42 male original rifle-pose jacket textile and exposed forearm skin; PC22 elbow/cuff/shoulder and glove donors",
  "joint_frames":{"far_shoulder":SHOULDER.tolist(),
                  "far_elbow":ELBOW.tolist(),"weapon_support_grip":WRIST.tolist()},
  "source_texture_parts":report,
