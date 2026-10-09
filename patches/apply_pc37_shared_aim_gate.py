@@ -63,7 +63,7 @@ put(base,base+'''    # Exactly one aim state is shared by shoulder-clavicle body
     var pc37_pose: Dictionary = PC37AimPose2D.resolve(aim_pos-base,weapon_visible and weapon_two_handed)
     if OS.get_environment("PC37_LEGACY_AIM") == "1":
         pc37_pose = {"angle":clampf(atan2(aim_pos.y-base.y,maxf(absf(aim_pos.x-base.x),0.001)),-PI*0.49,PI*0.49),
-                     "blocked":false,"body_blend":0.0,"state":"LEGACY"}
+                     "blocked":false,"body_blend":smoothstep(0.28,1.18,clampf(atan2(aim_pos.y-base.y,maxf(absf(aim_pos.x-base.x),0.001)),-PI*0.49,PI*0.49)),"state":"LEGACY"}
 ''','aim pose owner')
 old='''    var pc36_aim_angle: float = clampf(Vector2(absf(pc36_aim_vec.x),pc36_aim_vec.y).angle(),-PI*0.49,PI*0.49)'''
 put(old,'''    var pc36_aim_angle: float = float(pc37_pose["angle"])''','torso follows same state')
@@ -72,7 +72,7 @@ put(old,'''    var pc36_weight: float = float(pc37_pose["body_blend"]) if pc36_p
 old='''    var pc22_arm_angle: float = clampf(pc22_local_aim.angle(),-PI*0.49,PI*0.49)'''
 put(old,'''    var pc22_arm_angle: float = float(pc37_pose["angle"])''','hand IK shares angle')
 old='''    var head_tilt := clampf(atan2(head_aim_vec.y, maxf(abs(head_aim_vec.x), 0.001)), -0.34, 0.34)'''
-put(old,'''    var head_tilt := clampf(float(pc37_pose["angle"]), -0.34, 0.34)''','neck aim shares angle')
+put(old,'''    var head_tilt := clampf(atan2(head_aim_vec.y,maxf(absf(head_aim_vec.x),0.001)),-0.34,0.34) if OS.get_environment("PC37_LEGACY_AIM") == "1" else clampf(float(pc37_pose["angle"]), -0.34, 0.34)''','neck aim shares angle')
 old='''    var angle := clampf(local_aim.angle(), -PI * 0.49, PI * 0.49)'''
 put(old,'''    var angle := float(pc37_pose["angle"])''','secondary aim layer')
 old='''        if shot_flash > 0.02:'''
