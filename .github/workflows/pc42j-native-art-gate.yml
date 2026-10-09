@@ -1,0 +1,70 @@
+name: PC42J Paint Art Native QA
+on:
+  push:
+    branches: [pc42j-painted-elbow-rebuild]
+    paths:
+      - '.github/workflows/pc42j-native-art-gate.yml'
+      - 'tools/pc42j_native_art_intake.py'
+      - 'assets/authored2d/pc42j_painted_elbow/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+  issues: write
+env:
+  SP_PHASE: PC42J_ORIGINAL_PAINTED_ART
+jobs:
+  original-painted-elbow-intake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Report painting-intake start
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/sp_ci_monitor.py emit STARTED "Verifying seven individual real painted elbow sprite PNGs. No Godot integration or APK until visually accepted." || true
+      - name: Validate original painted parts and pivots
+        id: art_gate
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pillow numpy
+          python3 -m py_compile tools/pc42j_native_art_intake.py
+          python3 tools/pc42j_native_art_intake.py | tee pc42j-art-intake.log
+          python3 - <<'PY'
+          import json,os
+          p='pc42-static-prototype/evidence/pc42j-art-intake/ART_INTAKE_STATUS.json'
+          status=json.load(open(p))['result']
+          print('PC42J_NATIVE_ART_VERDICT='+status)
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f:
+              print('result='+status,file=f)
+          PY
+      - name: Report missing-art blocker accurately
+        if: steps.art_gate.outputs.result == 'BLOCKED_ART_NOT_READY'
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/sp_ci_monitor.py emit BLOCKED_ART_NOT_READY "Source-compatible upper sleeve, concealed elbow, rolled interior, cuff, forearm, transition and glove overlap must be genuinely painted before runtime tests. No visual approval or APK." || true
+      - name: Report native source evidence prepared for visual inspection
+        if: steps.art_gate.outputs.result == 'BLOCKED_VISUAL_REVIEW'
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/sp_ci_monitor.py emit ART_READY_FOR_VISUAL_QA "All seven separate painted source assets passed structural inspection only. Actual visual reviewer must inspect, then Godot skeletal QA." || true
+      - name: Preserve objective art inspection report and thumbnails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SP-PC42J-Art-Intake-${{ github.sha }}
+          path: |
+            pc42-static-prototype/evidence/pc42j-art-intake/
+            assets/authored2d/pc42j_painted_elbow/
+            pc42j-art-intake.log
+          retention-days: 14
+      - name: Final state and ownership, even after unexpected errors
+        if: always()
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ job.status }}" != "success" ]; then
+            python3 tools/sp_ci_monitor.py emit FAILED "Art intake validation failed; inspect step logs and artifact. No Godot runtime test or APK." || true
+          else
+            python3 tools/sp_ci_monitor.py emit COMPLETED "Art intake workflow complete; inspect ART_INTAKE_STATUS.json: BLOCKED is NOT production approval and cannot trigger APK." || true
+          fi
