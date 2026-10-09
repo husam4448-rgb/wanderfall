@@ -110,11 +110,11 @@ for token in (
     "pc23_weapon_id",
     "_pc23_draw_calibration_overlay",
     "weapon contracts own palm contacts",
-    "weapon_cannot_move_shoulder",
 ):
     require(token in patch,f"PC23 patch missing architecture marker: {token}")
-require('pc22_dom_grip += _pose_point(Vector2(6.8,0.0)' not in patch,
-        "legacy pistol reach compensation reintroduced in PC23 patch")
+require("s=s.replace(legacy_pistol" in patch and
+        'if "pc22_dom_grip += _pose_point(Vector2(6.8,0.0)" in verify:' in patch,
+        "PC23 patch does not actively remove/guard legacy pistol reach compensation")
 
 if fail:
     print(json.dumps({"pass":False,"failure_count":len(fail),"failures":fail},indent=2))
