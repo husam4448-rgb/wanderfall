@@ -90,3 +90,16 @@ Create an isolated PC28 branch from PC27 verified source and test genuine knee a
 - CRITICAL NEXT: Inspect run 37969403585 and its real-Godot five-angle A/B screenshot, 32 frames and actual Bone2D overlays. If another significant visual defect remains, stop the programmatically hand-drawn cuff method and mark requirement for an independently commissioned/authored source-compatible original painted joint; do not repeat offsets/alpha tricks.
 - LIVE MONITOR: default-branch main scheduled watchdog workflow https://github.com/husam4448-rgb/wanderfall/actions/workflows/sp-live-status-watchdog.yml ; first verified run https://github.com/husam4448-rgb/wanderfall/actions/runs/37968317640 successful. It maintains a bounded automatic section in Issue #35 and cannot legitimately prove ChatGPT continues after a chat stops. PC42J Actions sends meaningful events directly to Issue #35. GitHub scheduled jobs can be delayed.
 - Last signed APK: PC33 code 205 only, visual FAIL. No PC42J APK.
+
+
+## PC42J final tested V2 and visual review (2026-10-09)
+
+- Latest EXACT technically tested PC42J source SHA: c4ed5195b0e35e31e8d8eaa9afc080926f06a3fd (documentation commits after this are not newer tested builds).
+- V2 technical workflow: https://github.com/husam4448-rgb/wanderfall/actions/runs/37969403585 — SUCCESS, 16 successful steps, 32 actual Godot frames, five angles, actual joint-position logs and preserved hand contact.
+- V2 evidence artifact: https://github.com/husam4448-rgb/wanderfall/actions/runs/37969403585/artifacts/11634514524 .
+- Visual inspection **FAILED**. When compared to PC42H at −10, −5, 0, +5, +10, the new narrow seam still reads as an artificially applied angled band/flap rather than a believable rolled costume cuff on a bending arm. Rendering concealed backing below skin is a correct depth-order improvement but does not solve missing photographed/authored cloth texture and cross-sectional joint surfaces.
+- This is the SECOND failed PC42J hand-coded cloth iteration. **STOP this approach**: no more sprite masking, arbitrary offsets, palette-based shapes, or minor adjustments. Full details: docs/PC42J_VISUAL_QA.md.
+- Missing prerequisite: an approved genuinely painted elbow/rolled sleeve/backing sprite set matching the original male RIGHT artwork and physical upper-arm/forearm pivot frames. Obtain/generate an independently authored pixel/raster asset and inspect it before rig integration. The existing approved flattened pose has no concealed surface pixels. If such usable source art cannot be created within available execution/tools, status **BLOCKED — ART AUTHORING**, not technical CI complete/visually passed.
+- Next test after real artwork supplied: connect to preserved PC42H two-arm Bone2D, run zero and ±5°/±10° 32-frame Godot + grip/stock visual checks, reject residual seams. DO NOT expand directions/genders/weapons/gait or build APK until male RIGHT rifle small-motion gate passes.
+- Independent issue monitor: https://github.com/husam4448-rgb/wanderfall/issues/35 ; scheduled GitHub main watchdog is in place and first verification passed 37968317640. Current PC42J CI finishes independently, and ChatGPT does not continue on its own after a chat ends.
+- Latest signed APK still PC33 code 205, visually rejected. No PC42J APK.
