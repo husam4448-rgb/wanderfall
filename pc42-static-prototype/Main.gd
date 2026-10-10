@@ -161,6 +161,21 @@ func _pc42h_build_far_arm() -> void:
     pc42_skeleton.move_child(upper,0)
     if OS.get_environment("PC42F_HIDE_FAR_ARM") == "1":
         upper.visible = false
+    # PC42N: source-faithful HYBRID PREVIEW only. The approved source already
+    # depicts the support forearm concealed by weapon/torso. PC42H's fabricated
+    # long skin strip and bulky cuff are visually REJECTED, so do not surface
+    # them in this native-source preview. The two Bone2D nodes remain present
+    # and rifle-owned IK still solves both contacts on all frames.
+    # This uses the existing proven PC42F occlusion technique; the NEW test
+    # establishes real five-angle/32-frame art-fidelity evidence and is not
+    # a claim that missing interior elbow pixels have been authored.
+    if OS.get_environment("PC42N_SOURCE_FIRST_PREVIEW") == "1":
+        if OS.get_environment("PC42J_USE_PAINTED_ART") == "1" or OS.get_environment("PC42L_DIRECT_SOURCE_ARM") == "1":
+            push_error("PC42N cannot mix rejected experimental PC42J/PC42L art modes")
+            get_tree().quit(29)
+            return
+        upper.visible = false
+        print("PC42N_SOURCE_FIRST_HYBRID_PREVIEW_READY source-approved far-arm occlusion; IK still articulates; concealed textures UNRESOLVED")
     var fore: Bone2D = Bone2D.new()
     fore.name = "Bone_far_forearm"
     fore.position = PC42CGripIK.FAR_REST_ELBOW-PC42CGripIK.FAR_SHOULDER
