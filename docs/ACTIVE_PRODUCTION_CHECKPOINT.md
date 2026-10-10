@@ -128,3 +128,16 @@ Create an isolated PC28 branch from PC27 verified source and test genuine knee a
 - **APK:** No new APK from these rejected artwork-only experiments. Last technically signed APK still PC33 code 205, visually rejected. Experimental preview permitted only after a meaningful technically verified playable-game improvement; do not misrepresent the isolated prototype as playable Android integration.
 - **NEXT EXECUTABLE ACTION:** change technique after 2 failures: author a genuine missing painted elbow fabric surface using an approved male EAST visual reference, validate an actual RGBA image, then repeat Godot five-angle + 32-frame QA. No Work/browser/OpenArt export chase. If an image creation tool returns unrelated layouts rather than actual anatomical sprites, explicitly reject that result and do not fabricate files.
 - **Monitoring:** Existing GitHub watchdog reports independent workflow status. Assistant session status uses time-limited lease comments; a stale lease does not imply ongoing ChatGPT execution.
+
+
+## PC42M direct image authoring and binary-transfer verification — 2026-10-10
+
+- **Current isolated art QA branch:** `pc42m-elbow-raster-study`.
+- **Actual new PNG evidence commit:** `b7f9010e9734ffe14e463b3ff3a2a32d1bc0bacc`. Binary file at `docs/rejected_art/pc42m_elbow_fabric_v01_REJECTED.png`, 236×254 RGBA, 1,150 bytes; SHA-256 `a1291de45585ecd5a23960212f2352836508d885eaea725815ae7aa8fc79bb76`, Git blob SHA `a8acaf41b363348f52556dc9185fc47c9dcc1c44`. **GitHub binary upload and readback SHA verified.**
+- **Native art review:** **FAIL**. The manually textured single concealed-elbow study draws an unnatural olive patch over the original skin. It was not integrated into Godot. Do not use in approved game.
+- **Image-tool issue:** Two task-directed image-generation attempts instead returned unrelated status/dashboard art and were rejected. Do not try to import these unrelated outputs into character source.
+- **Last actual Godot-tested character SHA:** `bd8c72882f9bad3ea4c5f343f802be443c04e74c` on PC42L with technical PASS / visual FAIL; workflow https://github.com/husam4448-rgb/wanderfall/actions/runs/38036003411.
+- **Working baseline:** original PC42H art and rifle grip IK remain protected; no PC42M runtime changes.
+- **Android:** Last signed PC33 version code 205, technically valid / visually rejected; no new APK.
+- **Detailed PC42M findings:** `docs/PC42M_DIRECT_RASTER_ART_QA.md`.
+- **Exact next action:** obtain a *genuine source-faithful* native concealed elbow fabric texture with an image-authoring capability actually able to make it; use the newly validated GitHub binary transfer path, inspect alpha/native source match, then run real Godot five-angle and 32-frame QA. Do not repeat procedural cloth overlays or generate unrelated dashboards. Status `BLOCKED_ART_AUTHORING` until that source artwork is visually suitable.
