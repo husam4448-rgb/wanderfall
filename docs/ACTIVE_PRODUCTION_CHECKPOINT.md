@@ -154,3 +154,15 @@ Create an isolated PC28 branch from PC27 verified source and test genuine knee a
 - **Last actual tested character SHA:** `bd8c72882f9bad3ea4c5f343f802be443c04e74c` (Godot technical PASS, visual FAIL); no new game build approved by these protocol/document commits.
 - **Monitor:** Issue #35 and existing scheduled watchdog; status lease expiry and GitHub job status must be separate. No promise of creative continuation after chat ends.
 - **NEXT:** In a future active chat, read main protocol, this queue and Issue #35, report STATUS/CURRENT/COMPLETED/GITHUB/NEXT, then execute highest-priority READY task using available tools.
+
+## PC42N character-first original-source hybrid Godot QA — 2026-10-10
+
+- **Tested character source:** `c9312d0dbd6af362854adb70ec7632193b592284` on `pc42n-approved-source-occlusion` (the immediately preceding program code/QA and workflow).
+- **Actual Godot run:** https://github.com/husam4448-rgb/wanderfall/actions/runs/38043479486 — SUCCESS; [real screenshots, 32-frame GIF and JSON](https://github.com/husam4448-rgb/wanderfall/actions/runs/38043479486/artifacts/11667295042).
+- **Visual verdict:** **CONDITIONAL PASS for source-fidelity small-angle hybrid preview**, **FULL CHARACTER ANATOMICAL ART STILL INCOMPLETE/NOT APPROVED**. The approved original source already conceals the far support forearm. PC42N opt-in `PC42N_SOURCE_FIRST_PREVIEW=1` conceals the previously rejected exposed synthetic arm skin while preserving actual Bone2D two-hand rifle IK. No new elbow art was painted.
+- **Real measurements:** 32 frames; five `-10/-5/0/+5/+10` renders; dominant/support/far IK errors max `0.000063/0.000031/0.000061` world px. Original-image elbow crop mean abs pixel error improved from `6.4455` to `2.8829` at rest; lower in all five angles.
+- **Full report:** `docs/PC42N_SOURCE_FIRST_HYBRID_QA.md`.
+- **Release readiness:** NO. Missing authentic concealed fabric prevents full articulated support-arm acceptance; only original-looking small-angle hybrid preview improved. This is NOT yet an actual playable game integration.
+- **New signed APK:** NONE; last PC33 code 205 is technically valid, visually rejected.
+- **Project-wide policy:** character-first overrides older queue's gameplay fallback; priority is male RIGHT natural animation, then male LEFT/female RIGHT/LEFT, equipment and APK. No unrelated gameplay expansion until character acceptance.
+- **Next executable step:** study extended male RIGHT aiming poses using the source-first hybrid, enforce weapon contact and review visual anatomy; develop genuine concealed elbow art via an actually capable authoring process. Preserve PC42H fallback and prevent rejected PC42J/L/M layers from becoming approved.
