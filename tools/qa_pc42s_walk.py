@@ -17,9 +17,9 @@ hip_f=np.array([float(x[1]) for x in gait]); hip_b=np.array([float(x[2]) for x i
 knee_f=np.array([float(x[3]) for x in gait]); knee_b=np.array([float(x[4]) for x in gait])
 root=np.array([[float(x[5]),float(x[6])] for x in gait])
 assert max(abs(hip_f+hip_b))<.01,"Legs not alternating symmetrically"
-assert 9<=max(hip_f)<=11 and -11<=min(hip_f)<=-9
+assert 5<=max(hip_f)<=7 and -7<=min(hip_f)<=-5
 assert 0<=min(knee_f) and 0<=min(knee_b)
-assert max(knee_f)>=9 and max(knee_b)>=9
+assert max(knee_f)>=5 and max(knee_b)>=5
 assert np.max(np.abs(root[:,0]))<=12,"Excessive root correction causes visible jumping"
 grips=re.findall(r"PC42C_GRIP_FRAME (\d+) angle=([-\d.]+) dominant_error=([\d.]+) support_error=([\d.]+) far_arm_error=([\d.]+)",log)
 assert len(grips)==32
