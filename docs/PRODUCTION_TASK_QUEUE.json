@@ -34,17 +34,17 @@
     },
     "original_rig": "1cfaab1c8198dbfc8a14f73f2a92dad953a8ba78"
   },
-  "active_task_id": "SP-CHAR-HYBRID-001",
+  "active_task_id": null,
   "ready_selection_rule": "CHARACTER FIRST: select an executable visual/animation/equipment task; do not fall back to unrelated gameplay while character visual requirements are unfinished. Report real art/tool blocker honestly. Other gameplay only by explicit user permission.",
   "tasks": [
     {
       "id": "SP-CHAR-HYBRID-001",
       "track": "visual",
       "priority": 0,
-      "status": "ACTIVE",
+      "status": "VERIFIED",
       "objective": "Test source-first male RIGHT hybrid visual presentation: conceal previously rejected fabricated far forearm while preserving genuine Bone2D and rifle-owned two-grip IK. Do not claim concealed anatomy painted.",
       "depends_on": [],
-      "next_action": "Inspect actual PC42N Godot five-angle and 32-frame source-fidelity evidence, record independent visual verdict; if worthwhile preserve experimental option, but still require source-faithful elbow surface for final art.",
+      "next_action": "Preserve PC42N experimental preview but complete true male RIGHT arm artwork; original source occlusion alone is not anatomical finish",
       "acceptance": [
         "Godot 4.7.2 compile/runtime technical PASS",
         "Both weapon hands remain constrained for all 32 frames",
@@ -52,10 +52,15 @@
         "Visual verdict explicitly PASS/FAIL/INCOMPLETE; no claim of authored fabric"
       ],
       "evidence": [
-        "https://github.com/husam4448-rgb/wanderfall/actions/runs/38043479486"
+        "https://github.com/husam4448-rgb/wanderfall/actions/runs/38043479486/artifacts/11667295042",
+        "docs/PC42N_SOURCE_FIRST_HYBRID_QA.md"
       ],
       "attempts": 1,
-      "allowed_same_failed_technique_retries": 1
+      "allowed_same_failed_technique_retries": 1,
+      "technical_verdict": "PASS",
+      "visual_verdict": "CONDITIONAL_PASS_SOURCE_FIDELITY_ONLY",
+      "incomplete": "Concealed forearm sleeve texture not authored; full male RIGHT rig cannot be accepted",
+      "latest_tested_source_sha": "c9312d0dbd6af362854adb70ec7632193b592284"
     },
     {
       "id": "SP-ART-001",
@@ -65,7 +70,7 @@
       "objective": "Create one genuinely painted concealed male RIGHT support elbow sleeve surface matching approved EAST rifle/unarmed character; do not repeat source-layer or flat-patch failures.",
       "depends_on": [],
       "blocking_reason": "Two image tool requests produced unrelated dashboards; local 236x254 raster-patch looked unlike approved cloth. Source-matched image authoring unavailable in last attempt.",
-      "next_action": "Inspect availability of a reliable source-conditioned raster editor using real approved reference pixels; author one source-faithful elbow surface and reject at native pixel size if mismatched.",
+      "next_action": "Find a capable original-style actual painted concealed elbow/rolled sleeve surface and inspect RGBA at native 236x254 first; if not feasible, advance other male RIGHT character features with source-first hybrid preview.",
       "acceptance": [
         "Real native RGBA PNG accessible as bytes and SHA verified",
         "Elbow fabric passes visual comparison to original survivor, no fabricated panels/crescents/dark slabs",
