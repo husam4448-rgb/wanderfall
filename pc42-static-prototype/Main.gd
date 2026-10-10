@@ -353,6 +353,38 @@ func _pc42q_recoil_envelope(frame: int) -> float:
         return float(frame-3) / 3.0
     return pow(maxf(0.0, 1.0-float(frame-6)/14.0),3.0)
 
+func _pc42s_walk_pose(frame: int) -> void:
+    # PC42S: opt-in original-source gait diagnostic; no procedural leg art.
+    # Both legs alternate over a 32-frame cycle with two-bone knee flexion.
+    # This requires native visual inspection; foot-pivot and skin blending
+    # must NOT be assumed production-ready from numerical IK alone.
+    var phase: float = TAU*float(frame)/32.0
+    var sway: float = sin(phase)
+    var front_swing: float = maxf(0.0,cos(phase))
+    var back_swing: float = maxf(0.0,-cos(phase))
+    var front_thigh: Bone2D = pc42_bones["front_thigh"]
+    var back_thigh: Bone2D = pc42_bones["back_thigh"]
+    var front_shin: Bone2D = pc42_bones["front_shin"]
+    var back_shin: Bone2D = pc42_bones["back_shin"]
+    front_thigh.rotation = deg_to_rad(-10.0*sway)
+    back_thigh.rotation = deg_to_rad(10.0*sway)
+    front_shin.rotation = deg_to_rad(10.0*front_swing)
+    back_shin.rotation = deg_to_rad(10.0*back_swing)
+    # Source atlas contains footwear in each shin sprite, not separate
+    # ankle Bone2D. Blend stance-foot preservation, limited to small
+    # root offsets. Treat residual sliding as an explicit art/rig gate.
+    pc42_skeleton.position = CENTER
+    var front_rest: Vector2 = pc42_skeleton.to_global(Vector2(84.0,241.0))
+    var back_rest: Vector2 = pc42_skeleton.to_global(Vector2(138.0,224.0))
+    var front_actual: Vector2 = front_shin.to_global(Vector2(84.0-79.0,241.0-182.0))
+    var back_actual: Vector2 = back_shin.to_global(Vector2(138.0-131.0,224.0-184.0))
+    var front_contact: float = (1.0-cos(phase))*0.5
+    var correction: Vector2 = front_contact*(front_rest-front_actual)+(1.0-front_contact)*(back_rest-back_actual)
+    pc42_skeleton.position += correction
+    var step_bob: float = 0.30*(1.0-cos(2.0*phase))
+    pc42_skeleton.position.y -= step_bob
+    print("PC42S_WALK_FRAME %02d front_hip=%.3f back_hip=%.3f front_knee=%.3f back_knee=%.3f root_x=%.3f root_y=%.3f" % [frame,rad_to_deg(front_thigh.rotation),rad_to_deg(back_thigh.rotation),rad_to_deg(front_shin.rotation),rad_to_deg(back_shin.rotation),correction.x,correction.y-step_bob])
+
 func _pc42r_reload_pose(frame: int) -> Dictionary:
     # PC42R source-first PREPARATORY reload choreography, not a completed
     # magazine animation. Preserve original authored rifle/hand pixels.
@@ -387,6 +419,9 @@ func _pc42c_capture_full_test() -> void:
     var idle_breath: bool = OS.get_environment("PC42P_IDLE_BREATH_TEST") == "1"
     var rifle_recoil: bool = OS.get_environment("PC42Q_FIRE_RECOIL_TEST") == "1"
     var reload_setup: bool = OS.get_environment("PC42R_RELOAD_SETUP_TEST") == "1"
+    var walk_test: bool = OS.get_environment("PC42S_WALK_TEST") == "1"
+    if walk_test:
+        print("PC42S_ORIGINAL_SOURCE_GAIT_READY frames=32 thighs/shins articulated ankle_art_pending")
     if reload_setup:
         print("PC42R_RELOAD_SETUP_READY source_first=1 visual_magazine_interaction=PENDING")
     if rifle_recoil:
@@ -414,6 +449,8 @@ func _pc42c_capture_full_test() -> void:
             print("PC42Q_RECOIL_FRAME %02d kick=%.4f stock_dx=%.4f stock_dy=%.4f" % [frame,recoil_strength,recoil_translation.x,recoil_translation.y])
         if idle_breath:
             _pc42p_apply_source_breath(frame)
+        if walk_test:
+            _pc42s_walk_pose(frame)
         if not result["valid"]:
             get_tree().quit(13)
             return
@@ -430,6 +467,8 @@ func _pc42c_capture_full_test() -> void:
     if idle_breath:
         pose_angles = [0]
     if rifle_recoil:
+        pose_angles = [0]
+    if walk_test:
         pose_angles = [0]
     for angle_int in pose_angles:
         _pc42c_apply_weapon_ik(deg_to_rad(float(angle_int)))
