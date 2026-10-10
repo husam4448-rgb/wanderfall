@@ -269,11 +269,11 @@ func _pc42h_build_far_arm() -> void:
     print("PC42H_SEGMENTED_FAR_ARM_READY 2 independently solved Bone2D plus source-clothing shoulder/elbow/forearm/cuff and weapon socket glove")
     print("PC42F_FAR_ARM_DEPTH_RESOLVED visible=" + str(upper.visible) + " z_index=" + str(upper.z_index))
 
-func _pc42c_apply_weapon_ik(angle: float) -> Dictionary:
+func _pc42c_apply_weapon_ik(angle: float, recoil_translation: Vector2 = Vector2.ZERO) -> Dictionary:
     # The weapon owns all grip landmarks. Solve arm AFTER selecting rifle pose.
     # This is not a generic procedural limb renderer: original source RGB
     # remains attached to real Bone2D/Sprite2D parts.
-    var solution: Dictionary = PC42CGripIK.solve_dominant(angle)
+    var solution: Dictionary = PC42CGripIK.solve_dominant(angle,recoil_translation)
     if not solution["valid"]:
         push_error("PC42C unreachable rifle grip at angle " + str(rad_to_deg(angle)))
         return solution
@@ -287,11 +287,12 @@ func _pc42c_apply_weapon_ik(angle: float) -> Dictionary:
     # Dominant glove follows rifle in world space without disconnecting
     # its pivot from the analytically solved elbow and wrist chain.
     dominant.rotation = angle - shoulder.rotation - forearm.rotation
+    stock.position = PC42CGripIK.RIFLE_STOCK_PIVOT + recoil_translation
     stock.rotation = angle
     support.rotation = 0.0
     var expected_dom: Vector2 = pc42_skeleton.to_global(solution["dominant_wrist"])
     var expected_sup: Vector2 = pc42_skeleton.to_global(solution["support_wrist"])
-    var far_solution: Dictionary = PC42CGripIK.solve_support(angle)
+    var far_solution: Dictionary = PC42CGripIK.solve_support(angle,recoil_translation)
     if not far_solution["valid"]:
         push_error("PC42D far support arm cannot reach handguard")
         return {"valid":false,"reason":"far support arm IK unreachable"}
@@ -342,6 +343,16 @@ func _pc42p_apply_source_breath(frame: int) -> void:
     var pack: Sprite2D = pc42_bones["backpack"].get_node("ApprovedArt_backpack") as Sprite2D
     pack.position = Vector2(pc42p_idle_source_rest["backpack"]) + Vector2(0.0, -0.14 * wave)
 
+func _pc42q_recoil_envelope(frame: int) -> float:
+    # Shot at frame 4, peak at frame 6, decays fully before frame 20.
+    # Unlike isolated gun motion, a single shared stock socket translation
+    # re-solves BOTH Bone2D IK chains after the rifle moves.
+    if frame < 4 or frame > 20:
+        return 0.0
+    if frame <= 6:
+        return float(frame-3) / 3.0
+    return pow(maxf(0.0, 1.0-float(frame-6)/14.0),3.0)
+
 func _pc42c_capture_full_test() -> void:
     var max_dom: float = 0.0
     var max_sup: float = 0.0
@@ -350,6 +361,9 @@ func _pc42c_capture_full_test() -> void:
     # five-angle / 32-frame Godot contract unchanged unless explicitly enabled.
     var wide_sweep: bool = OS.get_environment("PC42O_WIDE_AIM_TEST") == "1"
     var idle_breath: bool = OS.get_environment("PC42P_IDLE_BREATH_TEST") == "1"
+    var rifle_recoil: bool = OS.get_environment("PC42Q_FIRE_RECOIL_TEST") == "1"
+    if rifle_recoil:
+        print("PC42Q_RIFLE_RECOIL_READY event_frame=4 peak_frame=6 rest_frame=20")
     if idle_breath:
         print("PC42P_IDLE_BREATH_CAPTURING true_Godot_frames=32 aim=0")
     var sweep_degrees: float = (0.0 if idle_breath else (30.0 if wide_sweep else 10.0))
@@ -357,7 +371,15 @@ func _pc42c_capture_full_test() -> void:
         print("PC42O_WIDE_AIM_TEST_READY angle_limit_degrees=30 source_first=" + str(OS.get_environment("PC42N_SOURCE_FIRST_PREVIEW") == "1"))
     for frame in range(32):
         var angle_deg: float = sweep_degrees*sin(TAU*float(frame)/32.0)
-        var result: Dictionary = _pc42c_apply_weapon_ik(deg_to_rad(angle_deg))
+        var recoil_translation: Vector2 = Vector2.ZERO
+        var recoil_strength: float = 0.0
+        if rifle_recoil:
+            recoil_strength = _pc42q_recoil_envelope(frame)
+            angle_deg = -3.5 * recoil_strength
+            recoil_translation = Vector2(-1.5*recoil_strength,0.25*recoil_strength)
+        var result: Dictionary = _pc42c_apply_weapon_ik(deg_to_rad(angle_deg),recoil_translation)
+        if rifle_recoil:
+            print("PC42Q_RECOIL_FRAME %02d kick=%.4f stock_dx=%.4f stock_dy=%.4f" % [frame,recoil_strength,recoil_translation.x,recoil_translation.y])
         if idle_breath:
             _pc42p_apply_source_breath(frame)
         if not result["valid"]:
@@ -374,6 +396,8 @@ func _pc42c_capture_full_test() -> void:
     if wide_sweep:
         pose_angles = [-30,-15,0,15,30]
     if idle_breath:
+        pose_angles = [0]
+    if rifle_recoil:
         pose_angles = [0]
     for angle_int in pose_angles:
         _pc42c_apply_weapon_ik(deg_to_rad(float(angle_int)))
