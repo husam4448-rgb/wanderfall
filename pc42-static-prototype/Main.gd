@@ -441,20 +441,52 @@ func _pc42s_walk_pose(frame: int) -> void:
         front_ankle.rotation = -0.65*front_shin.rotation
         back_ankle.rotation = -0.65*back_shin.rotation
         print("PC42T_ANKLE_FRAME %02d front=%.3f back=%.3f" % [frame,rad_to_deg(front_ankle.rotation),rad_to_deg(back_ankle.rotation)])
-    # Source atlas contains footwear in each shin sprite, not separate
-    # ankle Bone2D. Blend stance-foot preservation, limited to small
-    # root offsets. Treat residual sliding as an explicit art/rig gate.
-    pc42_skeleton.position = CENTER
-    var front_rest: Vector2 = pc42_skeleton.to_global(Vector2(84.0,241.0))
-    var back_rest: Vector2 = pc42_skeleton.to_global(Vector2(138.0,224.0))
-    var front_actual: Vector2 = front_shin.to_global(Vector2(84.0-79.0,241.0-182.0))
-    var back_actual: Vector2 = back_shin.to_global(Vector2(138.0-131.0,224.0-184.0))
-    var front_contact: float = (1.0-cos(phase))*0.5
-    var correction: Vector2 = front_contact*(front_rest-front_actual)+(1.0-front_contact)*(back_rest-back_actual)
-    pc42_skeleton.position += correction
-    var step_bob: float = 0.30*(1.0-cos(2.0*phase))
-    pc42_skeleton.position.y -= step_bob
-    print("PC42S_WALK_FRAME %02d front_hip=%.3f back_hip=%.3f front_knee=%.3f back_knee=%.3f root_x=%.3f root_y=%.3f" % [frame,rad_to_deg(front_thigh.rotation),rad_to_deg(back_thigh.rotation),rad_to_deg(front_shin.rotation),rad_to_deg(back_shin.rotation),correction.x,correction.y-step_bob])
+    if OS.get_environment("PC42U_STANCE_LOCK_TEST") == "1":
+        # Explicit support leg phases and reference-space toe contacts.
+        # The old PC42S blend used static shin toe positions; after PC42T
+        # boots became distinct bones, those positions cease to be accurate.
+        # Calibrate contact in REAL Godot global coordinates and correct
+        # only the current stance anchor, rather than averaging moving feet.
+        var front_foot: Bone2D = pc42_bones["front_foot"]
+        var back_foot: Bone2D = pc42_bones["back_foot"]
+        var front_toe_local: Vector2 = Vector2(2.0,20.0)
+        var back_toe_local: Vector2 = Vector2(0.0,14.0)
+        pc42_skeleton.position = CENTER
+        # Toe is attached to the newly articulated boot bone, not the shin.
+        var front_toe: Vector2 = front_foot.to_global(front_toe_local)
+        var back_toe: Vector2 = back_foot.to_global(back_toe_local)
+        var front_stance: bool = frame < 16
+        var current_toe: Vector2 = front_toe if front_stance else back_toe
+        var reference_front: Vector2 = pc42_skeleton.to_global(Vector2(84.0,241.0))
+        var reference_back: Vector2 = pc42_skeleton.to_global(Vector2(138.0,224.0))
+        var target_toe: Vector2 = reference_front if front_stance else reference_back
+        # Restrict pelvis compensation, rather than falsely claiming
+        # perfect stance locking by jumping the entire character.
+        var uncompensated_error: Vector2 = target_toe-current_toe
+        var correction: Vector2 = Vector2(
+            clampf(uncompensated_error.x,-5.0,5.0),
+            clampf(uncompensated_error.y,-2.0,2.0))
+        pc42_skeleton.position += correction
+        # Phase-specific annotation: the non-stance foot is the swing foot.
+        # Full toe clearance depends on later ankle/hip IK design.
+        var remaining_drift: float = (target_toe-(current_toe+correction*SCALE)).length()
+        print("PC42U_CONTACT_FRAME %02d stance=%s front_toe=(%.3f,%.3f) back_toe=(%.3f,%.3f) desired=(%.3f,%.3f) residual_world=%.3f" % [frame,"FRONT" if front_stance else "BACK",front_toe.x,front_toe.y,back_toe.x,back_toe.y,target_toe.x,target_toe.y,remaining_drift])
+        print("PC42S_WALK_FRAME %02d front_hip=%.3f back_hip=%.3f front_knee=%.3f back_knee=%.3f root_x=%.3f root_y=%.3f" % [frame,rad_to_deg(front_thigh.rotation),rad_to_deg(back_thigh.rotation),rad_to_deg(front_shin.rotation),rad_to_deg(back_shin.rotation),correction.x,correction.y])
+    else:
+        # Source atlas contains footwear in each shin sprite, not separate
+        # ankle Bone2D. Blend stance-foot preservation, limited to small
+        # root offsets. Treat residual sliding as an explicit art/rig gate.
+        pc42_skeleton.position = CENTER
+        var front_rest: Vector2 = pc42_skeleton.to_global(Vector2(84.0,241.0))
+        var back_rest: Vector2 = pc42_skeleton.to_global(Vector2(138.0,224.0))
+        var front_actual: Vector2 = front_shin.to_global(Vector2(84.0-79.0,241.0-182.0))
+        var back_actual: Vector2 = back_shin.to_global(Vector2(138.0-131.0,224.0-184.0))
+        var front_contact: float = (1.0-cos(phase))*0.5
+        var correction: Vector2 = front_contact*(front_rest-front_actual)+(1.0-front_contact)*(back_rest-back_actual)
+        pc42_skeleton.position += correction
+        var step_bob: float = 0.30*(1.0-cos(2.0*phase))
+        pc42_skeleton.position.y -= step_bob
+        print("PC42S_WALK_FRAME %02d front_hip=%.3f back_hip=%.3f front_knee=%.3f back_knee=%.3f root_x=%.3f root_y=%.3f" % [frame,rad_to_deg(front_thigh.rotation),rad_to_deg(back_thigh.rotation),rad_to_deg(front_shin.rotation),rad_to_deg(back_shin.rotation),correction.x,correction.y-step_bob])
 
 func _pc42r_reload_pose(frame: int) -> Dictionary:
     # PC42R source-first PREPARATORY reload choreography, not a completed
