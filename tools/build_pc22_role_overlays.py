@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate role clothing overlays that inherit PC22 canonical arm geometry."""
+"""Generate V3 role clothing overlays that inherit PC22 canonical pivots and geometry."""
 from pathlib import Path
 from PIL import Image,ImageDraw
 import hashlib,json,sys
@@ -36,11 +36,13 @@ def colorize(src,base_rgb,accent_rgb=None,accent_zone=None):
             r,g,b,a=sp[x,y]
             if a==0: continue
             lum=(r+g+b)/3.0
-            d=max(-34,min(34,int((lum-112.0)*0.22)))
+            # Preserve the authored V3 cloth folds instead of flattening every
+            # role sleeve to a single block color.
+            d=max(-58,min(58,int((lum-112.0)*0.46)))
             rgb=base_rgb
             if accent_rgb and accent_zone and accent_zone(x,y,w,h):
                 rgb=accent_rgb
-            grain=((x*13+y*17)%7)-3
+            grain=(((x*13+y*17)%7)-3)//2
             op[x,y]=(max(0,min(255,rgb[0]+d+grain)),
                      max(0,min(255,rgb[1]+d+grain)),
                      max(0,min(255,rgb[2]+d+grain)),a)
@@ -48,10 +50,13 @@ def colorize(src,base_rgb,accent_rgb=None,accent_zone=None):
 
 def sleeve_asset(src,role,segment):
     p=roles[role]
+    # V3 sleeve assets are horizontal (+X). Role accents therefore belong near
+    # the distal X end as a cuff/trim, not along the lower Y edge. The old Y
+    # test created the artificial diagonal stripe visible in runtime captures.
     if segment=="upper":
-        zone=lambda x,y,w,h: y>h*0.72 and ((x+y)//4)%2==0
+        zone=lambda x,y,w,h: x>w*0.90
     else:
-        zone=lambda x,y,w,h: y>h*0.80
+        zone=lambda x,y,w,h: x>w*0.92
     return colorize(src,p["cloth"],p["accent"],zone)
 
 def glove_asset(src,role):
@@ -65,11 +70,12 @@ def torso_asset(src,role):
 records=[]
 for role in roles:
     for sex in ("male","female"):
-        sex_arm=arms/sex
-        upper=Image.open(sex_arm/f"SP_PC22_{sex.title()}_UpperArm_Right.png").convert("RGBA")
-        fore=Image.open(sex_arm/f"SP_PC22_{sex.title()}_Forearm_Right.png").convert("RGBA")
-        hand_dom=Image.open(sex_arm/f"SP_PC22_{sex.title()}_Hand_Dominant_Right.png").convert("RGBA")
-        hand_sup=Image.open(sex_arm/f"SP_PC22_{sex.title()}_Hand_Support_Right.png").convert("RGBA")
+        sex_arm=arms/"hybrid_v3"/sex
+        upper=Image.open(sex_arm/f"SP_PC22_{sex.title()}_UpperArm_V3.png").convert("RGBA")
+        fore=Image.open(sex_arm/f"SP_PC22_{sex.title()}_Forearm_V3.png").convert("RGBA")
+        shoulder_cap=Image.open(sex_arm/f"SP_PC22_{sex.title()}_ShoulderCap_V3.png").convert("RGBA")
+        hand_dom=Image.open(sex_arm/f"SP_PC22_{sex.title()}_Hand_Dominant_V3.png").convert("RGBA")
+        hand_sup=Image.open(sex_arm/f"SP_PC22_{sex.title()}_Hand_Support_V3.png").convert("RGBA")
         torso=Image.open(base/f"core/{sex}/torso_base.png").convert("RGBA")
 
         outdir=arms/"sleeves"/role/sex; outdir.mkdir(parents=True,exist_ok=True)
@@ -78,6 +84,7 @@ for role in roles:
 
         su=sleeve_asset(upper,role,"upper")
         sf=sleeve_asset(fore,role,"fore")
+        sc=sleeve_asset(shoulder_cap,role,"upper")
         sg_dom=glove_asset(hand_dom,role)
         sg_sup=glove_asset(hand_sup,role)
         st=torso_asset(torso,role)
@@ -85,22 +92,24 @@ for role in roles:
         files={
           "upper_arm":outdir/"upper_arm.png",
           "forearm":outdir/"forearm.png",
+          "shoulder_cap":outdir/"shoulder_cap.png",
           "glove_dominant":gdir/"glove_dominant.png",
           "glove_support":gdir/"glove_support.png",
           "torso":tdir/"torso.png",
         }
-        for k,img in (("upper_arm",su),("forearm",sf),("glove_dominant",sg_dom),("glove_support",sg_sup),("torso",st)):
+        for k,img in (("upper_arm",su),("forearm",sf),("shoulder_cap",sc),("glove_dominant",sg_dom),("glove_support",sg_sup),("torso",st)):
             img.save(files[k])
 
         spec=json.loads((base/f"core/{sex}/arm_spec.json").read_text(encoding="utf-8"))
         for k,img,parent,child in (
           ("upper_arm",su,"shoulder","elbow"),
           ("forearm",sf,"elbow","wrist"),
+          ("shoulder_cap",sc,"shoulder","upper_arm"),
           ("glove_dominant",sg_dom,"wrist","dominant_hand"),
           ("glove_support",sg_sup,"wrist","support_hand"),
           ("torso",st,"body","shoulder_interface"),
         ):
-            src_ref={"upper_arm":upper,"forearm":fore,"glove_dominant":hand_dom,"glove_support":hand_sup,"torso":torso}[k]
+            src_ref={"upper_arm":upper,"forearm":fore,"shoulder_cap":shoulder_cap,"glove_dominant":hand_dom,"glove_support":hand_sup,"torso":torso}[k]
             if img.size!=src_ref.size:
                 raise SystemExit(f"{role}/{sex}/{k}: canvas mismatch")
             if img.getchannel("A").tobytes()!=src_ref.getchannel("A").tobytes():
@@ -127,6 +136,7 @@ if len(sleeves)!=24:
   "standard_id":"PlayerCharacters_v22",
   "skeleton_policy":"roles cannot override canonical arm geometry",
   "sleeve_asset_count":len(sleeves),
+  "shoulder_cap_count":len([r for r in records if r["asset"]=="shoulder_cap"]),
   "role_glove_count":len([r for r in records if r["asset"] in ("glove_dominant","glove_support")]),
   "role_torso_count":len([r for r in records if r["asset"]=="torso"]),
   "assets":records

@@ -26,15 +26,17 @@ rig_module.parent.mkdir(parents=True,exist_ok=True)
 rig_module.write_text(f'''class_name PC22CanonicalArmSystem
 extends RefCounted
 
-const MALE_RIG_ID := "MALE_CANONICAL_ARM_SYSTEM"
-const FEMALE_RIG_ID := "FEMALE_CANONICAL_ARM_SYSTEM"
+const UNIVERSAL_RIG_ID := "HUMANOID_CANONICAL_ARM_SYSTEM"
 var female_mode := false
 
 func configure(is_female: bool) -> void:
     female_mode = is_female
 
 func rig_id() -> String:
-    return FEMALE_RIG_ID if female_mode else MALE_RIG_ID
+    return UNIVERSAL_RIG_ID
+
+func profile_id() -> String:
+    return "female" if female_mode else "male"
 
 func lengths() -> Vector2:
     return Vector2({female_spec["upper_arm_length"]},{female_spec["forearm_length"]}) if female_mode else Vector2({male_spec["upper_arm_length"]},{male_spec["forearm_length"]})
@@ -44,6 +46,22 @@ func upper_width() -> float:
 
 func forearm_width() -> float:
     return {female_spec["forearm_width"]} if female_mode else {male_spec["forearm_width"]}
+
+func dominant_hand_height() -> float:
+    return {female_spec["dominant_hand_size"][1]} if female_mode else {male_spec["dominant_hand_size"][1]}
+
+func support_hand_height() -> float:
+    return {female_spec["support_hand_size"][1]} if female_mode else {male_spec["support_hand_size"][1]}
+
+func dominant_wrist_to_grip() -> Vector2:
+    return Vector2({female_spec["dominant_wrist_to_grip_local"][0]},{female_spec["dominant_wrist_to_grip_local"][1]}) if female_mode else Vector2({male_spec["dominant_wrist_to_grip_local"][0]},{male_spec["dominant_wrist_to_grip_local"][1]})
+
+func support_wrist_to_grip() -> Vector2:
+    return Vector2({female_spec["support_wrist_to_grip_local"][0]},{female_spec["support_wrist_to_grip_local"][1]}) if female_mode else Vector2({male_spec["support_wrist_to_grip_local"][0]},{male_spec["support_wrist_to_grip_local"][1]})
+
+func wrist_from_grip(grip_world: Vector2, angle: float, dir_sign: float, support: bool) -> Vector2:
+    var local_offset := support_wrist_to_grip() if support else dominant_wrist_to_grip()
+    return grip_world+pose_point(-local_offset,angle,dir_sign)
 
 func shoulder_rear(base: Vector2, dir_sign: float) -> Vector2:
     var p := Vector2({female_spec["shoulder_rear"][0]},{female_spec["shoulder_rear"][1]}) if female_mode else Vector2({male_spec["shoulder_rear"][0]},{male_spec["shoulder_rear"][1]})
@@ -59,10 +77,14 @@ func pose_point(v: Vector2, angle: float, dir_sign: float) -> Vector2:
 
 func weapon_targets(base: Vector2, angle: float, dir_sign: float, recoil: float) -> Dictionary:
     var pivot := base+Vector2({male_spec["weapon_socket"][0]}*dir_sign,{male_spec["weapon_socket"][1]})+pose_point(Vector2(-1.45*recoil,0),angle,dir_sign)
-    var dominant := pivot+pose_point(Vector2({male_spec["dominant_hand_grip_socket"][0]},{male_spec["dominant_hand_grip_socket"][1]}),angle,dir_sign)
-    var support := pivot+pose_point(Vector2({male_spec["support_hand_grip_socket"][0]},{male_spec["support_hand_grip_socket"][1]}),angle,dir_sign)
-    support += pose_point(Vector2(0,(1.8 if dir_sign>0.0 else 2.1)),angle,dir_sign)
-    return {{"pivot":pivot,"dominant_wrist":dominant,"support_wrist":support}}
+    var dominant_grip := pivot+pose_point(Vector2({male_spec["dominant_hand_grip_socket"][0]},{male_spec["dominant_hand_grip_socket"][1]}),angle,dir_sign)
+    var support_grip := pivot+pose_point(Vector2({male_spec["support_hand_grip_socket"][0]},{male_spec["support_hand_grip_socket"][1]}),angle,dir_sign)
+    var support := support_grip
+    support += pose_point(Vector2(0,0.0),angle,dir_sign)
+    support_grip = support
+    var dominant_wrist := wrist_from_grip(dominant_grip,angle,dir_sign,false)
+    var support_wrist := wrist_from_grip(support_grip,angle,dir_sign,true)
+    return {{"pivot":pivot,"dominant_grip":dominant_grip,"support_grip":support_grip,"dominant_wrist":dominant_wrist,"support_wrist":support_wrist}}
 
 func solve_elbow(shoulder: Vector2, wrist: Vector2, upper_len: float, fore_len: float, previous: Vector2, has_previous: bool) -> Vector2:
     var dvec := wrist-shoulder
@@ -76,8 +98,10 @@ func solve_elbow(shoulder: Vector2, wrist: Vector2, upper_len: float, fore_len: 
     var c2 := shoulder+u*along-perp*height
     if not has_previous:
         return c1 if c1.y>=c2.y else c2
-    var p1 := c1.distance_to(previous)+maxf(0.0,shoulder.y-c1.y-1.0)*3.0
-    var p2 := c2.distance_to(previous)+maxf(0.0,shoulder.y-c2.y-1.0)*3.0
+    # Keep the selected IK branch continuous through vertical aim.
+    # A screen-down penalty caused abrupt branch inversions in visual-fix-v2.
+    var p1: float = c1.distance_to(previous)
+    var p2: float = c2.distance_to(previous)
     return c1 if p1<=p2 else c2
 
 func free_arm(shoulder: Vector2, upper_len: float, fore_len: float, swing_angle: float, dir_sign: float) -> PackedVector2Array:
@@ -92,18 +116,32 @@ if 'const PC22CanonicalArmSystemScript = preload("res://scripts/art/pc22_canonic
     s=s.replace('extends Node2D\n','extends Node2D\nconst PC22CanonicalArmSystemScript = preload("res://scripts/art/pc22_canonical_arm_system.gd")\n',1)
 
 asset_paths={
- "MALE_UPPER":arms/"male/SP_PC22_Male_UpperArm_Right.png",
- "MALE_FORE":arms/"male/SP_PC22_Male_Forearm_Right.png",
- "MALE_DOM_HAND":arms/"male/SP_PC22_Male_Hand_Dominant_Right.png",
- "MALE_SUPPORT_HAND":arms/"male/SP_PC22_Male_Hand_Support_Right.png",
- "FEMALE_UPPER":arms/"female/SP_PC22_Female_UpperArm_Right.png",
- "FEMALE_FORE":arms/"female/SP_PC22_Female_Forearm_Right.png",
- "FEMALE_DOM_HAND":arms/"female/SP_PC22_Female_Hand_Dominant_Right.png",
- "FEMALE_SUPPORT_HAND":arms/"female/SP_PC22_Female_Hand_Support_Right.png",
- "PISTOL":repo_root/"assets/authored2d/gear/pistol.png",
- "RIFLE":arms/"weapons/SP_PC22_Rifle_ArmCompatible.png",
- "RIFLE_STOCK":arms/"weapons/SP_PC22_Rifle_Stock_Rear.png",
- "RIFLE_FRONT":arms/"weapons/SP_PC22_Rifle_Front.png",
+ "MALE_UPPER":arms/"hybrid_v3/male/SP_PC22_Male_UpperArm_V3.png",
+ "MALE_FORE":arms/"hybrid_v3/male/SP_PC22_Male_Forearm_V3.png",
+ "MALE_GEAR_UPPER":arms/"hybrid_v3/male/SP_PC22_Male_UpperArm_Gear_V3.png",
+ "MALE_GEAR_FORE":arms/"hybrid_v3/male/SP_PC22_Male_Forearm_Gear_V3.png",
+ "MALE_ELBOW":arms/"hybrid_v3/male/SP_PC22_Male_Elbow_V3.png",
+ "MALE_GEAR_ELBOW":arms/"hybrid_v3/male/SP_PC22_Male_Elbow_Gear_V3.png",
+ "MALE_SHOULDER_CAP":arms/"hybrid_v3/male/SP_PC22_Male_ShoulderCap_V3.png",
+ "MALE_DOM_HAND":arms/"hybrid_v3/male/SP_PC22_Male_Hand_Dominant_V3.png",
+ "MALE_SUPPORT_HAND":arms/"hybrid_v3/male/SP_PC22_Male_Hand_Support_V3.png",
+ "MALE_GLOVE_DOM":arms/"hybrid_v3/male/SP_PC22_Male_Glove_Dominant_V3.png",
+ "MALE_GLOVE_SUP":arms/"hybrid_v3/male/SP_PC22_Male_Glove_Support_V3.png",
+ "FEMALE_UPPER":arms/"hybrid_v3/female/SP_PC22_Female_UpperArm_V3.png",
+ "FEMALE_FORE":arms/"hybrid_v3/female/SP_PC22_Female_Forearm_V3.png",
+ "FEMALE_GEAR_UPPER":arms/"hybrid_v3/female/SP_PC22_Female_UpperArm_Gear_V3.png",
+ "FEMALE_GEAR_FORE":arms/"hybrid_v3/female/SP_PC22_Female_Forearm_Gear_V3.png",
+ "FEMALE_ELBOW":arms/"hybrid_v3/female/SP_PC22_Female_Elbow_V3.png",
+ "FEMALE_GEAR_ELBOW":arms/"hybrid_v3/female/SP_PC22_Female_Elbow_Gear_V3.png",
+ "FEMALE_SHOULDER_CAP":arms/"hybrid_v3/female/SP_PC22_Female_ShoulderCap_V3.png",
+ "FEMALE_DOM_HAND":arms/"hybrid_v3/female/SP_PC22_Female_Hand_Dominant_V3.png",
+ "FEMALE_SUPPORT_HAND":arms/"hybrid_v3/female/SP_PC22_Female_Hand_Support_V3.png",
+ "FEMALE_GLOVE_DOM":arms/"hybrid_v3/female/SP_PC22_Female_Glove_Dominant_V3.png",
+ "FEMALE_GLOVE_SUP":arms/"hybrid_v3/female/SP_PC22_Female_Glove_Support_V3.png",
+ "PISTOL":arms/"hybrid_v3/weapons/SP_PC22_Pistol_V3.png",
+ "RIFLE":arms/"hybrid_v3/weapons/SP_PC22_Rifle_V3.png",
+ "RIFLE_STOCK":arms/"hybrid_v3/weapons/SP_PC22_Rifle_Stock_V3.png",
+ "RIFLE_FRONT":arms/"hybrid_v3/weapons/SP_PC22_Rifle_Front_V3.png",
 }
 for k,p in asset_paths.items():
     if not p.is_file():
@@ -117,6 +155,11 @@ for sex in ("male","female"):
     dst.mkdir(parents=True,exist_ok=True)
     for p in (arms/sex).glob("SP_PC22_*.png"):
         (dst/p.name).write_bytes(p.read_bytes())
+
+v3_src=arms/"hybrid_v3"
+v3_dst=root/"assets/authored2d/unified_character/arms/hybrid_v3"
+if v3_src.is_dir():
+    shutil.copytree(v3_src,v3_dst,dirs_exist_ok=True)
 
 # Role specialization is strictly artwork-only: no role-specific joints/skeletons.
 for src_rel,dst_rel in (
@@ -135,18 +178,32 @@ tex_anchor='var tex_female_gear_forearm: Texture2D = null\n'
 if tex_anchor not in s:
     raise SystemExit("Candidate arm texture anchor missing")
 inject=''
-for name in ("MALE_UPPER","MALE_FORE","MALE_DOM_HAND","MALE_SUPPORT_HAND",
-             "FEMALE_UPPER","FEMALE_FORE","FEMALE_DOM_HAND","FEMALE_SUPPORT_HAND",
+for name in ("MALE_UPPER","MALE_FORE","MALE_GEAR_UPPER","MALE_GEAR_FORE","MALE_ELBOW","MALE_GEAR_ELBOW","MALE_SHOULDER_CAP","MALE_DOM_HAND","MALE_SUPPORT_HAND","MALE_GLOVE_DOM","MALE_GLOVE_SUP",
+             "FEMALE_UPPER","FEMALE_FORE","FEMALE_GEAR_UPPER","FEMALE_GEAR_FORE","FEMALE_ELBOW","FEMALE_GEAR_ELBOW","FEMALE_SHOULDER_CAP","FEMALE_DOM_HAND","FEMALE_SUPPORT_HAND","FEMALE_GLOVE_DOM","FEMALE_GLOVE_SUP",
              "PISTOL","RIFLE","RIFLE_STOCK","RIFLE_FRONT"):
     inject += f'const PC22_ARM_{name}_B64 := "{b64[name]}"\n'
 inject += '''var tex_pc22_male_upper: Texture2D = null
 var tex_pc22_male_fore: Texture2D = null
+var tex_pc22_male_gear_upper: Texture2D = null
+var tex_pc22_male_gear_fore: Texture2D = null
+var tex_pc22_male_elbow: Texture2D = null
+var tex_pc22_male_gear_elbow: Texture2D = null
+var tex_pc22_male_shoulder_cap: Texture2D = null
 var tex_pc22_male_dom_hand: Texture2D = null
 var tex_pc22_male_support_hand: Texture2D = null
+var tex_pc22_male_glove_dom: Texture2D = null
+var tex_pc22_male_glove_sup: Texture2D = null
 var tex_pc22_female_upper: Texture2D = null
 var tex_pc22_female_fore: Texture2D = null
+var tex_pc22_female_gear_upper: Texture2D = null
+var tex_pc22_female_gear_fore: Texture2D = null
+var tex_pc22_female_elbow: Texture2D = null
+var tex_pc22_female_gear_elbow: Texture2D = null
+var tex_pc22_female_shoulder_cap: Texture2D = null
 var tex_pc22_female_dom_hand: Texture2D = null
 var tex_pc22_female_support_hand: Texture2D = null
+var tex_pc22_female_glove_dom: Texture2D = null
+var tex_pc22_female_glove_sup: Texture2D = null
 var tex_pc22_pistol: Texture2D = null
 var tex_pc22_rifle: Texture2D = null
 var tex_pc22_rifle_stock: Texture2D = null
@@ -159,12 +216,26 @@ if load_anchor not in s:
     raise SystemExit("Candidate arm texture load anchor missing")
 loads='''    tex_pc22_male_upper = _texture_from_embedded_png(PC22_ARM_MALE_UPPER_B64)
     tex_pc22_male_fore = _texture_from_embedded_png(PC22_ARM_MALE_FORE_B64)
+    tex_pc22_male_gear_upper = _texture_from_embedded_png(PC22_ARM_MALE_GEAR_UPPER_B64)
+    tex_pc22_male_gear_fore = _texture_from_embedded_png(PC22_ARM_MALE_GEAR_FORE_B64)
+    tex_pc22_male_elbow = _texture_from_embedded_png(PC22_ARM_MALE_ELBOW_B64)
+    tex_pc22_male_gear_elbow = _texture_from_embedded_png(PC22_ARM_MALE_GEAR_ELBOW_B64)
+    tex_pc22_male_shoulder_cap = _texture_from_embedded_png(PC22_ARM_MALE_SHOULDER_CAP_B64)
     tex_pc22_male_dom_hand = _texture_from_embedded_png(PC22_ARM_MALE_DOM_HAND_B64)
     tex_pc22_male_support_hand = _texture_from_embedded_png(PC22_ARM_MALE_SUPPORT_HAND_B64)
+    tex_pc22_male_glove_dom = _texture_from_embedded_png(PC22_ARM_MALE_GLOVE_DOM_B64)
+    tex_pc22_male_glove_sup = _texture_from_embedded_png(PC22_ARM_MALE_GLOVE_SUP_B64)
     tex_pc22_female_upper = _texture_from_embedded_png(PC22_ARM_FEMALE_UPPER_B64)
     tex_pc22_female_fore = _texture_from_embedded_png(PC22_ARM_FEMALE_FORE_B64)
+    tex_pc22_female_gear_upper = _texture_from_embedded_png(PC22_ARM_FEMALE_GEAR_UPPER_B64)
+    tex_pc22_female_gear_fore = _texture_from_embedded_png(PC22_ARM_FEMALE_GEAR_FORE_B64)
+    tex_pc22_female_elbow = _texture_from_embedded_png(PC22_ARM_FEMALE_ELBOW_B64)
+    tex_pc22_female_gear_elbow = _texture_from_embedded_png(PC22_ARM_FEMALE_GEAR_ELBOW_B64)
+    tex_pc22_female_shoulder_cap = _texture_from_embedded_png(PC22_ARM_FEMALE_SHOULDER_CAP_B64)
     tex_pc22_female_dom_hand = _texture_from_embedded_png(PC22_ARM_FEMALE_DOM_HAND_B64)
     tex_pc22_female_support_hand = _texture_from_embedded_png(PC22_ARM_FEMALE_SUPPORT_HAND_B64)
+    tex_pc22_female_glove_dom = _texture_from_embedded_png(PC22_ARM_FEMALE_GLOVE_DOM_B64)
+    tex_pc22_female_glove_sup = _texture_from_embedded_png(PC22_ARM_FEMALE_GLOVE_SUP_B64)
     tex_pc22_pistol = _texture_from_embedded_png(PC22_ARM_PISTOL_B64)
     tex_pc22_rifle = _texture_from_embedded_png(PC22_ARM_RIFLE_B64)
     tex_pc22_rifle_stock = _texture_from_embedded_png(PC22_ARM_RIFLE_STOCK_B64)
@@ -180,13 +251,14 @@ var pc22_player_arm_rig := PC22CanonicalArmSystemScript.new()
 var pc22_npc_arm_rig := PC22CanonicalArmSystemScript.new()
 var pc22_role := ""
 var pc22_role_texture_cache: Dictionary = {}
+var pc22_arm_color_cache: Dictionary = {}
 var pc22_prev_dom_elbow := Vector2.ZERO
 var pc22_prev_support_elbow := Vector2.ZERO
 var pc22_prev_arm_valid := false
 var pc22_prev_face_right := true
 var pc22_arm_capture_dir := ""
 var pc22_arm_capture_index := -1
-var pc22_arm_states_per_sex := 29
+var pc22_arm_states_per_sex := 34
 var pc22_arm_capture_names := PackedStringArray([
     "male_idle","male_walk_a","male_walk_b","male_run_a",
     "male_run_b","male_pistol_horizontal","male_pistol_up30","male_pistol_up60",
@@ -195,17 +267,35 @@ var pc22_arm_capture_names := PackedStringArray([
     "male_rifle_down30","male_rifle_down60","male_rifle_max_down","male_recoil",
     "male_walk_right_aim_right","male_walk_left_aim_right","male_walk_right_aim_up","male_walk_left_aim_down",
     "male_run_pistol","male_run_rifle","male_rifle_left","male_rifle_left_up60",
-    "male_rifle_left_down60","female_idle","female_walk_a","female_walk_b",
+    "male_rifle_left_down60","male_full_gear_rifle","male_full_gear_pistol",
+    "male_pistol_left","male_pistol_left_up60","male_pistol_left_down60",
+    "female_idle","female_walk_a","female_walk_b",
     "female_run_a","female_run_b","female_pistol_horizontal","female_pistol_up30",
     "female_pistol_up60","female_pistol_max_up","female_pistol_down30","female_pistol_down60",
     "female_pistol_max_down","female_rifle_horizontal","female_rifle_up30","female_rifle_up60",
     "female_rifle_max_up","female_rifle_down30","female_rifle_down60","female_rifle_max_down",
     "female_recoil","female_walk_right_aim_right","female_walk_left_aim_right","female_walk_right_aim_up",
     "female_walk_left_aim_down","female_run_pistol","female_run_rifle","female_rifle_left",
-    "female_rifle_left_up60","female_rifle_left_down60",
+    "female_rifle_left_up60","female_rifle_left_down60","female_full_gear_rifle","female_full_gear_pistol",
+    "female_pistol_left","female_pistol_left_up60","female_pistol_left_down60",
     "male_role_trader","male_role_medic","male_role_mechanic","male_role_guard",
-    "male_role_bandit","male_role_civilian","female_role_trader","female_role_medic",
-    "female_role_mechanic","female_role_guard","female_role_bandit","female_role_civilian",
+    "male_role_bandit","male_role_civilian","male_role_scientist",
+    "female_role_trader","female_role_medic","female_role_mechanic","female_role_guard",
+    "female_role_bandit","female_role_civilian","female_role_scientist",
+    "male_role_trader_rifle_up60","male_role_trader_rifle_down60","male_role_trader_rifle_left",
+    "male_role_medic_rifle_up60","male_role_medic_rifle_down60","male_role_medic_rifle_left",
+    "male_role_mechanic_rifle_up60","male_role_mechanic_rifle_down60","male_role_mechanic_rifle_left",
+    "male_role_guard_rifle_up60","male_role_guard_rifle_down60","male_role_guard_rifle_left",
+    "male_role_bandit_rifle_up60","male_role_bandit_rifle_down60","male_role_bandit_rifle_left",
+    "male_role_civilian_rifle_up60","male_role_civilian_rifle_down60","male_role_civilian_rifle_left",
+    "male_role_scientist_rifle_up60","male_role_scientist_rifle_down60","male_role_scientist_rifle_left",
+    "female_role_trader_rifle_up60","female_role_trader_rifle_down60","female_role_trader_rifle_left",
+    "female_role_medic_rifle_up60","female_role_medic_rifle_down60","female_role_medic_rifle_left",
+    "female_role_mechanic_rifle_up60","female_role_mechanic_rifle_down60","female_role_mechanic_rifle_left",
+    "female_role_guard_rifle_up60","female_role_guard_rifle_down60","female_role_guard_rifle_left",
+    "female_role_bandit_rifle_up60","female_role_bandit_rifle_down60","female_role_bandit_rifle_left",
+    "female_role_civilian_rifle_up60","female_role_civilian_rifle_down60","female_role_civilian_rifle_left",
+    "female_role_scientist_rifle_up60","female_role_scientist_rifle_down60","female_role_scientist_rifle_left",
     "male_npc_generic_glove","female_npc_generic_glove"
 ])
 '''
@@ -224,53 +314,87 @@ func _pc22_solve_elbow(shoulder: Vector2, wrist: Vector2, upper_len: float, fore
 func _pc22_free_arm(shoulder: Vector2, upper_len: float, fore_len: float, swing_angle: float, dir_sign: float) -> PackedVector2Array:
     return pc22_player_arm_rig.free_arm(shoulder,upper_len,fore_len,swing_angle,dir_sign)
 
+func _pc22_pistol_support_target(dominant_grip: Vector2, weapon_angle: float, dir_sign: float) -> Vector2:
+    # Two-hand pistol stance: keep the support palm on the lower/back face of
+    # the same pistol grip instead of hanging the entire arm at the character's
+    # side. This offset is weapon-local, so it remains stable through the full
+    # up/down aim sweep and when left-facing is mirrored.
+    return dominant_grip + _pose_point(Vector2(-1.30,1.70),weapon_angle,dir_sign)
+
 func _pc22_role_texture(kind: String) -> Texture2D:
     if pc22_role.is_empty():
         return null
-    var sex_name := "female" if female_mode else "male"
-    var key := "%s/%s/%s" % [pc22_role,sex_name,kind]
+    var sex_name: String = "female" if female_mode else "male"
+    # Scientist temporarily aliases the medic appearance slots only. It keeps
+    # the same universal humanoid rig; dedicated scientist art can replace
+    # these visuals later without changing IK, pivots or weapon sockets.
+    var asset_role: String = "medic" if pc22_role == "scientist" else pc22_role
+    var key: String = "%s/%s/%s" % [pc22_role,sex_name,kind]
     if pc22_role_texture_cache.has(key):
         return pc22_role_texture_cache[key] as Texture2D
     # Construct dynamic role paths without embedding a literal res://...%s
     # string, which the project preflight correctly treats as an unresolved
     # static resource reference.
-    var res_root := "res:/" + "/assets/authored2d/unified_character/"
-    var path := ""
+    var res_root: String = "res:/" + "/assets/authored2d/unified_character/"
+    var path: String = ""
     match kind:
         "upper_arm":
-            path = res_root + "arms/sleeves/%s/%s/upper_arm.png" % [pc22_role,sex_name]
+            path = res_root + "arms/sleeves/%s/%s/upper_arm.png" % [asset_role,sex_name]
         "forearm":
-            path = res_root + "arms/sleeves/%s/%s/forearm.png" % [pc22_role,sex_name]
+            path = res_root + "arms/sleeves/%s/%s/forearm.png" % [asset_role,sex_name]
+        "shoulder_cap":
+            path = res_root + "arms/sleeves/%s/%s/shoulder_cap.png" % [asset_role,sex_name]
         "glove_dominant":
-            path = res_root + "arms/gloves/%s/%s/glove_dominant.png" % [pc22_role,sex_name]
+            path = res_root + "arms/gloves/%s/%s/glove_dominant.png" % [asset_role,sex_name]
         "glove_support":
-            path = res_root + "arms/gloves/%s/%s/glove_support.png" % [pc22_role,sex_name]
+            path = res_root + "arms/gloves/%s/%s/glove_support.png" % [asset_role,sex_name]
         "torso":
-            path = res_root + "roles/%s/%s/torso.png" % [pc22_role,sex_name]
+            path = res_root + "roles/%s/%s/torso.png" % [asset_role,sex_name]
     if path.is_empty() or not ResourceLoader.exists(path):
         return null
-    var tex := load(path) as Texture2D
+    var tex: Texture2D = load(path) as Texture2D
     pc22_role_texture_cache[key] = tex
     return tex
 
 func _pc22_upper_texture() -> Texture2D:
-    var role_tex := _pc22_role_texture("upper_arm")
-    return role_tex if role_tex != null else (tex_pc22_female_upper if female_mode else tex_pc22_male_upper)
+    var role_tex: Texture2D = _pc22_role_texture("upper_arm")
+    if role_tex != null:
+        return role_tex
+    if gear_torso:
+        return tex_pc22_female_gear_upper if female_mode else tex_pc22_male_gear_upper
+    return tex_pc22_female_upper if female_mode else tex_pc22_male_upper
 
 func _pc22_fore_texture() -> Texture2D:
-    var role_tex := _pc22_role_texture("forearm")
-    return role_tex if role_tex != null else (tex_pc22_female_fore if female_mode else tex_pc22_male_fore)
+    var role_tex: Texture2D = _pc22_role_texture("forearm")
+    if role_tex != null:
+        return role_tex
+    if gear_torso:
+        return tex_pc22_female_gear_fore if female_mode else tex_pc22_male_gear_fore
+    return tex_pc22_female_fore if female_mode else tex_pc22_male_fore
+
+func _pc22_elbow_texture() -> Texture2D:
+    if gear_torso:
+        return tex_pc22_female_gear_elbow if female_mode else tex_pc22_male_gear_elbow
+    return tex_pc22_female_elbow if female_mode else tex_pc22_male_elbow
+
+func _pc22_shoulder_cap_texture() -> Texture2D:
+    var role_tex: Texture2D = _pc22_role_texture("shoulder_cap")
+    return role_tex if role_tex != null else (tex_pc22_female_shoulder_cap if female_mode else tex_pc22_male_shoulder_cap)
 
 func _pc22_dominant_hand_texture() -> Texture2D:
-    var role_tex := _pc22_role_texture("glove_dominant")
+    if gear_gloves:
+        return tex_pc22_female_glove_dom if female_mode else tex_pc22_male_glove_dom
+    var role_tex: Texture2D = _pc22_role_texture("glove_dominant")
     return role_tex if role_tex != null else (tex_pc22_female_dom_hand if female_mode else tex_pc22_male_dom_hand)
 
 func _pc22_support_hand_texture() -> Texture2D:
-    var role_tex := _pc22_role_texture("glove_support")
+    if gear_gloves:
+        return tex_pc22_female_glove_sup if female_mode else tex_pc22_male_glove_sup
+    var role_tex: Texture2D = _pc22_role_texture("glove_support")
     return role_tex if role_tex != null else (tex_pc22_female_support_hand if female_mode else tex_pc22_male_support_hand)
 
 func _pc22_draw_role_torso(base: Vector2, dir_sign: float) -> void:
-    var role_torso := _pc22_role_texture("torso")
+    var role_torso: Texture2D = _pc22_role_texture("torso")
     if role_torso == null:
         return
     if female_mode:
@@ -279,14 +403,16 @@ func _pc22_draw_role_torso(base: Vector2, dir_sign: float) -> void:
         _draw_equipment_texture(role_torso,base+Vector2(0,-4),Vector2(26.2,29.6),dir_sign<0.0)
 
 func _pc22_verify_role_assets() -> bool:
-    var roles := ["trader","medic","mechanic","guard","bandit","civilian"]
+    var roles := ["trader","medic","mechanic","guard","bandit","civilian","scientist"]
     var old_role := pc22_role
     var old_female := female_mode
     for role in roles:
         for is_female in [false,true]:
             pc22_role = role
             female_mode = is_female
-            for kind in ["upper_arm","forearm","glove_dominant","glove_support","torso"]:
+            for kind in ["upper_arm","forearm","shoulder_cap","glove_dominant","glove_support","torso"]:
+                # Scientist currently resolves to medic appearance slots, while
+                # geometry and sockets remain owned by the universal rig.
                 if _pc22_role_texture(kind) == null:
                     push_error("PC22_ROLE_ASSET_MISSING %s %s %s" % [role,("female" if is_female else "male"),kind])
                     pc22_role = old_role
@@ -294,25 +420,388 @@ func _pc22_verify_role_assets() -> bool:
                     return false
     pc22_role = old_role
     female_mode = old_female
-    print("PC22_ROLE_ASSETS_OK:24_SLEEVES:24_GLOVES:12_TORSOS")
+    print("PC22_ROLE_ASSETS_OK:UNIVERSAL_ROLES_WITH_SCIENTIST_FALLBACK")
     return true
 
-func _pc22_draw_segment(tex: Texture2D, a: Vector2, b: Vector2, width: float, flip_x: bool) -> void:
+func _pc22_v3_draw_pivoted(tex: Texture2D, joint: Vector2, world_angle: float, uniform_scale: float, pivot_px: Vector2, flip_x: bool) -> void:
+    if tex == null:
+        return
+    var rot: float = world_angle if not flip_x else world_angle-PI
+    var sx: float = uniform_scale if not flip_x else -uniform_scale
+    draw_set_transform(joint,rot,Vector2(sx,uniform_scale))
+    draw_texture(tex,-pivot_px)
+    draw_set_transform(Vector2.ZERO,0.0,Vector2.ONE)
+
+func _pc22_v3_draw_segment(tex: Texture2D, a: Vector2, b: Vector2, flip_x: bool) -> void:
+    if tex == null:
+        return
+    var delta: Vector2 = b-a
+    var tw: float = float(tex.get_width())
+    var th: float = float(tex.get_height())
+    var parent_x: float = clampf(tw*0.065,4.0,9.0)
+    var child_x: float = tw-1.0-parent_x
+    var authored_len: float = maxf(1.0,child_x-parent_x)
+    var scale_u: float = delta.length()/authored_len
+    _pc22_v3_draw_pivoted(tex,a,delta.angle(),scale_u,Vector2(parent_x,th*0.5),flip_x)
+
+func _pc22_v3_draw_segment_detail(tex: Texture2D, a: Vector2, b: Vector2, flip_x: bool, thickness_scale: float = 0.72) -> void:
+    if tex == null:
+        return
+    var delta: Vector2 = b-a
+    var tw: float = float(tex.get_width())
+    var th: float = float(tex.get_height())
+    var parent_x: float = clampf(tw*0.065,4.0,9.0)
+    var child_x: float = tw-1.0-parent_x
+    var authored_len: float = maxf(1.0,child_x-parent_x)
+    var scale_u: float = delta.length()/authored_len
+    var rot: float = delta.angle() if not flip_x else delta.angle()-PI
+    var sx: float = scale_u if not flip_x else -scale_u
+    draw_set_transform(a,rot,Vector2(sx,scale_u*thickness_scale))
+    draw_texture(tex,-Vector2(parent_x,th*0.5))
+    draw_set_transform(Vector2.ZERO,0.0,Vector2.ONE)
+
+func _pc22_arm_material_key() -> String:
+    return "%s|%s|%s" % [pc22_role,("female" if female_mode else "male"),("gear" if gear_torso else "base")]
+
+func _pc22_arm_body_color() -> Color:
+    # Appearance is independent from IK. Sample the currently selected sleeve
+    # once, cache its opaque-pixel average, and reuse that color for the smooth
+    # universal arm ribbon. New shirts/skins/role sleeves therefore inherit the
+    # same three-joint rig without geometry edits.
+    var key := _pc22_arm_material_key()
+    if pc22_arm_color_cache.has(key):
+        return pc22_arm_color_cache[key] as Color
+    var fallback := Color("625b47") if gear_torso else (Color("4b5945") if female_mode else Color("465540"))
+    if pc22_role == "scientist":
+        fallback = Color("c5c9c2")
+    var tex: Texture2D = _pc22_upper_texture()
+    if tex == null:
+        pc22_arm_color_cache[key] = fallback
+        return fallback
+    var img := tex.get_image()
+    if img == null or img.is_empty():
+        pc22_arm_color_cache[key] = fallback
+        return fallback
+    var accum := Vector3.ZERO
+    var weight: float = 0.0
+    var step_x: int = maxi(1,img.get_width()/12)
+    var step_y: int = maxi(1,img.get_height()/8)
+    for y in range(0,img.get_height(),step_y):
+        for x in range(0,img.get_width(),step_x):
+            var c := img.get_pixel(x,y)
+            if c.a > 0.20:
+                accum += Vector3(c.r,c.g,c.b)*c.a
+                weight += c.a
+    var result := fallback
+    if weight > 0.01:
+        result = Color(accum.x/weight,accum.y/weight,accum.z/weight,1.0)
+    pc22_arm_color_cache[key] = result
+    return result
+
+func _pc22_arm_outline_color() -> Color:
+    var c := _pc22_arm_body_color()
+    return Color(c.r*0.52,c.g*0.52,c.b*0.52,0.58)
+
+func _pc22_arm_highlight_color() -> Color:
+    var c := _pc22_arm_body_color()
+    return Color(lerpf(c.r,1.0,0.24),lerpf(c.g,1.0,0.24),lerpf(c.b,1.0,0.24),0.34)
+
+func _pc22_draw_anatomical_arm_shape(shoulder: Vector2, elbow: Vector2, wrist: Vector2, depth_scale: float = 1.0) -> void:
+    # Universal three-joint renderer: shoulder -> elbow -> wrist remains the
+    # authoritative skeleton. The visual centerline is rounded only inside a
+    # short elbow neighborhood so no extra pseudo-joint exists.
+    var start: Vector2 = shoulder.lerp(elbow,0.06)
+    var udir: Vector2 = (elbow-start).normalized()
+    var fdir: Vector2 = (wrist-elbow).normalized()
+    var upper_half: float = pc22_player_arm_rig.upper_width()*0.50*depth_scale
+    var fore_half: float = pc22_player_arm_rig.forearm_width()*0.50*depth_scale
+    var elbow_half: float = lerpf(upper_half,fore_half,0.56)
+    var wrist_half: float = fore_half*0.68
+    var radius: float = minf(2.70,minf(start.distance_to(elbow)*0.26,elbow.distance_to(wrist)*0.26))
+    var pre := elbow-udir*radius
+    var post := elbow+fdir*radius
+
+    var centers := PackedVector2Array()
+    var widths := PackedFloat32Array()
+    for i in range(4):
+        var t := float(i)/3.0
+        centers.append(start.lerp(pre,t))
+        widths.append(lerpf(upper_half,elbow_half,t))
+    for i in range(1,6):
+        var t := float(i)/5.0
+        var omt := 1.0-t
+        var q := pre*(omt*omt)+elbow*(2.0*omt*t)+post*(t*t)
+        centers.append(q)
+        widths.append(lerpf(elbow_half,fore_half,t))
+    for i in range(1,6):
+        var t := float(i)/5.0
+        centers.append(post.lerp(wrist,t))
+        widths.append(lerpf(fore_half,wrist_half,t))
+
+    var left := PackedVector2Array()
+    var right := PackedVector2Array()
+    for i in range(centers.size()):
+        var tangent: Vector2
+        if i == 0:
+            tangent = centers[1]-centers[0]
+        elif i == centers.size()-1:
+            tangent = centers[i]-centers[i-1]
+        else:
+            tangent = centers[i+1]-centers[i-1]
+        tangent = tangent.normalized()
+        var normal := Vector2(-tangent.y,tangent.x)
+        left.append(centers[i]+normal*widths[i])
+        right.append(centers[i]-normal*widths[i])
+
+    var pts := PackedVector2Array()
+    for p in left:
+        pts.append(p)
+    for i in range(right.size()-1,-1,-1):
+        pts.append(right[i])
+
+    var body := _pc22_arm_body_color()
+    if depth_scale < 0.99:
+        body = Color(body.r*0.82,body.g*0.82,body.b*0.82,1.0)
+    draw_colored_polygon(pts,body)
+    draw_circle(start,upper_half*0.72,body)
+    draw_circle(wrist,wrist_half*0.94,body)
+
+    # Two short cloth accents preserve material readability without drawing a
+    # rigid stripe along the bone or exposing separate upper/forearm modules.
+    var un := Vector2(-udir.y,udir.x)
+    var fn := Vector2(-fdir.y,fdir.x)
+    var hi := _pc22_arm_highlight_color()
+    var lo := _pc22_arm_outline_color()
+    draw_line(start.lerp(pre,0.36)+un*0.42,start.lerp(pre,0.62)+un*0.34,hi,0.22,false)
+    draw_line(post.lerp(wrist,0.30)+fn*0.30,post.lerp(wrist,0.56)+fn*0.22,hi,0.20,false)
+    draw_line(pre.lerp(elbow,0.44)-un*0.36,post.lerp(elbow,0.44)-fn*0.30,lo,0.18,false)
+
+    # Low-contrast rim shading gives the sleeve volume while keeping the joint
+    # visually continuous; there is no hard mechanical perimeter.
+    var edge_dark := Color(body.r*0.48,body.g*0.48,body.b*0.48,0.26)
+    var edge_light := Color(lerpf(body.r,1.0,0.20),lerpf(body.g,1.0,0.20),lerpf(body.b,1.0,0.20),0.18)
+    draw_polyline(left,edge_light,0.16,false)
+    draw_polyline(right,edge_dark,0.20,false)
+
+func _pc22_draw_textured_limb_detail(tex: Texture2D, a: Vector2, b: Vector2, half_a: float, half_b: float, flip_x: bool, alpha: float = 0.38) -> void:
+    # Appearance-only texture mapping. The smooth ribbon remains the silhouette
+    # and the canonical shoulder/elbow/wrist points remain the geometry. This
+    # lets any shirt, skin or tactical sleeve provide painted fabric detail
+    # without becoming a rectangular limb module.
     if tex == null:
         return
     var delta := b-a
-    var seg_len := maxf(delta.length(),0.5)
-    var center := (a+b)*0.5
-    var rotation := delta.angle()-PI*0.5
-    _draw_equipment_texture(tex,center,Vector2(width,seg_len+2.2),flip_x,rotation)
+    if delta.length() < 0.01:
+        return
+    var tangent := delta.normalized()
+    var normal := Vector2(-tangent.y,tangent.x)
+    var pts := PackedVector2Array([
+        a+normal*half_a,
+        b+normal*half_b,
+        b-normal*half_b,
+        a-normal*half_a
+    ])
+    var u0: float = 1.0 if flip_x else 0.0
+    var u1: float = 0.0 if flip_x else 1.0
+    var uvs := PackedVector2Array([
+        Vector2(u0,0.06),
+        Vector2(u1,0.06),
+        Vector2(u1,0.94),
+        Vector2(u0,0.94)
+    ])
+    var tint := Color(1.0,1.0,1.0,alpha)
+    var colors := PackedColorArray([tint,tint,tint,tint])
+    draw_polygon(pts,colors,uvs,tex)
 
-func _pc22_draw_chain(shoulder: Vector2, elbow: Vector2, wrist: Vector2, dir_sign: float) -> void:
+func _pc22_draw_arm_material_detail(shoulder: Vector2, elbow: Vector2, wrist: Vector2, flip_x: bool, depth_scale: float = 1.0) -> void:
     var upper_tex := _pc22_upper_texture()
     var fore_tex := _pc22_fore_texture()
-    var upper_width := {female_spec["upper_arm_width"]} if female_mode else {male_spec["upper_arm_width"]}
-    var fore_width := {female_spec["forearm_width"]} if female_mode else {male_spec["forearm_width"]}
-    _pc22_draw_segment(upper_tex,shoulder,elbow,upper_width,dir_sign<0.0)
-    _pc22_draw_segment(fore_tex,elbow,wrist,fore_width,dir_sign<0.0)
+    var upper_a: float = pc22_player_arm_rig.upper_width()*0.46*depth_scale
+    var upper_b: float = pc22_player_arm_rig.upper_width()*0.39*depth_scale
+    var fore_a: float = pc22_player_arm_rig.forearm_width()*0.46*depth_scale
+    var fore_b: float = pc22_player_arm_rig.forearm_width()*0.32*depth_scale
+    # Keep a small overlap at the mathematical elbow so texture transitions
+    # disappear inside the continuous base ribbon instead of forming a hinge.
+    var ud := (elbow-shoulder).normalized()
+    var fd := (wrist-elbow).normalized()
+    var upper_start := shoulder.lerp(elbow,0.12)
+    var upper_end := elbow+ud*0.38
+    var fore_start := elbow-fd*0.38
+    var opacity: float = (0.92 if gear_torso else 0.76)*(0.74 if depth_scale < 0.99 else 1.0)
+    _pc22_draw_textured_limb_detail(upper_tex,upper_start,upper_end,upper_a,upper_b,flip_x,opacity)
+    _pc22_draw_textured_limb_detail(fore_tex,fore_start,wrist,fore_a,fore_b,flip_x,opacity)
+    if gear_torso:
+        var fd2 := (wrist-elbow).normalized()
+        var fn2 := Vector2(-fd2.y,fd2.x)
+        var cuff_center := wrist-fd2*1.20
+        var cuff_half: float = pc22_player_arm_rig.forearm_width()*0.25
+        var cuff_col := _pc22_arm_outline_color()
+        draw_line(cuff_center-fn2*cuff_half,cuff_center+fn2*cuff_half,cuff_col,0.20,false)
+
+func _pc22_draw_rear_rifle_wrist_bridge(elbow: Vector2, wrist: Vector2, flip_x: bool) -> void:
+    # Side-view rifle depth keeps the firing upper arm hidden by torso/stock, but
+    # a very short distal forearm must remain visible so the trigger hand does
+    # not float. This bridge is derived from the SAME solved elbow/wrist chain;
+    # it is visual occlusion only, never alternate geometry.
+    var delta := wrist-elbow
+    if delta.length() < 0.01:
+        return
+    var dir := delta.normalized()
+    var bridge_len := minf(3.2,delta.length()*0.28)
+    var start := wrist-dir*bridge_len
+    var normal := Vector2(-dir.y,dir.x)
+    var half_start: float = pc22_player_arm_rig.forearm_width()*0.34
+    var half_wrist: float = pc22_player_arm_rig.forearm_width()*0.27
+    var body := _pc22_arm_body_color()
+    body = Color(body.r*0.78,body.g*0.78,body.b*0.78,1.0)
+    var pts := PackedVector2Array([
+        start+normal*half_start,
+        wrist+normal*half_wrist,
+        wrist-normal*half_wrist,
+        start-normal*half_start
+    ])
+    draw_colored_polygon(pts,body)
+    _pc22_draw_textured_limb_detail(_pc22_fore_texture(),start,wrist,half_start*0.94,half_wrist*0.94,flip_x,0.64)
+
+func _pc22_v3_draw_distal_segment(tex: Texture2D, a: Vector2, b: Vector2, flip_x: bool, start_fraction: float, thickness_scale: float = 1.0) -> void:
+    if tex == null:
+        return
+    var delta: Vector2 = b-a
+    var tw: float = float(tex.get_width())
+    var th: float = float(tex.get_height())
+    var parent_x: float = clampf(tw*0.065,4.0,9.0)
+    var child_x: float = tw-1.0-parent_x
+    var authored_len: float = maxf(1.0,child_x-parent_x)
+    var scale_u: float = delta.length()/authored_len
+    var start_x: float = lerpf(parent_x,child_x,clampf(start_fraction,0.0,0.9))
+    var rot: float = delta.angle() if not flip_x else delta.angle()-PI
+    var sx: float = scale_u if not flip_x else -scale_u
+    draw_set_transform(a,rot,Vector2(sx,scale_u*thickness_scale))
+    var dst := Rect2(Vector2(start_x-parent_x,-th*0.5),Vector2(tw-start_x,th))
+    var src := Rect2(Vector2(start_x,0.0),Vector2(tw-start_x,th))
+    draw_texture_rect_region(tex,dst,src)
+    draw_set_transform(Vector2.ZERO,0.0,Vector2.ONE)
+
+func _pc22_v3_draw_elbow_gusset(tex: Texture2D, shoulder: Vector2, elbow: Vector2, wrist: Vector2, flip_x: bool) -> void:
+    if tex == null:
+        return
+    var upper_dir: Vector2 = (elbow-shoulder).normalized()
+    var fore_dir: Vector2 = (wrist-elbow).normalized()
+    var bisector: Vector2 = upper_dir+fore_dir
+    if bisector.length() < 0.05:
+        bisector = fore_dir
+    bisector = bisector.normalized()
+    var tw: float = float(tex.get_width())
+    var th: float = float(tex.get_height())
+    # Keep the elbow patch subordinate to the sleeve segments. Oversized
+    # bisector patches read as a square/module at acute aim angles.
+    var desired_w: float = 3.00 if female_mode else 3.20
+    var scale_u: float = desired_w/maxf(1.0,tw)
+    # Pass the canonical world angle; _pc22_v3_draw_pivoted owns mirroring.
+    var rot: float = bisector.angle()
+    _pc22_v3_draw_pivoted(tex,elbow,rot,scale_u,Vector2(tw*0.5,th*0.5),flip_x)
+
+func _pc22_v3_draw_hand(tex: Texture2D, wrist: Vector2, weapon_angle: float, dir_sign: float, world_height: float) -> void:
+    if tex == null:
+        return
+    var th: float = float(tex.get_height())
+    var tw: float = float(tex.get_width())
+    var scale_u: float = world_height/maxf(1.0,th)
+    var pivot_px := Vector2(clampf(tw*0.06,1.0,4.0),th*0.5)
+    var world_rot: float = weapon_angle if dir_sign>0.0 else PI-weapon_angle
+    _pc22_v3_draw_pivoted(tex,wrist,world_rot,scale_u,pivot_px,dir_sign<0.0)
+
+func _pc22_v3_draw_hand_tinted(tex: Texture2D, wrist: Vector2, weapon_angle: float, dir_sign: float, world_height: float, tint: Color) -> void:
+    if tex == null:
+        return
+    var th: float = float(tex.get_height())
+    var tw: float = float(tex.get_width())
+    var scale_u: float = world_height/maxf(1.0,th)
+    var pivot_px := Vector2(clampf(tw*0.06,1.0,4.0),th*0.5)
+    var world_rot: float = weapon_angle if dir_sign>0.0 else PI-weapon_angle
+    var flip_x := dir_sign < 0.0
+    var rot: float = world_rot if not flip_x else world_rot-PI
+    var sx: float = scale_u if not flip_x else -scale_u
+    draw_set_transform(wrist,rot,Vector2(sx,scale_u))
+    draw_texture(tex,-pivot_px,tint)
+    draw_set_transform(Vector2.ZERO,0.0,Vector2.ONE)
+
+func _pc22_v3_draw_rig_grip_hand(tex: Texture2D, grip_world: Vector2, weapon_angle: float, dir_sign: float, world_height: float, wrist_to_grip_local: Vector2, tint: Color = Color.WHITE) -> void:
+    # One transform owns both constraints:
+    # 1) the IK forearm terminates at the anatomical wrist, and
+    # 2) the weapon contact lands inside the authored palm channel.
+    # The palm pivot is derived from the SAME wrist->grip vector used by the
+    # universal rig, so visual grip placement cannot drift independently.
+    if tex == null:
+        return
+    var th: float = float(tex.get_height())
+    var tw: float = float(tex.get_width())
+    var scale_u: float = world_height/maxf(1.0,th)
+    var wrist_px := Vector2(clampf(tw*0.06,1.0,4.0),th*0.5)
+    var grip_px := wrist_px + wrist_to_grip_local/maxf(0.0001,scale_u)
+    var world_rot: float = weapon_angle if dir_sign>0.0 else PI-weapon_angle
+    var flip_x: bool = dir_sign < 0.0
+    var rot: float = world_rot if not flip_x else world_rot-PI
+    var sx: float = scale_u if not flip_x else -scale_u
+    draw_set_transform(grip_world,rot,Vector2(sx,scale_u))
+    draw_texture(tex,-grip_px,tint)
+    draw_set_transform(Vector2.ZERO,0.0,Vector2.ONE)
+
+func _pc22_v3_draw_grip_hand(tex: Texture2D, grip_world: Vector2, weapon_angle: float, dir_sign: float, world_height: float, grip_fraction: Vector2) -> void:
+    if tex == null:
+        return
+    var th: float = float(tex.get_height())
+    var tw: float = float(tex.get_width())
+    var scale_u: float = world_height/maxf(1.0,th)
+    # Armed hands anchor the weapon contact point inside the palm instead of at
+    # the sprite wrist edge. Bone targets and verified IK remain unchanged.
+    var pivot_px := Vector2(tw*grip_fraction.x,th*grip_fraction.y)
+    var world_rot: float = weapon_angle if dir_sign>0.0 else PI-weapon_angle
+    _pc22_v3_draw_pivoted(tex,grip_world,world_rot,scale_u,pivot_px,dir_sign<0.0)
+
+func _pc22_v3_draw_grip_hand_tinted(tex: Texture2D, grip_world: Vector2, weapon_angle: float, dir_sign: float, world_height: float, grip_fraction: Vector2, tint: Color) -> void:
+    # Same wrist/grip geometry as the normal armed hand, with a visual-only
+    # depth tint. Used for the pistol support palm so two overlapping hands
+    # remain readable without moving either skeletal contact point.
+    if tex == null:
+        return
+    var th: float = float(tex.get_height())
+    var tw: float = float(tex.get_width())
+    var scale_u: float = world_height/maxf(1.0,th)
+    var pivot_px := Vector2(tw*grip_fraction.x,th*grip_fraction.y)
+    var world_rot: float = weapon_angle if dir_sign>0.0 else PI-weapon_angle
+    var flip_x: bool = dir_sign < 0.0
+    var rot: float = world_rot if not flip_x else world_rot-PI
+    var sx: float = scale_u if not flip_x else -scale_u
+    draw_set_transform(grip_world,rot,Vector2(sx,scale_u))
+    draw_texture(tex,-pivot_px,tint)
+    draw_set_transform(Vector2.ZERO,0.0,Vector2.ONE)
+
+func _pc22_v3_draw_cap(tex: Texture2D, shoulder: Vector2, elbow: Vector2, dir_sign: float) -> void:
+    if tex == null:
+        return
+    var delta: Vector2 = elbow-shoulder
+    var th: float = float(tex.get_height())
+    var tw: float = float(tex.get_width())
+    # Keep the deltoid bridge shallow.  The earlier 5px-class cap read as a
+    # separate padded ball at gameplay scale, especially when two caps overlapped.
+    var desired_h: float = 2.30 if female_mode else 2.65
+    var scale_u: float = desired_h/maxf(1.0,th)
+    var pivot_px := Vector2(maxf(1.0,tw*0.18),th*0.5)
+    _pc22_v3_draw_pivoted(tex,shoulder,delta.angle(),scale_u,pivot_px,dir_sign<0.0)
+
+func _pc22_v3_draw_weapon_piece(tex: Texture2D, grip_world: Vector2, aim_angle: float, dir_sign: float, pivot_px: Vector2, scale_u: float) -> void:
+    if tex == null:
+        return
+    var world_rot: float = aim_angle if dir_sign>0.0 else PI-aim_angle
+    _pc22_v3_draw_pivoted(tex,grip_world,world_rot,scale_u,pivot_px,dir_sign<0.0)
+
+func _pc22_draw_segment(tex: Texture2D, a: Vector2, b: Vector2, width: float, flip_x: bool) -> void:
+    _pc22_v3_draw_segment(tex,a,b,flip_x)
+
+func _pc22_draw_chain(shoulder: Vector2, elbow: Vector2, wrist: Vector2, dir_sign: float) -> void:
+    _pc22_v3_draw_segment(_pc22_upper_texture(),shoulder,elbow,dir_sign<0.0)
+    _pc22_v3_draw_segment(_pc22_fore_texture(),elbow,wrist,dir_sign<0.0)
 
 func _pc22_arm_runtime_check(shoulder: Vector2, elbow: Vector2, wrist: Vector2, expected_upper: float, expected_fore: float, label: String) -> void:
     if pc22_arm_capture_dir == "":
@@ -324,7 +813,9 @@ func _pc22_arm_runtime_check(shoulder: Vector2, elbow: Vector2, wrist: Vector2, 
     else:
         print("PC22_ARM_GEOMETRY_OK:",label,":",shoulder.distance_to(elbow),":",elbow.distance_to(wrist))
 
-func _pc22_verify_sweep_case(label: String, upper_len: float, fore_len: float, rear_socket: Vector2, front_socket: Vector2, dir_sign: float) -> bool:
+func _pc22_verify_sweep_case(label: String, is_female: bool, dir_sign: float) -> bool:
+    pc22_player_arm_rig.configure(is_female)
+    var lens := pc22_player_arm_rig.lengths()
     var previous_dom := Vector2.ZERO
     var previous_sup := Vector2.ZERO
     var has_previous := false
@@ -335,25 +826,25 @@ func _pc22_verify_sweep_case(label: String, upper_len: float, fore_len: float, r
     for i in range(119,-1,-1):
         angles.append(-max_angle + (2.0*max_angle*float(i)/120.0))
     for angle in angles:
-        var shoulder_dom := Vector2(rear_socket.x*dir_sign,rear_socket.y)
-        var shoulder_sup := Vector2(front_socket.x*dir_sign,front_socket.y)
-        var pivot := Vector2(6.0*dir_sign,-2.0)
-        var wrist_dom := pivot + _pose_point(Vector2(3,4),angle,dir_sign)
-        var wrist_sup := pivot + _pose_point(Vector2(16,2),angle,dir_sign)
-        wrist_sup += _pose_point(Vector2(0,(1.8 if dir_sign>0.0 else 2.1)),angle,dir_sign)
-        var elbow_dom := _pc22_solve_elbow(shoulder_dom,wrist_dom,upper_len,fore_len,previous_dom,has_previous)
-        var elbow_sup := _pc22_solve_elbow(shoulder_sup,wrist_sup,upper_len,fore_len,previous_sup,has_previous)
-        var dom_upper_err := absf(shoulder_dom.distance_to(elbow_dom)-upper_len)
-        var dom_fore_err := absf(elbow_dom.distance_to(wrist_dom)-fore_len)
-        var sup_upper_err := absf(shoulder_sup.distance_to(elbow_sup)-upper_len)
-        var sup_fore_err := absf(elbow_sup.distance_to(wrist_sup)-fore_len)
+        var base := Vector2.ZERO
+        var shoulder_dom := pc22_player_arm_rig.shoulder_rear(base,dir_sign)
+        var shoulder_sup := pc22_player_arm_rig.shoulder_front(base,dir_sign)
+        var targets := pc22_player_arm_rig.weapon_targets(base,angle,dir_sign,0.0)
+        var wrist_dom: Vector2 = targets["dominant_wrist"]
+        var wrist_sup: Vector2 = targets["support_wrist"]
+        var elbow_dom := _pc22_solve_elbow(shoulder_dom,wrist_dom,lens.x,lens.y,previous_dom,has_previous)
+        var elbow_sup := _pc22_solve_elbow(shoulder_sup,wrist_sup,lens.x,lens.y,previous_sup,has_previous)
+        var dom_upper_err := absf(shoulder_dom.distance_to(elbow_dom)-lens.x)
+        var dom_fore_err := absf(elbow_dom.distance_to(wrist_dom)-lens.y)
+        var sup_upper_err := absf(shoulder_sup.distance_to(elbow_sup)-lens.x)
+        var sup_fore_err := absf(elbow_sup.distance_to(wrist_sup)-lens.y)
         if maxf(maxf(dom_upper_err,dom_fore_err),maxf(sup_upper_err,sup_fore_err)) > 0.03:
             push_error("PC22_RUNTIME_SWEEP_LENGTH_FAIL %s %.4f %.4f %.4f %.4f" % [label,dom_upper_err,dom_fore_err,sup_upper_err,sup_fore_err])
             return false
         if has_previous:
             var dom_jump := elbow_dom.distance_to(previous_dom)
             var sup_jump := elbow_sup.distance_to(previous_sup)
-            if dom_jump > 0.70 or sup_jump > 0.70:
+            if dom_jump > 0.75 or sup_jump > 0.75:
                 push_error("PC22_RUNTIME_SWEEP_FLIP_FAIL %s %.4f %.4f" % [label,dom_jump,sup_jump])
                 return false
         previous_dom = elbow_dom
@@ -364,14 +855,14 @@ func _pc22_verify_sweep_case(label: String, upper_len: float, fore_len: float, r
 
 func _pc22_verify_runtime_sweep() -> bool:
     var ok := true
-    ok = _pc22_verify_sweep_case("male_right",10.9,10.7,Vector2(6.2,-8.5),Vector2(3.8,-5.3),1.0) and ok
-    ok = _pc22_verify_sweep_case("male_left",10.9,10.7,Vector2(6.2,-8.5),Vector2(3.8,-5.3),-1.0) and ok
-    ok = _pc22_verify_sweep_case("female_right",10.6,10.5,Vector2(5.3,-8),Vector2(3,-5),1.0) and ok
-    ok = _pc22_verify_sweep_case("female_left",10.6,10.5,Vector2(5.3,-8),Vector2(3,-5),-1.0) and ok
+    ok = _pc22_verify_sweep_case("male_right",false,1.0) and ok
+    ok = _pc22_verify_sweep_case("male_left",false,-1.0) and ok
+    ok = _pc22_verify_sweep_case("female_right",true,1.0) and ok
+    ok = _pc22_verify_sweep_case("female_left",true,-1.0) and ok
     return ok
 
 func _pc22_verify_npc_inheritance() -> bool:
-    var roles := ["trader","medic","mechanic","guard","bandit","civilian"]
+    var roles := ["trader","medic","mechanic","guard","bandit","civilian","scientist"]
     for is_female in [false,true]:
         pc22_player_arm_rig.configure(is_female)
         pc22_npc_arm_rig.configure(is_female)
@@ -420,11 +911,8 @@ old_support=support_anchor+'''    if female_mode:
         scale *= 0.92
 '''
 new_support=support_anchor+'''    var support_tex := _pc22_support_hand_texture()
-    if gear_gloves and tex_gear_glove != null:
-        support_tex = tex_gear_glove
     if support_tex != null:
-        var support_size := Vector2(6.1,5.4) if female_mode else Vector2(6.6,5.8)
-        _draw_equipment_texture(support_tex,center,support_size*scale,dir_sign<0.0,angle)
+        _pc22_v3_draw_hand(support_tex,center,angle,dir_sign,pc22_player_arm_rig.support_hand_height()*scale)
         return
     if female_mode:
         scale *= 0.92
@@ -441,8 +929,7 @@ old_hand='''    if tex_base_hand != null:
 '''
 new_hand='''    var pc22_dom_hand := _pc22_dominant_hand_texture()
     if pc22_dom_hand != null:
-        var hand_center := center + _pose_point(Vector2(0.9,0.0) * scale, angle, dir_sign)
-        _draw_equipment_texture(pc22_dom_hand, hand_center, (Vector2(7.0,6.5) if female_mode else Vector2(7.6,7.0)) * scale, dir_sign < 0.0, angle)
+        _pc22_v3_draw_hand(pc22_dom_hand,center,angle,dir_sign,pc22_player_arm_rig.dominant_hand_height()*scale)
         return
 '''
 if old_hand not in s:
@@ -464,20 +951,29 @@ arm_compute=f'''    var base := actor_pos + Vector2(sway, -bob - breath * 0.28)
         pc22_prev_arm_valid = false
     pc22_prev_face_right = face_right
     pc22_player_arm_rig.configure(female_mode)
-    var pc22_lengths := pc22_player_arm_rig.lengths()
-    var pc22_rear_shoulder := pc22_player_arm_rig.shoulder_rear(base,dir_sign)
-    var pc22_front_shoulder := pc22_player_arm_rig.shoulder_front(base,dir_sign)
-    var pc22_aim_vec := aim_pos-base
-    var pc22_local_aim := Vector2(abs(pc22_aim_vec.x),pc22_aim_vec.y)
-    var pc22_arm_angle := clampf(pc22_local_aim.angle(),-PI*0.49,PI*0.49)
+    var pc22_lengths: Vector2 = pc22_player_arm_rig.lengths()
+    var pc22_rear_shoulder: Vector2 = pc22_player_arm_rig.shoulder_rear(base,dir_sign)
+    var pc22_front_shoulder: Vector2 = pc22_player_arm_rig.shoulder_front(base,dir_sign)
+    var pc22_aim_vec: Vector2 = aim_pos-base
+    var pc22_local_aim: Vector2 = Vector2(abs(pc22_aim_vec.x),pc22_aim_vec.y)
+    var pc22_arm_angle: float = clampf(pc22_local_aim.angle(),-PI*0.49,PI*0.49)
     var pc22_targets: Dictionary = pc22_player_arm_rig.weapon_targets(base,pc22_arm_angle,dir_sign,shot_recoil)
     var pc22_arm_pivot: Vector2 = pc22_targets["pivot"]
+    var pc22_dom_grip: Vector2 = pc22_targets["dominant_grip"]
+    var pc22_support_grip: Vector2 = pc22_targets["support_grip"]
     var pc22_dom_wrist: Vector2 = pc22_targets["dominant_wrist"]
     var pc22_support_wrist: Vector2 = pc22_targets["support_wrist"]
-    var pc22_rear_elbow := Vector2.ZERO
-    var pc22_front_elbow := Vector2.ZERO
-    var pc22_front_wrist := Vector2.ZERO
-    var pc22_motion_swing := sin(step_phase)*(0.55 if running else 0.34) if moving else 0.0
+    var pc22_rear_elbow: Vector2 = Vector2.ZERO
+    var pc22_front_elbow: Vector2 = Vector2.ZERO
+    var pc22_front_wrist: Vector2 = Vector2.ZERO
+    var pc22_motion_swing: float = sin(step_phase)*(0.55 if running else 0.34) if moving else 0.0
+
+    # The weapon target is a PALM CONTACT, not the anatomical wrist joint.
+    # Move the sidearm grip in weapon-local space, then derive the true wrist
+    # behind that contact from the authored hand proportions.
+    if weapon_visible and not weapon_two_handed:
+        pc22_dom_grip += _pose_point(Vector2(6.8,0.0),pc22_arm_angle,dir_sign)
+        pc22_dom_wrist = pc22_player_arm_rig.wrist_from_grip(pc22_dom_grip,pc22_arm_angle,dir_sign,false)
 
     if weapon_visible:
         pc22_rear_elbow = _pc22_solve_elbow(pc22_rear_shoulder,pc22_dom_wrist,pc22_lengths.x,pc22_lengths.y,pc22_prev_dom_elbow,pc22_prev_arm_valid)
@@ -485,12 +981,15 @@ arm_compute=f'''    var base := actor_pos + Vector2(sway, -bob - breath * 0.28)
             pc22_front_wrist = pc22_support_wrist
             pc22_front_elbow = _pc22_solve_elbow(pc22_front_shoulder,pc22_front_wrist,pc22_lengths.x,pc22_lengths.y,pc22_prev_support_elbow,pc22_prev_arm_valid)
         else:
-            var pc22_free_front := _pc22_free_arm(pc22_front_shoulder,pc22_lengths.x,pc22_lengths.y,pc22_motion_swing,dir_sign)
-            pc22_front_elbow = pc22_free_front[0]
-            pc22_front_wrist = pc22_free_front[1]
+            # Support palm contacts the lower/back firing grip. Its anatomical
+            # wrist is derived behind that contact, so forearm -> wrist -> hand
+            # continuity is real rather than ending at the weapon itself.
+            pc22_support_grip = _pc22_pistol_support_target(pc22_dom_grip,pc22_arm_angle,dir_sign)
+            pc22_front_wrist = pc22_player_arm_rig.wrist_from_grip(pc22_support_grip,pc22_arm_angle,dir_sign,true)
+            pc22_front_elbow = _pc22_solve_elbow(pc22_front_shoulder,pc22_front_wrist,pc22_lengths.x,pc22_lengths.y,pc22_prev_support_elbow,pc22_prev_arm_valid)
     else:
-        var pc22_free_rear := _pc22_free_arm(pc22_rear_shoulder,pc22_lengths.x,pc22_lengths.y,-pc22_motion_swing,dir_sign)
-        var pc22_free_front := _pc22_free_arm(pc22_front_shoulder,pc22_lengths.x,pc22_lengths.y,pc22_motion_swing,dir_sign)
+        var pc22_free_rear: PackedVector2Array = _pc22_free_arm(pc22_rear_shoulder,pc22_lengths.x,pc22_lengths.y,-pc22_motion_swing,dir_sign)
+        var pc22_free_front: PackedVector2Array = _pc22_free_arm(pc22_front_shoulder,pc22_lengths.x,pc22_lengths.y,pc22_motion_swing,dir_sign)
         pc22_rear_elbow = pc22_free_rear[0]
         pc22_dom_wrist = pc22_free_rear[1]
         pc22_front_elbow = pc22_free_front[0]
@@ -543,19 +1042,25 @@ if rear_anchor not in s:
 s=s.replace(rear_anchor,'''    if gear_back and not female_mode:
         _draw_backpack(base, dir_sign)
 
-    # Rear shoulder/upper arm remains behind the torso. Armed forearm is
-    # deferred to the foreground so the trigger arm stays visibly connected.
-    if weapon_visible:
-        var pc22_rear_upper_tex := _pc22_upper_texture()
-        var pc22_rear_upper_w := 6.2 if female_mode else 7.3
-        _pc22_draw_segment(pc22_rear_upper_tex,pc22_rear_shoulder,pc22_rear_elbow,pc22_rear_upper_w,dir_sign<0.0)
-        if weapon_two_handed and tex_pc22_rifle_stock != null:
-            var pc22_stock_center := pc22_arm_pivot + _pose_point(Vector2(14.0,-0.45),pc22_arm_angle,dir_sign)
-            _draw_equipment_texture(tex_pc22_rifle_stock,pc22_stock_center,Vector2(34.0,7.0),dir_sign<0.0,pc22_arm_angle)
-    else:
-        _pc22_draw_chain(pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist,dir_sign)
-        var pc22_rear_free_angle := (pc22_dom_wrist-pc22_rear_elbow).angle()
-        _draw_hand(pc22_dom_wrist,pc22_rear_free_angle,dir_sign,Color("c98e68"),0.82)
+    # Unarmed locomotion keeps the authored upper-arm sprites behind the torso.
+    # Armed poses use only the continuous universal arm ribbon after torso draw;
+    # suppressing these hidden construction sprites prevents a protruding
+    # upper-arm strip from appearing below/behind the rifle.
+    if not weapon_visible:
+        var pc22_rear_upper_tex: Texture2D = _pc22_upper_texture()
+        var pc22_front_upper_tex: Texture2D = _pc22_upper_texture()
+        _pc22_v3_draw_segment(pc22_rear_upper_tex,pc22_rear_shoulder,pc22_rear_elbow,dir_sign<0.0)
+        _pc22_v3_draw_segment(pc22_front_upper_tex,pc22_front_shoulder,pc22_front_elbow,dir_sign<0.0)
+        var pc22_rear_cap_tex: Texture2D = _pc22_shoulder_cap_texture()
+        var pc22_front_cap_tex: Texture2D = _pc22_shoulder_cap_texture()
+        _pc22_v3_draw_cap(pc22_rear_cap_tex,pc22_rear_shoulder,pc22_rear_elbow,dir_sign)
+        _pc22_v3_draw_cap(pc22_front_cap_tex,pc22_front_shoulder,pc22_front_elbow,dir_sign)
+
+    # Rifle stock remains rear-depth. The short firing-wrist bridge is deferred
+    # until after torso draw so it cannot disappear completely under the body.
+    if weapon_visible and weapon_two_handed:
+        if tex_pc22_rifle_stock != null:
+            _pc22_v3_draw_weapon_piece(tex_pc22_rifle_stock,pc22_dom_grip,pc22_arm_angle,dir_sign,Vector2(36.0,18.0),0.33)
 
     # Independent left/right leg gait. Each leg has its own hip, knee, shin and foot.
 ''',1)
@@ -565,19 +1070,37 @@ front_anchor='''    # On the left-facing mirror, support hand is drawn first so 
 '''
 if front_anchor not in s:
     raise SystemExit("Candidate front-arm layering anchor missing")
-s=s.replace(front_anchor,'''    # Armed dominant forearm is foregrounded after the torso; this preserves
-    # shoulder occlusion while keeping elbow→wrist continuity visible.
+s=s.replace(front_anchor,'''    # UNIVERSAL THREE-JOINT ARM COMPOSITION. Armed arms are rendered from the
+    # shared shoulder/elbow/wrist solution only; no separate elbow module or
+    # rectangular sleeve segment is layered on top.
     if weapon_visible:
-        var pc22_rear_fore_tex := _pc22_fore_texture()
-        var pc22_rear_fore_w := 5.6 if female_mode else 6.5
-        _pc22_draw_segment(pc22_rear_fore_tex,pc22_rear_elbow,pc22_dom_wrist,pc22_rear_fore_w,dir_sign<0.0)
+        if not weapon_two_handed:
+            # Support arm first, firing arm second, so the dominant grip reads
+            # naturally in front when the two-hand pistol stance overlaps.
+            _pc22_draw_anatomical_arm_shape(pc22_front_shoulder,pc22_front_elbow,pc22_front_wrist)
+            _pc22_draw_arm_material_detail(pc22_front_shoulder,pc22_front_elbow,pc22_front_wrist,dir_sign<0.0)
+            _pc22_draw_anatomical_arm_shape(pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist)
+            _pc22_draw_arm_material_detail(pc22_rear_shoulder,pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)
+        else:
+            # Draw only the short firing-side wrist bridge after torso, then the
+            # readable support arm. This preserves depth without a floating
+            # trigger hand or the old full-arm X/triangle.
+            _pc22_draw_rear_rifle_wrist_bridge(pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)
+            _pc22_draw_anatomical_arm_shape(pc22_front_shoulder,pc22_front_elbow,pc22_front_wrist)
+            _pc22_draw_arm_material_detail(pc22_front_shoulder,pc22_front_elbow,pc22_front_wrist,dir_sign<0.0)
+    else:
+        var pc22_rear_fore_tex: Texture2D = _pc22_fore_texture()
+        var pc22_front_fore_tex: Texture2D = _pc22_fore_texture()
+        _pc22_v3_draw_segment(pc22_rear_fore_tex,pc22_rear_elbow,pc22_dom_wrist,dir_sign<0.0)
+        _pc22_v3_draw_segment(pc22_front_fore_tex,pc22_front_elbow,pc22_front_wrist,dir_sign<0.0)
 
-    _pc22_draw_chain(pc22_front_shoulder,pc22_front_elbow,pc22_front_wrist,dir_sign)
-
-    # Free/front hand must remain visible for unarmed locomotion and one-handed pistol.
-    if not weapon_visible or not weapon_two_handed:
-        var pc22_front_free_angle := (pc22_front_wrist-pc22_front_elbow).angle()
+    # Free hands are only used while unarmed. Armed pistol/rifle states use
+    # authored grip hands at the actual weapon contact points.
+    if not weapon_visible:
+        var pc22_front_free_angle: float = (pc22_front_wrist-pc22_front_elbow).angle()
         _draw_hand(pc22_front_wrist,pc22_front_free_angle,dir_sign,Color("c98e68"),0.80)
+        var pc22_rear_free_angle: float = (pc22_dom_wrist-pc22_rear_elbow).angle()
+        _draw_hand(pc22_dom_wrist,pc22_rear_free_angle,dir_sign,Color("c98e68"),0.82)
 
     # On the left-facing mirror, support hand is drawn first so the gun occludes it.
 ''',1)
@@ -587,31 +1110,50 @@ start=s.find('    # On the left-facing mirror, support hand is drawn first so th
 end=s.find('\n\n    # PC15: base torso keeps its matching collar/belt.',start)
 if start<0 or end<0:
     raise SystemExit("Candidate weapon block boundaries missing")
-weapon_block='''    # Weapon is the relationship anchor between the two hands.
-    # Use real authored weapon sprites so magnified grip QA is meaningful.
+weapon_block='''    # HYBRID V3: weapon artwork is anchored at the weapon-contact point,
+    # while the arm terminates at a distinct anatomical wrist behind the palm.
     if weapon_visible:
-        if weapon_two_handed and not face_right:
-            _draw_support_hand(hand_front + _pose_point(Vector2(0,2.1), angle, dir_sign), angle, dir_sign, Color("ad704f"), 0.94)
-
-        var active_muzzle := muzzle
+        var active_muzzle: Vector2 = pc22_dom_grip
         if weapon_two_handed:
-            var rifle_center := pivot + _pose_point(Vector2(14.0,-0.45),angle,dir_sign)
-            _draw_equipment_texture(tex_pc22_rifle_front,rifle_center,Vector2(34.0,7.0),dir_sign<0.0,angle)
-            active_muzzle = pivot + _pose_point(Vector2(31,0),angle,dir_sign)
+            _pc22_v3_draw_weapon_piece(tex_pc22_rifle_front,pc22_dom_grip,pc22_arm_angle,dir_sign,Vector2(36.0,18.0),0.33)
+            active_muzzle = pc22_dom_grip + _pose_point(Vector2(19.14,-1.65),pc22_arm_angle,dir_sign)
         else:
-            var pistol_center := pivot + _pose_point(Vector2(5.0,-0.4),angle,dir_sign)
-            _draw_equipment_texture(tex_pc22_pistol,pistol_center,Vector2(18.0,7.0),dir_sign<0.0,angle)
-            active_muzzle = pivot + _pose_point(Vector2(12,0),angle,dir_sign)
+            # Pistol depth stack: support arm -> support palm -> pistol ->
+            # dominant palm. Both palms are positioned from their true weapon
+            # contacts while the forearms still terminate at solved wrists.
+            var pc22_pistol_sup_tex := _pc22_dominant_hand_texture()
+            if pc22_pistol_sup_tex != null:
+                var pc22_support_depth_tint := Color(0.70,0.67,0.64,1.0) if not gear_gloves else Color(0.72,0.72,0.72,1.0)
+                _pc22_v3_draw_rig_grip_hand(pc22_pistol_sup_tex,pc22_support_grip,pc22_arm_angle,dir_sign,pc22_player_arm_rig.support_hand_height()*0.92,pc22_player_arm_rig.support_wrist_to_grip(),pc22_support_depth_tint)
+            else:
+                _draw_support_hand(pc22_front_wrist,pc22_arm_angle,dir_sign,Color("b97755"),0.92)
+            _pc22_v3_draw_weapon_piece(tex_pc22_pistol,pc22_dom_grip,pc22_arm_angle,dir_sign,Vector2(15.0,18.0),0.24)
+            active_muzzle = pc22_dom_grip + _pose_point(Vector2(7.44,-2.16),pc22_arm_angle,dir_sign)
 
         if shot_flash > 0.02:
-            var flash_len := 5.0 * shot_flash
-            var flash_tip := active_muzzle + _pose_point(Vector2(flash_len,0),angle,dir_sign)
+            var flash_len: float = 5.0 * shot_flash
+            var flash_tip: Vector2 = active_muzzle + _pose_point(Vector2(flash_len,0),pc22_arm_angle,dir_sign)
             draw_line(active_muzzle,flash_tip,Color(1.0,0.78,0.28,0.85*shot_flash),2.0,true)
             draw_circle(active_muzzle,1.6*shot_flash,Color(1.0,0.92,0.55,0.75*shot_flash))
 
-        _draw_hand(hand_rear, angle, dir_sign, Color("c98e68"))
-        if weapon_two_handed and face_right:
-            _draw_support_hand(hand_front + _pose_point(Vector2(0,1.8), angle, dir_sign), angle, dir_sign, Color("b97755"), 0.94)
+        # The universal rig still solves to anatomical wrists. Armed palms are
+        # rendered from the weapon contact using that exact wrist->grip vector,
+        # which simultaneously preserves wrist continuity and puts the weapon
+        # inside the hand instead of on the fingertips.
+        var pc22_dom_grip_tex := _pc22_dominant_hand_texture()
+        if pc22_dom_grip_tex != null:
+            _pc22_v3_draw_rig_grip_hand(pc22_dom_grip_tex,pc22_dom_grip,pc22_arm_angle,dir_sign,pc22_player_arm_rig.dominant_hand_height(),pc22_player_arm_rig.dominant_wrist_to_grip())
+        else:
+            _draw_hand(pc22_dom_wrist,pc22_arm_angle,dir_sign,Color("c98e68"))
+        if weapon_two_handed:
+            var pc22_sup_grip_tex := _pc22_support_hand_texture()
+            if pc22_sup_grip_tex != null:
+                _pc22_v3_draw_rig_grip_hand(pc22_sup_grip_tex,pc22_support_grip,pc22_arm_angle,dir_sign,pc22_player_arm_rig.support_hand_height(),pc22_player_arm_rig.support_wrist_to_grip())
+            else:
+                _draw_support_hand(pc22_front_wrist,pc22_arm_angle,dir_sign,Color("b97755"),1.0)
+        else:
+            # Pistol support hand was already composed below the weapon.
+            pass
 '''
 s=s[:start]+weapon_block+s[end:]
 
@@ -654,14 +1196,24 @@ capture_helpers='''func _pc22_apply_arm_capture_state(idx: int) -> void:
         state = idx % pc22_arm_states_per_sex
     else:
         var extra := idx-base_capture_count
-        if extra < 12:
-            var roles := ["trader","medic","mechanic","guard","bandit","civilian"]
-            female_mode = extra >= 6
-            pc22_role = roles[extra%6]
-            state = 12 # horizontal two-handed rifle exposes shoulder/sleeve/glove interface
+        var roles := ["trader","medic","mechanic","guard","bandit","civilian","scientist"]
+        if extra < 14:
+            female_mode = extra >= 7
+            pc22_role = roles[extra%7]
+            state = 12 # horizontal rifle
+        elif extra < 56:
+            # Three additional visual aim/facing states per role and sex:
+            # rifle up60, rifle down60, rifle left.
+            var role_pose_extra := extra-14
+            female_mode = role_pose_extra >= 21
+            var role_pose_local := role_pose_extra%21
+            var role_index: int = int(role_pose_local/3)
+            var pose_index: int = role_pose_local%3
+            pc22_role = roles[role_index]
+            state = [14,17,26][pose_index]
         else:
             # Generic player glove deliberately overrides role glove on an NPC-equivalent rig.
-            female_mode = extra == 13
+            female_mode = extra == 57
             pc22_role = "trader"
             generic_glove_state = true
             state = 12
@@ -802,6 +1354,36 @@ capture_helpers='''func _pc22_apply_arm_capture_state(idx: int) -> void:
             weapon_visible = true
             weapon_two_handed = true
             aim_pos = actor_pos + Vector2(-125,216.5)
+        29:
+            gear_head = true
+            gear_torso = true
+            gear_back = true
+            gear_legs = true
+            gear_boots = true
+            gear_gloves = true
+            weapon_visible = true
+            weapon_two_handed = true
+        30:
+            gear_head = true
+            gear_torso = true
+            gear_back = true
+            gear_legs = true
+            gear_boots = true
+            gear_gloves = true
+            weapon_visible = true
+            weapon_two_handed = false
+        31:
+            weapon_visible = true
+            weapon_two_handed = false
+            aim_pos = actor_pos + Vector2(-250,0)
+        32:
+            weapon_visible = true
+            weapon_two_handed = false
+            aim_pos = actor_pos + Vector2(-125,-216.5)
+        33:
+            weapon_visible = true
+            weapon_two_handed = false
+            aim_pos = actor_pos + Vector2(-125,216.5)
     pc22_prev_arm_valid = false
     _refresh_gear_buttons()
     _apply_visual_zoom()
@@ -833,12 +1415,19 @@ func _pc22_arm_capture_after_draw() -> void:
 '''
 s=s.replace(capture_anchor,capture_helpers+capture_anchor,1)
 
-s=s.replace(title_old,'title.text = "PLAYER CHARACTERS V22 ARM CANDIDATE | CANONICAL IK:"',1)
+s=s.replace(title_old,'title.text = "PLAYER CHARACTERS V22 HYBRID ARM V3 | PIVOTED RENDERER:"',1)
+
+# Visual-fix-v2 removes the legacy full-screen aim guide. The weapon itself
+# and muzzle flash communicate aim direction; the guide was being mistaken
+# for a bar-like gun in runtime QA and is not part of the approved references.
+aim_guide='    draw_line(actor_pos, aim_pos, Color(0.85,0.72,0.35,0.18), 1.0)\n'
+if aim_guide in s:
+    s=s.replace(aim_guide,'',1)
 
 runtime.write_text(s,encoding="utf-8")
 s2=runtime.read_text(encoding="utf-8")
 for needle in (
-    "PLAYER CHARACTERS V22 ARM CANDIDATE | CANONICAL IK:",
+    "PLAYER CHARACTERS V22 HYBRID ARM V3 | PIVOTED RENDERER:",
     "func _pc22_solve_elbow(",
     "func _pc22_draw_chain(",
     "var weapon_visible := true",
@@ -863,8 +1452,8 @@ for forbidden in ('direction_index','octant_index','eight_direction','8_directio
 # Candidate APK identity is deliberately distinct from the approved PC22 baseline.
 ep=root/"export_presets.cfg"
 e=ep.read_text(encoding="utf-8")
-e,n1=re.subn(r'(?m)^version/code=\d+$','version/code=189',e,count=1)
-e,n2=re.subn(r'(?m)^version/name="[^"]*"$','version/name="0.21.0-PC22-ARM-CANDIDATE"',e,count=1)
+e,n1=re.subn(r'(?m)^version/code=\d+$','version/code=192',e,count=1)
+e,n2=re.subn(r'(?m)^version/name="[^"]*"$','version/name="0.21.0-PC22-HYBRID-ARM-V3"',e,count=1)
 if n1!=1 or n2!=1:
     raise SystemExit("PC22 arm candidate Android version anchors missing")
 ep.write_text(e,encoding="utf-8")
@@ -872,10 +1461,10 @@ ep.write_text(e,encoding="utf-8")
 sm=root/"scripts/save/save_manager.gd"
 if sm.exists():
     q=sm.read_text(encoding="utf-8")
-    q=re.sub(r'const GAME_VERSION := "[^"]+"','const GAME_VERSION := "0.21.0-PC22-ARM-CANDIDATE"',q,count=1)
+    q=re.sub(r'const GAME_VERSION := "[^"]+"','const GAME_VERSION := "0.21.0-PC22-HYBRID-ARM-V3"',q,count=1)
     sm.write_text(q,encoding="utf-8")
 
 print("PC22 canonical articulated arm candidate integrated")
 print("Male/female share one IK algorithm; geometry remains sex-canonical only")
 print("One-handed pistol, two-handed rifle, recoil, unarmed swing and runtime capture enabled")
-print("Android candidate version: 189 / 0.21.0-PC22-ARM-CANDIDATE")
+print("Android candidate version: 192 / 0.21.0-PC22-HYBRID-ARM-V3")

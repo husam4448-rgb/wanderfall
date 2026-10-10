@@ -2,7 +2,7 @@ name: PC22 Canonical Arm Runtime Candidate
 
 on:
   push:
-    branches: [ pc22-canonical-arm-system ]
+    branches: [ pc22-canonical-arm-system, pc22-arm-hybrid-render-v3 ]
     paths:
       - '.ci/trigger-pc22-arm-runtime'
       - '.github/workflows/pc22-arm-runtime-candidate.yml'
@@ -13,6 +13,10 @@ on:
       - '.ci/trigger-pc22-arm-runtime'
       - '.github/workflows/pc22-arm-runtime-candidate.yml'
       - 'patches/apply_pc22_canonical_arm_candidate.py'
+
+concurrency:
+  group: pc22-arm-runtime-candidate-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: write
@@ -35,7 +39,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: pc22-canonical-arm-system
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 1
 
       - name: Validate candidate patch syntax
@@ -103,7 +107,7 @@ jobs:
           test -s assets/authored2d/unified_character/arms/weapons/SP_PC22_Rifle_Stock_Rear.png
           test -s assets/authored2d/unified_character/arms/weapons/SP_PC22_Rifle_Front.png
           python3 patches/apply_pc22_canonical_arm_candidate.py "$PROJECT_DIR"
-          grep -q 'PLAYER CHARACTERS V22 ARM CANDIDATE | CANONICAL IK:' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"
+          grep -q 'PLAYER CHARACTERS V22 HYBRID ARM V3 | PIVOTED RENDERER:' "$PROJECT_DIR/scripts/art/d2d29_minimal_token_runtime.gd"
 
       - name: Install Godot and Xvfb
         shell: bash
@@ -143,13 +147,17 @@ jobs:
           set -euo pipefail
           CAP="$GITHUB_WORKSPACE/pc22-arm-runtime-captures"
           mkdir -p "$CAP"
-          ARM_CAPTURE_DIR="$CAP" timeout 35s xvfb-run -a "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1280x720 --verbose 2>&1 | tee pc22-arm-capture.log
-          test "$(find "$CAP" -maxdepth 1 -name '*.png' | wc -l)" -eq 72
-          grep -q 'PC22_ARM_CAPTURE_COMPLETE:72' pc22-arm-capture.log
+          ARM_CAPTURE_DIR="$CAP" timeout 55s xvfb-run -a "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1280x720 --verbose 2>&1 | tee pc22-arm-capture.log
+          CAP_COUNT="$(find "$CAP" -maxdepth 1 -name '*.png' | wc -l | tr -d ' ')"
+          LOG_COUNT="$(grep -o 'PC22_ARM_CAPTURE_COMPLETE:[0-9]*' pc22-arm-capture.log | tail -1 | cut -d: -f2)"
+          test -n "$LOG_COUNT"
+          test "$CAP_COUNT" -eq "$LOG_COUNT"
+          test "$CAP_COUNT" -ge 72
+          grep -q 'PC22_ARM_CAPTURE_COMPLETE:' pc22-arm-capture.log
           grep -q 'PC22_ARM_GEOMETRY_OK:' pc22-arm-capture.log
           grep -q 'PC22_RUNTIME_SWEEP_OK' pc22-arm-capture.log
           grep -q 'PC22_NPC_INHERITANCE_OK' pc22-arm-capture.log
-          grep -q 'PC22_ROLE_ASSETS_OK:24_SLEEVES:24_GLOVES:12_TORSOS' pc22-arm-capture.log
+          grep -q 'PC22_ROLE_ASSETS_OK:UNIVERSAL_ROLES_WITH_SCIENTIST_FALLBACK' pc22-arm-capture.log
           test "$(grep -c 'PC22_RUNTIME_SWEEP_CASE_OK:' pc22-arm-capture.log)" -ge 4
           if grep -q 'PC22_ARM_GEOMETRY_FAIL' pc22-arm-capture.log; then exit 1; fi
           if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|Compile Error:|Parse Error:|Invalid call|Invalid get index' pc22-arm-capture.log; then exit 1; fi
@@ -172,14 +180,15 @@ jobs:
             "pistol_horizontal","pistol_up30","pistol_up60","pistol_max_up","pistol_down30","pistol_down60","pistol_max_down",
             "rifle_horizontal","rifle_up30","rifle_up60","rifle_max_up","rifle_down30","rifle_down60","rifle_max_down","recoil",
             "walk_right_aim_right","walk_left_aim_right","walk_right_aim_up","walk_left_aim_down",
-            "run_pistol","run_rifle","rifle_left","rifle_left_up60","rifle_left_down60"
+            "run_pistol","run_rifle","rifle_left","rifle_left_up60","rifle_left_down60",
+            "pistol_left","pistol_left_up60","pistol_left_down60"
           ]
           groups={
             "locomotion":["idle","walk_a","walk_b","run_a","run_b","run_pistol","run_rifle"],
-            "pistol":["pistol_horizontal","pistol_up30","pistol_up60","pistol_max_up","pistol_down30","pistol_down60","pistol_max_down"],
+            "pistol":["pistol_horizontal","pistol_up30","pistol_up60","pistol_max_up","pistol_down30","pistol_down60","pistol_max_down","pistol_left","pistol_left_up60","pistol_left_down60"],
             "rifle":["rifle_horizontal","rifle_up30","rifle_up60","rifle_max_up","rifle_down30","rifle_down60","rifle_max_down","recoil"],
             "movement_aim":["walk_right_aim_right","walk_left_aim_right","walk_right_aim_up","walk_left_aim_down","rifle_left","rifle_left_up60","rifle_left_down60"],
-            "roles":["role_trader","role_medic","role_mechanic","role_guard","role_bandit","role_civilian","npc_generic_glove"],
+            "roles":["role_trader","role_trader_rifle_up60","role_trader_rifle_down60","role_trader_rifle_left","role_medic","role_medic_rifle_up60","role_medic_rifle_down60","role_medic_rifle_left","role_mechanic","role_mechanic_rifle_up60","role_mechanic_rifle_down60","role_mechanic_rifle_left","role_guard","role_guard_rifle_up60","role_guard_rifle_down60","role_guard_rifle_left","role_bandit","role_bandit_rifle_up60","role_bandit_rifle_down60","role_bandit_rifle_left","role_civilian","role_civilian_rifle_up60","role_civilian_rifle_down60","role_civilian_rifle_left","role_scientist","role_scientist_rifle_up60","role_scientist_rifle_down60","role_scientist_rifle_left","npc_generic_glove"],
           }
 
           def frame(sex,state,w=360,h=420):
@@ -192,7 +201,7 @@ jobs:
               return crop
 
           for sex in ("male","female"):
-              # One complete acceptance sheet with all 29 actual-engine states.
+              # One complete acceptance sheet with all current actual-engine states.
               cols=5; w=320; h=380
               rows=math.ceil(len(states)/cols)
               sheet=Image.new("RGB",(cols*w,rows*h),(16,20,21))
@@ -248,8 +257,13 @@ jobs:
           "$APKSIGNER" verify --verbose --print-certs "$APK" | tee pc22-arm-apk-signature.txt
           "$AAPT" dump badging "$APK" | tee pc22-arm-apk-badging.txt
           grep -q "package: name='org.wanderfall.game'" pc22-arm-apk-badging.txt
-          grep -q "versionCode='189'" pc22-arm-apk-badging.txt
-          grep -q "versionName='0.21.0-PC22-ARM-CANDIDATE'" pc22-arm-apk-badging.txt
+          EXPECTED_CODE="$(sed -n 's/^version\/code=\([0-9][0-9]*\)$/\1/p' "$PROJECT_DIR/export_presets.cfg" | head -1)"
+          EXPECTED_NAME="$(sed -n 's/^version\/name="\([^"]*\)"$/\1/p' "$PROJECT_DIR/export_presets.cfg" | head -1)"
+          test -n "$EXPECTED_CODE"
+          test -n "$EXPECTED_NAME"
+          grep -Fq "versionCode='$EXPECTED_CODE'" pc22-arm-apk-badging.txt
+          grep -Fq "versionName='$EXPECTED_NAME'" pc22-arm-apk-badging.txt
+          echo "VALIDATED_VERSION=$EXPECTED_CODE / $EXPECTED_NAME" | tee pc22-arm-version-validation.txt
           unzip -l "$APK" | grep -q 'lib/arm64-v8a/libgodot_android.so'
           if unzip -l "$APK" | grep -q 'lib/armeabi-v7a/'; then
             echo "Legacy armeabi-v7a unexpectedly present"
@@ -278,9 +292,11 @@ jobs:
           # QA lanes can advance the candidate branch concurrently. Preserve the
           # newly rendered evidence, reset onto the latest remote head, restore
           # the evidence, then commit. Never rebase conflicting binary screenshots.
+          TARGET_BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+          test -n "$TARGET_BRANCH"
           for attempt in 1 2 3; do
-            git fetch origin pc22-canonical-arm-system
-            git reset --hard origin/pc22-canonical-arm-system
+            git fetch origin "$TARGET_BRANCH"
+            git reset --hard "origin/$TARGET_BRANCH"
             mkdir -p "$OUT"
             rm -rf "$OUT"/*
             cp -a /tmp/pc22-runtime-evidence/. "$OUT"/
@@ -289,7 +305,7 @@ jobs:
               exit 0
             fi
             git commit -m "Capture PC22 canonical arm candidate in Godot runtime"
-            if git push origin HEAD:pc22-canonical-arm-system; then
+            if git push origin "HEAD:$TARGET_BRANCH"; then
               exit 0
             fi
             sleep $((attempt*3))

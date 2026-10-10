@@ -1,0 +1,56 @@
+{
+  "standard_id": "PlayerCharacters_v22",
+  "source_branch": "pc22-arm-hybrid-render-v3",
+  "status": "body_relative_anatomy_recalibrated",
+  "male": {
+    "rig_id": "HUMANOID_CANONICAL_ARM_SYSTEM",
+    "shoulder_rear": [
+      -4.8,
+      -9.8
+    ],
+    "shoulder_front": [
+      -4,
+      -9.3
+    ],
+    "upper_arm_length": 13.3,
+    "forearm_length": 12.5
+  },
+  "female": {
+    "rig_id": "HUMANOID_CANONICAL_ARM_SYSTEM",
+    "shoulder_rear": [
+      -4.5,
+      -9.6
+    ],
+    "shoulder_front": [
+      -3.7,
+      -9.1
+    ],
+    "upper_arm_length": 12.8,
+    "forearm_length": 12.2
+  },
+  "weapon": {
+    "pivot": [
+      3,
+      -6
+    ],
+    "dominant_grip": [
+      9.8,
+      0.8
+    ],
+    "support_grip": [
+      17,
+      -1
+    ],
+    "support_vertical_offset_right": 0,
+    "support_vertical_offset_left": 0
+  },
+  "aim_clamp_rad": 1.53938,
+  "renderer_policy": {
+    "preserve_ik": true,
+    "renderer": "hybrid_pivoted_sprite_v3",
+    "prohibit_anisotropic_segment_stretch": true,
+    "left_runtime_mirror": true,
+    "reference_basis": "approved side-profile art + rejected 4x APK captures",
+    "require_body_relative_anatomy": true
+  }
+}

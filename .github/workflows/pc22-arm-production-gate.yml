@@ -2,7 +2,7 @@ name: PC22 Canonical Arm Production Gate
 
 on:
   push:
-    branches: [ pc22-canonical-arm-system ]
+    branches: [ pc22-canonical-arm-system, pc22-arm-hybrid-render-v3 ]
     paths:
       - '.ci/trigger-pc22-arm-production'
       - '.github/workflows/pc22-arm-production-gate.yml'
@@ -17,6 +17,10 @@ on:
       - 'patches/apply_playercharacters_v22_canonical_arms.py'
       - 'patches/finalize_pc22_canonical_arms_production.py'
       - 'patches/apply_pc22_canonical_arm_candidate.py'
+
+concurrency:
+  group: pc22-arm-production-gate-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -38,7 +42,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: pc22-canonical-arm-system
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 1
 
       - name: Validate production patch scripts

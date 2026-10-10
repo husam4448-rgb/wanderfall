@@ -1,0 +1,265 @@
+{
+  "standard": "PlayerCharacters_v22",
+  "authority": "Approved Survival Paradise male/female side-profile art + user-rejected 4x APK screenshots + fresh runtime captures",
+  "male": {
+    "shoulder_rear_x_range": [
+      -5.4,
+      -4.2
+    ],
+    "shoulder_front_x_range": [
+      -4.6,
+      -3.4
+    ],
+    "shoulder_y_range": [
+      -10.4,
+      -8.8
+    ],
+    "upper_arm_length_range": [
+      12.9,
+      13.7
+    ],
+    "forearm_length_range": [
+      12.1,
+      12.9
+    ],
+    "upper_arm_width_range": [
+      5.9,
+      6.5
+    ],
+    "forearm_width_range": [
+      4.9,
+      5.5
+    ],
+    "dominant_hand_min": [
+      5,
+      4.6
+    ],
+    "dominant_hand_max": [
+      5.6,
+      5.1
+    ],
+    "support_hand_min": [
+      4.7,
+      4.4
+    ],
+    "support_hand_max": [
+      5.3,
+      4.9
+    ],
+    "torso_runtime_size": [
+      26.2,
+      29.6
+    ],
+    "upper_over_torso_h_range": [
+      0.43,
+      0.47
+    ],
+    "fore_over_torso_h_range": [
+      0.4,
+      0.45
+    ],
+    "rear_shoulder_x_over_torso_w_range": [
+      -0.21,
+      -0.15
+    ],
+    "front_shoulder_x_over_torso_w_range": [
+      -0.18,
+      -0.12
+    ],
+    "dominant_hand_h_over_forearm_range": [
+      0.35,
+      0.4
+    ],
+    "support_hand_h_over_forearm_range": [
+      0.34,
+      0.39
+    ],
+    "dominant_wrist_to_grip_x_range": [
+      2.3,
+      2.6
+    ],
+    "dominant_wrist_to_grip_y_range": [
+      0.5,
+      0.8
+    ],
+    "support_wrist_to_grip_x_range": [
+      2.2,
+      2.55
+    ],
+    "support_wrist_to_grip_y_range": [
+      0.05,
+      0.35
+    ]
+  },
+  "female": {
+    "shoulder_rear_x_range": [
+      -5.1,
+      -3.9
+    ],
+    "shoulder_front_x_range": [
+      -4.3,
+      -3.1
+    ],
+    "shoulder_y_range": [
+      -10.2,
+      -8.6
+    ],
+    "upper_arm_length_range": [
+      12.4,
+      13.2
+    ],
+    "forearm_length_range": [
+      11.8,
+      12.6
+    ],
+    "upper_arm_width_range": [
+      5.5,
+      6.1
+    ],
+    "forearm_width_range": [
+      4.6,
+      5.1
+    ],
+    "dominant_hand_min": [
+      4.7,
+      4.4
+    ],
+    "dominant_hand_max": [
+      5.3,
+      4.9
+    ],
+    "support_hand_min": [
+      4.5,
+      4.2
+    ],
+    "support_hand_max": [
+      5.1,
+      4.7
+    ],
+    "torso_runtime_size": [
+      27,
+      27.5
+    ],
+    "upper_over_torso_h_range": [
+      0.44,
+      0.49
+    ],
+    "fore_over_torso_h_range": [
+      0.42,
+      0.47
+    ],
+    "rear_shoulder_x_over_torso_w_range": [
+      -0.2,
+      -0.14
+    ],
+    "front_shoulder_x_over_torso_w_range": [
+      -0.17,
+      -0.11
+    ],
+    "dominant_hand_h_over_forearm_range": [
+      0.35,
+      0.4
+    ],
+    "support_hand_h_over_forearm_range": [
+      0.34,
+      0.39
+    ],
+    "dominant_wrist_to_grip_x_range": [
+      2.18,
+      2.48
+    ],
+    "dominant_wrist_to_grip_y_range": [
+      0.48,
+      0.78
+    ],
+    "support_wrist_to_grip_x_range": [
+      2.15,
+      2.45
+    ],
+    "support_wrist_to_grip_y_range": [
+      0.05,
+      0.32
+    ]
+  },
+  "rifle": {
+    "alpha_bbox_min_height": 9,
+    "alpha_bbox_min_width": 42,
+    "max_length_to_height_ratio": 6
+  },
+  "pistol": {
+    "alpha_bbox_min_height": 7,
+    "alpha_bbox_min_width": 16,
+    "max_length_to_height_ratio": 4
+  },
+  "notes": [
+    "Shoulders must originate near the visible outer deltoid, not chest center.",
+    "Hands must read as hands at gameplay scale and remain proportionate to forearms.",
+    "Weapons must retain distinct stock/receiver/handguard/barrel or slide/grip mass.",
+    "This numeric contract is a regression floor; final acceptance still requires human visual comparison against the approved reference sheets.",
+    "Visual-fix-v2 second gate: shoulder sockets must sit higher/outboard at the deltoid; runtime weapon draw height must remain reference-like rather than blocky.",
+    "Hand bounds were recalibrated after the first v2 runtime pass: generated grip art now occupies most of its canvas, so previous 8–9 unit draw boxes produced oversized open hands.",
+    "Visual-fix-v2 shoulder bridge: full armed upper arms remain behind torso; only a short textured proximal cap is redrawn to make the deltoid attachment visible.",
+    "V2 grip calibration: rifle stock is visible at the shoulder, weapon art sockets and IK wrist targets share the same geometry, and visible hand occupancy is enlarged to match the approved grip reference.",
+    "Arm mass recalibrated after magnified runtime review: preserve detailed texture and taper while avoiding the oversized forearm/shoulder blobs seen in the prior V2 pass.",
+    "Final shoulder rule: no artificial foreground cap. Canonical upper arms remain behind torso and must emerge naturally from outboard deltoid sockets.",
+    "Hybrid V3 replaces V2's center-stretched segment rectangles with tight +X sprites rotated about explicit parent pivots and uniformly scaled only from canonical bone length.",
+    "Hybrid V3 restores a compact textured shoulder cap as an intentional deltoid bridge; this is not a full upper-arm redraw and must remain anchored to the canonical shoulder socket.",
+    "Hybrid V3 armed-hand refinement: locked IK grip sockets now land inside the rendered palm; free-hand wrist anchoring is unchanged.",
+    "Hybrid V3 pistol scale recalibrated from runtime evidence so sidearm length is realistic relative to the 10.5–10.7 unit forearm while preserving the exact locked grip socket.",
+    "Hybrid V3 final shoulder composition: compact deltoid caps are rendered behind the torso so torso occlusion hides their root and prevents a pasted-on shoulder-pad silhouette.",
+    "Universal-rig refinement: armed poses use one continuous shoulder→elbow→wrist ribbon after torso composition; authored modular upper/forearm sprites are suppressed for armed silhouettes.",
+    "Rifle side-view depth rule: the solved dominant arm may be fully occluded by torso/stock until the firing hand emerges at the trigger; this prevents artificial X/triangle construction without changing IK.",
+    "Body-relative recalibration after user-rejected 4x APK: old +X shoulder sockets were on the front chest; accepted shoulder region is posterior to torso center in side view.",
+    "Arm silhouette width and hand draw scale must come from the sex profile values; hardcoded undersized ribbon/hand constants are prohibited.",
+    "The old 1928/1928 geometry sweep remains necessary but is not sufficient; body-relative torso/arm/hand ratio checks are mandatory.",
+    "Visual acceptance requires direct comparison of the newest Godot captures against the approved male/female character art, including gear-off and gear-on.",
+    "Grip-contact correction: the weapon contact and anatomical wrist are distinct points. IK terminates at the wrist; the authored palm spans from wrist to grip.",
+    "Direct reference-vs-runtime recalibration: tight closed grip masks require smaller world extents than the former open-hand sprites; hand/forearm ratios are shifted downward while remaining substantially larger and more readable than the rejected pre-recalibration 3px-class hands.",
+    "Hand material rule: connected weapon-wrap alpha masks must be filled with authored glove/hand luminance detail; flat procedural RGB hands are not visually acceptable.",
+    "Reference-vs-runtime rifle correction: the dominant upper arm remains torso/stock-occluded, but a short solved-chain distal wrist bridge must remain visible so the firing hand does not float.",
+    "Armed hand transform rule: IK still terminates at the anatomical wrist, but the rendered palm pivot is derived from the same canonical wrist-to-grip vector and anchored at the weapon contact. This simultaneously preserves wrist continuity and keeps the weapon inside the palm."
+  ],
+  "runtime_draw": {
+    "rifle_scale_min": 0.3,
+    "rifle_scale_max": 0.36,
+    "pistol_scale_min": 0.23,
+    "pistol_scale_max": 0.26,
+    "require_uniform_weapon_scale": true,
+    "hand_attachment": "shared_wrist_to_grip_transform",
+    "weapon_attachment": "palm_grip_contact"
+  },
+  "layering": {
+    "armed_front_upper": "continuous_ribbon_after_torso",
+    "armed_front_forearm": "continuous_ribbon_after_torso",
+    "shoulder_cap_foreground": false,
+    "rifle_stock": "foreground_to_torso_behind_forearms_and_hands",
+    "natural_torso_shoulder_occlusion": true,
+    "shoulder_cap": "behind_torso",
+    "armed_pre_torso_authored_upper": false,
+    "armed_shoulder_cap": false,
+    "rifle_dominant_arm_visibility": "distal_wrist_bridge_only",
+    "prohibit_legacy_modular_front_chain": true
+  },
+  "renderer": "hybrid_pivoted_sprite_v3",
+  "shared_anatomy": {
+    "weapon_socket_x_range": [
+      2.5,
+      3.5
+    ],
+    "weapon_socket_y_range": [
+      -6.4,
+      -5.6
+    ],
+    "dominant_grip": [
+      9.8,
+      0.8
+    ],
+    "support_grip": [
+      17,
+      -1
+    ],
+    "gear_must_not_change_rig_geometry": true,
+    "role_must_not_change_rig_geometry": true,
+    "one_solver_for_male_female": true
+  }
+}
