@@ -200,3 +200,16 @@ Create an isolated PC28 branch from PC27 verified source and test genuine knee a
 - **Protected previous:** PC42N ±10 conditional source-fidelity hybrid, PC42O ±30 technical PASS/visual wide-anatomy FAIL, PC42P 32-frame breathing technical PASS and provisional idle visual PASS.
 - **Next READY character work:** `SP-CHAR-RIFLE-RELOAD-001` — male RIGHT reload/contact animation, with authentic rifle and glove artwork; **source-matched concealed elbow** `SP-ART-001` remains a high-priority visual blocker. No unrelated gameplay expansion.
 - **No APK**: all PC42N–Q validations are in isolated Godot character rig. Latest signed PC33 v205 technical PASS, visual FAIL; no approved new Android integration or measured device FPS.
+
+
+## PC42R actual male RIGHT rifle reload PREPARATION — 2026-10-10
+
+- **Actual tested code:** `268f05fe181a5627d5945176feadfb7e2f258597` on `pc42r-rifle-reload-setup`; real Godot workflow https://github.com/husam4448-rgb/wanderfall/actions/runs/38049280271 SUCCESS.
+- **Real evidence:** https://github.com/husam4448-rgb/wanderfall/actions/runs/38049280271/artifacts/11668214873 — 32 captured frames, 8-phase full-character sheet, GIF, native JSON, logs.
+- **Technical verdict: PASS for reload preparation only.** Source-first rifle lower/hold/raise 32 frames; dominant/support/far contact max 0.000063 / 0.0 / 0.000063 world px; frame31 is identical to frame0 (>3 intensity changed pixels = 0).
+- **Actual visual review:** CONDITIONAL PASS for smoothly lowered/restored rifle and preserved original source silhouette. **FULL RELOAD NOT COMPLETE**: support hand remains on rifle and no magazine is detached/reseated. Must not call this a finished reloading animation.
+- **Native source-art inspection:** Original rifle reference has genuine curved magazine but the upper portion is occluded by glove/receiver. Transparent alpha extraction of its visible lower material was trialed locally, but insufficient for an independently animatable full magazine. Avoid fake dangling magazine or unoriginal hand.
+- **Detailed QA:** `docs/PC42R_RELOAD_PREPARATION_QA.md`.
+- **Task queue:** `SP-CHAR-RIFLE-RELOAD-001` blocked on real magazine/hand art; `SP-CHAR-MAGAZINE-001` ready for source-first donor inspection. Preserve old PC42Q idle/recoil verified baselines.
+- **APK:** NONE. PC42R is isolated character rig, not tested playable Android integration.
+- **Exact next action:** Inspect genuine `assets/authored2d/gear/rifle.png` and source layered rifle, author/source a complete detachable magazine and support-hand release/seat art (native RGBA; no fake polygons), validate local source fidelity, then integrate and test actual magazine manipulations at 32 frames. If art cannot be authored, move to another CHARACTER task such as locomotion, not general gameplay. No external AI agents/PC/Work/browser requirement.
