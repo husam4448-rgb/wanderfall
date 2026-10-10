@@ -1,0 +1,39 @@
+name: PC42U Worldspace Toe Contact Test
+on:
+  push:
+    branches: [pc42u-worldspace-stance-lock]
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+jobs:
+  footplant:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare original source
+        run: |
+          pip install -q pillow numpy opencv-python-headless
+          python tools/pc42_reference_cutout.py
+          python tools/pc42h_articulated_arm_atlas.py
+      - name: Download Godot
+        run: |
+          curl -fL --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          unzip -q /tmp/godot.zip -d /tmp
+          sudo apt-get update -qq && sudo apt-get install -y -qq xvfb >/dev/null
+      - name: Test 32 real Godot frames
+        run: |
+          set -euo pipefail
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --editor --path pc42-static-prototype --quit
+          PC42N_SOURCE_FIRST_PREVIEW=1 PC42S_WALK_TEST=1 PC42T_ANKLE_SPLIT_TEST=1 PC42U_STANCE_LOCK_TEST=1 PC42C_CAPTURE=1 timeout 150s xvfb-run -a /tmp/Godot_v4.7.2-stable_linux.x86_64 --path pc42-static-prototype --resolution 1580x660 >pc42u-footplant-motion.log 2>&1
+          python tools/qa_pc42u_worldspace_foot.py
+      - name: Preserve evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PC42U-foot-contact-${{ github.sha }}
+          path: |
+            pc42-static-prototype/evidence/
+            pc42u-footplant-motion.log
+          retention-days: 14
