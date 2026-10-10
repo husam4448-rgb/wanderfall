@@ -318,8 +318,14 @@ func _pc42c_capture_full_test() -> void:
     var max_dom: float = 0.0
     var max_sup: float = 0.0
     var max_far: float = 0.0
+    # PC42O opt-in wider character-quality diagnostic only. Keep original
+    # five-angle / 32-frame Godot contract unchanged unless explicitly enabled.
+    var wide_sweep: bool = OS.get_environment("PC42O_WIDE_AIM_TEST") == "1"
+    var sweep_degrees: float = 30.0 if wide_sweep else 10.0
+    if wide_sweep:
+        print("PC42O_WIDE_AIM_TEST_READY angle_limit_degrees=30 source_first=" + str(OS.get_environment("PC42N_SOURCE_FIRST_PREVIEW") == "1"))
     for frame in range(32):
-        var angle_deg: float = 10.0*sin(TAU*float(frame)/32.0)
+        var angle_deg: float = sweep_degrees*sin(TAU*float(frame)/32.0)
         var result: Dictionary = _pc42c_apply_weapon_ik(deg_to_rad(angle_deg))
         if not result["valid"]:
             get_tree().quit(13)
@@ -329,7 +335,8 @@ func _pc42c_capture_full_test() -> void:
         max_far = maxf(max_far,float(result["far_contact_error_world"]))
         await _pc42c_capture_png("pc42c_motion_%02d.png" % frame)
         print("PC42C_GRIP_FRAME %02d angle=%.3f dominant_error=%.6f support_error=%.6f far_arm_error=%.6f" % [frame,angle_deg,result["dominant_contact_error_world"],result["support_contact_error_world"],result["far_contact_error_world"]])
-    for angle_int in [-10,-5,0,5,10]:
+    var pose_angles: Array[int] = [-30,-15,0,15,30] if wide_sweep else [-10,-5,0,5,10]
+    for angle_int in pose_angles:
         _pc42c_apply_weapon_ik(deg_to_rad(float(angle_int)))
         var label: String = "m%02d" % absi(angle_int) if angle_int < 0 else "p%02d" % angle_int
         await _pc42c_capture_png("pc42c_pose_" + label + ".png")
