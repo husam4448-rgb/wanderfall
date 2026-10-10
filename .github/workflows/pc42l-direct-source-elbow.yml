@@ -23,7 +23,8 @@ jobs:
       - name: Report source test started
         env:
           GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python3 tools/sp_ci_monitor.py emit STARTED "PC42L source-only elbow ownership: run actual PC42H-vs-PC42L five-angle and 32-frame Godot; NO APK/no visual approval." || true
+        run: |
+          python3 tools/sp_ci_monitor.py emit STARTED "PC42L source-only elbow ownership: run actual PC42H-vs-PC42L five-angle and 32-frame Godot; NO APK/no visual approval." || true
       - name: Generate approved original male RIGHT source-part textures
         run: |
           set -euo pipefail
