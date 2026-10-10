@@ -1,0 +1,201 @@
+{
+  "schema_version": 1,
+  "name": "Survival Paradise — bounded chat-controlled production task queue",
+  "adopted_utc": "2026-10-10T09:18:49.079Z",
+  "protocol": "main:docs/AI_ENGINEERING_CHAT_FIRST_PROTOCOL.md",
+  "instruction": "This queue is a checkpoint, not an autonomous agent. In a new active ChatGPT session, validate against repository HEAD, GitHub Issue #35 and real workflow evidence before acting. Modify task status only based on completed documented evidence.",
+  "constraints": {
+    "ai_controller": "ChatGPT active chat only",
+    "external_agents_allowed": false,
+    "pc_required": false,
+    "cloud_browser_required": false,
+    "github_actions_allowed_as_infrastructure": true,
+    "android_offline_required": true,
+    "character_facings": [
+      "LEFT",
+      "RIGHT"
+    ],
+    "visual_approval_requires_inspection": true,
+    "adult_erotic_content": false
+  },
+  "verified_baseline": {
+    "last_godot_tested_source_sha": "bd8c72882f9bad3ea4c5f343f802be443c04e74c",
+    "godot_test_run": "https://github.com/husam4448-rgb/wanderfall/actions/runs/38036003411",
+    "godot_technical_verdict": "PASS",
+    "godot_visual_verdict": "FAIL",
+    "last_art_checkpoint_commit": "a393184175f63b9c570c7ae5efd283d480580797",
+    "last_art_trial_result": "PC42M raster sleeve patch visual FAIL; source PNG transfer/readback tested",
+    "latest_signed_apk": {
+      "label": "PC33",
+      "version_code": 205,
+      "technical_verdict": "PASS",
+      "visual_verdict": "FAIL",
+      "new_approved_apk": false
+    },
+    "original_rig": "1cfaab1c8198dbfc8a14f73f2a92dad953a8ba78"
+  },
+  "active_task_id": null,
+  "ready_selection_rule": "Pick highest-priority READY task feasible with this chat's actual tools. Blocked visual-art work cannot block independent playable gameplay. Bounded tests, evidence, commit, status; no assumed background continuation.",
+  "tasks": [
+    {
+      "id": "SP-ART-001",
+      "track": "visual",
+      "priority": 1,
+      "status": "BLOCKED",
+      "objective": "Create one genuinely painted concealed male RIGHT support elbow sleeve surface matching approved EAST rifle/unarmed character; do not repeat source-layer or flat-patch failures.",
+      "depends_on": [],
+      "blocking_reason": "Two image tool requests produced unrelated dashboards; local 236x254 raster-patch looked unlike approved cloth. Source-matched image authoring unavailable in last attempt.",
+      "next_action": "Inspect availability of a reliable source-conditioned raster editor using real approved reference pixels; author one source-faithful elbow surface and reject at native pixel size if mismatched.",
+      "acceptance": [
+        "Real native RGBA PNG accessible as bytes and SHA verified",
+        "Elbow fabric passes visual comparison to original survivor, no fabricated panels/crescents/dark slabs",
+        "One-patch Godot 5-angle and 32-frame actual screenshots/GIF, constraints technical pass",
+        "Manual-quality visual PASS separately recorded"
+      ],
+      "evidence": [
+        "docs/PC42L_TWO_TRIALS_VISUAL_QA.md",
+        "docs/PC42M_DIRECT_RASTER_ART_QA.md"
+      ],
+      "attempts": 3,
+      "allowed_same_failed_technique_retries": 0
+    },
+    {
+      "id": "SP-GAME-001",
+      "track": "playable_android",
+      "priority": 2,
+      "status": "READY",
+      "objective": "Inspect actual playable Survival Paradise game source, independently identify one small safe Android-playable mechanical or control improvement (not dependent on male RIGHT elbow art), implement and verify it.",
+      "depends_on": [],
+      "next_action": "Recover source/build manifest, identify lowest-risk user-visible game change and its test, implement on isolated branch, run actual Godot compile/runtime regression.",
+      "acceptance": [
+        "Real playable-game source modified, not isolated animation prototype",
+        "Technical test captured with exact commit and logs",
+        "No regression of offline Android and existing game state",
+        "Visible screenshots or verifiable gameplay evidence, explicit limitations"
+      ],
+      "evidence": [],
+      "attempts": 0,
+      "allowed_same_failed_technique_retries": 2
+    },
+    {
+      "id": "SP-WEAPON-001",
+      "track": "playable_android",
+      "priority": 3,
+      "status": "BLOCKED",
+      "objective": "Extend gun handling control/state, aiming persistence and reload/recoil logic without promoting rejected arm artwork.",
+      "depends_on": [
+        "SP-GAME-001"
+      ],
+      "blocking_reason": "First recover and verify current playable-game integration points.",
+      "next_action": "After SP-GAME-001, inspect weapon state handlers and implement a bounded testable improvement.",
+      "acceptance": [
+        "Target/aim state and weapon contacts consistent",
+        "Actual game runtime tests and source SHA",
+        "Art QA not silently promoted"
+      ],
+      "evidence": [],
+      "attempts": 0,
+      "allowed_same_failed_technique_retries": 2
+    },
+    {
+      "id": "SP-LOC-001",
+      "track": "playable_android",
+      "priority": 4,
+      "status": "BLOCKED",
+      "objective": "Develop independent offline mobile movement logic and articulated walk/run integration without using the rejected PC42M patch.",
+      "depends_on": [
+        "SP-GAME-001"
+      ],
+      "blocking_reason": "Verify existing gameplay movement/animation integration first.",
+      "next_action": "Inspect current gait/controls architecture and define one measurable ground-contact/foot-slide regression.",
+      "acceptance": [
+        "Anatomically valid left/right gait loops",
+        "Actual Godot 32-frame animation evidence",
+        "Playable Android controls preserved"
+      ],
+      "evidence": [],
+      "attempts": 0,
+      "allowed_same_failed_technique_retries": 2
+    },
+    {
+      "id": "SP-APK-EXPERIMENTAL-001",
+      "track": "playable_android",
+      "priority": 5,
+      "status": "BLOCKED",
+      "objective": "Build first new signed experimental Android APK from a technically verified playable-game change; document any art limitations.",
+      "depends_on": [
+        "SP-GAME-001"
+      ],
+      "blocking_reason": "No newer tested playable-game improvement is verified yet.",
+      "next_action": "After meaningful playable-game source test, invoke existing Android export CI, verify signed APK in artifact, record source SHA/version code.",
+      "acceptance": [
+        "Actual APK artifact exists and passes package/signature tests",
+        "Source/game integration commit and workflow URL verified",
+        "Labeled EXPERIMENTAL when visual QA pending"
+      ],
+      "evidence": [],
+      "attempts": 0,
+      "allowed_same_failed_technique_retries": 2
+    },
+    {
+      "id": "SP-CHAR-001",
+      "track": "visual",
+      "priority": 6,
+      "status": "BLOCKED",
+      "objective": "Approve male RIGHT rifle aiming, firing, recoil, idle and small angle anatomy while preserving original PC42H rig.",
+      "depends_on": [
+        "SP-ART-001"
+      ],
+      "blocking_reason": "Elbow visual QA not approved.",
+      "next_action": "After native sleeve surface PASS, validate IK/5 angles/32 frames, then extend rifle animation.",
+      "acceptance": [
+        "Both rifle contacts stable",
+        "Natural sleeve/forearm continuity",
+        "Godot screenshot/GIF reviewed and approved",
+        "No PC42H baseline regression"
+      ],
+      "evidence": [],
+      "attempts": 0,
+      "allowed_same_failed_technique_retries": 2
+    },
+    {
+      "id": "SP-CHAR-002",
+      "track": "visual",
+      "priority": 7,
+      "status": "BLOCKED",
+      "objective": "Complete male LEFT and female RIGHT/LEFT genuine visual character rigs, then pistol/locomotion/equipment art acceptance.",
+      "depends_on": [
+        "SP-CHAR-001"
+      ],
+      "blocking_reason": "Male RIGHT first visual acceptance gate still blocked.",
+      "next_action": "Once male RIGHT accepted, implement next LEFT-facing and female rig in small batches.",
+      "acceptance": [
+        "Only two facing directions",
+        "Authentic male/female identity",
+        "Godot runtime and human-quality visual review per configuration"
+      ],
+      "evidence": [],
+      "attempts": 0,
+      "allowed_same_failed_technique_retries": 2
+    },
+    {
+      "id": "SP-MONITOR-001",
+      "track": "operations",
+      "priority": 99,
+      "status": "VERIFIED",
+      "objective": "Maintain existing independent Issue #35 GitHub watchdog and expiring assistant leases without repeated redesign.",
+      "depends_on": [],
+      "next_action": "Inspect only when latest real run fails or new monitoring bug is proven.",
+      "acceptance": [
+        "Real Actions status and stale leases distinguish ChatGPT vs GitHub",
+        "Manual visual QA preserved",
+        "No misleading permanent RUNNING state"
+      ],
+      "evidence": [
+        "https://github.com/husam4448-rgb/wanderfall/issues/35"
+      ],
+      "attempts": 0,
+      "allowed_same_failed_technique_retries": 1
+    }
+  ]
+}
