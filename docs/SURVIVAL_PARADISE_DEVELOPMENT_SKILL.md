@@ -1,5 +1,8 @@
 # Survival Paradise Development Skill
 
+> **Required project-wide execution protocol:** [AI_ENGINEERING_CHAT_FIRST_PROTOCOL.md](AI_ENGINEERING_CHAT_FIRST_PROTOCOL.md). It takes precedence over older generic process language in this skill. Future ChatGPT development prompts must use the active-branch machine-readable [PRODUCTION_TASK_QUEUE.json](PRODUCTION_TASK_QUEUE.json) to choose bounded, evidence-gated tasks. ChatGPT chat remains the only AI development interface; GitHub/Actions are build and verification infrastructure. Never require a PC, Work, Cloud Browser, or other development agent.
+
+
 This playbook is the default implementation workflow for future Survival Paradise development.
 
 ## 1. Core principle: one source of truth
