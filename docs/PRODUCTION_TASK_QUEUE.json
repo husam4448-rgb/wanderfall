@@ -300,24 +300,51 @@
       "id": "SP-CHAR-RIFLE-RELOAD-001",
       "track": "visual",
       "priority": 3,
-      "status": "READY",
+      "status": "BLOCKED",
       "depends_on": [
         "SP-CHAR-RIFLE-RECOIL-001"
       ],
       "objective": "Build male RIGHT original-source rifle reloading animation and return-to-aim contact transition using real Skeleton2D/Bone2D, preserving authentic gloves and rifle materials.",
-      "next_action": "Inspect current approved rifle/hand sources, design IK socket ownership during magazine release/seat, implement 32-frame Godot visual test with correct hand/rifle articulation; reject wrong-looking hand gaps; keep source-first fallback.",
+      "next_action": "Inspect existing approved gear/rifle.png plus source rifle, find authentic magazine and support-hand layers; create source-faithful detachable parts before integrating the completed reload phases. Current PC42R prep lower/hold/raise technical PASS.",
       "acceptance": [
         "32 actual Godot reload motion frames and preserved idle recoil baseline",
         "Rifle safely supported by dominant hand while support hand manipulates magazine with source-authored appearance",
         "No independently floating gun or disjointed hands",
         "Human visual review of hand/magazine closeups before accepting"
       ],
-      "evidence": [],
+      "evidence": [
+        "docs/PC42R_RELOAD_PREPARATION_QA.md",
+        "https://github.com/husam4448-rgb/wanderfall/actions/runs/38049280271/artifacts/11668214873"
+      ],
+      "attempts": 1,
+      "allowed_same_failed_technique_retries": 2,
+      "technical_verdict": "PARTIAL_PASS_PREPARATION_ONLY",
+      "visual_verdict": "CONDITIONAL_PASS_RIFLE_LOWER_RAISE_ONLY",
+      "latest_tested_source_sha": "268f05fe181a5627d5945176feadfb7e2f258597",
+      "blocking_reason": "No separately authored complete magazine and support-hand release art. Original rifle magazine lower pixels visible but upper section occluded by glove/receiver; cannot animate genuine magazine removal without reconstruction."
+    },
+    {
+      "id": "SP-CHAR-MAGAZINE-001",
+      "track": "visual",
+      "priority": 1,
+      "status": "READY",
+      "depends_on": [],
+      "objective": "Make genuine detachable curved AK-style rifle magazine plus source-authored support-hand release/insert art for male RIGHT reload; preserve original rifle and glove visual identity.",
+      "next_action": "Inspect approved rifle item sprite assets/authored2d/gear/rifle.png and source rifle magazine crop; choose authentic transparent magazine and supporting hand donor; reject uncovered undocumented geometry.",
+      "acceptance": [
+        "Native RGBA magazine includes real top interface not glove pixels",
+        "Hand can release and grip magazine without gap",
+        "32 real Godot frames showing removal and insertion, not merely lowering",
+        "Real weapon IK and human visual QA PASS"
+      ],
+      "evidence": [
+        "/docs/PC42R_RELOAD_PREPARATION_QA.md"
+      ],
       "attempts": 0,
       "allowed_same_failed_technique_retries": 2
     }
   ],
   "policy_override": "CHARACTER_FIRST_2026_10_10: all character appearance/animation/equipment tasks precede unrelated gameplay until user-approved quality gate; experimental builds can test characters, not content expansion",
-  "last_tested_character_source_sha": "76d66b1c72b083ffdd717cf9f68e32956733ae93",
-  "last_tested_character_mode": "PC42Q 32-frame source-first rifle recoil TECH PASS / provisional visual pass; full art and game integration unfinished"
+  "last_tested_character_source_sha": "268f05fe181a5627d5945176feadfb7e2f258597",
+  "last_tested_character_mode": "PC42R reload setup 32-frame actual Godot TECH PASS / partial visual PASS. Magazine interaction NOT implemented; no APK."
 }
