@@ -1,0 +1,97 @@
+name: PC42O Male RIGHT Wider Aiming Original-Source Godot QA
+on:
+  push:
+    branches: [pc42o-source-first-wide-aim]
+    paths:
+      - '.github/workflows/pc42o-wide-aim-visual.yml'
+      - 'pc42-static-prototype/Main.gd'
+      - 'tools/qa_pc42o_wide_aim.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+  issues: write
+env:
+  SP_PHASE: PC42O_CHARACTER_FIRST_WIDE_AIM
+  GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
+jobs:
+  approved-source-hybrid-godot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+      - name: Source build started
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 tools/sp_ci_monitor.py emit STARTED "PC42O ±30 degree original-source male RIGHT visual test. Two Bone2D IK preserved; source original art, no new fabricated pixels." || true
+      - name: Prepare protected approved source parts
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pillow numpy opencv-python-headless
+          python3 -m py_compile tools/qa_pc42o_wide_aim.py tools/pc42_reference_cutout.py tools/pc42h_articulated_arm_atlas.py
+          python3 tools/pc42_reference_cutout.py
+          python3 tools/pc42h_articulated_arm_atlas.py
+          test -s pc42-static-prototype/assets/pc42h_far_forearm.png
+          test -s pc42-static-prototype/assets/approved_reference_panel.png
+      - name: Source prepared
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 tools/sp_ci_monitor.py emit SOURCE_READY "Original source parts restored. Candidate only conceals rejected artificial far forearm; no repaint or full-image replacement." || true
+      - name: Install pinned real Godot
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip" | sha256sum -c -
+          unzip -q /tmp/godot.zip -d /tmp
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb >/dev/null
+      - name: Compile true Skeleton2D runtime
+        run: |
+          "$GODOT_BIN" --headless --editor --path pc42-static-prototype --quit >pc42o-import.log 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|Compile Error' pc42o-import.log; then cat pc42o-import.log; exit 1; fi
+      - name: Confirm Godot compilation
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 tools/sp_ci_monitor.py emit GODOT_COMPILED "Real Godot 4.7.2 Skeleton2D scripts compiled; baseline and source-first hybrid 5-angle/32-frame next." || true
+      - name: Real Godot original and hybrid render A/B
+        run: |
+          set -euo pipefail
+          mkdir -p pc42-static-prototype/evidence
+          PC42O_WIDE_AIM_TEST=1 PC42C_CAPTURE=1 timeout 160s xvfb-run -a "$GODOT_BIN" --path pc42-static-prototype --resolution 1580x660 >pc42o-baseline-motion.log 2>&1
+          grep -q 'PC42C_REAL_IK_CONTACT_SWEEP_OK' pc42o-baseline-motion.log
+          for angle in m30 m15 p00 p15 p30; do
+            cp "pc42-static-prototype/evidence/pc42c_pose_$angle.png" "pc42-static-prototype/evidence/pc42o_baseline_$angle.png"
+          done
+          PC42N_SOURCE_FIRST_PREVIEW=1 PC42O_WIDE_AIM_TEST=1 PC42C_CAPTURE=1 timeout 160s xvfb-run -a "$GODOT_BIN" --path pc42-static-prototype --resolution 1580x660 >pc42o-wide-motion.log 2>&1
+          grep -q 'PC42N_SOURCE_FIRST_HYBRID_PREVIEW_READY' pc42o-wide-motion.log
+          grep -q 'PC42O_WIDE_AIM_TEST_READY' pc42o-wide-motion.log
+          grep -q 'PC42C_REAL_IK_CONTACT_SWEEP_OK' pc42o-wide-motion.log
+          grep -q 'PC42D_FAR_ARM_TWO_BONE_IK_OK' pc42o-wide-motion.log
+          python3 tools/qa_pc42o_wide_aim.py
+      - name: Report genuine visual evidence
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 tools/sp_ci_monitor.py emit VISUAL_QA_PENDING "Actual five-angle 3-way approved/baseline/hybrid comparison and 32-frame Godot GIF uploaded. VISUAL REVIEW PENDING; no APK." || true
+      - name: Upload real evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SP-PC42O-WideAim-SourceFirst-Godot-${{ github.sha }}
+          path: |
+            pc42-static-prototype/evidence/
+            pc42o-*.log
+          retention-days: 14
+      - name: Final workflow status
+        if: always()
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            python3 tools/sp_ci_monitor.py emit COMPLETED "PC42O wide aim real Godot technical test completed, candidate visual approval still requires independent inspection; no playable APK." || true
+          else
+            python3 tools/sp_ci_monitor.py emit FAILED "PC42O wide aim actual Godot test failed; evidence retained for diagnosis; fallback unchanged." || true
+          fi
