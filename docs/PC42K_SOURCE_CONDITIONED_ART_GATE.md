@@ -37,3 +37,15 @@ Verified PC42H rest pivots for registration: far shoulder (117,78), elbow (143,9
 - **Current QA:** ART_GENERATION_COMPLETED, IMAGE_BYTES_UNAVAILABLE, VISUAL_QA_NOT_PERFORMED, GODOT_NOT_TESTED, NO_APK.
 - **Latest actually tested Godot source remains:** `6e92cb4cebb7aa815565fbba27ac95e52d0a0dfd` with numeric PASS / visual FAIL, workflow https://github.com/husam4448-rgb/wanderfall/actions/runs/37989480113 .
 - Next after retrieval: check original costume/skin/glove identity and real transparent edges at native source; reject image if inaccurate, run native art intake and then 5-angle/32-frame Godot rendering with preserved PC42H two-hand IK. Do not fabricate an asset or claim approval to bypass this failure.
+
+
+## 2026-10-10 — PC42K asset-byte recovery rechecked
+
+- OpenArt history `j7HwZ2C8ty2nIC25cDzk`: **COMPLETED**, image resource `Nb19LPURulwyMLvyIukX` metadata 1200 × 896 PNG.
+- Connected OpenArt API still exposes only watermarked preview WEBP and a result-card view. **No original PNG download/export action was exposed in this environment.**
+- The container's generic URL fetch cannot establish a legitimate original image because the supplied URL is explicitly a watermarked thumbnail; even a successful preview download cannot satisfy original-art intake.
+- Branch `pc42k-reference-conditioned-elbow` had no newly tested character implementation at recovery time; existing PC42K PNG importer is `tools/pc42k_import_source.py`.
+- Current verified state: **BLOCKED_IMAGE_BYTES_UNAVAILABLE**. No 7 native PC42K PNG textures, no full-resolution file committed, no actual five-angle/32-frame PC42K runtime test, no new APK.
+- Precise recovery instruction: **Use ChatGPT Work mode's Cloud Browser** (if available) to access the user's authenticated OpenArt generation and download the **original** full-resolution PNG, then attach/import the real file into a development runtime. This normal chat cannot invoke that browser. On Android a single original-resolution image download/upload is the last-resort user action. Do not request a PC.
+- Run `python3 tools/pc42k_import_source.py /path/to/genuine-original.png` once bytes exist; commit binary and manifest through a binary-compatible GitHub action, retrieve committed blob and checksum/decode. Only then attempt 7 native sprites and Godot visual QA.
+- Distinguish last **tested game SHA** `6e92cb4cebb7aa815565fbba27ac95e52d0a0dfd` (technical PASS / visual FAIL) from current **PC42K recovery documentation SHA** (newer, NOT a game test). Do not mark VISUAL_PASS or build APK.
