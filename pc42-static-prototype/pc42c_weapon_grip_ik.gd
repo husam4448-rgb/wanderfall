@@ -10,11 +10,11 @@ const REST_DOMINANT_WRIST: Vector2 = Vector2(134.0,84.0)
 const RIFLE_STOCK_PIVOT: Vector2 = Vector2(129.0,71.0)
 const REST_SUPPORT_WRIST: Vector2 = Vector2(170.0,81.0)
 
-static func socket_at(original_socket: Vector2, angle: float) -> Vector2:
-    return RIFLE_STOCK_PIVOT + (original_socket-RIFLE_STOCK_PIVOT).rotated(angle)
+static func socket_at(original_socket: Vector2, angle: float, recoil_translation: Vector2 = Vector2.ZERO) -> Vector2:
+    return RIFLE_STOCK_PIVOT + recoil_translation + (original_socket-RIFLE_STOCK_PIVOT).rotated(angle)
 
-static func solve_dominant(angle: float) -> Dictionary:
-    var target: Vector2 = socket_at(REST_DOMINANT_WRIST,angle)
+static func solve_dominant(angle: float, recoil_translation: Vector2 = Vector2.ZERO) -> Dictionary:
+    var target: Vector2 = socket_at(REST_DOMINANT_WRIST,angle,recoil_translation)
     var upper_length: float = SHOULDER.distance_to(REST_ELBOW)
     var lower_length: float = REST_ELBOW.distance_to(REST_DOMINANT_WRIST)
     var offset: Vector2 = target-SHOULDER
@@ -36,7 +36,7 @@ static func solve_dominant(angle: float) -> Dictionary:
         "valid":true,"shoulder_rotation":shoulder_angle,
         "forearm_rotation":elbow_relative,
         "elbow":elbow,"dominant_wrist":target,
-        "support_wrist":socket_at(REST_SUPPORT_WRIST,angle),
+        "support_wrist":socket_at(REST_SUPPORT_WRIST,angle,recoil_translation),
         "rifle_angle":angle
     }
 
@@ -48,8 +48,8 @@ const FAR_SHOULDER: Vector2 = Vector2(117.0,78.0)
 # Rest elbow remains concealed behind the near arm, not an arbitrary aim offset.
 const FAR_REST_ELBOW: Vector2 = Vector2(143.0,95.0)
 
-static func solve_support(angle: float) -> Dictionary:
-    var target: Vector2 = socket_at(REST_SUPPORT_WRIST,angle)
+static func solve_support(angle: float, recoil_translation: Vector2 = Vector2.ZERO) -> Dictionary:
+    var target: Vector2 = socket_at(REST_SUPPORT_WRIST,angle,recoil_translation)
     var upper_length: float = FAR_SHOULDER.distance_to(FAR_REST_ELBOW)
     var lower_length: float = FAR_REST_ELBOW.distance_to(REST_SUPPORT_WRIST)
     var offset: Vector2 = target-FAR_SHOULDER
