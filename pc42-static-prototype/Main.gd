@@ -15,6 +15,7 @@ var parts: Array[Dictionary] = []
 var canvas_size: Vector2 = Vector2(236,254)
 var pc42_skeleton: Skeleton2D
 var pc42_bones: Dictionary = {}
+var pc42p_idle_source_rest: Dictionary = {}
 # The approved source drawing provides a fully visible rest pose.
 # Covered bone material remains unresolved and must not be fabricated.
 const PARENTS: Dictionary = {
@@ -61,6 +62,8 @@ func _ready() -> void:
                       "texture":img,
                       "pivot":Vector2(float(pivot_data[0]),float(pivot_data[1]))})
     _build_actual_skeleton2d()
+    if OS.get_environment("PC42P_IDLE_BREATH_TEST") == "1":
+        _pc42p_init_source_breath()
     if OS.get_environment("PC42C_CAPTURE") == "1":
         await _pc42c_capture_full_test()
         get_tree().quit()
@@ -314,6 +317,31 @@ func _pc42c_capture_png(filename: String) -> void:
         push_error("PC42C screenshot failure " + filepath + " err=" + str(save_error))
         get_tree().quit(12)
 
+func _pc42p_init_source_breath() -> void:
+    # Source-first idle gesture: animate only authentic torso/head/pack sprites.
+    # Preserve actual Bone2D parent pivots, both rifle-owned hand sockets,
+    # and PC42N occluded far-arm source; NO procedural limb replacements.
+    for part_name in ["torso","head_neck","backpack"]:
+        var node: Sprite2D = pc42_bones[part_name].get_node("ApprovedArt_" + part_name) as Sprite2D
+        if node == null:
+            push_error("PC42P source-art breathing cannot locate " + part_name)
+            get_tree().quit(31)
+            return
+        pc42p_idle_source_rest[part_name] = node.position
+    print("PC42P_AUTHENTIC_SOURCE_BREATH_READY original torso/head/backpack and rifle-owned IK unchanged")
+
+func _pc42p_apply_source_breath(frame: int) -> void:
+    # Very small amplitude, full-cycle periodic: no forced full-character scaling.
+    # Result must be inspected in native Godot screenshots; not auto-approved.
+    var phase: float = TAU * float(frame) / 32.0
+    var wave: float = sin(phase)
+    var chest: Sprite2D = pc42_bones["torso"].get_node("ApprovedArt_torso") as Sprite2D
+    chest.scale = Vector2(1.0 + 0.0035 * wave, 1.0 + 0.006 * wave)
+    var head: Sprite2D = pc42_bones["head_neck"].get_node("ApprovedArt_head_neck") as Sprite2D
+    head.position = Vector2(pc42p_idle_source_rest["head_neck"]) + Vector2(0.0, -0.20 * wave)
+    var pack: Sprite2D = pc42_bones["backpack"].get_node("ApprovedArt_backpack") as Sprite2D
+    pack.position = Vector2(pc42p_idle_source_rest["backpack"]) + Vector2(0.0, -0.14 * wave)
+
 func _pc42c_capture_full_test() -> void:
     var max_dom: float = 0.0
     var max_sup: float = 0.0
@@ -321,12 +349,17 @@ func _pc42c_capture_full_test() -> void:
     # PC42O opt-in wider character-quality diagnostic only. Keep original
     # five-angle / 32-frame Godot contract unchanged unless explicitly enabled.
     var wide_sweep: bool = OS.get_environment("PC42O_WIDE_AIM_TEST") == "1"
-    var sweep_degrees: float = 30.0 if wide_sweep else 10.0
+    var idle_breath: bool = OS.get_environment("PC42P_IDLE_BREATH_TEST") == "1"
+    if idle_breath:
+        print("PC42P_IDLE_BREATH_CAPTURING true_Godot_frames=32 aim=0")
+    var sweep_degrees: float = (0.0 if idle_breath else (30.0 if wide_sweep else 10.0))
     if wide_sweep:
         print("PC42O_WIDE_AIM_TEST_READY angle_limit_degrees=30 source_first=" + str(OS.get_environment("PC42N_SOURCE_FIRST_PREVIEW") == "1"))
     for frame in range(32):
         var angle_deg: float = sweep_degrees*sin(TAU*float(frame)/32.0)
         var result: Dictionary = _pc42c_apply_weapon_ik(deg_to_rad(angle_deg))
+        if idle_breath:
+            _pc42p_apply_source_breath(frame)
         if not result["valid"]:
             get_tree().quit(13)
             return
@@ -340,6 +373,8 @@ func _pc42c_capture_full_test() -> void:
     var pose_angles: Array[int] = [-10,-5,0,5,10]
     if wide_sweep:
         pose_angles = [-30,-15,0,15,30]
+    if idle_breath:
+        pose_angles = [0]
     for angle_int in pose_angles:
         _pc42c_apply_weapon_ik(deg_to_rad(float(angle_int)))
         var label: String = "m%02d" % absi(angle_int) if angle_int < 0 else "p%02d" % angle_int
