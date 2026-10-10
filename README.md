@@ -1,4 +1,6 @@
 # Wanderfall
+> **Project-wide chat-first AI engineering standard:** [docs/AI_ENGINEERING_CHAT_FIRST_PROTOCOL.md](docs/AI_ENGINEERING_CHAT_FIRST_PROTOCOL.md). For new development sessions, read this before implementing changes. User-facing workflow requires only ChatGPT chat on Android; GitHub Actions may run tests and builds as infrastructure. The current production queue lives on the active development branch: `docs/PRODUCTION_TASK_QUEUE.json`. No separate AI agent, PC, Work mode or Cloud Browser required.
+
 
 Phase 16 Android build candidate source checkpoint.
 
