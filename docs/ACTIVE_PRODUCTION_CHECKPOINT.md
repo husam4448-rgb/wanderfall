@@ -176,3 +176,16 @@ Create an isolated PC28 branch from PC27 verified source and test genuine knee a
 - **Initial CI failure** https://github.com/husam4448-rgb/wanderfall/actions/runs/38043912274 was ONLY Godot capture helper assigning an untyped ternary array to `Array[int]`, after 32 IK test frames succeeded; corrected at tested commit.
 - **Next eligible character task:** `SP-CHAR-IDLE-001` — implement/test subtle original-source male RIGHT breathing at rest while keeping rifle two-hand IK and visual fidelity. It does not supersede the blocked genuine elbow authoring `SP-ART-001`. Gameplay expansion still deferred.
 - **Android build:** NO new APK; isolated rig only. Protected fallback PC42H unchanged.
+
+## PC42P male RIGHT authentic-source idle breathing — 2026-10-10 UTC
+
+- **Last actually tested character source:** `c9b6e8dd7b2f1a79de67019c7e0e09e66e8fcad8`.
+- **Godot workflow:** https://github.com/husam4448-rgb/wanderfall/actions/runs/38044391707 — complete SUCCESS; [32-frame actual Godot GIF, 8-phase screenshots and technical report](https://github.com/husam4448-rgb/wanderfall/actions/runs/38044391707/artifacts/11667146753).
+- **Technical PASS:** 32 original-source breathing frames, rhythmic real torso/head/backpack Sprite2D micro-motion, correct loop, original true Skeleton2D/Bone2D, all dominant/support/far wrist IK grip errors 0.0 world px (rifle held fixed), original art/character identity retained.
+- **Human visual QA:** PROVISIONAL PASS for restrained isolated idle presentation only; chest/pack/head movement subtle, no gross anatomy gap introduced. This does **not** mean male RIGHT is completed, device playback approved, or all animations polished. Full painted hidden support elbow still missing.
+- **Earlier PC42O wide test:** `8e958719cdf8daa56da38e36f837221eb8966fd0`, https://github.com/husam4448-rgb/wanderfall/actions/runs/38044025022, actual Godot ±30 technical PASS / full anatomical visual FAIL.
+- **Earlier PC42N:** `c9312d0dbd6af362854adb70ec7632193b592284`, ±10 source-first preview technical PASS, conditional limited visual improvement.
+- **Detailed PC42P report:** `docs/PC42P_SOURCE_IDLE_BREATH_QA.md`.
+- **Unresolved blocking art:** source-matched authentic concealed elbow/rolled sleeve for male RIGHT. Image generator has repeatedly returned unrelated dashboards; local source patch and earlier PC42J/L fabricated layers visually rejected. Do not repeat flat patches/bone-owner-only art tricks. Existing source-first mode only hides missing pixels, not finished joint anatomy.
+- **APK:** NO new APK, no Android device test. Isolated character scene only; last PC33 code 205 technical PASS/visual FAIL.
+- **Character-first next work:** restore/find a reliable genuinely source-matched elbow-art authoring process OR advance the next male RIGHT *character* feature (e.g. weapon recoil/reload test with preserved original texture and IK), not unrelated gameplay. Follow `main:docs/AI_ENGINEERING_CHAT_FIRST_PROTOCOL.md` and active `docs/PRODUCTION_TASK_QUEUE.json`. Keep chat as only AI developer interface, GitHub Actions independent testing/reporting.
