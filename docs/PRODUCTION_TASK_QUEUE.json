@@ -327,10 +327,10 @@
       "id": "SP-CHAR-MAGAZINE-001",
       "track": "visual",
       "priority": 1,
-      "status": "READY",
+      "status": "BLOCKED",
       "depends_on": [],
       "objective": "Make genuine detachable curved AK-style rifle magazine plus source-authored support-hand release/insert art for male RIGHT reload; preserve original rifle and glove visual identity.",
-      "next_action": "Inspect approved rifle item sprite assets/authored2d/gear/rifle.png and source rifle magazine crop; choose authentic transparent magazine and supporting hand donor; reject uncovered undocumented geometry.",
+      "next_action": "Author source-matched complete detachable magazine and support-hand release art; do not display extracted partial magazine as finished.",
       "acceptance": [
         "Native RGBA magazine includes real top interface not glove pixels",
         "Hand can release and grip magazine without gap",
@@ -340,6 +340,28 @@
       "evidence": [
         "/docs/PC42R_RELOAD_PREPARATION_QA.md"
       ],
+      "attempts": 0,
+      "allowed_same_failed_technique_retries": 2,
+      "blocking_reason": "Approved source rifle image includes curved magazine but its top is hidden by glove/receiver; gear/rifle.png is only a minimal tiny silhouette; no suitable complete detachable magazine hand art yet."
+    },
+    {
+      "id": "SP-CHAR-GAIT-001",
+      "track": "visual",
+      "priority": 2,
+      "status": "READY",
+      "depends_on": [
+        "SP-CHAR-HYBRID-001"
+      ],
+      "objective": "Create true anatomical male RIGHT walking cycle in isolated Godot rig using approved original thigh/shin textures, correct knee bend, alternating legs, foot contact and no floating rifle.",
+      "next_action": "Inspect front/back thigh/shin anatomy and missing ankle/foot segmentation, implement bounded 32-frame source-art gait prototype with explicit foot-slip/joint tests and native visual QA.",
+      "acceptance": [
+        "Actual Godot 32-frame alternating-leg motion",
+        "Correct forward knee bending",
+        "Feet grounded through stance phases; no conspicuous sliding",
+        "Original approved visual identity preserved",
+        "Clear technical vs visual verdict"
+      ],
+      "evidence": [],
       "attempts": 0,
       "allowed_same_failed_technique_retries": 2
     }
