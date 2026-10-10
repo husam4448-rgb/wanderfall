@@ -166,3 +166,13 @@ Create an isolated PC28 branch from PC27 verified source and test genuine knee a
 - **New signed APK:** NONE; last PC33 code 205 is technically valid, visually rejected.
 - **Project-wide policy:** character-first overrides older queue's gameplay fallback; priority is male RIGHT natural animation, then male LEFT/female RIGHT/LEFT, equipment and APK. No unrelated gameplay expansion until character acceptance.
 - **Next executable step:** study extended male RIGHT aiming poses using the source-first hybrid, enforce weapon contact and review visual anatomy; develop genuine concealed elbow art via an actually capable authoring process. Preserve PC42H fallback and prevent rejected PC42J/L/M layers from becoming approved.
+
+## PC42O male RIGHT ±30° source-first aiming test — 2026-10-10 UTC
+
+- **Actual tested source:** `8e958719cdf8daa56da38e36f837221eb8966fd0` (narrow Godot capture Array[int] runtime fix) on `pc42o-source-first-wide-aim`. Actual Godot 4.7.2 success https://github.com/husam4448-rgb/wanderfall/actions/runs/38044025022 and evidence https://github.com/husam4448-rgb/wanderfall/actions/runs/38044025022/artifacts/11667560678.
+- **Actual technical QA:** PASS. Full 32-frame ±30° sweep, five −30/−15/0/+15/+30 screenshots, dominant/support/far wrist errors <=0.000063/0.000063/0.000068 world pixels.
+- **Actual visual QA:** **FAIL full anatomy for wider angles**. Source-first hybrid is closer to original source pixels than the rejected exposed artificial PC42H far skin, but true concealed support elbow material remains absent and wide poses exaggerate disconnected/invisible arm connection. **Do not promote ±30° as final character quality.** Narrow PC42N ±10° remains conditional preview improvement, NOT fully completed arm art.
+- **QA report:** `docs/PC42O_WIDE_AIM_VISUAL_QA.md`.
+- **Initial CI failure** https://github.com/husam4448-rgb/wanderfall/actions/runs/38043912274 was ONLY Godot capture helper assigning an untyped ternary array to `Array[int]`, after 32 IK test frames succeeded; corrected at tested commit.
+- **Next eligible character task:** `SP-CHAR-IDLE-001` — implement/test subtle original-source male RIGHT breathing at rest while keeping rifle two-hand IK and visual fidelity. It does not supersede the blocked genuine elbow authoring `SP-ART-001`. Gameplay expansion still deferred.
+- **Android build:** NO new APK; isolated rig only. Protected fallback PC42H unchanged.
