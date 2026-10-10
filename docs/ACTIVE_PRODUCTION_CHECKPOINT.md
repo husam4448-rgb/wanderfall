@@ -225,3 +225,18 @@ Create an isolated PC28 branch from PC27 verified source and test genuine knee a
 - **Other blockers unchanged:** PC42R complete reload requires authentic magazine and interacting support-hand source art; male RIGHT concealed elbow full anatomy still pending; male LEFT/female both facings, running and equipment not approved.
 - **APK:** no new signed APK; isolated character rig only. Last signed PC33 code 205 remains technical PASS / visually rejected.
 - **Monitoring:** GitHub Issue #35 watchdog independent of ChatGPT, assistant lease expiry means no continued assistant work.
+
+
+## PC42U actual 32-frame world-space stance diagnostic — 2026-10-10
+
+- **Tested character source/CI SHA:** `04f2d0c88904d520bf5ba6d415bcba1297748256` on `pc42u-worldspace-stance-lock`.
+- **Actual successful Godot workflow:** https://github.com/husam4448-rgb/wanderfall/actions/runs/38085786684
+- **Real evidence artifact:** https://github.com/husam4448-rgb/wanderfall/actions/runs/38085786684/artifacts/11682591595 (true 32 viewport frames, actual original-art eight-phase comparison, GIF and JSON trajectory).
+- **Implementation:** separate PC42T actual foot Bone2D source art used for measured front/back toe positions; explicitly front/back stance contacts, bounded root adjustment with experimental flag `PC42U_STANCE_LOCK_TEST=1`. Normal PC42T unchanged when disabled.
+- **TECHNICAL PASS for contact diagnostic only:** actual Godot 4.7.2 built and ran 32 frames; mean residual stance toe discrepancy 3.2106 world px, maximum 6.978; root correction max ±5 x/±2 y local pixels; rifle-owned IK hand-contact error 0 in reported log precision. Not proof of true grounded gait.
+- **VISUAL INCOMPLETE:** inspected actual eight-phase contact sheet; original survivor skin, clothing, boots, weapon intact but leg animation still short shuffle and not convincing forward planted-foot gait. Foot IK/clearance insufficient, not accepted walking.
+- **Failure history:** initial test 38085641383 did not create evidence directory; screenshot saving failed. Narrow CI correction then re-tested success, no thresholds loosened.
+- **Visual report:** `docs/PC42U_FOOTPLANT_QA.md`.
+- **Next READY task:** `SP-CHAR-FOOT-IK-001`. Build target-driven hip/knee/ankle stance/swing IK, source-material preserved; quantitatively check world toe planted drift and swing clearance and verify in real 32-frame Godot.
+- **APK:** NONE. No playable Android integration. Male RIGHT natural walking, running, authentic rifle magazine/hand release, elbow full art, LEFT/female both facings and equipment remain unfinished.
+- **Monitoring:** Issue #35 GitHub watchdog can independently report real submitted CI and expire assistant lease; no continued creative ChatGPT work after session stops.
