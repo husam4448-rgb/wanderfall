@@ -184,6 +184,15 @@ func _pc42h_build_far_arm() -> void:
         {"name":"pc42h_far_cuff","parent":fore,"pivot":PC42CGripIK.FAR_REST_ELBOW},
         {"name":"pc42h_far_glove_backing","parent":support_socket,"pivot":PC42CGripIK.REST_SUPPORT_WRIST}
     ]
+    # PC42L direct source-art test (opt-in): the rolled-sleeve elbow belongs
+    # to the far UPPER arm, not to the rotating forearm. Previously binding
+    # this original sleeve pigment to the forearm made fabric move with skin.
+    # Reparent ONLY the original PC42H elbow Sprite2D while keeping all
+    # original PNGs, shoulder/forearm ratios and two-hand rifle IK untouched.
+    # This is an EXPERIMENTAL pose-reconciliation test, not visual approval.
+    var use_direct_source_arm: bool = OS.get_environment("PC42L_DIRECT_SOURCE_ARM") == "1"
+    if use_direct_source_arm and not enable_painted_art:
+        art_specs[2] = {"name":"pc42h_far_elbow","parent":upper,"pivot":PC42CGripIK.FAR_SHOULDER}
     if enable_painted_art:
         # These images are copied in from original painter-authored source
         # ONLY AFTER independent native-pixel inspection has passed.
@@ -210,6 +219,9 @@ func _pc42h_build_far_arm() -> void:
         sprite.position = -Vector2(spec["pivot"])
         var parent: Bone2D = spec["parent"]
         parent.add_child(sprite)
+        if use_direct_source_arm and not enable_painted_art and str(spec["name"]) == "pc42h_far_elbow":
+            # Occlude upper-arm sleeve fabric under the forearm as the elbow bends.
+            upper.move_child(sprite, 0)
         if str(spec["name"]) == "pc42j_painted_elbow_backcloth":
             # Behind articulated skin; show only authentic uncovered backing.
             upper.move_child(sprite,0)
@@ -229,6 +241,8 @@ func _pc42h_build_far_arm() -> void:
             # The accepted visible support-hand art already follows the rifle.
             # Backing stays available as an art layer but must not double-draw.
             sprite.visible = false
+    if use_direct_source_arm and not enable_painted_art:
+        print("PC42L_DIRECT_SOURCE_ARM_READY original elbow cloth upper-bone mounted, source pixels untouched")
     if enable_painted_art:
         print("PC42J_PAINTED_ART_BINDINGS_READY seven independently painted RGBA source-part sprites")
     print("PC42H_SEGMENTED_FAR_ARM_READY 2 independently solved Bone2D plus source-clothing shoulder/elbow/forearm/cuff and weapon socket glove")
