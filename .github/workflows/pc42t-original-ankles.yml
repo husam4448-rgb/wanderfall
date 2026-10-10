@@ -1,0 +1,99 @@
+name: PC42T Original-Source Ankle Boots Actual Godot QA
+on:
+  push:
+    branches: [pc42t-source-original-ankles]
+    paths:
+      - '.github/workflows/pc42t-original-ankles.yml'
+      - 'pc42-static-prototype/Main.gd'
+      - 'tools/pc42t_ankle_source_split.py'
+      - 'tools/qa_pc42t_ankle.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+  actions: read
+env:
+  SP_PHASE: PC42T_CHARACTER_SOURCE_ANKLES
+  GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
+jobs:
+  actual-original-source-ankles:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start milestone
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 tools/sp_ci_monitor.py emit STARTED "PC42T authentic original-source pixel-exact shin/boot split, real ankle Bone2D, no extra generated artwork; rest-pose and walk tests next." || true
+      - name: Prepare actual original body art
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pillow numpy opencv-python-headless
+          python3 -m py_compile tools/pc42t_ankle_source_split.py tools/qa_pc42t_ankle.py tools/qa_pc42s_walk.py
+          python3 tools/pc42_reference_cutout.py
+          python3 tools/pc42h_articulated_arm_atlas.py
+          python3 tools/pc42t_ankle_source_split.py
+          test -s pc42-static-prototype/assets/pc42t/front_foot.png
+          test -s pc42-static-prototype/assets/pc42t/back_foot.png
+      - name: Source split verified
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 tools/sp_ci_monitor.py emit SOURCE_READY "Original front/back shin alpha and RGB split losslessly into shin/foot parts; actual Godot rest-pose equality next." || true
+      - name: Install Godot 4.7.2
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip" | sha256sum -c -
+          unzip -q /tmp/godot.zip -d /tmp
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb >/dev/null
+      - name: Compile real 16 plus two ankle-bone original rig
+        run: |
+          "$GODOT_BIN" --headless --editor --path pc42-static-prototype --quit >pc42t-import.log 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|Compile Error' pc42t-import.log; then cat pc42t-import.log; exit 1; fi
+      - name: Report Godot compiled
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 tools/sp_ci_monitor.py emit GODOT_COMPILED "Real Godot 4.7.2 original-approved right character scripts compiled; actual source composite and gait test next." || true
+      - name: Render original source, ankle-rest and 32-frame ankle walk
+        run: |
+          set -euo pipefail
+          mkdir -p pc42-static-prototype/evidence
+          PC42N_SOURCE_FIRST_PREVIEW=1 PC42C_CAPTURE=1 timeout 160s xvfb-run -a "$GODOT_BIN" --path pc42-static-prototype --resolution 1580x660 >pc42t-baseline.log 2>&1
+          cp pc42-static-prototype/evidence/pc42c_pose_p00.png pc42-static-prototype/evidence/pc42t_unsplit_rest_pose.png
+          PC42N_SOURCE_FIRST_PREVIEW=1 PC42T_ANKLE_TEST=1 PC42C_CAPTURE=1 timeout 160s xvfb-run -a "$GODOT_BIN" --path pc42-static-prototype --resolution 1580x660 >pc42t-rest.log 2>&1
+          grep -q 'PC42T_ORIGINAL_SOURCE_ANKLE_BONES_READY' pc42t-rest.log
+          cp pc42-static-prototype/evidence/pc42c_pose_p00.png pc42-static-prototype/evidence/pc42t_split_rest_pose.png
+          PC42N_SOURCE_FIRST_PREVIEW=1 PC42T_ANKLE_TEST=1 PC42S_WALK_TEST=1 PC42C_CAPTURE=1 timeout 160s xvfb-run -a "$GODOT_BIN" --path pc42-static-prototype --resolution 1580x660 >pc42t-ankle-walk.log 2>&1
+          cp pc42t-ankle-walk.log pc42s-walk-motion.log
+          grep -q 'PC42C_REAL_IK_CONTACT_SWEEP_OK' pc42t-ankle-walk.log
+          python3 tools/qa_pc42s_walk.py
+          python3 tools/qa_pc42t_ankle.py
+      - name: Report visual evidence
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 tools/sp_ci_monitor.py emit VISUAL_QA_PENDING "Real native original-vs-split rest pose and 32 ankle-articulated walking frames uploaded, visual review pending." || true
+      - name: Preserve frames, evidence and errors
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SP-PC42T-SourceExact-AnkleWalk-${{ github.sha }}
+          path: |
+            pc42-static-prototype/evidence/
+            pc42-static-prototype/assets/pc42t/
+            pc42t-*.log
+          retention-days: 14
+      - name: Final actual outcome
+        if: always()
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            python3 tools/sp_ci_monitor.py emit COMPLETED "PC42T source-pixel exact boot separation and Godot walk TECH PASS; HUMAN VISUAL NOT APPROVED until actual frame inspection." || true
+          else
+            python3 tools/sp_ci_monitor.py emit FAILED "PC42T actual source split/Godot rest equality/gait failed; inspect logs and artifact before any further change." || true
+          fi
