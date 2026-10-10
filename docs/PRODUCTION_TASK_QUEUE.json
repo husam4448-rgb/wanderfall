@@ -353,7 +353,7 @@
         "SP-CHAR-HYBRID-001"
       ],
       "objective": "Create true anatomical male RIGHT walking cycle in isolated Godot rig using approved original thigh/shin textures, correct knee bend, alternating legs, foot contact and no floating rifle.",
-      "next_action": "After PC42T source-faithful foot/ankle separation, rerun full 32-frame Godot gait with ankle rotation and grounded foot checks.",
+      "next_action": "Implement persistent world-coordinate stance-foot contact and true swing foot lift, no excessive root translation; rerender native 32 frames.",
       "acceptance": [
         "Actual Godot 32-frame alternating-leg motion",
         "Correct forward knee bending",
@@ -370,18 +370,18 @@
       "technical_verdict": "PASS",
       "visual_verdict": "INCOMPLETE_FEET_NOT_INDEPENDENT",
       "latest_tested_source_sha": "951e375460ee8742f0706dc95eedecb8220f990f",
-      "blocking_reason": "Foot/boot material remains part of shin; stance foot cannot plant independently; visual steps shuffle despite real alternating knees."
+      "blocking_reason": "PC42T original-pixel independent boot Bone2D technically verified, but 32-frame gait still short shuffled stride and incomplete planted stance foot / ankle seam QA"
     },
     {
       "id": "SP-CHAR-ANKLE-001",
       "track": "visual",
       "priority": 1,
-      "status": "READY",
+      "status": "VERIFIED",
       "depends_on": [
         "SP-CHAR-HYBRID-001"
       ],
       "objective": "Split real original source front/back boot pixels into independent ankle-foot RGBA sprites, attach true Bone2D pivots, enable stance foot planting.",
-      "next_action": "Inspect exact original approved shin/boot atlas, implement native pixel-exact split with no synthetic geometry, verify lossless rest-pose reconstruction then Godot 32-frame ankle/gait visual QA.",
+      "next_action": "Keep exact source pixel split as experimental, correct stance/swing ground contact before visual promotion.",
       "acceptance": [
         "Original source pixels unmodified; source-layer split lossless in approved rest pose",
         "Separate front/back foot/ankle Bone2D nodes with correct local pivots",
@@ -389,13 +389,39 @@
         "Rifle contact stable and clear human visual verdict"
       ],
       "evidence": [
-        "docs/PC42S_SOURCE_WALK_VISUAL_QA.md"
+        "docs/PC42T_ANKLE_VISUAL_QA.md",
+        "https://github.com/husam4448-rgb/wanderfall/actions/runs/38067206151/artifacts/11674499491"
       ],
       "attempts": 0,
-      "allowed_same_failed_technique_retries": 2
+      "allowed_same_failed_technique_retries": 2,
+      "technical_verdict": "PASS",
+      "visual_verdict": "INCOMPLETE_GROUNDED_FOOT_CONTACT",
+      "latest_tested_source_sha": "1950d37bdf803809857786df9f596c1f7218feae"
+    },
+    {
+      "id": "SP-CHAR-FOOTPLANT-001",
+      "track": "visual",
+      "priority": 0,
+      "status": "READY",
+      "depends_on": [
+        "SP-CHAR-ANKLE-001"
+      ],
+      "objective": "Produce visually convincing planted stance feet and distinct swing foot on the approved original-source male RIGHT ankle-articulated 32-frame walk.",
+      "next_action": "Inspect PC42T genuine 32-frame feet, implement persistent stance contact target, measure foot world displacement and root bounds; run Godot/gait/visual QA; do not raise threshold to hide sliding.",
+      "acceptance": [
+        "Natural hip-to-boot coherent silhouette",
+        "32-frame real Godot stance phases with world foot drift limit and root bounds",
+        "Original source pixels retained",
+        "Human visual QA of ankle seams/ground contact"
+      ],
+      "attempts": 0,
+      "allowed_same_failed_technique_retries": 2,
+      "evidence": [
+        "docs/PC42T_ANKLE_VISUAL_QA.md"
+      ]
     }
   ],
   "policy_override": "CHARACTER_FIRST_2026_10_10: all character appearance/animation/equipment tasks precede unrelated gameplay until user-approved quality gate; experimental builds can test characters, not content expansion",
-  "last_tested_character_source_sha": "951e375460ee8742f0706dc95eedecb8220f990f",
-  "last_tested_character_mode": "PC42S restrained fixed-aim 32-frame Godot walking TECH PASS; visual INCOMPLETE due boots attached to shins and missing ankle roll; no APK."
+  "last_tested_character_source_sha": "1950d37bdf803809857786df9f596c1f7218feae",
+  "last_tested_character_mode": "PC42T independent original-pixel ankle Bone2D technical PASS / full walking visual INCOMPLETE, no APK"
 }
