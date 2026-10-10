@@ -353,6 +353,30 @@ func _pc42q_recoil_envelope(frame: int) -> float:
         return float(frame-3) / 3.0
     return pow(maxf(0.0, 1.0-float(frame-6)/14.0),3.0)
 
+func _pc42r_reload_pose(frame: int) -> Dictionary:
+    # PC42R source-first PREPARATORY reload choreography, not a completed
+    # magazine animation. Preserve original authored rifle/hand pixels.
+    # On an armed reload the rifle dips below horizontal, holds for the
+    # magazine interaction interval, then returns to the exact rest pose.
+    # A separate source-authored magazine/hand component is still required.
+    var phase: String = "LOWER"
+    var t: float = 0.0
+    if frame < 8:
+        t = float(frame) / 8.0
+        phase = "LOWER"
+    elif frame < 21:
+        t = 1.0
+        phase = "MAGAZINE_INTERACTION_ART_PENDING"
+    elif frame < 29:
+        t = float(29-frame) / 8.0
+        phase = "RAISE"
+    else:
+        t = 0.0
+        phase = "READY"
+    t = clampf(t, 0.0, 1.0)
+    var eased: float = t*t*(3.0-2.0*t)
+    return {"phase":phase,"angle":deg_to_rad(8.0*eased),"translation":Vector2(-0.4*eased,0.2*eased)}
+
 func _pc42c_capture_full_test() -> void:
     var max_dom: float = 0.0
     var max_sup: float = 0.0
@@ -362,6 +386,9 @@ func _pc42c_capture_full_test() -> void:
     var wide_sweep: bool = OS.get_environment("PC42O_WIDE_AIM_TEST") == "1"
     var idle_breath: bool = OS.get_environment("PC42P_IDLE_BREATH_TEST") == "1"
     var rifle_recoil: bool = OS.get_environment("PC42Q_FIRE_RECOIL_TEST") == "1"
+    var reload_setup: bool = OS.get_environment("PC42R_RELOAD_SETUP_TEST") == "1"
+    if reload_setup:
+        print("PC42R_RELOAD_SETUP_READY source_first=1 visual_magazine_interaction=PENDING")
     if rifle_recoil:
         print("PC42Q_RIFLE_RECOIL_READY event_frame=4 peak_frame=6 rest_frame=20")
     if idle_breath:
@@ -377,6 +404,11 @@ func _pc42c_capture_full_test() -> void:
             recoil_strength = _pc42q_recoil_envelope(frame)
             angle_deg = -3.5 * recoil_strength
             recoil_translation = Vector2(-1.5*recoil_strength,0.25*recoil_strength)
+        if reload_setup:
+            var reload_state: Dictionary = _pc42r_reload_pose(frame)
+            angle_deg = rad_to_deg(float(reload_state["angle"]))
+            recoil_translation = Vector2(reload_state["translation"])
+            print("PC42R_RELOAD_FRAME %02d phase=%s angle=%.4f stock_dx=%.4f" % [frame,str(reload_state["phase"]),angle_deg,recoil_translation.x])
         var result: Dictionary = _pc42c_apply_weapon_ik(deg_to_rad(angle_deg),recoil_translation)
         if rifle_recoil:
             print("PC42Q_RECOIL_FRAME %02d kick=%.4f stock_dx=%.4f stock_dy=%.4f" % [frame,recoil_strength,recoil_translation.x,recoil_translation.y])
