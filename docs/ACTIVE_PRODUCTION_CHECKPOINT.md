@@ -115,3 +115,16 @@ Create an isolated PC28 branch from PC27 verified source and test genuine knee a
 - **Visual acceptance:** male RIGHT static ORIGINAL approved; no animated candidate passed. Latest Android signed APK PC33 version code 205, previously visually rejected. No new APK.
 - **Monitoring:** Issue #35 watchdog on default branch, automatic workflow terminal state tracking and expiring chat heartbeat. Assistant work stops when this execution ends; independent GitHub may finish submitted jobs.
 
+
+
+## PC42L direct/local elbow source experiment — 2026-10-10
+
+- **Current PC42L source branch:** `pc42l-direct-local-production`.
+- **Last tested PC42L runtime SHA:** `bd8c72882f9bad3ea4c5f343f802be443c04e74c`. This is an opt-in elbow-layer experiment, not an accepted production character.
+- **Real five-angle and 32-frame Godot technical PASS:** [Workflow 38036003411](https://github.com/husam4448-rgb/wanderfall/actions/runs/38036003411), evidence artifact https://github.com/husam4448-rgb/wanderfall/actions/runs/38036003411/artifacts/11663837263 .
+- **Actual visual QA verdict: FAIL.** Trial A (`b3e57479fe51fd2409b581d6a482239e30312000`) had no visible change, workflow 38035582540. Trial B makes small visible dark overlay (305–330 pixels changed across 5 angles), but creates a hard sleeve/skin seam without a source-faithful concealed elbow. Original PC42H fallback remains default, unchanged.
+- **Numerical rifle grip QA:** dominant 0.000063, support 0.000031, far wrist 0.000061 world pixels maximum, 32 frames, actual Godot runtime.
+- **Complete visual report:** `docs/PC42L_TWO_TRIALS_VISUAL_QA.md`.
+- **APK:** No new APK from these rejected artwork-only experiments. Last technically signed APK still PC33 code 205, visually rejected. Experimental preview permitted only after a meaningful technically verified playable-game improvement; do not misrepresent the isolated prototype as playable Android integration.
+- **NEXT EXECUTABLE ACTION:** change technique after 2 failures: author a genuine missing painted elbow fabric surface using an approved male EAST visual reference, validate an actual RGBA image, then repeat Godot five-angle + 32-frame QA. No Work/browser/OpenArt export chase. If an image creation tool returns unrelated layouts rather than actual anatomical sprites, explicitly reject that result and do not fabricate files.
+- **Monitoring:** Existing GitHub watchdog reports independent workflow status. Assistant session status uses time-limited lease comments; a stale lease does not imply ongoing ChatGPT execution.
