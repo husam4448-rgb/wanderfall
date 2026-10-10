@@ -137,6 +137,8 @@ func _build_actual_skeleton2d() -> void:
         get_tree().quit(11)
         return
     print("PC42B_SKELETON2D_BUILT " + str(pc42_bones.size()) + " actual Bone2D nodes")
+    if OS.get_environment("PC42T_ANKLE_SPLIT_TEST") == "1":
+        _pc42t_split_original_ankles()
     _pc42h_build_far_arm()
     if OS.get_environment("PC42B_POSE_STRESS") == "1":
         # Deliberate low-amplitude stress: INSPECTION ONLY. It is not
@@ -353,6 +355,66 @@ func _pc42q_recoil_envelope(frame: int) -> float:
         return float(frame-3) / 3.0
     return pow(maxf(0.0, 1.0-float(frame-6)/14.0),3.0)
 
+func _pc42t_split_original_ankles() -> void:
+    # Opt-in PIXEL-EXACT split. No new boot material is generated: alpha for
+    # each pixel is assigned to exactly ONE of the original shin or new foot
+    # sprites. Both use the ORIGINAL 236x254 RGB pixel coordinates.
+    # Hard ownership boundary is explicitly experimental / visual QA pending.
+    var specs: Array[Dictionary] = [
+        {"shin":"front_shin","foot":"front_foot","cut_y":217,"pivot":Vector2(82.0,221.0)},
+        {"shin":"back_shin","foot":"back_foot","cut_y":211,"pivot":Vector2(138.0,210.0)}
+    ]
+    for spec in specs:
+        var shin_bone: Bone2D = pc42_bones[str(spec["shin"])]
+        var original_sprite: Sprite2D = shin_bone.get_node("ApprovedArt_" + str(spec["shin"])) as Sprite2D
+        var original_image: Image = original_sprite.texture.get_image()
+        var upper: Image = original_image.duplicate()
+        var footwear: Image = original_image.duplicate()
+        for y in range(original_image.get_height()):
+            for x in range(original_image.get_width()):
+                if y >= int(spec["cut_y"]):
+                    var pixel: Color = upper.get_pixel(x,y)
+                    pixel.a = 0.0
+                    upper.set_pixel(x,y,pixel)
+                else:
+                    var pixel: Color = footwear.get_pixel(x,y)
+                    pixel.a = 0.0
+                    footwear.set_pixel(x,y,pixel)
+        var foot_bone: Bone2D = Bone2D.new()
+        foot_bone.name = "Bone_" + str(spec["foot"])
+        var pivot: Vector2 = Vector2(spec["pivot"])
+        var shin_pivot: Vector2 = Vector2.ZERO
+        for part in parts:
+            if str(part["name"]) == str(spec["shin"]):
+                shin_pivot = Vector2(part["pivot"])
+                break
+        foot_bone.position = pivot - shin_pivot
+        shin_bone.add_child(foot_bone)
+        var sprite: Sprite2D = Sprite2D.new()
+        sprite.name = "ApprovedArt_" + str(spec["foot"])
+        sprite.centered = false
+        sprite.position = -pivot
+        sprite.texture = ImageTexture.create_from_image(footwear)
+        foot_bone.add_child(sprite)
+        original_sprite.texture = ImageTexture.create_from_image(upper)
+        pc42_bones[str(spec["foot"])] = foot_bone
+        var visible_original: int = 0
+        var visible_partitioned: int = 0
+        for y in range(original_image.get_height()):
+            for x in range(original_image.get_width()):
+                var orig_alpha: float = original_image.get_pixel(x,y).a
+                var sum_alpha: float = upper.get_pixel(x,y).a + footwear.get_pixel(x,y).a
+                if absf(orig_alpha-sum_alpha)>0.000001:
+                    push_error("PC42T partition has lost or duplicated original source alpha")
+                    get_tree().quit(43)
+                    return
+                if orig_alpha > 0.0:
+                    visible_original += 1
+                if sum_alpha > 0.0:
+                    visible_partitioned += 1
+        print("PC42T_FOOT_PIXEL_SPLIT_OK name=%s original=%d new=%d pivot_x=%.1f pivot_y=%.1f" % [str(spec["foot"]),visible_original,visible_partitioned,pivot.x,pivot.y])
+    print("PC42T_ANKLE_BONES_READY two_original_source_pixel_foot_sprites visual_qa=PENDING")
+
 func _pc42s_walk_pose(frame: int) -> void:
     # PC42S: opt-in original-source gait diagnostic; no procedural leg art.
     # Both legs alternate over a 32-frame cycle with two-bone knee flexion.
@@ -370,6 +432,15 @@ func _pc42s_walk_pose(frame: int) -> void:
     back_thigh.rotation = deg_to_rad(6.0*sway)
     front_shin.rotation = deg_to_rad(6.0*front_swing)
     back_shin.rotation = deg_to_rad(6.0*back_swing)
+    if OS.get_environment("PC42T_ANKLE_SPLIT_TEST") == "1":
+        # Counter-roll boots against shin flex during stance. This is an
+        # exploratory foot-orientation motion; ground drift must be visually
+        # checked, independent of the earlier knee/root numeric checks.
+        var front_ankle: Bone2D = pc42_bones["front_foot"]
+        var back_ankle: Bone2D = pc42_bones["back_foot"]
+        front_ankle.rotation = -0.65*front_shin.rotation
+        back_ankle.rotation = -0.65*back_shin.rotation
+        print("PC42T_ANKLE_FRAME %02d front=%.3f back=%.3f" % [frame,rad_to_deg(front_ankle.rotation),rad_to_deg(back_ankle.rotation)])
     # Source atlas contains footwear in each shin sprite, not separate
     # ankle Bone2D. Blend stance-foot preservation, limited to small
     # root offsets. Treat residual sliding as an explicit art/rig gate.
