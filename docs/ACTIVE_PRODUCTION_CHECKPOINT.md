@@ -141,3 +141,16 @@ Create an isolated PC28 branch from PC27 verified source and test genuine knee a
 - **Android:** Last signed PC33 version code 205, technically valid / visually rejected; no new APK.
 - **Detailed PC42M findings:** `docs/PC42M_DIRECT_RASTER_ART_QA.md`.
 - **Exact next action:** obtain a *genuine source-faithful* native concealed elbow fabric texture with an image-authoring capability actually able to make it; use the newly validated GitHub binary transfer path, inspect alpha/native source match, then run real Godot five-angle and 32-frame QA. Do not repeat procedural cloth overlays or generate unrelated dashboards. Status `BLOCKED_ART_AUTHORING` until that source artwork is visually suitable.
+
+
+## SURVIVAL PARADISE PROJECT PILLAR — AI engineering, chat-first (2026-10-10)
+
+- **Authoritative project-wide protocol:** `main:docs/AI_ENGINEERING_CHAT_FIRST_PROTOCOL.md` (also copied to this active branch). Future development prompts MUST recover and follow it before routine implementation.
+- **Active branch executable task queue:** `docs/PRODUCTION_TASK_QUEUE.json`, with stable task IDs, priorities, dependencies, evidence and distinct technical/visual acceptance gates.
+- **Only AI developer interface:** ChatGPT conversation. **No PC, standalone AI agents, Work mode, browsers or external generation-account processes required.** GitHub and GitHub Actions are allowed as chat-operated source/build/test/monitoring infrastructure, not autonomous creative agents.
+- **Execution design:** small bounded hypothesis → patch/art → real render/test → visual QA → preserve evidence/commit → next eligible READY task. Strict two-attempt non-improvement technique budget; preserve approved originals. Visual art and playable gameplay are independent tracks.
+- **Active blocked visual task:** `SP-ART-001`, PC42M male RIGHT concealed elbow. Previous PC42L A/B and PC42M flat patch visually FAIL; never promote.
+- **Next highest-priority executable READY task:** `SP-GAME-001`, inspect actual playable Android game source and create one independently testable game improvement; then experimental signed APK when the gameplay change is verified. This task DOES NOT waive visual-art gates.
+- **Last actual tested character SHA:** `bd8c72882f9bad3ea4c5f343f802be443c04e74c` (Godot technical PASS, visual FAIL); no new game build approved by these protocol/document commits.
+- **Monitor:** Issue #35 and existing scheduled watchdog; status lease expiry and GitHub job status must be separate. No promise of creative continuation after chat ends.
+- **NEXT:** In a future active chat, read main protocol, this queue and Issue #35, report STATUS/CURRENT/COMPLETED/GITHUB/NEXT, then execute highest-priority READY task using available tools.
