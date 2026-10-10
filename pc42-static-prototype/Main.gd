@@ -137,6 +137,8 @@ func _build_actual_skeleton2d() -> void:
         get_tree().quit(11)
         return
     print("PC42B_SKELETON2D_BUILT " + str(pc42_bones.size()) + " actual Bone2D nodes")
+    if OS.get_environment("PC42T_ANKLE_TEST") == "1":
+        _pc42t_attach_source_ankles()
     _pc42h_build_far_arm()
     if OS.get_environment("PC42B_POSE_STRESS") == "1":
         # Deliberate low-amplitude stress: INSPECTION ONLY. It is not
@@ -353,6 +355,35 @@ func _pc42q_recoil_envelope(frame: int) -> float:
         return float(frame-3) / 3.0
     return pow(maxf(0.0, 1.0-float(frame-6)/14.0),3.0)
 
+func _pc42t_attach_source_ankles() -> void:
+    # Genuine source RGB/alpha pixels transferred from original shin layers
+    # to independently rotatable real ankle Bone2D children. The rest pose
+    # composite stays EXACTLY unchanged (verified by the splitting script).
+    for side in ["front","back"]:
+        var shin: Bone2D = pc42_bones[side+"_shin"]
+        var shin_sprite: Sprite2D = shin.get_node("ApprovedArt_"+side+"_shin") as Sprite2D
+        var remainder: Texture2D = _load_image("assets/pc42t/"+side+"_shin_remainder.png")
+        var foot_art: Texture2D = _load_image("assets/pc42t/"+side+"_foot.png")
+        if remainder == null or foot_art == null:
+            push_error("PC42T missing genuine split source textures "+side)
+            get_tree().quit(32)
+            return
+        shin_sprite.texture = remainder
+        var ankle_pivot: Vector2 = Vector2(72,218) if side == "front" else Vector2(125,209)
+        var shin_pivot: Vector2 = Vector2(79,182) if side == "front" else Vector2(131,184)
+        var ankle: Bone2D = Bone2D.new()
+        ankle.name = "Bone_"+side+"_ankle"
+        ankle.position = ankle_pivot-shin_pivot
+        shin.add_child(ankle)
+        var sprite: Sprite2D = Sprite2D.new()
+        sprite.name = "ApprovedArt_"+side+"_foot"
+        sprite.texture = foot_art
+        sprite.centered = false
+        sprite.position = -ankle_pivot
+        ankle.add_child(sprite)
+        pc42_bones[side+"_ankle"] = ankle
+    print("PC42T_ORIGINAL_SOURCE_ANKLE_BONES_READY front_and_back real Bone2D exact_rest_rgba_lossless")
+
 func _pc42s_walk_pose(frame: int) -> void:
     # PC42S: opt-in original-source gait diagnostic; no procedural leg art.
     # Both legs alternate over a 32-frame cycle with two-bone knee flexion.
@@ -370,6 +401,13 @@ func _pc42s_walk_pose(frame: int) -> void:
     back_thigh.rotation = deg_to_rad(6.0*sway)
     front_shin.rotation = deg_to_rad(6.0*front_swing)
     back_shin.rotation = deg_to_rad(6.0*back_swing)
+    if OS.get_environment("PC42T_ANKLE_TEST") == "1":
+        # Keep genuine source boot silhouettes level while thighs and knees
+        # articulate. Ankle correction opposes the cumulative parent rotation.
+        var front_ankle: Bone2D = pc42_bones["front_ankle"]
+        var back_ankle: Bone2D = pc42_bones["back_ankle"]
+        front_ankle.rotation = -front_thigh.rotation-front_shin.rotation
+        back_ankle.rotation = -back_thigh.rotation-back_shin.rotation
     # Source atlas contains footwear in each shin sprite, not separate
     # ankle Bone2D. Blend stance-foot preservation, limited to small
     # root offsets. Treat residual sliding as an explicit art/rig gate.
