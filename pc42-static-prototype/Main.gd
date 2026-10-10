@@ -335,7 +335,11 @@ func _pc42c_capture_full_test() -> void:
         max_far = maxf(max_far,float(result["far_contact_error_world"]))
         await _pc42c_capture_png("pc42c_motion_%02d.png" % frame)
         print("PC42C_GRIP_FRAME %02d angle=%.3f dominant_error=%.6f support_error=%.6f far_arm_error=%.6f" % [frame,angle_deg,result["dominant_contact_error_world"],result["support_contact_error_world"],result["far_contact_error_world"]])
-    var pose_angles: Array[int] = [-30,-15,0,15,30] if wide_sweep else [-10,-5,0,5,10]
+    # Godot 4.7 conditional array literals are untyped, so never assign the
+    # ternary output directly into Array[int] (Godot runtime type error).
+    var pose_angles: Array[int] = [-10,-5,0,5,10]
+    if wide_sweep:
+        pose_angles = [-30,-15,0,15,30]
     for angle_int in pose_angles:
         _pc42c_apply_weapon_ik(deg_to_rad(float(angle_int)))
         var label: String = "m%02d" % absi(angle_int) if angle_int < 0 else "p%02d" % angle_int
