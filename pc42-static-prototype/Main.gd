@@ -428,7 +428,8 @@ func _pc42c_capture_full_test() -> void:
         print("PC42Q_RIFLE_RECOIL_READY event_frame=4 peak_frame=6 rest_frame=20")
     if idle_breath:
         print("PC42P_IDLE_BREATH_CAPTURING true_Godot_frames=32 aim=0")
-    var sweep_degrees: float = (0.0 if idle_breath else (30.0 if wide_sweep else 10.0))
+    # Walking test must isolate leg motion from unrelated ±10° rifle aiming.
+    var sweep_degrees: float = (0.0 if idle_breath or walk_test else (30.0 if wide_sweep else 10.0))
     if wide_sweep:
         print("PC42O_WIDE_AIM_TEST_READY angle_limit_degrees=30 source_first=" + str(OS.get_environment("PC42N_SOURCE_FIRST_PREVIEW") == "1"))
     for frame in range(32):
