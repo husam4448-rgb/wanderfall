@@ -85,3 +85,13 @@ This concise prompt and the repository project standard supersede the previous r
 - Last signed APK PC33, version code 205: technical valid, visually rejected. No new approved APK.
 - Active GitHub dashboard: https://github.com/husam4448-rgb/wanderfall/issues/35
 - **Next engineering decision:** choose a real executable source-faithful elbow authoring method or progress an independent playable-game task without waiting indefinitely on artwork.
+
+## I. Character-first priority override (explicit user directive, 2026-10-10)
+
+This section supersedes earlier *parallel-track / highest READY gameplay* suggestions wherever they conflict:
+
+1. **Visual character appearance, articulation, weapon contact, gait, male/female LEFT/RIGHT, and wearable equipment are the primary development mission.** Focus on finishing convincing playable characters before unrelated exploration/world/crafting/NPC/gameplay expansion.
+2. When source-matched art generation is blocked, evaluate **alternative character-rendering strategies**, including approved-source hybrid occlusion/articulation. Do not switch to unrelated game content solely because character painting is difficult; record the blocker and advance a different independently verifiable **character** task.
+3. Character-specific experimental APKs are permitted after meaningful tested character integration, visibly labeled experimental with detailed art defects. No visually unapproved character may be called production-ready.
+4. Only after the core male and female character presentation, LEFT/RIGHT movement and equipment satisfy both technical and human visual QA should broad gameplay expansion become the primary task queue priority, unless the user explicitly changes it.
+5. Update the active task queue to reflect character-first precedence; don't pretend documentation updates themselves are feature completion.
