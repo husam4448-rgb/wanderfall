@@ -220,8 +220,11 @@ func _pc42h_build_far_arm() -> void:
         var parent: Bone2D = spec["parent"]
         parent.add_child(sprite)
         if use_direct_source_arm and not enable_painted_art and str(spec["name"]) == "pc42h_far_elbow":
-            # Occlude upper-arm sleeve fabric under the forearm as the elbow bends.
-            upper.move_child(sprite, 0)
+            # PC42L trial B: original source elbow pigment must remain actually
+            # visible, ABOVE the forearm joint. Trial A was fully occluded:
+            # five Godot angles produced zero pixels above threshold. This
+            # modifies only draw ownership/order, never synthesizes pixels.
+            upper.move_child(sprite, upper.get_child_count() - 1)
         if str(spec["name"]) == "pc42j_painted_elbow_backcloth":
             # Behind articulated skin; show only authentic uncovered backing.
             upper.move_child(sprite,0)
