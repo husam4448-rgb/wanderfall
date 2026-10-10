@@ -213,3 +213,15 @@ Create an isolated PC28 branch from PC27 verified source and test genuine knee a
 - **Task queue:** `SP-CHAR-RIFLE-RELOAD-001` blocked on real magazine/hand art; `SP-CHAR-MAGAZINE-001` ready for source-first donor inspection. Preserve old PC42Q idle/recoil verified baselines.
 - **APK:** NONE. PC42R is isolated character rig, not tested playable Android integration.
 - **Exact next action:** Inspect genuine `assets/authored2d/gear/rifle.png` and source layered rifle, author/source a complete detachable magazine and support-hand release/seat art (native RGBA; no fake polygons), validate local source fidelity, then integrate and test actual magazine manipulations at 32 frames. If art cannot be authored, move to another CHARACTER task such as locomotion, not general gameplay. No external AI agents/PC/Work/browser requirement.
+
+## PC42T independent boot Bone2D artwork and real Godot gait — 2026-10-10
+
+- **Latest tested character source:** `1950d37bdf803809857786df9f596c1f7218feae` on `pc42t-original-pixel-ankles`.
+- **Actual successful Godot workflow:** https://github.com/husam4448-rgb/wanderfall/actions/runs/38067206151 ; [raw frames and logs](https://github.com/husam4448-rgb/wanderfall/actions/runs/38067206151/artifacts/11674499491).
+- **Implementation:** opt-in two true Bone2D ankle/foot sockets, original shin sprites alpha partitioned pixel-exact into shin/boot, limited boot counter-roll. No fake foot pixels, original non-test code unaffected.
+- **Technical QA: PASS** Godot 4.7.2, 32 frames, both foot pixels conserved, thigh/knee and rifle IK constraints pass; grip errors <=0.000015 world px. PC42S 6-degree restrained gait and root correction remain within test bounds.
+- **VISUAL QA: INCOMPLETE for finished walking.** Inspected actual eight-phase full-body contact sheet. Boot source fidelity is retained but steps shuffle; no persistent world-fixed planted foot yet, and full ankle seam/stance/swing visual quality remains unapproved. Detailed report: `docs/PC42T_ANKLE_VISUAL_QA.md`.
+- **Next executable task:** `SP-CHAR-FOOTPLANT-001`. Implement persistent stance/swing contact target, measure world-space actual foot drift and root translation rather than changing thresholds; render genuine 32 frames and inspect native feet at contact.
+- **Other blockers unchanged:** PC42R complete reload requires authentic magazine and interacting support-hand source art; male RIGHT concealed elbow full anatomy still pending; male LEFT/female both facings, running and equipment not approved.
+- **APK:** no new signed APK; isolated character rig only. Last signed PC33 code 205 remains technical PASS / visually rejected.
+- **Monitoring:** GitHub Issue #35 watchdog independent of ChatGPT, assistant lease expiry means no continued assistant work.
