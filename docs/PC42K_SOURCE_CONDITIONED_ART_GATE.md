@@ -25,3 +25,15 @@ Verified PC42H rest pivots for registration: far shoulder (117,78), elbow (143,9
 6. No APK or expansion to female/LEFT until male RIGHT visual acceptance.
 
 **Current status:** ART GENERATION PENDING, no new art accepted, no active Godot build submitted, no new APK. Independent Issue #35 watchdog shows GitHub Actions state; assistant chat may stop separately.
+
+
+## 2026-10-10 — Completed OpenArt generation recovery
+
+- Exact history ID: `j7HwZ2C8ty2nIC25cDzk` (OpenArt project `LAhkINekmMM0gZmdWkCZ`).
+- Exact image resource ID: `Nb19LPURulwyMLvyIukX`.
+- OpenArt status API: **COMPLETED**. One output, 1200×896, model Nano Banana 2/image2image, generated against both original approved GitHub male EAST rifle/unarmed references.
+- Result card was reopened in chat successfully, but **the image byte retrieval is BLOCKED** in this executor: exposed public preview is an OpenArt watermarked WEBP thumbnail URL, the web reader does not retrieve image data, and local network access to cdn.openart.ai is DNS-denied. The OpenArt result-card API does not return image bytes or a GitHub-ready artifact. Do not claim visual inspection or extracted seven source PNGs.
+- **No need to re-generate art immediately.** Preserve the completed image in OpenArt history. Next execution with image-media export/download capability should obtain the original full-resolution PNG, inspect against both approved sources, and only then extract seven transparent 236×254 RGBA parts.
+- **Current QA:** ART_GENERATION_COMPLETED, IMAGE_BYTES_UNAVAILABLE, VISUAL_QA_NOT_PERFORMED, GODOT_NOT_TESTED, NO_APK.
+- **Latest actually tested Godot source remains:** `6e92cb4cebb7aa815565fbba27ac95e52d0a0dfd` with numeric PASS / visual FAIL, workflow https://github.com/husam4448-rgb/wanderfall/actions/runs/37989480113 .
+- Next after retrieval: check original costume/skin/glove identity and real transparent edges at native source; reject image if inaccurate, run native art intake and then 5-angle/32-frame Godot rendering with preserved PC42H two-hand IK. Do not fabricate an asset or claim approval to bypass this failure.
