@@ -222,6 +222,47 @@
       ],
       "attempts": 0,
       "allowed_same_failed_technique_retries": 1
+    },
+    {
+      "id": "SP-CHAR-WIDEAIM-001",
+      "track": "visual",
+      "priority": 1,
+      "status": "FAILED",
+      "objective": "Increase male RIGHT rifle aiming to ±30° with source-first silhouette and verified weapon-owned IK",
+      "depends_on": [
+        "SP-CHAR-HYBRID-001"
+      ],
+      "next_action": "Do not promote ±30 poses until a genuine source-matched support sleeve/elbow visible connection is painted; after that rerun 5 angles and 32 frames.",
+      "technical_verdict": "PASS",
+      "visual_verdict": "FAIL_FULL_ANATOMY_EXTREME_AIM",
+      "latest_tested_source_sha": "8e958719cdf8daa56da38e36f837221eb8966fd0",
+      "evidence": [
+        "https://github.com/husam4448-rgb/wanderfall/actions/runs/38044025022/artifacts/11667560678",
+        "docs/PC42O_WIDE_AIM_VISUAL_QA.md"
+      ],
+      "attempts": 1,
+      "allowed_same_failed_technique_retries": 0
+    },
+    {
+      "id": "SP-CHAR-IDLE-001",
+      "track": "visual",
+      "priority": 2,
+      "status": "READY",
+      "objective": "Produce restrained genuine 32-frame male RIGHT idle breathing using source-preserving character art, while keeping rifle-owned two-hand contacts and tested fallback untouched.",
+      "depends_on": [
+        "SP-CHAR-HYBRID-001"
+      ],
+      "next_action": "Implement small separate opt-in torso/head breathing animation in isolated rig, render 32 genuine Godot frames, test grip error and image continuity, accept only if visually natural.",
+      "acceptance": [
+        "Godot 4.7.2 compiles/runs",
+        "Original male RIGHT face/clothing silhouette preserved without seam gaps",
+        "32 actual breathing frames vary naturally and loop seamlessly",
+        "No rifle contact slip",
+        "Explicit visual pass or fail"
+      ],
+      "evidence": [],
+      "attempts": 0,
+      "allowed_same_failed_technique_retries": 2
     }
   ],
   "policy_override": "CHARACTER_FIRST_2026_10_10: all character appearance/animation/equipment tasks precede unrelated gameplay until user-approved quality gate; experimental builds can test characters, not content expansion"
