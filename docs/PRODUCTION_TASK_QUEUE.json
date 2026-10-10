@@ -247,12 +247,12 @@
       "id": "SP-CHAR-IDLE-001",
       "track": "visual",
       "priority": 2,
-      "status": "READY",
+      "status": "VERIFIED",
       "objective": "Produce restrained genuine 32-frame male RIGHT idle breathing using source-preserving character art, while keeping rifle-owned two-hand contacts and tested fallback untouched.",
       "depends_on": [
         "SP-CHAR-HYBRID-001"
       ],
-      "next_action": "Implement small separate opt-in torso/head breathing animation in isolated rig, render 32 genuine Godot frames, test grip error and image continuity, accept only if visually natural.",
+      "next_action": "After accurate concealed elbow art, verify full male RIGHT normal/hands/equipment idle in playable Android before APPROVED release.",
       "acceptance": [
         "Godot 4.7.2 compiles/runs",
         "Original male RIGHT face/clothing silhouette preserved without seam gaps",
@@ -260,10 +260,18 @@
         "No rifle contact slip",
         "Explicit visual pass or fail"
       ],
-      "evidence": [],
+      "evidence": [
+        "https://github.com/husam4448-rgb/wanderfall/actions/runs/38044391707/artifacts/11667146753",
+        "docs/PC42P_SOURCE_IDLE_BREATH_QA.md"
+      ],
       "attempts": 0,
-      "allowed_same_failed_technique_retries": 2
+      "allowed_same_failed_technique_retries": 2,
+      "latest_tested_source_sha": "c9b6e8dd7b2f1a79de67019c7e0e09e66e8fcad8",
+      "technical_verdict": "PASS",
+      "visual_verdict": "PROVISIONAL_PASS_IDLE_PREVIEW_ONLY"
     }
   ],
-  "policy_override": "CHARACTER_FIRST_2026_10_10: all character appearance/animation/equipment tasks precede unrelated gameplay until user-approved quality gate; experimental builds can test characters, not content expansion"
+  "policy_override": "CHARACTER_FIRST_2026_10_10: all character appearance/animation/equipment tasks precede unrelated gameplay until user-approved quality gate; experimental builds can test characters, not content expansion",
+  "last_tested_character_source_sha": "c9b6e8dd7b2f1a79de67019c7e0e09e66e8fcad8",
+  "last_tested_character_mode": "PC42P idle original-sprite 32 frames TECH PASS / provisional isolated visual PASS; full concealed support arm incomplete"
 }
