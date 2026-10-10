@@ -274,17 +274,43 @@
       "id": "SP-CHAR-RIFLE-RECOIL-001",
       "track": "visual",
       "priority": 2,
-      "status": "READY",
+      "status": "VERIFIED",
       "depends_on": [
         "SP-CHAR-HYBRID-001"
       ],
       "objective": "Develop first male RIGHT source-first rifle recoil and recovery animation, maintaining original painted identity and actual two-hand weapon-owned IK; hide missing sleeve material rather than fabricate polygons.",
-      "next_action": "Recover PC42P original-source idle rig, build opt-in 32-frame rifle recoil/recovery from one shared stock pivot + IK targets, run real Godot 5-pose/loop screenshot evidence and visual QA; do not merge into playable game until accepted.",
+      "next_action": "Integrate weapon-owned recoil into actual playable character after genuine artwork/pose QA; no release claim from isolated prototype.",
       "acceptance": [
         "Real Godot 4.7.2 32 frames and aim/shot recoil state render",
         "Rifle muzzle/stock/hand contacts remain constrained, no weapon independently floating",
         "Original olive/brown sleeve, glove and survivor appearance intact",
         "Human visual QA; full anatomical support arm remains a separate blocker"
+      ],
+      "evidence": [
+        "https://github.com/husam4448-rgb/wanderfall/actions/runs/38044783308/artifacts/11666582397",
+        "docs/PC42Q_TRUE_IK_RECOIL_QA.md"
+      ],
+      "attempts": 0,
+      "allowed_same_failed_technique_retries": 2,
+      "latest_tested_source_sha": "76d66b1c72b083ffdd717cf9f68e32956733ae93",
+      "technical_verdict": "PASS",
+      "visual_verdict": "PROVISIONAL_PASS_RECOIL_ONLY"
+    },
+    {
+      "id": "SP-CHAR-RIFLE-RELOAD-001",
+      "track": "visual",
+      "priority": 3,
+      "status": "READY",
+      "depends_on": [
+        "SP-CHAR-RIFLE-RECOIL-001"
+      ],
+      "objective": "Build male RIGHT original-source rifle reloading animation and return-to-aim contact transition using real Skeleton2D/Bone2D, preserving authentic gloves and rifle materials.",
+      "next_action": "Inspect current approved rifle/hand sources, design IK socket ownership during magazine release/seat, implement 32-frame Godot visual test with correct hand/rifle articulation; reject wrong-looking hand gaps; keep source-first fallback.",
+      "acceptance": [
+        "32 actual Godot reload motion frames and preserved idle recoil baseline",
+        "Rifle safely supported by dominant hand while support hand manipulates magazine with source-authored appearance",
+        "No independently floating gun or disjointed hands",
+        "Human visual review of hand/magazine closeups before accepting"
       ],
       "evidence": [],
       "attempts": 0,
@@ -292,6 +318,6 @@
     }
   ],
   "policy_override": "CHARACTER_FIRST_2026_10_10: all character appearance/animation/equipment tasks precede unrelated gameplay until user-approved quality gate; experimental builds can test characters, not content expansion",
-  "last_tested_character_source_sha": "c9b6e8dd7b2f1a79de67019c7e0e09e66e8fcad8",
-  "last_tested_character_mode": "PC42P idle original-sprite 32 frames TECH PASS / provisional isolated visual PASS; full concealed support arm incomplete"
+  "last_tested_character_source_sha": "76d66b1c72b083ffdd717cf9f68e32956733ae93",
+  "last_tested_character_mode": "PC42Q 32-frame source-first rifle recoil TECH PASS / provisional visual pass; full art and game integration unfinished"
 }
