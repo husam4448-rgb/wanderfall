@@ -366,10 +366,10 @@ func _pc42s_walk_pose(frame: int) -> void:
     var back_thigh: Bone2D = pc42_bones["back_thigh"]
     var front_shin: Bone2D = pc42_bones["front_shin"]
     var back_shin: Bone2D = pc42_bones["back_shin"]
-    front_thigh.rotation = deg_to_rad(-10.0*sway)
-    back_thigh.rotation = deg_to_rad(10.0*sway)
-    front_shin.rotation = deg_to_rad(10.0*front_swing)
-    back_shin.rotation = deg_to_rad(10.0*back_swing)
+    front_thigh.rotation = deg_to_rad(-6.0*sway)
+    back_thigh.rotation = deg_to_rad(6.0*sway)
+    front_shin.rotation = deg_to_rad(6.0*front_swing)
+    back_shin.rotation = deg_to_rad(6.0*back_swing)
     # Source atlas contains footwear in each shin sprite, not separate
     # ankle Bone2D. Blend stance-foot preservation, limited to small
     # root offsets. Treat residual sliding as an explicit art/rig gate.
