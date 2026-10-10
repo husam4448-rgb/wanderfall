@@ -189,3 +189,14 @@ Create an isolated PC28 branch from PC27 verified source and test genuine knee a
 - **Unresolved blocking art:** source-matched authentic concealed elbow/rolled sleeve for male RIGHT. Image generator has repeatedly returned unrelated dashboards; local source patch and earlier PC42J/L fabricated layers visually rejected. Do not repeat flat patches/bone-owner-only art tricks. Existing source-first mode only hides missing pixels, not finished joint anatomy.
 - **APK:** NO new APK, no Android device test. Isolated character scene only; last PC33 code 205 technical PASS/visual FAIL.
 - **Character-first next work:** restore/find a reliable genuinely source-matched elbow-art authoring process OR advance the next male RIGHT *character* feature (e.g. weapon recoil/reload test with preserved original texture and IK), not unrelated gameplay. Follow `main:docs/AI_ENGINEERING_CHAT_FIRST_PROTOCOL.md` and active `docs/PRODUCTION_TASK_QUEUE.json`. Keep chat as only AI developer interface, GitHub Actions independent testing/reporting.
+
+## PC42Q actual rifle firing/recoil first animation — 2026-10-10 UTC
+
+- **Last truly tested character source:** `76d66b1c72b083ffdd717cf9f68e32956733ae93`, branch `pc42q-source-first-rifle-recoil`, Godot 4.7.2 workflow https://github.com/husam4448-rgb/wanderfall/actions/runs/38044783308 SUCCESS.
+- **Real artifact:** https://github.com/husam4448-rgb/wanderfall/actions/runs/38044783308/artifacts/11666582397 (actual 32-frame Godot GIF, 8-phase contact sheet, 32 captures, source logs and numeric QA).
+- **PC42Q technical PASS:** fixed rest angle then frame4 fire/frame6 −3.5° upward rifle kick plus −1.5px backward stock translation; two-hand dominant/support/far true Bone2D IK grip errors ≤0.000063/0.000061/0.000063 world px, recoil output visibly changes 8876 pixels, full return to original frame0 by frame31 (0 changed pixels).
+- **Human visual QA:** **PROVISIONAL PASS for isolated rifle recoil motion**. Gun and original glove visuals stay connected; no unrelated painted arm strips; subtle shot recovers to rest. NOT completed gunfire gameplay, no muzzle effect, ammunition logic or actual in-game integration; visually concealed far sleeve unfinished.
+- **Detailed report:** `docs/PC42Q_TRUE_IK_RECOIL_QA.md`.
+- **Protected previous:** PC42N ±10 conditional source-fidelity hybrid, PC42O ±30 technical PASS/visual wide-anatomy FAIL, PC42P 32-frame breathing technical PASS and provisional idle visual PASS.
+- **Next READY character work:** `SP-CHAR-RIFLE-RELOAD-001` — male RIGHT reload/contact animation, with authentic rifle and glove artwork; **source-matched concealed elbow** `SP-ART-001` remains a high-priority visual blocker. No unrelated gameplay expansion.
+- **No APK**: all PC42N–Q validations are in isolated Godot character rig. Latest signed PC33 v205 technical PASS, visual FAIL; no approved new Android integration or measured device FPS.
