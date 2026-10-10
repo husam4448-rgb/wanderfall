@@ -269,6 +269,26 @@
       "latest_tested_source_sha": "c9b6e8dd7b2f1a79de67019c7e0e09e66e8fcad8",
       "technical_verdict": "PASS",
       "visual_verdict": "PROVISIONAL_PASS_IDLE_PREVIEW_ONLY"
+    },
+    {
+      "id": "SP-CHAR-RIFLE-RECOIL-001",
+      "track": "visual",
+      "priority": 2,
+      "status": "READY",
+      "depends_on": [
+        "SP-CHAR-HYBRID-001"
+      ],
+      "objective": "Develop first male RIGHT source-first rifle recoil and recovery animation, maintaining original painted identity and actual two-hand weapon-owned IK; hide missing sleeve material rather than fabricate polygons.",
+      "next_action": "Recover PC42P original-source idle rig, build opt-in 32-frame rifle recoil/recovery from one shared stock pivot + IK targets, run real Godot 5-pose/loop screenshot evidence and visual QA; do not merge into playable game until accepted.",
+      "acceptance": [
+        "Real Godot 4.7.2 32 frames and aim/shot recoil state render",
+        "Rifle muzzle/stock/hand contacts remain constrained, no weapon independently floating",
+        "Original olive/brown sleeve, glove and survivor appearance intact",
+        "Human visual QA; full anatomical support arm remains a separate blocker"
+      ],
+      "evidence": [],
+      "attempts": 0,
+      "allowed_same_failed_technique_retries": 2
     }
   ],
   "policy_override": "CHARACTER_FIRST_2026_10_10: all character appearance/animation/equipment tasks precede unrelated gameplay until user-approved quality gate; experimental builds can test characters, not content expansion",
