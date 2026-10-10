@@ -402,26 +402,54 @@
       "id": "SP-CHAR-FOOTPLANT-001",
       "track": "visual",
       "priority": 0,
-      "status": "READY",
+      "status": "BLOCKED",
       "depends_on": [
         "SP-CHAR-ANKLE-001"
       ],
       "objective": "Produce visually convincing planted stance feet and distinct swing foot on the approved original-source male RIGHT ankle-articulated 32-frame walk.",
-      "next_action": "Inspect PC42T genuine 32-frame feet, implement persistent stance contact target, measure foot world displacement and root bounds; run Godot/gait/visual QA; do not raise threshold to hide sliding.",
+      "next_action": "Build stance/swing foot-target IK with planted world contact and raised translating swing foot, preserve source art; validate foot drift and native 32-frame closeups.",
       "acceptance": [
         "Natural hip-to-boot coherent silhouette",
         "32-frame real Godot stance phases with world foot drift limit and root bounds",
         "Original source pixels retained",
         "Human visual QA of ankle seams/ground contact"
       ],
+      "attempts": 1,
+      "allowed_same_failed_technique_retries": 2,
+      "evidence": [
+        "docs/PC42U_FOOTPLANT_QA.md",
+        "https://github.com/husam4448-rgb/wanderfall/actions/runs/38085786684/artifacts/11682591595"
+      ],
+      "technical_verdict": "PASS_BOUNDED_ROOT_DIAGNOSTIC",
+      "visual_verdict": "INCOMPLETE_SHUFFLE_AND_RESIDUAL_TOE_DRIFT",
+      "latest_tested_source_sha": "04f2d0c88904d520bf5ba6d415bcba1297748256",
+      "blocking_reason": "PC42U actual Godot 32-frame toe max residual 6.978 world px and visible short-shuffling motion; not true stance locking. Need target-driven limb trajectory/IK."
+    },
+    {
+      "id": "SP-CHAR-FOOT-IK-001",
+      "track": "visual",
+      "priority": 0,
+      "status": "READY",
+      "depends_on": [
+        "SP-CHAR-ANKLE-001"
+      ],
+      "objective": "Replace source-first short shuffled gait by real foot-target two-bone leg IK with steady stance toe and elevated advancing swing foot, correct knee bend and bounded root movement.",
+      "next_action": "Implement true leg IK targeting original ankle bones, choose natural knee bend and gait timings, test foot-ground drift and visual source continuity; no generic foot textures.",
+      "acceptance": [
+        "Real Godot 32-frame controlled stance/swing foot paths",
+        "Measured planted toe drift and swing clearance",
+        "Consistent hip/knee/ankle joint pivots and anatomy",
+        "Actual native eight-phase/GIF human visual QA",
+        "Preserved approved original pixels and rifle contacts"
+      ],
       "attempts": 0,
       "allowed_same_failed_technique_retries": 2,
       "evidence": [
-        "docs/PC42T_ANKLE_VISUAL_QA.md"
+        "docs/PC42U_FOOTPLANT_QA.md"
       ]
     }
   ],
   "policy_override": "CHARACTER_FIRST_2026_10_10: all character appearance/animation/equipment tasks precede unrelated gameplay until user-approved quality gate; experimental builds can test characters, not content expansion",
-  "last_tested_character_source_sha": "1950d37bdf803809857786df9f596c1f7218feae",
-  "last_tested_character_mode": "PC42T independent original-pixel ankle Bone2D technical PASS / full walking visual INCOMPLETE, no APK"
+  "last_tested_character_source_sha": "04f2d0c88904d520bf5ba6d415bcba1297748256",
+  "last_tested_character_mode": "PC42U actual Godot bounded toe/foot calculations TECH PASS, VISUAL INCOMPLETE shuffling/residual drift; no APK"
 }
