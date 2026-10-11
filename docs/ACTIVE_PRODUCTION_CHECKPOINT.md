@@ -200,3 +200,16 @@ Create an isolated PC28 branch from PC27 verified source and test genuine knee a
 - **Protected previous:** PC42N ±10 conditional source-fidelity hybrid, PC42O ±30 technical PASS/visual wide-anatomy FAIL, PC42P 32-frame breathing technical PASS and provisional idle visual PASS.
 - **Next READY character work:** `SP-CHAR-RIFLE-RELOAD-001` — male RIGHT reload/contact animation, with authentic rifle and glove artwork; **source-matched concealed elbow** `SP-ART-001` remains a high-priority visual blocker. No unrelated gameplay expansion.
 - **No APK**: all PC42N–Q validations are in isolated Godot character rig. Latest signed PC33 v205 technical PASS, visual FAIL; no approved new Android integration or measured device FPS.
+
+
+## PC42V ARM ONLY −90°..+90° completed diagnostic (2026-10-11 UTC)
+
+- Recovery base: PC42Q original-source male RIGHT rifle rig; no locomotion/leg changes.
+- Tested source SHA: `1a46700e71445aedfb6f2ca05b543d177c83fde9`.
+- Corrected real Godot 4.7.2 CI workflow: https://github.com/husam4448-rgb/wanderfall/actions/runs/38110636999 **SUCCESS** (the earlier 38110432883 workflow failed on stale grep requiring old recoil log; Godot actually captured all 77 requested images).
+- Real artifact: https://github.com/husam4448-rgb/wanderfall/actions/runs/38110636999/artifacts/11690713370.
+- Exact captures: 13 at 15° increments from −90° to +90° and 64 continuous sweep sample PNGs. All 13 and all 64 had valid two-bone dominant/support IK reach, max captured wrist contact discrepancy <0.00009 world px. **Technical diagnostic PASS**, not full anatomical acceptance.
+- **Visual QA FAIL at extreme angles:** Original source-first forearm/sleeve art remains insufficient. The full upper arm–forearm and support arm continuity, silhouette, painted shoulder socket and wrist/glove relation do not visually pass steep raise/lower angles; numerical solver alone cannot repair missing authentic exposed fabric/skin. No new elbow art authored. Source-rest actor and protected two-hand rifle IK unchanged.
+- Full QA: `docs/PC42V_WIDE_ARM_ARTICULATION_QA.md`.
+- **Only next authorized task:** `SP-CHAR-ARM-EXTREME-001`: source-faithful painted sleeve and shoulder/elbow surface, directional layering and human visual inspection at exact angles, then Godot 64-frame retest. Preserve user's strict arm-first direction.
+- Leg/foot/locomotion work frozen; earlier experimental PC42U source preserved but not active baseline. No new APK.
