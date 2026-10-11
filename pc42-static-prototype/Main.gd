@@ -16,6 +16,7 @@ var canvas_size: Vector2 = Vector2(236,254)
 var pc42_skeleton: Skeleton2D
 var pc42_bones: Dictionary = {}
 var pc42p_idle_source_rest: Dictionary = {}
+var pc42x_joint_overlay: bool = false
 # The approved source drawing provides a fully visible rest pose.
 # Covered bone material remains unresolved and must not be fabricated.
 const PARENTS: Dictionary = {
@@ -357,6 +358,14 @@ func _pc42q_recoil_envelope(frame: int) -> float:
         return float(frame-3) / 3.0
     return pow(maxf(0.0, 1.0-float(frame-6)/14.0),3.0)
 
+func _pc42x_capture_joint_overlay() -> void:
+    # Engineering QA overlay ONLY, never a character texture.
+    # This draws the REAL solved joint centers in viewport coordinates.
+    # It is not a proposed sleeve or painted elbow.
+    pc42x_joint_overlay = true
+    await _pc42c_capture_png("pc42x_actual_arm_joint_overlay.png")
+    pc42x_joint_overlay = false
+
 func _pc42v_capture_arm_stress() -> void:
     # Full signed-angle reachability + actual Godot render. Unreachable
     # angles are explicit diagnostic failures; never show a rest pose as
@@ -457,6 +466,20 @@ func _pc42c_capture_full_test() -> void:
     print("PC42C_REAL_IK_CONTACT_SWEEP_OK frames=32 max_dominant_px_world=" + str(max_dom) + " max_support_px_world=" + str(max_sup))
     print("PC42D_FAR_ARM_TWO_BONE_IK_OK max_far_wrist_contact_world=" + str(max_far))
     print("PC42C_SECOND_ARM_AND_HIDDEN_TEXTURE_VISUAL_ACCEPTANCE_PENDING")
+
+func _pc42x_draw_real_joint_overlay() -> void:
+    if not pc42x_joint_overlay or pc42_skeleton == null:
+        return
+    var names: Array[String] = ["near_upper_arm","near_forearm","dominant_hand","far_upper_arm","far_forearm","support_hand"]
+    var previous: Vector2 = Vector2.ZERO
+    for i in range(names.size()):
+        var node: Bone2D = pc42_bones[names[i]]
+        var xy: Vector2 = to_local(node.global_position)
+        draw_circle(xy,3.5,Color(1.0,0.25,0.16,0.95) if i<3 else Color(0.15,0.9,0.95,0.95))
+        draw_string(ThemeDB.fallback_font,xy+Vector2(5,-4),names[i],HORIZONTAL_ALIGNMENT_LEFT,-1,11,Color.WHITE)
+        if i%3 != 0:
+            draw_line(previous,xy,Color.YELLOW,1.0,true)
+        previous = xy
 
 func _draw_parts(origin: Vector2, show_pivots: bool) -> void:
     # Source RGBA textures all occupy the original art canvas.
