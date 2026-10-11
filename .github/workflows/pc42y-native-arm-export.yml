@@ -1,0 +1,52 @@
+name: PC42Y Recover Native PC42H Arm Artwork
+on:
+  push:
+    branches: [pc42y-authentic-arm-artwork]
+    paths: ['.github/workflows/pc42y-native-arm-export.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  recover-native-arm-art:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install original PC42H source-processing dependencies
+        run: python3 -m pip install --quiet pillow numpy opencv-python-headless
+      - name: Reconstruct original approved reference and six PC42H RGBA textures
+        run: |
+          python3 tools/pc42_reference_cutout.py
+          python3 tools/pc42h_articulated_arm_atlas.py
+      - name: Verify exact native bytes and source manifest
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,hashlib
+          from PIL import Image
+          base=Path('pc42-static-prototype/assets')
+          names=['shoulder','upper','elbow','forearm','cuff','glove_backing']
+          for n in names:
+              p=base/f'pc42h_far_{n}.png'
+              with Image.open(p) as im:
+                  im.load()
+                  assert im.size==(236,254) and im.mode=='RGBA',(n,im.size,im.mode)
+                  assert im.getchannel('A').getextrema()[1]>8,n
+              print(n,p.stat().st_size,hashlib.sha256(p.read_bytes()).hexdigest())
+          report=json.loads((base/'pc42h_arm_sources.json').read_text())
+          assert len(report['source_texture_parts'])==6
+          print('PC42Y_ORIGINAL_ART_BYTES_VERIFIED; VISUAL APPROVAL STILL PENDING')
+          PY
+      - name: Upload actual native source sprites (NOT visual approval)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PC42Y-Native-PC42H-Arm-RGBA-${{ github.sha }}
+          path: |
+            pc42-static-prototype/assets/pc42h_far_*.png
+            pc42-static-prototype/assets/pc42h_arm_sources.json
+            pc42-static-prototype/assets/approved_reference_panel.png
+            pc42-static-prototype/assets/approved_foreground_matte.png
+            pc42-static-prototype/assets/matte_review.png
+            pc42-static-prototype/assets/manifest.json
+          retention-days: 14
