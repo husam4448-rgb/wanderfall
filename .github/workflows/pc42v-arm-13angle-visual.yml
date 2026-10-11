@@ -1,0 +1,89 @@
+name: PC42V 13 Angle Real Godot Shoulder Elbow Wrist Arm Stress QA
+on:
+  push:
+    branches: [pc42v-arm-wide-angle-diagnostics]
+    paths:
+      - '.github/workflows/pc42v-arm-13angle-visual.yml'
+      - 'pc42-static-prototype/Main.gd'
+      - 'tools/qa_pc42q_recoil.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+  actions: read
+env:
+  SP_PHASE: PC42V_ARM_WIDE_STRESS
+  GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
+jobs:
+  actual-character-idle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Report idle animation started
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 tools/sp_ci_monitor.py emit STARTED "PC42V native 13-pose and 64-sample joint reachability diagnosis, arms only; unreachables explicitly reported." || true
+      - name: Reconstruct genuine source textures
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pillow numpy opencv-python-headless
+          python3 -m py_compile tools/pc42_reference_cutout.py
+          python3 tools/pc42_reference_cutout.py
+          python3 tools/pc42h_articulated_arm_atlas.py
+          test -s pc42-static-prototype/assets/approved_reference_panel.png
+      - name: Report original art prepared
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 tools/sp_ci_monitor.py emit SOURCE_READY "Original torso/head/backpack art prepared. Subtle idle sprite motion only, no replacement generated pixels." || true
+      - name: Download pinned Godot
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip" | sha256sum -c -
+          unzip -q /tmp/godot.zip -d /tmp
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb >/dev/null
+      - name: Compile real Godot skeleton
+        run: |
+          "$GODOT_BIN" --headless --editor --path pc42-static-prototype --quit >pc42q-import.log 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|Compile Error' pc42q-import.log; then cat pc42q-import.log; exit 1; fi
+      - name: Report Godot compiled
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 tools/sp_ci_monitor.py emit GODOT_COMPILED "PC42Q actual Godot 4.7.2 shot/recoil scene compiled, 32-frame idle breath/weapon grip test next." || true
+      - name: Real Godot 32-frame idle breath
+        run: |
+          set -euo pipefail
+          mkdir -p pc42-static-prototype/evidence
+          PC42N_SOURCE_FIRST_PREVIEW=1 PC42V_ARM_STRESS=1 timeout 160s xvfb-run -a "$GODOT_BIN" --path pc42-static-prototype --resolution 1580x660 >pc42v-arm-motion.log 2>&1
+          grep -q 'PC42V_ARM_STRESS_RECORDED' pc42v-arm-motion.log
+          grep -q 'PC42C_REAL_IK_CONTACT_SWEEP_OK' pc42v-arm-motion.log
+          python3 -c 'import pathlib,re; s=pathlib.Path("pc42v-arm-motion.log").read_text(); assert len(re.findall(r"PC42V_ANGLE ",s))==13; assert len(re.findall(r"PC42V_FRAME ",s))==64; print("PC42V_SWEEP_DIAGNOSTIC_RECORDED")'
+      - name: Report animation evidence
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 tools/sp_ci_monitor.py emit VISUAL_QA_PENDING "PC42Q 32-frame true two-hand firing/recoil GIF, 8 frame sheet and exact grip QA available for visual inspection." || true
+      - name: Preserve real captures even when failed
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SP-PC42V-Wide-Angle-Arm-Diagnostics-${{ github.sha }}
+          path: |
+            pc42-static-prototype/evidence/
+            pc42v-*.log
+          retention-days: 14
+      - name: Final verified status
+        if: always()
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            python3 tools/sp_ci_monitor.py emit COMPLETED "PC42V actual wide-arm Godot diagnostics recorded; unreachable angles mean full arm QA FAIL, visual review pending." || true
+          else
+            python3 tools/sp_ci_monitor.py emit FAILED "PC42V diagnostic execution FAILED; see retained logs and images, protected original art unchanged." || true
+          fi
