@@ -28,7 +28,13 @@ static func solve_dominant(angle: float, recoil_translation: Vector2 = Vector2.Z
     var perpendicular: Vector2 = Vector2(-direction.y,direction.x)
     var candidate_a: Vector2 = base+height*perpendicular
     var candidate_b: Vector2 = base-height*perpendicular
+    # Wide-angle diagnostic: preserve the authored positive cross-product
+    # bend branch across the FULL sweep. Nearest-to-rest per-angle changes
+    # configuration at extremes and may snap the elbow across the limb.
+    # Keep default unchanged until native 13-angle / 64-frame QA passes.
     var elbow: Vector2 = candidate_a if candidate_a.distance_squared_to(REST_ELBOW)<=candidate_b.distance_squared_to(REST_ELBOW) else candidate_b
+    if OS.get_environment("PC42W_ELBOW_BRANCH_TEST") == "1":
+        elbow = candidate_a if offset.cross(candidate_a-SHOULDER) > 0.0 else candidate_b
     var shoulder_angle: float = (elbow-SHOULDER).angle()-(REST_ELBOW-SHOULDER).angle()
     var forearm_global: float = (target-elbow).angle()-(REST_DOMINANT_WRIST-REST_ELBOW).angle()
     var elbow_relative: float = forearm_global-shoulder_angle
@@ -64,6 +70,8 @@ static func solve_support(angle: float, recoil_translation: Vector2 = Vector2.ZE
     var a: Vector2 = base+height*perpendicular
     var b: Vector2 = base-height*perpendicular
     var elbow: Vector2 = a if a.distance_squared_to(FAR_REST_ELBOW)<=b.distance_squared_to(FAR_REST_ELBOW) else b
+    if OS.get_environment("PC42W_ELBOW_BRANCH_TEST") == "1":
+        elbow = a if offset.cross(a-FAR_SHOULDER) > 0.0 else b
     var upper_rotation: float = (elbow-FAR_SHOULDER).angle()-(FAR_REST_ELBOW-FAR_SHOULDER).angle()
     var fore_global: float = (target-elbow).angle()-(REST_SUPPORT_WRIST-FAR_REST_ELBOW).angle()
     return {
