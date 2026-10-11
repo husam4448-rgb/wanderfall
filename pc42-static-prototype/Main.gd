@@ -389,6 +389,8 @@ func _pc42v_capture_arm_stress() -> void:
         successful += 1
         var label: String = "m%02d" % absi(a) if a < 0 else "p%02d" % a
         await _pc42c_capture_png("pc42v_angle_" + label + ".png")
+        if a == 60:
+            await _pc42x_capture_joint_overlay()
     # Continuous sweep samples the full requested range; record reachability
     # instead of silently hiding failed frames or changing original art.
     for frame in range(64):
@@ -518,6 +520,7 @@ func _draw() -> void:
     draw_set_transform(Vector2.ZERO,0.0,Vector2.ONE)
     # CENTER is now drawn by an actual Skeleton2D/Bone2D hierarchy.
     _draw_parts(RIGHT,true)
+    _pc42x_draw_real_joint_overlay()
     var font: Font = ThemeDB.fallback_font
     draw_string(font,Vector2(LEFT.x,50),"APPROVED SOURCE | MALE RIGHT RIFLE",HORIZONTAL_ALIGNMENT_LEFT,-1,18,Color.WHITE)
     draw_string(font,Vector2(CENTER.x,50),"PC42B REAL Skeleton2D/Bone2D",HORIZONTAL_ALIGNMENT_LEFT,-1,18,Color.WHITE)
