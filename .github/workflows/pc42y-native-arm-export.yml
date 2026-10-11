@@ -4,6 +4,7 @@ on:
     branches: [pc42y-authentic-arm-artwork]
     paths: ['.github/workflows/pc42y-native-arm-export.yml']
   workflow_dispatch:
+  # PC42Y.7: push-trigger verification after initial workflow registration.
 permissions:
   contents: read
 jobs:
