@@ -146,6 +146,32 @@ for name,minimum in essential.items():
         raise RuntimeError(f"PC42 {name} semantic layer underfilled {count}<{minimum}")
 assert np.array_equal(sum((a.astype(np.uint16) for a in parts_data.values()),
                           np.zeros((H,W),np.uint16)),alpha.astype(np.uint16))
+# PC42Y (opt-in): use ONLY genuine opaque reference pixels as hidden
+# articulation backing at the shoulder and elbow. The original segmentation
+# remains exact/exclusive in its default production mode, and RGB values are
+# never interpolated, synthesized, repainted or sourced outside the original.
+# An overlapping original-source layer provides the modest anatomical cloth
+# reserve absent from the exclusive static segmentation when Bone2D rotates.
+# This CANNOT reconstruct fully concealed upper/forearm anatomy; native Godot
+# visual acceptance is still required across ±90 degrees.
+import os
+if os.getenv("PC42Y_SOURCE_SEAM_OVERLAP") == "1":
+    seam_counts={}
+    for joint,receiver,donor,pivot,radius in [
+        ("shoulder","torso","near_upper_arm",(104,78),11),
+        ("elbow","near_upper_arm","near_forearm",(120,103),10)
+    ]:
+        yy,xx=np.ogrid[:H,:W]
+        joint_disk=(xx-pivot[0])**2+(yy-pivot[1])**2<=radius**2
+        # No invented pixels: duplicate only the exact original opaque RGB
+        # samples from the donor part, positioned as the art was authored.
+        transfer=joint_disk&(parts_data[donor]==255)&(parts_data[receiver]==0)
+        parts_data[receiver][transfer]=255
+        seam_counts[joint]=int(np.count_nonzero(transfer))
+    assert seam_counts["shoulder"]>0 and seam_counts["elbow"]>0,seam_counts
+    print("PC42Y_REAL_SOURCE_JOINT_OVERLAP shoulder=%d elbow=%d RGB_unmodified=True"%
+          (seam_counts["shoulder"],seam_counts["elbow"]))
+
 manifest={"schema":"pc42-static-reference-layers-v1",
           "source":str(source.relative_to(repo)),
           "phase":"male_right_static_rifle_ONLY",
