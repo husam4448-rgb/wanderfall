@@ -1,10 +1,11 @@
-name: PC42W Stable Anatomical Elbow Branch 13-Angle Godot QA
+name: PC42Y Original-Source Shoulder Elbow Overlap Godot QA
 on:
   push:
-    branches: [pc42w-anatomical-elbow-branch]
+    branches: [pc42y-original-joint-seam-overlap]
     paths:
       - '.github/workflows/pc42w-elbow-branch-visual.yml'
       - 'pc42-static-prototype/Main.gd'
+      - 'tools/pc42_reference_cutout.py'
       - 'tools/qa_pc42q_recoil.py'
   workflow_dispatch:
 permissions:
@@ -12,7 +13,7 @@ permissions:
   issues: write
   actions: read
 env:
-  SP_PHASE: PC42W_ARM_BEND_BRANCH
+  SP_PHASE: PC42Y_JOINT_ART_OVERLAP
   GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
 jobs:
   actual-character-idle:
@@ -30,7 +31,10 @@ jobs:
           set -euo pipefail
           python3 -m pip install --quiet pillow numpy opencv-python-headless
           python3 -m py_compile tools/pc42_reference_cutout.py
-          python3 tools/pc42_reference_cutout.py
+          PC42Y_SOURCE_SEAM_OVERLAP=1 python3 tools/pc42_reference_cutout.py
+          # Original RGB only, opt-in shoulder/elbow backing must be present.
+          PC42Y_SOURCE_SEAM_OVERLAP=1 python3 tools/pc42_reference_cutout.py >pc42y-source-seam.log 2>&1
+          grep -q 'PC42Y_REAL_SOURCE_JOINT_OVERLAP' pc42y-source-seam.log
           python3 tools/pc42h_articulated_arm_atlas.py
           test -s pc42-static-prototype/assets/approved_reference_panel.png
       - name: Report original art prepared
@@ -66,15 +70,16 @@ jobs:
         env:
           GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python3 tools/sp_ci_monitor.py emit VISUAL_QA_PENDING "PC42W fixed elbow bend branch enabled, 13 poses and 64 sweep frames captured; human visual QA pending." || true
+          python3 tools/sp_ci_monitor.py emit VISUAL_QA_PENDING "PC42Y original-source shoulder/elbow overlap enabled, 13 poses and 64 sweep frames captured; human visual QA pending." || true
       - name: Preserve real captures even when failed
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: SP-PC42W-Elbow-Branch-Diagnostic-${{ github.sha }}
+          name: SP-PC42Y-Source-Sleeve-Overlap-${{ github.sha }}
           path: |
             pc42-static-prototype/evidence/
             pc42v-*.log
+            pc42y-*.log
           retention-days: 14
       - name: Final verified status
         if: always()
@@ -82,7 +87,7 @@ jobs:
           GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ "${{ job.status }}" = "success" ]; then
-            python3 tools/sp_ci_monitor.py emit COMPLETED "PC42V actual wide-arm Godot diagnostics recorded; unreachable angles mean full arm QA FAIL, visual review pending." || true
+            python3 tools/sp_ci_monitor.py emit COMPLETED "PC42Y real Godot arm-source-seam overlap captures recorded; unreachable angles mean full arm QA FAIL, visual review pending." || true
           else
-            python3 tools/sp_ci_monitor.py emit FAILED "PC42V diagnostic execution FAILED; see retained logs and images, protected original art unchanged." || true
+            python3 tools/sp_ci_monitor.py emit FAILED "PC42Y source-seam correction FAILED; see retained logs and images, protected original art unchanged." || true
           fi
