@@ -320,13 +320,13 @@
       "id": "SP-CHAR-ARM-EXTREME-001",
       "track": "visual",
       "priority": 0,
-      "status": "BLOCKED",
+      "status": "READY",
       "objective": "Correct original-source male RIGHT shoulder/elbow/forearm/sleeve silhouette across −90°..+90° rifle aiming without modifying legs.",
       "depends_on": [],
-      "technical_verdict": "PC42W_GODOT_PASS",
-      "visual_verdict": "FAIL_EXTREME_ANGLES",
-      "latest_tested_source_sha": "8b71c94ad3303828fb829a3ee4c5c20270708d0b",
-      "next_action": "Author source-matched high-angle shoulder and elbow/forearm cloth/skin sprites with alpha joints and correct ownership; visually inspect native source and Godot, then re-run full aim range.",
+      "technical_verdict": "PC42X_REAL_JOINT_OVERLAY_PASS",
+      "visual_verdict": "FAIL_ARTWORK_SHOULDER_ELBOW",
+      "latest_tested_source_sha": "358fa6b0fdb37fff6ba04c38a7e643e606c04551",
+      "next_action": "Make source-authentic deltoid/upper-sleeve to torso connection and far elbow/forearm surface with real RGBA art, attach to correct source pivots; rerender actual 13-angle and 64-frame Godot visual QA; no legs.",
       "acceptance": [
         "Shoulder attachment visually continuous to torso at all intended angles",
         "Anatomical elbow branch and no sleeve/glove gaps",
@@ -336,7 +336,9 @@
       ],
       "evidence": [
         "docs/PC42W_ELBOW_BRANCH_VISUAL_QA.md",
-        "https://github.com/husam4448-rgb/wanderfall/actions/runs/38111049593/artifacts/11691790749"
+        "https://github.com/husam4448-rgb/wanderfall/actions/runs/38111049593/artifacts/11691790749",
+        "docs/PC42X_BONE_JOINT_OVERLAY_QA.md",
+        "https://github.com/husam4448-rgb/wanderfall/actions/runs/38122088261/artifacts/11695009534"
       ],
       "attempts": 0,
       "allowed_same_failed_technique_retries": 2,
@@ -364,6 +366,6 @@
     }
   ],
   "policy_override": "CHARACTER_FIRST_2026_10_10: all character appearance/animation/equipment tasks precede unrelated gameplay until user-approved quality gate; experimental builds can test characters, not content expansion",
-  "last_tested_character_source_sha": "8b71c94ad3303828fb829a3ee4c5c20270708d0b",
-  "last_tested_character_mode": "PC42W signed elbow-bend branch tested via real Godot 13-angle 64-frame: TECH PASS, VISUAL FAIL high angle; missing genuine elbow/shoulder source art, no APK. LEGS FROZEN."
+  "last_tested_character_source_sha": "358fa6b0fdb37fff6ba04c38a7e643e606c04551",
+  "last_tested_character_mode": "PC42X real +60 shoulder/elbow/wrist Bone2D overlay Godot technical PASS; arm source artwork VISUAL FAIL; leg work frozen; no APK."
 }
