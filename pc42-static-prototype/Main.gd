@@ -64,6 +64,10 @@ func _ready() -> void:
     _build_actual_skeleton2d()
     if OS.get_environment("PC42P_IDLE_BREATH_TEST") == "1":
         _pc42p_init_source_breath()
+    if OS.get_environment("PC42V_ARM_STRESS") == "1":
+        await _pc42v_capture_arm_stress()
+        get_tree().quit()
+        return
     if OS.get_environment("PC42C_CAPTURE") == "1":
         await _pc42c_capture_full_test()
         get_tree().quit()
@@ -352,6 +356,48 @@ func _pc42q_recoil_envelope(frame: int) -> float:
     if frame <= 6:
         return float(frame-3) / 3.0
     return pow(maxf(0.0, 1.0-float(frame-6)/14.0),3.0)
+
+func _pc42v_capture_arm_stress() -> void:
+    # Full signed-angle reachability + actual Godot render. Unreachable
+    # angles are explicit diagnostic failures; never show a rest pose as
+    # though it were the requested high-angle target.
+    var angles: Array[int] = [-90,-75,-60,-45,-30,-15,0,15,30,45,60,75,90]
+    var failures: int = 0
+    var successful: int = 0
+    for a in angles:
+        var rad: float = deg_to_rad(float(a))
+        var near: Dictionary = PC42CGripIK.solve_dominant(rad)
+        var far: Dictionary = PC42CGripIK.solve_support(rad)
+        var ok: bool = bool(near["valid"]) and bool(far["valid"])
+        print("PC42V_ANGLE %d near=%s far=%s" % [a,str(near["valid"]),str(far["valid"])])
+        if not ok:
+            failures += 1
+            continue
+        var result: Dictionary = _pc42c_apply_weapon_ik(rad)
+        if not bool(result["valid"]):
+            failures += 1
+            continue
+        successful += 1
+        var label: String = "m%02d" % absi(a) if a < 0 else "p%02d" % a
+        await _pc42c_capture_png("pc42v_angle_" + label + ".png")
+    # Continuous sweep samples the full requested range; record reachability
+    # instead of silently hiding failed frames or changing original art.
+    for frame in range(64):
+        var angle_deg: float = -90.0*cos(TAU*float(frame)/64.0)
+        var rad: float = deg_to_rad(angle_deg)
+        var near: Dictionary = PC42CGripIK.solve_dominant(rad)
+        var far: Dictionary = PC42CGripIK.solve_support(rad)
+        if not bool(near["valid"]) or not bool(far["valid"]):
+            print("PC42V_FRAME %02d angle=%.3f reachable=false" % [frame,angle_deg])
+            continue
+        var result: Dictionary = _pc42c_apply_weapon_ik(rad)
+        if not bool(result["valid"]):
+            print("PC42V_FRAME %02d angle=%.3f reachable=false" % [frame,angle_deg])
+            continue
+        print("PC42V_FRAME %02d angle=%.3f reachable=true dominant_error=%.6f far_error=%.6f" % [frame,angle_deg,result["dominant_contact_error_world"],result["far_contact_error_world"]])
+        await _pc42c_capture_png("pc42v_sweep_%02d.png" % frame)
+    _pc42c_apply_weapon_ik(0.0)
+    print("PC42V_ARM_STRESS_RECORDED angles=13 reachable=%d failures=%d frames=64 NOTE=UNREACHABLE_NOT_APPROVED" % [successful,failures])
 
 func _pc42c_capture_full_test() -> void:
     var max_dom: float = 0.0
