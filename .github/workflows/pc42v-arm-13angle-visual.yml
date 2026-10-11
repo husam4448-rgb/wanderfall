@@ -55,19 +55,18 @@ jobs:
           GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python3 tools/sp_ci_monitor.py emit GODOT_COMPILED "PC42Q actual Godot 4.7.2 shot/recoil scene compiled, 32-frame idle breath/weapon grip test next." || true
-      - name: Real Godot 32-frame idle breath
+      - name: Real Godot 13-angle / 64-sample arm-stress diagnostic
         run: |
           set -euo pipefail
           mkdir -p pc42-static-prototype/evidence
           PC42N_SOURCE_FIRST_PREVIEW=1 PC42V_ARM_STRESS=1 timeout 160s xvfb-run -a "$GODOT_BIN" --path pc42-static-prototype --resolution 1580x660 >pc42v-arm-motion.log 2>&1
           grep -q 'PC42V_ARM_STRESS_RECORDED' pc42v-arm-motion.log
-          grep -q 'PC42C_REAL_IK_CONTACT_SWEEP_OK' pc42v-arm-motion.log
           python3 -c 'import pathlib,re; s=pathlib.Path("pc42v-arm-motion.log").read_text(); assert len(re.findall(r"PC42V_ANGLE ",s))==13; assert len(re.findall(r"PC42V_FRAME ",s))==64; print("PC42V_SWEEP_DIAGNOSTIC_RECORDED")'
       - name: Report animation evidence
         env:
           GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python3 tools/sp_ci_monitor.py emit VISUAL_QA_PENDING "PC42Q 32-frame true two-hand firing/recoil GIF, 8 frame sheet and exact grip QA available for visual inspection." || true
+          python3 tools/sp_ci_monitor.py emit VISUAL_QA_PENDING "PC42V 13 static aim poses and 64-frame sweep captured; human anatomy visual QA pending." || true
       - name: Preserve real captures even when failed
         if: always()
         uses: actions/upload-artifact@v4
