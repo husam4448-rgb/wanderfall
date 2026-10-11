@@ -320,13 +320,13 @@
       "id": "SP-CHAR-ARM-EXTREME-001",
       "track": "visual",
       "priority": 0,
-      "status": "READY",
+      "status": "BLOCKED",
       "objective": "Correct original-source male RIGHT shoulder/elbow/forearm/sleeve silhouette across −90°..+90° rifle aiming without modifying legs.",
       "depends_on": [],
-      "technical_verdict": "DIAGNOSTIC_PASS_ONLY",
+      "technical_verdict": "PC42W_GODOT_PASS",
       "visual_verdict": "FAIL_EXTREME_ANGLES",
-      "latest_tested_source_sha": "1a46700e71445aedfb6f2ca05b543d177c83fde9",
-      "next_action": "Inspect native source layers and 13 real Godot screenshots and author real source-matched shoulder sleeve and elbow articulation, then rerun true 13-angle and 64-frame visual QA; preserve two-hand weapon IK.",
+      "latest_tested_source_sha": "8b71c94ad3303828fb829a3ee4c5c20270708d0b",
+      "next_action": "Author source-matched high-angle shoulder and elbow/forearm cloth/skin sprites with alpha joints and correct ownership; visually inspect native source and Godot, then re-run full aim range.",
       "acceptance": [
         "Shoulder attachment visually continuous to torso at all intended angles",
         "Anatomical elbow branch and no sleeve/glove gaps",
@@ -335,14 +335,35 @@
         "Human visual PASS"
       ],
       "evidence": [
-        "docs/PC42V_WIDE_ARM_ARTICULATION_QA.md",
-        "https://github.com/husam4448-rgb/wanderfall/actions/runs/38110636999/artifacts/11690713370"
+        "docs/PC42W_ELBOW_BRANCH_VISUAL_QA.md",
+        "https://github.com/husam4448-rgb/wanderfall/actions/runs/38111049593/artifacts/11691790749"
+      ],
+      "attempts": 0,
+      "allowed_same_failed_technique_retries": 2,
+      "blocking_reason": "Source-matched visible shoulder/elbow/forearm material still absent at high and low aiming angles. Signed-bend IK passes but authentic sleeve and support elbow do not visually connect."
+    },
+    {
+      "id": "SP-ART-ARMS-HIGHLOW-001",
+      "track": "visual",
+      "priority": 0,
+      "status": "READY",
+      "objective": "Paint missing anatomical shoulder, upper-arm/elbow/forearm and support sleeve source-matched surfaces for extreme rifle aim. No flat patches; no arm hiding.",
+      "depends_on": [],
+      "acceptance": [
+        "Visually genuine source-matched RGBA cloth, glove and shoulder texture",
+        "Native pose no fabric seams/gaps from -90 to +90",
+        "Correct layer ownership and true Bone2D contact",
+        "Actual Godot 13-angle/64-frame visual QA PASS"
+      ],
+      "next_action": "Inspect approved EAST rifle/base images and failing PC42W +60..+90 closeups; create accurate missing painted surfaces, then bind and test with existing source-first weapon-owned IK.",
+      "evidence": [
+        "docs/PC42W_ELBOW_BRANCH_VISUAL_QA.md"
       ],
       "attempts": 0,
       "allowed_same_failed_technique_retries": 2
     }
   ],
   "policy_override": "CHARACTER_FIRST_2026_10_10: all character appearance/animation/equipment tasks precede unrelated gameplay until user-approved quality gate; experimental builds can test characters, not content expansion",
-  "last_tested_character_source_sha": "1a46700e71445aedfb6f2ca05b543d177c83fde9",
-  "last_tested_character_mode": "PC42V arm only 13 angles ±90 and 64-frame Godot diagnostic technical PASS, visual FAIL extreme shoulder/elbow cloth; no APK, legs frozen"
+  "last_tested_character_source_sha": "8b71c94ad3303828fb829a3ee4c5c20270708d0b",
+  "last_tested_character_mode": "PC42W signed elbow-bend branch tested via real Godot 13-angle 64-frame: TECH PASS, VISUAL FAIL high angle; missing genuine elbow/shoulder source art, no APK. LEGS FROZEN."
 }
