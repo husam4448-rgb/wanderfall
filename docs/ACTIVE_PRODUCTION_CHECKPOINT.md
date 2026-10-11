@@ -224,3 +224,15 @@ Create an isolated PC28 branch from PC27 verified source and test genuine knee a
 - **Actual visual inspection FAIL:** shoulder/sleeve/elbow and support forearm material at extreme angles (notably downward +45 through +90) still lack natural continuous painted connection. An opt-in IK rule alone does not create the missing pixels. See `docs/PC42W_ELBOW_BRANCH_VISUAL_QA.md`.
 - **Next exact arm task:** `SP-ART-ARMS-HIGHLOW-001` READY; author genuine original-style high/low shoulder/elbow/forearm RGBA material and correct Bone2D sprite ownership; inspect pose closeups, then rerender 13 angles and 64 frames. Don't hide/fake sleeve art.
 - **Other tasks:** rifle magazine/support-hand interaction, male LEFT, female two facings, pistol and Android integration remain incomplete. No new APK. Walking/legs frozen by user.
+
+
+## PC42X native shoulder/elbow/wrist overlay diagnostic — 2026-10-11
+
+- Tested native Godot code/workflow SHA: `358fa6b0fdb37fff6ba04c38a7e643e606c04551`; https://github.com/husam4448-rgb/wanderfall/actions/runs/38122088261 **SUCCESS**.
+- Real screenshots, 13 poses, 64 sweep frames and high-down-angle annotated Bone2D shoulder/elbow/wrist overlay: https://github.com/husam4448-rgb/wanderfall/actions/runs/38122088261/artifacts/11695009534.
+- Implementation: source-preserving opt-in joint overlay draws actual Bone2D world joint locations and anatomical link lines at +60°; this is QA only, NOT fake painted pixels.
+- Technical verdict: PASS diagnostics, same original rifle-owned IK and all leg code untouched.
+- Actual human visual inspection: **FAIL full arm artwork**. The original source-painted shoulder/elbow/sleeve/wrist surfaces cannot connect convincingly across extreme aiming even though bones/weapon grip are mathematically linked. Far support arm source art is still concealed, not authored. No true anatomical repair claimed.
+- Report: `docs/PC42X_BONE_JOINT_OVERLAY_QA.md`.
+- Next exact task: author true source matched deltoid/rolled sleeve/forearm transitional surface and assign anatomical pivots; first validate native RGBA at rest, then rerender 13 angles and 64 continuous frames with overlay close-ups. Do not repeat PC42J/L/M artificial patches; no leg tasks, no game expansion.
+- No new APK; no source-approved visual character integration.
