@@ -315,9 +315,34 @@
       "evidence": [],
       "attempts": 0,
       "allowed_same_failed_technique_retries": 2
+    },
+    {
+      "id": "SP-CHAR-ARM-EXTREME-001",
+      "track": "visual",
+      "priority": 0,
+      "status": "READY",
+      "objective": "Correct original-source male RIGHT shoulder/elbow/forearm/sleeve silhouette across −90°..+90° rifle aiming without modifying legs.",
+      "depends_on": [],
+      "technical_verdict": "DIAGNOSTIC_PASS_ONLY",
+      "visual_verdict": "FAIL_EXTREME_ANGLES",
+      "latest_tested_source_sha": "1a46700e71445aedfb6f2ca05b543d177c83fde9",
+      "next_action": "Inspect native source layers and 13 real Godot screenshots and author real source-matched shoulder sleeve and elbow articulation, then rerun true 13-angle and 64-frame visual QA; preserve two-hand weapon IK.",
+      "acceptance": [
+        "Shoulder attachment visually continuous to torso at all intended angles",
+        "Anatomical elbow branch and no sleeve/glove gaps",
+        "Stable dominant/support grips, joint motion continuous",
+        "13 static poses and 64-frame actual Godot aiming evidence",
+        "Human visual PASS"
+      ],
+      "evidence": [
+        "docs/PC42V_WIDE_ARM_ARTICULATION_QA.md",
+        "https://github.com/husam4448-rgb/wanderfall/actions/runs/38110636999/artifacts/11690713370"
+      ],
+      "attempts": 0,
+      "allowed_same_failed_technique_retries": 2
     }
   ],
   "policy_override": "CHARACTER_FIRST_2026_10_10: all character appearance/animation/equipment tasks precede unrelated gameplay until user-approved quality gate; experimental builds can test characters, not content expansion",
-  "last_tested_character_source_sha": "76d66b1c72b083ffdd717cf9f68e32956733ae93",
-  "last_tested_character_mode": "PC42Q 32-frame source-first rifle recoil TECH PASS / provisional visual pass; full art and game integration unfinished"
+  "last_tested_character_source_sha": "1a46700e71445aedfb6f2ca05b543d177c83fde9",
+  "last_tested_character_mode": "PC42V arm only 13 angles ±90 and 64-frame Godot diagnostic technical PASS, visual FAIL extreme shoulder/elbow cloth; no APK, legs frozen"
 }
