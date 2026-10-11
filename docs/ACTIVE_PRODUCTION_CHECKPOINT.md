@@ -213,3 +213,14 @@ Create an isolated PC28 branch from PC27 verified source and test genuine knee a
 - Full QA: `docs/PC42V_WIDE_ARM_ARTICULATION_QA.md`.
 - **Only next authorized task:** `SP-CHAR-ARM-EXTREME-001`: source-faithful painted sleeve and shoulder/elbow surface, directional layering and human visual inspection at exact angles, then Godot 64-frame retest. Preserve user's strict arm-first direction.
 - Leg/foot/locomotion work frozen; earlier experimental PC42U source preserved but not active baseline. No new APK.
+
+
+## PC42W real Godot elbow bend-branch test — 2026-10-11 UTC
+
+- Active arm-only branch `pc42w-anatomical-elbow-branch`; protected PC42V, PC42N and PC42H arm baselines intact; **no leg changes**.
+- New actual opt-in source `2129405a691a1fecc82ee3accde2075cc01318d9`: both dominant/support two-bone elbow solvers retain the original signed cross-product bend branch across aiming range instead of unconnected nearest-rest decisions, weapon sockets/original images untouched.
+- **Actual tested source and workflow SHA** `8b71c94ad3303828fb829a3ee4c5c20270708d0b`; [Godot Actions SUCCESS](https://github.com/husam4448-rgb/wanderfall/actions/runs/38111049593); [genuine 13+64 frame evidence](https://github.com/husam4448-rgb/wanderfall/actions/runs/38111049593/artifacts/11691790749).
+- **Technical diagnostic PASS:** compiled, full 13 angles + 64 samples captured under true original source sprites and weapon-owned IK, no test harness failures. NOT approved anatomical animation.
+- **Actual visual inspection FAIL:** shoulder/sleeve/elbow and support forearm material at extreme angles (notably downward +45 through +90) still lack natural continuous painted connection. An opt-in IK rule alone does not create the missing pixels. See `docs/PC42W_ELBOW_BRANCH_VISUAL_QA.md`.
+- **Next exact arm task:** `SP-ART-ARMS-HIGHLOW-001` READY; author genuine original-style high/low shoulder/elbow/forearm RGBA material and correct Bone2D sprite ownership; inspect pose closeups, then rerender 13 angles and 64 frames. Don't hide/fake sleeve art.
+- **Other tasks:** rifle magazine/support-hand interaction, male LEFT, female two facings, pistol and Android integration remain incomplete. No new APK. Walking/legs frozen by user.
