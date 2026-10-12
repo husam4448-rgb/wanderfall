@@ -13,6 +13,10 @@ func _run_test() -> void:
     await process_frame
     _check(character.bones.size() == 16, "expected 16 skeletal joints")
     _check(character.skeleton is Skeleton2D, "genuine Skeleton2D expected")
+    for joint_name in character.bones.keys():
+        var joint: Bone2D = character.bones[joint_name]
+        _check(absf(joint.rest.determinant()) > 0.00001, "singular rest: " + str(joint_name))
+        _check(joint.get_length() > 0.0, "zero length: " + str(joint_name))
     _check(character.visual_root.scale.x == 1.0, "right facing must not be flipped")
     character.set_facing_from_horizontal(-1.0)
     _check(character.visual_root.scale.x == -1.0, "left facing must mirror one shared rig")
