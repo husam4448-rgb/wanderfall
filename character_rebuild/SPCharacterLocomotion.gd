@@ -4,9 +4,9 @@ extends RefCounted
 ## Experimental until native right/left/foot-grounding QA passes.
 class_name SPCharacterLocomotion
 
-const HIP_NAMES := ["hip_far", "hip_near"]
-const KNEE_NAMES := ["knee_far", "knee_near"]
-const ANKLE_NAMES := ["ankle_far", "ankle_near"]
+const HIP_NAMES = ["hip_far", "hip_near"]
+const KNEE_NAMES = ["knee_far", "knee_near"]
+const ANKLE_NAMES = ["ankle_far", "ankle_near"]
 
 static func pose_walk(rig: SPSimpleMirroredCharacter, phase: float, origin: Vector2) -> void:
     if rig == null:
