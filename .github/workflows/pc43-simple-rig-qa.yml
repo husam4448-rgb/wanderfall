@@ -39,10 +39,10 @@ jobs:
         run: |
           set -o pipefail
           GODOT=./Godot_v4.4.1-stable_linux.x86_64
-          "$GODOT" --headless --path character_rebuild --editor --import --quit | tee pc43_import.log
-          "$GODOT" --headless --path character_rebuild --script res://test_pc43_rig.gd | tee pc43_test.log
+          timeout 90s "$GODOT" --headless --path character_rebuild --editor --import --quit | tee pc43_import.log
+          timeout 45s "$GODOT" --headless --path character_rebuild --script res://test_pc43_rig.gd | tee pc43_test.log
           grep -q 'PC43_RIG_SMOKE_PASS' pc43_test.log
-          "$GODOT" --headless --path character_rebuild --script res://test_pc43_source_intake.gd | tee pc43_source.log
+          timeout 75s "$GODOT" --headless --path character_rebuild --script res://test_pc43_source_intake.gd | tee pc43_source.log
           grep -q 'PC43_SOURCE_INTAKE_PASS' pc43_source.log
       - name: Upload real Godot QA logs
         if: always()
