@@ -244,3 +244,12 @@ Create an isolated PC28 branch from PC27 verified source and test genuine knee a
 - Two original pixel-only overlaps: shoulder 377 opaque reference-colored pixels, elbow 111 opaque reference-colored pixels. Original foreground composite verified. Godot 13 angle captures ±90 at 15° spacing and 64 sweep samples generated. Compared to prior PC42W pose screenshots, 70–183 visibly changed image pixels per selected pose at RGB delta >12; source art changed only locally.
 - **Actual visual FAIL**: steep up/down aiming still folds forearm into torso; neither shoulder/elbow/forearm nor far support sleeve are convincingly connected. This experiment does NOT recover missing invisible artwork. Keep flag OFF by default, do not merge or claim a finished anatomical arm.
 - Detailed report: `docs/PC42Y_SOURCE_ARM_REPAIR_AND_SEAM_QA.md`. Next arm-only task `SP-ART-ARMS-HIGHLOW-001` READY: author original-looking complete missing deltoid, rolled sleeve, elbow crease and exposed forearm and wrist RGBA components, aligned to true Bone2D pivots; then rerun exact 13 angles and 64-frame full joint visual QA. `SP-CHAR-ARM-EXTREME-001` blocked by art gate. No leg modifications. Rifle reload/pistol/LEFT/female arms and Android game APK still pending.
+
+
+## PC42Z recovery 2026-10-12 — arm-only exact Bone2D joint evidence
+
+Current branch: `pc42z-arm-joint-visual-audit`. Code change `c15fffd7b4d08a82f4cc768deb3c15342ae93448`; workflow change `6599f31fc88876bdabfaffff84fdf520670cebc0`.
+Real Godot run: https://github.com/husam4448-rgb/wanderfall/actions/runs/38304692970.
+Opt-in `PC42Z_ALL_JOINT_OVERLAYS=1` captures 13 joint-annotated Godot screenshots at -90° through +90°, on top of existing 13 clean reference poses and 64 sweep frames. This is a diagnostic-only change: no new anatomy is painted, and **visual approval remains FAIL/BLOCKED** from PC42Y until authentic missing shoulder sleeve, elbow fold, far forearm and wrist surfaces are authored.
+No leg, gait, or other world source modified.
+Next executable task: retrieve and inspect PC42Z native annotated 13-angle captures, identify missing material boundaries and prepare genuinely styled individual RGBA anatomical surfaces. Do not duplicate tiny original-pixel backing as PC42Y already visually failed.
