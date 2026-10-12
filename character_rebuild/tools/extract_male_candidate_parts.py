@@ -129,6 +129,15 @@ def main():
         # while leaving original garment/skin RGB texture entirely unchanged.
         # Feather only within the foreground; do not create drawn substitutes.
         soft_alpha=cv2.GaussianBlur(matte,(3,3),0.65)
+        # Locally compared against the previous 12-part source atlas.
+        # Suppress faint cyan-black color spill ONLY in translucent matte
+        # border pixels. Leave opaque fabric/boots and the fine head/rifle
+        # edges untouched; a broad erase damaged the boot silhouette.
+        if name not in ("head","rifle"):
+            rgb=original.astype(np.int16)
+            bg_distance=np.max(np.abs(rgb-np.array([8,12,12])),axis=2)
+            fringe=(soft_alpha<228)&(bg_distance<=9)
+            soft_alpha[fringe]=(soft_alpha[fringe].astype(np.float32)*0.25).astype(np.uint8)
         padded=4
         left=max(0,int(left)-padded)
         top=max(0,int(top)-padded)
