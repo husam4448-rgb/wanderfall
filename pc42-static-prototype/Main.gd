@@ -389,7 +389,12 @@ func _pc42v_capture_arm_stress() -> void:
         successful += 1
         var label: String = "m%02d" % absi(a) if a < 0 else "p%02d" % a
         await _pc42c_capture_png("pc42v_angle_" + label + ".png")
-        if a == 60:
+        if OS.get_environment("PC42Z_ALL_JOINT_OVERLAYS") == "1":
+            pc42x_joint_overlay = true
+            await _pc42c_capture_png("pc42z_joint_" + label + ".png")
+            pc42x_joint_overlay = false
+            print("PC42Z_JOINT_EVIDENCE angle=%d original_pixels=true" % a)
+        elif a == 60:
             await _pc42x_capture_joint_overlay()
     # Continuous sweep samples the full requested range; record reachability
     # instead of silently hiding failed frames or changing original art.
