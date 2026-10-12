@@ -56,8 +56,8 @@ func _ready() -> void:
         bone.position = spec["pos"]
         # Explicit nondegenerate rest transform for runtime-created bones.
         bone.rest = bone.transform
-        bone.autocalculate_length_and_angle = false
-        bone.length = 12.0
+        bone.set_autocalculate_length_and_angle(false)
+        bone.set_length(12.0)
         if parent_name.is_empty():
             skeleton.add_child(bone)
         else:
