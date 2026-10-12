@@ -359,16 +359,18 @@
         "Correct layer ownership and true Bone2D contact",
         "Actual Godot 13-angle/64-frame visual QA PASS"
       ],
-      "next_action": "Author genuine complete missing shoulder-deltoid, elbow crease, rolled sleeve, far forearm and wrist art from approved survivor design; inspect full transparent RGBA and joint pivots before Godot integration. Source-only overlapping static pixels failed visual QA.",
+      "next_action": "Use PC42Z real animated MIDDLE-panel 13-angle overlays, not static right pivot panel. Author new professionally source-matched high/low deltoid, folded sleeve, far forearm and cuff RGBA around true Bone2D pivots; validate native artwork before runtime; render 13 poses plus 64 frames; maintain visual FAIL until genuinely corrected.",
       "evidence": [
         "docs/PC42W_ELBOW_BRANCH_VISUAL_QA.md",
-        "docs/PC42Y_SOURCE_ARM_REPAIR_AND_SEAM_QA.md"
+        "docs/PC42Y_SOURCE_ARM_REPAIR_AND_SEAM_QA.md",
+        "docs/PC42Z_REAL_ANIMATED_ARM_VISUAL_QA.md",
+        "https://github.com/husam4448-rgb/wanderfall/actions/runs/38304692970/artifacts/11772645026"
       ],
       "attempts": 0,
       "allowed_same_failed_technique_retries": 2
     }
   ],
   "policy_override": "CHARACTER_FIRST_2026_10_10: all character appearance/animation/equipment tasks precede unrelated gameplay until user-approved quality gate; experimental builds can test characters, not content expansion",
-  "last_tested_character_source_sha": "253f9d9050463d26f008812c4f8f6e4c20a811cd",
-  "last_tested_character_mode": "PC42Y source-only shoulder/elbow overlap 13 poses and 64-frame Godot technical diagnostic PASS visual FAIL; isolated branch NOT approved or merged; use authentic-arm-artwork branch as source baseline; no APK or leg work."
+  "last_tested_character_source_sha": "6599f31fc88876bdabfaffff84fdf520670cebc0",
+  "last_tested_character_mode": "PC42Z real animated middle-panel 13 joint overlays and 64 aim frames Godot technical PASS; artistic visual FAIL; actual arm art pending"
 }
