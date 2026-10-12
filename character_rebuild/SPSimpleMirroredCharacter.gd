@@ -54,6 +54,10 @@ func _ready() -> void:
         var bone := Bone2D.new()
         bone.name = name
         bone.position = spec["pos"]
+        # Explicit nondegenerate rest transform for runtime-created bones.
+        bone.rest = bone.transform
+        bone.autocalculate_length_and_angle = false
+        bone.length = 12.0
         if parent_name.is_empty():
             skeleton.add_child(bone)
         else:
