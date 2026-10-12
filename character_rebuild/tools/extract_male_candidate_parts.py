@@ -103,6 +103,21 @@ def main():
             muzzle=np.zeros((h,w),np.uint8)
             cv2.line(muzzle,(184,82),(215,87),255,2,cv2.LINE_AA)
             matte=cv2.bitwise_or(matte,cv2.bitwise_and(region,muzzle))
+        if name in ("thigh_far","thigh_near","shin_far","shin_near"):
+            # Native source has dark cyan-black *painted scenery* in the
+            # inter-leg negative space. Global GrabCut sometimes mislabels
+            # this as fabric. Suppress ONLY locally near the gap, and ONLY
+            # pixels matching that background color, not brown/gray garments.
+            yy,xx=np.indices((h,w))
+            gap=(xx>=94)&(xx<=116)&(yy>=174)&(yy<=241)
+            dark=original.astype(np.int16)
+            background_match=(
+                (np.abs(dark[:,:,0]-8)<=6)&
+                (np.abs(dark[:,:,1]-12)<=6)&
+                (np.abs(dark[:,:,2]-12)<=6)&
+                (dark.max(axis=2)<=23)
+            )
+            matte[gap & background_match]=0
         union_mask=cv2.bitwise_or(union_mask,matte)
         reconstructed[matte>0,:3]=original[matte>0]
         reconstructed[matte>0,3]=255
