@@ -25,6 +25,7 @@ func _run() -> void:
     viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
     get_root().add_child(viewport)
     var hero = Rig.new()
+    hero.position = Vector2(390, 233)
     viewport.add_child(hero)
     await process_frame
     hero.set_process(false) # stable screenshot; animate explicitly for breathing captures
@@ -45,6 +46,7 @@ func _run() -> void:
     pivots["neck"] = Vector2(9,-90)
     pivots["hip_far"] = pivots.get("hip_far", Vector2(-18, 9))
     pivots["hip_near"] = pivots.get("hip_near", Vector2(13, 9))
+    # Pivots must be assigned after hero reaches its final world transform.
     for bone_name in ["pelvis", "torso", "neck", "head", "shoulder_far", "elbow_far",
             "shoulder_near", "elbow_near", "hip_far", "knee_far", "hip_near", "knee_near"]:
         if pivots.has(bone_name):
@@ -54,7 +56,6 @@ func _run() -> void:
     DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(DEST))
     for side in ["RIGHT","LEFT"]:
         hero.facing_right = (side == "RIGHT")
-        hero.position = Vector2(390, 233)
         for frame in range(4):
             await process_frame
         var capture: Image = viewport.get_texture().get_image()
