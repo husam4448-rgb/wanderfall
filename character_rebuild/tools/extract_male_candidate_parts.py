@@ -77,7 +77,24 @@ def main():
         # GrabCut erased the whole crown (verified in native Godot render).
         # Preserve the original head pixels within a hand-measured anatomical
         # silhouette; the edge remains explicitly candidate-only.
-        matte=region.copy() if name == "head" else cv2.bitwise_and(region,person)
+        if name == "head":
+            # Local source-pixel GrabCut avoids losing dark hair against the scene.
+            head_gc=np.full((h,w),cv2.GC_BGD,np.uint8)
+            head_gc[4:70,85:154]=cv2.GC_PR_BGD
+            head_gc[region>0]=cv2.GC_PR_FGD
+            for cx,cy,radius in [(113,18,4),(120,22,4),(108,31,4),
+                                  (115,37,4),(127,33,4),(130,45,4),
+                                  (121,48,4),(119,55,3)]:
+                cv2.circle(head_gc,(cx,cy),radius,cv2.GC_FGD,-1)
+            hbg=np.zeros((1,65),np.float64)
+            hfg=np.zeros((1,65),np.float64)
+            cv2.grabCut(cv2.cvtColor(original,cv2.COLOR_RGB2BGR),
+                        head_gc,None,hbg,hfg,4,cv2.GC_INIT_WITH_MASK)
+            head_binary=np.where((head_gc==cv2.GC_FGD)|
+                                 (head_gc==cv2.GC_PR_FGD),255,0).astype(np.uint8)
+            matte=cv2.bitwise_and(region,head_binary)
+        else:
+            matte=cv2.bitwise_and(region,person)
         union_mask=cv2.bitwise_or(union_mask,matte)
         reconstructed[matte>0,:3]=original[matte>0]
         reconstructed[matte>0,3]=255
