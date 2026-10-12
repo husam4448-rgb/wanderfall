@@ -1,0 +1,39 @@
+name: PC43 Minimal Mirrored Character Rig Smoke QA
+on:
+  push:
+    branches: [pc43-simple-mirrored-character]
+    paths:
+      - 'character_rebuild/**'
+      - '.github/workflows/pc43-simple-rig-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  godot-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Acquire Godot 4.4.1 headless-capable editor
+        run: |
+          curl -fL --retry 3 -o godot.zip https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip
+          unzip -q godot.zip
+          chmod +x Godot_v4.4.1-stable_linux.x86_64
+          ./Godot_v4.4.1-stable_linux.x86_64 --headless --version
+      - name: Import, parse and run actual PC43 mirrored rig
+        run: |
+          set -o pipefail
+          GODOT=./Godot_v4.4.1-stable_linux.x86_64
+          "$GODOT" --headless --path character_rebuild --editor --import --quit | tee pc43_import.log
+          "$GODOT" --headless --path character_rebuild --script res://test_pc43_rig.gd | tee pc43_test.log
+          grep -q 'PC43_RIG_SMOKE_PASS' pc43_test.log
+      - name: Upload real Godot QA logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PC43-Godot-Smoke-${{ github.sha }}
+          path: |
+            pc43_import.log
+            pc43_test.log
+          if-no-files-found: ignore
+          retention-days: 14
