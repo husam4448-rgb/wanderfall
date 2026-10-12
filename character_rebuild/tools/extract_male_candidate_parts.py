@@ -44,6 +44,11 @@ def main():
     gc[:, 225:]=cv2.GC_BGD
     # Seed known jacket interior as definite foreground; GrabCut requires it.
     gc[87:101,106:122]=cv2.GC_FGD
+    # Restore the near forearm as a probable source region rather than
+    # letting the torso seed erase it in the global GrabCut solution.
+    # Genuine color pixels are retained; masks remain candidate-only.
+    gc[109:131,135:162]=cv2.GC_PR_FGD
+    gc[115:121,142:150]=cv2.GC_FGD
     bg=np.zeros((1,65),np.float64)
     fg=np.zeros((1,65),np.float64)
     cv2.grabCut(cv2.cvtColor(original,cv2.COLOR_RGB2BGR),gc,None,bg,fg,5,cv2.GC_INIT_WITH_MASK)
