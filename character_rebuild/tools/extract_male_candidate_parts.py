@@ -42,6 +42,8 @@ def main():
     gc[:5,:]=cv2.GC_BGD
     gc[:, :40]=cv2.GC_BGD
     gc[:, 225:]=cv2.GC_BGD
+    # Seed known jacket interior as definite foreground; GrabCut requires it.
+    gc[87:101,106:122]=cv2.GC_FGD
     bg=np.zeros((1,65),np.float64)
     fg=np.zeros((1,65),np.float64)
     cv2.grabCut(cv2.cvtColor(original,cv2.COLOR_RGB2BGR),gc,None,bg,fg,5,cv2.GC_INIT_WITH_MASK)
