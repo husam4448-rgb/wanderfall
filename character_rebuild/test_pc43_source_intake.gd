@@ -58,9 +58,16 @@ func _execute() -> void:
     for side in ["right", "left"]:
         hero.facing_right = side == "right"
         await process_frame
-        await RenderingServer.frame_post_draw
+        # Headless Godot may never emit frame_post_draw; do not wait indefinitely.
+        # Obtain viewport image after bounded process frames and fail if unavailable.
+        await process_frame
         var output := folder.path_join("pc43_approved_source_" + side + ".png")
-        var err := viewport.get_texture().get_image().save_png(output)
+        var frame_image := viewport.get_texture().get_image()
+        if frame_image == null or frame_image.is_empty():
+            push_error("PC43_HEADLESS_RENDER_UNAVAILABLE: " + side)
+            quit(6)
+            return
+        var err := frame_image.save_png(output)
         if err != OK:
             push_error("PC43_CAPTURE_FAIL " + str(err))
             quit(5)
