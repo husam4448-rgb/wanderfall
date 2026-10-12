@@ -42,7 +42,9 @@ jobs:
           timeout 90s "$GODOT" --headless --path character_rebuild --editor --import --quit | tee pc43_import.log
           timeout 45s "$GODOT" --headless --path character_rebuild --script res://test_pc43_rig.gd | tee pc43_test.log
           grep -q 'PC43_RIG_SMOKE_PASS' pc43_test.log
-          timeout 75s "$GODOT" --headless --path character_rebuild --script res://test_pc43_source_intake.gd | tee pc43_source.log
+          # Offscreen SubViewport textures need a display/rendering context.
+          # Xvfb supplies a virtual X display, without requiring a desktop from the user.
+          timeout 75s xvfb-run -a "$GODOT" --path character_rebuild --rendering-method gl_compatibility --script res://test_pc43_source_intake.gd | tee pc43_source.log
           grep -q 'PC43_SOURCE_INTAKE_PASS' pc43_source.log
       - name: Upload real Godot QA logs
         if: always()
