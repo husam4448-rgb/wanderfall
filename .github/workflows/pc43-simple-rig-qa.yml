@@ -56,6 +56,8 @@ jobs:
           # Xvfb supplies a virtual X display, without requiring a desktop from the user.
           timeout 75s xvfb-run -a "$GODOT" --path character_rebuild --rendering-method gl_compatibility --script res://test_pc43_source_intake.gd | tee pc43_source.log
           grep -q 'PC43_SOURCE_INTAKE_PASS' pc43_source.log
+          timeout 75s xvfb-run -a "$GODOT" --path character_rebuild --rendering-method gl_compatibility --script res://test_pc43_candidate_art_render.gd | tee pc43_candidate_art.log
+          grep -q 'PC43_CANDIDATE_ART_RENDERED' pc43_candidate_art.log
       - name: Upload real Godot QA logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -67,6 +69,7 @@ jobs:
             pc43_test.log
             pc43_source.log
             pc43_loader.log
+            pc43_candidate_art.log
             character_rebuild/evidence/*.png
             character_rebuild/art/male_right/*.png
             character_rebuild/art/male_right/manifest.json
