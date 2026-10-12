@@ -35,3 +35,42 @@ static func restore_idle(rig: SPSimpleMirroredCharacter, origin: Vector2) -> voi
     rig.position = origin
     for name in HIP_NAMES + KNEE_NAMES + ANKLE_NAMES + ["shoulder_far", "shoulder_near", "torso"]:
         (rig.bones[name] as Bone2D).rotation = 0.0
+
+
+## Bottom edge of actual two ankle-owned Sprite2D images in world space.
+## Based on rendered boot geometry rather than skeleton placeholder ankles.
+## This is a ground-height estimator, not a substitute for planted-foot IK.
+static func boot_floor_y(rig: SPSimpleMirroredCharacter) -> float:
+    if rig == null:
+        return NAN
+    var lowest := -INF
+    var present := 0
+    for name in ANKLE_NAMES:
+        if not rig.sprites.has(name):
+            continue
+        var sprite: Sprite2D = rig.sprites[name]
+        if not is_instance_valid(sprite) or sprite.texture == null:
+            continue
+        var rect := sprite.get_rect()
+        var transform := sprite.global_transform
+        for point in [rect.position,
+                      Vector2(rect.end.x, rect.position.y),
+                      rect.end,
+                      Vector2(rect.position.x, rect.end.y)]:
+            lowest = maxf(lowest, (transform * point).y)
+        present += 1
+    if present != 2:
+        return NAN
+    return lowest
+
+## Correct vertical displacement to the reference grounded boot baseline.
+## Maintains a consistent ground plane in the native visual stress test.
+## Real planted-feet IK remains required for no-sliding production walking.
+static func correct_floor(rig: SPSimpleMirroredCharacter, floor_y: float) -> bool:
+    if not is_finite(floor_y):
+        return false
+    var sole_y := boot_floor_y(rig)
+    if not is_finite(sole_y):
+        return false
+    rig.global_position.y += floor_y - sole_y
+    return true
