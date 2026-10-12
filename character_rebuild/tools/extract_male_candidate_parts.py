@@ -104,20 +104,20 @@ def main():
             cv2.line(muzzle,(184,82),(215,87),255,2,cv2.LINE_AA)
             matte=cv2.bitwise_or(matte,cv2.bitwise_and(region,muzzle))
         if name in ("thigh_far","thigh_near","shin_far","shin_near"):
-            # Native source has dark cyan-black *painted scenery* in the
-            # inter-leg negative space. Global GrabCut sometimes mislabels
-            # this as fabric. Suppress ONLY locally near the gap, and ONLY
-            # pixels matching that background color, not brown/gray garments.
-            yy,xx=np.indices((h,w))
-            gap=(xx>=94)&(xx<=116)&(yy>=174)&(yy<=241)
-            dark=original.astype(np.int16)
-            background_match=(
-                (np.abs(dark[:,:,0]-8)<=6)&
-                (np.abs(dark[:,:,1]-12)<=6)&
-                (np.abs(dark[:,:,2]-12)<=6)&
-                (dark.max(axis=2)<=23)
-            )
-            matte[gap & background_match]=0
+            # Flood-select connected scenery, not a rectangular erase.
+            # The approved illustration's leg gap is cyan-black (#080c0c).
+            # Restrict flood recognition to pixels within 6 RGB levels of
+            # this exact sampled background, then remove ONLY within the
+            # leg matte. Clothing and boot shading remains untouched.
+            bg_roi=original[157:265,62:145].astype(np.int16)
+            color_distance=np.abs(bg_roi-np.array([8,12,12])).max(axis=2)
+            candidate=(color_distance<=6).astype(np.uint8)
+            n_components,component_labels,_,_=cv2.connectedComponentsWithStats(
+                candidate,8)
+            seed=component_labels[201-157,103-62]
+            if seed>0:
+                connected=(component_labels==seed)
+                matte[157:265,62:145][connected]=0
         union_mask=cv2.bitwise_or(union_mask,matte)
         reconstructed[matte>0,:3]=original[matte>0]
         reconstructed[matte>0,3]=255
