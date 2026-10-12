@@ -67,6 +67,16 @@ func _execute() -> void:
             push_error("PC43_HEADLESS_RENDER_UNAVAILABLE: " + side)
             quit(6)
             return
+        var visible_pixels := 0
+        for iy in range(frame_image.get_height()):
+            for ix in range(frame_image.get_width()):
+                if frame_image.get_pixel(ix, iy).a > 0.1:
+                    visible_pixels += 1
+        if visible_pixels == 0:
+            push_error("PC43_EMPTY_RENDER: " + side)
+            quit(7)
+            return
+        print("PC43_VISIBLE_RENDER: " + side + " alpha_pixels=" + str(visible_pixels))
         var err := frame_image.save_png(output)
         if err != OK:
             push_error("PC43_CAPTURE_FAIL " + str(err))
