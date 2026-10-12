@@ -20,7 +20,7 @@ PARTS = {
     "upper_far": ("shoulder_far", [(73,67),(101,62),(119,84),(106,112),(85,122),(70,99)], (91,78), 2),
     "forearm_far": ("elbow_far", [(83,103),(111,101),(131,118),(121,142),(104,144),(82,124)], (101,114), 3),
     "upper_near": ("shoulder_near", [(113,68),(144,75),(155,96),(147,123),(122,115),(105,87)], (127,82), 7),
-    "forearm_near": ("elbow_near", [(132,102),(163,103),(179,124),(165,141),(144,131),(125,115)], (147,114), 8),
+    "forearm_near": ("elbow_near", [(122,86),(139,89),(154,92),(169,87),(177,99),(163,111),(142,112),(124,103)], (135,97), 8),
     "thigh_far": ("hip_far", [(86,151),(113,154),(108,192),(89,210),(65,201),(77,171)], (94,160), 2),
     "shin_far": ("knee_far", [(66,194),(96,194),(92,226),(89,251),(52,263),(46,246)], (81,202), 3),
     "thigh_near": ("hip_near", [(110,153),(137,148),(148,186),(132,209),(111,208),(104,179)], (125,160), 5),
@@ -47,8 +47,8 @@ def main():
     # Restore the near forearm as a probable source region rather than
     # letting the torso seed erase it in the global GrabCut solution.
     # Genuine color pixels are retained; masks remain candidate-only.
-    gc[109:131,135:162]=cv2.GC_PR_FGD
-    gc[115:121,142:150]=cv2.GC_FGD
+    gc[91:109,128:164]=cv2.GC_PR_FGD
+    gc[96:100,145:152]=cv2.GC_FGD
     bg=np.zeros((1,65),np.float64)
     fg=np.zeros((1,65),np.float64)
     cv2.grabCut(cv2.cvtColor(original,cv2.COLOR_RGB2BGR),gc,None,bg,fg,5,cv2.GC_INIT_WITH_MASK)
