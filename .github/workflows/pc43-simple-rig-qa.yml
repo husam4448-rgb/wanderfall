@@ -27,6 +27,8 @@ jobs:
           "$GODOT" --headless --path character_rebuild --editor --import --quit | tee pc43_import.log
           "$GODOT" --headless --path character_rebuild --script res://test_pc43_rig.gd | tee pc43_test.log
           grep -q 'PC43_RIG_SMOKE_PASS' pc43_test.log
+          "$GODOT" --headless --path character_rebuild --script res://test_pc43_source_intake.gd | tee pc43_source.log
+          grep -q 'PC43_SOURCE_INTAKE_PASS' pc43_source.log
       - name: Upload real Godot QA logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -35,5 +37,7 @@ jobs:
           path: |
             pc43_import.log
             pc43_test.log
+            pc43_source.log
+            character_rebuild/evidence/*.png
           if-no-files-found: ignore
           retention-days: 14
