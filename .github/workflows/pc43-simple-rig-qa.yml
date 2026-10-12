@@ -14,6 +14,21 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - name: Recover approved original art from protected PC42Y source branch
+        uses: actions/checkout@v4
+        with:
+          ref: pc42y-authentic-arm-artwork
+          path: protected_art_source
+      - name: Stage only approved male RIGHT reference for isolated PC43 test
+        run: |
+          set -eu
+          SOURCE=protected_art_source/assets/authored2d/unified_character/rig/reference/male_east_rifle.png
+          TARGET=assets/authored2d/unified_character/rig/reference/male_east_rifle.png
+          test -s "$SOURCE"
+          mkdir -p "$(dirname "$TARGET")"
+          cp "$SOURCE" "$TARGET"
+          file "$TARGET"
+          sha256sum "$TARGET" | tee pc43_original_art_sha256.txt
       - name: Acquire Godot 4.4.1 headless-capable editor
         run: |
           curl -fL --retry 3 -o godot.zip https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip
@@ -35,6 +50,7 @@ jobs:
         with:
           name: PC43-Godot-Smoke-${{ github.sha }}
           path: |
+            pc43_original_art_sha256.txt
             pc43_import.log
             pc43_test.log
             pc43_source.log
