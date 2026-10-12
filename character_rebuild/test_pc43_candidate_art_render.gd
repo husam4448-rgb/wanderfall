@@ -95,9 +95,18 @@ func _run() -> void:
     # Do not save these as production animation assets without visual review.
     torso.scale = Vector2.ONE
     var start_pos: Vector2 = hero.position
+    var reference_floor: float = Locomotion.boot_floor_y(hero)
+    if not is_finite(reference_floor):
+        push_error("PC43_GAIT_MISSING_INDEPENDENT_BOOT_SPRITES")
+        quit(10)
+        return
     for frame in range(16):
         var phase := TAU * float(frame) / 16.0
         Locomotion.pose_walk(hero, phase, start_pos)
+        if not Locomotion.correct_floor(hero, reference_floor):
+            push_error("PC43_GAIT_GROUNDING_FAILED frame=" + str(frame))
+            quit(11)
+            return
         await process_frame
         await process_frame
         var walk_image: Image = viewport.get_texture().get_image()
