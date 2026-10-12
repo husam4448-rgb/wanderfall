@@ -25,6 +25,9 @@ PARTS = {
     "shin_far": ("knee_far", [(66,194),(96,194),(92,226),(89,251),(52,263),(46,246)], (81,202), 3),
     "thigh_near": ("hip_near", [(110,153),(137,148),(148,186),(132,209),(111,208),(104,179)], (125,160), 5),
     "shin_near": ("knee_near", [(112,196),(146,194),(159,227),(164,246),(132,258),(106,237)], (129,203), 6),
+    # Complete original rifle attached to weapon-side wrist as a candidate.
+    # Kept independent of arms for future two-hand IK and depth ordering.
+    "rifle": ("wrist_near", [(126,65),(148,60),(175,67),(204,81),(218,83),(220,94),(185,96),(174,92),(161,121),(145,118),(138,101),(122,90)], (149,95), 10),
 }
 def main():
     p=argparse.ArgumentParser()
@@ -55,6 +58,9 @@ def main():
     # Genuine color pixels are retained; masks remain candidate-only.
     gc[91:109,128:164]=cv2.GC_PR_FGD
     gc[96:100,145:152]=cv2.GC_FGD
+    # Rifle has dark metal nearly indistinguishable from dark scene.
+    gc[75:94,145:213]=cv2.GC_PR_FGD
+    gc[82:85,170:188]=cv2.GC_FGD
     bg=np.zeros((1,65),np.float64)
     fg=np.zeros((1,65),np.float64)
     cv2.grabCut(cv2.cvtColor(original,cv2.COLOR_RGB2BGR),gc,None,bg,fg,5,cv2.GC_INIT_WITH_MASK)
