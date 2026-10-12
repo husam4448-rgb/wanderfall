@@ -25,6 +25,11 @@ PARTS = {
     "shin_far": ("knee_far", [(66,194),(96,194),(92,226),(89,251),(52,263),(46,246)], (81,202), 3),
     "thigh_near": ("hip_near", [(110,153),(137,148),(148,186),(132,209),(111,208),(104,179)], (125,160), 5),
     "shin_near": ("knee_near", [(112,196),(146,194),(159,227),(164,246),(132,258),(106,237)], (129,203), 6),
+    # Separate original-source boots from shins. Until now both boots were
+    # rigidly painted into the knee sprites, so ankle rotation had no effect.
+    # These components preserve the original brown leather texture.
+    "boot_far": ("ankle_far", [(56,218),(78,214),(93,220),(99,237),(105,245),(100,252),(64,255),(49,244),(50,226)], (75,223), 4),
+    "boot_near": ("ankle_near", [(110,211),(131,209),(147,215),(163,227),(164,243),(151,248),(120,248),(109,238)], (130,218), 7),
     # Complete original rifle attached to weapon-side wrist as a candidate.
     # Kept independent of arms for future two-hand IK and depth ordering.
     "rifle": ("wrist_near", [(126,65),(148,60),(175,67),(204,81),(218,83),(220,94),(185,96),(174,92),(161,121),(145,118),(138,101),(122,90)], (149,95), 10),
@@ -95,6 +100,12 @@ def main():
             matte=cv2.bitwise_and(region,head_binary)
         else:
             matte=cv2.bitwise_and(region,person)
+        # Avoid double-rendering the boot on both shin and ankle.
+        # Preserve two source-color pixels of overlap at each cuff.
+        if name == "shin_far":
+            matte[223:,:]=0
+        elif name == "shin_near":
+            matte[218:,:]=0
         if name == "rifle":
             # Verified original muzzle runs diagonally from x185,y82
             # through x215,y87; the global dark-background mask breaks
