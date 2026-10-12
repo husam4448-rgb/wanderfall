@@ -69,7 +69,16 @@ def main():
         if not len(xs):
             raise ValueError(f"No authentic foreground pixels for {name}; revise mask")
         left,top,right,bottom=xs.min(),ys.min(),xs.max()+1,ys.max()+1
-        rgba=np.dstack([original,matte])[top:bottom,left:right]
+        # One-pixel antialiased edge removes the polygon-staircase appearance
+        # while leaving original garment/skin RGB texture entirely unchanged.
+        # Feather only within the foreground; do not create drawn substitutes.
+        soft_alpha=cv2.GaussianBlur(matte,(3,3),0.65)
+        padded=4
+        left=max(0,int(left)-padded)
+        top=max(0,int(top)-padded)
+        right=min(w,int(right)+padded)
+        bottom=min(h,int(bottom)+padded)
+        rgba=np.dstack([original,soft_alpha])[top:bottom,left:right]
         Image.fromarray(rgba,'RGBA').save(dest/f"{name}.png")
         parts.append({"name":name,"bone":bone,"file":f"{name}.png",
                       "source_pivot":list(pivot),"source_rect":[int(left),int(top),int(right-left),int(bottom-top)],
