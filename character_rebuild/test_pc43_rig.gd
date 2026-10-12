@@ -1,6 +1,6 @@
 extends SceneTree
-## Run with: godot --headless --path <project> --script res://character_rebuild/test_pc43_rig.gd
-const Rig = preload("res://character_rebuild/SPSimpleMirroredCharacter.gd")
+## Run with: godot --headless --path character_rebuild --script res://character_rebuild/test_pc43_rig.gd
+const Rig = preload("res://SPSimpleMirroredCharacter.gd")
 
 func _initialize() -> void:
     call_deferred("_run_test")
