@@ -89,5 +89,37 @@ func _run() -> void:
         await process_frame
         var img: Image = viewport.get_texture().get_image()
         img.save_png(ProjectSettings.globalize_path(DEST).path_join("pc43_candidate_breath_%02d.png" % frame))
+    # Independent low-amplitude gait STRESS PREVIEW, not accepted locomotion.
+    # Evaluate overlap robustness with both legs advancing in opposite phase.
+    # Do not save these as production animation assets without visual review.
+    torso.scale = Vector2.ONE
+    var gait_hips := ["hip_far", "hip_near"]
+    var gait_knees := ["knee_far", "knee_near"]
+    for frame in range(16):
+        var phase := TAU * float(frame) / 16.0
+        for i in range(2):
+            var stride := sin(phase + float(i) * PI)
+            var hip: Bone2D = hero.bones[gait_hips[i]]
+            var knee: Bone2D = hero.bones[gait_knees[i]]
+            hip.rotation = deg_to_rad(10.0) * stride
+            # Knees bend only in the anatomically correct forward direction.
+            knee.rotation = deg_to_rad(13.0) * maxf(0.0, -stride)
+        var support: Bone2D = hero.bones["shoulder_far"]
+        var dominant: Bone2D = hero.bones["shoulder_near"]
+        support.rotation = deg_to_rad(3.0) * sin(phase)
+        dominant.rotation = deg_to_rad(-3.0) * sin(phase)
+        await process_frame
+        await process_frame
+        var walk_image: Image = viewport.get_texture().get_image()
+        if walk_image == null or walk_image.is_empty():
+            push_error("PC43_GAIT_EMPTY_FRAME " + str(frame))
+            quit(8)
+            return
+        var walk_path := ProjectSettings.globalize_path(DEST).path_join("pc43_candidate_gait_%02d.png" % frame)
+        if walk_image.save_png(walk_path) != OK:
+            push_error("PC43_GAIT_SAVE_ERROR " + str(frame))
+            quit(9)
+            return
+    print("PC43_CANDIDATE_GAIT_STRESS_RENDERED frames=16 VISUAL_QA_REQUIRED")
     print("PC43_CANDIDATE_ART_RENDERED parts=12 faces=2 breathing_frames=8 VISUAL_QA_UNVERIFIED")
     quit(0)
