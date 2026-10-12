@@ -73,7 +73,11 @@ def main():
     for name,(bone,outline,pivot,layer) in PARTS.items():
         region=np.zeros((h,w),np.uint8)
         cv2.fillPoly(region,[np.array(outline,np.int32)],255)
-        matte=cv2.bitwise_and(region,person)
+        # Dark hair is near-identical to the painted background. Global
+        # GrabCut erased the whole crown (verified in native Godot render).
+        # Preserve the original head pixels within a hand-measured anatomical
+        # silhouette; the edge remains explicitly candidate-only.
+        matte=region.copy() if name == "head" else cv2.bitwise_and(region,person)
         union_mask=cv2.bitwise_or(union_mask,matte)
         reconstructed[matte>0,:3]=original[matte>0]
         reconstructed[matte>0,3]=255
