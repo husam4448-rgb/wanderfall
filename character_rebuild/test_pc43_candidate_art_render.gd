@@ -3,6 +3,7 @@ extends SceneTree
 ## Uses actual transparent PNGs generated from the approved source image in CI.
 const Rig = preload("res://SPSimpleMirroredCharacter.gd")
 const Loader = preload("res://SPCharacterArtLoader.gd")
+const Locomotion = preload("res://SPCharacterLocomotion.gd")
 const ART = "res://art/male_right/manifest.json"
 const DEST = "res://evidence"
 
@@ -93,36 +94,10 @@ func _run() -> void:
     # Evaluate overlap robustness with both legs advancing in opposite phase.
     # Do not save these as production animation assets without visual review.
     torso.scale = Vector2.ONE
-    var gait_hips := ["hip_far", "hip_near"]
-    var gait_knees := ["knee_far", "knee_near"]
-    var gait_ankles := ["ankle_far", "ankle_near"]
     var start_pos: Vector2 = hero.position
     for frame in range(16):
         var phase := TAU * float(frame) / 16.0
-        # A modest rise-and-fall of the pelvis eliminates rigid marching.
-        # Shared by both legs; 2 cycles per stride, loop closes at TAU.
-        hero.position = start_pos + Vector2(0.0, -1.7 * (1.0 - cos(2.0 * phase)))
-        for i in range(2):
-            var leg_phase := phase + float(i) * PI
-            var stride := sin(leg_phase)
-            var swing := maxf(0.0, -stride)
-            var stance := maxf(0.0, stride)
-            var hip: Bone2D = hero.bones[gait_hips[i]]
-            var knee: Bone2D = hero.bones[gait_knees[i]]
-            var ankle: Bone2D = hero.bones[gait_ankles[i]]
-            # Two legs alternate with longer grounded stance and distinct
-            # rear-leg recovery. Heel/toe geometry may still require IK.
-            hip.rotation = deg_to_rad(14.0) * stride
-            knee.rotation = deg_to_rad(20.0) * swing + deg_to_rad(3.0) * stance
-            # Stabilize boot orientation relative to the level ground.
-            ankle.rotation = -hip.rotation - knee.rotation + deg_to_rad(3.0) * swing
-        # Rifle shoulder articulation intentionally subdued and reciprocal,
-        # to avoid breaking the already verified weapon-side wrist attachment.
-        var support: Bone2D = hero.bones["shoulder_far"]
-        var dominant: Bone2D = hero.bones["shoulder_near"]
-        support.rotation = deg_to_rad(2.5) * sin(phase)
-        dominant.rotation = deg_to_rad(-2.5) * sin(phase)
-        torso.rotation = deg_to_rad(0.8) * cos(phase)
+        Locomotion.pose_walk(hero, phase, start_pos)
         await process_frame
         await process_frame
         var walk_image: Image = viewport.get_texture().get_image()
@@ -135,10 +110,7 @@ func _run() -> void:
             push_error("PC43_GAIT_SAVE_ERROR " + str(frame))
             quit(9)
             return
-    hero.position = start_pos
-    for name in gait_hips + gait_knees + gait_ankles + ["shoulder_far", "shoulder_near"]:
-        (hero.bones[name] as Bone2D).rotation = 0.0
-    torso.rotation = 0.0
+    Locomotion.restore_idle(hero, start_pos)
     print("PC43_CANDIDATE_GAIT_V2_RENDERED frames=16 VISUAL_QA_REQUIRED")
     print("PC43_CANDIDATE_ART_RENDERED parts=14 faces=2 breathing_frames=8 VISUAL_QA_UNVERIFIED")
     quit(0)
