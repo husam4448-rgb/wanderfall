@@ -29,6 +29,14 @@ jobs:
           cp "$SOURCE" "$TARGET"
           file "$TARGET"
           sha256sum "$TARGET" | tee pc43_original_art_sha256.txt
+      - name: Extract authentic source-preserving PC43 RGBA body-part candidates
+        run: |
+          python -m pip install --disable-pip-version-check --quiet numpy Pillow opencv-python-headless
+          python character_rebuild/tools/extract_male_candidate_parts.py \
+            --source assets/authored2d/unified_character/rig/reference/male_east_rifle.png \
+            --out character_rebuild/art/male_right
+          test -s character_rebuild/art/male_right/manifest.json
+          find character_rebuild/art/male_right -maxdepth 1 -name '*.png' -printf '%f\n' | sort
       - name: Acquire Godot 4.4.1 headless-capable editor
         run: |
           curl -fL --retry 3 -o godot.zip https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip
@@ -60,5 +68,7 @@ jobs:
             pc43_source.log
             pc43_loader.log
             character_rebuild/evidence/*.png
+            character_rebuild/art/male_right/*.png
+            character_rebuild/art/male_right/manifest.json
           if-no-files-found: ignore
           retention-days: 14
