@@ -54,6 +54,7 @@ func _run() -> void:
             bone.global_position = hero.skeleton.to_global(pivots[bone_name])
             bone.rest = bone.transform
     DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(DEST))
+    var right_rgba: Image = null
     for side in ["RIGHT","LEFT"]:
         hero.facing_right = (side == "RIGHT")
         for frame in range(4):
@@ -64,6 +65,20 @@ func _run() -> void:
             quit(5)
             return
         var path := ProjectSettings.globalize_path(DEST).path_join("pc43_candidate_male_" + side.to_lower() + ".png")
+        var visible_count := 0
+        var non_background_bounds := Rect2i()
+        for y in range(capture.get_height()):
+            for x in range(capture.get_width()):
+                var px := capture.get_pixel(x, y)
+                if px.r > 0.09 or px.g > 0.09 or px.b > 0.09:
+                    visible_count += 1
+        if visible_count < 250:
+            push_error("PC43_CANDIDATE_NO_VISIBLE_CHARACTER " + side + " visible_count=" + str(visible_count))
+            quit(7)
+            return
+        if side == "RIGHT":
+            right_rgba = capture.duplicate()
+        print("PC43_CANDIDATE_VISIBLE_COUNT " + side + " " + str(visible_count))
         if capture.save_png(path) != OK:
             push_error("PC43_CANDIDATE_SAVE_FAILED " + side)
             quit(6)
