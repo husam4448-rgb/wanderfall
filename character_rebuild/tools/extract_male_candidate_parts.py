@@ -14,8 +14,8 @@ from PIL import Image
 # visual-art correction changes only a region, never the underlying source.
 # Point sets may overlap at a joint to avoid transparent hinge gaps.
 PARTS = {
-    "head": ("head", [(101,6),(145,5),(156,47),(139,65),(107,63),(98,36)], (122,52), 12),
-    "torso": ("torso", [(81,52),(118,53),(149,77),(153,138),(121,158),(88,144),(73,97)], (111,116), 5),
+    "head": ("head", [(91,14),(106,6),(126,5),(145,19),(149,39),(139,61),(108,65),(92,47)], (121,51), 12),
+    "torso": ("torso", [(48,59),(65,44),(87,47),(118,53),(149,77),(153,138),(121,158),(79,153),(47,135)], (111,116), 5),
     "pelvis": ("pelvis", [(86,134),(135,135),(142,165),(121,182),(89,167)], (112,151), 4),
     "upper_far": ("shoulder_far", [(73,67),(101,62),(119,84),(106,112),(85,122),(70,99)], (91,78), 2),
     "forearm_far": ("elbow_far", [(83,103),(111,101),(131,118),(121,142),(104,144),(82,124)], (101,114), 3),
@@ -44,6 +44,12 @@ def main():
     gc[:, 225:]=cv2.GC_BGD
     # Seed known jacket interior as definite foreground; GrabCut requires it.
     gc[87:101,106:122]=cv2.GC_FGD
+    # The dark hair and backpack blend with the painted background.
+    # Protect interior pixels; expanded anatomical polygons constrain edges.
+    gc[17:25,108:124]=cv2.GC_FGD
+    gc[15:42,94:139]=cv2.GC_PR_FGD
+    gc[69:105,53:78]=cv2.GC_PR_FGD
+    gc[82:94,64:71]=cv2.GC_FGD
     # Restore the near forearm as a probable source region rather than
     # letting the torso seed erase it in the global GrabCut solution.
     # Genuine color pixels are retained; masks remain candidate-only.
