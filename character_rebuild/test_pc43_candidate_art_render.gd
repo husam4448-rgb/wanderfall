@@ -30,7 +30,7 @@ func _run() -> void:
     await process_frame
     hero.set_process(false) # stable screenshot; animate explicitly for breathing captures
     var result: Dictionary = Loader.load_parts(hero, ART)
-    if not result["complete"] or int(result["loaded"]) != 12:
+    if not result["complete"] or int(result["loaded"]) != 14:
         push_error("PC43_ART_RIG_LOAD_INCOMPLETE " + JSON.stringify(result))
         quit(4)
         return
@@ -48,7 +48,7 @@ func _run() -> void:
     pivots["hip_near"] = pivots.get("hip_near", Vector2(13, 9))
     # Pivots must be assigned after hero reaches its final world transform.
     for bone_name in ["pelvis", "torso", "neck", "head", "shoulder_far", "elbow_far",
-            "shoulder_near", "elbow_near", "wrist_near", "hip_far", "knee_far", "hip_near", "knee_near"]:
+            "shoulder_near", "elbow_near", "wrist_near", "hip_far", "knee_far", "ankle_far", "hip_near", "knee_near", "ankle_near"]:
         if pivots.has(bone_name):
             var bone: Bone2D = hero.bones[bone_name]
             bone.global_position = hero.skeleton.to_global(pivots[bone_name])
@@ -140,5 +140,5 @@ func _run() -> void:
         (hero.bones[name] as Bone2D).rotation = 0.0
     torso.rotation = 0.0
     print("PC43_CANDIDATE_GAIT_V2_RENDERED frames=16 VISUAL_QA_REQUIRED")
-    print("PC43_CANDIDATE_ART_RENDERED parts=12 faces=2 breathing_frames=8 VISUAL_QA_UNVERIFIED")
+    print("PC43_CANDIDATE_ART_RENDERED parts=14 faces=2 breathing_frames=8 VISUAL_QA_UNVERIFIED")
     quit(0)
