@@ -95,6 +95,14 @@ def main():
             matte=cv2.bitwise_and(region,head_binary)
         else:
             matte=cv2.bitwise_and(region,person)
+        if name == "rifle":
+            # Verified original muzzle runs diagonally from x185,y82
+            # through x215,y87; the global dark-background mask breaks
+            # its narrow metal surface into disconnected flecks.
+            # Restore only alpha here; all RGB stays approved source.
+            muzzle=np.zeros((h,w),np.uint8)
+            cv2.line(muzzle,(184,82),(215,87),255,2,cv2.LINE_AA)
+            matte=cv2.bitwise_or(matte,cv2.bitwise_and(region,muzzle))
         union_mask=cv2.bitwise_or(union_mask,matte)
         reconstructed[matte>0,:3]=original[matte>0]
         reconstructed[matte>0,3]=255
