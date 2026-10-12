@@ -51,10 +51,15 @@ def main():
     dest=Path(a.out)
     dest.mkdir(parents=True,exist_ok=True)
     parts=[]
+    union_mask=np.zeros((h,w),np.uint8)
+    reconstructed=np.zeros((h,w,4),np.uint8)
     for name,(bone,outline,pivot,layer) in PARTS.items():
         region=np.zeros((h,w),np.uint8)
         cv2.fillPoly(region,[np.array(outline,np.int32)],255)
         matte=cv2.bitwise_and(region,person)
+        union_mask=cv2.bitwise_or(union_mask,matte)
+        reconstructed[matte>0,:3]=original[matte>0]
+        reconstructed[matte>0,3]=255
         ys,xs=np.where(matte>0)
         if not len(xs):
             raise ValueError(f"No authentic foreground pixels for {name}; revise mask")
@@ -65,10 +70,26 @@ def main():
                       "source_pivot":list(pivot),"source_rect":[int(left),int(top),int(right-left),int(bottom-top)],
                       "offset":[round((left+right)/2-pivot[0],2),round((top+bottom)/2-pivot[1],2)],
                       "layer":layer,"candidate_only":True})
+    person_pixels=int(np.count_nonzero(person))
+    union_pixels=int(np.count_nonzero(union_mask))
+    coverage=round(union_pixels/max(1,person_pixels),4)
+    Image.fromarray(reconstructed,"RGBA").save(dest/"reconstructed_parts_candidate.png")
+    original_rgba=np.dstack([original,np.full((h,w),255,np.uint8)])
+    # Side-by-side visual audit artifact: untouched RGB original vs union of
+    # extracted pieces with alpha composited over a neutral checker.
+    checker=np.full((h,w,3),72,np.uint8)
+    checker[((np.indices((h,w)).sum(axis=0)//12)%2)==0]=96
+    merged=checker.copy()
+    fg_alpha=reconstructed[:,:,3:4].astype(np.float32)/255.0
+    merged=np.uint8(reconstructed[:,:,:3]*fg_alpha+merged*(1-fg_alpha))
+    Image.fromarray(np.concatenate([original,merged],axis=1),"RGB").save(dest/"source_vs_parts_review.png")
+    if coverage < 0.30:
+        raise ValueError(f"Only {coverage:.1%} foreground covered by candidate parts; revise masks")
     manifest={"source":"male_east_rifle.png","source_dimensions":[w,h],
               "status":"EXPERIMENTAL_SOURCE_PRESERVING_PARTS_NOT_VISUALLY_APPROVED",
+              "foreground_union_coverage":coverage,
               "parts":parts}
     (dest/"manifest.json").write_text(json.dumps(manifest,indent=2)+"\n")
-    print("PC43_CANDIDATE_RGBA_PARTS_GENERATED",len(parts))
+    print("PC43_CANDIDATE_RGBA_PARTS_GENERATED",len(parts),"union_coverage",coverage)
 if __name__=="__main__":
     main()
