@@ -6,8 +6,8 @@ import math
 from PIL import Image, ImageDraw, ImageFilter, ImageEnhance
 
 ARM_SEGMENTS = {
-    "upper_far": ((91,78),(133,107),22),
-    "forearm_far": ((133,107),(172,85),18),
+    "upper_far": ((91,78),(133,107),17),
+    "forearm_far": ((133,107),(172,85),12),
 }
 
 def paint_source_textured_arm(original, name):
@@ -15,8 +15,8 @@ def paint_source_textured_arm(original, name):
         raise ValueError(name)
     source = Image.fromarray(original, "RGB")
     a,b,width = ARM_SEGMENTS[name]
-    fabric = source.crop((91,74,117,98))
-    if fabric.size != (26,24):
+    fabric = source.crop((79,85,101,108))
+    if fabric.size != (22,23):
         raise ValueError("Unexpected approved jacket patch")
     dx,dy = b[0]-a[0], b[1]-a[1]
     length = math.hypot(dx,dy)
