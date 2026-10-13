@@ -373,7 +373,7 @@ func _pc42x_capture_joint_overlay() -> void:
 func _pc45_capture_constrained_arms() -> void:
     # PC45: original BODY always retained; limit arm hinges and explicitly
     # record unreachable weapon targets without scaling or cheating contact.
-    var angles: Array[int] = [-45,-25,-15,0,15,25,45]
+    var angles: Array[int] = [-45,-30,-25,-15,0,15,25,45]
     var rejects: int = 0
     var locked := ["pelvis", "torso", "head_neck", "back_thigh",
             "front_thigh", "back_shin", "front_shin"]
