@@ -1,0 +1,26 @@
+name: PC22 Arm Visual Unit Gate
+on:
+  push:
+    branches: [ pc22-arm-visual-fix-v2 ]
+    paths:
+      - '.github/workflows/pc22-arm-visual-unit.yml'
+      - 'tools/qa_pc22_arm_visual_contract.py'
+      - 'tools/build_pc22_canonical_arm_assets.py'
+      - 'patches/apply_pc22_canonical_arm_candidate.py'
+      - 'assets/authored2d/unified_character/arms/reference_targets/visual_contract.json'
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  visual-unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: pc22-arm-visual-fix-v2
+          fetch-depth: 1
+      - run: python3 -m pip install --quiet pillow numpy
+      - run: python3 -m py_compile patches/apply_pc22_canonical_arm_candidate.py tools/build_pc22_canonical_arm_assets.py tools/qa_pc22_arm_visual_contract.py
+      - run: python3 tools/build_pc22_canonical_arm_assets.py "$GITHUB_WORKSPACE"
+      - run: python3 tools/qa_pc22_arm_visual_contract.py "$GITHUB_WORKSPACE"

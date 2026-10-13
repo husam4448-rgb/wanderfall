@@ -59,7 +59,7 @@ def recolor(img, base_rgb, grain=2):
             r,g,b,a=src[x,y]
             if a<4: continue
             lum=(r+g+b)/3.0
-            delta=int(max(-24,min(24,(lum-112.0)*0.15)))
+            delta=int(max(-58,min(58,(lum-112.0)*0.42)))
             gnoise=((x*17+y*11)%5)-2 if grain else 0
             dst[x,y]=(max(0,min(255,base_rgb[0]+delta+gnoise)),
                       max(0,min(255,base_rgb[1]+delta+gnoise)),
@@ -146,91 +146,147 @@ def add_joint_caps(img, rgb, top_frac, bottom_frac, depth=11):
     layer.alpha_composite(img)
     return layer
 
+def _aa_grip_hand(sex, support=False):
+    """Compact reference-driven gripping hand; no extended/pointing fingers."""
+    S=4
+    im=Image.new("RGBA",(96*S,96*S),(0,0,0,0))
+    d=ImageDraw.Draw(im)
+    skin=(190,126,92,255) if sex=="male" else (204,139,103,255)
+    light=(222,159,119,255) if sex=="male" else (229,168,128,255)
+    dark=(105,68,52,255); deep=(68,48,40,255)
+    def sc(box): return tuple(int(v*S) for v in box)
+
+    # Short wrist and compact palm centered in the canvas.
+    d.rounded_rectangle(sc((15,39,37,57)),radius=7*S,fill=skin,outline=deep,width=2*S)
+    d.rounded_rectangle(sc((30,31,61,65)),radius=9*S,fill=skin,outline=deep,width=2*S)
+
+    if support:
+        # Fore-end grip: knuckles sit over the rail, fingers curl underneath.
+        for b in ((47,31,59,40),(55,33,66,42),(60,37,69,46)):
+            d.rounded_rectangle(sc(b),radius=4*S,fill=light,outline=deep,width=2*S)
+        for b in ((47,50,58,62),(55,49,65,61),(61,47,70,58)):
+            d.rounded_rectangle(sc(b),radius=4*S,fill=skin,outline=deep,width=2*S)
+        d.polygon([tuple(v*S for v in p) for p in ((31,35),(43,29),(55,35),(51,44),(39,43))],
+                  fill=light,outline=dark)
+    else:
+        # Trigger grip: four curled fingers stack around a near-vertical grip.
+        for b in ((48,31,61,40),(50,39,64,48),(50,47,64,56),(47,55,60,64)):
+            d.rounded_rectangle(sc(b),radius=4*S,fill=skin,outline=deep,width=2*S)
+        d.polygon([tuple(v*S for v in p) for p in ((31,35),(43,29),(56,35),(52,43),(39,42))],
+                  fill=light,outline=dark)
+
+    d.arc(sc((32,39,57,62)),15,125,fill=dark,width=S)
+    d.ellipse(sc((34,35,39,40)),fill=light)
+    return im.resize((96,96),Image.Resampling.LANCZOS)
+
 def derive_bare_hand(glove_img, sex):
-    # Convert the authored hand/glove silhouette into a compact weapon-grip hand.
-    # The old candidate preserved long straight fingers and looked like a pointing
-    # hand at the grip. Compress/fold the distal finger region toward the palm while
-    # retaining authored pixel texture and skin shading.
-    g=glove_img.convert("RGBA")
-    bb=g.getchannel("A").getbbox()
-    if bb is None:
-        raise SystemExit("Empty glove source")
-    g=g.crop(bb)
-    x0=max(0,int(g.width*0.28))  # remove cuff
-    g=g.crop((x0,0,g.width,g.height))
-    base=(196,132,96) if sex=="male" else (202,140,105)
-    g=recolor(g,base,1)
-    g=trim(g)
-
-    split=max(2,int(g.width*0.56))
-    palm=g.crop((0,0,split,g.height))
-    fingers=g.crop((split,0,g.width,g.height))
-    fw=max(2,int(round(fingers.width*0.46)))
-    fh=max(2,int(round(fingers.height*0.82)))
-    fingers=fingers.resize((fw,fh),Image.Resampling.LANCZOS)
-
-    folded=Image.new("RGBA",(split+fw+2,g.height),(0,0,0,0))
-    folded.alpha_composite(palm,(0,0))
-    # Fold the fingers slightly downward into the palm/grip instead of extending
-    # straight along the barrel.
-    fy=max(0,int(round((g.height-fh)*0.62)))
-    folded.alpha_composite(fingers,(max(0,split-4),fy))
-    folded=trim(folded)
-
-    canvas=Image.new("RGBA",(96,96),(0,0,0,0))
-    max_w=58 if sex=="male" else 54
-    max_h=50 if sex=="male" else 47
-    sc=min(max_w/folded.width,max_h/folded.height)
-    rs=folded.resize((max(1,int(round(folded.width*sc))),max(1,int(round(folded.height*sc)))),Image.Resampling.LANCZOS)
-    canvas.alpha_composite(rs,(9,(96-rs.height)//2))
-    return canvas
+    return _aa_grip_hand(sex,False)
 
 def derive_support_hand(dominant, sex):
-    # Same compact grip family, slightly smaller for the fore-end/handguard.
-    d=trim(dominant)
-    target=(52,46) if sex=="male" else (48,43)
-    sc=min(target[0]/d.width,target[1]/d.height)
-    rs=d.resize((max(1,int(round(d.width*sc))),max(1,int(round(d.height*sc)))),Image.Resampling.LANCZOS)
-    out=Image.new("RGBA",(96,96),(0,0,0,0))
-    out.alpha_composite(rs,(9,(96-rs.height)//2))
-    return out
+    return _aa_grip_hand(sex,True)
 
 upper_src=load_b64_png(upper_src_path)
 fore_src=load_b64_png(fore_src_path)
 glove_src=Image.open(glove_src_path).convert("RGBA")
-rifle_src=Image.open(rifle_src_path).convert("RGBA")
 
-# Preserve the canonical rifle body/grip geometry, but move only the upper
-# butt-stock pixels forward by 4 source pixels. In the original 44x14 asset,
-# the stock protruded behind the shoulder socket and appeared as a brown
-# triangular chest intrusion at magnified runtime QA. Grip/barrel pixels stay
-# exactly where they are, so hand/socket geometry is unchanged.
-rifle_arm=rifle_src.copy()
-rp=rifle_arm.load()
-moved=[]
-for y in range(min(5,rifle_arm.height)):
-    for x in range(rifle_arm.width):
-        if rp[x,y][3] > 0:
-            moved.append((x,y,rp[x,y]))
-            rp[x,y]=(0,0,0,0)
-for x,y,pix in moved:
-    nx=min(rifle_arm.width-1,x+4)
-    rp[nx,y]=pix
+def build_reference_rifle():
+    """Detailed side-view service rifle matched to approved reference proportions."""
+    S=3
+    im=Image.new("RGBA",(96*S,30*S),(0,0,0,0))
+    d=ImageDraw.Draw(im)
+    def poly(points,fill,outline=None):
+        pts=[(int(x*S),int(y*S)) for x,y in points]
+        d.polygon(pts,fill=fill)
+        if outline: d.line(pts+[pts[0]],fill=outline,width=S)
+    def rect(box,fill,outline=None,w=1):
+        b=tuple(int(v*S) for v in box); d.rectangle(b,fill=fill,outline=outline,width=w*S)
+    dark=(25,29,30,255); edge=(17,20,21,255); mid=(48,54,54,255)
+    mid2=(61,68,67,255); hi=(101,108,103,255)
+    stock=(54,49,42,255); stock_hi=(88,72,55,255)
+
+    # Buttstock and butt pad: tapered, shouldered silhouette rather than a bar.
+    poly([(2,13),(7,9),(22,9),(29,12),(29,18),(20,18),(10,22),(3,21)],stock,edge)
+    rect((1,13,5,21),(38,38,35,255),edge)
+    d.line([(8*S,11*S),(22*S,11*S),(27*S,14*S)],fill=stock_hi,width=S)
+    d.line([(8*S,19*S),(19*S,16*S)],fill=(72,60,48,255),width=S)
+
+    # Buffer tube + receiver body.
+    rect((25,12,32,15),dark,edge)
+    poly([(29,8),(53,8),(57,11),(55,18),(31,18),(28,15)],mid,edge)
+    rect((31,7,54,9),dark,edge)
+    d.line([(33*S,9*S),(51*S,9*S)],fill=hi,width=S)
+    # Ejection/controls.
+    rect((43,11,52,15),(33,37,38,255),edge)
+    rect((34,11,39,13),mid2,edge)
+    d.ellipse((39*S,12*S,41*S,14*S),fill=hi)
+
+    # Low optic / rear sight to give a readable upper silhouette.
+    rect((35,4,47,7),dark,edge)
+    rect((38,2,45,4),mid2,edge)
+    rect((36,7,49,8),(22,26,27,255),edge)
+
+    # Pistol grip and curved magazine.
+    poly([(32,17),(40,17),(42,27),(36,29),(31,23)],(48,43,39,255),edge)
+    d.line([(35*S,19*S),(39*S,26*S)],fill=stock_hi,width=S)
+    poly([(45,18),(54,18),(57,28),(50,29),(46,24)],(31,35,36,255),edge)
+    d.line([(48*S,20*S),(54*S,26*S)],fill=mid2,width=S)
+
+    # Handguard: visibly distinct from receiver, ribbed and slimmer.
+    poly([(55,10),(79,10),(83,12),(81,17),(55,17)],(43,49,49,255),edge)
+    rect((56,9,79,11),mid2,edge)
+    for x in (59,64,69,74):
+        rect((x,12,x+2,15),(22,26,27,255))
+        d.line([(x*S,16*S),((x+2)*S,16*S)],fill=hi,width=S)
+
+    # Gas block/front sight, barrel and muzzle device.
+    poly([(78,10),(80,5),(82,10)],dark,edge)
+    rect((80,12,92,14),(31,35,36,255),edge)
+    rect((90,11,95,15),(20,23,24,255),edge)
+    d.line([(82*S,12*S),(91*S,12*S)],fill=hi,width=S)
+    return im.resize((96,30),Image.Resampling.LANCZOS)
+
+def build_reference_pistol():
+    """Detailed side-view pistol with readable slide, frame, trigger guard and grip."""
+    S=4
+    im=Image.new("RGBA",(48*S,28*S),(0,0,0,0))
+    d=ImageDraw.Draw(im)
+    def poly(points,fill,outline=None):
+        pts=[(int(x*S),int(y*S)) for x,y in points]; d.polygon(pts,fill=fill)
+        if outline: d.line(pts+[pts[0]],fill=outline,width=S)
+    def rect(box,fill,outline=None,w=1):
+        d.rectangle(tuple(int(v*S) for v in box),fill=fill,outline=outline,width=w*S)
+    edge=(18,21,22,255); dark=(31,35,36,255); mid=(55,61,61,255); hi=(108,114,110,255)
+    # Slide/barrel.
+    poly([(5,5),(40,5),(45,8),(44,12),(6,12),(3,9)],mid,edge)
+    d.line([(7*S,6*S),(38*S,6*S)],fill=hi,width=S)
+    rect((41,7,47,11),dark,edge)
+    rect((8,12,34,16),(42,47,47,255),edge)
+    # rear/front sights
+    rect((8,2,11,5),dark,edge); rect((38,3,40,5),dark,edge)
+    # trigger guard and trigger
+    d.ellipse((23*S,14*S,35*S,22*S),outline=(79,85,82,255),width=S)
+    d.arc((26*S,15*S,32*S,22*S),260,70,fill=edge,width=S)
+    # angled grip
+    poly([(10,15),(22,15),(21,27),(12,27),(8,21)],(51,45,40,255),edge)
+    for y in (18,21,24):
+        d.line([(12*S,y*S),(19*S,(y+1)*S)],fill=(88,69,52,255),width=S)
+    return im.resize((48,28),Image.Resampling.LANCZOS)
+
+rifle_arm=build_reference_rifle()
+pistol_arm=build_reference_pistol()
 rifle_arm_path=root/"weapons"/"SP_PC22_Rifle_ArmCompatible.png"
+pistol_arm_path=root/"weapons"/"SP_PC22_Pistol_ArmCompatible.png"
 rifle_arm.save(rifle_arm_path)
+pistol_arm.save(pistol_arm_path)
 
-# Split only the upper butt-stock from the front rifle body so the stock can be
-# rendered behind the torso while the receiver/barrel/grip remain in front.
+# Depth split: stock/buffer behind torso; receiver, grip, handguard, barrel in front.
 rifle_stock=Image.new("RGBA",rifle_arm.size,(0,0,0,0))
 rifle_front=rifle_arm.copy()
 srcp=rifle_arm.load(); sp=rifle_stock.load(); fp=rifle_front.load()
-for y in range(min(6,rifle_arm.height)):
+for y in range(rifle_arm.height):
     for x in range(rifle_arm.width):
-        pix=srcp[x,y]
-        # Rear-layer only the brown wooden butt-stock pixels. Preserve the dark
-        # receiver top edge in the foreground even where it shares row 5.
-        if pix[3] > 0 and pix[:3] == (63,49,37):
-            sp[x,y]=pix
+        if x <= 24 and srcp[x,y][3] > 0:
+            sp[x,y]=srcp[x,y]
             fp[x,y]=(0,0,0,0)
 rifle_stock_path=root/"weapons"/"SP_PC22_Rifle_Stock_Rear.png"
 rifle_front_path=root/"weapons"/"SP_PC22_Rifle_Front.png"
@@ -246,30 +302,30 @@ female_fore_runtime=embedded_runtime_image("FEMALE_FOREARM_B64")
 specs={
  "male":{
    "rig_id":"MALE_CANONICAL_ARM_SYSTEM",
-   "shoulder_rear":[6.2,-8.5],
-   "shoulder_front":[3.8,-5.3],
+   "shoulder_rear":[10.0,-9.5],
+   "shoulder_front":[9.8,-9.0],
    "upper_arm_length":10.9,
    "forearm_length":10.7,
-   "upper_arm_width":7.3,
-   "forearm_width":6.5,
+   "upper_arm_width":6.2,
+   "forearm_width":5.1,
    "hand_size":canonical["male"]["hand_size"],
-   "dominant_hand_size":[7.6,7.0],
-   "support_hand_size":[6.6,5.8],
+   "dominant_hand_size":[5.6,5.2],
+   "support_hand_size":[5.2,4.8],
    "neutral_upper_angle_deg":82.0,
    "neutral_elbow_flex_deg":22.0,
    "source_tint":[78,88,72],
  },
  "female":{
    "rig_id":"FEMALE_CANONICAL_ARM_SYSTEM",
-   "shoulder_rear":[5.3,-8.0],
-   "shoulder_front":[3.0,-5.0],
+   "shoulder_rear":[9.6,-9.3],
+   "shoulder_front":[9.4,-8.9],
    "upper_arm_length":10.6,
    "forearm_length":10.5,
-   "upper_arm_width":6.2,
-   "forearm_width":5.6,
+   "upper_arm_width":5.8,
+   "forearm_width":4.8,
    "hand_size":canonical["female"]["hand_size"],
-   "dominant_hand_size":[7.0,6.5],
-   "support_hand_size":[6.1,5.4],
+   "dominant_hand_size":[5.2,4.9],
+   "support_hand_size":[4.9,4.6],
    "neutral_upper_angle_deg":84.0,
    "neutral_elbow_flex_deg":24.0,
    "source_tint":[80,91,75],
@@ -278,13 +334,13 @@ specs={
 for sex,s in specs.items():
     s.update({
       "standard_id":"PlayerCharacters_v22",
-      "shoulder_source":"PC03 exact articulated socket retained as candidate; active PC22 intentionally has no visible shoulder joint",
+      "shoulder_source":"Visual-fix-v2: moved to visible PC22 deltoid/outer-torso attachment using approved reference sheets",
       "upper_forearm_length_source":"corrected from prior 9.4+10.5 solver to cover the complete active PC22 support-hand aim envelope without stretch",
-      "weapon_socket":canonical["weapon_socket"]["pivot_from_base"],
-      "dominant_hand_grip_socket":canonical["weapon_socket"]["dominant_hand_from_pivot"],
-      "support_hand_grip_socket":canonical["weapon_socket"]["support_hand_from_pivot"],
-      "support_hand_vertical_offset_right":1.8,
-      "support_hand_vertical_offset_left":2.1,
+      "weapon_socket":[10.5,-6.0],
+      "dominant_hand_grip_socket":[9.8,0.8],
+      "support_hand_grip_socket":[17.0,-1.0],
+      "support_hand_vertical_offset_right":0.0,
+      "support_hand_vertical_offset_left":0.0,
       "elbow_bend_constraints_deg":{"min_flex":12.0,"max_flex":155.0},
       "wrist_neutral_position":"derived from neutral upper angle + elbow flex; fixed-length FK",
       "torso_overlap_depth":1.15,
@@ -310,14 +366,14 @@ for sex,s in specs.items():
     cut=0.80 if female else 0.74
     source_fore=source_fore.crop((0,0,source_fore.width,max(2,int(source_fore.height*cut))))
 
-    u=row_warp(source_upper,0.94 if female else 1.02,0.90 if female else 0.98,0.84 if female else 0.92)
+    u=row_warp(source_upper,1.08 if female else 1.12,0.96 if female else 1.00,0.78 if female else 0.80)
     u=recolor(u,tuple(s["source_tint"]),2)
-    u.putalpha(u.getchannel("A").filter(ImageFilter.GaussianBlur(0.20)))
-    u=recanvas_vertical(u,(64,128),1,0.72 if female else 0.84)
+    u.putalpha(u.getchannel("A").filter(ImageFilter.GaussianBlur(0.10)))
+    u=recanvas_vertical(u,(64,128),1,0.90 if female else 0.96)
     u=keep_largest_alpha_component(u)
-    u=add_joint_caps(u,tuple(s["source_tint"]),0.56 if female else 0.60,0.44 if female else 0.48,11)
+    u=add_joint_caps(u,tuple(s["source_tint"]),0.42 if female else 0.46,0.32 if female else 0.36,4)
 
-    f=row_warp(source_fore,0.94 if female else 0.98,0.90 if female else 0.94,0.82 if female else 0.88)
+    f=row_warp(source_fore,1.04 if female else 1.08,0.88 if female else 0.92,0.62 if female else 0.66)
     # Convert the full authored forearm/hand source into a sleeve-to-wrist segment.
     # Distal rows are kept but recolored as a darker wrist cuff so the separate hand overlaps it.
     f=f.convert("RGBA"); fp=f.load()
@@ -330,16 +386,30 @@ for sex,s in specs.items():
             base=tuple(s["source_tint"]) if t<0.80 else (70,76,66)
             d=int(max(-18,min(18,(lum-110)*0.12)))
             fp[x,y]=(max(0,min(255,base[0]+d)),max(0,min(255,base[1]+d)),max(0,min(255,base[2]+d)),a)
-    f.putalpha(f.getchannel("A").filter(ImageFilter.GaussianBlur(0.18)))
-    f=recanvas_vertical(f,(64,128),1,0.66 if female else 0.82)
+    f.putalpha(f.getchannel("A").filter(ImageFilter.GaussianBlur(0.09)))
+    f=recanvas_vertical(f,(64,128),1,0.88 if female else 0.92)
     f=keep_largest_alpha_component(f)
-    f=add_joint_caps(f,tuple(s["source_tint"]),0.48 if female else 0.52,0.31 if female else 0.34,10)
+    f=add_joint_caps(f,tuple(s["source_tint"]),0.38 if female else 0.42,0.24 if female else 0.27,4)
 
     sex_dir=root/sex
     up_name=f"SP_PC22_{sex.title()}_UpperArm_Right.png"
     fo_name=f"SP_PC22_{sex.title()}_Forearm_Right.png"
     u.save(sex_dir/up_name)
     f.save(sex_dir/fo_name)
+
+    # Proximal deltoid bridge used in armed poses after torso draw. The main
+    # upper arm remains depth-layered behind the torso, while this small
+    # textured cap reconnects the visible limb to the anatomical shoulder.
+    ub=trim(u)
+    cap_h=max(4,int(round(ub.height*0.24)))
+    cap_src=ub.crop((0,0,ub.width,cap_h))
+    cap=Image.new("RGBA",(64,64),(0,0,0,0))
+    cap_trim=trim(cap_src)
+    sc=min(48/max(1,cap_trim.width),36/max(1,cap_trim.height))
+    cap_rs=cap_trim.resize((max(1,int(round(cap_trim.width*sc))),max(1,int(round(cap_trim.height*sc)))),Image.Resampling.LANCZOS)
+    cap.alpha_composite(cap_rs,((64-cap_rs.width)//2,(64-cap_rs.height)//2))
+    cap_name=f"SP_PC22_{sex.title()}_ShoulderCap_Right.png"
+    cap.save(sex_dir/cap_name)
 
     # Prefer the already-generated PC22 unified hand base so arm and existing equipment remain compatible.
     hand=derive_bare_hand(glove_src,sex)
@@ -349,6 +419,7 @@ for sex,s in specs.items():
 
     for seg,fn,img,parent,child,length in (
       ("upper_arm",up_name,u,"shoulder","elbow",s["upper_arm_length"]),
+      ("shoulder_cap",cap_name,cap,"shoulder","upper_arm",0.0),
       ("forearm",fo_name,f,"elbow","wrist",s["forearm_length"]),
       ("hand_dominant",f"SP_PC22_{sex.title()}_Hand_Dominant_Right.png",hand,"wrist","dominant_grip",0.0),
       ("hand_support",f"SP_PC22_{sex.title()}_Hand_Support_Right.png",support_hand,"wrist","support_grip",0.0),
@@ -372,6 +443,19 @@ for sex,s in specs.items():
 for sex,s in specs.items():
     core_spec=repo/f"assets/authored2d/unified_character/core/{sex}/arm_spec.json"
     core_spec.write_text(json.dumps(s,indent=2),encoding="utf-8")
+asset_meta.append({
+  "filename":str(pistol_arm_path.relative_to(repo)),
+  "sex":"shared","segment":"weapon_pistol_arm_compatible",
+  "canvas_size":list(pistol_arm.size),
+  "pivot":"dominant grip socket",
+  "joint_parent":"dominant_grip","joint_child":"muzzle",
+  "canonical_length":0.0,
+  "visual_overlap_parent":0.0,"visual_overlap_child":0.0,
+  "compatible_rig":"MALE_CANONICAL_ARM_SYSTEM,FEMALE_CANONICAL_ARM_SYSTEM",
+  "mirroring_supported":True,"approval_state":"candidate_visual_fix_v2",
+  "sha256":hashlib.sha256(pistol_arm_path.read_bytes()).hexdigest(),
+  "note":"Reference-driven pistol with readable slide/frame/grip mass"
+})
 asset_meta.append({
   "filename":str(rifle_arm_path.relative_to(repo)),
   "sex":"shared","segment":"weapon_rifle_arm_compatible",
@@ -451,11 +535,10 @@ def solve_two_bone(shoulder,wrist,L1,L2,prev=None):
     if prev is None:
         elbow=max(candidates,key=lambda p:(p[1],-abs(p[0]-shoulder[0])))
     else:
-        def score(p):
-            continuity=length(sub(p,prev))
-            upward_penalty=max(0.0,(shoulder[1]-p[1])-1.0)*3.0
-            return continuity+upward_penalty
-        elbow=min(candidates,key=score)
+        # Preserve the previously selected IK branch. A visual "screen-down"
+        # penalty can overpower continuity near vertical aim and flip the elbow
+        # across the body, so after initialization continuity is authoritative.
+        elbow=min(candidates,key=lambda p:length(sub(p,prev)))
     return elbow,{"reachable":True,"distance":d,"range":[lo,hi]}
 
 def flex_deg(L1,L2,d):
