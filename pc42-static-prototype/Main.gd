@@ -395,6 +395,10 @@ func _pc45_capture_sliding_arms() -> void:
     var near_forearm_rest: Vector2 = near_forearm.position
     var far_forearm_rest: Vector2 = far_forearm.position
     var stock_rest: float = stock.rotation
+    var dominant_hand: Bone2D = pc42_bones["dominant_hand"]
+    var dominant_rest: Vector2 = dominant_hand.position
+    var rifle_grip: Vector2 = PC42CGripIK.REST_DOMINANT_WRIST
+    var max_grip_error: float = 0.0
     for degrees in angles:
         # Positive Godot rotation lowers the muzzle. Translate the sleeves
         # together by 2px max so overlapping source cuffs stay continuous.
@@ -406,6 +410,20 @@ func _pc45_capture_sliding_arms() -> void:
         near_forearm.position = near_forearm_rest + Vector2(0.0, phase * 2.5)
         far_forearm.position = far_forearm_rest + Vector2(0.0, phase * 2.5)
         stock.rotation = deg_to_rad(float(degrees))
+        # Keep the original dominant glove near the true rifle grip using a
+        # LIMITED SLIDE, never a disconnected independent wrist rotation.
+        # Weapon and arm positions are measured in the same source-pixel rig.
+        var target: Vector2 = PC42CGripIK.socket_at(rifle_grip,deg_to_rad(float(degrees)))
+        var delta: Vector2 = target - dominant_hand.global_position
+        var local_delta: Vector2 = dominant_hand.get_parent().to_local(dominant_hand.global_position + delta) - dominant_hand.position
+        if local_delta.length() > 5.0:
+            print("PC45_SLIDING_GRIP_UNREACHABLE angle=%d error_px=%.3f" % [degrees,local_delta.length()])
+            # Don't misrepresent this pose as an accepted two-hand grip.
+        else:
+            dominant_hand.position += local_delta
+        var remaining: float = dominant_hand.global_position.distance_to(target)
+        max_grip_error = maxf(max_grip_error,remaining)
+        print("PC45_SLIDING_GRIP angle=%d dominant_error_px=%.3f" % [degrees,remaining])
         # No elbow, forearm, hand, or wrist independent angular transforms.
         for name in locked:
             if not (pc42_bones[name] as Bone2D).transform.is_equal_approx(snapshots[name]):
@@ -422,8 +440,9 @@ func _pc45_capture_sliding_arms() -> void:
     far.position = far_rest
     near_forearm.position = near_forearm_rest
     far_forearm.position = far_forearm_rest
+    dominant_hand.position = dominant_rest
     stock.rotation = stock_rest
-    print("PC45_SLIDING_ARM_CAPTURED poses=3 VISUAL_QA_PENDING")
+    print("PC45_SLIDING_ARM_CAPTURED poses=3 max_dominant_grip_error_px=%.3f VISUAL_QA_PENDING" % max_grip_error)
 
 func _pc45_capture_constrained_arms() -> void:
     # PC45: original BODY always retained; limit arm hinges and explicitly
