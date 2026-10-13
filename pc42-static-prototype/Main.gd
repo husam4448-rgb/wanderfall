@@ -399,6 +399,8 @@ func _pc45_capture_sliding_arms() -> void:
     var dominant_rest: Vector2 = dominant_hand.position
     var rifle_grip: Vector2 = PC42CGripIK.REST_DOMINANT_WRIST
     var max_grip_error: float = 0.0
+    var max_support_chain_gap: float = 0.0
+    var max_support_slide: float = 3.0
     for degrees in angles:
         # Positive Godot rotation lowers the muzzle. Translate the sleeves
         # together by 2px max so overlapping source cuffs stay continuous.
@@ -410,6 +412,22 @@ func _pc45_capture_sliding_arms() -> void:
         near_forearm.position = near_forearm_rest + Vector2(0.0, phase * 2.5)
         far_forearm.position = far_forearm_rest + Vector2(0.0, phase * 2.5)
         stock.rotation = deg_to_rad(float(degrees))
+        # Test the HIDDEN source-arm endpoint against the real support grip.
+        # No added limb geometry or rotation: at most 3 source pixels of
+        # translation, preserving the approved continuous body silhouette.
+        var support_target: Vector2 = pc42_skeleton.to_global(
+                PC42CGripIK.socket_at(PC42CGripIK.REST_SUPPORT_WRIST,
+                    deg_to_rad(float(degrees))))
+        var support_end: Vector2 = far_forearm.to_global(
+                PC42CGripIK.REST_SUPPORT_WRIST - PC42CGripIK.FAR_REST_ELBOW)
+        var support_delta: Vector2 = far_forearm.get_parent().to_local(support_target) - far_forearm.get_parent().to_local(support_end)
+        var actual_slide: Vector2 = support_delta.limit_length(max_support_slide)
+        far_forearm.position += actual_slide
+        var support_remaining: float = far_forearm.to_global(
+                PC42CGripIK.REST_SUPPORT_WRIST - PC42CGripIK.FAR_REST_ELBOW).distance_to(support_target)
+        max_support_chain_gap = maxf(max_support_chain_gap,support_remaining)
+        print("PC45_SLIDING_SUPPORT angle=%d chain_gap_world_px=%.3f slide_local_px=%.3f" % [
+                degrees,support_remaining,actual_slide.length()])
         # Keep the original dominant glove near the true rifle grip using a
         # LIMITED SLIDE, never a disconnected independent wrist rotation.
         # Weapon and arm positions are measured in the same source-pixel rig.
@@ -443,7 +461,7 @@ func _pc45_capture_sliding_arms() -> void:
     far_forearm.position = far_forearm_rest
     dominant_hand.position = dominant_rest
     stock.rotation = stock_rest
-    print("PC45_SLIDING_ARM_CAPTURED poses=3 max_dominant_grip_error_px=%.3f VISUAL_QA_PENDING" % max_grip_error)
+    print("PC45_SLIDING_ARM_CAPTURED poses=3 max_dominant_grip_error_px=%.3f max_support_chain_gap_world_px=%.3f VISUAL_QA_PENDING" % [max_grip_error,max_support_chain_gap])
 
 func _pc45_capture_constrained_arms() -> void:
     # PC45: original BODY always retained; limit arm hinges and explicitly
