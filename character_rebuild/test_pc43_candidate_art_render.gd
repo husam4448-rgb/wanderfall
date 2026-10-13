@@ -45,11 +45,16 @@ func _run() -> void:
         pivots[str(segment["bone"])] = Vector2(float(p[0]),float(p[1])) - origin
     pivots["pelvis"] = Vector2.ZERO
     pivots["neck"] = Vector2(9,-90)
+    # Distal wrist pivots must be explicitly derived from the source pose.
+    # The far/support wrist owns no painted part, but its joint is essential
+    # for verifying where a support-hand grip target must land.
+    pivots["wrist_far"] = Vector2(121, 132) - origin
+
     pivots["hip_far"] = pivots.get("hip_far", Vector2(-18, 9))
     pivots["hip_near"] = pivots.get("hip_near", Vector2(13, 9))
     # Pivots must be assigned after hero reaches its final world transform.
     for bone_name in ["pelvis", "torso", "neck", "head", "shoulder_far", "elbow_far",
-            "shoulder_near", "elbow_near", "wrist_near", "hip_far", "knee_far", "ankle_far", "hip_near", "knee_near", "ankle_near"]:
+            "shoulder_near", "elbow_near", "wrist_near", "wrist_far", "hip_far", "knee_far", "ankle_far", "hip_near", "knee_near", "ankle_near"]:
         if pivots.has(bone_name):
             var bone: Bone2D = hero.bones[bone_name]
             bone.global_position = hero.skeleton.to_global(pivots[bone_name])
