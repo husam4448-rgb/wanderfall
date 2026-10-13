@@ -390,6 +390,10 @@ func _pc45_capture_sliding_arms() -> void:
     var stock: Bone2D = pc42_bones["rifle_stock"]
     var near_rest: Vector2 = near.position
     var far_rest: Vector2 = far.position
+    var near_forearm: Bone2D = pc42_bones["near_forearm"]
+    var far_forearm: Bone2D = pc42_bones["far_forearm"]
+    var near_forearm_rest: Vector2 = near_forearm.position
+    var far_forearm_rest: Vector2 = far_forearm.position
     var stock_rest: float = stock.rotation
     for degrees in angles:
         # Positive Godot rotation lowers the muzzle. Translate the sleeves
@@ -397,6 +401,10 @@ func _pc45_capture_sliding_arms() -> void:
         var phase: float = float(degrees) / 12.0
         near.position = near_rest + Vector2(0.0, phase * 1.5)
         far.position = far_rest + Vector2(0.0, phase * 1.5)
+        # Slide the long sleeve edge toward the weapon by a small, bounded
+        # local offset. Elbows still DO NOT rotate, scale or expose hinges.
+        near_forearm.position = near_forearm_rest + Vector2(0.0, phase * 2.5)
+        far_forearm.position = far_forearm_rest + Vector2(0.0, phase * 2.5)
         stock.rotation = deg_to_rad(float(degrees))
         # No elbow, forearm, hand, or wrist independent angular transforms.
         for name in locked:
@@ -412,6 +420,8 @@ func _pc45_capture_sliding_arms() -> void:
         print("PC45_SLIDING_FRAME angle=%d source_body_locked=true grip_visual_qa=PENDING" % degrees)
     near.position = near_rest
     far.position = far_rest
+    near_forearm.position = near_forearm_rest
+    far_forearm.position = far_forearm_rest
     stock.rotation = stock_rest
     print("PC45_SLIDING_ARM_CAPTURED poses=3 VISUAL_QA_PENDING")
 
