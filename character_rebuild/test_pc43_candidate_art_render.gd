@@ -156,7 +156,31 @@ func _run() -> void:
             return
         print("PC43_ARM_AIM_ANGLE angle=", degrees, " support_grip_error_px=", snappedf(grip_error,0.01), " IK_ok=", arm_ok)
     Grip.restore_rest(hero)
-    print("PC43_ARM_AIM_QA captured=11 worst_grip_error_px=", snappedf(max_grip_error, 0.01), " rejected=", rejected, " VISUAL_REVIEW_REQUIRED")
+    # Mirror must be verified in the actual IK aim pose, not only idle.
+    # Re-use identical canonical bone angles; reflection belongs to root.
+    hero.facing_right = false
+    for degrees in aim_angles:
+        Grip.restore_rest(hero)
+        var mirrored_ok: bool = Grip.aim(hero, deg_to_rad(float(degrees)))
+        var mirrored_error: float = Grip.grip_error_px(hero)
+        max_grip_error = maxf(max_grip_error, mirrored_error)
+        if not mirrored_ok:
+            rejected += 1
+        await process_frame
+        await process_frame
+        var mirrored_capture: Image = viewport.get_texture().get_image()
+        if mirrored_capture == null or mirrored_capture.is_empty():
+            push_error("PC43_ARM_AIM_LEFT_EMPTY " + str(degrees))
+            quit(15)
+            return
+        var mirrored_file := "pc43_arms_left_aim_%+03d.png" % degrees
+        if mirrored_capture.save_png(ProjectSettings.globalize_path(DEST).path_join(mirrored_file)) != OK:
+            push_error("PC43_ARM_AIM_LEFT_SAVE_FAILED " + str(degrees))
+            quit(16)
+            return
+    Grip.restore_rest(hero)
+    hero.facing_right = true
+    print("PC43_ARM_AIM_QA captured=22 worst_grip_error_px=", snappedf(max_grip_error, 0.01), " rejected=", rejected, " VISUAL_REVIEW_REQUIRED")
     print("PC43_CANDIDATE_GAIT_V2_RENDERED frames=16 VISUAL_QA_REQUIRED")
     print("PC43_CANDIDATE_ART_RENDERED parts=14 faces=2 breathing_frames=8 VISUAL_QA_UNVERIFIED")
     quit(0)
