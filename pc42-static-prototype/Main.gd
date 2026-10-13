@@ -65,6 +65,10 @@ func _ready() -> void:
     _build_actual_skeleton2d()
     if OS.get_environment("PC42P_IDLE_BREATH_TEST") == "1":
         _pc42p_init_source_breath()
+    if OS.get_environment("PC45_CONSTRAINED_ARM_TEST") == "1":
+        await _pc45_capture_constrained_arms()
+        get_tree().quit()
+        return
     if OS.get_environment("PC42V_ARM_STRESS") == "1":
         await _pc42v_capture_arm_stress()
         get_tree().quit()
@@ -365,6 +369,35 @@ func _pc42x_capture_joint_overlay() -> void:
     pc42x_joint_overlay = true
     await _pc42c_capture_png("pc42x_actual_arm_joint_overlay.png")
     pc42x_joint_overlay = false
+
+func _pc45_capture_constrained_arms() -> void:
+    # PC45: original BODY always retained; limit arm hinges and explicitly
+    # record unreachable weapon targets without scaling or cheating contact.
+    var angles: Array[int] = [-45,-25,-15,0,15,25,45]
+    var rejects: int = 0
+    for a in angles:
+        var angle: float = deg_to_rad(float(a))
+        var near: Dictionary = PC42CGripIK.solve_dominant_limited(angle)
+        var far: Dictionary = PC42CGripIK.solve_support_limited(angle)
+        var good: bool = bool(near["valid"]) and bool(far["valid"])
+        print("PC45_LIMITED_ARM angle=%d near_px=%.3f far_px=%.3f accepted=%s" % [
+            a,float(near.get("grip_error_px",INF)),
+            float(far.get("grip_error_px",INF)),str(good)])
+        if not good:
+            rejects += 1
+            continue
+        var shoulder: Bone2D = pc42_bones["near_upper_arm"]
+        var forearm: Bone2D = pc42_bones["near_forearm"]
+        var far_shoulder: Bone2D = pc42_bones["far_upper_arm"]
+        var far_forearm: Bone2D = pc42_bones["far_forearm"]
+        shoulder.rotation = float(near["shoulder_rotation"])
+        forearm.rotation = float(near["forearm_rotation"])
+        far_shoulder.rotation = float(far["shoulder_rotation"])
+        far_forearm.rotation = float(far["forearm_rotation"])
+        pc42_bones["rifle_stock"].rotation = angle
+        # No independent wrist spin; do not change pelvis/head/legs.
+        await _pc42c_capture_png("pc45_limited_%s.png" % str(a).replace("-","m"))
+    print("PC45_CONSTRAINED_ARM_TEST_DONE rendered=%d rejected=%d visual_qa=PENDING" % [angles.size()-rejects,rejects])
 
 func _pc42v_capture_arm_stress() -> void:
     # Full signed-angle reachability + actual Godot render. Unreachable
