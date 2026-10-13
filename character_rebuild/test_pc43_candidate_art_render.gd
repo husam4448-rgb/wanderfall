@@ -36,6 +36,20 @@ func _run() -> void:
         push_error("PC43_ART_RIG_LOAD_INCOMPLETE " + JSON.stringify(result))
         quit(4)
         return
+    # Reject accidental fallback to old shadow/equipment fragments.
+    var painted_arm_count := 0
+    for art_spec in doc["parts"]:
+        if str(art_spec.get("name","")) in ["upper_far", "forearm_far"]:
+            if not bool(art_spec.get("newly_painted_from_source_fabric",false)):
+                push_error("PC43_NEW_SUPPORT_ARM_ART_NOT_BOUND " + str(art_spec.get("name","")))
+                quit(19)
+                return
+            painted_arm_count += 1
+    if painted_arm_count != 2:
+        push_error("PC43_NEW_SUPPORT_ARM_PARTS_MISSING count=" + str(painted_arm_count))
+        quit(20)
+        return
+    print("PC43_NEW_SUPPORT_ARM_ART_LOADED parts=2")
     # Reposition 11 textured bone owners to source anatomical pivots.
     # All bone targets are in original source coordinates; transformations
     # are resolved in parent-first order so existing hierarchy is preserved.
