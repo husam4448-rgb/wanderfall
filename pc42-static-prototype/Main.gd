@@ -401,6 +401,21 @@ func _pc45_capture_sliding_arms() -> void:
     var max_grip_error: float = 0.0
     var max_support_chain_gap: float = 0.0
     var max_support_slide: float = 3.0
+    # Temporary, real RGBA cloth cuff drawn beneath the original rifle.
+    # Attached to weapon-owned support hand so there is no free wrist spin.
+    var support_socket: Bone2D = pc42_bones["support_hand"]
+    var cuff_texture: Texture2D = _load_image("assets/pc45_hidden_support_cuff.png")
+    if cuff_texture == null:
+        push_error("PC45_HIDDEN_CUFF_TEXTURE_MISSING")
+        get_tree().quit(66)
+        return
+    var cuff_layer := Sprite2D.new()
+    cuff_layer.name = "PC45_Concealed_Cuff_VisualTrial"
+    cuff_layer.texture = cuff_texture
+    cuff_layer.centered = false
+    cuff_layer.position = -PC42CGripIK.REST_SUPPORT_WRIST
+    cuff_layer.z_index = -1
+    support_socket.add_child(cuff_layer)
     for degrees in angles:
         # Positive Godot rotation lowers the muzzle. Translate the sleeves
         # together by 2px max so overlapping source cuffs stay continuous.
@@ -461,6 +476,7 @@ func _pc45_capture_sliding_arms() -> void:
     far_forearm.position = far_forearm_rest
     dominant_hand.position = dominant_rest
     stock.rotation = stock_rest
+    cuff_layer.queue_free()
     print("PC45_SLIDING_ARM_CAPTURED poses=3 max_dominant_grip_error_px=%.3f max_support_chain_gap_world_px=%.3f VISUAL_QA_PENDING" % [max_grip_error,max_support_chain_gap])
 
 func _pc45_capture_constrained_arms() -> void:
