@@ -134,10 +134,29 @@ func _run() -> void:
         return
     var max_grip_error: float = 0.0
     var rejected: int = 0
+    # Compare skeletal/body transforms, not total sprite silhouette:
+    # the latter legitimately grows when the rifle points upward.
+    var locked_bones := ["pelvis", "torso", "neck", "head",
+            "hip_far", "knee_far", "ankle_far", "hip_near", "knee_near", "ankle_near"]
+    var rest_body_transforms := {}
+    for bone_name in locked_bones:
+        var body_bone: Bone2D = hero.bones[bone_name]
+        rest_body_transforms[bone_name] = body_bone.transform
+    var original_visual_scale: Vector2 = hero.visual_root.scale
+    var body_transform_failures := 0
     var aim_angles := [-45, -35, -25, -15, -5, 0, 5, 15, 25, 35, 45]
     for degrees in aim_angles:
         Grip.restore_rest(hero)
         var arm_ok: bool = Grip.aim(hero, deg_to_rad(float(degrees)))
+        for bone_name in locked_bones:
+            var current: Transform2D = (hero.bones[bone_name] as Bone2D).transform
+            var initial: Transform2D = rest_body_transforms[bone_name]
+            if not current.is_equal_approx(initial):
+                body_transform_failures += 1
+                push_error("PC43_AIM_BODY_TRANSFORM_CHANGED angle=" + str(degrees) + " bone=" + bone_name)
+        if not hero.visual_root.scale.is_equal_approx(original_visual_scale):
+            body_transform_failures += 1
+            push_error("PC43_AIM_CHARACTER_SCALE_CHANGED angle=" + str(degrees))
         var grip_error: float = Grip.grip_error_px(hero)
         max_grip_error = maxf(max_grip_error, grip_error)
         if not arm_ok:
@@ -180,6 +199,11 @@ func _run() -> void:
             return
     Grip.restore_rest(hero)
     hero.facing_right = true
+    if body_transform_failures > 0:
+        push_error("PC43_AIM_BODY_PROPORTIONS_REJECTED failures=" + str(body_transform_failures))
+        quit(18)
+        return
+    print("PC43_AIM_BODY_SCALE_INVARIANT_PASS checked=11 body_bones=10")
     print("PC43_ARM_AIM_QA captured=22 worst_grip_error_px=", snappedf(max_grip_error, 0.01), " rejected=", rejected, " VISUAL_REVIEW_REQUIRED")
     # Do not let a successfully captured screenshot series pass as an
     # acceptable hand grip when one or more target positions are missed.
