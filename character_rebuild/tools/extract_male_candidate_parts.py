@@ -9,6 +9,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 from PIL import Image
+from paint_pc43_far_arm import paint_source_textured_arm
 
 # Native 310x315 approved reference. Coordinates intentionally explicit so a
 # visual-art correction changes only a region, never the underlying source.
@@ -18,7 +19,7 @@ PARTS = {
     "torso": ("torso", [(48,59),(65,44),(87,47),(118,53),(149,77),(153,138),(121,158),(79,153),(47,135)], (111,116), 5),
     "pelvis": ("pelvis", [(86,134),(135,135),(142,165),(121,182),(89,167)], (112,151), 4),
     "upper_far": ("shoulder_far", [(73,67),(101,62),(119,84),(106,112),(85,122),(70,99)], (91,78), 2),
-    "forearm_far": ("elbow_far", [(83,103),(111,101),(131,118),(121,142),(104,144),(82,124)], (101,114), 3),
+    "forearm_far": ("elbow_far", [(83,103),(111,101),(131,118),(121,142),(104,144),(82,124)], (133,107), 3),
     "upper_near": ("shoulder_near", [(113,68),(144,75),(155,96),(147,123),(122,115),(105,87)], (127,82), 7),
     "forearm_near": ("elbow_near", [(122,86),(139,89),(154,92),(169,87),(177,99),(163,111),(142,112),(124,103)], (135,97), 8),
     "thigh_far": ("hip_far", [(86,151),(113,154),(108,192),(89,210),(65,201),(77,171)], (94,160), 2),
@@ -150,8 +151,15 @@ def main():
             if seed>0:
                 connected=(component_labels==seed)
                 matte[157:265,62:145][connected]=0
+        # Previously these masks held only gear/shadow scraps, not a real
+        # support upper-arm or forearm. Replace with an explicitly NEW
+        # source-textured candidate; never claim hidden pixels recovered.
+        authored_arm = None
+        if name in ("upper_far","forearm_far"):
+            authored_arm = np.array(paint_source_textured_arm(original,name))
+            matte = authored_arm[:,:,3]
         union_mask=cv2.bitwise_or(union_mask,matte)
-        reconstructed[matte>0,:3]=original[matte>0]
+        reconstructed[matte>0,:3]=(original if authored_arm is None else authored_arm[:,:,:3])[matte>0]
         reconstructed[matte>0,3]=255
         ys,xs=np.where(matte>0)
         if name == "support_hand" and len(xs) < 80:
@@ -177,12 +185,12 @@ def main():
         top=max(0,int(top)-padded)
         right=min(w,int(right)+padded)
         bottom=min(h,int(bottom)+padded)
-        rgba=np.dstack([original,soft_alpha])[top:bottom,left:right]
+        rgba=(np.dstack([original,soft_alpha]) if authored_arm is None else authored_arm)[top:bottom,left:right]
         Image.fromarray(rgba,'RGBA').save(dest/f"{name}.png")
         parts.append({"name":name,"bone":bone,"file":f"{name}.png",
                       "source_pivot":list(pivot),"source_rect":[int(left),int(top),int(right-left),int(bottom-top)],
                       "offset":[round((left+right)/2-pivot[0],2),round((top+bottom)/2-pivot[1],2)],
-                      "layer":layer,"candidate_only":True})
+                      "layer":layer,"candidate_only":True,"newly_painted_from_source_fabric":name in ("upper_far","forearm_far")})
     person_pixels=int(np.count_nonzero(person))
     union_pixels=int(np.count_nonzero(union_mask))
     coverage=round(union_pixels/max(1,person_pixels),4)
