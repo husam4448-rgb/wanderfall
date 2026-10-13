@@ -59,7 +59,9 @@ static func aim(rig: SPSimpleMirroredCharacter, angle_radians: float) -> bool:
         _rotate_joint_to_point(far_shoulder, far_hand, target)
         if far_hand.global_position.distance_to(target) <= EPSILON_PX:
             break
-    # Numerical proximity is necessary but not visual approval. Original\n    # source lacks fully painted extended support-arm surfaces.\n    return grip_error_px(rig) <= EPSILON_PX
+    # Numerical proximity is necessary but not visual approval. Original
+    # source lacks fully painted extended support-arm surfaces.
+    return grip_error_px(rig) <= EPSILON_PX
 
 static func restore_rest(rig: SPSimpleMirroredCharacter) -> void:
     if rig == null:
