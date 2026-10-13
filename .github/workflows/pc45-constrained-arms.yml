@@ -44,6 +44,11 @@ jobs:
           grep -q 'PC45_CONSTRAINED_ARM_TEST_DONE' pc45-pose.log
           grep -q 'PC45_LIMITED_ARM angle=0 ' pc45-pose.log
           test -s pc42-static-prototype/evidence/pc45_limited_0.png
+      - name: Compose actual complete-character rifle comparison
+        run: |
+          set -euo pipefail
+          python tools/pc45_uncropped_pose_sheet.py
+          test -s pc42-static-prototype/evidence/pc45_actual_full_weapon_comparison.png
       - name: Upload real screenshots and QA logs
         if: always()
         uses: actions/upload-artifact@v4
