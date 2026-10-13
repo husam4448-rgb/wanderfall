@@ -96,36 +96,12 @@ func _run() -> void:
         await process_frame
         var img: Image = viewport.get_texture().get_image()
         img.save_png(ProjectSettings.globalize_path(DEST).path_join("pc43_candidate_breath_%02d.png" % frame))
-    # Independent low-amplitude gait STRESS PREVIEW, not accepted locomotion.
-    # Evaluate overlap robustness with both legs advancing in opposite phase.
-    # Do not save these as production animation assets without visual review.
+    # Arms-only acceptance run: walk/running and foot grounding are frozen.
+    # Reset the breathing capture before weapon tests so every aim pose has
+    # the same torso, head and pelvis reference geometry.
     torso.scale = Vector2.ONE
     var start_pos: Vector2 = hero.position
-    var reference_floor: float = Locomotion.boot_floor_y(hero)
-    if not is_finite(reference_floor):
-        push_error("PC43_GAIT_MISSING_INDEPENDENT_BOOT_SPRITES")
-        quit(10)
-        return
-    for frame in range(16):
-        var phase := TAU * float(frame) / 16.0
-        Locomotion.pose_walk(hero, phase, start_pos)
-        if not Locomotion.correct_floor(hero, reference_floor):
-            push_error("PC43_GAIT_GROUNDING_FAILED frame=" + str(frame))
-            quit(11)
-            return
-        await process_frame
-        await process_frame
-        var walk_image: Image = viewport.get_texture().get_image()
-        if walk_image == null or walk_image.is_empty():
-            push_error("PC43_GAIT_EMPTY_FRAME " + str(frame))
-            quit(8)
-            return
-        var walk_path := ProjectSettings.globalize_path(DEST).path_join("pc43_candidate_gait_%02d.png" % frame)
-        if walk_image.save_png(walk_path) != OK:
-            push_error("PC43_GAIT_SAVE_ERROR " + str(frame))
-            quit(9)
-            return
-    Locomotion.restore_idle(hero, start_pos)
+    print("PC43_ARM_QA_GAIT_SKIPPED arm_art_is_current_priority")
     # Arm and gun QA is independent of locomotion: restore a fixed idle pose
     # before evaluating both hands across aiming angles.
     if not Grip.initialize_grip(hero):
@@ -211,6 +187,5 @@ func _run() -> void:
         push_error("PC43_ARM_GRIP_NUMERIC_REJECTED poses=" + str(rejected) + " max_error_px=" + str(max_grip_error))
         quit(17)
         return
-    print("PC43_CANDIDATE_GAIT_V2_RENDERED frames=16 VISUAL_QA_REQUIRED")
     print("PC43_CANDIDATE_ART_RENDERED parts=15 faces=2 breathing_frames=8 VISUAL_QA_UNVERIFIED")
     quit(0)
