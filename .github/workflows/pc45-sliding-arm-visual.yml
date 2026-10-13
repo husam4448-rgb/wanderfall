@@ -7,6 +7,7 @@ on:
       - 'tools/pc42_reference_cutout.py'
       - 'tools/pc42h_articulated_arm_atlas.py'
       - '.github/workflows/pc45-sliding-arm-visual.yml'
+      - 'tools/pc45_hidden_cuff_art.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -22,6 +23,8 @@ jobs:
           python -m pip install --quiet pillow numpy opencv-python-headless
           python tools/pc42_reference_cutout.py
           python tools/pc42h_articulated_arm_atlas.py
+          python tools/pc45_hidden_cuff_art.py
+          test -s pc42-static-prototype/assets/pc45_hidden_support_cuff.png
           test -s pc42-static-prototype/assets/approved_reference_panel.png
       - name: Acquire pinned Godot 4.7.2 and Xvfb
         run: |
