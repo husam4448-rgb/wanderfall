@@ -111,13 +111,23 @@ def main():
             matte[223:,:]=0
         elif name == "shin_near":
             matte[218:,:]=0
+        if name == "support_hand":
+            # Preserve the orange illuminated fingertips from the approved
+            # reference without extracting the dark rifle receiver beneath.
+            # Coordinates are source-pixel native, not viewport-space.
+            hand_rgb=original.astype(np.int16)
+            warm=(hand_rgb[:,:,0]>hand_rgb[:,:,1]+18)&(hand_rgb[:,:,1]>hand_rgb[:,:,2]+3)
+            bright=(hand_rgb[:,:,0]>82)&(hand_rgb[:,:,1]>37)
+            matte[~(warm&bright)]=0
         if name == "rifle":
-            # Exclude the source-rendered support fingers from the rifle:
-            # they now belong to their own wrist_far component. Keep only
-            # the authenticated pixels, no painted substitute surfaces.
+            # Exclude only actual exposed hand pixels, never a full polygon
+            # of receiver/rail geometry or the rifle develops a false hole.
             support_region=np.zeros((h,w),np.uint8)
             cv2.fillPoly(support_region,[np.array(PARTS["support_hand"][1],np.int32)],255)
-            matte[support_region>0]=0
+            hand_rgb=original.astype(np.int16)
+            warm=(hand_rgb[:,:,0]>hand_rgb[:,:,1]+18)&(hand_rgb[:,:,1]>hand_rgb[:,:,2]+3)
+            bright=(hand_rgb[:,:,0]>82)&(hand_rgb[:,:,1]>37)
+            matte[(support_region>0)&warm&bright]=0
             # Verified original muzzle runs diagonally from x185,y82
             # through x215,y87; the global dark-background mask breaks
             # its narrow metal surface into disconnected flecks.
