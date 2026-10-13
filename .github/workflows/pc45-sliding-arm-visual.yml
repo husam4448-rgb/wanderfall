@@ -40,7 +40,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p pc42-static-prototype/evidence
-          PC45_SLIDING_ARM_TEST=1 timeout 90s xvfb-run -a /tmp/Godot_v4.7.2-stable_linux.x86_64 --path pc42-static-prototype --resolution 1580x660 >pc45-sliding.log 2>&1
+          PC42N_SOURCE_FIRST_PREVIEW=1 PC45_SLIDING_ARM_TEST=1 timeout 90s xvfb-run -a /tmp/Godot_v4.7.2-stable_linux.x86_64 --path pc42-static-prototype --resolution 1580x660 >pc45-sliding.log 2>&1
           grep -q 'PC45_SLIDING_ARM_CAPTURED poses=3' pc45-sliding.log
           test "$(ls pc42-static-prototype/evidence/pc45_sliding_*.png | wc -l)" -eq 3
       - name: Compose full weapon proof
