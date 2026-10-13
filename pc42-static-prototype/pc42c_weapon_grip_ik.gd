@@ -87,7 +87,7 @@ static func solve_support(angle: float, recoil_translation: Vector2 = Vector2.ZE
 ## Shoulder and elbow are hinges. The wrist has NO independently assigned
 ## twist: its visible hand must follow the weapon socket under visual QA.
 ## Angle signs are Godot source-screen angles (positive points DOWN).
-const PC45_SHOULDER_LIMIT: float = deg_to_rad(22.0)
+const PC45_SHOULDER_LIMIT: float = deg_to_rad(25.0)
 const PC45_ELBOW_LIMIT: float = deg_to_rad(28.0)
 const PC45_MAX_GRIP_ERROR_PX: float = 2.0
 
@@ -105,7 +105,7 @@ static func _limited_arm_pose(shoulder: Vector2, rest_elbow: Vector2,
     # The range is intentionally bounded: no free-spinning elbow/wrist.
     # Sample a fine pose lattice to avoid singular two-circle flip changes.
     # A later runtime implementation may interpolate 3 validated keyposes.
-    for si in range(-22,23):
+    for si in range(-25,26):
         var shoulder_rotation: float = deg_to_rad(float(si))
         var elbow_position: Vector2 = shoulder + upper.rotated(shoulder_rotation)
         for ei in range(-28,29):
