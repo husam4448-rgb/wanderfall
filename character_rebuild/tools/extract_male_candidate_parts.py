@@ -34,7 +34,7 @@ PARTS = {
     # approved 310x315 source (roughly x166..187, y88..113).
     # Kept distinct from rifle so they follow the support wrist instead
     # of being baked into the weapon as they were in earlier candidates.
-    "support_hand": ("wrist_far", [(160,91),(168,88),(180,89),(191,97),(189,109),(181,115),(165,112),(160,104)], (175,100), 11),
+    "support_hand": ("wrist_far", [(156,76),(165,72),(178,73),(187,82),(187,98),(181,104),(160,100),(155,89)], (172,85), 11),
     # Complete original rifle attached to weapon-side wrist as a candidate.
     # Kept independent of arms for future two-hand IK and depth ordering.
     "rifle": ("wrist_near", [(126,65),(148,60),(175,67),(204,81),(218,83),(220,94),(185,96),(174,92),(161,121),(145,118),(138,101),(122,90)], (149,95), 10),
