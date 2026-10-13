@@ -413,9 +413,10 @@ func _pc45_capture_sliding_arms() -> void:
         # Keep the original dominant glove near the true rifle grip using a
         # LIMITED SLIDE, never a disconnected independent wrist rotation.
         # Weapon and arm positions are measured in the same source-pixel rig.
-        var target: Vector2 = PC42CGripIK.socket_at(rifle_grip,deg_to_rad(float(degrees)))
-        var delta: Vector2 = target - dominant_hand.global_position
-        var local_delta: Vector2 = dominant_hand.get_parent().to_local(dominant_hand.global_position + delta) - dominant_hand.position
+        dominant_hand.position = dominant_rest
+        var target: Vector2 = pc42_skeleton.to_global(
+                PC42CGripIK.socket_at(rifle_grip,deg_to_rad(float(degrees))))
+        var local_delta: Vector2 = dominant_hand.get_parent().to_local(target) - dominant_hand.position
         if local_delta.length() > 5.0:
             print("PC45_SLIDING_GRIP_UNREACHABLE angle=%d error_px=%.3f" % [degrees,local_delta.length()])
             # Don't misrepresent this pose as an accepted two-hand grip.
