@@ -81,3 +81,60 @@ static func solve_support(angle: float, recoil_translation: Vector2 = Vector2.ZE
         "elbow":elbow,
         "support_wrist":target
     }
+
+
+## PC45 experimental limited-motion arm solver; does NOT replace PC42 baseline.
+## Shoulder and elbow are hinges. The wrist has NO independently assigned
+## twist: its visible hand must follow the weapon socket under visual QA.
+## Angle signs are Godot source-screen angles (positive points DOWN).
+const PC45_SHOULDER_LIMIT: float = deg_to_rad(22.0)
+const PC45_ELBOW_LIMIT: float = deg_to_rad(28.0)
+const PC45_MAX_GRIP_ERROR_PX: float = 2.0
+
+static func _limited_arm_pose(shoulder: Vector2, rest_elbow: Vector2,
+        rest_wrist: Vector2, target: Vector2) -> Dictionary:
+    var upper: Vector2 = rest_elbow - shoulder
+    var lower: Vector2 = rest_wrist - rest_elbow
+    if upper.length_squared() < 0.001 or lower.length_squared() < 0.001:
+        return {"valid": false, "reason": "degenerate arm"}
+    var best_error: float = INF
+    var best_s: float = 0.0
+    var best_e: float = 0.0
+    var result_elbow: Vector2 = rest_elbow
+    var result_wrist: Vector2 = rest_wrist
+    # The range is intentionally bounded: no free-spinning elbow/wrist.
+    # Sample a fine pose lattice to avoid singular two-circle flip changes.
+    # A later runtime implementation may interpolate 3 validated keyposes.
+    for si in range(-22,23):
+        var shoulder_rotation: float = deg_to_rad(float(si))
+        var elbow_position: Vector2 = shoulder + upper.rotated(shoulder_rotation)
+        for ei in range(-28,29):
+            var elbow_rotation: float = deg_to_rad(float(ei))
+            var wrist_position: Vector2 = elbow_position + lower.rotated(shoulder_rotation + elbow_rotation)
+            var error: float = wrist_position.distance_squared_to(target)
+            var regularization: float = 0.002 * float(si*si + ei*ei)
+            if error + regularization < best_error:
+                best_error = error + regularization
+                best_s = shoulder_rotation
+                best_e = elbow_rotation
+                result_elbow = elbow_position
+                result_wrist = wrist_position
+    var grip_error: float = result_wrist.distance_to(target)
+    return {
+        "valid": grip_error <= PC45_MAX_GRIP_ERROR_PX,
+        "shoulder_rotation": best_s,
+        "forearm_rotation": best_e,
+        "elbow": result_elbow,
+        "wrist": result_wrist,
+        "target": target,
+        "grip_error_px": grip_error,
+        "requires_art_or_pose_change": grip_error > PC45_MAX_GRIP_ERROR_PX,
+    }
+
+static func solve_support_limited(angle: float) -> Dictionary:
+    var target: Vector2 = socket_at(REST_SUPPORT_WRIST, angle)
+    return _limited_arm_pose(FAR_SHOULDER, FAR_REST_ELBOW, REST_SUPPORT_WRIST, target)
+
+static func solve_dominant_limited(angle: float) -> Dictionary:
+    var target: Vector2 = socket_at(REST_DOMINANT_WRIST, angle)
+    return _limited_arm_pose(SHOULDER, REST_ELBOW, REST_DOMINANT_WRIST, target)
