@@ -1,0 +1,57 @@
+name: PC45 Restored Body Constrained Arm Native QA
+on:
+  push:
+    branches: [pc45-restore-pc42-body-constrained-arms]
+    paths:
+      - 'pc42-static-prototype/**'
+      - 'tools/pc42_reference_cutout.py'
+      - 'tools/pc42h_articulated_arm_atlas.py'
+      - '.github/workflows/pc45-constrained-arms.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  actual-godot-pose-capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 17
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reconstruct original source artwork unchanged
+        run: |
+          set -euo pipefail
+          python -m pip install --quiet pillow numpy opencv-python-headless
+          python tools/pc42_reference_cutout.py
+          python tools/pc42h_articulated_arm_atlas.py
+          test -s pc42-static-prototype/assets/approved_reference_panel.png
+      - name: Acquire pinned Godot 4.7.2 and Xvfb
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip" | sha256sum -c -
+          unzip -q /tmp/godot.zip -d /tmp
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb >/dev/null
+      - name: Compile restored original Godot body
+        run: |
+          set -euo pipefail
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --editor --path pc42-static-prototype --quit >pc45-import.log 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|Compile Error' pc45-import.log; then cat pc45-import.log; exit 1; fi
+      - name: Render bounded arms without body deformation
+        run: |
+          set -euo pipefail
+          mkdir -p pc42-static-prototype/evidence
+          PC45_CONSTRAINED_ARM_TEST=1 timeout 90s xvfb-run -a /tmp/Godot_v4.7.2-stable_linux.x86_64 --path pc42-static-prototype --resolution 1580x660 >pc45-pose.log 2>&1
+          grep -q 'PC45_CONSTRAINED_ARM_TEST_DONE' pc45-pose.log
+          grep -q 'PC45_LIMITED_ARM angle=0 ' pc45-pose.log
+          test -s pc42-static-prototype/evidence/pc45_limited_0.png
+      - name: Upload real screenshots and QA logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PC45-Restored-Body-Arm-Poses-${{ github.sha }}
+          path: |
+            pc45-import.log
+            pc45-pose.log
+            pc42-static-prototype/evidence/pc45_limited_*.png
+          if-no-files-found: ignore
+          retention-days: 14
