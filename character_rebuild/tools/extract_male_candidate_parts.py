@@ -154,6 +154,8 @@ def main():
         reconstructed[matte>0,:3]=original[matte>0]
         reconstructed[matte>0,3]=255
         ys,xs=np.where(matte>0)
+        if name == "support_hand" and len(xs) < 80:
+            raise ValueError(f"Authentic support fingers missing: only {len(xs)} pixels (need >=80)")
         if not len(xs):
             raise ValueError(f"No authentic foreground pixels for {name}; revise mask")
         left,top,right,bottom=xs.min(),ys.min(),xs.max()+1,ys.max()+1
