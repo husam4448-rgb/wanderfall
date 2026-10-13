@@ -414,7 +414,7 @@ func _pc45_capture_sliding_arms() -> void:
     cuff_layer.texture = cuff_texture
     cuff_layer.centered = false
     cuff_layer.position = -PC42CGripIK.REST_SUPPORT_WRIST
-    cuff_layer.z_index = -1
+    cuff_layer.z_index = 1
     support_socket.add_child(cuff_layer)
     for degrees in angles:
         # Positive Godot rotation lowers the muzzle. Translate the sleeves
