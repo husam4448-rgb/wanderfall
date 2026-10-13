@@ -30,6 +30,11 @@ PARTS = {
     # These components preserve the original brown leather texture.
     "boot_far": ("ankle_far", [(56,218),(78,214),(93,220),(99,237),(105,245),(100,252),(64,255),(49,244),(50,226)], (75,223), 4),
     "boot_near": ("ankle_near", [(110,211),(131,209),(147,215),(163,227),(164,243),(151,248),(120,248),(109,238)], (130,218), 7),
+    # Authentic exposed support fingers around the rifle foregrip in the
+    # approved 310x315 source (roughly x166..187, y88..113).
+    # Kept distinct from rifle so they follow the support wrist instead
+    # of being baked into the weapon as they were in earlier candidates.
+    "support_hand": ("wrist_far", [(160,91),(168,88),(180,89),(191,97),(189,109),(181,115),(165,112),(160,104)], (175,100), 11),
     # Complete original rifle attached to weapon-side wrist as a candidate.
     # Kept independent of arms for future two-hand IK and depth ordering.
     "rifle": ("wrist_near", [(126,65),(148,60),(175,67),(204,81),(218,83),(220,94),(185,96),(174,92),(161,121),(145,118),(138,101),(122,90)], (149,95), 10),
@@ -107,6 +112,12 @@ def main():
         elif name == "shin_near":
             matte[218:,:]=0
         if name == "rifle":
+            # Exclude the source-rendered support fingers from the rifle:
+            # they now belong to their own wrist_far component. Keep only
+            # the authenticated pixels, no painted substitute surfaces.
+            support_region=np.zeros((h,w),np.uint8)
+            cv2.fillPoly(support_region,[np.array(PARTS["support_hand"][1],np.int32)],255)
+            matte[support_region>0]=0
             # Verified original muzzle runs diagonally from x185,y82
             # through x215,y87; the global dark-background mask breaks
             # its narrow metal surface into disconnected flecks.
