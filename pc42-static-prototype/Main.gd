@@ -375,6 +375,12 @@ func _pc45_capture_constrained_arms() -> void:
     # record unreachable weapon targets without scaling or cheating contact.
     var angles: Array[int] = [-45,-25,-15,0,15,25,45]
     var rejects: int = 0
+    var locked := ["pelvis", "torso", "head_neck", "back_thigh",
+            "front_thigh", "back_shin", "front_shin"]
+    var body_rest := {}
+    for bone_name in locked:
+        body_rest[bone_name] = (pc42_bones[bone_name] as Bone2D).transform
+    var original_scale: Vector2 = pc42_skeleton.scale
     for a in angles:
         var angle: float = deg_to_rad(float(a))
         var near: Dictionary = PC42CGripIK.solve_dominant_limited(angle)
@@ -394,8 +400,17 @@ func _pc45_capture_constrained_arms() -> void:
         forearm.rotation = float(near["forearm_rotation"])
         far_shoulder.rotation = float(far["shoulder_rotation"])
         far_forearm.rotation = float(far["forearm_rotation"])
-        pc42_bones["rifle_stock"].rotation = angle
+        (pc42_bones["rifle_stock"] as Bone2D).rotation = angle
         # No independent wrist spin; do not change pelvis/head/legs.
+        if not pc42_skeleton.scale.is_equal_approx(original_scale):
+            push_error("PC45_BODY_SCALE_CHANGED angle=" + str(a))
+            get_tree().quit(51)
+            return
+        for bone_name in locked:
+            if not (pc42_bones[bone_name] as Bone2D).transform.is_equal_approx(body_rest[bone_name]):
+                push_error("PC45_BODY_TRANSFORM_CHANGED angle=" + str(a) + " bone=" + bone_name)
+                get_tree().quit(52)
+                return
         await _pc42c_capture_png("pc45_limited_%s.png" % str(a).replace("-","m"))
     print("PC45_CONSTRAINED_ARM_TEST_DONE rendered=%d rejected=%d visual_qa=PENDING" % [angles.size()-rejects,rejects])
 
