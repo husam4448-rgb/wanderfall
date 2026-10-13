@@ -65,6 +65,10 @@ func _ready() -> void:
     _build_actual_skeleton2d()
     if OS.get_environment("PC42P_IDLE_BREATH_TEST") == "1":
         _pc42p_init_source_breath()
+    if OS.get_environment("PC45_SLIDING_ARM_TEST") == "1":
+        await _pc45_capture_sliding_arms()
+        get_tree().quit()
+        return
     if OS.get_environment("PC45_CONSTRAINED_ARM_TEST") == "1":
         await _pc45_capture_constrained_arms()
         get_tree().quit()
@@ -369,6 +373,47 @@ func _pc42x_capture_joint_overlay() -> void:
     pc42x_joint_overlay = true
     await _pc42c_capture_png("pc42x_actual_arm_joint_overlay.png")
     pc42x_joint_overlay = false
+
+func _pc45_capture_sliding_arms() -> void:
+    # Experimental artwork-continuity trial: original source pixels, zero
+    # independent wrist/elbow spinning, common sleeve translation only.
+    # Deliberately restricted to small ±12° elevations; not grip-approved.
+    var angles: Array[int] = [-12, 0, 12]
+    var locked := ["pelvis", "torso", "head_neck", "back_thigh",
+            "front_thigh", "back_shin", "front_shin"]
+    var snapshots := {}
+    for name in locked:
+        snapshots[name] = (pc42_bones[name] as Bone2D).transform
+    var rig_scale: Vector2 = pc42_skeleton.scale
+    var near: Bone2D = pc42_bones["near_upper_arm"]
+    var far: Bone2D = pc42_bones["far_upper_arm"]
+    var stock: Bone2D = pc42_bones["rifle_stock"]
+    var near_rest: Vector2 = near.position
+    var far_rest: Vector2 = far.position
+    var stock_rest: float = stock.rotation
+    for degrees in angles:
+        # Positive Godot rotation lowers the muzzle. Translate the sleeves
+        # together by 2px max so overlapping source cuffs stay continuous.
+        var phase: float = float(degrees) / 12.0
+        near.position = near_rest + Vector2(0.0, phase * 1.5)
+        far.position = far_rest + Vector2(0.0, phase * 1.5)
+        stock.rotation = deg_to_rad(float(degrees))
+        # No elbow, forearm, hand, or wrist independent angular transforms.
+        for name in locked:
+            if not (pc42_bones[name] as Bone2D).transform.is_equal_approx(snapshots[name]):
+                push_error("PC45_SLIDE_BODY_REGRESSION " + name)
+                get_tree().quit(62)
+                return
+        if not pc42_skeleton.scale.is_equal_approx(rig_scale):
+            push_error("PC45_SLIDE_SCALE_REGRESSION")
+            get_tree().quit(63)
+            return
+        await _pc42c_capture_png("pc45_sliding_%s.png" % str(degrees).replace("-","m"))
+        print("PC45_SLIDING_FRAME angle=%d source_body_locked=true grip_visual_qa=PENDING" % degrees)
+    near.position = near_rest
+    far.position = far_rest
+    stock.rotation = stock_rest
+    print("PC45_SLIDING_ARM_CAPTURED poses=3 VISUAL_QA_PENDING")
 
 func _pc45_capture_constrained_arms() -> void:
     # PC45: original BODY always retained; limit arm hinges and explicitly
