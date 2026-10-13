@@ -49,8 +49,10 @@ static func aim(rig: SPSimpleMirroredCharacter, angle_radians: float) -> bool:
     var gun_wrist: Bone2D = rig.bones["wrist_near"]
     # Keep the dominant gun hand and wrist rigid relative to the weapon.
     # Aim rotation is distributed across the two existing arm joints.
-    near_shoulder.rotation = angle_radians * 0.68
-    near_elbow.rotation = angle_radians * 0.32
+    # User-facing convention: positive aiming degrees raise the barrel on screen.
+    # Godot +Y points down, so canonical RIGHT rig rotates by negative angle.
+    near_shoulder.rotation = -angle_radians * 0.68
+    near_elbow.rotation = -angle_radians * 0.32
     gun_wrist.rotation = 0.0
     var anchor: Vector2 = rig.get_meta("pc43_support_anchor")
     var target := gun_wrist.to_global(anchor)
