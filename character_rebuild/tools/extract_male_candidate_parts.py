@@ -162,6 +162,8 @@ def main():
         reconstructed[matte>0,:3]=(original if authored_arm is None else authored_arm[:,:,:3])[matte>0]
         reconstructed[matte>0,3]=255
         ys,xs=np.where(matte>0)
+        if name in ("upper_far","forearm_far") and len(xs) < 350:
+            raise ValueError(f"Painted far arm missing coverage: {name} only {len(xs)} pixels")
         if name == "support_hand" and len(xs) < 80:
             raise ValueError(f"Authentic support fingers missing: only {len(xs)} pixels (need >=80)")
         if not len(xs):
