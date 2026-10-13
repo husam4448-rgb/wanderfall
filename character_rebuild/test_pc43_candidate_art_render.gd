@@ -134,6 +134,25 @@ func _run() -> void:
         rest_body_transforms[bone_name] = body_bone.transform
     var original_visual_scale: Vector2 = hero.visual_root.scale
     var body_transform_failures := 0
+    # True rifle muzzle motion is checked from the wrist-owned rifle sprite,
+    # not inferred from the render's full-body alpha bounding box.
+    var rifle_sprite: Sprite2D = hero.sprites["wrist_near"]
+    var muzzle_local := Vector2(rifle_sprite.get_rect().end.x,
+            rifle_sprite.get_rect().get_center().y)
+    Grip.restore_rest(hero)
+    Grip.aim(hero, 0.0)
+    var muzzle_neutral_y: float = rifle_sprite.to_global(muzzle_local).y
+    Grip.restore_rest(hero)
+    Grip.aim(hero, deg_to_rad(45.0))
+    var muzzle_raised_y: float = rifle_sprite.to_global(muzzle_local).y
+    Grip.restore_rest(hero)
+    if muzzle_raised_y >= muzzle_neutral_y - 3.0:
+        push_error("PC43_AIM_ELEVATION_REVERSED neutral_y=" + str(muzzle_neutral_y)
+                + " elevated_y=" + str(muzzle_raised_y))
+        quit(21)
+        return
+    print("PC43_AIM_POSITIVE_ELEVATION_PASS muzzle_rise_px=",
+            snappedf(muzzle_neutral_y - muzzle_raised_y, 0.01))
     var aim_angles := [-45, -35, -25, -15, -5, 0, 5, 15, 25, 35, 45]
     for degrees in aim_angles:
         Grip.restore_rest(hero)
