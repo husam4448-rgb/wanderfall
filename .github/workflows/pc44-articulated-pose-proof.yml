@@ -1,0 +1,69 @@
+name: PC44 Independent Limb Pose Proof
+on:
+  push:
+    branches: [pc44-clean-sideview-rig]
+    paths:
+      - 'character_rebuild/**'
+      - '.github/workflows/pc44-articulated-pose-proof.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-pose-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: pc42y-authentic-arm-artwork
+          path: protected_art_source
+      - name: Stage immutable approved source
+        run: |
+          set -eu
+          a=protected_art_source/assets/authored2d/unified_character/rig/reference/male_east_rifle.png
+          b=assets/authored2d/unified_character/rig/reference/male_east_rifle.png
+          test -s "$a"
+          mkdir -p "$(dirname "$b")"
+          cp "$a" "$b"
+          sha256sum "$b" | tee pc44_art_source_sha256.txt
+      - name: Build real alpha textures and poses
+        run: |
+          set -eu
+          python -m pip install --quiet Pillow numpy opencv-python-headless
+          python character_rebuild/tools/extract_male_candidate_parts.py \
+            --source assets/authored2d/unified_character/rig/reference/male_east_rifle.png \
+            --out character_rebuild/art/male_right
+          python character_rebuild/pc44/proof_generator.py | tee pc44_proof.log
+          grep -q 'PC44_ARTICULATED_PROOF_GENERATED count=22' pc44_proof.log
+      - name: Check mirrored pixels and fixed frame geometry
+        run: |
+          python - <<'PY'
+          from PIL import Image, ImageChops
+          from pathlib import Path
+          p=Path('character_rebuild/pc44/evidence')
+          right=sorted(p.glob('pc44_right_*.png'))
+          assert len(right)==11, len(right)
+          expected_size=(930,945)
+          for src in right:
+              left=p/src.name.replace('right','left')
+              assert left.is_file(), left
+              a=Image.open(src).convert('RGBA')
+              b=Image.open(left).convert('RGBA')
+              assert a.size==b.size==expected_size, (src,a.size,b.size)
+              assert ImageChops.difference(a.transpose(Image.Transpose.FLIP_LEFT_RIGHT),b).getbbox() is None, src
+          print('PC44_PIXEL_MIRROR_AND_SCALE_PASS frames=22')
+          PY
+      - name: Upload actual pose evidence and atlas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PC44-Candidate-Art-${{ github.sha }}
+          path: |
+            pc44_proof.log
+            pc44_art_source_sha256.txt
+            character_rebuild/pc44/evidence/*.png
+            character_rebuild/art/male_right/*.png
+            character_rebuild/art/male_right/manifest.json
+          if-no-files-found: ignore
+          retention-days: 14
