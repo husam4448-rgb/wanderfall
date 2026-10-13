@@ -32,7 +32,7 @@ func _run() -> void:
     await process_frame
     hero.set_process(false) # stable screenshot; animate explicitly for breathing captures
     var result: Dictionary = Loader.load_parts(hero, ART)
-    if not result["complete"] or int(result["loaded"]) != 14:
+    if not result["complete"] or int(result["loaded"]) != 15:
         push_error("PC43_ART_RIG_LOAD_INCOMPLETE " + JSON.stringify(result))
         quit(4)
         return
@@ -49,7 +49,7 @@ func _run() -> void:
     # Distal wrist pivots must be explicitly derived from the source pose.
     # The far/support wrist owns no painted part, but its joint is essential
     # for verifying where a support-hand grip target must land.
-    pivots["wrist_far"] = Vector2(121, 132) - origin
+    pivots["wrist_far"] = Vector2(175, 100) - origin
 
     pivots["hip_far"] = pivots.get("hip_far", Vector2(-18, 9))
     pivots["hip_near"] = pivots.get("hip_near", Vector2(13, 9))
@@ -182,5 +182,5 @@ func _run() -> void:
     hero.facing_right = true
     print("PC43_ARM_AIM_QA captured=22 worst_grip_error_px=", snappedf(max_grip_error, 0.01), " rejected=", rejected, " VISUAL_REVIEW_REQUIRED")
     print("PC43_CANDIDATE_GAIT_V2_RENDERED frames=16 VISUAL_QA_REQUIRED")
-    print("PC43_CANDIDATE_ART_RENDERED parts=14 faces=2 breathing_frames=8 VISUAL_QA_UNVERIFIED")
+    print("PC43_CANDIDATE_ART_RENDERED parts=15 faces=2 breathing_frames=8 VISUAL_QA_UNVERIFIED")
     quit(0)
