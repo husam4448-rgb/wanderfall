@@ -4,6 +4,7 @@ extends SceneTree
 const Rig = preload("res://SPSimpleMirroredCharacter.gd")
 const Loader = preload("res://SPCharacterArtLoader.gd")
 const Locomotion = preload("res://SPCharacterLocomotion.gd")
+const Grip = preload("res://SPWeaponGripController.gd")
 const ART = "res://art/male_right/manifest.json"
 const DEST = "res://evidence"
 
@@ -125,6 +126,37 @@ func _run() -> void:
             quit(9)
             return
     Locomotion.restore_idle(hero, start_pos)
+    # Arm and gun QA is independent of locomotion: restore a fixed idle pose
+    # before evaluating both hands across aiming angles.
+    if not Grip.initialize_grip(hero):
+        push_error("PC43_WEAPON_GRIP_INIT_FAILED")
+        quit(12)
+        return
+    var max_grip_error: float = 0.0
+    var rejected: int = 0
+    var aim_angles := [-45, -35, -25, -15, -5, 0, 5, 15, 25, 35, 45]
+    for degrees in aim_angles:
+        Grip.restore_rest(hero)
+        var arm_ok: bool = Grip.aim(hero, deg_to_rad(float(degrees)))
+        var grip_error: float = Grip.grip_error_px(hero)
+        max_grip_error = maxf(max_grip_error, grip_error)
+        if not arm_ok:
+            rejected += 1
+        await process_frame
+        await process_frame
+        var arm_capture: Image = viewport.get_texture().get_image()
+        if arm_capture == null or arm_capture.is_empty():
+            push_error("PC43_ARM_AIM_EMPTY_IMAGE " + str(degrees))
+            quit(13)
+            return
+        var arm_filename := "pc43_arms_aim_%+03d.png" % degrees
+        if arm_capture.save_png(ProjectSettings.globalize_path(DEST).path_join(arm_filename)) != OK:
+            push_error("PC43_ARM_AIM_IMAGE_SAVE_FAILED " + str(degrees))
+            quit(14)
+            return
+        print("PC43_ARM_AIM_ANGLE angle=", degrees, " support_grip_error_px=", snappedf(grip_error,0.01), " IK_ok=", arm_ok)
+    Grip.restore_rest(hero)
+    print("PC43_ARM_AIM_QA captured=11 worst_grip_error_px=", snappedf(max_grip_error, 0.01), " rejected=", rejected, " VISUAL_REVIEW_REQUIRED")
     print("PC43_CANDIDATE_GAIT_V2_RENDERED frames=16 VISUAL_QA_REQUIRED")
     print("PC43_CANDIDATE_ART_RENDERED parts=14 faces=2 breathing_frames=8 VISUAL_QA_UNVERIFIED")
     quit(0)
