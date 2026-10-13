@@ -181,6 +181,12 @@ func _run() -> void:
     Grip.restore_rest(hero)
     hero.facing_right = true
     print("PC43_ARM_AIM_QA captured=22 worst_grip_error_px=", snappedf(max_grip_error, 0.01), " rejected=", rejected, " VISUAL_REVIEW_REQUIRED")
+    # Do not let a successfully captured screenshot series pass as an
+    # acceptable hand grip when one or more target positions are missed.
+    if rejected > 0:
+        push_error("PC43_ARM_GRIP_NUMERIC_REJECTED poses=" + str(rejected) + " max_error_px=" + str(max_grip_error))
+        quit(17)
+        return
     print("PC43_CANDIDATE_GAIT_V2_RENDERED frames=16 VISUAL_QA_REQUIRED")
     print("PC43_CANDIDATE_ART_RENDERED parts=15 faces=2 breathing_frames=8 VISUAL_QA_UNVERIFIED")
     quit(0)
