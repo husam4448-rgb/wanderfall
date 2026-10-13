@@ -49,7 +49,7 @@ func _run() -> void:
     # Distal wrist pivots must be explicitly derived from the source pose.
     # The far/support wrist owns no painted part, but its joint is essential
     # for verifying where a support-hand grip target must land.
-    pivots["wrist_far"] = Vector2(175, 100) - origin
+    pivots["wrist_far"] = Vector2(172, 85) - origin
 
     pivots["hip_far"] = pivots.get("hip_far", Vector2(-18, 9))
     pivots["hip_near"] = pivots.get("hip_near", Vector2(13, 9))
