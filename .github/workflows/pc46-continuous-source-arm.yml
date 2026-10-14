@@ -44,8 +44,8 @@ jobs:
           set -euo pipefail
           mkdir -p pc42-static-prototype/evidence
           PC42N_SOURCE_FIRST_PREVIEW=1 PC46_CONTINUOUS_ARM_TEST=1 timeout 90s xvfb-run -a /tmp/Godot_v4.7.2-stable_linux.x86_64 --path pc42-static-prototype --resolution 1580x660 >pc46-continuous.log 2>&1
-          grep -q 'PC46_CONTINUOUS_SOURCE_ART_RENDERED frames=6' pc46-continuous.log
-          test "$(ls pc42-static-prototype/evidence/pc46_continuous_*.png | wc -l)" -eq 6
+          grep -q 'PC46_CONTINUOUS_SOURCE_ART_RENDERED frames=22' pc46-continuous.log
+          test "$(ls pc42-static-prototype/evidence/pc46_continuous_*.png | wc -l)" -eq 22
       - name: Compose full weapon proof
         run: |
           python - <<'PY'
@@ -69,6 +69,25 @@ jobs:
               d2=ImageDraw.Draw(both)
               d2.text((i*460+12,574),'ACTUAL GODOT LEFT AIM '+k,fill='white')
           both.save(p/'pc46_continuous_six_poses.png')
+          PY
+      - name: Encode actual native Godot aiming animation, both facings
+        run: |
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          p=Path('pc42-static-prototype/evidence')
+          seq=list(range(-10,11,2))+list(range(8,-11,-2))
+          for facing in ('right','left'):
+              frames=[]
+              for angle in seq:
+                  key=str(angle).replace('-','m')
+                  name='pc46_continuous_'+('left_' if facing=='left' else '')+key+'.png'
+                  im=Image.open(p/name).convert('RGB')
+                  assert im.size==(1580,660),(name,im.size)
+                  frames.append(im.crop((565,55,1025,575)).resize((368,416)))
+              frames[0].save(p/('pc46_native_'+facing+'_aim_motion.gif'),
+                  save_all=True,append_images=frames[1:],duration=85,loop=0,optimize=False)
+              print('PC46_NATIVE_ANIMATED_GIF',facing,len(frames))
           PY
       - name: Upload real screenshots and QA logs
         if: always()
