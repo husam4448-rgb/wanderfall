@@ -1,0 +1,74 @@
+name: PC46 Continuous Original Arm/Rifle Proof
+on:
+  push:
+    branches: [pc45-restore-pc42-body-constrained-arms]
+    paths:
+      - 'pc42-static-prototype/**'
+      - 'tools/pc42_reference_cutout.py'
+      - 'tools/pc42h_articulated_arm_atlas.py'
+      - '.github/workflows/pc46-continuous-source-arm.yml'
+      - 'tools/pc46_unified_arm_art.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  actual-godot-pose-capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 17
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reconstruct original source artwork unchanged
+        run: |
+          set -euo pipefail
+          python -m pip install --quiet pillow numpy opencv-python-headless
+          python tools/pc42_reference_cutout.py
+          python tools/pc42h_articulated_arm_atlas.py
+          python tools/pc46_unified_arm_art.py
+          test -s pc42-static-prototype/assets/pc46_unified_arms_and_rifle.png
+          test -s pc42-static-prototype/assets/approved_reference_panel.png
+      - name: Acquire pinned Godot 4.7.2 and Xvfb
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip" | sha256sum -c -
+          unzip -q /tmp/godot.zip -d /tmp
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb >/dev/null
+      - name: Compile restored original Godot body
+        run: |
+          set -euo pipefail
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --editor --path pc42-static-prototype --quit >pc45-import.log 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|Compile Error' pc45-import.log; then cat pc45-import.log; exit 1; fi
+      - name: Render minimal sliding sleeves over original artwork
+        run: |
+          set -euo pipefail
+          mkdir -p pc42-static-prototype/evidence
+          PC42N_SOURCE_FIRST_PREVIEW=1 PC46_CONTINUOUS_ARM_TEST=1 timeout 90s xvfb-run -a /tmp/Godot_v4.7.2-stable_linux.x86_64 --path pc42-static-prototype --resolution 1580x660 >pc46-continuous.log 2>&1
+          grep -q 'PC46_CONTINUOUS_SOURCE_ART_RENDERED frames=3' pc46-continuous.log
+          test "$(ls pc42-static-prototype/evidence/pc46_continuous_*.png | wc -l)" -eq 3
+      - name: Compose full weapon proof
+        run: |
+          python - <<'PY'
+          from PIL import Image,ImageDraw
+          from pathlib import Path
+          p=Path('pc42-static-prototype/evidence')
+          out=Image.new('RGB',(1380,562),'#25292d')
+          d=ImageDraw.Draw(out)
+          for i,k in enumerate(['m10','0','10']):
+              im=Image.open(p/('pc46_continuous_'+k+'.png')).convert('RGB')
+              assert im.size==(1580,660)
+              out.paste(im.crop((565,55,1025,575)),(i*460,42))
+              d.text((i*460+12,12),'GODOT CONTINUOUS AIM '+k,fill='white')
+          out.save(p/'pc46_continuous_3pose_comparison.png')
+          PY
+      - name: Upload real screenshots and QA logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PC46-Continuous-Arm-${{ github.sha }}
+          path: |
+            pc45-import.log
+            pc46-continuous.log
+            pc42-static-prototype/evidence/pc46_continuous_*.png
+          if-no-files-found: ignore
+          retention-days: 14
