@@ -425,8 +425,11 @@ func _pc47_capture_eased_motion() -> void:
             var phase: float = TAU * float(frame) / 24.0
             var elevation: float = -10.0 * cos(phase)
             unit.rotation = deg_to_rad(elevation)
-            # Shoulder translation to follow in next isolated step.
-            unit.position = pivot
+            # Subpixel shoulder glide: maximum 1.25 source pixels, keeping
+            # cuff, forearms, fingers, and rifle united without cut seams.
+            # Centered around original shoulder, eased with the same phase.
+            unit.position = pivot + Vector2(0.35 * sin(phase),
+                    -1.25 * cos(phase))
             for name in locked_names:
                 if not (pc42_bones[name] as Bone2D).transform.is_equal_approx(locked[name]):
                     push_error("PC47_BODY_CHANGED " + name)
