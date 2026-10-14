@@ -428,10 +428,22 @@ func _pc46_capture_continuous_arms() -> void:
             return
         await _pc42c_capture_png("pc46_continuous_%s.png" % str(angle).replace("-","m"))
         print("PC46_CONTINUOUS_POSE angle=",angle," no_segmented_art=true")
+    # Reflect the COMPLETE approved character and continuous gun group,
+    # not independently painted left-side parts. Keep it in the same visual
+    # comparison viewport so body size stays identical.
+    var skeleton_original_pos: Vector2 = pc42_skeleton.position
+    pc42_skeleton.scale = Vector2(-SCALE,SCALE)
+    pc42_skeleton.position = Vector2(1056.0,skeleton_original_pos.y)
+    for angle in [-10,0,10]:
+        unit.rotation = deg_to_rad(float(angle))
+        await _pc42c_capture_png("pc46_continuous_left_%s.png" % str(angle).replace("-","m"))
+        print("PC46_LEFT_MIRROR_POSE angle=",angle)
+    pc42_skeleton.scale = rest_scale
+    pc42_skeleton.position = skeleton_original_pos
     unit.queue_free()
     for old in hidden_sprites:
         old.visible = true
-    print("PC46_CONTINUOUS_SOURCE_ART_RENDERED frames=3 VISUAL_QA_PENDING")
+    print("PC46_CONTINUOUS_SOURCE_ART_RENDERED frames=6 VISUAL_QA_PENDING")
 
 func _pc45_capture_sliding_arms() -> void:
     # Experimental artwork-continuity trial: original source pixels, zero
