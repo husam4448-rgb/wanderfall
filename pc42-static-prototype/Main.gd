@@ -65,6 +65,10 @@ func _ready() -> void:
     _build_actual_skeleton2d()
     if OS.get_environment("PC42P_IDLE_BREATH_TEST") == "1":
         _pc42p_init_source_breath()
+    if OS.get_environment("PC46_CONTINUOUS_ARM_TEST") == "1":
+        await _pc46_capture_continuous_arms()
+        get_tree().quit()
+        return
     if OS.get_environment("PC45_SLIDING_ARM_TEST") == "1":
         await _pc45_capture_sliding_arms()
         get_tree().quit()
@@ -373,6 +377,61 @@ func _pc42x_capture_joint_overlay() -> void:
     pc42x_joint_overlay = true
     await _pc42c_capture_png("pc42x_actual_arm_joint_overlay.png")
     pc42x_joint_overlay = false
+
+func _pc46_capture_continuous_arms() -> void:
+    # Visual-only alternate: use the EXACT approved original source pixels as
+    # one coherent shoulder/arm/gloves/rifle group. No segmented elbow,
+    # invented cuff, independent glove swivel, or body changes.
+    var texture := _load_image("assets/pc46_unified_arms_and_rifle.png")
+    if texture == null:
+        push_error("PC46_MISSING_UNIFIED_SOURCE_ART")
+        get_tree().quit(71)
+        return
+    var original_names := ["near_upper_arm","near_forearm","dominant_hand",
+            "support_hand","rifle_stock","rifle_receiver"]
+    var hidden_sprites: Array[Sprite2D] = []
+    for name in original_names:
+        var sprite := pc42_bones[name].get_node("ApprovedArt_"+name) as Sprite2D
+        if sprite == null:
+            push_error("PC46_SOURCE_SPRITE_MISSING " + name)
+            get_tree().quit(72)
+            return
+        hidden_sprites.append(sprite)
+        sprite.visible = false
+    var pivot := PC42CGripIK.SHOULDER
+    var unit := Node2D.new()
+    unit.name = "PC46_ContinuousArmsRifle_Proof"
+    unit.position = pivot
+    pc42_skeleton.add_child(unit)
+    var sprite := Sprite2D.new()
+    sprite.name = "ApprovedUncutArmRifle"
+    sprite.texture = texture
+    sprite.centered = false
+    sprite.position = -pivot
+    unit.add_child(sprite)
+    var keep := ["pelvis","torso","head_neck","back_thigh",
+            "front_thigh","back_shin","front_shin"]
+    var rest := {}
+    for name in keep:
+        rest[name] = (pc42_bones[name] as Bone2D).transform
+    var rest_scale := pc42_skeleton.scale
+    for angle in [-10,0,10]:
+        unit.rotation = deg_to_rad(float(angle))
+        for name in keep:
+            if not (pc42_bones[name] as Bone2D).transform.is_equal_approx(rest[name]):
+                push_error("PC46_BODY_CHANGED "+name)
+                get_tree().quit(73)
+                return
+        if not pc42_skeleton.scale.is_equal_approx(rest_scale):
+            push_error("PC46_SCALE_CHANGED")
+            get_tree().quit(74)
+            return
+        await _pc42c_capture_png("pc46_continuous_%s.png" % str(angle).replace("-","m"))
+        print("PC46_CONTINUOUS_POSE angle=",angle," no_segmented_art=true")
+    unit.queue_free()
+    for old in hidden_sprites:
+        old.visible = true
+    print("PC46_CONTINUOUS_SOURCE_ART_RENDERED frames=3 VISUAL_QA_PENDING")
 
 func _pc45_capture_sliding_arms() -> void:
     # Experimental artwork-continuity trial: original source pixels, zero
