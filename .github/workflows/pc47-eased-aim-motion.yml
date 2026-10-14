@@ -44,7 +44,7 @@ jobs:
           set -euo pipefail
           mkdir -p pc42-static-prototype/evidence
           PC42N_SOURCE_FIRST_PREVIEW=1 PC47_EASED_CONTINUOUS_ARM_TEST=1 timeout 90s xvfb-run -a /tmp/Godot_v4.7.2-stable_linux.x86_64 --path pc42-static-prototype --resolution 1580x660 >pc47-motion.log 2>&1
-          grep -q 'PC47_EASED_CONTINUOUS_CAPTURED 50 poses 25_each' pc46-continuous.log
+          grep -q 'PC47_EASED_CONTINUOUS_CAPTURED 50 poses 25_each' pc47-motion.log
           test "$(ls pc42-static-prototype/evidence/pc47_*.png | wc -l)" -eq 50
       - name: Encode actual Godot frames into eased loop GIFs
         run: |
@@ -72,7 +72,7 @@ jobs:
           name: PC47-Eased-Aim-${{ github.sha }}
           path: |
             pc45-import.log
-            pc46-continuous.log
+            pc47-motion.log
             pc42-static-prototype/evidence/pc47_*.png
             pc42-static-prototype/evidence/pc47_*_aim_motion.gif
           if-no-files-found: ignore
