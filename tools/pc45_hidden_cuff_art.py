@@ -12,10 +12,11 @@ mask=Image.new("L",(w,h),0)
 d=ImageDraw.Draw(mask)
 # A narrow concealed sleeve bridge starts inside the existing rifle/chest
 # overlap and tapers toward the cuff. Avoid a hanging polygon below the rifle.
-d.polygon([(151,89),(155,85),(162,83),(167,81),(172,79),
-           (173,84),(168,86),(161,88),(155,92),(151,93)],fill=205)
-d.ellipse((166,79,174,86),fill=235)
-mask=mask.filter(ImageFilter.GaussianBlur(0.7))
+# Smooth tapered cloth edge stays tucked behind rifle and glove.
+d.polygon([(153,88),(157,85),(163,83),(169,81),(172,80),
+           (173,84),(169,85),(163,87),(158,90),(153,91)],fill=196)
+d.ellipse((167,80,173,86),fill=216)
+mask=mask.filter(ImageFilter.GaussianBlur(1.05))
 patch=source.crop((97,88,114,104))
 fabric=ImageEnhance.Color(patch).enhance(0.65)
 texture=fabric.resize((w,h),Image.Resampling.BILINEAR)
@@ -28,8 +29,8 @@ out=tex.convert("RGBA")
 out.putalpha(mask)
 decor=Image.new("RGBA",(w,h),(0,0,0,0))
 ink=ImageDraw.Draw(decor)
-ink.line([(157,87),(162,85),(169,82)], fill=(22,25,21,130),width=2)
-ink.line([(155,90),(163,87),(172,84)], fill=(175,151,111,95),width=1)
+ink.line([(159,86),(164,84),(170,82)], fill=(22,25,21,130),width=2)
+ink.line([(158,89),(165,86),(171,84)], fill=(175,151,111,95),width=1)
 decor.putalpha(Image.composite(decor.getchannel("A"),Image.new("L",(w,h)),mask))
 out.alpha_composite(decor)
 dest=ART/"pc45_hidden_support_cuff.png"
