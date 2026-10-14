@@ -65,6 +65,10 @@ func _ready() -> void:
     _build_actual_skeleton2d()
     if OS.get_environment("PC42P_IDLE_BREATH_TEST") == "1":
         _pc42p_init_source_breath()
+    if OS.get_environment("PC48_SOURCE_MESH_TEST") == "1":
+        await _pc48_capture_mesh_motion()
+        get_tree().quit()
+        return
     if OS.get_environment("PC47_EASED_CONTINUOUS_ARM_TEST") == "1":
         await _pc47_capture_eased_motion()
         get_tree().quit()
@@ -381,6 +385,93 @@ func _pc42x_capture_joint_overlay() -> void:
     pc42x_joint_overlay = true
     await _pc42c_capture_png("pc42x_actual_arm_joint_overlay.png")
     pc42x_joint_overlay = false
+
+func _pc48_capture_mesh_motion() -> void:
+    # Isolated UV mesh deformation proof. No new drawn material. Preserves
+    # original single-piece rifle/hands as separate unwarped weapon art.
+    var sleeve_texture := _load_image("assets/pc48_sleeve.png")
+    var weapon_texture := _load_image("assets/pc48_weapon_hands.png")
+    if sleeve_texture == null or weapon_texture == null:
+        push_error("PC48_SOURCE_TEXTURE_MISSING")
+        get_tree().quit(84)
+        return
+    var source_names := ["near_upper_arm","near_forearm","dominant_hand",
+            "support_hand","rifle_stock","rifle_receiver"]
+    for name in source_names:
+        (pc42_bones[name].get_node("ApprovedArt_"+name) as Sprite2D).visible = false
+    var pivot: Vector2 = PC42CGripIK.SHOULDER
+    var unit := Node2D.new()
+    unit.name = "PC48_UncutSleeveUVDeformation"
+    unit.position = pivot
+    pc42_skeleton.add_child(unit)
+    var sleeve := Polygon2D.new()
+    sleeve.name = "OriginalPixels_SoftSleeve"
+    sleeve.texture = sleeve_texture
+    unit.add_child(sleeve)
+    var base_points := PackedVector2Array()
+    var uv_points := PackedVector2Array()
+    var quads: Array[PackedInt32Array] = []
+    var columns: int = 9
+    var rows: int = 7
+    for iy in range(rows):
+        for ix in range(columns):
+            var x: float = 86.0 + 8.0 * float(ix)
+            var y: float = 52.0 + 11.0 * float(iy)
+            base_points.append(Vector2(x,y)-pivot)
+            uv_points.append(Vector2(x,y))
+    for iy in range(rows-1):
+        for ix in range(columns-1):
+            var a: int = iy*columns+ix
+            quads.append(PackedInt32Array([a,a+1,a+columns+1,a+columns]))
+    sleeve.polygon = base_points
+    sleeve.uv = uv_points
+    sleeve.polygons = quads
+    var weapon := Sprite2D.new()
+    weapon.name = "OriginalPixels_RifleAndHands_Unwarped"
+    weapon.texture = weapon_texture
+    weapon.centered = false
+    weapon.position = -pivot
+    unit.add_child(weapon)
+    var locked_names := ["pelvis","torso","head_neck","back_thigh",
+            "front_thigh","back_shin","front_shin"]
+    var locked := {}
+    for name in locked_names:
+        locked[name] = (pc42_bones[name] as Bone2D).transform
+    var initial_scale: Vector2 = pc42_skeleton.scale
+    var initial_position: Vector2 = pc42_skeleton.position
+    for direction in ["right","left"]:
+        pc42_skeleton.scale = initial_scale if direction == "right" else Vector2(-SCALE,SCALE)
+        pc42_skeleton.position = initial_position if direction == "right" else Vector2(1056.0,initial_position.y)
+        for frame in range(25):
+            var phase: float = TAU*float(frame)/24.0
+            var rise: float = -cos(phase)
+            unit.rotation = deg_to_rad(10.0*rise)
+            unit.position = pivot + Vector2(0.35*sin(phase),1.25*rise)
+            var coords := PackedVector2Array()
+            for point in base_points:
+                var texture_x: float = point.x+pivot.x
+                # A soft bend localized near the forearm with zero deformation
+                # at original shoulder; maximum source displacement 1.6 px.
+                var t: float = clampf((texture_x-101.0)/45.0,0.0,1.0)
+                var weight: float = t*t*(3.0-2.0*t)
+                coords.append(point+Vector2(-0.35*rise*weight,1.6*rise*weight))
+            sleeve.polygon = coords
+            for name in locked_names:
+                if not (pc42_bones[name] as Bone2D).transform.is_equal_approx(locked[name]):
+                    push_error("PC48_FROZEN_BODY_CHANGED "+name)
+                    get_tree().quit(85)
+                    return
+            if not is_equal_approx(absf(pc42_skeleton.scale.x),SCALE):
+                push_error("PC48_SCALE_CHANGED")
+                get_tree().quit(86)
+                return
+            await _pc42c_capture_png("pc48_%s_%02d.png" % [direction,frame])
+    pc42_skeleton.scale = initial_scale
+    pc42_skeleton.position = initial_position
+    unit.queue_free()
+    for name in source_names:
+        (pc42_bones[name].get_node("ApprovedArt_"+name) as Sprite2D).visible = true
+    print("PC48_SOURCE_MESH_GODOT_CAPTURED 50 frames original_body_locked=true VISUAL_QA_PENDING")
 
 func _pc47_capture_eased_motion() -> void:
     # Source-faithful one-piece arm/hand/weapon motion. Pose easing and
