@@ -44,8 +44,8 @@ jobs:
           set -euo pipefail
           mkdir -p pc42-static-prototype/evidence
           PC42N_SOURCE_FIRST_PREVIEW=1 PC46_CONTINUOUS_ARM_TEST=1 timeout 90s xvfb-run -a /tmp/Godot_v4.7.2-stable_linux.x86_64 --path pc42-static-prototype --resolution 1580x660 >pc46-continuous.log 2>&1
-          grep -q 'PC46_CONTINUOUS_SOURCE_ART_RENDERED frames=3' pc46-continuous.log
-          test "$(ls pc42-static-prototype/evidence/pc46_continuous_*.png | wc -l)" -eq 3
+          grep -q 'PC46_CONTINUOUS_SOURCE_ART_RENDERED frames=6' pc46-continuous.log
+          test "$(ls pc42-static-prototype/evidence/pc46_continuous_*.png | wc -l)" -eq 6
       - name: Compose full weapon proof
         run: |
           python - <<'PY'
@@ -60,6 +60,15 @@ jobs:
               out.paste(im.crop((565,55,1025,575)),(i*460,42))
               d.text((i*460+12,12),'GODOT CONTINUOUS AIM '+k,fill='white')
           out.save(p/'pc46_continuous_3pose_comparison.png')
+          both=Image.new('RGB',(1380,1124),'#25292d')
+          both.paste(out,(0,0))
+          for i,k in enumerate(['m10','0','10']):
+              img=Image.open(p/('pc46_continuous_left_'+k+'.png')).convert('RGB')
+              assert img.size==(1580,660)
+              both.paste(img.crop((565,55,1025,575)),(i*460,604))
+              d2=ImageDraw.Draw(both)
+              d2.text((i*460+12,574),'ACTUAL GODOT LEFT AIM '+k,fill='white')
+          both.save(p/'pc46_continuous_six_poses.png')
           PY
       - name: Upload real screenshots and QA logs
         if: always()
