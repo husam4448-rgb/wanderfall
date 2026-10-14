@@ -415,7 +415,7 @@ func _pc46_capture_continuous_arms() -> void:
     for name in keep:
         rest[name] = (pc42_bones[name] as Bone2D).transform
     var rest_scale := pc42_skeleton.scale
-    for angle in [-10,0,10]:
+    for angle in range(-10,11,2):
         unit.rotation = deg_to_rad(float(angle))
         for name in keep:
             if not (pc42_bones[name] as Bone2D).transform.is_equal_approx(rest[name]):
@@ -434,7 +434,7 @@ func _pc46_capture_continuous_arms() -> void:
     var skeleton_original_pos: Vector2 = pc42_skeleton.position
     pc42_skeleton.scale = Vector2(-SCALE,SCALE)
     pc42_skeleton.position = Vector2(1056.0,skeleton_original_pos.y)
-    for angle in [-10,0,10]:
+    for angle in range(-10,11,2):
         unit.rotation = deg_to_rad(float(angle))
         await _pc42c_capture_png("pc46_continuous_left_%s.png" % str(angle).replace("-","m"))
         print("PC46_LEFT_MIRROR_POSE angle=",angle)
@@ -443,7 +443,7 @@ func _pc46_capture_continuous_arms() -> void:
     unit.queue_free()
     for old in hidden_sprites:
         old.visible = true
-    print("PC46_CONTINUOUS_SOURCE_ART_RENDERED frames=6 VISUAL_QA_PENDING")
+    print("PC46_CONTINUOUS_SOURCE_ART_RENDERED frames=22 VISUAL_QA_PENDING")
 
 func _pc45_capture_sliding_arms() -> void:
     # Experimental artwork-continuity trial: original source pixels, zero
