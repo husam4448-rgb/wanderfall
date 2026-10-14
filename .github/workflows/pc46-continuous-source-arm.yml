@@ -98,5 +98,6 @@ jobs:
             pc45-import.log
             pc46-continuous.log
             pc42-static-prototype/evidence/pc46_continuous_*.png
+            pc42-static-prototype/evidence/pc46_native_*_aim_motion.gif
           if-no-files-found: ignore
           retention-days: 14
