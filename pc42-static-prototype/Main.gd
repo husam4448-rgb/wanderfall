@@ -65,6 +65,10 @@ func _ready() -> void:
     _build_actual_skeleton2d()
     if OS.get_environment("PC42P_IDLE_BREATH_TEST") == "1":
         _pc42p_init_source_breath()
+    if OS.get_environment("PC47_EASED_CONTINUOUS_ARM_TEST") == "1":
+        await _pc47_capture_eased_motion()
+        get_tree().quit()
+        return
     if OS.get_environment("PC46_CONTINUOUS_ARM_TEST") == "1":
         await _pc46_capture_continuous_arms()
         get_tree().quit()
@@ -377,6 +381,68 @@ func _pc42x_capture_joint_overlay() -> void:
     pc42x_joint_overlay = true
     await _pc42c_capture_png("pc42x_actual_arm_joint_overlay.png")
     pc42x_joint_overlay = false
+
+func _pc47_capture_eased_motion() -> void:
+    # Source-faithful one-piece arm/hand/weapon motion. Pose easing and
+    # shoulder compensation are distinct from and do not mutate PC46.
+    var texture := _load_image("assets/pc46_unified_arms_and_rifle.png")
+    if texture == null:
+        push_error("PC47_MISSING_SOURCE_ART")
+        get_tree().quit(81)
+        return
+    var original_names := ["near_upper_arm","near_forearm","dominant_hand",
+            "support_hand","rifle_stock","rifle_receiver"]
+    for name in original_names:
+        var source_sprite := pc42_bones[name].get_node("ApprovedArt_"+name) as Sprite2D
+        source_sprite.visible = false
+    var pivot: Vector2 = PC42CGripIK.SHOULDER
+    var unit := Node2D.new()
+    unit.name = "PC47_Eased_Continuous_Arms"
+    unit.position = pivot
+    pc42_skeleton.add_child(unit)
+    var merged := Sprite2D.new()
+    merged.texture = texture
+    merged.centered = false
+    merged.position = -pivot
+    unit.add_child(merged)
+    var locked_names := ["pelvis","torso","head_neck","back_thigh",
+            "front_thigh","back_shin","front_shin"]
+    var locked := {}
+    for name in locked_names:
+        locked[name] = (pc42_bones[name] as Bone2D).transform
+    var scale_rest: Vector2 = pc42_skeleton.scale
+    var position_rest: Vector2 = pc42_skeleton.position
+    # 25 uniformly timed samples of a sinusoidal aim cycle: zero velocity
+    # at reversal and no discontinuous angular step.
+    for facing in ["right","left"]:
+        if facing == "left":
+            pc42_skeleton.scale = Vector2(-SCALE,SCALE)
+            pc42_skeleton.position = Vector2(1056.0,position_rest.y)
+        else:
+            pc42_skeleton.scale = scale_rest
+            pc42_skeleton.position = position_rest
+        for frame in range(25):
+            var phase: float = TAU * float(frame) / 24.0
+            var elevation: float = -10.0 * cos(phase)
+            unit.rotation = deg_to_rad(elevation)
+            # Shoulder translation to follow in next isolated step.
+            unit.position = pivot
+            for name in locked_names:
+                if not (pc42_bones[name] as Bone2D).transform.is_equal_approx(locked[name]):
+                    push_error("PC47_BODY_CHANGED " + name)
+                    get_tree().quit(82)
+                    return
+            if not is_equal_approx(absf(pc42_skeleton.scale.x),SCALE):
+                push_error("PC47_BODY_SCALE_CHANGED")
+                get_tree().quit(83)
+                return
+            await _pc42c_capture_png("pc47_%s_%02d.png" % [facing,frame])
+    pc42_skeleton.scale = scale_rest
+    pc42_skeleton.position = position_rest
+    unit.queue_free()
+    for name in original_names:
+        (pc42_bones[name].get_node("ApprovedArt_"+name) as Sprite2D).visible = true
+    print("PC47_EASED_CONTINUOUS_CAPTURED 50 poses 25_each visual_review_required")
 
 func _pc46_capture_continuous_arms() -> void:
     # Visual-only alternate: use the EXACT approved original source pixels as
