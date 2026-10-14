@@ -1,0 +1,80 @@
+name: PC48 Original Sleeve Mesh Visual QA
+on:
+  push:
+    branches: [pc48-continuous-arm-mesh-proof]
+    paths:
+      - 'pc42-static-prototype/**'
+      - 'tools/pc42_reference_cutout.py'
+      - 'tools/pc42h_articulated_arm_atlas.py'
+      - '.github/workflows/pc48-mesh-deformation.yml'
+      - 'tools/pc46_unified_arm_art.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  actual-godot-pose-capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 17
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reconstruct original source artwork unchanged
+        run: |
+          set -euo pipefail
+          python -m pip install --quiet pillow numpy opencv-python-headless
+          python tools/pc42_reference_cutout.py
+          python tools/pc42h_articulated_arm_atlas.py
+          python tools/pc46_unified_arm_art.py
+          python tools/pc48_source_mesh_atlas.py
+          test -s pc42-static-prototype/assets/pc46_unified_arms_and_rifle.png
+          test -s pc42-static-prototype/assets/approved_reference_panel.png
+      - name: Acquire pinned Godot 4.7.2 and Xvfb
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip" | sha256sum -c -
+          unzip -q /tmp/godot.zip -d /tmp
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb >/dev/null
+      - name: Compile restored original Godot body
+        run: |
+          set -euo pipefail
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --editor --path pc42-static-prototype --quit >pc45-import.log 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|Compile Error' pc45-import.log; then cat pc45-import.log; exit 1; fi
+      - name: Render minimal sliding sleeves over original artwork
+        run: |
+          set -euo pipefail
+          mkdir -p pc42-static-prototype/evidence
+          PC42N_SOURCE_FIRST_PREVIEW=1 PC48_SOURCE_MESH_TEST=1 timeout 90s xvfb-run -a /tmp/Godot_v4.7.2-stable_linux.x86_64 --path pc42-static-prototype --resolution 1580x660 >pc48-mesh.log 2>&1
+          grep -q 'PC48_SOURCE_MESH_GODOT_CAPTURED 50 frames' pc48-mesh.log
+          test "$(ls pc42-static-prototype/evidence/pc48_*.png | wc -l)" -eq 50
+      - name: Encode actual Godot frames into eased loop GIFs
+        run: |
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          p=Path('pc42-static-prototype/evidence')
+          for direction in ('right','left'):
+              frames=[]
+              for i in range(25):
+                  src=p/('pc48_%s_%02d.png'%(direction,i))
+                  im=Image.open(src).convert('RGB')
+                  assert im.size==(1580,660),(src,im.size)
+                  frames.append(im.crop((565,55,1025,575)).resize((368,416)))
+              target=p/('pc48_%s_aim_motion.gif'%direction)
+              frames[0].save(target,save_all=True,append_images=frames[1:],
+                  loop=0,duration=80,optimize=False)
+              assert target.stat().st_size>10000
+              print('PC48_GIF_PRODUCED',target)
+          PY
+      - name: Upload real screenshots and QA logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PC48-Mesh-Proof-${{ github.sha }}
+          path: |
+            pc45-import.log
+            pc48-mesh.log
+            pc42-static-prototype/evidence/pc48_*.png
+            pc42-static-prototype/evidence/pc48_*_aim_motion.gif
+          if-no-files-found: ignore
+          retention-days: 14
