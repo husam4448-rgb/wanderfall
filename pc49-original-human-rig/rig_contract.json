@@ -1,0 +1,93 @@
+{
+  "schema": "survival-paradise-pc49-original-human-rig-v1",
+  "purpose": "independently implemented Godot IK engineering rig (diagnostic art only)",
+  "sourceReference": {
+    "title": "Bad 2 Bad Apocalypse Spine 4.0.25",
+    "verified": {
+      "bones": 99,
+      "slots": 85,
+      "ik_constraints": 8
+    },
+    "method": "isolated user-provided SAI backup analysis; source coordinates not copied",
+    "ikPrinciples": [
+      "two-bone arms with independently designated target points",
+      "target driven arm bending, not weapon-bone parenting",
+      "two-bone locomotion foot targets",
+      "separate draw slots and skeleton bones"
+    ]
+  },
+  "dimensions": {
+    "units": "original Godot canvas pixels",
+    "x": "right",
+    "y": "down",
+    "orientation": [
+      "RIGHT",
+      "LEFT (full rig mirror)"
+    ]
+  },
+  "body": {
+    "root": [
+      0,
+      0
+    ],
+    "pelvis": [
+      0,
+      0
+    ],
+    "chest": [
+      0,
+      -66
+    ],
+    "head": [
+      0,
+      -105
+    ]
+  },
+  "arms": {
+    "upper_length": 36,
+    "forearm_length": 34,
+    "near_shoulder": [
+      9,
+      -78
+    ],
+    "far_shoulder": [
+      8,
+      -73
+    ],
+    "near_elbow_bend": "toward positive scene Y",
+    "far_elbow_bend": "toward positive scene Y",
+    "constraint": "geometric two-bone IK no elbow flipping",
+    "diagnostic_status": "native rendered; not production human artwork"
+  },
+  "weapon": {
+    "pivot": [
+      37,
+      -83
+    ],
+    "dominant_grip": [
+      49,
+      -80
+    ],
+    "support_grip": [
+      71,
+      -81
+    ],
+    "elevations_degrees": [
+      -20,
+      0,
+      20
+    ],
+    "sockets": "rifle-local rotation around pivot; wrists calculated from arm IK"
+  },
+  "legs": {
+    "thigh_length": 40,
+    "shin_length": 40,
+    "foot_target_pattern": "alternating sinusoidal 16-frame per direction; visual quality unfinished"
+  },
+  "visualGates": {
+    "engineering": "38 actual Godot frames PASS, 0 reported grip target error",
+    "production_art": "FAIL not yet created",
+    "walking": "diagnostic frames only; stiff",
+    "android": "NOT BUILT"
+  }
+}
