@@ -5,13 +5,13 @@ const AIM_DEGREES := [-20.0, 0.0, 20.0]
 const ROOT := Vector2(0, 0)
 const HIP := Vector2(0, 0)
 const CHEST := Vector2(0, -66)
-const NEAR_SHOULDER := Vector2(9, -76)
-const FAR_SHOULDER := Vector2(-7, -73)
-const UPPER := 38.0
-const LOWER := 36.0
-const RIFLE_PIVOT := Vector2(28, -81)
-const DOMINANT_GRIP := Vector2(19, -74)
-const SUPPORT_GRIP := Vector2(57, -80)
+const NEAR_SHOULDER := Vector2(9, -78)
+const FAR_SHOULDER := Vector2(8, -73)
+const UPPER := 36.0
+const LOWER := 34.0
+const RIFLE_PIVOT := Vector2(37, -83)
+const DOMINANT_GRIP := Vector2(49, -80)
+const SUPPORT_GRIP := Vector2(71, -81)
 const THIGH := 40.0
 const SHIN := 40.0
 var elevation := 0.0
@@ -81,7 +81,7 @@ func _draw() -> void:
     var support := rifle_socket(SUPPORT_GRIP)
     # Forearm driven to grip by two-bone solver (hands are NOT parented to rifle).
     var far := solve_two_bone(FAR_SHOULDER,support,UPPER,LOWER,true)
-    var near := solve_two_bone(NEAR_SHOULDER,dominant,UPPER,LOWER,false)
+    var near := solve_two_bone(NEAR_SHOULDER,dominant,UPPER,LOWER,true)
     if bool(far["valid"]):
         line_segment(FAR_SHOULDER,far["elbow"],Color(0.24,0.34,0.30),15)
         line_segment(far["elbow"],support,Color(0.28,0.39,0.34),13)
@@ -104,7 +104,7 @@ func line_segment(a:Vector2,b:Vector2,c:Color,width:float)->void:
 func capture(label:String)->bool:
     var dominant := rifle_socket(DOMINANT_GRIP)
     var support := rifle_socket(SUPPORT_GRIP)
-    var n := solve_two_bone(NEAR_SHOULDER,dominant,UPPER,LOWER,false)
+    var n := solve_two_bone(NEAR_SHOULDER,dominant,UPPER,LOWER,true)
     var f := solve_two_bone(FAR_SHOULDER,support,UPPER,LOWER,true)
     if not bool(n["valid"]) or not bool(f["valid"]):
         frame_failures += 1
