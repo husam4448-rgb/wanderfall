@@ -1,0 +1,68 @@
+name: PC49 Original Human IK Engineering Rig QA
+on:
+  push:
+    branches: [pc49-original-human-rig-engineering]
+    paths:
+      - 'pc49-original-human-rig/**'
+      - '.github/workflows/pc49-original-human-rig.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-rig:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - name: Acquire pinned Godot and Xvfb
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip" | sha256sum -c -
+          unzip -q /tmp/godot.zip -d /tmp
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb >/dev/null
+      - name: Import and compile new independent Godot project
+        run: |
+          set -euo pipefail
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --editor --path pc49-original-human-rig --quit > pc49-import.log 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|Compile Error' pc49-import.log; then cat pc49-import.log; exit 1; fi
+      - name: Run actual render and assert 44 original IK frames
+        run: |
+          set -euo pipefail
+          mkdir -p pc49-original-human-rig/evidence
+          timeout 95s xvfb-run -a /tmp/Godot_v4.7.2-stable_linux.x86_64 --path pc49-original-human-rig --resolution 1580x660 > pc49-engineering.log 2>&1 || { cat pc49-engineering.log; exit 1; }
+          cat pc49-engineering.log | grep -E 'PC49_(INVALID_IK|HUMAN_ENGINEERING_CAPTURED)' || true
+          grep -q 'PC49_HUMAN_ENGINEERING_CAPTURED frames=44 max_grip_error=0.0000 failures=0' pc49-engineering.log
+          test "$(ls pc49-original-human-rig/evidence/pc49_*.png | wc -l)" -eq 44
+      - name: Make two direction previews and six-pose contact proof
+        run: |
+          python -m pip install -q pillow
+          python - <<'PY'
+          from PIL import Image,ImageDraw
+          from pathlib import Path
+          d=Path('pc49-original-human-rig/evidence')
+          out=Image.new('RGB',(1200,760),(27,32,38));p=ImageDraw.Draw(out)
+          for row,facing in enumerate(('right','left')):
+              for col,angle in enumerate(('m20','0','20')):
+                  im=Image.open(d/f'pc49_aim_{facing}_{angle}.png').convert('RGB')
+                  im=im.crop((540,100,1040,540)).resize((400,345))
+                  out.paste(im,(col*400,35+row*375))
+                  p.text((col*400+12,row*375+7),f'{facing.upper()} {angle}',fill=(255,255,255))
+          out.save(d/'pc49_six_pose_contact.png')
+          for facing in ('right','left'):
+              ims=[Image.open(d/f'pc49_walk_{facing}_{i:02d}.png').convert('RGB').crop((540,100,1040,540)).resize((350,308)) for i in range(16)]
+              ims[0].save(d/f'pc49_walk_{facing}.gif',save_all=True,append_images=ims[1:],duration=80,loop=0)
+          print('PC49_REAL_GODOT_VISUALS_CREATED 6pose and two walk GIFs')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: PC49-Original-Human-Rig-${{ github.sha }}
+          path: |
+            pc49-import.log
+            pc49-engineering.log
+            pc49-original-human-rig/evidence/pc49_six_pose_contact.png
+            pc49-original-human-rig/evidence/pc49_walk_*.gif
+            pc49-original-human-rig/evidence/pc49_aim_*.png
+          retention-days: 14
