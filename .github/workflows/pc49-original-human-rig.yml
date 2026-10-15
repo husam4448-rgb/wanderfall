@@ -42,16 +42,16 @@ jobs:
           from PIL import Image,ImageDraw
           from pathlib import Path
           d=Path('pc49-original-human-rig/evidence')
-          out=Image.new('RGB',(1200,760),(27,32,38));p=ImageDraw.Draw(out)
+          out=Image.new('RGB',(1050,1320),(27,32,38));p=ImageDraw.Draw(out)
           for row,facing in enumerate(('right','left')):
               for col,angle in enumerate(('m20','0','20')):
                   im=Image.open(d/f'pc49_aim_{facing}_{angle}.png').convert('RGB')
-                  im=im.crop((540,100,1040,540)).resize((400,345))
-                  out.paste(im,(col*400,35+row*375))
-                  p.text((col*400+12,row*375+7),f'{facing.upper()} {angle}',fill=(255,255,255))
+                  im=im.crop((615,0,965,660)).resize((350,620))
+                  out.paste(im,(col*350,35+row*650))
+                  p.text((col*350+12,row*650+7),f'{facing.upper()} {angle}',fill=(255,255,255))
           out.save(d/'pc49_six_pose_contact.png')
           for facing in ('right','left'):
-              ims=[Image.open(d/f'pc49_walk_{facing}_{i:02d}.png').convert('RGB').crop((540,100,1040,540)).resize((350,308)) for i in range(16)]
+              ims=[Image.open(d/f'pc49_walk_{facing}_{i:02d}.png').convert('RGB').crop((615,0,965,660)).resize((280,528)) for i in range(16)]
               ims[0].save(d/f'pc49_walk_{facing}.gif',save_all=True,append_images=ims[1:],duration=80,loop=0)
           print('PC49_REAL_GODOT_VISUALS_CREATED 6pose and two walk GIFs')
           PY
