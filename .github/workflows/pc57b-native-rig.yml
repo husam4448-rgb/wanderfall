@@ -1,7 +1,7 @@
-name: PC57D Native Anatomic Gait, Rifle Grip and Equipment QA
+name: PC57E Native Proportional Gait and Rifle Grip QA
 on:
   push:
-    branches: [pc57d-forward-knee-weight-shift]
+    branches: [pc57e-proportional-standing-gait]
     paths:
       - 'pc57b/**'
       - '.github/workflows/pc57b-native-rig.yml'
@@ -56,7 +56,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: SP-PC57D-Native-Anatomy-Rifle-${{ github.sha }}
+          name: SP-PC57E-Native-Proportional-Gait-${{ github.sha }}
           path: |
             pc57b/evidence/
             pc57b-*.log
