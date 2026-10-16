@@ -1,0 +1,85 @@
+name: PC65 Native Knee Stiffness A-B Visual Test
+on:
+  push:
+    branches: [pc65-semirigid-knee-native-ab]
+    paths:
+      - 'pc64/Main.gd'
+      - 'tools/qa_pc65_knee_ab.py'
+      - '.github/workflows/pc65-knee-ab.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  original-godot-knee-ab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare two genuine Survival Paradise parts
+        run: |
+          set -euo pipefail
+          cp pc62/assets/SP_PC62_MaleRight_L_leg01_PROTOTYPE.png pc64/assets/
+          python3 -m pip install --quiet pillow numpy
+          python3 - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          assert Image.open('pc64/assets/SP_PC62_MaleRight_L_leg01_PROTOTYPE.png').size==(49,68)
+          assert Image.open('pc64/assets/SP_PC63_MaleRight_L_leg02_BOOT.png').size==(76,58)
+          PY
+      - name: Obtain same checked Godot 4.7.2 runtime
+        run: |
+          set -euo pipefail
+          curl -fLsS -o /tmp/godot.zip https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip" | sha256sum -c -
+          unzip -q /tmp/godot.zip -d /tmp
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb >/dev/null
+      - name: Import test scene and validate GDScript
+        run: |
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --editor --path pc64 --quit >pc65-import.log 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|Compile Error|ERR_FILE_CORRUPT' pc65-import.log; then cat pc65-import.log; exit 1; fi
+      - name: Capture old PC64 curve and new PC65 hinge from SAME scene
+        run: |
+          set -euo pipefail
+          mkdir -p pc65/evidence/baseline pc65/evidence/stiff
+          PC65_KNEE_STIFFNESS=0 PC64_CAPTURE=1 PC64_CAPTURE_DIR="$GITHUB_WORKSPACE/pc65/evidence/baseline" timeout 140s xvfb-run -a /tmp/Godot_v4.7.2-stable_linux.x86_64 --path pc64 --resolution 860x650 >pc65-old.log 2>&1 || { cat pc65-old.log; exit 1; }
+          PC65_KNEE_STIFFNESS=0.65 PC64_CAPTURE=1 PC64_CAPTURE_DIR="$GITHUB_WORKSPACE/pc65/evidence/stiff" timeout 140s xvfb-run -a /tmp/Godot_v4.7.2-stable_linux.x86_64 --path pc64 --resolution 860x650 >pc65-stiff.log 2>&1 || { cat pc65-stiff.log; exit 1; }
+          grep -q 'PC64_GODOT_ORIGINAL_PAIR_CAPTURED frames=32' pc65-old.log
+          grep -q 'PC64_GODOT_ORIGINAL_PAIR_CAPTURED frames=32' pc65-stiff.log
+          python3 tools/qa_pc64_original_pair.py pc65/evidence/baseline | tee pc65-old-metrics.log
+          python3 tools/qa_pc64_original_pair.py pc65/evidence/stiff | tee pc65-stiff-metrics.log
+          python3 tools/qa_pc65_knee_ab.py pc65/evidence/baseline pc65/evidence/stiff | tee pc65-ab-metrics.log
+      - name: Generate annotated actual-Godot split-screen visual review
+        run: |
+          python3 - <<'PY'
+          from PIL import Image,ImageDraw
+          from pathlib import Path
+          p=Path('pc65/evidence')
+          tiles=[]
+          for k in range(32):
+              a=Image.open(p/'baseline'/f'frame_{k:03d}.png').convert('RGB')
+              b=Image.open(p/'stiff'/f'frame_{k:03d}.png').convert('RGB')
+              a=a.crop((225,255,505,555)).resize((336,360),Image.Resampling.LANCZOS)
+              b=b.crop((225,255,505,555)).resize((336,360),Image.Resampling.LANCZOS)
+              pair=Image.new('RGB',(684,389),'#202b30')
+              pair.paste(a,(0,28));pair.paste(b,(348,28))
+              d=ImageDraw.Draw(pair)
+              d.text((16,9),'PC64: ROUND KNEE',fill='#dedede')
+              d.text((365,9),'PC65: SEMI-RIGID KNEE',fill='#dedede')
+              d.text((319,9),f'{k:02d}',fill='#f3b56b')
+              tiles.append(pair)
+          tiles[0].save(p/'PC65_Actual_Godot_Before_After_32Frames.gif',save_all=True,append_images=tiles[1:],duration=95,loop=0,optimize=True)
+          sheet=Image.new('RGB',(684*2,389*4),'#202b30')
+          for i in range(8):
+              sheet.paste(tiles[i*4],((i%2)*684,(i//2)*389))
+          sheet.save(p/'PC65_Actual_Godot_Before_After_8Phases.png')
+          PY
+      - name: Save original native evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SP-PC65-SemiRigid-Knee-Native-AB-${{ github.sha }}
+          path: |
+            pc65/evidence/
+            pc65-*.log
+          retention-days: 14
