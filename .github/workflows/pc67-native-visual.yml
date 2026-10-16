@@ -1,0 +1,101 @@
+name: PC67 Original Source Matched Bilateral Visual QA
+on:
+  push:
+    branches: [pc67-source-matched-legs-pelvis]
+    paths:
+      - 'pc67/**'
+      - 'tools/generate_pc67_source_art.py'
+      - 'tools/qa_pc67_bilateral.py'
+      - '.github/workflows/pc67-native-visual.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  original-source-godot-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reconstruct two distinct source-authored trousers and waist
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pillow numpy opencv-python-headless
+          cp pc64/assets/SP_PC63_MaleRight_L_leg02_BOOT.png pc67/assets/
+          python3 tools/generate_pc67_source_art.py | tee pc67-art-intake.log
+          grep -q PC67_DIFFERENT_AUTHORED_LEG_TEXTURES_AND_WAIST_READY pc67-art-intake.log
+      - name: Install pinned Godot 4.7.2
+        run: |
+          set -euo pipefail
+          curl -fLsS -o /tmp/godot.zip https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          echo 'cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip' | sha256sum -c -
+          unzip -q /tmp/godot.zip -d /tmp
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb > /dev/null
+      - name: Godot import and strict parser validation
+        run: |
+          set -euo pipefail
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --editor --path pc67 --quit >pc67-import.log 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|Compile Error|ERR_FILE_CORRUPT' pc67-import.log; then cat pc67-import.log; exit 1; fi
+      - name: Capture 32 real Godot frames and 5 independent texture layers
+        run: |
+          set -euo pipefail
+          mkdir -p pc67/evidence
+          PC65_KNEE_STIFFNESS=0.65 PC67_CAPTURE=1 PC67_CAPTURE_DIR="$GITHUB_WORKSPACE/pc67/evidence" timeout 170s xvfb-run -a /tmp/Godot_v4.7.2-stable_linux.x86_64 --path pc67 --resolution 860x650 >pc67-runtime.log 2>&1 || { cat pc67-runtime.log; exit 1; }
+          grep -q 'PC67_GODOT_AUTHENTIC_BILATERAL_CAPTURED frames=32' pc67-runtime.log
+          python3 tools/qa_pc67_bilateral.py pc67/evidence | tee pc67-metrics.log
+          grep -q PC67_BILATERAL_DISTINCT_ART_NATIVE_PASS pc67-metrics.log
+      - name: Repeat original PC66 source baseline for independent before-and-after
+        run: |
+          set -euo pipefail
+          mkdir -p pc66/assets pc67/baseline
+          cp pc62/assets/SP_PC62_MaleRight_L_leg01_PROTOTYPE.png pc66/assets/
+          cp pc64/assets/SP_PC63_MaleRight_L_leg02_BOOT.png pc66/assets/
+          python3 - <<'PY'
+          from PIL import Image
+          im=Image.open('assets/authored2d/unified_character/core/male/torso_base.png').convert('RGBA')
+          b=im.getchannel('A').getbbox();assert b
+          x0,y0,x1,y1=b;h=y1-y0
+          im.crop((x0,y0+int(h*.58),x1,y0+int(h*.88))).save('pc66/assets/PC66_Pelvis_Source_Torso_Crop.png')
+          PY
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --editor --path pc66 --quit >pc67-old-import.log 2>&1
+          PC65_KNEE_STIFFNESS=0.65 PC66_CAPTURE=1 PC66_CAPTURE_DIR="$GITHUB_WORKSPACE/pc67/baseline" timeout 170s xvfb-run -a /tmp/Godot_v4.7.2-stable_linux.x86_64 --path pc66 --resolution 860x650 >pc67-old-run.log 2>&1
+          grep -q 'PC66_GODOT_BILATERAL_CAPTURED frames=32' pc67-old-run.log
+      - name: Generate original actual-Godot A-B GIF and 8-phase inspection sheet
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image,ImageDraw
+          p=Path("pc67/evidence");baseline=Path("pc67/baseline")
+          frames=[]
+          for i in range(32):
+              a=Image.open(baseline/f"frame_{i:03d}.png").convert("RGB")
+              b=Image.open(p/f"frame_{i:03d}.png").convert("RGB")
+              a=a.crop((200,285,530,555)).resize((528,432),Image.Resampling.LANCZOS)
+              b=b.crop((200,285,530,555)).resize((528,432),Image.Resampling.LANCZOS)
+              card=Image.new("RGB",(1070,467),"#202b30")
+              card.paste(a,(0,31));card.paste(b,(542,31))
+              draw=ImageDraw.Draw(card)
+              draw.text((14,10),"PC66 | DUPLICATED / OVERSIZED",fill="#d5d5d5")
+              draw.text((557,10),"PC67 | ORIGINAL FRONT + REAR + WAIST",fill="#ead5b2")
+              draw.text((1015,10),f"{i:02d}",fill="#ead5b2")
+              frames.append(card)
+          frames[0].save(p/"PC67_Actual_Godot_Before_After_32Frame.gif",save_all=True,append_images=frames[1:],duration=100,loop=0,optimize=True)
+          sheet=Image.new("RGB",(2140,1868),"#202b30")
+          for j,i in enumerate(range(0,32,4)):
+              sheet.paste(frames[i],((j%2)*1070,(j//2)*467))
+          sheet.save(p/"PC67_Godot_8Phase_Art_And_Gait.png")
+          for k in (4,12,20,28):
+              frames[k].save(p/f"PC67_Godot_Closeup_Frame_{k:02d}.png")
+          # Preserve separate source artwork in the QA archive.
+          PY
+      - name: Publish all evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SP-PC67-SourceMatched-Bilateral-QA
+          path: |
+            pc67/assets/
+            pc67/evidence/
+            pc67-*.log
+          retention-days: 14
