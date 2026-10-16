@@ -1,0 +1,92 @@
+name: PC68 Anatomical Hip Legs and Source Torso Native Godot QA
+on:
+  push:
+    branches: [pc68-anatomical-hip-leg-torso-native]
+    paths:
+      - 'pc68/**'
+      - 'tools/generate_pc68_source_art.py'
+      - 'tools/qa_pc68_anatomical.py'
+      - '.github/workflows/pc68-anatomical-gait.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  original-source-anatomical-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate verified original SP male artwork and separated legs
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pillow numpy opencv-python-headless
+          mkdir -p pc68/assets pc68/evidence pc68/baseline
+          cp pc64/assets/SP_PC63_MaleRight_L_leg02_BOOT.png pc68/assets/
+          python3 tools/generate_pc68_source_art.py | tee pc68-art.log
+          grep -q 'PC68_ART_PARTS_AUTHORING_PASS' pc68-art.log
+      - name: Obtain exact Godot 4.7.2 engine and xvfb
+        run: |
+          set -euo pipefail
+          curl -fLsS -o /tmp/godot.zip https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          echo 'cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip' | sha256sum -c -
+          unzip -q /tmp/godot.zip -d /tmp
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb >/dev/null
+      - name: Native project import and GDScript parser
+        run: |
+          set -euo pipefail
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --editor --path pc68 --quit >pc68-import.log 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|Compile Error|ERR_FILE_CORRUPT' pc68-import.log; then cat pc68-import.log; exit 1; fi
+      - name: Render 32 genuine Godot frames with separated body-part QA
+        run: |
+          set -euo pipefail
+          PC65_KNEE_STIFFNESS=0.65 PC68_CAPTURE=1 PC68_CAPTURE_DIR="$GITHUB_WORKSPACE/pc68/evidence" timeout 170s xvfb-run -a /tmp/Godot_v4.7.2-stable_linux.x86_64 --path pc68 --resolution 860x650 >pc68-native.log 2>&1 || { cat pc68-native.log; exit 1; }
+          grep -q 'PC68_GODOT_FULL_SILHOUETTE_CAPTURED frames=32' pc68-native.log
+          python3 tools/qa_pc68_anatomical.py pc68/evidence | tee pc68-numeric.log
+          grep -q PC68_FULL_SILHOUETTE_NUMERIC_PASS pc68-numeric.log
+      - name: Reproduce exact PC67 original-art old comparison
+        run: |
+          set -euo pipefail
+          mkdir -p pc67/assets
+          cp pc64/assets/SP_PC63_MaleRight_L_leg02_BOOT.png pc67/assets/
+          python3 tools/generate_pc67_source_art.py >pc68-prior-art.log
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --editor --path pc67 --quit >pc68-prior-import.log 2>&1
+          PC65_KNEE_STIFFNESS=0.65 PC67_CAPTURE=1 PC67_CAPTURE_DIR="$GITHUB_WORKSPACE/pc68/baseline" timeout 170s xvfb-run -a /tmp/Godot_v4.7.2-stable_linux.x86_64 --path pc67 --resolution 860x650 >pc68-prior-native.log 2>&1
+          grep -q 'PC67_GODOT_AUTHENTIC_BILATERAL_CAPTURED frames=32' pc68-prior-native.log
+      - name: Produce actual-Godot 32-frame A-B and 8-phase full-body image
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image,ImageDraw
+          p=Path("pc68/evidence");base=Path("pc68/baseline")
+          frames=[]
+          for i in range(32):
+              old=Image.open(base/f"frame_{i:03d}.png").convert("RGB")
+              new=Image.open(p/f"frame_{i:03d}.png").convert("RGB")
+              old=old.crop((175,170,550,558)).resize((510,528),Image.Resampling.LANCZOS)
+              new=new.crop((175,170,550,558)).resize((510,528),Image.Resampling.LANCZOS)
+              tile=Image.new("RGB",(1032,554),"#202b30")
+              tile.paste(old,(0,26));tile.paste(new,(522,26))
+              pen=ImageDraw.Draw(tile)
+              pen.text((10,7),f"PC67 | REJECTED CROUCHED LEGS | {i:02d}",fill="#dddddd")
+              pen.text((533,7),"PC68 | ORIGINAL SURVIVOR FULL SILHOUETTE",fill="#ebd7b2")
+              frames.append(tile)
+          frames[0].save(p/"PC68_Actual_Godot_PC67_Before_After_32Frames.gif",save_all=True,append_images=frames[1:],duration=95,loop=0,optimize=True)
+          sheet=Image.new("RGB",(2064,2216),"#202b30")
+          for j,k in enumerate(range(0,32,4)):
+              sheet.paste(frames[k],((j%2)*1032,(j//2)*554))
+          sheet.save(p/"PC68_Actual_Godot_8Phase_Anatomical_Visual_QA.png")
+          for k in (4,12,20,28):
+              frames[k].save(p/f"PC68_Detailed_Frame_{k:02d}.png")
+          PY
+      - name: Preserve full reproducible source and independent evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SP-PC68-Anatomical-FullSilhouette-Godot-Evidence
+          path: |
+            pc68/assets/
+            pc68/evidence/
+            pc68-*.log
+          retention-days: 14
