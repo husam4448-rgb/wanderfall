@@ -14,7 +14,7 @@ for name in ("front","back"):
     assert len(sampled)==32
     assert len({x[0] for x in sampled})==32
     assert max(float(x[3]) for x in sampled)-min(float(x[3]) for x in sampled)>1.0
-foot_records=re.findall(r"PC54_FOOT_FRAME (\\d+) (front|back) target_x=([-\\d.]+) target_y=([-\\d.]+) residual=([-\\d.]+)",log)
+foot_records=re.findall(r"PC54_FOOT_FRAME (\d+) (front|back) target_x=([-\d.]+) target_y=([-\d.]+) residual=([-\d.]+)",log)
 assert len(foot_records)==64, f"Expected 64 foot target observations, got {len(foot_records)}"
 for leg in ("front","back"):
     values=[r for r in foot_records if r[1]==leg]
