@@ -1,0 +1,72 @@
+name: PC58 Real Approved Source Art Skeletal Fitting
+on:
+  push:
+    branches: [pc58-approved-art-ankle-fit]
+    paths:
+      - 'pc42-static-prototype/PC58.gd'
+      - 'pc42-static-prototype/PC58.tscn'
+      - 'tools/pc58_split_source_boots.py'
+      - 'tools/qa_pc58_source_fit.py'
+      - '.github/workflows/pc58-source-art-fit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-art-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reconstruct approved, source-identical RGBA atlas and split boots
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pillow numpy opencv-python-headless
+          python3 tools/pc42_reference_cutout.py
+          python3 tools/pc58_split_source_boots.py
+          test -s pc42-static-prototype/assets/parts/front_boot.png
+          test -s pc42-static-prototype/assets/parts/back_boot.png
+      - name: Download checked Godot 4.7.2 and Xvfb
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip" | sha256sum -c -
+          unzip -q /tmp/godot.zip -d /tmp
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb >/dev/null
+      - name: Compile original art Bone2D scene
+        run: |
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --editor --path pc42-static-prototype --quit >pc58-import.log 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|Compile Error' pc58-import.log; then cat pc58-import.log; exit 1; fi
+      - name: Capture 32 real Godot original-art skeletal frames
+        run: |
+          set -euo pipefail
+          mkdir -p pc42-static-prototype/evidence/pc58
+          PC58_CAPTURE=1 PC58_CAPTURE_DIR="$GITHUB_WORKSPACE/pc42-static-prototype/evidence/pc58" timeout 145s xvfb-run -a /tmp/Godot_v4.7.2-stable_linux.x86_64 --path pc42-static-prototype --resolution 900x660 res://PC58.tscn >pc58-runtime.log 2>&1 || { cat pc58-runtime.log; exit 1; }
+          cat pc58-runtime.log
+          grep -q 'PC58_REAL_APPROVED_ART_RIG_CAPTURED frames=32 source_parts=16' pc58-runtime.log
+          python3 tools/qa_pc58_source_fit.py pc42-static-prototype/evidence/pc58/source_art_frames.json | tee pc58-metrics.log
+      - name: Make genuine Godot GIF, eight-phase zoomed comparison
+        run: |
+          python3 - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          p=Path('pc42-static-prototype/evidence/pc58')
+          images=[Image.open(p/f'frame_{i:03d}.png').convert('RGB') for i in range(32)]
+          zoom=[im.crop((160,142,560,537)).resize((480,474),Image.Resampling.LANCZOS) for im in images]
+          zoom[0].save(p/'PC58_Actual_Godot_Original_Art_32Frames.gif',save_all=True,append_images=zoom[1:],duration=85,loop=0,optimize=True)
+          sheet=Image.new('RGB',(480*4,474*2),'#1e292e')
+          for k in range(8):
+              sheet.paste(zoom[k*4],((k%4)*480,(k//4)*474))
+          sheet.save(p/'PC58_Godot_Original_Art_Eight_Phases.png')
+          PY
+      - name: Save actual source-fit images even if numerical check fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SP-PC58-Original-Art-Skeletal-Frames-${{ github.sha }}
+          path: |
+            pc42-static-prototype/evidence/pc58/
+            pc42-static-prototype/assets/manifest.json
+            pc42-static-prototype/assets/pc58_rest_reconstructed.png
+            pc58-*.log
+          retention-days: 14
