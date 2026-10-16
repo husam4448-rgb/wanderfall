@@ -12,6 +12,9 @@ const BOOT_SCALE:float=1.02
 const BOOT_PIVOT:Vector2=Vector2(22.0,21.0)
 const BOOT_HEEL_PIXEL:Vector2=Vector2(18.0,51.0)
 const CLOTH_WIDTH:float=1.16
+const PC65_KNEE_DEFAULT_STIFFNESS:float=0.65
+const PC65_KNEE_SOFT_ZONE:float=0.30
+var knee_stiffness:float=PC65_KNEE_DEFAULT_STIFFNESS
 var uv_points:Array[Vector2]=[]
 var triangles:Array[PackedInt32Array]=[]
 var pose:Dictionary={}
@@ -19,6 +22,9 @@ var records:Array=[]
 var layer:String="both"
 
 func _ready()->void:
+    var test_value:String=OS.get_environment("PC65_KNEE_STIFFNESS")
+    if not test_value.is_empty():
+        knee_stiffness=clampf(test_value.to_float(),0.0,0.8)
     for y in range(GRID_H):
         for x in range(GRID_W):
             uv_points.append(Vector2(float(x)*48.0/float(GRID_W-1),
@@ -82,13 +88,32 @@ func _pose(i:int)->void:
     var at_knee:float=0.54
     var other:float=1.0-at_knee
     var control:Vector2=(knee-hip*other*other-ankle*at_knee*at_knee)/(2.0*at_knee*other)
+    var thigh_axis:Vector2=(knee-hip).normalized()
+    var shin_axis:Vector2=(ankle-knee).normalized()
     var vtx:Array[Vector2]=[]
     for tex_coord in uv_points:
         var t:float=tex_coord.y/67.0
         var one_minus:float=1.0-t
+        # Exact PC64 quadratic baseline when knee_stiffness=0.
         var center:Vector2=hip*one_minus*one_minus+control*2.0*one_minus*t+ankle*t*t
         var tangent:Vector2=(control-hip)*one_minus+(ankle-control)*t
         var direction:Vector2=tangent.normalized()
+        if knee_stiffness>0.0:
+            # Constrain the central cloth band around the original IK knee.
+            # Adjacent thigh and shin keep their separate bone directions.
+            var hinge_center:Vector2
+            var hinge_axis:Vector2
+            if t<=at_knee:
+                hinge_center=hip.lerp(knee,t/at_knee)
+                hinge_axis=thigh_axis
+            else:
+                hinge_center=knee.lerp(ankle,(t-at_knee)/(1.0-at_knee))
+                hinge_axis=shin_axis
+            var distance:float=clampf(absf(t-at_knee)/PC65_KNEE_SOFT_ZONE,0.0,1.0)
+            var smooth:float=distance*distance*(3.0-2.0*distance)
+            var stiffness:float=knee_stiffness*(1.0-smooth)
+            center=center.lerp(hinge_center,stiffness)
+            direction=direction.lerp(hinge_axis,stiffness).normalized()
         var normal:Vector2=Vector2(direction.y,-direction.x)
         var width_offset:float=(tex_coord.x-24.0)*CLOTH_WIDTH
         vtx.append(center+normal*width_offset)
@@ -155,6 +180,7 @@ func _capture()->void:
             "knee":[knee.x,knee.y],"ankle":[ankle.x,ankle.y],
             "heel":[heel.x,heel.y],"boot_pitch":pose["pitch"],
             "forward_knee_clearance":ik["knee_forward"],
+            "knee_stiffness":knee_stiffness,
             "upper_segment_residual":ik["upper_error"],
             "lower_segment_residual":ik["lower_error"],
             "cloth_vertices":world})
@@ -169,6 +195,8 @@ func _capture()->void:
     output.store_string(JSON.stringify({"frames":records,"triangles":triangles_serialized,
         "source":"Original SP trouser and boot images; new Godot deformable grid.",
         "commercial_reference_geometry_included":false,
+        "knee_mode":"localized_semirigid_hinge" if knee_stiffness>0.0 else "pc64_quadratic_baseline",
+        "knee_stiffness":knee_stiffness,
         "visual_status":"PENDING"}))
     output.close()
     print("PC64_GODOT_ORIGINAL_PAIR_CAPTURED frames=32 cloth_vertices=60 tris=90 boot=rigid")
