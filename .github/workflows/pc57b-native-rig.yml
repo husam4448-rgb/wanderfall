@@ -1,0 +1,61 @@
+name: PC57B Original Native Rifle Grip and Equipment QA
+on:
+  push:
+    branches: [pc57b-rifle-grip-native-godot]
+    paths:
+      - 'pc57b/**'
+      - '.github/workflows/pc57b-native-rig.yml'
+      - 'tools/pc57_motion_acceptance.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download pinned Godot 4.7.2
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip" | sha256sum -c -
+          unzip -q /tmp/godot.zip -d /tmp
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb >/dev/null
+          python3 -m pip install --quiet pillow
+      - name: Compile independent original upper body test
+        run: |
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --editor --path pc57b --quit >pc57b-import.log 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|Compile Error' pc57b-import.log; then cat pc57b-import.log; exit 1; fi
+      - name: Render 32 genuine Godot frames
+        run: |
+          set -euo pipefail
+          mkdir -p pc57b/evidence
+          PC57B_CAPTURE=1 PC57B_CAPTURE_DIR="$GITHUB_WORKSPACE/pc57b/evidence" timeout 140s xvfb-run -a /tmp/Godot_v4.7.2-stable_linux.x86_64 --path pc57b --resolution 720x620 >pc57b-runtime.log 2>&1 || { cat pc57b-runtime.log; exit 1; }
+          cat pc57b-runtime.log
+          grep -q 'PC57B_NATIVE_CAPTURE_PASS frames=32' pc57b-runtime.log
+          test "$(find pc57b/evidence -name 'frame_*.png' | wc -l)" -eq 32
+          python3 tools/pc57_motion_acceptance.py pc57b/evidence/frames.json | tee pc57b-metrics.log
+      - name: Generate actual Godot GIF and eight phase comparison
+        run: |
+          python3 - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          p=Path('pc57b/evidence')
+          frames=[Image.open(p/f'frame_{i:03d}.png').convert('RGB') for i in range(32)]
+          frames[0].save(p/'PC57B_Godot_32_Frame_Walk_Gun.gif',save_all=True,append_images=frames[1:],duration=80,loop=0,optimize=True)
+          tile=Image.new('RGB',(frames[0].width*4,frames[0].height*2),'#17232b')
+          for k in range(8):
+              tile.paste(frames[k*4],((k%4)*frames[0].width,(k//4)*frames[0].height))
+          tile.save(p/'PC57B_Godot_Eight_Phases.png')
+          PY
+      - name: Preserve real native output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SP-PC57B-Native-Arm-Rifle-${{ github.sha }}
+          path: |
+            pc57b/evidence/
+            pc57b-*.log
+          retention-days: 14
