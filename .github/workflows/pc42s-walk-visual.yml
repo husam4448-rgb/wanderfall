@@ -1,7 +1,7 @@
-name: PC42S Male RIGHT Authentic-Source Walking Gait Godot QA
+name: PC42S/PC52 Male RIGHT Authentic-Source Walking Gait Godot QA
 on:
   push:
-    branches: [pc42s-authentic-source-walk]
+    branches: [pc42s-authentic-source-walk, pc52-source-art-gait-contacts]
     paths:
       - '.github/workflows/pc42s-walk-visual.yml'
       - 'pc42-static-prototype/Main.gd'
@@ -62,6 +62,7 @@ jobs:
           PC42N_SOURCE_FIRST_PREVIEW=1 PC42S_WALK_TEST=1 PC42C_CAPTURE=1 timeout 160s xvfb-run -a "$GODOT_BIN" --path pc42-static-prototype --resolution 1580x660 >pc42s-walk-motion.log 2>&1
           grep -q 'PC42S_ORIGINAL_SOURCE_GAIT_READY' pc42s-walk-motion.log
           grep -q 'PC42C_REAL_IK_CONTACT_SWEEP_OK' pc42s-walk-motion.log
+          grep -q 'PC52_SOURCE_FOOT_CONTACT' pc42s-walk-motion.log
           python3 tools/qa_pc42s_walk.py
       - name: Report animation evidence
         env:
