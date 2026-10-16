@@ -27,7 +27,9 @@ for f in frames:
         v=np.asarray(leg["cloth_vertices"],dtype=float)
         assert v.shape==(60,2) and np.isfinite(v).all()
         t=v[tri]
-        ar=np.cross(t[:,1]-t[:,0],t[:,2]-t[:,0])
+        edge_a=t[:,1]-t[:,0]
+        edge_b=t[:,2]-t[:,0]
+        ar=edge_a[:,0]*edge_b[:,1]-edge_a[:,1]*edge_b[:,0]
         if name not in signs:signs[name]=np.sign(ar)
         flips+=int(np.count_nonzero(np.sign(ar)!=signs[name]))
         minimum_area=min(minimum_area,float(np.abs(ar).min()))
