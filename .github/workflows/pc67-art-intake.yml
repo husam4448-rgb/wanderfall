@@ -1,0 +1,47 @@
+name: PC67 Approved Survivor Reference Intake
+on:
+  push:
+    branches: [pc67-source-matched-legs-pelvis]
+    paths:
+      - '.github/workflows/pc67-art-intake.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  approved-art-intake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify exact references
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          for p in (
+            "assets/authored2d/unified_character/rig/reference/male_east_base.png",
+            "assets/authored2d/unified_character/rig/reference/male_east_rifle.png",
+            "assets/authored2d/unified_character/core/male/leg_front_base.png",
+            "assets/authored2d/unified_character/core/male/leg_rear_base.png",
+            "assets/authored2d/unified_character/core/male/torso_base.png",
+            "pc62/assets/SP_PC62_MaleRight_L_leg01_PROTOTYPE.png",
+            "pc64/assets/SP_PC63_MaleRight_L_leg02_BOOT.png"
+          ):
+            data=Path(p).read_bytes()
+            assert data.startswith(b"\x89PNG\r\n\x1a\n"),p
+            print(p,len(data),hashlib.sha256(data).hexdigest())
+          PY
+      - name: Archive source reference PNGs for inspect
+        uses: actions/upload-artifact@v4
+        with:
+          name: SP-PC67-Genuine-Reference-Input
+          path: |
+            assets/authored2d/unified_character/rig/reference/male_east_base.png
+            assets/authored2d/unified_character/rig/reference/male_east_rifle.png
+            assets/authored2d/unified_character/core/male/leg_front_base.png
+            assets/authored2d/unified_character/core/male/leg_rear_base.png
+            assets/authored2d/unified_character/core/male/torso_base.png
+            pc62/assets/SP_PC62_MaleRight_L_leg01_PROTOTYPE.png
+            pc64/assets/SP_PC63_MaleRight_L_leg02_BOOT.png
+          retention-days: 14
