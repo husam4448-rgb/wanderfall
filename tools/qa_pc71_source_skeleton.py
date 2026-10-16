@@ -30,7 +30,7 @@ assert all(im.size==(1580,660) for im in images)
 area=[np.asarray(im.crop((570,98,1010,615)),dtype=np.int16) for im in images]
 steps=[float(np.abs(a-b).mean()) for a,b in zip(area,area[1:])]
 if np.median(steps)<0.12:raise AssertionError(f"Godot Bone2D art movement not visible {np.median(steps)}")
-log=(root/"pc71-native-motion.log").read_text()
+log=Path("pc71-native-motion.log").read_text()
 assert "PC42B_SKELETON2D_BUILT" in log
 assert "PC42N_SOURCE_FIRST_HYBRID_PREVIEW_READY" in log
 assert "PC42S_ORIGINAL_SOURCE_GAIT_READY" in log
