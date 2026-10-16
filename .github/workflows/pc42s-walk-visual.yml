@@ -1,7 +1,7 @@
 name: PC42S/PC52 Male RIGHT Authentic-Source Walking Gait Godot QA
 on:
   push:
-    branches: [pc42s-authentic-source-walk, pc52-source-art-gait-contacts, pc53-b2b-inspired-two-bone-ik]
+    branches: [pc42s-authentic-source-walk, pc52-source-art-gait-contacts, pc53-b2b-inspired-two-bone-ik, pc54-full-stride-godot-walk]
     paths:
       - '.github/workflows/pc42s-walk-visual.yml'
       - 'pc42-static-prototype/Main.gd'
