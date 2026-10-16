@@ -395,8 +395,14 @@ func _pc42s_walk_pose(frame: int) -> void:
     else:
         var blend_wrap: float = (front_cycle-(1.0-transition))/transition
         front_contact = blend_wrap*blend_wrap*(3.0-2.0*blend_wrap)
-    var correction: Vector2 = front_contact*(front_rest-front_actual)+(1.0-front_contact)*(back_rest-back_actual)
+    var desired_correction: Vector2 = front_contact*(front_rest-front_actual)+(1.0-front_contact)*(back_rest-back_actual)
+    # PC52 recovery: enforce a hard anatomical pelvis-translation safety limit,
+    # reporting the uncompensated contact error instead of disguising it.
+    # This is a bounded diagnostic, NOT verified zero-slip foot planting.
+    var correction: Vector2 = Vector2(clampf(desired_correction.x,-11.0,11.0),clampf(desired_correction.y,-7.0,7.0))
+    var foot_contact_residual: float = (desired_correction-correction).length()
     pc42_skeleton.position += correction
+    print("PC52_FOOT_RESIDUAL frame=%02d residual_px=%.4f" % [frame,foot_contact_residual])
     var step_bob: float = 0.30*(1.0-cos(2.0*phase))
     pc42_skeleton.position.y -= step_bob
     print("PC52_SOURCE_FOOT_CONTACT frame=%02d weight_front=%.3f root_contact_x=%.3f" % [frame,front_contact,correction.x])
