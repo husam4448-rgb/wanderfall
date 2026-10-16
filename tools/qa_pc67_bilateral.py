@@ -85,7 +85,8 @@ for k in range(0,32,4):
 # Require independently changing native rendered frames.
 pics=[np.asarray(Image.open(p/f"frame_{k:03d}.png").convert("RGB"),np.int16) for k in range(32)]
 changes=[float(abs(a-b).mean()) for a,b in zip(pics,pics[1:])]
-assert np.mean(changes)>.20, "Actual Godot output hardly moves"
+roi_changes=[float(abs(a[300:550,180:560]-b[300:550,180:560]).mean()) for a,b in zip(pics,pics[1:])]
+assert np.mean(changes)>.12 and np.mean(roi_changes)>.8, "Actual animated character scarcely moved"
 out={"original_sp_distinct_source_art":True,"godot_frame_count":32,"separate_ik_legs":2,"independent_knee_panels":4,"original_sp_source_pelvis_crop":True,
 "duplicated_provisional_trouser_and_boot_art":False,
 "front_stance_frames":"0-15","rear_stance_frames":"16-31",
@@ -96,6 +97,7 @@ out={"original_sp_distinct_source_art":True,"godot_frame_count":32,"separate_ik_
 "painted_boot_sole_ground_offsets_px":painted_sole,
 "pelvis_painted_pixel_counts":pelframes,
 "mean_frame_difference":round(float(np.mean(changes)),3),
+"mean_character_roi_frame_difference":round(float(np.mean(roi_changes)),3),
 "technical_qa":"PASS","character_visual_approval":"PENDING",
 "not_yet_implemented":["unique contralateral art","full head and torso","real in-game Bone2D skeleton","Android gameplay integration"]}
 (p/"PC67_Art_Bilateral_Native_QA.json").write_text(json.dumps(out,indent=2)+"\n")
