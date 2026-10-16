@@ -3,7 +3,7 @@ on:
   push:
     branches: [pc56-b2b-reference-template-audit]
     paths:
-      - 'pc56/b2b_reference_rig_contract.json'
+      - 'pc56/**'
       - 'tools/qa_pc56_rig_contract.py'
       - '.github/workflows/pc56-rig-contract.yml'
   workflow_dispatch:
@@ -16,3 +16,14 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate original rig chain topology and IK targets
         run: python3 tools/qa_pc56_rig_contract.py
+      - name: Compile and execute actual Godot Bone2D template
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip" | sha256sum -c -
+          unzip -q /tmp/godot.zip -d /tmp
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --editor --path pc56 --quit >pc56-import.log 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|Compile Error' pc56-import.log; then cat pc56-import.log; exit 1; fi
+          timeout 30s /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path pc56 >pc56-runtime.log 2>&1 || { cat pc56-runtime.log; exit 1; }
+          cat pc56-runtime.log
+          grep -q 'PC56_GODOT_TEMPLATE_PASS bones=24 ik_chains=4' pc56-runtime.log
