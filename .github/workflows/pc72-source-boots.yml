@@ -1,0 +1,67 @@
+name: PC72 Original SP Boot Sources On True Ankle Bone2D
+on:
+  push:
+    branches: [pc72-source-boot-ankle-bone-first]
+    paths:
+      - 'tools/pc72_source_only_boot_split.py'
+      - 'tools/qa_pc72_original_boots.py'
+      - 'pc42-static-prototype/Main.gd'
+      - '.github/workflows/pc72-source-boots.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-source-foot-skin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reconstruct 14 original source pixel parts, split 2 boots without RGB changes
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pillow numpy opencv-python-headless
+          python3 tools/pc42_reference_cutout.py
+          python3 tools/pc42h_articulated_arm_atlas.py
+          python3 tools/pc72_source_only_boot_split.py | tee pc72-source.log
+          grep -q PC72_ORIGINAL_SOURCE_RIGID_BOOT_SPLIT_REST_EXACT pc72-source.log
+      - name: Native Godot 4.7.2 original-source ankle rig
+        run: |
+          set -euo pipefail
+          curl -fLsS --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          echo 'cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip' | sha256sum -c -
+          unzip -q /tmp/godot.zip -d /tmp
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb >/dev/null
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --editor --path pc42-static-prototype --quit >pc72-import.log 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|Compile Error' pc72-import.log; then cat pc72-import.log; exit 1; fi
+      - name: Test approved rest with actual source boots parented to true shin pivots
+        run: |
+          set -euo pipefail
+          mkdir -p pc72/rigid_boot pc72/articulated_boot pc42-static-prototype/evidence
+          PC42N_SOURCE_FIRST_PREVIEW=1 timeout 90s xvfb-run -a /tmp/Godot_v4.7.2-stable_linux.x86_64 --path pc42-static-prototype --resolution 1580x660 >pc72-rest.log 2>&1
+          grep -q 'PC42B_SKELETON2D_BUILT 16 actual Bone2D nodes' pc72-rest.log
+          cp pc42-static-prototype/evidence/godot_pc42_static_first_pose.png pc72/PC72_OriginalSourceRest_16BoneProof.png
+      - name: Compare boots attached to moving shins and independent ankle Bone2D
+        run: |
+          set -euo pipefail
+          PC42N_SOURCE_FIRST_PREVIEW=1 PC42S_WALK_TEST=1 PC42C_CAPTURE=1 timeout 160s xvfb-run -a /tmp/Godot_v4.7.2-stable_linux.x86_64 --path pc42-static-prototype --resolution 1580x660 >pc72/rigid.log 2>&1
+          grep -q 'PC42C_REAL_IK_CONTACT_SWEEP_OK' pc72/rigid.log
+          cp pc42-static-prototype/evidence/pc42c_motion_*.png pc72/rigid_boot/
+          PC42N_SOURCE_FIRST_PREVIEW=1 PC42S_WALK_TEST=1 PC72_ARTICULATED_BOOTS=1 PC42C_CAPTURE=1 timeout 160s xvfb-run -a /tmp/Godot_v4.7.2-stable_linux.x86_64 --path pc42-static-prototype --resolution 1580x660 >pc72/articulated.log 2>&1
+          grep -q 'PC72_ANKLE_BONE_FRAME' pc72/articulated.log
+          grep -q 'PC42C_REAL_IK_CONTACT_SWEEP_OK' pc72/articulated.log
+          cp pc42-static-prototype/evidence/pc42c_motion_*.png pc72/articulated_boot/
+          python3 tools/qa_pc72_original_boots.py | tee pc72-metrics.log
+      - name: Preserve genuine native A/B and exact original-source art manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SP-PC72-Genuine-Original-Boots-Ankle-Bone2D
+          path: |
+            pc72/
+            pc42-static-prototype/assets/pc72_boot_split_qa.json
+            pc42-static-prototype/assets/manifest.json
+            pc42-static-prototype/assets/parts/front_boot.png
+            pc42-static-prototype/assets/parts/back_boot.png
+            pc72-*.log
+          retention-days: 14
