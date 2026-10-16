@@ -453,12 +453,12 @@
       "id": "SP-CHAR-ANATOMICAL-PC68-001",
       "track": "visual",
       "priority": 1,
-      "status": "READY",
+      "status": "VERIFIED",
       "depends_on": [
         "SP-CHAR-UNIQUE-LEG-PELVIS-PC67-001"
       ],
       "objective": "Build visually convincing source-matched right-facing natural adult legs, hip and pelvis including original torso seam, without breaking verified zero-slip bilateral gait.",
-      "next_action": "Assess PC67 exact full-size 8-phase image, diagnose hip/thigh silhouette proportions and knee textile distortions, replace source crop/geometry with genuine cohesive original SP artwork and rerender 32 frames in Godot.",
+      "next_action": "PC69 repair remaining true knee/cloth anatomical artifacts and segment original head/torso upper body into correctly rotating skeletal bones before game promotion.",
       "acceptance": [
         "Both legs maintain consistent anatomy through 32 independent Godot frames",
         "Visible natural continuous pelvis waist hip connection, no exposed clipped square or glove artifact",
@@ -468,7 +468,36 @@
         "Explicit human visual acceptance before Android integration"
       ],
       "evidence": [
-        "docs/PC67_GODOT_ORIGINAL_BILATERAL_VISUAL_QA.md"
+        "docs/PC68_ANATOMICAL_NATIVE_VISUAL_QA.md",
+        "https://github.com/husam4448-rgb/wanderfall/actions/runs/38949364666/artifacts/12068215137"
+      ],
+      "attempts": 2,
+      "allowed_same_failed_technique_retries": 2,
+      "technical_verdict": "PASS",
+      "visual_verdict": "PROVISIONAL_IMPROVEMENT_NOT_FULLY_APPROVED",
+      "latest_tested_source_sha": "f759a5e80aa6c1245ea0d9a601b6e34944f3b970",
+      "blocking_reason": "Actual Godot video shows clear adult silhouette improvement, but remaining hard kneepad/fabric deformation and unsegmented upper torso prevent polished character acceptance."
+    },
+    {
+      "id": "SP-CHAR-CONTINUITY-PC69-001",
+      "track": "visual",
+      "priority": 1,
+      "status": "READY",
+      "depends_on": [
+        "SP-CHAR-ANATOMICAL-PC68-001"
+      ],
+      "objective": "Make the full original SP male-RIGHT prototype anatomically coherent across 32 gait frames with true separable torso/head/arms rather than a static pasted upper body.",
+      "next_action": "Use PC68 A/B actual native images to correct protruding kneepads and thin calf contours; separate original source upper-body art into correct torso/head/arm Bone2D nodes with real pivots and preserve actual boot/heel constraints, then rerun 32-frame native visual QA.",
+      "acceptance": [
+        "No conspicuous knee/cloth distortion across eight closeups",
+        "Natural head/torso/hip and standing/swing silhouette",
+        "Original source art identity and authentic equipment retained",
+        "Independent upper-body source segments and actual skeletal attachment",
+        "0 inverted fabric triangles and <0.05 px stance foot sliding",
+        "Visual acceptance is independent of numerical CI PASS"
+      ],
+      "evidence": [
+        "docs/PC68_ANATOMICAL_NATIVE_VISUAL_QA.md"
       ],
       "attempts": 0,
       "allowed_same_failed_technique_retries": 2,
@@ -477,6 +506,6 @@
     }
   ],
   "policy_override": "CHARACTER_FIRST_2026_10_10: all character appearance/animation/equipment tasks precede unrelated gameplay until user-approved quality gate; experimental builds can test characters, not content expansion",
-  "last_tested_character_source_sha": "d28d6d5a163172647e9a434daea5e1711928d923",
-  "last_tested_character_mode": "PC67 Godot 4.7.2 isolated 32-frame male RIGHT two-panel original SP distinct trouser art: numeric PASS (0 foot slip, 0 mesh flips) but VISUAL FAIL (stunted thigh/hip silhouette, disconnected cropped waist). NO APK."
+  "last_tested_character_source_sha": "f759a5e80aa6c1245ea0d9a601b6e34944f3b970",
+  "last_tested_character_mode": "PC68 isolated original SP male RIGHT full-body diagnostic: Godot 4.7.2 actual 32 frames TECH PASS (0 heel slip, 0 triangles, 19px swing, torso/head source alpha), VISUAL PROVISIONAL IMPROVEMENT NOT RELEASE ACCEPTED. No APK."
 }
