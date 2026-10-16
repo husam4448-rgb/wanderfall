@@ -1,0 +1,59 @@
+name: PC62 Original Weighted Thigh Native Godot Test
+on:
+  push:
+    branches: [pc62-first-exact-template-sp-thigh]
+    paths:
+      - 'pc62/**'
+      - 'tools/qa_pc62_native_thigh.py'
+      - '.github/workflows/pc62-thigh-native.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-godot-thigh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download pinned Godot
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip" | sha256sum -c -
+          unzip -q /tmp/godot.zip -d /tmp
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb >/dev/null
+          python3 -m pip install --quiet pillow numpy
+      - name: Compile actual Godot textured mesh part
+        run: |
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --editor --path pc62 --quit >pc62-import.log 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|Compile Error' pc62-import.log; then cat pc62-import.log; exit 1; fi
+      - name: Capture 32 native textured deformations
+        run: |
+          set -euo pipefail
+          mkdir -p pc62/evidence
+          PC62_CAPTURE=1 PC62_CAPTURE_DIR="$GITHUB_WORKSPACE/pc62/evidence" timeout 145s xvfb-run -a /tmp/Godot_v4.7.2-stable_linux.x86_64 --path pc62 --resolution 720x720 >pc62-runtime.log 2>&1 || { cat pc62-runtime.log; exit 1; }
+          cat pc62-runtime.log
+          grep -q 'PC62_NATIVE_GODOT_PART_SWEEP_OK poses=32 vertices=60 triangles=90' pc62-runtime.log
+          python3 tools/qa_pc62_native_thigh.py pc62/evidence/mesh_frames.json | tee pc62-metrics.log
+      - name: Create genuine Godot GIF and phase images
+        run: |
+          python3 - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          p=Path('pc62/evidence')
+          a=[Image.open(p/f'frame_{i:03d}.png').convert('RGB').crop((155,105,585,635)).resize((344,424),Image.Resampling.LANCZOS) for i in range(32)]
+          a[0].save(p/'PC62_Original_Thigh_32Frame_Real_Godot.gif',save_all=True,append_images=a[1:],duration=88,loop=0,optimize=True)
+          sheet=Image.new('RGB',(4*344,2*424),'#27343b')
+          for i in range(8):sheet.paste(a[i*4],((i%4)*344,(i//4)*424))
+          sheet.save(p/'PC62_Original_Thigh_8Phases_Real_Godot.png')
+          PY
+      - name: Archive evidence whether passed or failed
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SP-PC62-One-Original-Thigh-${{ github.sha }}
+          path: |
+            pc62/evidence/
+            pc62-*.log
+          retention-days: 14
