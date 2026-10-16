@@ -1,0 +1,20 @@
+name: PC61 Source-Matched Mesh Art QA
+on:
+  push:
+    branches: [pc61-b2b-exact-mesh-compatibility-gate]
+    paths:
+      - 'tools/qa_pc61_mesh_art_compatibility.py'
+      - 'tools/test_pc61_mesh_art_compatibility.py'
+      - '.github/workflows/pc61-mesh-art-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-free-art-gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install image-processing dependency
+        run: python3 -m pip install --quiet pillow numpy
+      - name: Check source-free alpha/UV envelope validator
+        run: python3 tools/test_pc61_mesh_art_compatibility.py
