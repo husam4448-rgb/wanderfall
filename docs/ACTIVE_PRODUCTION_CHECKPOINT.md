@@ -225,3 +225,11 @@ Create an isolated PC28 branch from PC27 verified source and test genuine knee a
 - **Document:** `docs/PC68_ANATOMICAL_NATIVE_VISUAL_QA.md`.
 - **Next READY task:** `SP-CHAR-CONTINUITY-PC69-001` — segment authentic torso/head/arms in actual Bone2D hierarchy, correct remaining knee/calf seam, recapture 32 frames and require independent human visual approval before Android promotion.
 - **Last signed APK remains PC33 code 205, technically valid but visually rejected**. No PC68 APK or device test. GitHub CI may run after the chat but ChatGPT autonomous engineering does not continue outside active execution.
+
+### PC68 OVERRIDING USER VISUAL REJECTION — 2026-10-16
+
+**Correction to PC68 visual statements above:** After inspecting the actual PC68 side-by-side screenshot, user explicitly rejected this rendering: abnormal sharply bent knees, attenuated calves, awkward boots, visible torso–pelvis discontinuity, and pasted non-skeletal original upper body. **VISUAL FAIL, not PROVISIONAL PASS.** The earlier text reporting a coherent full-body anatomy is withdrawn.
+
+**Numerical Godot QA stays PASS for its limited tests**, but the visual character and gait are NOT accepted, never promoted to playable game or APK. The immutable test source stays `f759a5e80aa6c1245ea0d9a601b6e34944f3b970` and its original workflow remains https://github.com/husam4448-rgb/wanderfall/actions/runs/38949364666.
+
+**NEXT:** `SP-CHAR-CONTINUITY-PC69-001`: treat PC68 only as a rejected mechanical experiment, recover authentic approved PC42H character art fallback, implement actual connected hips/pelvis/thigh/shin Bone2D articulations and correct human leg proportions. Never reuse pasted full-torso plus distorted mesh as visually accepted. Review all gait poses, not green CI only.
