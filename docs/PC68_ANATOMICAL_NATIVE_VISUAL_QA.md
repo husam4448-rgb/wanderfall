@@ -2,7 +2,7 @@
 
 Date: 2026-10-16
 
-**TECHNICAL PASS — PROVISIONAL VISUAL IMPROVEMENT, FULL CHARACTER APPROVAL WITHHELD.**
+**TECHNICAL PASS — VISUAL FAIL / USER EXPLICITLY REJECTED THE RESULT. DO NOT PROMOTE.**
 Isolated real Godot scene only. No production character merge, no APK, no on-device test.
 
 ## Exact tested evidence
@@ -42,14 +42,25 @@ Isolated real Godot scene only. No production character merge, no APK, no on-dev
 | Full-frame mean RGB change between frames | **0.539** |
 | Character-region mean RGB change | **1.591** |
 
-## Actual visual inspection
+## Actual visual inspection — corrected after direct user screenshot (2026-10-16)
 
-The native A/B shows a **material improvement in adult proportions and character identity** over PC67's crouched, detached legs and headless vest. Both shoes remain grounded and the upper body is coherent in the original RIGHT-facing silhouette. **Conditional visual improvement only**, not approval: knees still show a conspicuous hard/round kneepad and occasional sharp fabric folds; some legs are too narrow; the real-source waist/upper trousers could require a cleaner anatomical source segmentation. The full upper body is still a static source image rather than articulated shoulder/elbow/head bones. In a one-cycle fixture the torso tracks root position, not independent idle/aim/recoil. No female or LEFT directions tested.
+**VISUAL FAIL, not a provisional pass or suitable player.** The user viewed an actual side-by-side PC67/PC68 animation frame and explicitly challenged the result. The earlier conclusion of a coherent adult full-body survivor was materially overstated.
+
+Visible defects:
+- Spine, waist, pelvis and knee alignment are inconsistent; lower legs look like thin disconnected bendy tubes under a static upright torso.
+- The knees and shin fabric fold into severely distorted shapes across the gait; one knee appears twisted/collapsed and the silhouette is not an anatomically valid human stride.
+- Boots are large relative to narrow calves, with an unnatural joined/overlapping silhouette that numerical heel-contact and mesh-overlap metrics cannot validate visually.
+- The upper body is a single pasted complete source sprite rather than correctly registered articulated torso/head/arms; isolated procedural leg meshes below it do not form a continuous skeleton.
+- The side-by-side still demonstrates an earlier PC67 leg-only silhouette and a PC68 cutout composite; neither is production-acceptable.
+
+**Root cause:** Isolated 2-bone endpoints, triangle-orientation checks and planted-heel targets were optimized without constraints on *human silhouette, valid anatomical joint geometry, true connected source body segments, and perceptual motion*. A green CI merely proves those narrow checks.
+
+**Disposition:** PC68 REJECTED as visual artwork, retained only as a non-production mechanical experiment. Its correctness claims are restricted to the logged geometry/heel measurements. Do not call it an acceptable anatomical improvement. Human visual approval is a hard prerequisite, not an automated inference.
 
 ## PC69 next production gate
 
-- Recover PC68 tested source, preserve the foot, leg two-panel solver and head/torso source identity.
-- Fix persistent knee-pad-to-trouser and natural thigh/calf proportions, source-faithful hip/waist underpaint, and ensure no copied background artifacts.
+- Recover the exact PC68 source/evidence only as a diagnostic; use PC42H approved source textures and safe skeletal baseline as the visual fallback. Preserve isolated zero-sliding boot contact math only if it stays compatible with sound anatomy.
+- Stop repeating distorted cloth warps and one-piece upper-body cutouts. Build a genuine connected hip, pelvis, thigh, shin and boot bone registration with measured overlapping native-source contours, anatomical flexion bounds and full silhouette QA at all 32 frames.
 - Convert source-driven static upper-body preview into correctly registered, **actual segmented** torso/head/arms Bone2D before attempting recoil/aim integration; capture 32 native frames with independent pixel-layer comparison.
 - **Do not** mark full character visually accepted, gameplay-integrated, or Android APK complete until the appropriate gates pass.
 
