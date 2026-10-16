@@ -482,12 +482,12 @@
       "id": "SP-CHAR-CONTINUITY-PC69-001",
       "track": "visual",
       "priority": 1,
-      "status": "READY",
+      "status": "BLOCKED",
       "depends_on": [
         "SP-CHAR-ANATOMICAL-PC68-001"
       ],
       "objective": "Make the full original SP male-RIGHT prototype anatomically coherent across 32 gait frames with true separable torso/head/arms rather than a static pasted upper body.",
-      "next_action": "Prioritize anatomically connected original SP pelvis and bone joint registration, not another cosmetic overlay or smeared mesh. Require visual silhouette gates at 8 gait poses, no collapsing/shrunken shins, appropriate knee/boot relative scale, and actual Skeleton2D/Bone2D before full motion QA.",
+      "next_action": "Perform PC70 complementary-pose authoring and exact source comparisons before any skeletal gait claim; do not rescale PC68 cloth strips.",
       "acceptance": [
         "No conspicuous knee/cloth distortion across eight closeups",
         "Natural head/torso/hip and standing/swing silhouette",
@@ -498,7 +498,57 @@
       ],
       "evidence": [
         "docs/PC68_ANATOMICAL_NATIVE_VISUAL_QA.md",
-        "https://github.com/husam4448-rgb/wanderfall/actions/runs/38949364666/artifacts/12068215137"
+        "https://github.com/husam4448-rgb/wanderfall/actions/runs/38949364666/artifacts/12068215137",
+        "docs/PC69_SOURCE_AUTHENTICITY_VISUAL_REVIEW.md"
+      ],
+      "attempts": 0,
+      "allowed_same_failed_technique_retries": 2,
+      "technical_verdict": "PENDING",
+      "visual_verdict": "FAIL_SOURCE_POSES_DO_NOT_ALTERNATE",
+      "blocking_reason": "Approved original 4-frame right-running sheets repeat nearly the same lead-leg stride; whole-body skeleton animation cannot be accepted until real opposite contact/passing poses are sourced or authored and visually checked."
+    },
+    {
+      "id": "SP-CHAR-SOURCE-EXTRACTION-PC69-002",
+      "track": "visual",
+      "priority": 1,
+      "status": "VERIFIED_CANDIDATE_SPRITES_ONLY",
+      "depends_on": [],
+      "objective": "Scan approved male/female idle and run original artwork, produce unpainted RGB-exact transparent sprite cutouts, and visually compare to original before any deformation.",
+      "technical_verdict": "PASS_SOURCE_RGB_12_OF_12",
+      "visual_verdict": "STILLS_CANDIDATE_GAIT_FAIL",
+      "attempts": 7,
+      "allowed_same_failed_technique_retries": 2,
+      "evidence": [
+        "docs/PC69_SOURCE_AUTHENTICITY_VISUAL_REVIEW.md"
+      ],
+      "next_action": "Import the 12 unpainted RGBA cutouts from user-visible PC69 pack into a native asset staging branch when binary transfer is authorized; do not promote incomplete running GIF as animation.",
+      "acceptance": [
+        "All source references tracked by SHA256",
+        "Original source RGB matches all output crops exactly",
+        "Transparent candidate pixels do not touch crop boundary",
+        "Image quality compared at pixel level, full body",
+        "Candidacy separated from complete gait acceptance"
+      ]
+    },
+    {
+      "id": "SP-CHAR-ALT-GAIT-PC70-001",
+      "track": "visual",
+      "priority": 1,
+      "status": "READY",
+      "depends_on": [
+        "SP-CHAR-SOURCE-EXTRACTION-PC69-002"
+      ],
+      "objective": "Obtain/create source-consistent opposite-leg-leading stride and passing/contact frames for male/female, left/right, then validate real 32-frame adult bilateral gait in Godot.",
+      "next_action": "Determine actual leg lead for each user-approved source frame; derive missing opposing phases from anatomical joint-registered original asset parts, visually reject morphing and disconnected limbs; keep original figure pixels intact in rest poses.",
+      "acceptance": [
+        "Visible distinct opposite leg lead and toe/heel contacts",
+        "Both body legs swing equally over a full cycle",
+        "Authentic original equipment, adult proportions and source style",
+        "32 genuine nonduplicated frame source-driven visual evidence",
+        "User visual accept before APK"
+      ],
+      "evidence": [
+        "docs/PC69_SOURCE_AUTHENTICITY_VISUAL_REVIEW.md"
       ],
       "attempts": 0,
       "allowed_same_failed_technique_retries": 2,
@@ -508,5 +558,5 @@
   ],
   "policy_override": "CHARACTER_FIRST_2026_10_10: all character appearance/animation/equipment tasks precede unrelated gameplay until user-approved quality gate; experimental builds can test characters, not content expansion",
   "last_tested_character_source_sha": "f759a5e80aa6c1245ea0d9a601b6e34944f3b970",
-  "last_tested_character_mode": "PC68 native Godot 32-frame NUMERIC PASS only; USER VISUAL FAIL 2026-10-16 after inspecting screenshot (distorted legs/knees, pasted rigid upper torso). Rejected, not game integrated. PC69 READY for real anatomical rig reconstruction; PC42H original source-art fallback protected; no APK."
+  "last_tested_character_mode": "PC69 original artwork source extraction: 12/12 candidate RGBA still sprites exact RGB; visual stills reviewed and hair/crop corrections iterated 7 times. 4-frame right run FAIL as complete gait (same stride phase), not native Godot or APK."
 }
