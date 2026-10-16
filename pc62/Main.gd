@@ -59,7 +59,7 @@ func _draw()->void:
         var colors:=PackedColorArray()
         for index in tri:
             coords.append(draw_vertices[index])
-            tex_coords.append(vertices[index])
+            tex_coords.append(Vector2(vertices[index].x/float(W-1), vertices[index].y/float(H-1)))
             colors.append(Color.WHITE)
         draw_polygon(coords,colors,tex_coords,TX)
 
