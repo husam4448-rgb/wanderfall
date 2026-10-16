@@ -453,12 +453,12 @@
       "id": "SP-CHAR-ANATOMICAL-PC68-001",
       "track": "visual",
       "priority": 1,
-      "status": "VERIFIED",
+      "status": "FAILED",
       "depends_on": [
         "SP-CHAR-UNIQUE-LEG-PELVIS-PC67-001"
       ],
       "objective": "Build visually convincing source-matched right-facing natural adult legs, hip and pelvis including original torso seam, without breaking verified zero-slip bilateral gait.",
-      "next_action": "PC69 repair remaining true knee/cloth anatomical artifacts and segment original head/torso upper body into correctly rotating skeletal bones before game promotion.",
+      "next_action": "Never promote PC68 artwork. Inspect actual PC42H protected fallback and authentic source-body parts. Rebuild properly registered hip-pelvis-thigh-shin bones and source-faithful textured anatomy with screen-right source, then require visual review of 32 distinct native frames.",
       "acceptance": [
         "Both legs maintain consistent anatomy through 32 independent Godot frames",
         "Visible natural continuous pelvis waist hip connection, no exposed clipped square or glove artifact",
@@ -473,10 +473,10 @@
       ],
       "attempts": 2,
       "allowed_same_failed_technique_retries": 2,
-      "technical_verdict": "PASS",
-      "visual_verdict": "PROVISIONAL_IMPROVEMENT_NOT_FULLY_APPROVED",
+      "technical_verdict": "PASS_NUMERIC_ONLY",
+      "visual_verdict": "FAIL_USER_REJECTED_DISTORTED_KNEES_PELVIS_TORSO",
       "latest_tested_source_sha": "f759a5e80aa6c1245ea0d9a601b6e34944f3b970",
-      "blocking_reason": "Actual Godot video shows clear adult silhouette improvement, but remaining hard kneepad/fabric deformation and unsegmented upper torso prevent polished character acceptance."
+      "blocking_reason": "User inspected actual PC68 screenshot and explicitly rejected distorted inverted-looking knee/shin poses, disconnected slender legs beneath pasted static torso, poor boot/body proportions. Numeric zero-slip and zero-triangle-flip do not establish anatomical quality."
     },
     {
       "id": "SP-CHAR-CONTINUITY-PC69-001",
@@ -487,7 +487,7 @@
         "SP-CHAR-ANATOMICAL-PC68-001"
       ],
       "objective": "Make the full original SP male-RIGHT prototype anatomically coherent across 32 gait frames with true separable torso/head/arms rather than a static pasted upper body.",
-      "next_action": "Use PC68 A/B actual native images to correct protruding kneepads and thin calf contours; separate original source upper-body art into correct torso/head/arm Bone2D nodes with real pivots and preserve actual boot/heel constraints, then rerun 32-frame native visual QA.",
+      "next_action": "Prioritize anatomically connected original SP pelvis and bone joint registration, not another cosmetic overlay or smeared mesh. Require visual silhouette gates at 8 gait poses, no collapsing/shrunken shins, appropriate knee/boot relative scale, and actual Skeleton2D/Bone2D before full motion QA.",
       "acceptance": [
         "No conspicuous knee/cloth distortion across eight closeups",
         "Natural head/torso/hip and standing/swing silhouette",
@@ -497,7 +497,8 @@
         "Visual acceptance is independent of numerical CI PASS"
       ],
       "evidence": [
-        "docs/PC68_ANATOMICAL_NATIVE_VISUAL_QA.md"
+        "docs/PC68_ANATOMICAL_NATIVE_VISUAL_QA.md",
+        "https://github.com/husam4448-rgb/wanderfall/actions/runs/38949364666/artifacts/12068215137"
       ],
       "attempts": 0,
       "allowed_same_failed_technique_retries": 2,
@@ -507,5 +508,5 @@
   ],
   "policy_override": "CHARACTER_FIRST_2026_10_10: all character appearance/animation/equipment tasks precede unrelated gameplay until user-approved quality gate; experimental builds can test characters, not content expansion",
   "last_tested_character_source_sha": "f759a5e80aa6c1245ea0d9a601b6e34944f3b970",
-  "last_tested_character_mode": "PC68 isolated original SP male RIGHT full-body diagnostic: Godot 4.7.2 actual 32 frames TECH PASS (0 heel slip, 0 triangles, 19px swing, torso/head source alpha), VISUAL PROVISIONAL IMPROVEMENT NOT RELEASE ACCEPTED. No APK."
+  "last_tested_character_mode": "PC68 native Godot 32-frame NUMERIC PASS only; USER VISUAL FAIL 2026-10-16 after inspecting screenshot (distorted legs/knees, pasted rigid upper torso). Rejected, not game integrated. PC69 READY for real anatomical rig reconstruction; PC42H original source-art fallback protected; no APK."
 }
