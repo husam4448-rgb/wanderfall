@@ -1,6 +1,7 @@
 extends Node2D
 ## PC56 original configurable skeleton scaffold. No B2B art or animations.
 const CONTRACT_PATH := "res://b2b_reference_rig_contract.json"
+const Footstep = preload("res://SPFootstepPlanner.gd")
 var skeleton:Skeleton2D
 var bones:Dictionary = {}
 
@@ -42,5 +43,22 @@ func _ready() -> void:
             push_error("PC56_INVALID_IK_CHAIN")
             get_tree().quit(74)
             return
+    var anchor := Vector2(125.0,240.0)
+    for f in range(16):
+        var moving_root := Vector2(float(f)*2.5,20.0)
+        var pose:Dictionary=Footstep.target(float(f)/32.0,anchor,moving_root,
+            Vector2(15.0,210.0),-8.0,8.0,6.0)
+        var reconstructed_world:Vector2=moving_root+pose["target_local"]
+        if not pose["stance"] or reconstructed_world.distance_to(anchor)>0.0001:
+            push_error("PC56_FOOT_LOCK_FAIL frame=" + str(f))
+            get_tree().quit(75)
+            return
+    var leg:Dictionary=Footstep.knee_forward(Vector2(0,0),
+        Vector2(5,65),35,35,1.0)
+    if not leg["valid"] or absf(leg["knee"].distance_to(Vector2.ZERO)-35.0)>0.001:
+        push_error("PC56_IK_FAIL")
+        get_tree().quit(76)
+        return
+    print("PC56_NATIVE_GAIT_PASS stance_samples=16 leg_ik=pass")
     print("PC56_GODOT_TEMPLATE_PASS bones=%d ik_chains=%d art_status=UNPAINTED" % [bones.size(),layout["constraints"].size()])
     get_tree().quit()
