@@ -23,7 +23,7 @@ func _pose(i:int)->void:
     var stride_progress:float=f/32.0
     var counterweight:float=1.8*sin(f*TAU/16.0)
     var vertical_bob:float=1.8*pow(sin(f*PI/16.0),2.0)
-    var root:Vector2=Vector2(300.0+90.0*stride_progress+counterweight,359.0-vertical_bob)
+    var root:Vector2=Vector2(300.0+72.0*stride_progress+counterweight,359.0-vertical_bob)
     var tilt:float=deg_to_rad(0.9*sin(f*TAU/16.0)+0.65*sin(f*TAU/32.0))
     var shoulder_near:Vector2=root+Vector2(5.0,-86.0).rotated(tilt)
     var shoulder_far:Vector2=root+Vector2(-10.0,-89.0).rotated(tilt)
@@ -39,20 +39,20 @@ func _pose(i:int)->void:
     if stance_left:
         foot_left=Vector2(286.0,GROUND)
         var right_swing:float=f/16.0
-        foot_right=swing(Vector2(260.0,GROUND),Vector2(350.0,GROUND),right_swing)
+        foot_right=swing(Vector2(270.0,GROUND),Vector2(342.0,GROUND),right_swing)
         angle_right=deg_to_rad(-8.0*sin(PI*right_swing))
     else:
-        foot_right=Vector2(350.0,GROUND)
+        foot_right=Vector2(342.0,GROUND)
         var left_swing:float=(f-16.0)/16.0
-        foot_left=swing(Vector2(286.0,GROUND),Vector2(376.0,GROUND),left_swing)
+        foot_left=swing(Vector2(286.0,GROUND),Vector2(358.0,GROUND),left_swing)
         angle_left=deg_to_rad(-8.0*sin(PI*left_swing))
     var ankle_left_target:Vector2=foot_left+Vector2(0.0,-8.0)
     var ankle_right_target:Vector2=foot_right+Vector2(0.0,-8.0)
     var hip_left:Vector2=root+Vector2(-14.0,6.0)
     var hip_right:Vector2=root+Vector2(12.0,6.0)
     # Screen-right knees both bend forward; old +1 branch caused reverse knees.
-    var leg_left:Dictionary=IK.solve(hip_left,ankle_left_target,69.0,70.0,-1.0)
-    var leg_right:Dictionary=IK.solve(hip_right,ankle_right_target,69.0,70.0,-1.0)
+    var leg_left:Dictionary=IK.solve(hip_left,ankle_left_target,65.0,64.0,-1.0)
+    var leg_right:Dictionary=IK.solve(hip_right,ankle_right_target,65.0,64.0,-1.0)
     if not dominant["valid"] or not support["valid"] or not leg_left["valid"] or not leg_right["valid"]:
         push_error("PC57B_INVALID_IK")
         get_tree().quit(82)
