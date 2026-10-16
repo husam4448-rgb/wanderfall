@@ -64,6 +64,19 @@ for frame in range(0,32,4):
     connectedness.append(overlap>0)
 assert all(connectedness),"Rendered trouser / boot gap in at least one of eight phases"
 
+# Painted-sole check must be independent of the synthetic heel target.
+painted_sole_offsets=[]
+for frame in range(0,17,4):
+    im=np.asarray(Image.open(folder/f"boot_{frame:03d}.png").convert("RGB"),dtype=np.int16)
+    background=im[5,5,:]
+    painted=np.max(np.abs(im-background),axis=2)>13
+    y_positions=np.where(painted)[0]
+    assert len(y_positions)>250
+    sole_y=int(y_positions.max())
+    painted_sole_offsets.append(round(float(502.0-sole_y),4))
+assert max(abs(v) for v in painted_sole_offsets)<=1.5,(
+    "Visible shoe sole floats or penetrates floor by %s"%painted_sole_offsets)
+
 movement=float(np.mean([np.abs(b.astype("int16")-a.astype("int16")).mean() for a,b in zip(all_images,all_images[1:])]))
 assert movement>.15,"Native frames look unchanged"
 result={"capture_frames":32,"independent_body_parts":2,"native_Godot":True,
@@ -75,6 +88,7 @@ result={"capture_frames":32,"independent_body_parts":2,"native_Godot":True,
     "inverted_mesh_triangles":flips,
     "minimum_triangle_area":round(min_area,4),
     "rendered_ankle_overlap_px_each_phase":overlaps,
+    "painted_sole_to_ground_pixels_each_planted_phase":painted_sole_offsets,
     "mean_interframe_rgb_change":round(movement,4),
     "numerical_pass":True,"visual_approval":"PENDING ACTUAL GIF INSPECTION"}
 (folder/"PC64_Pair_Native_QA.json").write_text(json.dumps(result,indent=2)+"\n")
