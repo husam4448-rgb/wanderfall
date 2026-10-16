@@ -1,0 +1,40 @@
+{
+  "schema": "survival-paradise-pc63-original-leg-foot-pair-v1",
+  "facing": "RIGHT",
+  "source_knowledge": "Verified from user-provided B2B Spine 4.0 setup; source-derived coordinates and pixels omitted",
+  "parts": {
+    "L_leg01": {
+      "role": "continuous trouser leg, including knee/shin fabric",
+      "deformation": "weighted image mesh",
+      "original_sp_art": "PC62 original candidate",
+      "game_visual_approved": false
+    },
+    "L_leg02": {
+      "role": "leather boot + ankle cuff, NOT a separate shin",
+      "deformation": "rigid image quad",
+      "parent_socket": "L_foot analogue",
+      "source_artwork": "SP original male RIGHT boot",
+      "image_dimensions_px": [
+        76,
+        58
+      ],
+      "mirror_character": false,
+      "game_visual_approved": false
+    }
+  },
+  "draw_order": [
+    "L_leg01",
+    "L_leg02"
+  ],
+  "uv_contract": "Respect source image y-down / renderer texture V conventions. Do not mirror the actor to fix atlas UVs.",
+  "necessary_checks": [
+    "real Godot 32-frame render",
+    "painted knee-to-cuff continuity",
+    "independent heel and toe contact",
+    "ankle pivot rotation",
+    "no clipping or hidden cloth holes",
+    "consistent male RIGHT silhouette"
+  ],
+  "release_status": "REFERENCE_CONTACT_ONLY; NATIVE_GODOT_PENDING; APK_NOT_BUILT",
+  "no_private_source_assets_in_repository": true
+}
