@@ -9,10 +9,11 @@ from PIL import Image
 p=Path(sys.argv[1])
 d=json.loads((p/"pose_metrics.json").read_text())
 frames=d["frames"];tri=np.asarray(d["triangles"],dtype=int)
-assert len(frames)==32 and tri.shape==(90,3)
+assert len(frames)==32 and tri.shape==(72,3)
 assert [f["frame"] for f in frames]==list(range(32))
 assert not d["provisional_reused_leg_art"] and d["two_independent_ik_chains"]
 assert not d["commercial_reference_geometry_included"]
+assert d["cloth_mode"]=="two_source_fabric_panels_at_real_ik_knee"
 assert .6<=d["knee_stiffness"]<=.7
 signs={};flips=0;minimum_area=float("inf")
 forward={};ground=502.0
@@ -85,7 +86,7 @@ for k in range(0,32,4):
 pics=[np.asarray(Image.open(p/f"frame_{k:03d}.png").convert("RGB"),np.int16) for k in range(32)]
 changes=[float(abs(a-b).mean()) for a,b in zip(pics,pics[1:])]
 assert np.mean(changes)>.20, "Actual Godot output hardly moves"
-out={"original_sp_distinct_source_art":True,"godot_frame_count":32,"separate_ik_legs":2,"original_sp_source_pelvis_crop":True,
+out={"original_sp_distinct_source_art":True,"godot_frame_count":32,"separate_ik_legs":2,"independent_knee_panels":4,"original_sp_source_pelvis_crop":True,
 "duplicated_provisional_trouser_and_boot_art":False,
 "front_stance_frames":"0-15","rear_stance_frames":"16-31",
 "planted_heel_sliding_px":stance_slip,"swing_clearance_px":clearance,
