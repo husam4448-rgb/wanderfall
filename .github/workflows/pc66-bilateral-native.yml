@@ -1,0 +1,95 @@
+name: PC66 Bilateral Native Godot Gait + Pelvis QA
+on:
+  push:
+    branches: [pc66-bilateral-pelvis-gait-native]
+    paths:
+      - 'pc66/**'
+      - 'tools/qa_pc66_bilateral.py'
+      - '.github/workflows/pc66-bilateral-native.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  bilateral-32-frame-native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare original SP art, preserve PC65 knee and boot
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pillow numpy
+          mkdir -p pc66/assets pc66/evidence
+          cp pc62/assets/SP_PC62_MaleRight_L_leg01_PROTOTYPE.png pc66/assets/
+          cp pc64/assets/SP_PC63_MaleRight_L_leg02_BOOT.png pc66/assets/
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          dst=Path("pc66/assets")
+          tex=Image.open(dst/"SP_PC62_MaleRight_L_leg01_PROTOTYPE.png").convert("RGBA")
+          boot=Image.open(dst/"SP_PC63_MaleRight_L_leg02_BOOT.png").convert("RGBA")
+          assert tex.size==(49,68) and boot.size==(76,58)
+          source=Image.open("assets/authored2d/unified_character/core/male/torso_base.png").convert("RGBA")
+          assert source.size==(112,144)
+          bb=source.getchannel("A").getbbox()
+          assert bb is not None
+          x0,y0,x1,y1=bb; h=y1-y0
+          piece=source.crop((x0,y0+int(h*0.58),x1,y0+int(h*0.88)))
+          assert piece.width>=30 and piece.height>=12
+          assert piece.getchannel("A").getbbox() is not None
+          assert sum(a>24 for a in piece.getchannel("A").getdata())>80
+          piece.save(dst/"PC66_Pelvis_Source_Torso_Crop.png")
+          print(f"PC66_SOURCE_ART: trouser={tex.size}, boot={boot.size}, pelvis_crop={piece.size}, original_torso_bbox={bb}")
+          PY
+      - name: Install pinned Godot 4.7.2 under xvfb
+        run: |
+          set -euo pipefail
+          curl -fLsS -o /tmp/godot.zip https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          echo 'cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip' | sha256sum -c -
+          unzip -q /tmp/godot.zip -d /tmp
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb >/dev/null
+      - name: Import and parse actual Godot source
+        run: |
+          set -euo pipefail
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --editor --path pc66 --quit > pc66-import.log 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|Compile Error|ERR_FILE_CORRUPT' pc66-import.log; then cat pc66-import.log; exit 1; fi
+      - name: Render two independent legs, 32 full frames + original-art layers
+        run: |
+          set -euo pipefail
+          PC65_KNEE_STIFFNESS=0.65 PC66_CAPTURE=1 PC66_CAPTURE_DIR="$GITHUB_WORKSPACE/pc66/evidence" timeout 170s xvfb-run -a /tmp/Godot_v4.7.2-stable_linux.x86_64 --path pc66 --resolution 860x650 > pc66-runtime.log 2>&1 || { cat pc66-runtime.log; exit 1; }
+          grep -q 'PC66_GODOT_BILATERAL_CAPTURED frames=32' pc66-runtime.log
+          python3 tools/qa_pc66_bilateral.py pc66/evidence | tee pc66-metrics.log
+      - name: Render animated evidence and eight-phase source-contact sheet
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image,ImageDraw
+          p=Path("pc66/evidence")
+          tiles=[]
+          for i in range(32):
+              im=Image.open(p/f"frame_{i:03d}.png").convert("RGB")
+              cropped=im.crop((205,277,545,554)).resize((680,554),Image.Resampling.LANCZOS)
+              tile=Image.new("RGB",(680,578),"#232d32")
+              tile.paste(cropped,(0,24))
+              ImageDraw.Draw(tile).text((12,6),f"PC66 | TWO-LEG WALK | Frame {i:02d} | SOURCE ART PROVISIONAL",fill="#f2d0a4")
+              tiles.append(tile)
+          tiles[0].save(p/"PC66_Actual_Godot_32Frame_Bilateral_Walk.gif",save_all=True,append_images=tiles[1:],duration=95,loop=0,optimize=True)
+          sheet=Image.new("RGB",(680*2,578*4),"#232d32")
+          for j,i in enumerate(range(0,32,4)):
+              sheet.paste(tiles[i],((j%2)*680,(j//2)*578))
+          sheet.save(p/"PC66_Actual_Godot_8Phase_Bilateral_Gait.png")
+          for i in (4,12,20,28):
+              tiles[i].save(p/f"PC66_Frame_{i:02d}_FullDetail.png")
+          PY
+      - name: Publish all original native technical and visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SP-PC66-Bilateral-Pelvis-Native
+          path: |
+            pc66/evidence/
+            pc66/assets/PC66_Pelvis_Source_Torso_Crop.png
+            pc66-*.log
+          retention-days: 14
