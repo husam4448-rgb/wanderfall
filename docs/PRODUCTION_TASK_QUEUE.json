@@ -534,12 +534,12 @@
       "id": "SP-CHAR-ALT-GAIT-PC70-001",
       "track": "visual",
       "priority": 1,
-      "status": "READY",
+      "status": "BLOCKED_VISUAL_GAIT_NOT_CREATED",
       "depends_on": [
         "SP-CHAR-SOURCE-EXTRACTION-PC69-002"
       ],
       "objective": "Obtain/create source-consistent opposite-leg-leading stride and passing/contact frames for male/female, left/right, then validate real 32-frame adult bilateral gait in Godot.",
-      "next_action": "Determine actual leg lead for each user-approved source frame; derive missing opposing phases from anatomical joint-registered original asset parts, visually reject morphing and disconnected limbs; keep original figure pixels intact in rest poses.",
+      "next_action": "PC71 manually author one original-matched opposite-leg right-facing male run pose with actual pelvis/leg underpainting; reject image-generator output if source identity/boot/kneepad/limb placement changes. Repeat female only after male passes 1-pose visual review.",
       "acceptance": [
         "Visible distinct opposite leg lead and toe/heel contacts",
         "Both body legs swing equally over a full cycle",
@@ -548,15 +548,65 @@
         "User visual accept before APK"
       ],
       "evidence": [
-        "docs/PC69_SOURCE_AUTHENTICITY_VISUAL_REVIEW.md"
+        "docs/PC69_SOURCE_AUTHENTICITY_VISUAL_REVIEW.md",
+        "docs/PC70_SOURCE_PARTITION_VISUAL_QA.md"
       ],
       "attempts": 0,
       "allowed_same_failed_technique_retries": 2,
+      "technical_verdict": "SOURCE_EXTRACTION_TESTS_PASS_NOT_ANIMATION",
+      "visual_verdict": "FAIL_NO_OPPOSITE_LEG_PHASE",
+      "blocking_reason": "4 source run poses retain same leading leg; PC70 decomposition reconstructs originals but cut masks lack artist-painted hidden joint pixels and cannot be safely rotated into missing frames."
+    },
+    {
+      "id": "SP-CHAR-SOURCE-PARTS-PC70-002",
+      "track": "visual",
+      "priority": 1,
+      "status": "VERIFIED_STILL_LAYERS_ONLY",
+      "depends_on": [
+        "SP-CHAR-SOURCE-EXTRACTION-PC69-002"
+      ],
+      "objective": "For male/female four RIGHT-run source poses each, partition approved RGBA painted pixels into upper / rear leg / front leg and verify exact rest source reconstruction; never imply finished gait.",
+      "next_action": "Consume the PC70 user-facing asset ZIP, add source-authored hidden overlap/underpainting, then create a single visually acceptable opposite-leg phase without stretching or hallucinated textures.",
+      "acceptance": [
+        "8/8 original-rest RGB/alpha pixel equality",
+        "24/24 visible pixel RGB preserved",
+        "Exclusive/exhaustive source alpha partition",
+        "No run animation release label",
+        "Source/body assets protected until user visual acceptance"
+      ],
+      "evidence": [
+        "docs/PC70_SOURCE_PARTITION_VISUAL_QA.md"
+      ],
+      "attempts": 2,
+      "technical_verdict": "PASS_PIXEL_PARTITION_ONLY",
+      "visual_verdict": "STILL_SOURCE_FIDELITY_PASS__MOTION_NOT_AUTHORED"
+    },
+    {
+      "id": "SP-CHAR-OPPOSITE-RUN-ART-PC71-001",
+      "track": "visual",
+      "priority": 1,
+      "status": "READY",
+      "depends_on": [
+        "SP-CHAR-SOURCE-PARTS-PC70-002"
+      ],
+      "objective": "Author one completely anatomically sound, original-SP-matched male RIGHT opposite-leg-leading run contact pose then female, from source pixels and newly painted but source-matched occlusion coverage.",
+      "next_action": "Measure both knees, shoes, backpack, hip pivots in approved original male RIGHT source; artist-author missing body anatomy and opposite stride; inspect at game resolution and 4x; reject all changed identities and impossible poses; only then move to full alternating loop.",
+      "acceptance": [
+        "Clearly opposite lead leg compared to first original run pose",
+        "Same head face outfit gear backpack and boots",
+        "No floating fabric or detached pelvis, knee, shin or foot",
+        "Painterly grit and shading match approved source",
+        "Before/after 1-pose visual acceptance separately from CI numeric testing"
+      ],
+      "evidence": [
+        "docs/PC70_SOURCE_PARTITION_VISUAL_QA.md"
+      ],
+      "attempts": 0,
       "technical_verdict": "PENDING",
       "visual_verdict": "PENDING"
     }
   ],
   "policy_override": "CHARACTER_FIRST_2026_10_10: all character appearance/animation/equipment tasks precede unrelated gameplay until user-approved quality gate; experimental builds can test characters, not content expansion",
   "last_tested_character_source_sha": "f759a5e80aa6c1245ea0d9a601b6e34944f3b970",
-  "last_tested_character_mode": "PC69 original artwork source extraction: 12/12 candidate RGBA still sprites exact RGB; visual stills reviewed and hair/crop corrections iterated 7 times. 4-frame right run FAIL as complete gait (same stride phase), not native Godot or APK."
+  "last_tested_character_mode": "PC70 local source-first QA: 8 male/female RIGHT run original poses -> 24 RGB-exact three-way RGBA part masks, 8/8 pixel-perfect rest restorations. Two generated replacement sheets rejected for mismatched identity. Opposite-leg pose NOT authored, no Godot gait test, no APK."
 }
