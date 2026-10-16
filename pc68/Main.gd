@@ -107,6 +107,10 @@ func _leg_pose(index:int,frame:int,pelvis:Vector2)->Dictionary:
         else:
             center=knee.lerp(ankle,(tex_coord.y-80.0)/79.0)
             direction=shin_axis
+        # Original cloth cuff runs a few game pixels over the rigid boot shaft.
+        # Never move the planted boot, ankle, heel target or PC65 contact solver.
+        if row==GRID_H-1:
+            center+=shin_axis*5.0
         var normal:Vector2=Vector2(direction.y,-direction.x)
         var width_offset:float=(tex_coord.x-39.5)*CLOTH_WIDTH
         vtx.append(center+normal*width_offset)
