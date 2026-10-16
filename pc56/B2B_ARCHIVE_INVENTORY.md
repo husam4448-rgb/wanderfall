@@ -20,3 +20,15 @@ Do not commit or publish the unmodified third-party proprietary game APK, asset 
 
 ## Recovery
 Restore the original user-supplied `.apks` file as a conversation attachment, or provide an accessible private source location, before undertaking pixel-accurate rig/texture comparisons. This inventory **is not a substitute for the source archive**.
+
+## Verified re-upload — 2026-10-16
+
+- Exact attachment: `B2B Apocalypse_com,dawinstone,b2ba_3,4,1.apks`
+- Verified SHA-256: `e4cfbe350c0020aa3a97543d90f150c5cdfd61501888b9b52b54c19bfd7a1eb7`
+- Archive ZIP validated locally (226 MB apparent size).
+- `base.apk`: 23,656,564 bytes, 714 entries.
+- `split_UnityDataAssetPack.apk`: 187,671,207 bytes, 9 entries.
+- `split_config.arm64_v8a.apk`: 25,535,963 bytes.
+- Inside asset-pack split: `assets/bin/Data/datapack.unity3d` (157,403,450 bytes); `assets/bin/Data/resources.resource` (30,245,792 bytes).
+
+**Storage decision:** The user's APKS is available in the current conversation's working sandbox, but is **not uploaded to GitHub**. A public repository must not host the third-party commercial APK or extracted proprietary textures. The checksum and reference manifest are committed; full binary retention requires a verified private access-controlled location with appropriate rights. This manifest deliberately does not claim the raw binary is in GitHub.
