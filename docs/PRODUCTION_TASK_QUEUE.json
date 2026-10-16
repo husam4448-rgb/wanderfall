@@ -393,9 +393,61 @@
       ],
       "attempts": 0,
       "allowed_same_failed_technique_retries": 2
+    },
+    {
+      "id": "SP-CHAR-BILATERAL-PC66-001",
+      "track": "visual",
+      "priority": 1,
+      "status": "VERIFIED",
+      "depends_on": [],
+      "objective": "Create independently animated two-leg male-RIGHT native Godot gait and source-derived provisional pelvis, retaining PC65 knee and boot mechanism.",
+      "next_action": "Require independent human visual review of actual PC66 32-frame native GIF; retain this as technical fixture only, not approved actor.",
+      "acceptance": [
+        "32 genuine Godot 4.7.2 rendered frames",
+        "Independent opposing stance phases and forward knees",
+        "Native original painted trouser and boots remain attached",
+        "0 logical heel slip for both legs",
+        "0 triangle inversions; pelvis visibly rendered",
+        "Technical and visual verdict explicitly separate"
+      ],
+      "evidence": [
+        "docs/PC66_NATIVE_BILATERAL_GAIT_QA.md",
+        "https://github.com/husam4448-rgb/wanderfall/actions/runs/38937420497/artifacts/12061762287"
+      ],
+      "attempts": 2,
+      "allowed_same_failed_technique_retries": 2,
+      "technical_verdict": "PASS",
+      "visual_verdict": "PENDING_HUMAN_APPROVAL",
+      "latest_tested_source_sha": "a887710a0fab7d3d6bbe8c7234b9e4f29c07e4ad",
+      "blocking_reason": "One existing SP trouser and boot texture provisionally duplicated across two rigs; pelvis is a source cropped region, not dedicated painted body art."
+    },
+    {
+      "id": "SP-CHAR-UNIQUE-LEG-PELVIS-PC67-001",
+      "track": "visual",
+      "priority": 1,
+      "status": "READY",
+      "depends_on": [
+        "SP-CHAR-BILATERAL-PC66-001"
+      ],
+      "objective": "Make authentic distinct male-RIGHT rear leg art and an anatomically compatible pelvis for the now technical-passing bilateral rig.",
+      "next_action": "Inspect authentic SP male-right front/rear leg and belt/waist source pixels; replace duplicated PC66 artwork with individually authored rear-leg/pelvis textures, fit original hips, rerun 32-frame native Godot and human visual gate.",
+      "acceptance": [
+        "Separate, source-faithful front/rear leg art with consistent seam/scale",
+        "Real painted pelvis connected naturally to both hips",
+        "No inverted fabric triangles, floating soles or foot sliding",
+        "Two-leg gait looks believable at eight close-up phases",
+        "No premature full-player or Android approval"
+      ],
+      "evidence": [
+        "docs/PC66_NATIVE_BILATERAL_GAIT_QA.md"
+      ],
+      "attempts": 0,
+      "allowed_same_failed_technique_retries": 2,
+      "technical_verdict": "PENDING",
+      "visual_verdict": "PENDING"
     }
   ],
   "policy_override": "CHARACTER_FIRST_2026_10_10: all character appearance/animation/equipment tasks precede unrelated gameplay until user-approved quality gate; experimental builds can test characters, not content expansion",
-  "last_tested_character_source_sha": "951e375460ee8742f0706dc95eedecb8220f990f",
-  "last_tested_character_mode": "PC42S restrained fixed-aim 32-frame Godot walking TECH PASS; visual INCOMPLETE due boots attached to shins and missing ankle roll; no APK."
+  "last_tested_character_source_sha": "a887710a0fab7d3d6bbe8c7234b9e4f29c07e4ad",
+  "last_tested_character_mode": "PC66 isolated original-SP male-RIGHT bilateral + source-cropped pelvis, Godot 32-frame technical PASS; distinct rear-leg/pelvis art and human visual approval PENDING. No APK."
 }
