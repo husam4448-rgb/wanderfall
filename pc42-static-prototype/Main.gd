@@ -378,11 +378,28 @@ func _pc42s_walk_pose(frame: int) -> void:
     var back_rest: Vector2 = pc42_skeleton.to_global(Vector2(138.0,224.0))
     var front_actual: Vector2 = front_shin.to_global(Vector2(84.0-79.0,241.0-182.0))
     var back_actual: Vector2 = back_shin.to_global(Vector2(138.0-131.0,224.0-184.0))
-    var front_contact: float = (1.0-cos(phase))*0.5
+    # PC52: contact-weighted original painted-boot stability.
+    # During each half-cycle, preserve the currently planted boot, rather
+    # than continuously dragging both boot endpoints toward their rest pose.
+    # Smooth transitions prevent a discontinuous pelvis snap at foot exchange.
+    var front_cycle: float = fposmod(float(frame)/32.0,1.0)
+    var transition: float = 0.08
+    var front_contact: float = 0.0
+    if front_cycle < 0.5-transition:
+        front_contact = 1.0
+    elif front_cycle < 0.5+transition:
+        var blend: float = (front_cycle-(0.5-transition))/(2.0*transition)
+        front_contact = 1.0-(blend*blend*(3.0-2.0*blend))
+    elif front_cycle < 1.0-transition:
+        front_contact = 0.0
+    else:
+        var blend_wrap: float = (front_cycle-(1.0-transition))/transition
+        front_contact = blend_wrap*blend_wrap*(3.0-2.0*blend_wrap)
     var correction: Vector2 = front_contact*(front_rest-front_actual)+(1.0-front_contact)*(back_rest-back_actual)
     pc42_skeleton.position += correction
     var step_bob: float = 0.30*(1.0-cos(2.0*phase))
     pc42_skeleton.position.y -= step_bob
+    print("PC52_SOURCE_FOOT_CONTACT frame=%02d weight_front=%.3f root_contact_x=%.3f" % [frame,front_contact,correction.x])
     print("PC42S_WALK_FRAME %02d front_hip=%.3f back_hip=%.3f front_knee=%.3f back_knee=%.3f root_x=%.3f root_y=%.3f" % [frame,rad_to_deg(front_thigh.rotation),rad_to_deg(back_thigh.rotation),rad_to_deg(front_shin.rotation),rad_to_deg(back_shin.rotation),correction.x,correction.y-step_bob])
 
 func _pc42r_reload_pose(frame: int) -> Dictionary:
