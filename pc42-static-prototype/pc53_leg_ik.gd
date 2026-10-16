@@ -5,10 +5,15 @@ static func solve(hip:Vector2, rest_knee:Vector2, rest_ankle:Vector2, ankle_targ
     var upper:float = hip.distance_to(rest_knee)
     var lower:float = rest_knee.distance_to(rest_ankle)
     var delta:Vector2 = ankle_target-hip
-    var distance:float = delta.length()
-    if distance < absf(upper-lower)+0.01 or distance > upper+lower-0.01:
-        return {"valid":false,"reason":"unreachable","distance":distance}
-    var axis:Vector2 = delta / distance
+    var requested_distance:float = delta.length()
+    if requested_distance < 0.001:
+        return {"valid":false,"reason":"degenerate target"}
+    # Fixed source-pivot geometry is almost fully extended at rest.
+    # Keep IK solvable by projecting out-of-reach endpoints to the limb's
+    # physical reach boundary. Report residual error; do not claim foot lock.
+    var distance:float=clampf(requested_distance,absf(upper-lower)+0.05,upper+lower-0.05)
+    var axis:Vector2=delta/requested_distance
+    ankle_target=hip+axis*distance
     var projected:float = (upper*upper+distance*distance-lower*lower)/(2.0*distance)
     var rise:float = sqrt(maxf(0.0,upper*upper-projected*projected))
     # Choose the anatomical forward branch relative to the character.
@@ -19,7 +24,7 @@ static func solve(hip:Vector2, rest_knee:Vector2, rest_ankle:Vector2, ankle_targ
     return {"valid":true,"knee":knee,"ankle":ankle_target,
         "upper_rotation":wrapf(upper_angle,-PI,PI),
         "shin_rotation":wrapf(shin_world_angle-upper_angle,-PI,PI),
-        "upper_length":upper,"lower_length":lower}
+        "upper_length":upper,"lower_length":lower,"target_residual":absf(requested_distance-distance)}
 
 static func target(foot_rest:Vector2,phase:float,stride:float=8.0,lift:float=4.0)->Vector2:
     var t:float=fposmod(phase,1.0)
