@@ -1,0 +1,38 @@
+name: PC64 Original Leg Boot Visual Test
+on:
+  workflow_dispatch:
+  push:
+    branches: [pc64-native-sp-leg-foot-integration]
+permissions:
+  contents: read
+jobs:
+  visual:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare approved SP artwork
+        run: |
+          cp pc62/assets/SP_PC62_MaleRight_L_leg01_PROTOTYPE.png pc64/assets/
+      - name: Verify sprites
+        run: |
+          python3 -m pip install pillow numpy
+          python3 -c "from PIL import Image; print(Image.open('pc64/assets/SP_PC63_MaleRight_L_leg02_BOOT.png').size)"
+      - name: Download native Godot
+        run: |
+          curl -fLsS -o /tmp/g.zip https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/g.zip" | sha256sum -c -
+          unzip -q /tmp/g.zip -d /tmp
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb
+      - name: Capture native Godot frames
+        run: |
+          mkdir -p pc64/evidence
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --editor --path pc64 --quit
+          PC64_CAPTURE=1 PC64_CAPTURE_DIR="$GITHUB_WORKSPACE/pc64/evidence" xvfb-run -a /tmp/Godot_v4.7.2-stable_linux.x86_64 --path pc64 --resolution 860x650
+          python3 tools/qa_pc64_original_pair.py pc64/evidence
+      - name: Save actual frames
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PC64-Native-Pair
+          path: pc64/evidence/
