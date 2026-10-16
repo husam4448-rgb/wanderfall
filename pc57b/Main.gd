@@ -20,8 +20,11 @@ func swing(start:Vector2, finish:Vector2, t:float)->Vector2:
 
 func _pose(i:int)->void:
     var f:float=float(i)
-    var root:Vector2=Vector2(295.0+1.8*f,359.0-1.5*sin(f*TAU/16.0))
-    var tilt:float=deg_to_rad(2.0)*sin(f*TAU/16.0)
+    var stride_progress:float=f/32.0
+    var counterweight:float=1.8*sin(f*TAU/16.0)
+    var vertical_bob:float=1.8*pow(sin(f*PI/16.0),2.0)
+    var root:Vector2=Vector2(300.0+90.0*stride_progress+counterweight,359.0-vertical_bob)
+    var tilt:float=deg_to_rad(0.9*sin(f*TAU/16.0)+0.65*sin(f*TAU/32.0))
     var shoulder_near:Vector2=root+Vector2(5.0,-86.0).rotated(tilt)
     var shoulder_far:Vector2=root+Vector2(-10.0,-89.0).rotated(tilt)
     var pivot:Vector2=root+Vector2(22.0,-73.0)+Vector2(0.0,1.4*sin(f*TAU/16.0+0.3))
@@ -31,16 +34,25 @@ func _pose(i:int)->void:
     var stance_left:bool=i<16
     var foot_left:Vector2
     var foot_right:Vector2
+    var angle_left:float=0.0
+    var angle_right:float=0.0
     if stance_left:
-        foot_left=Vector2(282.0,GROUND)
-        foot_right=swing(Vector2(272.0,GROUND),Vector2(334.0,GROUND),f/15.0)
+        foot_left=Vector2(286.0,GROUND)
+        var right_swing:float=f/16.0
+        foot_right=swing(Vector2(260.0,GROUND),Vector2(350.0,GROUND),right_swing)
+        angle_right=deg_to_rad(-8.0*sin(PI*right_swing))
     else:
-        foot_left=swing(Vector2(282.0,GROUND),Vector2(369.0,GROUND),(f-16.0)/15.0)
-        foot_right=Vector2(334.0,GROUND)
-    var hip_left:Vector2=root+Vector2(-15.0,6.0)
-    var hip_right:Vector2=root+Vector2(14.0,6.0)
-    var leg_left:Dictionary=IK.solve(hip_left,foot_left,75.0,76.0,1.0)
-    var leg_right:Dictionary=IK.solve(hip_right,foot_right,76.0,76.0,1.0)
+        foot_right=Vector2(350.0,GROUND)
+        var left_swing:float=(f-16.0)/16.0
+        foot_left=swing(Vector2(286.0,GROUND),Vector2(376.0,GROUND),left_swing)
+        angle_left=deg_to_rad(-8.0*sin(PI*left_swing))
+    var ankle_left_target:Vector2=foot_left+Vector2(0.0,-8.0)
+    var ankle_right_target:Vector2=foot_right+Vector2(0.0,-8.0)
+    var hip_left:Vector2=root+Vector2(-14.0,6.0)
+    var hip_right:Vector2=root+Vector2(12.0,6.0)
+    # Screen-right knees both bend forward; old +1 branch caused reverse knees.
+    var leg_left:Dictionary=IK.solve(hip_left,ankle_left_target,69.0,70.0,-1.0)
+    var leg_right:Dictionary=IK.solve(hip_right,ankle_right_target,69.0,70.0,-1.0)
     if not dominant["valid"] or not support["valid"] or not leg_left["valid"] or not leg_right["valid"]:
         push_error("PC57B_INVALID_IK")
         get_tree().quit(82)
@@ -49,20 +61,34 @@ func _pose(i:int)->void:
         push_error("PC57B_UNREACHABLE_RIFLE_GRIP")
         get_tree().quit(84)
         return
+    if not leg_left["reachable"] or not leg_right["reachable"]:
+        push_error("PC57D_UNREACHABLE_LEG_TARGET")
+        get_tree().quit(86)
+        return
     var anchor:Vector2=IK.equipment_anchor(root,tilt)
     pose={"root":root,"shoulder_near":shoulder_near,"shoulder_far":shoulder_far,
         "rifle":rifle,"dominant":dominant,"support":support,
         "hip_left":hip_left,"hip_right":hip_right,
         "leg_left":leg_left,"leg_right":leg_right,
+        "angle_left":angle_left,"angle_right":angle_right,
         "anchor":anchor,"variant":0 if i<16 else 1}
     evidence.append({"time_seconds":f/30.0,
-        "feet":{"left":{"heel_world":[foot_left.x,foot_left.y],"stance":stance_left},
-                "right":{"heel_world":[foot_right.x,foot_right.y],"stance":not stance_left}},
+        "feet":{"left":{"heel_world":[(leg_left["wrist"] as Vector2).x,(leg_left["wrist"] as Vector2).y+8.0],"stance":stance_left},
+                "right":{"heel_world":[(leg_right["wrist"] as Vector2).x,(leg_right["wrist"] as Vector2).y+8.0],"stance":not stance_left}},
         "hands":{"dominant":{"actual_world":[dominant["wrist"].x,dominant["wrist"].y],
                               "grip_world":[rifle["trigger"].x,rifle["trigger"].y]},
                  "support":{"actual_world":[support["wrist"].x,support["wrist"].y],
                             "grip_world":[rifle["foregrip"].x,rifle["foregrip"].y]}},
-        "equipment":{"anchor_world":[anchor.x,anchor.y],"variant":pose["variant"]}})
+        "equipment":{"anchor_world":[anchor.x,anchor.y],"variant":pose["variant"]},
+        "body":{"pelvis_world":[root.x,root.y],"tilt_radians":tilt},
+        "gait":{"phase":stride_progress,"step":"left_stance" if stance_left else "right_stance",
+                "ankle_left":[(leg_left["wrist"] as Vector2).x,(leg_left["wrist"] as Vector2).y],
+                "ankle_right":[(leg_right["wrist"] as Vector2).x,(leg_right["wrist"] as Vector2).y],
+                "knee_left":[(leg_left["elbow"] as Vector2).x,(leg_left["elbow"] as Vector2).y],
+                "knee_right":[(leg_right["elbow"] as Vector2).x,(leg_right["elbow"] as Vector2).y],
+                "hip_left":[hip_left.x,hip_left.y],"hip_right":[hip_right.x,hip_right.y],
+                "foot_angle_left":angle_left,"foot_angle_right":angle_right,
+                "ik_error_left":leg_left["target_error"],"ik_error_right":leg_right["target_error"]}})
 
 func segment(a:Vector2,b:Vector2,color:Color,width:float)->void:
     draw_line(a,b,color,width,true)
@@ -90,7 +116,7 @@ func _draw()->void:
     var shoulder_far:Vector2=pose["shoulder_far"]
     var left:Dictionary=pose["leg_left"]
     var right:Dictionary=pose["leg_right"]
-    # Leg pose, IK geometry and stance targets deliberately remain unchanged.
+    # PC57D: anatomical forward knees and stance heel lock are independently measured.
     for q in [right,left]:
         var near:bool=(q==right)
         var clr:Color=Color("687462") if near else Color("4b5954")
@@ -99,9 +125,13 @@ func _draw()->void:
         draw_circle(q["elbow"],10.0,Color("485248") if near else Color("384842"))
         limb(q["elbow"],q["wrist"],15.0,Color("58675c") if near else Color("414c49"))
         var foot:Vector2=q["wrist"]
-        polygon([foot+Vector2(-9.0,-5.0),foot+Vector2(14.0,-5.0),
-            foot+Vector2(24.0,1.0),foot+Vector2(24.0,6.0),
-            foot+Vector2(-12.0,6.0)],Color("534c3b") if near else Color("393f3b"),Color("9a9585"))
+        var foot_pitch:float=pose["angle_right"] if near else pose["angle_left"]
+        polygon([foot+Vector2(-12.0,-4.0).rotated(foot_pitch),
+            foot+Vector2(11.0,-4.0).rotated(foot_pitch),
+            foot+Vector2(23.0,3.0).rotated(foot_pitch),
+            foot+Vector2(25.0,8.0).rotated(foot_pitch),
+            foot+Vector2(-13.0,8.0).rotated(foot_pitch)],
+            Color("534c3b") if near else Color("393f3b"),Color("9a9585"))
     # Far arm sleeve is occluded by body and rifle rather than drawn over it.
     var support:Dictionary=pose["support"]
     limb(shoulder_far,support["elbow"],17.0,Color("555d54"))
