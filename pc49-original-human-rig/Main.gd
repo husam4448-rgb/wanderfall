@@ -1,6 +1,6 @@
 extends Node2D
 ## PC49 original HUMAN engineering diagnostic; NOT production art.
-## Godot-y-down coordinates, 2-bone geometric IK with continuity branch.
+## Godot-y-down coordinates, two-bone IK. Both knees bend toward the facing direction.
 const AIM_DEGREES := [-20.0, 0.0, 20.0]
 const ROOT := Vector2(0, 0)
 const HIP := Vector2(0, 0)
@@ -9,9 +9,9 @@ const NEAR_SHOULDER := Vector2(9, -78)
 const FAR_SHOULDER := Vector2(8, -73)
 const UPPER := 36.0
 const LOWER := 34.0
-const RIFLE_PIVOT := Vector2(37, -83)
-const DOMINANT_GRIP := Vector2(49, -80)
-const SUPPORT_GRIP := Vector2(71, -81)
+const RIFLE_PIVOT := Vector2(37, -61)
+const DOMINANT_GRIP := Vector2(49, -58)
+const SUPPORT_GRIP := Vector2(70, -59)
 const THIGH := 40.0
 const SHIN := 40.0
 var elevation := 0.0
@@ -59,14 +59,14 @@ func rifle_socket(offset:Vector2)->Vector2:
 func _draw() -> void:
     draw_rect(Rect2(Vector2.ZERO,Vector2(1580,660)),Color(0.1,0.12,0.15))
     draw_set_transform(Vector2(790,355),0.0,Vector2(visual_zoom * (-1.0 if mirrored else 1.0),visual_zoom))
-    # Legs use independent, complete symmetric stride cycles with IK endpoints.
+    # Both knees use the same forward-bending IK branch in local right-facing space.
     for i in range(2):
         var sign := 1.0 if i == 0 else -1.0
         var stride := sin(walk_phase + (0.0 if i == 0 else PI))
-        var lift := maxf(0.0,cos(walk_phase + (0.0 if i == 0 else PI)))*10.0
+        var lift := maxf(0.0,sin(walk_phase + (0.0 if i == 0 else PI)))*10.0
         var hip := Vector2(sign*7,0)
-        var foot := Vector2(sign*7 + stride*15.0,78.0-lift)
-        var leg := solve_two_bone(hip,foot,THIGH,SHIN,false if i==0 else true)
+        var foot := Vector2(sign*7 + stride*15.0,75.0-lift)
+        var leg := solve_two_bone(hip,foot,THIGH,SHIN,false)
         if bool(leg["valid"]):
             line_segment(hip,leg["elbow"],Color(0.35,0.43,0.48),11)
             line_segment(leg["elbow"],foot,Color(0.31,0.33,0.35),9)
@@ -87,8 +87,8 @@ func _draw() -> void:
         line_segment(far["elbow"],support,Color(0.28,0.39,0.34),13)
         draw_circle(far["elbow"],7,Color(0.27,0.37,0.33))
         draw_circle(support,7,Color(0.69,0.51,0.37))
-    var muzzle := rifle_socket(Vector2(91,-79))
-    var stock := rifle_socket(Vector2(10,-79))
+    var muzzle := rifle_socket(Vector2(91,-57))
+    var stock := rifle_socket(Vector2(10,-57))
     line_segment(stock,muzzle,Color(0.13,0.15,0.16),8)
     draw_circle(RIFLE_PIVOT,5,Color(0.63,0.57,0.31))
     if bool(near["valid"]):
@@ -115,6 +115,24 @@ func capture(label:String)->bool:
     if err > 0.05:
         frame_failures += 1
         return false
+    # Reject an outward/backward IK branch for either knee on every walk frame.
+    for i in range(2):
+        var sign := 1.0 if i == 0 else -1.0
+        var stride := sin(walk_phase + (0.0 if i == 0 else PI))
+        var lift := maxf(0.0,stride)*10.0
+        var hip := Vector2(sign*7.0,0.0)
+        var foot := Vector2(sign*7.0 + stride*15.0,75.0-lift)
+        var leg := solve_two_bone(hip,foot,THIGH,SHIN,false)
+        if not bool(leg["valid"]):
+            frame_failures += 1
+            print("PC50_LEG_IK_INVALID label=%s leg=%d" % [label,i])
+            return false
+        var knee:Vector2 = leg["elbow"]
+        var projection:Vector2 = hip + (foot-hip)*((knee-hip).dot(foot-hip)/(foot-hip).length_squared())
+        if knee.x <= projection.x + 0.01:
+            frame_failures += 1
+            print("PC50_KNEE_BACKWARDS label=%s leg=%d" % [label,i])
+            return false
     queue_redraw()
     await get_tree().process_frame
     await RenderingServer.frame_post_draw
