@@ -22,6 +22,23 @@ var shoulder_delta := 0.0
 var error_max := 0.0
 var frame_failures := 0
 var frames := 0
+# Ground-relative gait: stance contacts stay fixed while the body translates.
+const STEP_LENGTH := 30.0
+const STEP_LIFT := 10.0
+func leg_foot_target(i:int) -> Vector2:
+    var t := fposmod(walk_phase / TAU + (0.5 if i == 1 else 0.0), 1.0)
+    var forward := 0.0
+    var lift := 0.0
+    if t < 0.5:
+        # Stance: world-space foot stays planted as body advances linearly.
+        forward = 0.5 * STEP_LENGTH - 2.0 * STEP_LENGTH * t
+    else:
+        # Swing: smooth return forward and positive clearance.
+        var u := (t - 0.5) * 2.0
+        var smooth := u*u*(3.0-2.0*u)
+        forward = -0.5 * STEP_LENGTH + STEP_LENGTH * smooth
+        lift = STEP_LIFT * sin(PI*u)
+    return Vector2((7.0 if i == 0 else -7.0) + forward, 75.0 - lift)
 func _ready() -> void:
     get_viewport().transparent_bg = false
     for side in [false, true]:
@@ -62,10 +79,8 @@ func _draw() -> void:
     # Both knees use the same forward-bending IK branch in local right-facing space.
     for i in range(2):
         var sign := 1.0 if i == 0 else -1.0
-        var stride := sin(walk_phase + (0.0 if i == 0 else PI))
-        var lift := maxf(0.0,sin(walk_phase + (0.0 if i == 0 else PI)))*10.0
         var hip := Vector2(sign*7,0)
-        var foot := Vector2(sign*7 + stride*15.0,75.0-lift)
+        var foot := leg_foot_target(i)
         var leg := solve_two_bone(hip,foot,THIGH,SHIN,false)
         if bool(leg["valid"]):
             line_segment(hip,leg["elbow"],Color(0.35,0.43,0.48),11)
@@ -123,10 +138,8 @@ func capture(label:String)->bool:
     # Reject an outward/backward IK branch for either knee on every walk frame.
     for i in range(2):
         var sign := 1.0 if i == 0 else -1.0
-        var stride := sin(walk_phase + (0.0 if i == 0 else PI))
-        var lift := maxf(0.0,stride)*10.0
         var hip := Vector2(sign*7.0,0.0)
-        var foot := Vector2(sign*7.0 + stride*15.0,75.0-lift)
+        var foot := leg_foot_target(i)
         var leg := solve_two_bone(hip,foot,THIGH,SHIN,false)
         if not bool(leg["valid"]):
             frame_failures += 1
