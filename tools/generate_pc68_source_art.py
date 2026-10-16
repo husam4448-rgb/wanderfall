@@ -38,6 +38,10 @@ bgd=np.zeros((1,65),np.float64);fgd=np.zeros((1,65),np.float64)
 cv2.grabCut(roi,mask,None,bgd,fgd,8,cv2.GC_INIT_WITH_MASK)
 a=np.uint8(((mask==cv2.GC_FGD)|(mask==cv2.GC_PR_FGD))*255)
 a[172:,:]=0;a[:,:50]=0;a[:,150:]=0
+# Reject original-reference background between backpack and lower arm,
+# but retain all physically painted clothing, hands and backpack pixels.
+yy,xx=np.indices(a.shape)
+a[(yy>116)&(xx<96)&(chroma<33)]=0
 count,labels,stats,_=cv2.connectedComponentsWithStats((a>0).astype("uint8"),8)
 a=np.uint8((labels==(1+np.argmax(stats[1:,cv2.CC_STAT_AREA])))*255)
 assert 7000<(a>0).sum()<11000
