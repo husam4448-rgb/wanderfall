@@ -20,6 +20,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 -m pip install --quiet pillow numpy opencv-python-headless
+          mkdir -p pc67/assets pc67/evidence
           cp pc64/assets/SP_PC63_MaleRight_L_leg02_BOOT.png pc67/assets/
           python3 tools/generate_pc67_source_art.py | tee pc67-art-intake.log
           grep -q PC67_DIFFERENT_AUTHORED_LEG_TEXTURES_AND_WAIST_READY pc67-art-intake.log
