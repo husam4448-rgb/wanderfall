@@ -1,12 +1,13 @@
-name: PC58 Real Approved Source Art Skeletal Fitting
+name: PC59 Original Leg Underpaint Real Godot Visual QA
 on:
   push:
-    branches: [pc58-approved-art-ankle-fit]
+    branches: [pc59-standalone-leg-underpaint]
     paths:
       - 'pc42-static-prototype/PC58.gd'
       - 'pc42-static-prototype/PC58.tscn'
       - 'tools/pc58_split_source_boots.py'
       - 'tools/qa_pc58_source_fit.py'
+      - 'tools/pc59_clean_and_underpaint.py'
       - 'tools/qa_pc58_source_matte_contamination.py'
       - '.github/workflows/pc58-source-art-fit.yml'
   workflow_dispatch:
@@ -24,13 +25,13 @@ jobs:
           python3 -m pip install --quiet pillow numpy opencv-python-headless
           python3 tools/pc42_reference_cutout.py
           python3 tools/pc58_split_source_boots.py
+          python3 tools/pc59_clean_and_underpaint.py
           test -s pc42-static-prototype/assets/parts/front_boot.png
           test -s pc42-static-prototype/assets/parts/back_boot.png
-      - name: Source negative-space contamination gate (expected visual FAIL)
+      - name: Verify contamination is eliminated (strict)
         id: visual_matte
-        continue-on-error: true
         run: |
-          python3 tools/qa_pc58_source_matte_contamination.py pc42-static-prototype/assets/pc58_rest_reconstructed.png >pc58-matte-qa.log 2>&1 || { cat pc58-matte-qa.log; exit 1; }
+          python3 tools/qa_pc58_source_matte_contamination.py pc42-static-prototype/assets/pc59_clean_rest.png >pc58-matte-qa.log 2>&1 || { cat pc58-matte-qa.log; exit 1; }
       - name: Download checked Godot 4.7.2 and Xvfb
         run: |
           set -euo pipefail
@@ -69,10 +70,12 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: SP-PC58-Original-Art-Skeletal-Frames-${{ github.sha }}
+          name: SP-PC59-Underpaint-Real-Godot-${{ github.sha }}
           path: |
             pc42-static-prototype/evidence/pc58/
             pc42-static-prototype/assets/manifest.json
             pc42-static-prototype/assets/pc58_rest_reconstructed.png
+            pc42-static-prototype/assets/pc59_clean_rest.png
+            pc42-static-prototype/assets/pc59_underpaint_rest_preview.png
             pc58-*.log
           retention-days: 14
