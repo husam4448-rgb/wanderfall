@@ -213,3 +213,15 @@ Create an isolated PC28 branch from PC27 verified source and test genuine knee a
 - **Task queue:** `SP-CHAR-RIFLE-RELOAD-001` blocked on real magazine/hand art; `SP-CHAR-MAGAZINE-001` ready for source-first donor inspection. Preserve old PC42Q idle/recoil verified baselines.
 - **APK:** NONE. PC42R is isolated character rig, not tested playable Android integration.
 - **Exact next action:** Inspect genuine `assets/authored2d/gear/rifle.png` and source layered rifle, author/source a complete detachable magazine and support-hand release/seat art (native RGBA; no fake polygons), validate local source fidelity, then integrate and test actual magazine manipulations at 32 frames. If art cannot be authored, move to another CHARACTER task such as locomotion, not general gameplay. No external AI agents/PC/Work/browser requirement.
+
+
+## PC68 — source-faithful male RIGHT full-body anatomical restoration (2026-10-16)
+
+- **Last actually tested character SHA:** `f759a5e80aa6c1245ea0d9a601b6e34944f3b970` on `pc68-anatomical-hip-leg-torso-native`. Later docs/queue commits are **NOT** newer tested runtime source.
+- **Real Godot 4.7.2 workflow:** https://github.com/husam4448-rgb/wanderfall/actions/runs/38949364666 — all native steps SUCCESS.
+- **Verified evidence artifact:** https://github.com/husam4448-rgb/wanderfall/actions/runs/38949364666/artifacts/12068215137 — 32 actual frame PNGs, 32-frame PC67→PC68 A/B GIF, eight-phase images, source RGBA sprites, independently tested layer PNGs and JSON.
+- **Mechanical metrics:** separate bilateral leg chains; 4 true fabric hinge panels; full source male EAST head/torso as *diagnostic* (not yet skeletal); 172.8 px hip-to-ground span; each heel plants with **0 px slip**; each 19 px swing; 0 mesh triangle inversions; front/rear source trouser–boot overlap 67–79 / 55–66 pixels in eight poses; boot sole 1 px above the test guide.
+- **Human-style visual assessment:** unmistakable proportional correction over PC67, but **ONLY PROVISIONAL VISUAL IMPROVEMENT, NOT APPROVED**. Upper body is a static image, knees need further cloth/kneepad repair; no game or APK integration.
+- **Document:** `docs/PC68_ANATOMICAL_NATIVE_VISUAL_QA.md`.
+- **Next READY task:** `SP-CHAR-CONTINUITY-PC69-001` — segment authentic torso/head/arms in actual Bone2D hierarchy, correct remaining knee/calf seam, recapture 32 frames and require independent human visual approval before Android promotion.
+- **Last signed APK remains PC33 code 205, technically valid but visually rejected**. No PC68 APK or device test. GitHub CI may run after the chat but ChatGPT autonomous engineering does not continue outside active execution.
