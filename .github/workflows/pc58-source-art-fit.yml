@@ -7,6 +7,7 @@ on:
       - 'pc42-static-prototype/PC58.tscn'
       - 'tools/pc58_split_source_boots.py'
       - 'tools/qa_pc58_source_fit.py'
+      - 'tools/qa_pc58_source_matte_contamination.py'
       - '.github/workflows/pc58-source-art-fit.yml'
   workflow_dispatch:
 permissions:
@@ -25,6 +26,11 @@ jobs:
           python3 tools/pc58_split_source_boots.py
           test -s pc42-static-prototype/assets/parts/front_boot.png
           test -s pc42-static-prototype/assets/parts/back_boot.png
+      - name: Source negative-space contamination gate (expected visual FAIL)
+        id: visual_matte
+        continue-on-error: true
+        run: |
+          python3 tools/qa_pc58_source_matte_contamination.py pc42-static-prototype/assets/pc58_rest_reconstructed.png >pc58-matte-qa.log 2>&1 || { cat pc58-matte-qa.log; exit 1; }
       - name: Download checked Godot 4.7.2 and Xvfb
         run: |
           set -euo pipefail
