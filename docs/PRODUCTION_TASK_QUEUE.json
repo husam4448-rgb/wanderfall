@@ -585,12 +585,12 @@
       "id": "SP-CHAR-OPPOSITE-RUN-ART-PC71-001",
       "track": "visual",
       "priority": 1,
-      "status": "READY",
+      "status": "BLOCKED_AUTHENTIC_JOINT_UNDERPAINT",
       "depends_on": [
         "SP-CHAR-SOURCE-PARTS-PC70-002"
       ],
       "objective": "Author one completely anatomically sound, original-SP-matched male RIGHT opposite-leg-leading run contact pose then female, from source pixels and newly painted but source-matched occlusion coverage.",
-      "next_action": "Measure both knees, shoes, backpack, hip pivots in approved original male RIGHT source; artist-author missing body anatomy and opposite stride; inspect at game resolution and 4x; reject all changed identities and impossible poses; only then move to full alternating loop.",
+      "next_action": "Real source sprites now parented to native Bone2D and rendered; before authoring reciprocal stride, paint ONLY hidden original-like knee/hip coverage and split SP source boots to independent ankle bone with exact source-rest reconstruction.",
       "acceptance": [
         "Clearly opposite lead leg compared to first original run pose",
         "Same head face outfit gear backpack and boots",
@@ -599,7 +599,55 @@
         "Before/after 1-pose visual acceptance separately from CI numeric testing"
       ],
       "evidence": [
-        "docs/PC70_SOURCE_PARTITION_VISUAL_QA.md"
+        "docs/PC70_SOURCE_PARTITION_VISUAL_QA.md",
+        "docs/PC71_ACTUAL_BONE2D_ORIGINAL_ART_MOTION_QA.md"
+      ],
+      "attempts": 0,
+      "technical_verdict": "SOURCE_BONE2D_TESTED",
+      "visual_verdict": "FAIL_GAIT_GAPS"
+    },
+    {
+      "id": "SP-CHAR-SOURCE-BONE-ATTACH-PC71-002",
+      "track": "visual",
+      "priority": 1,
+      "status": "VERIFIED_TECHNICAL_ONLY",
+      "depends_on": [],
+      "objective": "Attach approved male RIGHT rifle source-painted RGBA sprites to a real Godot Skeleton2D/Bone2D tree and capture actual animation, without procedurally repainting outfits.",
+      "next_action": "Preserve original-source 14 part rest fidelity; reject visual run until underpaint, independent boot ankle pivot, and skin pivots are corrected.",
+      "acceptance": [
+        "Original visible RGB exact at rest",
+        "True live Bone2D parent transforms",
+        "32 actual Godot frames with real movement",
+        "Visual verdict independent from numeric CI"
+      ],
+      "evidence": [
+        "docs/PC71_ACTUAL_BONE2D_ORIGINAL_ART_MOTION_QA.md",
+        "https://github.com/husam4448-rgb/wanderfall/actions/runs/38967004827/artifacts/12076105027",
+        "https://github.com/husam4448-rgb/wanderfall/actions/runs/38967280701/artifacts/12075760963"
+      ],
+      "attempts": 2,
+      "technical_verdict": "PASS",
+      "visual_verdict": "FAIL_MOTION_BOTH_METHODS"
+    },
+    {
+      "id": "SP-CHAR-JOINT-UNDERPAINT-PC72-001",
+      "track": "visual",
+      "priority": 1,
+      "status": "READY",
+      "depends_on": [
+        "SP-CHAR-SOURCE-BONE-ATTACH-PC71-002"
+      ],
+      "objective": "Paint previously occluded authentic clothing at hip/knee/elbow and extract independently rotating boot/ankle sprites so source-painted Skeleton2D can animate without holes or floating feet.",
+      "next_action": "Inspect approved male right original at game and 4x scale; trace true shin and boot contact; create source-style underpaint only in hidden regions, validate rest RGB exact, and render 8 joint flex poses prior to any walking loop.",
+      "acceptance": [
+        "Exact reconstruction of original reference rest image",
+        "No daylight gaps throughout 8 canonical hip/knee/elbow angles",
+        "Independent ankle bone drives original boot pixels",
+        "True foot contact and proportions",
+        "Human visual acceptance before release"
+      ],
+      "evidence": [
+        "docs/PC71_ACTUAL_BONE2D_ORIGINAL_ART_MOTION_QA.md"
       ],
       "attempts": 0,
       "technical_verdict": "PENDING",
@@ -607,6 +655,6 @@
     }
   ],
   "policy_override": "CHARACTER_FIRST_2026_10_10: all character appearance/animation/equipment tasks precede unrelated gameplay until user-approved quality gate; experimental builds can test characters, not content expansion",
-  "last_tested_character_source_sha": "f759a5e80aa6c1245ea0d9a601b6e34944f3b970",
-  "last_tested_character_mode": "PC70 local source-first QA: 8 male/female RIGHT run original poses -> 24 RGB-exact three-way RGBA part masks, 8/8 pixel-perfect rest restorations. Two generated replacement sheets rejected for mismatched identity. Opposite-leg pose NOT authored, no Godot gait test, no APK."
+  "last_tested_character_source_sha": "7414e1efeb58133e26c3494db2059ec99ad22714",
+  "last_tested_character_mode": "PC71 original male right rifle art attached to real Godot Skeleton2D/Bone2D, original pixels, 32 frames native soft gait and 32 frames PC53 two-bone IK A/B. TECH PASS skin attachment, both gait candidates VISUAL FAIL; PC53 opens joint gaps and lifts boots. No female, no release APK."
 }
