@@ -1,7 +1,7 @@
 extends Node2D
 ## PC67: authentic original SP male-RIGHT two independently painted legs and pelvis.
-## Source-free implementation. B2B informed topology: weighted continuous
-## trouser textile + independent rigid boot per leg. Experimental duplicate cloth artwork, no B2B pixels.
+## Two true original-SP trouser textures on independently articulated thigh/shin
+## draw panels plus independent rigid boot per leg. No commercial geometry or pixels.
 const FRONT_TROUSERS:Texture2D=preload("res://assets/PC67_MaleRight_Front_Trouser.png")
 const REAR_TROUSERS:Texture2D=preload("res://assets/PC67_MaleRight_Rear_Trouser.png")
 const BOOT:Texture2D=preload("res://assets/SP_PC63_MaleRight_L_leg02_BOOT.png")
@@ -27,17 +27,22 @@ func _ready()->void:
     var test_value:String=OS.get_environment("PC65_KNEE_STIFFNESS")
     if not test_value.is_empty():
         knee_stiffness=clampf(test_value.to_float(),0.0,0.8)
+    # Two original-texture fabric panels join at the actual IK knee pivot.
+    # The upper texture overlaps the lower by a few original SP pixels;
+    # no across-the-knee triangles can turn inside out at high flexion.
+    var y_uv:PackedFloat32Array=PackedFloat32Array([0.0,40.0,86.0,80.0,120.0,159.0])
     for y in range(GRID_H):
         for x in range(GRID_W):
-            uv_points.append(Vector2(float(x)*79.0/float(GRID_W-1),
-                                     float(y)*159.0/float(GRID_H-1)))
+            uv_points.append(Vector2(float(x)*79.0/float(GRID_W-1),y_uv[y]))
     for y in range(GRID_H-1):
+        if y==2:
+            continue
         for x in range(GRID_W-1):
             var a:int=y*GRID_W+x
             triangles.append(PackedInt32Array([a,a+1,a+GRID_W]))
             triangles.append(PackedInt32Array([a+1,a+GRID_W+1,a+GRID_W]))
-    if uv_points.size()!=60 or triangles.size()!=90:
-        push_error("PC64_GRID_INVALID")
+    if uv_points.size()!=60 or triangles.size()!=72:
+        push_error("PC67_HINGE_PANEL_TOPOLOGY_INVALID")
         get_tree().quit(71)
         return
     if OS.get_environment("PC67_CAPTURE")=="1":
@@ -87,32 +92,20 @@ func _leg_pose(index:int,frame:int,pelvis:Vector2)->Dictionary:
         get_tree().quit(72)
         return {}
     var knee:Vector2=ik["knee"]
-    var at_knee:float=0.54
-    var other:float=1.0-at_knee
-    var control:Vector2=(knee-hip*other*other-ankle*at_knee*at_knee)/(2.0*at_knee*other)
     var thigh_axis:Vector2=(knee-hip).normalized()
     var shin_axis:Vector2=(ankle-knee).normalized()
     var vtx:Array[Vector2]=[]
-    for tex_coord in uv_points:
-        var t:float=tex_coord.y/159.0
-        var one_minus:float=1.0-t
-        var center:Vector2=hip*one_minus*one_minus+control*2.0*one_minus*t+ankle*t*t
-        var tangent:Vector2=(control-hip)*one_minus+(ankle-control)*t
-        var direction:Vector2=tangent.normalized()
-        if knee_stiffness>0.0:
-            var hinge_center:Vector2
-            var hinge_axis:Vector2
-            if t<=at_knee:
-                hinge_center=hip.lerp(knee,t/at_knee)
-                hinge_axis=thigh_axis
-            else:
-                hinge_center=knee.lerp(ankle,(t-at_knee)/(1.0-at_knee))
-                hinge_axis=shin_axis
-            var distance:float=clampf(absf(t-at_knee)/PC65_KNEE_SOFT_ZONE,0.0,1.0)
-            var smooth:float=distance*distance*(3.0-2.0*distance)
-            var stiffness:float=knee_stiffness*(1.0-smooth)
-            center=center.lerp(hinge_center,stiffness)
-            direction=direction.lerp(hinge_axis,stiffness).normalized()
+    for idx in range(uv_points.size()):
+        var tex_coord:Vector2=uv_points[idx]
+        var row:int=idx/GRID_W
+        var center:Vector2
+        var direction:Vector2
+        if row<=2:
+            center=hip.lerp(knee,tex_coord.y/86.0)
+            direction=thigh_axis
+        else:
+            center=knee.lerp(ankle,(tex_coord.y-80.0)/79.0)
+            direction=shin_axis
         var normal:Vector2=Vector2(direction.y,-direction.x)
         var width_offset:float=(tex_coord.x-39.5)*CLOTH_WIDTH
         vtx.append(center+normal*width_offset)
@@ -219,11 +212,12 @@ func _capture()->void:
     var tris:Array=[]
     for tri in triangles:tris.append(Array(tri))
     output.store_string(JSON.stringify({"frames":records,"triangles":tris,
-        "source":"Two different SP original front/rear masks with SP male EAST photo fabric, SP waist and rigid SP boot.",
+        "source":"Two distinct SP original front/rear trouser masks and male EAST photo materials on hinged fabric panels; original SP waist and rigid boot.",
         "provisional_reused_leg_art":false,
         "two_independent_ik_chains":true,
         "commercial_reference_geometry_included":false,
         "knee_stiffness":knee_stiffness,
+        "cloth_mode":"two_source_fabric_panels_at_real_ik_knee",
         "visual_status":"PENDING_HUMAN_APPROVAL"}))
     output.close()
     print("PC67_GODOT_AUTHENTIC_BILATERAL_CAPTURED frames=32 legs=2 pelvis=source_waist")
