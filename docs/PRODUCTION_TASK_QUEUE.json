@@ -633,12 +633,12 @@
       "id": "SP-CHAR-JOINT-UNDERPAINT-PC72-001",
       "track": "visual",
       "priority": 1,
-      "status": "READY",
+      "status": "PARTIALLY_VERIFIED",
       "depends_on": [
         "SP-CHAR-SOURCE-BONE-ATTACH-PC71-002"
       ],
       "objective": "Paint previously occluded authentic clothing at hip/knee/elbow and extract independently rotating boot/ankle sprites so source-painted Skeleton2D can animate without holes or floating feet.",
-      "next_action": "Inspect approved male right original at game and 4x scale; trace true shin and boot contact; create source-style underpaint only in hidden regions, validate rest RGB exact, and render 8 joint flex poses prior to any walking loop.",
+      "next_action": "PC73 source-authentic underpaint for previously concealed ankle/knee seams and actual world-foot ground contact. Split shoes into independent true Bone2D already technically completed.",
       "acceptance": [
         "Exact reconstruction of original reference rest image",
         "No daylight gaps throughout 8 canonical hip/knee/elbow angles",
@@ -647,7 +647,34 @@
         "Human visual acceptance before release"
       ],
       "evidence": [
-        "docs/PC71_ACTUAL_BONE2D_ORIGINAL_ART_MOTION_QA.md"
+        "docs/PC72_ORIGINAL_BOOT_ANKLE_NATIVE_VISUAL_QA.md",
+        "https://github.com/husam4448-rgb/wanderfall/actions/runs/38967861239/artifacts/12075217486"
+      ],
+      "attempts": 1,
+      "technical_verdict": "PASS_ORIGINAL_BOOT_SPLIT_AND_REAL_ANKLE_BONE",
+      "visual_verdict": "REST_FIDELITY_PASS_MOTION_NOT_ACCEPTED",
+      "latest_tested_source_sha": "33656a595f51d81836c249d3dfb3b955d43c509d",
+      "blocking_reason": "24/32 source layers exact, 16 male rifle base current, but no underpaint yet and no planted-foot phase. Do not promote walking."
+    },
+    {
+      "id": "SP-CHAR-HEM-HEEL-PC73-001",
+      "track": "visual",
+      "priority": 1,
+      "status": "READY",
+      "depends_on": [
+        "SP-CHAR-JOINT-UNDERPAINT-PC72-001"
+      ],
+      "objective": "Add source-authentic concealed knee/ankle art and measured planted boot heel/toe motion to true original painted Bone2D character without deforming visible source reference pixels.",
+      "next_action": "Scan original male right approved SP boots at source pixel and 4x; create dark hidden trousers cuff and shoe shaft underpaint; define ankle/sole contact and actual Godot 8-phase close-ups before full 32-frame gait acceptance.",
+      "acceptance": [
+        "No missing skin under joints during actual rotation",
+        "Original visible RGB unchanged at rest",
+        "Independent painted boot on ankle Bone2D",
+        "No obvious foot drift or float in planted state",
+        "Visually normal alternate leg gait and original outfit"
+      ],
+      "evidence": [
+        "docs/PC72_ORIGINAL_BOOT_ANKLE_NATIVE_VISUAL_QA.md"
       ],
       "attempts": 0,
       "technical_verdict": "PENDING",
@@ -655,6 +682,6 @@
     }
   ],
   "policy_override": "CHARACTER_FIRST_2026_10_10: all character appearance/animation/equipment tasks precede unrelated gameplay until user-approved quality gate; experimental builds can test characters, not content expansion",
-  "last_tested_character_source_sha": "7414e1efeb58133e26c3494db2059ec99ad22714",
-  "last_tested_character_mode": "PC71 original male right rifle art attached to real Godot Skeleton2D/Bone2D, original pixels, 32 frames native soft gait and 32 frames PC53 two-bone IK A/B. TECH PASS skin attachment, both gait candidates VISUAL FAIL; PC53 opens joint gaps and lifts boots. No female, no release APK."
+  "last_tested_character_source_sha": "33656a595f51d81836c249d3dfb3b955d43c509d",
+  "last_tested_character_mode": "PC72 male RIGHT original rifle survivor: 16 original RGB exact Bone2D sprite layers including newly separated independently rotating boots; native 32+32 Godot A/B TECH PASS, VISUAL WALK not approved. No APK, female/left pending."
 }
