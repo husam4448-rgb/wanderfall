@@ -425,12 +425,12 @@
       "id": "SP-CHAR-UNIQUE-LEG-PELVIS-PC67-001",
       "track": "visual",
       "priority": 1,
-      "status": "READY",
+      "status": "VERIFIED",
       "depends_on": [
         "SP-CHAR-BILATERAL-PC66-001"
       ],
       "objective": "Make authentic distinct male-RIGHT rear leg art and an anatomically compatible pelvis for the now technical-passing bilateral rig.",
-      "next_action": "Inspect authentic SP male-right front/rear leg and belt/waist source pixels; replace duplicated PC66 artwork with individually authored rear-leg/pelvis textures, fit original hips, rerun 32-frame native Godot and human visual gate.",
+      "next_action": "PC68 revise actual hip/leg anatomical appearance while preserving verified bilateral contacts; 32-frame native visual review before integration.",
       "acceptance": [
         "Separate, source-faithful front/rear leg art with consistent seam/scale",
         "Real painted pelvis connected naturally to both hips",
@@ -439,7 +439,36 @@
         "No premature full-player or Android approval"
       ],
       "evidence": [
-        "docs/PC66_NATIVE_BILATERAL_GAIT_QA.md"
+        "docs/PC67_GODOT_ORIGINAL_BILATERAL_VISUAL_QA.md",
+        "https://github.com/husam4448-rgb/wanderfall/actions/runs/38944305889/artifacts/12064825912"
+      ],
+      "attempts": 3,
+      "allowed_same_failed_technique_retries": 2,
+      "technical_verdict": "PASS",
+      "visual_verdict": "FAIL_ANATOMY_NOT_APPROVED",
+      "latest_tested_source_sha": "d28d6d5a163172647e9a434daea5e1711928d923",
+      "blocking_reason": "Source-photo rest textures and independently linked knee panels pass native numeric checks but visual 8-phase inspection shows compressed/squat thighs, crude knee contour and a truncated waist with no full torso connection; user has not approved."
+    },
+    {
+      "id": "SP-CHAR-ANATOMICAL-PC68-001",
+      "track": "visual",
+      "priority": 1,
+      "status": "READY",
+      "depends_on": [
+        "SP-CHAR-UNIQUE-LEG-PELVIS-PC67-001"
+      ],
+      "objective": "Build visually convincing source-matched right-facing natural adult legs, hip and pelvis including original torso seam, without breaking verified zero-slip bilateral gait.",
+      "next_action": "Assess PC67 exact full-size 8-phase image, diagnose hip/thigh silhouette proportions and knee textile distortions, replace source crop/geometry with genuine cohesive original SP artwork and rerender 32 frames in Godot.",
+      "acceptance": [
+        "Both legs maintain consistent anatomy through 32 independent Godot frames",
+        "Visible natural continuous pelvis waist hip connection, no exposed clipped square or glove artifact",
+        "Proportional thighs shins boots with believable knee flexion",
+        "Zero planted foot slide and 0 inverted fabric triangles",
+        "Original SP art style and distinct front/rear identity",
+        "Explicit human visual acceptance before Android integration"
+      ],
+      "evidence": [
+        "docs/PC67_GODOT_ORIGINAL_BILATERAL_VISUAL_QA.md"
       ],
       "attempts": 0,
       "allowed_same_failed_technique_retries": 2,
@@ -448,6 +477,6 @@
     }
   ],
   "policy_override": "CHARACTER_FIRST_2026_10_10: all character appearance/animation/equipment tasks precede unrelated gameplay until user-approved quality gate; experimental builds can test characters, not content expansion",
-  "last_tested_character_source_sha": "a887710a0fab7d3d6bbe8c7234b9e4f29c07e4ad",
-  "last_tested_character_mode": "PC66 isolated original-SP male-RIGHT bilateral + source-cropped pelvis, Godot 32-frame technical PASS; distinct rear-leg/pelvis art and human visual approval PENDING. No APK."
+  "last_tested_character_source_sha": "d28d6d5a163172647e9a434daea5e1711928d923",
+  "last_tested_character_mode": "PC67 Godot 4.7.2 isolated 32-frame male RIGHT two-panel original SP distinct trouser art: numeric PASS (0 foot slip, 0 mesh flips) but VISUAL FAIL (stunted thigh/hip silhouette, disconnected cropped waist). NO APK."
 }
