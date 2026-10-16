@@ -79,14 +79,14 @@ func _leg_pose(index:int,frame:int,pelvis:Vector2)->Dictionary:
     var boot_heel:Vector2
     var foot_pitch:float=0.0
     if stance:
-        boot_heel=Vector2(345.0 if lead else 401.0,GROUND)
+        boot_heel=Vector2(330.0 if lead else 366.0,GROUND)
     else:
         var u:float=float(frame-16)/16.0 if lead else float(frame)/16.0
-        boot_heel=_swing(Vector2(345.0 if lead else 289.0,GROUND),
-                         Vector2(457.0 if lead else 401.0,GROUND),u)
+        boot_heel=_swing(Vector2(330.0 if lead else 294.0,GROUND),
+                         Vector2(402.0 if lead else 366.0,GROUND),u)
         foot_pitch=deg_to_rad(-8.0*sin(PI*u))
     var ankle:Vector2=boot_heel-((BOOT_HEEL_PIXEL-BOOT_PIVOT)*BOOT_SCALE).rotated(foot_pitch)
-    var ik:Dictionary=_two_bone(hip,ankle,61.0,61.0)
+    var ik:Dictionary=_two_bone(hip,ankle,60.0,60.0)
     if not ik["ok"]:
         push_error("PC66_UNREACHABLE_LEG_"+str(index)+" frame="+str(frame))
         get_tree().quit(72)
@@ -115,7 +115,7 @@ func _leg_pose(index:int,frame:int,pelvis:Vector2)->Dictionary:
 
 func _pose(i:int)->void:
     var frame:float=float(i)
-    var pelvis:Vector2=Vector2(303.0+112.0*frame/32.0,
+    var pelvis:Vector2=Vector2(303.0+72.0*frame/32.0,
                              378.0-1.6*pow(sin(PI*frame/16.0),2.0))
     var front:Dictionary=_leg_pose(0,i,pelvis)
     var rear:Dictionary=_leg_pose(1,i,pelvis)
