@@ -37,7 +37,7 @@ for name,pts in legs.items():
     rgb=np.uint8(np.clip(rgb.astype(float)+delta[...,None],0,255))
     Image.fromarray(np.dstack([rgb,mask]),"RGBA").save(out/f"PC67_MaleRight_{name.title()}_Trouser.png",optimize=True)
 base=np.asarray(Image.open(shape/"torso_base.png").convert("RGBA"))[101:139,28:101]
-photo=source[119:157,86:159,:]
+photo=cv2.resize(source[130:168,105:135,:],(73,38),interpolation=cv2.INTER_CUBIC)
 assert photo.shape[:2]==base.shape[:2]
 p=photo.copy()
 warm=(p[:,:,0]>p[:,:,2]*1.7)&(p[:,:,0]>100)
