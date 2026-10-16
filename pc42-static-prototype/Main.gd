@@ -5,6 +5,7 @@ extends Node2D
 
 const SCALE: float = 2.0
 const PC42CGripIK = preload("res://pc42c_weapon_grip_ik.gd")
+const PC53LegIK = preload("res://pc53_leg_ik.gd")
 const LEFT: Vector2 = Vector2(26.0, 82.0)
 const CENTER: Vector2 = Vector2(534.0, 82.0)
 const RIGHT: Vector2 = Vector2(1040.0, 82.0)
@@ -353,6 +354,31 @@ func _pc42q_recoil_envelope(frame: int) -> float:
         return float(frame-3) / 3.0
     return pow(maxf(0.0, 1.0-float(frame-6)/14.0),3.0)
 
+func _pc53_walk_pose(frame:int) -> void:
+    # True target-driven 2-bone IK on the approved male RIGHT source leg bones.
+    # Rest pivots are measured from our original authored sprite segmentation.
+    var phase:float=float(frame)/32.0
+    var hips:Array[Vector2]=[Vector2(88,160),Vector2(132,155)]
+    var knees:Array[Vector2]=[Vector2(79,182),Vector2(131,184)]
+    var ankles:Array[Vector2]=[Vector2(84,241),Vector2(138,224)]
+    var names:Array[String]=["front","back"]
+    pc42_skeleton.position=CENTER
+    for i in range(2):
+        var foot:Vector2=PC53LegIK.target(ankles[i],phase+0.5*float(i),8.0,4.0)
+        var result:Dictionary=PC53LegIK.solve(hips[i],knees[i],ankles[i],foot,1.0)
+        if not bool(result["valid"]):
+            push_error("PC53_UNREACHABLE frame=%d leg=%s" % [frame,names[i]])
+            get_tree().quit(53)
+            return
+        var thigh:Bone2D=pc42_bones[names[i]+"_thigh"]
+        var shin:Bone2D=pc42_bones[names[i]+"_shin"]
+        thigh.rotation=float(result["upper_rotation"])
+        shin.rotation=float(result["shin_rotation"])
+        var knee:Vector2=result["knee"]
+        print("PC53_IK_FRAME %02d %s knee_x=%.4f hip_deg=%.4f shin_deg=%.4f" % [frame,names[i],knee.x,rad_to_deg(thigh.rotation),rad_to_deg(shin.rotation)])
+    # Boots are presently embedded in the shin artwork; do not falsely
+    # claim planted heel/toe or release-ready ankle articulation.
+
 func _pc42s_walk_pose(frame: int) -> void:
     # PC42S: opt-in original-source gait diagnostic; no procedural leg art.
     # Both legs alternate over a 32-frame cycle with two-bone knee flexion.
@@ -443,6 +469,9 @@ func _pc42c_capture_full_test() -> void:
     var rifle_recoil: bool = OS.get_environment("PC42Q_FIRE_RECOIL_TEST") == "1"
     var reload_setup: bool = OS.get_environment("PC42R_RELOAD_SETUP_TEST") == "1"
     var walk_test: bool = OS.get_environment("PC42S_WALK_TEST") == "1"
+    var pc53_test:bool = OS.get_environment("PC53_IK_WALK_TEST") == "1"
+    if walk_test and pc53_test:
+        print("PC53_ORIGINAL_SOURCE_TWO_BONE_IK_READY")
     if walk_test:
         print("PC42S_ORIGINAL_SOURCE_GAIT_READY frames=32 thighs/shins articulated ankle_art_pending")
     if reload_setup:
@@ -474,7 +503,10 @@ func _pc42c_capture_full_test() -> void:
         if idle_breath:
             _pc42p_apply_source_breath(frame)
         if walk_test:
-            _pc42s_walk_pose(frame)
+            if pc53_test:
+                _pc53_walk_pose(frame)
+            else:
+                _pc42s_walk_pose(frame)
         if not result["valid"]:
             get_tree().quit(13)
             return
