@@ -76,21 +76,20 @@ func _pose(i:int)->void:
         get_tree().quit(72)
         return
     var knee:Vector2=ik["knee"]
-    var upper_dir:Vector2=(knee-hip).normalized()
-    var lower_dir:Vector2=(ankle-knee).normalized()
+    # Smooth through the actual knee pivot WITHOUT the previous piecewise
+    # tangent discontinuity that folded 10 triangles during the swing.
+    # A quadratic centerline still passes exactly through knee at t=0.54.
+    var at_knee:float=0.54
+    var other:float=1.0-at_knee
+    var control:Vector2=(knee-hip*other*other-ankle*at_knee*at_knee)/(2.0*at_knee*other)
     var vtx:Array[Vector2]=[]
     for tex_coord in uv_points:
         var t:float=tex_coord.y/67.0
-        var center:Vector2
-        if t<0.54:
-            center=hip.lerp(knee,t/0.54)
-        else:
-            center=knee.lerp(ankle,(t-0.54)/0.46)
-        var blend:float=clampf((t-0.43)/0.22,0.0,1.0)
-        blend=blend*blend*(3.0-2.0*blend)
-        var direction:Vector2=upper_dir.lerp(lower_dir,blend).normalized()
+        var one_minus:float=1.0-t
+        var center:Vector2=hip*one_minus*one_minus+control*2.0*one_minus*t+ankle*t*t
+        var tangent:Vector2=(control-hip)*one_minus+(ankle-control)*t
+        var direction:Vector2=tangent.normalized()
         var normal:Vector2=Vector2(direction.y,-direction.x)
-        # Width is drawn orthogonal to the actual articulated fabric centerline.
         var width_offset:float=(tex_coord.x-24.0)*CLOTH_WIDTH
         vtx.append(center+normal*width_offset)
     pose={"trouser_vertices":vtx,"hip":hip,"knee":knee,
