@@ -115,6 +115,11 @@ func capture(label:String)->bool:
     if err > 0.05:
         frame_failures += 1
         return false
+    # Both hands must be below the face and on distinct rifle-local grip sockets.
+    if dominant.y <= -87.0 or support.y <= -87.0 or dominant.distance_to(support) < 12.0:
+        frame_failures += 1
+        print("PC50_RIFLE_HOLD_INVALID label=%s" % label)
+        return false
     # Reject an outward/backward IK branch for either knee on every walk frame.
     for i in range(2):
         var sign := 1.0 if i == 0 else -1.0
