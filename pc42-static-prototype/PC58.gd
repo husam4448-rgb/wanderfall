@@ -91,6 +91,33 @@ func _ready()->void:
         push_error("PC58_MISSING_BONES")
         get_tree().quit(11)
         return
+    # PC59: original complete hidden clothing surfaces go UNDER original source
+    # pixels in their parent bone local frame. NO new pivots are fabricated.
+    if data.has("underpaint"):
+        var inner:Array=data["underpaint"]
+        if inner.size()!=6:
+            push_error("PC59_UNDERPAINT_LAYER_COUNT_INVALID")
+            get_tree().quit(91)
+            return
+        for spec in inner:
+            var source_parent:String=str(spec["parent"])
+            if not bones.has(source_parent):
+                push_error("PC59_UNDERPAINT_MISSING_PARENT "+source_parent)
+                get_tree().quit(92)
+                return
+            var picture:Image=Image.load_from_file(ProjectSettings.globalize_path("res://assets/"+str(spec["filename"])))
+            if picture==null or picture.is_empty():
+                push_error("PC59_UNDERPAINT_MISSING_ART "+str(spec["filename"]))
+                get_tree().quit(93)
+                return
+            var under:Sprite2D=Sprite2D.new()
+            under.texture=ImageTexture.create_from_image(picture)
+            under.name="OriginalUnderpaint_"+str(spec["name"])
+            under.centered=false
+            under.position=-pivots[source_parent]
+            under.z_index=-8
+            (bones[source_parent] as Bone2D).add_child(under)
+        print("PC59_ORIGINAL_INNER_CLOTH_LOADED layers="+str(inner.size()))
     if OS.get_environment("PC58_CAPTURE")=="1":
         call_deferred("_capture")
     else:
