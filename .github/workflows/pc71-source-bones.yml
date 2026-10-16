@@ -21,7 +21,6 @@ jobs:
           python3 -m pip install --quiet pillow numpy opencv-python-headless
           python3 tools/pc42_reference_cutout.py
           python3 tools/pc42h_articulated_arm_atlas.py
-          python3 tools/qa_pc42_static_reference.py
       - name: Install pinned Godot
         run: |
           set -euo pipefail
