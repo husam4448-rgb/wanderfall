@@ -364,7 +364,7 @@ func _pc53_walk_pose(frame:int) -> void:
     var names:Array[String]=["front","back"]
     pc42_skeleton.position=CENTER
     for i in range(2):
-        var foot:Vector2=PC53LegIK.target(ankles[i],phase+0.5*float(i),8.0,4.0)
+        var foot:Vector2=PC53LegIK.target(ankles[i],phase+0.5*float(i),22.0,11.0)
         var result:Dictionary=PC53LegIK.solve(hips[i],knees[i],ankles[i],foot,1.0)
         if not bool(result["valid"]):
             push_error("PC53_UNREACHABLE frame=%d leg=%s" % [frame,names[i]])
@@ -376,6 +376,7 @@ func _pc53_walk_pose(frame:int) -> void:
         shin.rotation=float(result["shin_rotation"])
         var knee:Vector2=result["knee"]
         print("PC53_IK_FRAME %02d %s knee_x=%.4f hip_deg=%.4f shin_deg=%.4f" % [frame,names[i],knee.x,rad_to_deg(thigh.rotation),rad_to_deg(shin.rotation)])
+        print("PC54_FOOT_FRAME %02d %s target_x=%.3f target_y=%.3f residual=%.3f" % [frame,names[i],foot.x,foot.y,float(result["target_residual"])])
     # Boots are presently embedded in the shin artwork; do not falsely
     # claim planted heel/toe or release-ready ankle articulation.
 
