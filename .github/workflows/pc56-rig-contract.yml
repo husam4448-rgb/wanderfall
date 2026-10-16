@@ -1,0 +1,18 @@
+name: PC56 Rig Contract Structural QA
+on:
+  push:
+    branches: [pc56-b2b-reference-template-audit]
+    paths:
+      - 'pc56/b2b_reference_rig_contract.json'
+      - 'tools/qa_pc56_rig_contract.py'
+      - '.github/workflows/pc56-rig-contract.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate original rig chain topology and IK targets
+        run: python3 tools/qa_pc56_rig_contract.py
