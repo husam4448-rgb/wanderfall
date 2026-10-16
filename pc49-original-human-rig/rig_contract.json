@@ -1,5 +1,5 @@
 {
-  "schema": "survival-paradise-pc49-original-human-rig-v1",
+  "schema": "survival-paradise-pc50-diagnostic-ik-v2",
   "purpose": "independently implemented Godot IK engineering rig (diagnostic art only)",
   "sourceReference": {
     "title": "Bad 2 Bad Apocalypse Spine 4.0.25",
@@ -62,32 +62,32 @@
   "weapon": {
     "pivot": [
       37,
-      -83
+      -61
     ],
     "dominant_grip": [
       49,
-      -80
+      -58
     ],
     "support_grip": [
-      71,
-      -81
+      70,
+      -59
     ],
     "elevations_degrees": [
       -20,
       0,
       20
     ],
-    "sockets": "rifle-local rotation around pivot; wrists calculated from arm IK"
+    "sockets": "rifle-local rotated wrist targets; hands independently IK-solved; below-face numerical QA"
   },
   "legs": {
     "thigh_length": 40,
     "shin_length": 40,
-    "foot_target_pattern": "alternating sinusoidal 16-frame per direction; visual quality unfinished"
+    "foot_target_pattern": "16-frame equal/opposite stride; both knees share forward IK branch; swing lift on positive stride"
   },
   "visualGates": {
-    "engineering": "38 actual Godot frames PASS, 0 reported grip target error",
-    "production_art": "FAIL not yet created",
-    "walking": "diagnostic frames only; stiff",
+    "engineering": "Source assertions implemented; updated Godot CI unverified",
+    "production_art": "NOT IMPLEMENTED: diagnostic only, not male/female artwork",
+    "walking": "Visual inspection pending; placeholder diagnostic male/female not rendered",
     "android": "NOT BUILT"
   }
 }
