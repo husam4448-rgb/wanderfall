@@ -1,0 +1,14 @@
+config_version=5
+
+[application]
+config/name="Survival Paradise PC66 Bilateral Gait Native Visual QA"
+run/main_scene="res://Main.tscn"
+
+[display]
+window/size/viewport_width=860
+window/size/viewport_height=650
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.19, 0.23, 0.27, 1)
