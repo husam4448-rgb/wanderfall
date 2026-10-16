@@ -233,3 +233,15 @@ Create an isolated PC28 branch from PC27 verified source and test genuine knee a
 **Numerical Godot QA stays PASS for its limited tests**, but the visual character and gait are NOT accepted, never promoted to playable game or APK. The immutable test source stays `f759a5e80aa6c1245ea0d9a601b6e34944f3b970` and its original workflow remains https://github.com/husam4448-rgb/wanderfall/actions/runs/38949364666.
 
 **NEXT:** `SP-CHAR-CONTINUITY-PC69-001`: treat PC68 only as a rejected mechanical experiment, recover authentic approved PC42H character art fallback, implement actual connected hips/pelvis/thigh/shin Bone2D articulations and correct human leg proportions. Never reuse pasted full-torso plus distorted mesh as visually accepted. Review all gait poses, not green CI only.
+
+
+## PC70 — original-only source-part preservation QA (2026-10-16)
+
+- **Authority:** PC68 visibly failed; 12 PC69 source exact candidate sprites remain valid still references but 4-frame gait is invalid. No accepted complete character.
+- **User-visible local asset pack:** `SP_PC70_Source_Exact_Segmented_Art_QA.zip` (not committed in repo: contains 24 three-way original-source RGBA part layers, 8 exact reconstructed reference PNGs, 2 visual review sheets, alpha/RGB QA, generator and independent validator).
+- **Verification:** 8/8 male/female RIGHT-running approved sources restored exactly RGBA; each split into upper+rear leg+front leg while changing only alpha coverage, 24/24 exact painted RGB; exclusive and exhaustive alpha region partition; at least 99.5% contiguous pixels in each segment.
+- **Visualization:** `PC70_8Pose_Semantic_Layer_Atlas.png` and sex-specific detailed sheets inside pack. The hip and leg masks are **not artist-underpainted anatomical layers**, so they are not safe to animate yet. Two speculative replacement-sprite renders rejected for changed source character/gear and unverified animation.
+- **Technical scope:** only Pillow/NumPy/SciPy sprite segmentation and QA in this step; no native Godot 32-frame bilateral run, no APK, no release.
+- **Verdict:** static source-preservation **PASS**; genuine complementary stride art **NOT AUTHORED / gait FAIL**; production asset visual gate **BLOCKED**.
+- **Next:** `SP-CHAR-OPPOSITE-RUN-ART-PC71-001` READY for one exact-source-matched male RIGHT opposite-leg-leading stride, including manually authored authentic hidden joint/pelvis material, then female once male passes game-scale visual inspection. Never reduce standard to green numeric tests.
+- **PC70 report:** `docs/PC70_SOURCE_PARTITION_VISUAL_QA.md` on `pc70-original-art-preservation-qa`.
