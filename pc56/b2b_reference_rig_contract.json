@@ -1,0 +1,174 @@
+{
+  "schema": "survival-paradise-b2b-referenced-rig-contract-v1",
+  "status": "STRUCTURAL_REFERENCE_ONLY_RAW_ART_UNAVAILABLE",
+  "basis": {
+    "source": "User-provided B2B Spine 4.0.25 hierarchy report recovered from Library",
+    "verified_bones": 99,
+    "verified_slots": 85,
+    "verified_ik_constraints": 8,
+    "walk_keyframes": "NOT_DECODED",
+    "source_textures": "NOT_AVAILABLE_IN_CURRENT_RUNTIME"
+  },
+  "source_observations": [
+    "Source hierarchy has multi-segment torso chain body -> body2 -> body3 -> body4",
+    "Source left arm hierarchy includes upper/forearm/hand chain",
+    "Source right hand belongs to target-linked branch, asymmetric to other hand",
+    "Source left/right legs have separate two-bone constraint targets",
+    "Source gun hierarchy contains gun_body, 2H_grip, 2H_stock, 2H_optic and 2H_mag",
+    "Source slot names, bone names, attachments and animation curves must not be conflated"
+  ],
+  "original_template": {
+    "canvas": "FULL_RGBA_UNIFORM",
+    "facing": [
+      "RIGHT",
+      "LEFT"
+    ],
+    "handedness": "EXPLICIT_NOT_BLIND_MIRROR",
+    "nodes": [
+      {
+        "id": "root",
+        "parent": null
+      },
+      {
+        "id": "pelvis",
+        "parent": "root"
+      },
+      {
+        "id": "torso",
+        "parent": "pelvis"
+      },
+      {
+        "id": "chest",
+        "parent": "torso"
+      },
+      {
+        "id": "neck",
+        "parent": "chest"
+      },
+      {
+        "id": "head",
+        "parent": "neck"
+      },
+      {
+        "id": "far_upper_arm",
+        "parent": "chest"
+      },
+      {
+        "id": "far_forearm",
+        "parent": "far_upper_arm"
+      },
+      {
+        "id": "far_hand",
+        "parent": "far_forearm"
+      },
+      {
+        "id": "near_upper_arm",
+        "parent": "chest"
+      },
+      {
+        "id": "near_forearm",
+        "parent": "near_upper_arm"
+      },
+      {
+        "id": "near_hand",
+        "parent": "near_forearm"
+      },
+      {
+        "id": "front_thigh",
+        "parent": "pelvis"
+      },
+      {
+        "id": "front_shin",
+        "parent": "front_thigh"
+      },
+      {
+        "id": "front_foot",
+        "parent": "front_shin"
+      },
+      {
+        "id": "back_thigh",
+        "parent": "pelvis"
+      },
+      {
+        "id": "back_shin",
+        "parent": "back_thigh"
+      },
+      {
+        "id": "back_foot",
+        "parent": "back_shin"
+      },
+      {
+        "id": "rifle",
+        "parent": "root"
+      },
+      {
+        "id": "rifle_trigger_grip",
+        "parent": "rifle"
+      },
+      {
+        "id": "rifle_support_grip",
+        "parent": "rifle"
+      },
+      {
+        "id": "rifle_stock",
+        "parent": "rifle"
+      },
+      {
+        "id": "rifle_muzzle",
+        "parent": "rifle"
+      },
+      {
+        "id": "backpack",
+        "parent": "torso"
+      }
+    ],
+    "constraints": [
+      {
+        "type": "two_bone_ik",
+        "chain": [
+          "front_thigh",
+          "front_shin"
+        ],
+        "target": "front_foot_target",
+        "bend": "ANATOMICAL_FRONT",
+        "foot": "SEPARATE_BONE"
+      },
+      {
+        "type": "two_bone_ik",
+        "chain": [
+          "back_thigh",
+          "back_shin"
+        ],
+        "target": "back_foot_target",
+        "bend": "ANATOMICAL_FRONT",
+        "foot": "SEPARATE_BONE"
+      },
+      {
+        "type": "two_bone_ik",
+        "chain": [
+          "near_upper_arm",
+          "near_forearm"
+        ],
+        "target": "rifle_trigger_grip",
+        "bend": "NATURAL_ELBOW"
+      },
+      {
+        "type": "two_bone_ik",
+        "chain": [
+          "far_upper_arm",
+          "far_forearm"
+        ],
+        "target": "rifle_support_grip",
+        "bend": "NATURAL_ELBOW"
+      }
+    ],
+    "acceptance": [
+      "Render both legs walking complete 32-frame alternating cycles with heel/toe test",
+      "Zero missing painted interior around shoulders knees elbows ankles over 32 frames",
+      "World-space stance foot slip quantified; do not infer from root correction",
+      "Dominant hand on trigger; support hand on foregrip throughout aim and walk",
+      "Actual Godot render visually checked, not generated concept image",
+      "Source third-party textures used only as non-distributed diagnostic if user provides original data and lawful use"
+    ]
+  }
+}
