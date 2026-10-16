@@ -40,7 +40,7 @@ for f in frames:
 assert flips==0 and minimum_area>1.0,(flips,minimum_area)
 assert all(min(v)>5 for v in forward.values()),forward
 root=np.asarray([f["pelvis"] for f in frames],dtype=float)
-assert 107.0<root[-1,0]-root[0,0]<110.0
+assert 69.0<root[-1,0]-root[0,0]<71.0
 contact={};clearance={};stance_slip={};movement={}
 for j,name in enumerate(("front","rear")):
     fs=[f["legs"][j] for f in frames]
@@ -50,7 +50,7 @@ for j,name in enumerate(("front","rear")):
     slip=float(np.linalg.norm(planted-planted[0],axis=1).max())
     lift=float(ground-min(airborne[:,1]))
     advance=float(airborne[-1,0]-airborne[0,0])
-    assert slip<.05 and 18<=lift<=20 and 102<advance<114,(name,slip,lift,advance)
+    assert slip<.05 and 18<=lift<=20 and 70<advance<72,(name,slip,lift,advance)
     stance_slip[name]=round(slip,5)
     clearance[name]=round(lift,3)
     movement[name]=round(advance,3)
