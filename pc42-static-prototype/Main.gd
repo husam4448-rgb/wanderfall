@@ -32,7 +32,9 @@ const PARENTS: Dictionary = {
     "front_thigh":"pelvis",
     "back_thigh":"pelvis",
     "front_shin":"front_thigh",
-    "back_shin":"back_thigh"
+    "back_shin":"back_thigh",
+    "front_boot":"front_shin",
+    "back_boot":"back_shin"
 }
 
 func _load_image(relative_path: String) -> Texture2D:
@@ -433,6 +435,16 @@ func _pc42s_walk_pose(frame: int) -> void:
     var step_bob: float = 0.30*(1.0-cos(2.0*phase))
     pc42_skeleton.position.y -= step_bob
     print("PC52_SOURCE_FOOT_CONTACT frame=%02d weight_front=%.3f root_contact_x=%.3f" % [frame,front_contact,correction.x])
+    if OS.get_environment("PC72_ARTICULATED_BOOTS")=="1":
+        # Actual new ankle Bone2D nodes own unaltered original SP boot pixels.
+        # Rotate relative to the true shin+thigh angle: boot is independent
+        # of the calf. This is only a visual test; source seam underpaint
+        # and stance-lock still require art + physics work.
+        var front_ankle: Bone2D=pc42_bones["front_boot"]
+        var rear_ankle: Bone2D=pc42_bones["back_boot"]
+        front_ankle.rotation=-(front_thigh.rotation+front_shin.rotation)
+        rear_ankle.rotation=-(back_thigh.rotation+back_shin.rotation)
+        print("PC72_ANKLE_BONE_FRAME %02d front_deg=%.3f back_deg=%.3f" % [frame,rad_to_deg(front_ankle.rotation),rad_to_deg(rear_ankle.rotation)])
     print("PC42S_WALK_FRAME %02d front_hip=%.3f back_hip=%.3f front_knee=%.3f back_knee=%.3f root_x=%.3f root_y=%.3f" % [frame,rad_to_deg(front_thigh.rotation),rad_to_deg(back_thigh.rotation),rad_to_deg(front_shin.rotation),rad_to_deg(back_shin.rotation),correction.x,correction.y-step_bob])
 
 func _pc42r_reload_pose(frame: int) -> Dictionary:
