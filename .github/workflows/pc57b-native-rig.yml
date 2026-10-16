@@ -1,11 +1,12 @@
-name: PC57B Original Native Rifle Grip and Equipment QA
+name: PC57D Native Anatomic Gait, Rifle Grip and Equipment QA
 on:
   push:
-    branches: [pc57b-rifle-grip-native-godot]
+    branches: [pc57d-forward-knee-weight-shift]
     paths:
       - 'pc57b/**'
       - '.github/workflows/pc57b-native-rig.yml'
       - 'tools/pc57_motion_acceptance.py'
+      - 'tools/qa_pc57d_gait.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -37,6 +38,7 @@ jobs:
           grep -q 'PC57B_NATIVE_CAPTURE_PASS frames=32' pc57b-runtime.log
           test "$(find pc57b/evidence -name 'frame_*.png' | wc -l)" -eq 32
           python3 tools/pc57_motion_acceptance.py pc57b/evidence/frames.json | tee pc57b-metrics.log
+          python3 tools/qa_pc57d_gait.py pc57b/evidence/frames.json | tee pc57d-metrics.log
       - name: Generate actual Godot GIF and eight phase comparison
         run: |
           python3 - <<'PY'
@@ -54,8 +56,9 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: SP-PC57B-Native-Arm-Rifle-${{ github.sha }}
+          name: SP-PC57D-Native-Anatomy-Rifle-${{ github.sha }}
           path: |
             pc57b/evidence/
             pc57b-*.log
+            pc57d-*.log
           retention-days: 14
