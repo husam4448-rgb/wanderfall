@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://PC58.gd" id="1"]
+
+[node name="PC58_ApprovedArtFit" type="Node2D"]
+script = ExtResource("1")
