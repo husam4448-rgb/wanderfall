@@ -54,9 +54,43 @@ func _run_test() -> void:
     if gun_visual.muzzle_flash_time > 0.0:
         _fail("Empty weapon generates muzzle flash")
         return
+    # v255: weapon-following hands exist only inside actual weapon nodes.
+    if gun_visual.grip_hand == null or gun_visual.support_hand == null:
+        _fail("Compact weapon lacks two separate hand sprites")
+        return
+    if gun_visual.grip_hand.get_parent() != gun_visual or gun_visual.support_hand.get_parent() != gun_visual:
+        _fail("Hands must attach to the firearm, NOT to torso/world")
+        return
+    gun_visual.configure_equipped("9mm_pistol", "firearm")
+    gun_visual.set_aim_vector(Vector2.RIGHT)
+    if not is_equal_approx(gun_visual.scale.x, 0.73) or not is_equal_approx(gun_visual.scale.y, 0.73):
+        _fail("Weapon was not scaled down 27 percent")
+        return
+    if not gun_visual.grip_hand.visible or not gun_visual.support_hand.visible:
+        _fail("Floating hands missing when firearm equipped")
+        return
+    if gun_visual.position.x > 5.0:
+        _fail("Compact weapon is positioned too far from torso")
+        return
+    gun_visual.configure_equipped("", "")
+    if gun_visual.grip_hand.visible or gun_visual.support_hand.visible:
+        _fail("Hands are floating independently with no weapon")
+        return
+    # Snapshot all firearm variants from the actual game renderer.
+    for weapon_id in ["9mm_pistol", "survival_rifle", "tactical_smg", "pump_shotgun"]:
+        gun_visual.configure_equipped(weapon_id, "firearm")
+        gun_visual.visible = true
+        await get_tree().process_frame
+        await RenderingServer.frame_post_draw
+        var art_frame: Image = get_viewport().get_texture().get_image()
+        var art_path: String = ProjectSettings.globalize_path("res://sp_v255_gun_" + weapon_id + ".png")
+        if art_frame.save_png(art_path) != OK:
+            _fail("Unable to capture actual game gun art " + weapon_id)
+            return
     gun_visual.configure_equipped(player.equipment.equipped_weapon_id, player.equipment.get_weapon_category())
     player._sp_melee_update_visuals()
     print("SP_FIREARM_V254_ART_QA_PASS 4 pixel models, empty state, left/right aim, grey pole removed")
+    print("SP_WEAPON_HANDS_V255_QA_PASS compact 0.73x guns, tight torso pivot, 2 child hands, empty-hand hiding and 4 actual in-game firearm renders")
     # Isolate the melee collision mechanics from procedural world obstacles
     # already covered by the standalone native ray-blocking test.
     player._sp_melee_controller.wall_collision_mask = 0
@@ -85,6 +119,12 @@ func _run_test() -> void:
             return
         if player._sp_firearm_visual.visible:
             _fail("Firearm was not hidden at angle "+str(i))
+            return
+        if player._sp_melee_controller.knife.grip_hand == null or player._sp_melee_controller.knife.grip_hand.get_parent() != player._sp_melee_controller.knife:
+            _fail("Knife's small hand is not parented to the rotating blade")
+            return
+        if not player._sp_melee_controller.knife.grip_hand.visible:
+            _fail("Hand disappeared during the 165ms knife slash")
             return
         var expected_bevel: float = -1.0 if direction.x >= 0.0 else 1.0
         if not is_equal_approx(player._sp_melee_controller.knife.scale.y, expected_bevel):
