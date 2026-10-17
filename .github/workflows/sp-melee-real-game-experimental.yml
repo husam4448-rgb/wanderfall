@@ -102,10 +102,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: SP-Melee-Real-Game-EXP-Phase16-${{ github.sha }}
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 14
           compression-level: 0
           path: |
-            SurvivalParadise-Experimental-Melee-Phase16.apk
+            SurvivalParadise-Experimental-Melee-GaitFix.apk
             sp_melee_phase16_*.log
             sp_melee_phase16_*.txt
