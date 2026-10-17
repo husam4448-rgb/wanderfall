@@ -1,7 +1,7 @@
 name: SP Melee — Six Real-Game Combat Actions and Screenshots
 on:
   push:
-    branches: [sp-b2b-leg-rig-downslash]
+    branches: [sp-fast-slash-block-boots-v253]
     paths:
       - 'tools/sp_melee_live_game_qa.gd'
       - 'tools/build_sp_melee_walk_layers.py'
@@ -64,6 +64,7 @@ jobs:
           cat sp_melee_live_actions.log | grep 'SP_MELEE_LIVE_GAME'
           grep -q 'SP_MELEE_LIVE_GAME_QA_PASS checks=42' sp_melee_live_actions.log
           grep -q 'SP_MELEE_GAIT_QA_PASS' sp_melee_live_actions.log
+          grep -q 'SP_MELEE_FAST_SLASH_QA_PASS' sp_melee_live_actions.log
           test "$(find /tmp/sp_realgame -maxdepth 1 -name 'sp_melee_game_qa_*.png' | wc -l)" -eq 6
           test "$(find /tmp/sp_realgame -maxdepth 1 -name 'sp_melee_walk_qa_*.png' | wc -l)" -eq 6
       - name: Preserve six native in-world screenshots
