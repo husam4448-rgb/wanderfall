@@ -5,6 +5,7 @@ on:
     paths:
       - 'tools/sp_melee_live_game_qa.gd'
       - '.github/workflows/sp-melee-live-game-actions.yml'
+      - 'melee-six-prototype/MeleeController.gd'
   workflow_dispatch:
 permissions:
   contents: read
