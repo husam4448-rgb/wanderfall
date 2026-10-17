@@ -1,0 +1,402 @@
+name: Survival Paradise — Recover exact D2D14 detailed world and full HUD
+
+on:
+  push:
+    branches: [ sp-v257-restore-d2d14-world-hud ]
+    paths:
+      - '.github/workflows/sp-v257-d2d14-original-world-hud.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  SOURCE_SHA256: ae4eff17e5f281f5867ac2d82207fcf96e6c8b649432acd48816aebab76fa308
+  SOURCE_ARCHIVE: /tmp/Wanderfall_Phase16_Game_Source.tar.xz
+  PROJECT_DIR: game
+  GODOT_ZIP: /tmp/Godot_v4.7.2-stable_linux.x86_64.zip
+  GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
+  GODOT_TEMPLATES_TPZ: /tmp/Godot_v4.7.2-stable_export_templates.tpz
+  GODOT_TEMPLATES_SHA256: f298490b8d44d934be425a5a65a51bf15f422428b229a06a6e11d9ffea248011
+  APK_PATH: Survival-Paradise-v0.21.0D2D.14.apk
+  MAX_APK_BYTES: '419430400'
+
+jobs:
+  build:
+    name: Validate and export Wanderfall v0.17.9 Quick-Use APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: 5a0ee30331ddf559ba6c5794441b43d867027d0b
+
+      - name: Reconstruct source and apply Quick-Use v0.17.9
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat source_parts/part_*.b64 > /tmp/wanderfall_source.b64
+          base64 --decode /tmp/wanderfall_source.b64 > "$SOURCE_ARCHIVE"
+          echo "$SOURCE_SHA256  $SOURCE_ARCHIVE" | sha256sum -c -
+          mkdir -p "$PROJECT_DIR"
+          tar -xJf "$SOURCE_ARCHIVE" -C "$PROJECT_DIR"
+          python3 patches/apply_godot_47_fixes.py "$PROJECT_DIR"
+          python3 patches/apply_v017_ui_overhaul.py "$PROJECT_DIR"
+          python3 patches/apply_v0171_inventory_polish.py "$PROJECT_DIR"
+          python3 patches/apply_v0172_hud_customization.py "$PROJECT_DIR"
+          python3 patches/fix_v0173_applicator_path.py
+          python3 patches/apply_v0173_touch_layout_fixes.py "$PROJECT_DIR"
+          python3 patches/apply_v0174_ui_pause_completion.py "$PROJECT_DIR"
+
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('patches/apply_v0175_hotbar_sensitivity.py')
+          s = p.read_text(encoding='utf-8')
+          old = '''replace_once(\n    "scripts/settings/settings_hud.gd",\n    '    if ui_buttons.has("quickbar_visible"):\\n        ui_buttons["quickbar_visible"].text = "QUICKBAR: %s" % ("ON" if GameSettings.quickbar_visible else "OFF")\\n\\n    var pause_names :=',\n    '    if ui_buttons.has("quickbar_visible"):\\n        ui_buttons["quickbar_visible"].text = "QUICKBAR: %s" % ("ON" if GameSettings.quickbar_visible else "OFF")\\n'\n    '    if movement_sensitivity_slider != null:\\n'\n    '        movement_sensitivity_slider.set_value_no_signal(GameSettings.movement_stick_sensitivity)\\n'\n    '    if movement_sensitivity_label != null:\\n'\n    '        movement_sensitivity_label.text = "×%.2f" % GameSettings.movement_stick_sensitivity\\n\\n'\n    '    var pause_names :=',\n)'''
+          new = '''replace_once(\n    "scripts/settings/settings_hud.gd",\n    '    var pause_names :=',\n    '    if movement_sensitivity_slider != null:\\n'\n    '        movement_sensitivity_slider.set_value_no_signal(GameSettings.movement_stick_sensitivity)\\n'\n    '    if movement_sensitivity_label != null:\\n'\n    '        movement_sensitivity_label.text = "×%.2f" % GameSettings.movement_stick_sensitivity\\n\\n'\n    '    var pause_names :=',\n)'''
+          if old not in s:
+              raise SystemExit('Expected v0.17.5 applicator block not found')
+          p.write_text(s.replace(old, new, 1), encoding='utf-8')
+          PY
+
+          python3 patches/apply_v0175_hotbar_sensitivity.py "$PROJECT_DIR"
+          python3 patches/apply_v0176_hotbar_deadzone.py "$PROJECT_DIR"
+          python3 patches/apply_v0177_mobile_hotbar_layers.py "$PROJECT_DIR"
+          python3 patches/apply_v0178_dedicated_hotbar_layer.py "$PROJECT_DIR"
+          python3 patches/apply_v0179_quick_item_buttons.py "$PROJECT_DIR"
+          # Fetch Quaternius D3D.1 character assets (same CC0 model contained in the uploaded pack).
+          echo "Fetch Quaternius D3D.1 character assets"
+          MODEL_DIR="$PROJECT_DIR/assets/models/superhero_male"
+          mkdir -p "$MODEL_DIR"
+          MODEL_BASE="https://raw.githubusercontent.com/robert-porter/sprite-renderer/fb8b9ee247ed2e5d9b5dfebd408382156be3b57f/assets/quaternius/universal/universal-base-characters/Universal%20Base%20Characters%5BStandard%5D/Base%20Characters/Godot%20-%20UE"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/Superhero_Male_FullBody.gltf" "$MODEL_BASE/Superhero_Male_FullBody.gltf"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/Superhero_Male_FullBody.bin" "$MODEL_BASE/Superhero_Male_FullBody.bin"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/T_Hair_1_BaseColor.png" "$MODEL_BASE/T_Hair_1_BaseColor.png"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/T_Eye_Brown.png" "$MODEL_BASE/T_Eye_Brown.png"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/T_Superhero_Male_Dark.png" "$MODEL_BASE/T_Superhero_Male_Dark.png"
+
+          # Mobile prototype keeps only albedo maps; remove multi-megabyte normal/roughness
+          # references while preserving geometry, weights, skeleton and original base colors.
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("game/assets/models/superhero_male/Superhero_Male_FullBody.gltf")
+          d = json.loads(p.read_text(encoding="utf-8"))
+          d["images"] = [
+              {"mimeType":"image/png","name":"HairBase","uri":"T_Hair_1_BaseColor.png"},
+              {"mimeType":"image/png","name":"EyeBase","uri":"T_Eye_Brown.png"},
+              {"mimeType":"image/png","name":"BodyBase","uri":"T_Superhero_Male_Dark.png"},
+          ]
+          d["samplers"] = [{"magFilter":9729,"minFilter":9987,"wrapS":10497,"wrapT":10497}]
+          d["textures"] = [
+              {"sampler":0,"source":0},
+              {"sampler":0,"source":1},
+              {"sampler":0,"source":2},
+          ]
+          for i, mat in enumerate(d.get("materials", [])):
+              mat.pop("normalTexture", None)
+              pbr = mat.setdefault("pbrMetallicRoughness", {})
+              pbr["baseColorTexture"] = {"index": i}
+              pbr.pop("metallicRoughnessTexture", None)
+              pbr["metallicFactor"] = 0.0
+              pbr["roughnessFactor"] = 0.72
+          p.write_text(json.dumps(d, separators=(",",":")), encoding="utf-8")
+          PY
+          test "$(stat -c%s "$MODEL_DIR/Superhero_Male_FullBody.bin")" -eq 720076
+
+          echo "Fetch Quaternius Ranger outfit assets"
+          OUTFIT_BASE="https://raw.githubusercontent.com/joega/check-and-conquer/b2a3a3418dc080e782c1e5d386d258145346a218/assets/characters/quaternius/outfits"
+          curl -fL --retry 3 -o "$MODEL_DIR/Male_Ranger.gltf" "$OUTFIT_BASE/Male_Ranger.gltf"
+          curl -fL --retry 3 -o "$MODEL_DIR/Male_Ranger.bin" "$OUTFIT_BASE/Male_Ranger.bin"
+          curl -fL --retry 3 -o "$MODEL_DIR/T_Ranger_BaseColor.png" "$OUTFIT_BASE/T_Ranger_BaseColor.png"
+          curl -fL --retry 3 -o "$MODEL_DIR/T_Regular_Male_Dark_BaseColor.png" "$OUTFIT_BASE/T_Regular_Male_Dark_BaseColor.png"
+
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("game/assets/models/superhero_male/Male_Ranger.gltf")
+          d = json.loads(p.read_text(encoding="utf-8"))
+          d["images"] = [
+              {"mimeType":"image/png","name":"RangerBase","uri":"T_Ranger_BaseColor.png"},
+              {"mimeType":"image/png","name":"RegularMaleBase","uri":"T_Regular_Male_Dark_BaseColor.png"},
+          ]
+          d["samplers"] = [{"magFilter":9729,"minFilter":9987,"wrapS":10497,"wrapT":10497}]
+          d["textures"] = [
+              {"sampler":0,"source":0},
+              {"sampler":0,"source":1},
+          ]
+          mats = d.get("materials", [])
+          if len(mats) >= 1:
+              mats[0].pop("normalTexture", None)
+              pbr = mats[0].setdefault("pbrMetallicRoughness", {})
+              pbr["baseColorTexture"] = {"index":0}
+              pbr.pop("metallicRoughnessTexture", None)
+              pbr["metallicFactor"] = 0.0
+              pbr["roughnessFactor"] = 0.78
+          if len(mats) >= 2:
+              mats[1].pop("normalTexture", None)
+              pbr = mats[1].setdefault("pbrMetallicRoughness", {})
+              pbr["baseColorTexture"] = {"index":1}
+              pbr.pop("metallicRoughnessTexture", None)
+              pbr["metallicFactor"] = 0.0
+              pbr["roughnessFactor"] = 0.82
+          p.write_text(json.dumps(d, separators=(",",":")), encoding="utf-8")
+          PY
+          test "$(stat -c%s "$MODEL_DIR/Male_Ranger.bin")" -eq 1746884
+
+          echo "Fetch Quaternius Peasant outfit assets"
+          OUTFIT_BASE="https://raw.githubusercontent.com/joega/check-and-conquer/b2a3a3418dc080e782c1e5d386d258145346a218/assets/characters/quaternius/outfits"
+          curl -fL --retry 3 -o "$MODEL_DIR/Male_Peasant.gltf" "$OUTFIT_BASE/Male_Peasant.gltf"
+          curl -fL --retry 3 -o "$MODEL_DIR/Male_Peasant.bin" "$OUTFIT_BASE/Male_Peasant.bin"
+          curl -fL --retry 3 -o "$MODEL_DIR/T_Peasant_BaseColor.png" "$OUTFIT_BASE/T_Peasant_BaseColor.png"
+
+          echo "Fetch compatible D3D.9 survivor hair"
+          curl -fL --retry 3 -o "$MODEL_DIR/Hair_SimpleParted.gltf" "https://raw.githubusercontent.com/joega/check-and-conquer/b2a3a3418dc080e782c1e5d386d258145346a218/assets/characters/quaternius/hair/Hair_SimpleParted.gltf"
+          curl -fL --retry 3 -o "$MODEL_DIR/Hair_SimpleParted.bin" "https://raw.githubusercontent.com/joega/check-and-conquer/b2a3a3418dc080e782c1e5d386d258145346a218/assets/characters/quaternius/hair/Hair_SimpleParted.bin"
+          curl -fL --retry 3 -o "$MODEL_DIR/T_Hair_1_Normal.png" "https://raw.githubusercontent.com/joega/check-and-conquer/b2a3a3418dc080e782c1e5d386d258145346a218/assets/characters/quaternius/hair/T_Hair_1_Normal.png"
+          echo "Fetch Quaternius D3D.22 long female hair"
+          FEMALE_HAIR_BASE="https://raw.githubusercontent.com/robert-porter/sprite-renderer/fb8b9ee247ed2e5d9b5dfebd408382156be3b57f/assets/quaternius/universal/universal-base-characters/Universal%20Base%20Characters%5BStandard%5D/Hairstyles/Rigged%20to%20Head%20Bone/glTF%20(Godot%20-Unreal)"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/Hair_Long.gltf" "$FEMALE_HAIR_BASE/Hair_Long.gltf"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/Hair_Long.bin" "$FEMALE_HAIR_BASE/Hair_Long.bin"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/T_Hair_2_Normal.png" "$FEMALE_HAIR_BASE/T_Hair_2_Normal.png"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/T_Hair_2_BaseColor.png" "$FEMALE_HAIR_BASE/T_Hair_2_BaseColor.png"
+          test -s "$MODEL_DIR/Hair_Long.bin"
+
+
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("game/assets/models/superhero_male/Male_Peasant.gltf")
+          d = json.loads(p.read_text(encoding="utf-8"))
+          d["images"] = [
+              {"mimeType":"image/png","name":"PeasantBase","uri":"T_Peasant_BaseColor.png"},
+              {"mimeType":"image/png","name":"RegularMaleBase","uri":"T_Regular_Male_Dark_BaseColor.png"},
+          ]
+          d["samplers"] = [{"magFilter":9729,"minFilter":9987,"wrapS":10497,"wrapT":10497}]
+          d["textures"] = [
+              {"sampler":0,"source":0},
+              {"sampler":0,"source":1},
+          ]
+          mats = d.get("materials", [])
+          if len(mats) >= 1:
+              mats[0].pop("normalTexture", None)
+              pbr = mats[0].setdefault("pbrMetallicRoughness", {})
+              pbr["baseColorTexture"] = {"index":0}
+              pbr.pop("metallicRoughnessTexture", None)
+              pbr["metallicFactor"] = 0.0
+              pbr["roughnessFactor"] = 0.82
+          if len(mats) >= 2:
+              mats[1].pop("normalTexture", None)
+              pbr = mats[1].setdefault("pbrMetallicRoughness", {})
+              pbr["baseColorTexture"] = {"index":1}
+              pbr.pop("metallicRoughnessTexture", None)
+              pbr["metallicFactor"] = 0.0
+              pbr["roughnessFactor"] = 0.86
+          p.write_text(json.dumps(d, separators=(",",":")), encoding="utf-8")
+          PY
+          test "$(stat -c%s "$MODEL_DIR/Male_Peasant.bin")" -eq 674764
+
+          echo "Fetch Quaternius D3D.21 female template assets"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/Superhero_Female_FullBody.gltf" "$MODEL_BASE/Superhero_Female_FullBody.gltf"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/Superhero_Female_FullBody.bin" "$MODEL_BASE/Superhero_Female_FullBody.bin"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/T_Hair_2_BaseColor.png" "$MODEL_BASE/T_Hair_2_BaseColor.png"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/T_Superhero_Female_Dark_BaseColor.png" "$MODEL_BASE/T_Superhero_Female_Dark_BaseColor.png"
+          curl -fL --retry 3 -o "$MODEL_DIR/Female_Ranger.gltf" "$OUTFIT_BASE/Female_Ranger.gltf"
+          curl -fL --retry 3 -o "$MODEL_DIR/Female_Ranger.bin" "$OUTFIT_BASE/Female_Ranger.bin"
+          curl -fL --retry 3 -o "$MODEL_DIR/Female_Peasant.gltf" "$OUTFIT_BASE/Female_Peasant.gltf"
+          curl -fL --retry 3 -o "$MODEL_DIR/Female_Peasant.bin" "$OUTFIT_BASE/Female_Peasant.bin"
+          curl -fL --retry 3 -o "$MODEL_DIR/T_Regular_Female_Dark_BaseColor.png" "$OUTFIT_BASE/T_Regular_Female_Dark_BaseColor.png"
+
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path("game/assets/models/superhero_male")
+
+          p=root/"Superhero_Female_FullBody.gltf"
+          d=json.loads(p.read_text(encoding="utf-8"))
+          d["images"]=[
+              {"mimeType":"image/png","name":"HairBase","uri":"T_Hair_2_BaseColor.png"},
+              {"mimeType":"image/png","name":"EyeBase","uri":"T_Eye_Brown.png"},
+              {"mimeType":"image/png","name":"BodyBase","uri":"T_Superhero_Female_Dark_BaseColor.png"},
+          ]
+          d["samplers"]=[{"magFilter":9729,"minFilter":9987,"wrapS":10497,"wrapT":10497}]
+          d["textures"]=[{"sampler":0,"source":0},{"sampler":0,"source":1},{"sampler":0,"source":2}]
+          for i,mat in enumerate(d.get("materials",[])):
+              mat.pop("normalTexture",None)
+              pbr=mat.setdefault("pbrMetallicRoughness",{})
+              pbr["baseColorTexture"]={"index":i}
+              pbr.pop("metallicRoughnessTexture",None)
+              pbr["metallicFactor"]=0.0
+              pbr["roughnessFactor"]=0.76
+          p.write_text(json.dumps(d,separators=(",",":")),encoding="utf-8")
+
+          p=root/"Female_Ranger.gltf"
+          d=json.loads(p.read_text(encoding="utf-8"))
+          d["images"]=[
+              {"mimeType":"image/png","name":"RangerBase","uri":"T_Ranger_BaseColor.png"},
+              {"mimeType":"image/png","name":"RegularFemaleBase","uri":"T_Regular_Female_Dark_BaseColor.png"},
+          ]
+          d["samplers"]=[{"magFilter":9729,"minFilter":9987,"wrapS":10497,"wrapT":10497}]
+          d["textures"]=[{"sampler":0,"source":0},{"sampler":0,"source":1}]
+          for i,mat in enumerate(d.get("materials",[])):
+              mat.pop("normalTexture",None)
+              pbr=mat.setdefault("pbrMetallicRoughness",{})
+              pbr["baseColorTexture"]={"index":min(i,1)}
+              pbr.pop("metallicRoughnessTexture",None)
+              pbr["metallicFactor"]=0.0
+              pbr["roughnessFactor"]=0.82
+          p.write_text(json.dumps(d,separators=(",",":")),encoding="utf-8")
+
+          p=root/"Female_Peasant.gltf"
+          d=json.loads(p.read_text(encoding="utf-8"))
+          d["images"]=[{"mimeType":"image/png","name":"PeasantBase","uri":"T_Peasant_BaseColor.png"}]
+          d["samplers"]=[{"magFilter":9729,"minFilter":9987,"wrapS":10497,"wrapT":10497}]
+          d["textures"]=[{"sampler":0,"source":0}]
+          for mat in d.get("materials",[]):
+              mat.pop("normalTexture",None)
+              pbr=mat.setdefault("pbrMetallicRoughness",{})
+              pbr["baseColorTexture"]={"index":0}
+              pbr.pop("metallicRoughnessTexture",None)
+              pbr["metallicFactor"]=0.0
+              pbr["roughnessFactor"]=0.86
+          p.write_text(json.dumps(d,separators=(",",":")),encoding="utf-8")
+          PY
+          test -s "$MODEL_DIR/Superhero_Female_FullBody.bin"
+          test -s "$MODEL_DIR/Female_Ranger.bin"
+          test -s "$MODEL_DIR/Female_Peasant.bin"
+
+          echo "Copy D2D.4.2 verified 2D atlases"
+          mkdir -p "$PROJECT_DIR/assets/authored2d"
+          cp assets/authored2d/d2d43_player_armed.webp "$PROJECT_DIR/assets/authored2d/"
+          test -s "$PROJECT_DIR/assets/authored2d/d2d43_player_armed.webp"
+
+          python3 "$PROJECT_DIR/tools/preflight.py" "$PROJECT_DIR"
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Prepare Android SDK
+        shell: bash
+        run: |
+          set -euo pipefail
+          ANDROID_SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          echo "ANDROID_HOME=$ANDROID_SDK" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK" >> "$GITHUB_ENV"
+          SDKMANAGER="$(command -v sdkmanager || true)"
+          [ -n "$SDKMANAGER" ] || SDKMANAGER="$ANDROID_SDK/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMANAGER" --licenses >/dev/null 2>&1 || true
+          "$SDKMANAGER" --sdk_root="$ANDROID_SDK" "platform-tools" "build-tools;35.0.1" "platforms;android-35" "cmdline-tools;latest" "cmake;3.10.2.4988404" "ndk;28.1.13356709"
+
+      - name: Prepare persistent Survival Paradise debug signing key
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.android"
+          base64 --decode signing/survival_paradise_debug.keystore.b64 > "$HOME/.android/debug.keystore"
+          chmod 600 "$HOME/.android/debug.keystore"
+          keytool -list -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey >/dev/null
+
+      - name: Install verified Godot editor and templates
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 2 -o "$GODOT_ZIP" "https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip"
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  $GODOT_ZIP" | sha256sum -c -
+          unzip -q "$GODOT_ZIP" -d /tmp
+          curl -fL --retry 3 --retry-delay 2 -o "$GODOT_TEMPLATES_TPZ" "https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_export_templates.tpz"
+          echo "$GODOT_TEMPLATES_SHA256  $GODOT_TEMPLATES_TPZ" | sha256sum -c -
+          rm -rf /tmp/godot_export_templates
+          mkdir -p /tmp/godot_export_templates
+          unzip -q "$GODOT_TEMPLATES_TPZ" -d /tmp/godot_export_templates
+          TEMPLATE_DIR="$HOME/.local/share/godot/export_templates/4.7.2.stable"
+          mkdir -p "$TEMPLATE_DIR"
+          cp -a /tmp/godot_export_templates/templates/. "$TEMPLATE_DIR/"
+
+      - name: Validate authored 2D sprite assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s "$PROJECT_DIR/assets/authored2d/d2d43_player_armed.webp"
+          for f in head torso upper_arm forearm_hand thigh shin_foot; do
+            test -s "$PROJECT_DIR/assets/authored2d/parts/${f}.png"
+          done
+          for f in backpack vest headgear pistol rifle; do
+            test -s "$PROJECT_DIR/assets/authored2d/gear/${f}.png"
+          done
+          "$GODOT_BIN" --headless --editor --path "$PROJECT_DIR" --quit --verbose 2>&1 | tee authored2d-import.log
+          if grep -E "ERROR: (Error loading image|Error importing).*assets/authored2d/gear" authored2d-import.log; then
+            echo "D2D.5.1 gear sprite import failed"
+            exit 1
+          fi
+          if grep -E "ERROR: (Error loading image|Error importing).*assets/authored2d/parts" authored2d-import.log; then
+            echo "D2D.5 modular body-part import failed"
+            exit 1
+          fi
+          if grep -E "ERROR: (Error loading image|Error importing).*assets/authored2d" authored2d-import.log; then
+            echo "Authored 2D import failed"
+            exit 1
+          fi
+
+      - name: Godot parser validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --editor --path "$PROJECT_DIR" --quit --verbose 2>&1 | tee godot-v0179-parser.log
+          if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|ERROR: Failed to create an autoload|Compile Error:|Parse Error:' godot-v0179-parser.log; then exit 1; fi
+
+      - name: Preserve exact restored world HUD source for visual-to-runtime integration
+        run: |
+          set -euo pipefail
+          tar -czf SP_D2D14_Original_HUD_World_Source.tar.gz -C "$PROJECT_DIR" scripts scenes project.godot export_presets.cfg
+          test -s SP_D2D14_Original_HUD_World_Source.tar.gz
+      - name: Export APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --path "$PROJECT_DIR" --export-debug Android "$GITHUB_WORKSPACE/$APK_PATH" 2>&1 | tee android-export.log
+          test -s "$APK_PATH"
+
+      - name: Validate APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="$GITHUB_WORKSPACE/$APK_PATH"
+          APKSIGNER="$ANDROID_HOME/build-tools/35.0.1/apksigner"
+          AAPT="$ANDROID_HOME/build-tools/35.0.1/aapt"
+          unzip -t "$APK" > apk-zip-test.txt
+          "$APKSIGNER" verify --verbose --print-certs "$APK" | tee apk-signature.txt
+          "$AAPT" dump badging "$APK" | tee apk-badging.txt
+          grep -q "package: name='org.wanderfall.game'" apk-badging.txt
+          grep -q "versionCode='87'" apk-badging.txt
+          grep -q "versionName='0.21.0D2D.14'" apk-badging.txt
+          grep -q "application-label:'Wanderfall'" apk-badging.txt
+          APK_BYTES="$(stat -c%s "$APK")"
+          test "$APK_BYTES" -lt "$MAX_APK_BYTES"
+          sha256sum "$APK" | tee Survival-Paradise-v0.21.0D2D.14.apk.sha256
+
+      - name: Upload exact restored HUD/world runtime source
+        uses: actions/upload-artifact@v4
+        with:
+          name: SP-D2D14-Original-HUD-World-Code
+          path: SP_D2D14_Original_HUD_World_Source.tar.gz
+          retention-days: 21
+          if-no-files-found: error
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Survival-Paradise-v0.21.0D2D.14-debug
+          path: |
+            Survival-Paradise-v0.21.0D2D.14.apk
+            Survival-Paradise-v0.21.0D2D.14.apk.sha256
+            android-export.log
+            authored2d-import.log
+            godot-v0179-parser.log
+            apk-signature.txt
+            apk-badging.txt
+            apk-zip-test.txt
+          retention-days: 14
+          if-no-files-found: error
+          compression-level: 0
