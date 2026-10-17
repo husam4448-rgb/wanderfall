@@ -1,9 +1,11 @@
 name: SP Melee — Six Real-Game Combat Actions and Screenshots
 on:
   push:
-    branches: [sp-v255-compact-weapons-attached-hands]
+    branches: [sp-v256-independent-aim-edge-locks]
     paths:
       - 'tools/sp_melee_live_game_qa.gd'
+      - 'patches/apply_sp_v256_dual_edge_locks.py'
+      - 'controls/EdgeLockJoystick.gd'
       - 'tools/build_sp_melee_walk_layers.py'
       - '.github/workflows/sp-melee-live-game-actions.yml'
       - 'melee-six-prototype/FirearmVisual.gd'
@@ -32,6 +34,7 @@ jobs:
           python3 patches/apply_godot_47_fixes.py /tmp/sp_realgame
           python3 -m pip install --quiet Pillow
           python3 patches/apply_sp_melee_phase16_experimental.py /tmp/sp_realgame
+          python3 patches/apply_sp_v256_dual_edge_locks.py /tmp/sp_realgame
           python3 - <<'PY'
           from pathlib import Path
           root=Path('/tmp/sp_realgame')
@@ -70,6 +73,8 @@ jobs:
           grep -q 'SP_MELEE_FAST_SLASH_QA_PASS' sp_melee_live_actions.log
           grep -q 'SP_FIREARM_V254_ART_QA_PASS' sp_melee_live_actions.log
           grep -q 'SP_WEAPON_HANDS_V255_QA_PASS' sp_melee_live_actions.log
+          grep -q 'SP_V256_DUAL_STICK_QA_PASS' sp_melee_live_actions.log
+          grep -q 'SP_V256_KNIFE_TARGET_QA_PASS' sp_melee_live_actions.log
           test "$(find /tmp/sp_realgame -maxdepth 1 -name 'sp_melee_game_qa_*.png' | wc -l)" -eq 6
           test "$(find /tmp/sp_realgame -maxdepth 1 -name 'sp_melee_walk_qa_*.png' | wc -l)" -eq 6
           test "$(find /tmp/sp_realgame -maxdepth 1 -name 'sp_v255_gun_*.png' | wc -l)" -eq 4
