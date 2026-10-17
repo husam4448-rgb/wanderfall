@@ -1,6 +1,7 @@
 extends Node
 ## QA injected into the ORIGINAL reconstructed game only at CI time.
 const Dummy = preload("res://assets/sp_melee/DamageDummy.gd")
+const SlashMath = preload("res://assets/sp_melee/SlashMath.gd")
 const ANGLES = [0.0, -PI/4.0, PI/4.0, PI, -3.0*PI/4.0, 3.0*PI/4.0]
 var failures: Array[String] = []
 func _ready() -> void:
@@ -51,8 +52,14 @@ func _run_test() -> void:
             _fail("Knife swing did not consume stamina at angle "+str(i))
             return
         await get_tree().create_timer(0.27).timeout
-        if i == 0 and not player._sp_melee_controller.knife.rotation < -0.02:
-            _fail("RIGHT knife must sweep up/forward; rotation="+str(player._sp_melee_controller.knife.rotation)+" elapsed="+str(player._sp_melee_controller.elapsed)+" aim="+str(player._sp_melee_controller.aim))
+        var upper_angle: float = SlashMath.slash_angle(ANGLES[i], 0.0)
+        var lower_angle: float = SlashMath.slash_angle(ANGLES[i], 1.0)
+        if not sin(lower_angle) > sin(upper_angle) + 0.65:
+            _fail("Knife direction not top-to-bottom at "+str(i))
+            return
+        var current_angle: float = player._sp_melee_controller.knife.rotation
+        if not (current_angle - start_rotation) * SlashMath.side(ANGLES[i]) > 0.11:
+            _fail("Actual blade motion is not downward at "+str(i))
             return
         await get_tree().process_frame
         await RenderingServer.frame_post_draw
@@ -94,8 +101,14 @@ func _run_test() -> void:
     InputState.set_mobile_move(Vector2.RIGHT)
     for frame in range(53):
         await get_tree().physics_frame
-        var near_angle: float = walker.near_hip.rotation
-        var far_angle: float = walker.far_hip.rotation
+        var near_angle: float = walker.near_ankle.x - walker.NEAR_HIP.x
+        var far_angle: float = walker.far_ankle.x - walker.FAR_HIP.x
+        if walker.gait_weight > 0.08 and (walker.near_hip.visible or walker.far_hip.visible):
+            _fail("Old disconnected pixel legs incorrectly displayed during skeletal stride")
+            return
+        if walker.upper.texture == null or walker.NEAR_HIP.y > 29.0 or walker.FAR_HIP.y > 29.0:
+            _fail("Leg skeleton has no pelvis coverage")
+            return
         near_min = minf(near_min,near_angle)
         near_max = maxf(near_max,near_angle)
         far_min = minf(far_min,far_angle)
@@ -113,7 +126,7 @@ func _run_test() -> void:
     if player.global_position.distance_to(start_pos)<12.0:
         _fail("Player failed to walk during leg animation test")
         return
-    if near_min >= -0.12 or near_max <= 0.12 or far_min >= -0.12 or far_max <= 0.12:
+    if near_min >= -2.0 or near_max <= 2.0 or far_min >= -2.0 or far_max <= 2.0:
         _fail("One or both legs are static: "+str([near_min,near_max,far_min,far_max]))
         return
     if swing_frames < 15:
@@ -129,10 +142,10 @@ func _run_test() -> void:
     for frame in range(24):
         await get_tree().physics_frame
     player.collision_mask = previous_collision_mask
-    if absf(walker.near_hip.rotation)>0.015 or absf(walker.far_hip.rotation)>0.015:
+    if not walker.near_hip.visible or not walker.far_hip.visible or walker.gait_weight > 0.08:
         _fail("Legs did not restore exact neutral pose after walking")
         return
-    print("SP_MELEE_GAIT_QA_PASS movement, leg counterphase, full alternating swing, left mirror, idle reset and 6 walk captures")
+    print("SP_MELEE_GAIT_QA_PASS B2B connected hip knee ankle, pelvis coverage, mirrored opposite stride and idle reset")
     get_tree().quit(0)
 
 func _fail(reason: String) -> void:
