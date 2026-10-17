@@ -138,7 +138,7 @@ func has_silhouette_at(world_point: Vector2) -> bool:
     var far_sprite: Sprite2D = far_hip.get_child(0) as Sprite2D
     return _inside_image(near_sprite,_near_alpha,world_point) or \\
         _inside_image(far_sprite,_far_alpha,world_point)
-'''.replace('\\\n','\\\n'))
+''')
 
 # True gun shape and hands are included; their child transforms rotate with aim.
 gun='assets/sp_melee/FirearmVisual.gd'
