@@ -6,7 +6,7 @@ const MeleeControllerScript = preload("res://MeleeController.gd")
 const ANGLES: Array[float] = [0.0, -PI/4.0, PI/4.0, PI, -3.0*PI/4.0, 3.0*PI/4.0]
 const LABELS: Array[String] = ["forward_right","up_right","down_right","forward_left","up_left","down_left"]
 var body: Sprite2D
-var controller: Node2D
+var controller
 var firearm: Line2D
 var gun_equipped: bool = false
 var aim_vector: Vector2 = Vector2.RIGHT
