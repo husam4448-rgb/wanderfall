@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/sp-v257-restore-plus-approved-survivor.yml'
       - 'tools/qa_sp_v257_restored_world_hud.gd'
+      - 'patches/apply_sp_v257_legacy_runtime_fixes.py'
   workflow_dispatch:
 
 permissions:
@@ -38,6 +39,7 @@ jobs:
           path: v257_overlay
           sparse-checkout: |
             patches/apply_sp_v257_d2d14_survivor_bridge.py
+            patches/apply_sp_v257_legacy_runtime_fixes.py
             melee-six-prototype
             tools/build_sp_melee_walk_layers.py
             tools/qa_sp_v257_restored_world_hud.gd
@@ -284,6 +286,7 @@ jobs:
           python3 "$PROJECT_DIR/tools/preflight.py" "$PROJECT_DIR"
           python3 -m pip install --quiet Pillow
           python3 v257_overlay/patches/apply_sp_v257_d2d14_survivor_bridge.py "$PROJECT_DIR"
+          python3 v257_overlay/patches/apply_sp_v257_legacy_runtime_fixes.py "$PROJECT_DIR"
           grep -q 'SP_ApprovedSimplifiedSurvivor' "$PROJECT_DIR/scripts/player.gd"
           grep -q 'AimJoystick' "$PROJECT_DIR/scripts/mobile_hud.gd"
 
@@ -388,9 +391,10 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq xvfb >/dev/null
           cp v257_overlay/tools/qa_sp_v257_restored_world_hud.gd "$PROJECT_DIR/sp_v257_native_qa.gd"
-          timeout 130s xvfb-run -a "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1536x708 --script res://sp_v257_native_qa.gd > sp_v257_native_world_hud_qa.log 2>&1
+          timeout 130s xvfb-run -a -s '-screen 0 1920x1080x24' "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1536x708 --script res://sp_v257_native_qa.gd > sp_v257_native_world_hud_qa.log 2>&1
           cat sp_v257_native_world_hud_qa.log | grep 'SP_V257_'
           grep -q 'SP_V257_RESTORED_HUD_WORLD_QA_PASS' sp_v257_native_world_hud_qa.log
+          if grep -E 'SCRIPT ERROR:|Compile Error:|Parse Error:' sp_v257_native_world_hud_qa.log; then exit 1; fi
           test -s "$PROJECT_DIR/SP_v257_ActualRestoredD2D14_HUD_World.png"
 
       - name: Export APK
