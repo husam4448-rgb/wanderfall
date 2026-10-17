@@ -39,6 +39,7 @@ jobs:
             patches/apply_sp_v257_d2d14_survivor_bridge.py
             melee-six-prototype
             tools/build_sp_melee_walk_layers.py
+            tools/qa_sp_v257_restored_world_hud.gd
 
       - name: Reconstruct source and apply Quick-Use v0.17.9
         shell: bash
@@ -379,6 +380,18 @@ jobs:
           set -euo pipefail
           tar -czf SP_D2D14_Original_HUD_World_Source.tar.gz -C "$PROJECT_DIR" scripts scenes assets/sp_melee project.godot export_presets.cfg
           test -s SP_D2D14_Original_HUD_World_Source.tar.gz
+      - name: Real Godot screenshot/controls QA of restored D2D14 HUD and detailed world
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb >/dev/null
+          cp v257_overlay/tools/qa_sp_v257_restored_world_hud.gd "$PROJECT_DIR/sp_v257_native_qa.gd"
+          timeout 130s xvfb-run -a "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1536x708 --script res://sp_v257_native_qa.gd > sp_v257_native_world_hud_qa.log 2>&1
+          cat sp_v257_native_world_hud_qa.log | grep 'SP_V257_'
+          grep -q 'SP_V257_RESTORED_HUD_WORLD_QA_PASS' sp_v257_native_world_hud_qa.log
+          test -s "$PROJECT_DIR/SP_v257_ActualRestoredD2D14_HUD_World.png"
+
       - name: Export APK
         shell: bash
         run: |
@@ -404,6 +417,16 @@ jobs:
           test "$APK_BYTES" -lt "$MAX_APK_BYTES"
           sha256sum "$APK" | tee SurvivalParadise-Restored-D2D14-World-ApprovedSurvivor-v257.apk.sha256
 
+      - name: Upload actual 1536x708 Godot HUD/world screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SP-v257-RealGodot-HUD-World-Screenshot
+          path: |
+            game/SP_v257_ActualRestoredD2D14_HUD_World.png
+            sp_v257_native_world_hud_qa.log
+          if-no-files-found: warn
+          retention-days: 21
       - name: Upload exact restored HUD/world runtime source
         uses: actions/upload-artifact@v4
         with:
