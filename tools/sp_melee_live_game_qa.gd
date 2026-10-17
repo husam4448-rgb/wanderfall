@@ -14,6 +14,59 @@ func _run_test() -> void:
     if player == null:
         _fail("Player missing from actual game scene")
         return
+    # v256 edge-lock touch controls: two independent visuals and input channels.
+    var mobile_hud = get_parent().get_node_or_null("HUD")
+    if mobile_hud == null or mobile_hud.aim_joystick == null or mobile_hud.joystick == null:
+        _fail("Dual-stick HUD missing")
+        return
+    var left = mobile_hud.joystick
+    var right = mobile_hud.aim_joystick
+    if left == right or left.get_parent() != mobile_hud or right.get_parent() != mobile_hud:
+        _fail("Both sticks must be separate independent touch controls")
+        return
+    var left_c: Vector2 = left.size * 0.5
+    var right_c: Vector2 = right.size * 0.5
+    left._start_input(left_c + Vector2(left.radius, 0))
+    left._end_input()
+    if not left.locked or InputState.mobile_move.distance_to(Vector2.RIGHT) > 0.02 or not InputState.mobile_move_locked:
+        _fail("Movement did not latch to outer rim after release")
+        return
+    right._start_input(right_c + Vector2(0,-right.radius))
+    right._end_input()
+    if not right.locked or InputState.mobile_aim.distance_to(Vector2.UP) > 0.02 or not InputState.mobile_aim_locked:
+        _fail("Aim direction did not latch when touching outer ring")
+        return
+    var old_aim: Vector2 = InputState.mobile_aim
+    left._start_input(left_c + Vector2(-left.radius, 0))
+    left._end_input()
+    if InputState.mobile_move.distance_to(Vector2.LEFT) > 0.02 or InputState.mobile_aim.distance_to(old_aim) > 0.001:
+        _fail("Steering locked running stick incorrectly changed locked weapon aim")
+        return
+    InputState.mobile_sprint = true
+    for _frame in range(5):
+        await get_tree().physics_frame
+    if player._facing.distance_to(Vector2.UP) > 0.01:
+        _fail("Character aiming was hijacked by left-stick movement or RUN")
+        return
+    InputState.mobile_sprint = false
+    left._start_input(left_c)
+    left._end_input()
+    if left.locked or InputState.mobile_move.length() > 0.005 or right.locked == false:
+        _fail("Movement center unlock affected another stick or failed to stop movement")
+        return
+    right._start_input(right_c + Vector2(right.radius,0))
+    right._end_input()
+    if InputState.mobile_aim.distance_to(Vector2.RIGHT) > 0.02 or not right.locked:
+        _fail("Right-stick outer edge cannot change locked direction")
+        return
+    right._start_input(right_c)
+    right._end_input()
+    if right.locked or InputState.mobile_aim.length() > 0.005:
+        _fail("Aim center tap did not clear aim lock")
+        return
+    InputState.set_mobile_aim(Vector2.ZERO)
+    InputState.set_mobile_move(Vector2.ZERO)
+    print("SP_V256_DUAL_STICK_QA_PASS move rim latch; aim rim latch; separate directions; RUN aim independence; center unlock")
     # Phase v254: the former grey pole was a Line2D. Reject it outright.
     var gun_visual = player._sp_firearm_visual
     if gun_visual is Line2D or gun_visual.name != "IndependentPixelFirearmArt":
@@ -197,6 +250,38 @@ func _run_test() -> void:
         far.queue_free()
         miss.queue_free()
         await get_tree().process_frame
+    # v256 nearest HOSTILE quick melee: hostile chosen without altering gun aim.
+    player._attack_cooldown = 0.0
+    player._facing = Vector2.RIGHT
+    var aim_before_melee: Vector2 = player._facing
+    var close_hostile: Node2D = Dummy.new()
+    var distant_hostile: Node2D = Dummy.new()
+    get_tree().root.add_child(close_hostile)
+    get_tree().root.add_child(distant_hostile)
+    close_hostile.add_to_group("hostile_actor")
+    distant_hostile.add_to_group("hostile_actor")
+    close_hostile.global_position = player.global_position + Vector2(-22, 0)
+    distant_hostile.global_position = player.global_position + Vector2(38, 0)
+    player.survival_stats.stamina = 100.0
+    player._sp_quick_melee()
+    if not player._sp_melee_controller.attacking:
+        _fail("Auto knife did not start")
+        return
+    if player._sp_melee_controller.aim > -2.9 or player._facing.distance_to(aim_before_melee) > 0.001:
+        _fail("Auto knife did not swing at nearest LEFT hostile while retaining RIGHT firearm aim")
+        return
+    for _tick in range(16):
+        await get_tree().physics_frame
+    if close_hostile.hits != 1 or distant_hostile.hits != 0:
+        _fail("Nearest hostile knife damage incorrect "+str([close_hostile.hits,distant_hostile.hits]))
+        return
+    if player._facing.distance_to(aim_before_melee) > 0.001 or not player._sp_firearm_visual.visible:
+        _fail("Firearm aim or visibility changed permanently after auto melee")
+        return
+    close_hostile.queue_free()
+    distant_hostile.queue_free()
+    await get_tree().process_frame
+    print("SP_V256_KNIFE_TARGET_QA_PASS closest hostile takes 1 hit, other misses, firearm aim unchanged")
     print("SP_MELEE_LIVE_GAME_QA_PASS checks="+str(checks)+" 6 angles; fast window, equipped firearm, damage")
     print("SP_MELEE_FAST_SLASH_QA_PASS 165ms complete, physics-frame swept hits on all 6 aim zones")
     var walker = player._sp_sprite
