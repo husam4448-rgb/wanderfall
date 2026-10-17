@@ -267,7 +267,7 @@ func _run_test() -> void:
     if not player._sp_melee_controller.attacking:
         _fail("Auto knife did not start")
         return
-    if player._sp_melee_controller.aim > -2.9 or player._facing.distance_to(aim_before_melee) > 0.001:
+    if absf(absf(player._sp_melee_controller.aim) - PI) > 0.05 or player._facing.distance_to(aim_before_melee) > 0.001:
         _fail("Auto knife did not swing at nearest LEFT hostile while retaining RIGHT firearm aim")
         return
     for _tick in range(16):
