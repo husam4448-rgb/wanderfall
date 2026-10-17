@@ -38,6 +38,25 @@ func _verify() -> void:
     if not player._sp_sprite.visible or player._baked_visual.visible:
         _fail("Approved male character is not the active render layer")
         return
+    if player._baked_visual.is_processing():
+        _fail("Male's hidden original BakedActorVisual is STILL redrawing per frame")
+        return
+    if player._sp_sprite == null or not player._sp_sprite.visible:
+        _fail("Approved male replacement disappeared")
+        return
+    # Female mode retains legacy equipment/body visuals and processing; switching
+    # back restores original approved male without a second hidden renderer.
+    player.set_body_type("female")
+    await process_frame
+    if not player._baked_visual.is_processing() or not player._baked_visual.visible:
+        _fail("Female historic body disappeared after CPU optimization")
+        return
+    player.set_body_type("male")
+    await process_frame
+    if player._baked_visual.is_processing() or not player._sp_sprite.visible:
+        _fail("Female-to-male switch leaked hidden legacy redraws")
+        return
+    print("SP_V258_HIDDEN_RENDER_QA_PASS inactive male legacy renderer costs zero ticks; female toggle retained")
     if player._sp_firearm_visual.weapon_family != "pistol":
         _fail("Compact pistol failed equipment sync")
         return
