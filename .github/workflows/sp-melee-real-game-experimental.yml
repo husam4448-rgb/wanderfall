@@ -122,6 +122,6 @@ jobs:
           retention-days: 14
           compression-level: 0
           path: |
-            SurvivalParadise-Experimental-CompactWeaponHands-v255.apk
+            SurvivalParadise-Experimental-DualStickEdgeLock-v256.apk
             sp_melee_phase16_*.log
             sp_melee_phase16_*.txt
