@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Experimental Phase16 real-game adapter. Never modifies protected repository art."""
 from pathlib import Path
-import shutil,sys
+import shutil,sys,subprocess
 root=Path(sys.argv[1]);repo=Path(__file__).resolve().parent.parent
 assert (root/'scripts/player.gd').exists() and (root/'scenes/main.tscn').exists()
 def patch(path,old,new,label):
@@ -12,6 +12,8 @@ def append(path,term):
     f=root/path; f.write_text(f.read_text(encoding='utf-8')+term,encoding='utf-8')
 art=root/'assets'/'sp_melee';art.mkdir(parents=True,exist_ok=True)
 shutil.copy2(repo/'melee-six-prototype/assets/approved_clean_torso_right.png',art/'approved_clean_torso_right.png')
+subprocess.run([sys.executable,str(repo/'tools/build_sp_melee_walk_layers.py'),str(art/'approved_clean_torso_right.png'),str(art)],check=True)
+shutil.copy2(repo/'melee-six-prototype/SurvivorWalkSprite.gd',art/'SurvivorWalkSprite.gd')
 for name in ('SlashMath.gd','MeleeController.gd','KnifeVisual.gd'):
     shutil.copy2(repo/'melee-six-prototype'/name,art/name)
 patch('scripts/input_state.gd','var _attack_requested := false\n','var _attack_requested := false\nvar _quick_melee_requested := false\n','input state declaration')
@@ -24,7 +26,7 @@ patch('scripts/mobile_hud.gd','    attack_button.size = Vector2(112, 66) * ts\n'
 patch('scripts/combat/hostile_actor.gd','    add_to_group("hostile_actor")\n','    add_to_group("hostile_actor")\n    add_to_group("damageable")\n','hostile group')
 patch('scripts/ecology/wildlife_actor.gd','        add_to_group("huntable_actor")\n','        add_to_group("huntable_actor")\n        add_to_group("damageable")\n','wildlife group')
 patch('scripts/ecology/wildlife_actor.gd','    remove_from_group("huntable_actor")\n','    remove_from_group("huntable_actor")\n    remove_from_group("damageable")\n','dead wildlife group')
-patch('scripts/player.gd','var _muzzle_flash_timer := 0.0\n','var _muzzle_flash_timer := 0.0\nvar _sp_melee_controller\nvar _sp_sprite: Sprite2D\nvar _sp_firearm_visual: Line2D\n','player child declarations')
+patch('scripts/player.gd','var _muzzle_flash_timer := 0.0\n','var _muzzle_flash_timer := 0.0\nvar _sp_melee_controller\nvar _sp_sprite\nvar _sp_firearm_visual: Line2D\n','player child declarations')
 patch('scripts/player.gd','    equipment.attachments_changed.connect(queue_redraw)\n','    equipment.attachments_changed.connect(queue_redraw)\n    _sp_melee_setup()\n','initialize player adapter')
 patch('scripts/player.gd','    queue_redraw()\n\nfunc _process(delta: float) -> void:\n','    _sp_melee_update_visuals()\n    queue_redraw()\n\nfunc _process(delta: float) -> void:\n','move pose visual update')
 patch('scripts/player.gd','    if current_vehicle == null and (Input.is_action_pressed("attack") or InputState.consume_attack_request()):\n','    if current_vehicle == null and (Input.is_action_just_pressed("quick_melee") or InputState.consume_quick_melee_request()):\n        _sp_quick_melee()\n    if current_vehicle == null and (Input.is_action_pressed("attack") or InputState.consume_attack_request()):\n','process independent knife input')
@@ -49,12 +51,8 @@ patch('scripts/player.gd',a,b,'replace instant melee damage')
 patch('scripts/player.gd','func _draw() -> void:\n    if current_vehicle != null','func _draw() -> void:\n    # Experimental approved-art overlay replaces only legacy polygon actor drawing.\n    if _sp_sprite != null:\n        return\n    if current_vehicle != null','hide old figure during simplified art test')
 append('scripts/player.gd', '''
 func _sp_melee_setup() -> void:
-    _sp_sprite = Sprite2D.new()
-    _sp_sprite.name = "EXPApprovedSleevelessSurvivor"
-    _sp_sprite.texture = load("res://assets/sp_melee/approved_clean_torso_right.png")
-    _sp_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-    _sp_sprite.scale = Vector2(0.58,0.58)
-    _sp_sprite.position = Vector2(0,-8)
+    _sp_sprite = preload("res://assets/sp_melee/SurvivorWalkSprite.gd").new()
+    _sp_sprite.name = "EXPApprovedSleevelessSurvivorWithWalkingLegs"
     add_child(_sp_sprite)
     _sp_melee_controller = preload("res://assets/sp_melee/MeleeController.gd").new()
     _sp_melee_controller.name = "SP_SixAngleRotatingKnife"
@@ -73,7 +71,7 @@ func _sp_melee_update_visuals() -> void:
     if _sp_sprite == null or _sp_melee_controller == null:
         return
     var side_right: bool = _facing.x >= 0.0
-    _sp_sprite.flip_h = not side_right
+    _sp_sprite.advance(velocity, get_physics_process_delta_time(), side_right)
     _sp_melee_controller.position = Vector2(8 if side_right else -8, 0)
     _sp_firearm_visual.position = _sp_melee_controller.position
     _sp_firearm_visual.rotation = _facing.angle()
