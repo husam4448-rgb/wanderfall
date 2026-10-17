@@ -5,9 +5,10 @@ signal target_hit(target: Node, damage: float)
 signal attack_completed
 const Math2D = preload("res://SlashMath.gd")
 const KnifeVisual = preload("res://KnifeVisual.gd")
-const WINDUP: float = 0.10
-const ACTIVE: float = 0.30
-const RECOVERY: float = 0.20
+# Fast knife cut: 165 ms end-to-end, with a 90 ms swept damage window.
+const WINDUP: float = 0.025
+const ACTIVE: float = 0.090
+const RECOVERY: float = 0.050
 const TOTAL: float = WINDUP + ACTIVE + RECOVERY
 @export var base_damage: float = 18.0
 @export var stamina_cost: float = 9.0
