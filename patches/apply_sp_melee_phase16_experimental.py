@@ -1,0 +1,116 @@
+#!/usr/bin/env python3
+"""Experimental Phase16 real-game adapter. Never modifies protected repository art."""
+from pathlib import Path
+import shutil,sys
+root=Path(sys.argv[1]);repo=Path(__file__).resolve().parent.parent
+assert (root/'scripts/player.gd').exists() and (root/'scenes/main.tscn').exists()
+def patch(path,old,new,label):
+    f=root/path;s=f.read_text(encoding='utf-8')
+    if s.count(old)!=1:raise SystemExit(f'{label} expected once, found {s.count(old)} in {path}')
+    f.write_text(s.replace(old,new,1),encoding='utf-8')
+def append(path,term):
+    f=root/path; f.write_text(f.read_text(encoding='utf-8')+term,encoding='utf-8')
+art=root/'assets'/'sp_melee';art.mkdir(parents=True,exist_ok=True)
+shutil.copy2(repo/'melee-six-prototype/assets/approved_clean_torso_right.png',art/'approved_clean_torso_right.png')
+for name in ('SlashMath.gd','MeleeController.gd','KnifeVisual.gd'):
+    shutil.copy2(repo/'melee-six-prototype'/name,art/name)
+patch('scripts/input_state.gd','var _attack_requested := false\n','var _attack_requested := false\nvar _quick_melee_requested := false\n','input state declaration')
+patch('scripts/input_state.gd','func request_attack() -> void:\n','func request_quick_melee() -> void:\n    _quick_melee_requested = true\n\nfunc consume_quick_melee_request() -> bool:\n    var value := _quick_melee_requested\n    _quick_melee_requested = false\n    return value\n\nfunc request_attack() -> void:\n','quick melee input method')
+patch('scripts/input_state.gd','    _attack_requested = false\n','    _attack_requested = false\n    _quick_melee_requested = false\n','reset quick melee')
+patch('project.godot','[input]\n','[input]\nquick_melee={\n"deadzone": 0.2,\n"events": [Object(InputEventKey,"physical_keycode":67), Object(InputEventJoypadButton,"button_index":1)]\n}\n','input action C/B')
+patch('scripts/mobile_hud.gd','var attack_button: Button\n','var attack_button: Button\nvar quick_melee_button: Button\n','mobile button declaration')
+patch('scripts/mobile_hud.gd','    attack_button = _make_button("ATTACK")\n','    quick_melee_button = _make_button("KNIFE")\n    quick_melee_button.pressed.connect(func(): InputState.request_quick_melee())\n    add_child(quick_melee_button)\n\n    attack_button = _make_button("ATTACK")\n','mobile button creation')
+patch('scripts/mobile_hud.gd','    attack_button.size = Vector2(112, 66) * ts\n','    quick_melee_button.size = Vector2(90, 50) * ts\n    quick_melee_button.position = Vector2(viewport_size.x - 440 * ts - margin, viewport_size.y - 90 * ts - margin)\n    attack_button.size = Vector2(112, 66) * ts\n','mobile button position')
+patch('scripts/combat/hostile_actor.gd','    add_to_group("hostile_actor")\n','    add_to_group("hostile_actor")\n    add_to_group("damageable")\n','hostile group')
+patch('scripts/ecology/wildlife_actor.gd','        add_to_group("huntable_actor")\n','        add_to_group("huntable_actor")\n        add_to_group("damageable")\n','wildlife group')
+patch('scripts/ecology/wildlife_actor.gd','    remove_from_group("huntable_actor")\n','    remove_from_group("huntable_actor")\n    remove_from_group("damageable")\n','dead wildlife group')
+patch('scripts/player.gd','var _muzzle_flash_timer := 0.0\n','var _muzzle_flash_timer := 0.0\nvar _sp_melee_controller: Node2D\nvar _sp_sprite: Sprite2D\nvar _sp_firearm_visual: Line2D\n','player child declarations')
+patch('scripts/player.gd','    equipment.attachments_changed.connect(queue_redraw)\n','    equipment.attachments_changed.connect(queue_redraw)\n    _sp_melee_setup()\n','initialize player adapter')
+patch('scripts/player.gd','    queue_redraw()\n\nfunc _process(delta: float) -> void:\n','    _sp_melee_update_visuals()\n    queue_redraw()\n\nfunc _process(delta: float) -> void:\n','move pose visual update')
+patch('scripts/player.gd','    if current_vehicle == null and (Input.is_action_pressed("attack") or InputState.consume_attack_request()):\n','    if current_vehicle == null and (Input.is_action_just_pressed("quick_melee") or InputState.consume_quick_melee_request()):\n        _sp_quick_melee()\n    if current_vehicle == null and (Input.is_action_pressed("attack") or InputState.consume_attack_request()):\n','process independent knife input')
+patch('scripts/player.gd','    if _attack_cooldown > 0.0 or equipment.is_broken():\n','    if _attack_cooldown > 0.0 or equipment.is_broken() or _sp_melee_controller.attacking:\n','block shooting during melee')
+a='''    var weapon_range := float(data.get("range", 55.0))
+    var damage := float(data.get("damage", 18.0))
+    var target := _find_hostile_target(weapon_range, 0.18)
+    if target != null and target.has_method("take_damage"):
+        var applied: float = target.take_damage(damage, self)
+        combat_message.emit("%s: %d damage." % [ItemDatabase.get_display_name(equipment.equipped_weapon_id), int(round(applied))])
+    else:
+        combat_message.emit("Melee swing missed.")
+    NoiseManager.emit_noise(global_position, float(data.get("noise", 65.0)), "player")
+    AudioEventBus.emit_event("melee_swing", global_position)
+    equipment.apply_condition_loss(float(data.get("condition_loss", 0.12)))
+'''
+b='''    # No instant auto-target damage. Physics contact determines hit timing.
+    _sp_start_swing(_facing, float(data.get("damage", 18.0)))
+    equipment.apply_condition_loss(float(data.get("condition_loss", 0.12)))
+'''
+patch('scripts/player.gd',a,b,'replace instant melee damage')
+patch('scripts/player.gd','func _draw() -> void:\n    if current_vehicle != null','func _draw() -> void:\n    # Experimental approved-art overlay replaces only legacy polygon actor drawing.\n    if _sp_sprite != null:\n        return\n    if current_vehicle != null','hide old figure during simplified art test')
+append('scripts/player.gd', '''
+func _sp_melee_setup() -> void:
+    _sp_sprite = Sprite2D.new()
+    _sp_sprite.name = "EXPApprovedSleevelessSurvivor"
+    _sp_sprite.texture = load("res://assets/sp_melee/approved_clean_torso_right.png")
+    _sp_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+    _sp_sprite.scale = Vector2(0.58,0.58)
+    _sp_sprite.position = Vector2(0,-8)
+    add_child(_sp_sprite)
+    _sp_melee_controller = preload("res://assets/sp_melee/MeleeController.gd").new()
+    _sp_melee_controller.name = "SP_SixAngleRotatingKnife"
+    add_child(_sp_melee_controller)
+    _sp_firearm_visual = Line2D.new()
+    _sp_firearm_visual.name = "EXPHeldEquippedFirearm"
+    _sp_firearm_visual.width = 4
+    _sp_firearm_visual.default_color = Color("#4b555f")
+    _sp_firearm_visual.add_point(Vector2(-6, 0))
+    _sp_firearm_visual.add_point(Vector2(28, 0))
+    add_child(_sp_firearm_visual)
+    _sp_melee_controller.target_hit.connect(_sp_melee_on_hit)
+    _sp_melee_update_visuals()
+
+func _sp_melee_update_visuals() -> void:
+    if _sp_sprite == null or _sp_melee_controller == null:
+        return
+    var side_right: bool = _facing.x >= 0.0
+    _sp_sprite.flip_h = not side_right
+    _sp_melee_controller.position = Vector2(8 if side_right else -8, 0)
+    _sp_firearm_visual.position = _sp_melee_controller.position
+    _sp_firearm_visual.rotation = _facing.angle()
+    # Equipped inventory identity remains authoritative. Quick melee has no swap.
+    if not _sp_melee_controller.attacking:
+        _sp_firearm_visual.visible = equipment.get_weapon_category() == "firearm"
+    if current_vehicle != null:
+        _sp_sprite.visible = false
+        _sp_firearm_visual.visible = false
+    else:
+        _sp_sprite.visible = true
+
+func _sp_start_swing(aim: Vector2, amount: float) -> bool:
+    if _sp_melee_controller.attacking:
+        return false
+    _sp_melee_controller.base_damage = amount
+    if not _sp_melee_controller.begin_slash(aim, _sp_firearm_visual if equipment.get_weapon_category() == "firearm" else null, self):
+        return false
+    _attack_cooldown = maxf(_attack_cooldown, 0.6)
+    NoiseManager.emit_noise(global_position,65.0,"player")
+    AudioEventBus.emit_event("melee_swing",global_position)
+    return true
+
+func _sp_quick_melee() -> void:
+    if current_vehicle != null or _attack_cooldown > 0.0 or _sp_melee_controller.attacking:
+        return
+    if inventory.count_item("knife") <= 0:
+        combat_message.emit("No knife available for quick melee.")
+        return
+    if _sp_start_swing(_facing, 18.0):
+        combat_message.emit("Quick knife slash — firearm retained.")
+
+func _sp_melee_on_hit(target: Node, damage: float) -> void:
+    combat_message.emit("Knife hit %s for %d." % [target.name, int(round(damage))])
+''')
+# Accept actual source-node source attribution on target, even if target has a default source argument.
+ctrl=root/'assets/sp_melee/MeleeController.gd'
+s=ctrl.read_text(encoding='utf-8').replace('target.call("take_damage", base_damage)','target.call("take_damage", base_damage, attacker)')
+ctrl.write_text(s,encoding='utf-8')
+print('SP_MELEE_PHASE16_SOURCE_PATCH_APPLIED safe isolated source copy')
