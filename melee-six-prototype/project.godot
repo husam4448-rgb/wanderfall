@@ -1,0 +1,15 @@
+; Survival Paradise experimental 6-angle melee art + gameplay mechanics.
+config_version=5
+[application]
+config/name="Survival Paradise Six-Angle Melee QA"
+run/main_scene="res://Main.tscn"
+config/features=PackedStringArray("4.4","GL Compatibility")
+[display]
+window/size/viewport_width=900
+window/size/viewport_height=520
+window/size/window_width_override=900
+window/size/window_height_override=520
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/default_filters/use_nearest_mipmap_filter=false
