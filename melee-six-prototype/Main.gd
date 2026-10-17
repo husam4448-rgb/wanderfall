@@ -33,6 +33,8 @@ func _ready() -> void:
     _set_facing(0.0)
     if OS.get_environment("SP_MELEE_QA") == "1":
         call_deferred("_capture_all")
+    elif OS.get_environment("SP_MELEE_DAMAGE_QA") == "1":
+        call_deferred("_damage_qa")
     set_process(true)
 
 func _set_facing(angle: float) -> void:
@@ -44,7 +46,7 @@ func _set_facing(angle: float) -> void:
     firearm.visible = gun_equipped and not controller.attacking
 
 func _process(delta: float) -> void:
-    if OS.get_environment("SP_MELEE_QA") == "1":
+    if OS.get_environment("SP_MELEE_QA") == "1" or OS.get_environment("SP_MELEE_DAMAGE_QA") == "1":
         return
     breathing_clock += delta
     if not controller.attacking:
@@ -112,4 +114,78 @@ func _capture_all() -> void:
                 get_tree().quit(19)
                 return
     print("SP_MELEE_QA_GODOT_CAPTURE_PASS 36 screenshots; VISUAL REVIEW PENDING")
+    get_tree().quit(0)
+
+func _new_damage_dummy(at_position: Vector2) -> Node2D:
+    var dummy: Node2D = preload("res://DamageDummy.gd").new()
+    add_child(dummy)
+    dummy.global_position = at_position
+    return dummy
+
+func _damage_qa() -> void:
+    # Real physics-frame integration of target hit, once-only rule, missed
+    # targets, firearm hide/restore, and wall occlusion for all six aim zones.
+    var successes: int = 0
+    gun_equipped = true
+    for angle in ANGLES:
+        _set_facing(angle)
+        var pivot: Vector2 = controller.global_position
+        var direction: Vector2 = Vector2.RIGHT.rotated(angle)
+        var hit_target: Node2D = _new_damage_dummy(pivot + direction * 34.0)
+        var far_target: Node2D = _new_damage_dummy(pivot + direction * 75.0)
+        var off_target: Node2D = _new_damage_dummy(pivot + direction.rotated(PI/2.0) * 34.0)
+        firearm.visible = true
+        if not controller.begin_slash(direction, firearm, self):
+            push_error("SP_MELEE_DAMAGE_QA begin failed")
+            get_tree().quit(31)
+            return
+        if firearm.visible:
+            push_error("SP_MELEE_DAMAGE_QA rifle not hidden during quick melee")
+            get_tree().quit(32)
+            return
+        await get_tree().create_timer(0.75).timeout
+        if hit_target.get("hits") != 1:
+            push_error("SP_MELEE_DAMAGE_QA expected exactly one hit at "+str(angle)+" got "+str(hit_target.get("hits")))
+            get_tree().quit(33)
+            return
+        if far_target.get("hits") != 0 or off_target.get("hits") != 0:
+            push_error("SP_MELEE_DAMAGE_QA phantom hit at "+str(angle))
+            get_tree().quit(34)
+            return
+        if controller.attacking or not firearm.visible:
+            push_error("SP_MELEE_DAMAGE_QA rifle failed to restore after recovery")
+            get_tree().quit(35)
+            return
+        successes += 4
+        hit_target.queue_free()
+        far_target.queue_free()
+        off_target.queue_free()
+        await get_tree().process_frame
+    # A wall must block the ray before damage is applied.
+    _set_facing(0.0)
+    var test_pivot: Vector2 = controller.global_position
+    var blocked: Node2D = _new_damage_dummy(test_pivot + Vector2(36,0))
+    var wall := StaticBody2D.new()
+    wall.collision_layer = 1
+    wall.collision_mask = 0
+    var shape := CollisionShape2D.new()
+    var rectangle := RectangleShape2D.new()
+    rectangle.size = Vector2(10, 32)
+    shape.shape = rectangle
+    wall.add_child(shape)
+    add_child(wall)
+    wall.global_position = test_pivot + Vector2(18,0)
+    await get_tree().physics_frame
+    firearm.visible = true
+    if not controller.begin_slash(Vector2.RIGHT, firearm, self):
+        push_error("SP_MELEE_DAMAGE_QA blocked attack refused to begin")
+        get_tree().quit(36)
+        return
+    await get_tree().create_timer(0.75).timeout
+    if blocked.get("hits") != 0:
+        push_error("SP_MELEE_DAMAGE_QA attack passed through solid wall")
+        get_tree().quit(37)
+        return
+    successes += 1
+    print("SP_MELEE_DAMAGE_QA_PASS checks=", successes, " six zones + cover + gun restoration")
     get_tree().quit(0)
