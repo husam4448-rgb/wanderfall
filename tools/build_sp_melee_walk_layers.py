@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Non-destructively split the APPROVED sleeve-free survivor into animated leg layers.
+"""Non-destructively split the APPROVED survivor at a pelvis-overlapping bone seam.
 Do not repaint, enlarge, invent pixels, or regenerate the character.
-The recomposed neutral pose must be byte-identical RGBA to the source.
+The recomposed neutral pose must be byte-identical RGBA to the source. The full original pelvis stays above both animated B2B legs.
 """
 from pathlib import Path
 from PIL import Image
@@ -17,10 +17,10 @@ far=Image.new("RGBA",im.size)
 for y in range(96):
     for x in range(64):
         value=im.getpixel((x,y))
-        if y <=69:
+        if y <=77:
             upper.putpixel((x,y),value)
         else:
-            split_x=38 if y < 77 else 37
+            split_x=37
             (near if x < split_x else far).putpixel((x,y),value)
 rest=Image.new("RGBA",im.size)
 rest.alpha_composite(far)
