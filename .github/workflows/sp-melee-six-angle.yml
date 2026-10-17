@@ -51,6 +51,12 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/qa_sp_melee_six.py | tee sp-melee-visual-qa.log
+      - name: Test real physics-frame damage, walls, duplicate suppression and rifle restoration
+        run: |
+          set -euo pipefail
+          SP_MELEE_DAMAGE_QA=1 timeout 150s xvfb-run -a "$GODOT_BIN" --path melee-six-prototype --resolution 900x520 >sp-melee-damage.log 2>&1
+          cat sp-melee-damage.log
+          grep -q 'SP_MELEE_DAMAGE_QA_PASS checks=25' sp-melee-damage.log
       - name: Preserve actual Godot QA evidence
         if: always()
         uses: actions/upload-artifact@v4
