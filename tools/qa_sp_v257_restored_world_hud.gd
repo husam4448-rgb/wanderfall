@@ -89,6 +89,114 @@ func _verify() -> void:
     if int(world.call("get_active_chunk_count")) < 1:
         _fail("Detailed world chunks did not load")
         return
+    # v259 regression: movement must not aim even before first aim touch.
+    var input_state: Node = root.get_node_or_null("InputState")
+    if input_state == null:
+        _fail("InputState singleton missing")
+        return
+    input_state.call("reset_mobile_state")
+    if not player._has_mobile_aim_direction or player._facing.distance_to(Vector2.RIGHT) > 0.01:
+        _fail("Aim requires a right-stick touch before it can stay independent")
+        return
+    input_state.call("set_mobile_move", Vector2.LEFT)
+    input_state.set("mobile_sprint", true)
+    for _i in range(8):
+        await physics_frame
+    if player._facing.distance_to(Vector2.RIGHT) > 0.01:
+        _fail("LEFT movement or sprint has changed starting RIGHT aim")
+        return
+    input_state.set("mobile_sprint", false)
+    input_state.call("set_mobile_aim", Vector2.UP)
+    for _i in range(5):
+        await physics_frame
+    if player._facing.distance_to(Vector2.UP) > 0.01:
+        _fail("Right-stick aim did not move independently UP")
+        return
+    input_state.call("set_mobile_aim", Vector2.ZERO)
+    input_state.call("set_mobile_move", Vector2.DOWN)
+    for _i in range(8):
+        await physics_frame
+    if player._facing.distance_to(Vector2.UP) > 0.01:
+        _fail("A released aim lock was overridden by movement")
+        return
+    input_state.call("set_mobile_move", Vector2.ZERO)
+    player.set_saved_facing(Vector2.LEFT)
+    await physics_frame
+    input_state.call("set_mobile_move", Vector2.RIGHT)
+    for _i in range(6):
+        await physics_frame
+    if player._facing.distance_to(Vector2.LEFT) > 0.01:
+        _fail("Loaded facing is overwritten by first walking movement")
+        return
+    input_state.call("set_mobile_move", Vector2.ZERO)
+    print("SP_V259_AIM_LATCH_QA_PASS first-frame move never turns, RUN independent, right aim retained after release, saved facing persistent")
+
+    # Geometry proof: take opaque/clear pixels FROM the actual approved upper
+    # rather than accepting the old procedural orange anatomy figure.
+    var rig = player._sp_sprite
+    var image: Image = rig._upper_alpha
+    var checked_solid: int = 0
+    var checked_empty: int = 0
+    for yy in range(0,48):
+        for xx in range(0,64):
+            var p: Vector2 = Vector2(float(xx) + 0.5 - image.get_width()*0.5,
+                                  float(yy) + 0.5 - image.get_height()*0.5)
+            var global_sample: Vector2 = rig.upper.to_global(p)
+            if image.get_pixel(xx,yy).a > 0.95 and checked_solid < 8:
+                if not rig.has_silhouette_at(global_sample) or not player._sp_occlusion_shape_contains(global_sample):
+                    _fail("Visible approved torso/face pixel missing from foliage mask")
+                    return
+                checked_solid += 1
+            if image.get_pixel(xx,yy).a < 0.01 and checked_empty < 8:
+                if rig.has_silhouette_at(global_sample):
+                    _fail("Invisible transparent head pixel incorrectly creates orange ghost shape")
+                    return
+                checked_empty += 1
+    if checked_solid < 8 or checked_empty < 8:
+        _fail("Source-image alpha tests did not exercise opaque and transparent pixels")
+        return
+    var occlusion: Node = world.get_child(0)
+    if occlusion == null or not occlusion.has_method("_draw_partial_silhouette"):
+        _fail("D2D original world lost tree occlusion compositor")
+        return
+    occlusion.call("_collect_actors")
+    if not player in occlusion._actors:
+        _fail("Actual world canopy does not include the visible player actor")
+        return
+    print("SP_V259_SPRITE_MASK_QA_PASS 8 exact source alpha pixels, 8 transparent rejects, actual B2B rig active, real world occlusion overlay bound to approved player")
+
+    # Stage a partial tree-cover gameplay image without changing world data.
+    var original_position: Vector2 = player.global_position
+    var cover_location: Vector2 = Vector2.INF
+    var cover_probes: Array[Vector2] = [
+        Vector2(0,-27),Vector2(-9,-20),Vector2(10,-18),
+        Vector2(-10,0),Vector2(9,2),Vector2(0,15)]
+    for yy in range(-240,241,24):
+        if cover_location.is_finite():
+            break
+        for xx in range(-240,241,24):
+            var candidate: Vector2 = original_position + Vector2(xx,yy)
+            var occluded_count: int = 0
+            for probe in cover_probes:
+                if bool(world.call("is_world_point_tree_occluded",candidate+probe)):
+                    occluded_count += 1
+            if occluded_count >= 2 and occluded_count <= 5:
+                cover_location = candidate
+                break
+    if cover_location.is_finite():
+        player.global_position = cover_location
+        await process_frame
+        await process_frame
+        await RenderingServer.frame_post_draw
+        var image_path: String = ProjectSettings.globalize_path("res://SP_v259_ActualApprovedShape_UnderTrees.png")
+        if root.get_texture().get_image().save_png(image_path) != OK:
+            _fail("Tree silhouette screenshot could not be saved")
+            return
+        player.global_position = original_position
+        print("SP_V259_PARTIAL_TREE_PREVIEW_PASS native screenshot generated")
+    else:
+        print("SP_V259_PARTIAL_TREE_PREVIEW_UNAVAILABLE procedural seed has no cover location nearby")
+
     # Ensure screen-backed visible game+HUD image rather than an offscreen
     # fake composition of old UI elements.
     await RenderingServer.frame_post_draw
