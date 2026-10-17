@@ -14,7 +14,7 @@ art=root/'assets'/'sp_melee';art.mkdir(parents=True,exist_ok=True)
 shutil.copy2(repo/'melee-six-prototype/assets/approved_clean_torso_right.png',art/'approved_clean_torso_right.png')
 subprocess.run([sys.executable,str(repo/'tools/build_sp_melee_walk_layers.py'),str(art/'approved_clean_torso_right.png'),str(art)],check=True)
 shutil.copy2(repo/'melee-six-prototype/SurvivorWalkSprite.gd',art/'SurvivorWalkSprite.gd')
-for name in ('SlashMath.gd','MeleeController.gd','KnifeVisual.gd'):
+for name in ('SlashMath.gd','MeleeController.gd','KnifeVisual.gd','FirearmVisual.gd'):
     shutil.copy2(repo/'melee-six-prototype'/name,art/name)
 patch('scripts/input_state.gd','var _attack_requested := false\n','var _attack_requested := false\nvar _quick_melee_requested := false\n','input state declaration')
 patch('scripts/input_state.gd','func request_attack() -> void:\n','func request_quick_melee() -> void:\n    _quick_melee_requested = true\n\nfunc consume_quick_melee_request() -> bool:\n    var value := _quick_melee_requested\n    _quick_melee_requested = false\n    return value\n\nfunc request_attack() -> void:\n','quick melee input method')
@@ -26,7 +26,7 @@ patch('scripts/mobile_hud.gd','    attack_button.size = Vector2(112, 66) * ts\n'
 patch('scripts/combat/hostile_actor.gd','    add_to_group("hostile_actor")\n','    add_to_group("hostile_actor")\n    add_to_group("damageable")\n','hostile group')
 patch('scripts/ecology/wildlife_actor.gd','        add_to_group("huntable_actor")\n','        add_to_group("huntable_actor")\n        add_to_group("damageable")\n','wildlife group')
 patch('scripts/ecology/wildlife_actor.gd','    remove_from_group("huntable_actor")\n','    remove_from_group("huntable_actor")\n    remove_from_group("damageable")\n','dead wildlife group')
-patch('scripts/player.gd','var _muzzle_flash_timer := 0.0\n','var _muzzle_flash_timer := 0.0\nvar _sp_melee_controller\nvar _sp_sprite\nvar _sp_firearm_visual: Line2D\n','player child declarations')
+patch('scripts/player.gd','var _muzzle_flash_timer := 0.0\n','var _muzzle_flash_timer := 0.0\nvar _sp_melee_controller\nvar _sp_sprite\nvar _sp_firearm_visual\nvar _sp_last_ammo: int = -1\nvar _sp_last_weapon_id: String = ""\n','player child declarations')
 patch('scripts/player.gd','    equipment.attachments_changed.connect(queue_redraw)\n','    equipment.attachments_changed.connect(queue_redraw)\n    _sp_melee_setup()\n','initialize player adapter')
 patch('scripts/player.gd','    queue_redraw()\n\nfunc _process(delta: float) -> void:\n','    _sp_melee_update_visuals()\n    queue_redraw()\n\nfunc _process(delta: float) -> void:\n','move pose visual update')
 patch('scripts/player.gd','    if current_vehicle == null and (Input.is_action_pressed("attack") or InputState.consume_attack_request()):\n','    if current_vehicle == null and (Input.is_action_just_pressed("quick_melee") or InputState.consume_quick_melee_request()):\n        _sp_quick_melee()\n    if current_vehicle == null and (Input.is_action_pressed("attack") or InputState.consume_attack_request()):\n','process independent knife input')
@@ -57,12 +57,9 @@ func _sp_melee_setup() -> void:
     _sp_melee_controller = preload("res://assets/sp_melee/MeleeController.gd").new()
     _sp_melee_controller.name = "SP_SixAngleRotatingKnife"
     add_child(_sp_melee_controller)
-    _sp_firearm_visual = Line2D.new()
-    _sp_firearm_visual.name = "EXPHeldEquippedFirearm"
-    _sp_firearm_visual.width = 4
-    _sp_firearm_visual.default_color = Color("#4b555f")
-    _sp_firearm_visual.add_point(Vector2(-6, 0))
-    _sp_firearm_visual.add_point(Vector2(28, 0))
+    # v254: genuine compact pixel gun; the old grey Line2D pole is REMOVED.
+    _sp_firearm_visual = preload("res://assets/sp_melee/FirearmVisual.gd").new()
+    _sp_firearm_visual.name = "IndependentPixelFirearmArt"
     add_child(_sp_firearm_visual)
     _sp_melee_controller.target_hit.connect(_sp_melee_on_hit)
     _sp_melee_update_visuals()
@@ -74,10 +71,18 @@ func _sp_melee_update_visuals() -> void:
     _sp_sprite.advance(velocity, get_physics_process_delta_time(), side_right)
     _sp_melee_controller.position = Vector2(8 if side_right else -8, -6)  # Raise the knife hand above the belt for a natural horizontal cut
     _sp_firearm_visual.position = _sp_melee_controller.position
-    _sp_firearm_visual.rotation = _facing.angle()
-    # Equipped inventory identity remains authoritative. Quick melee has no swap.
+    var equipped_id: String = equipment.equipped_weapon_id
+    var category: String = equipment.get_weapon_category()
+    _sp_firearm_visual.configure_equipped(equipped_id, category)
+    _sp_firearm_visual.set_aim_vector(_facing)
+    # Cosmetic firearm node; original ammo, shooting, reload remain authoritative.
+    var ammo: int = equipment.get_magazine_rounds()
+    if _sp_last_weapon_id == equipped_id and ammo < _sp_last_ammo and not _sp_melee_controller.attacking:
+        _sp_firearm_visual.fired()
+    _sp_last_weapon_id = equipped_id
+    _sp_last_ammo = ammo
     if not _sp_melee_controller.attacking:
-        _sp_firearm_visual.visible = equipment.get_weapon_category() == "firearm"
+        _sp_firearm_visual.visible = category == "firearm" and _sp_firearm_visual.weapon_family != ""
     if current_vehicle != null:
         _sp_sprite.visible = false
         _sp_firearm_visual.visible = false
