@@ -72,7 +72,7 @@ func _sp_melee_update_visuals() -> void:
         return
     var side_right: bool = _facing.x >= 0.0
     _sp_sprite.advance(velocity, get_physics_process_delta_time(), side_right)
-    _sp_melee_controller.position = Vector2(8 if side_right else -8, 0)
+    _sp_melee_controller.position = Vector2(8 if side_right else -8, -6)  # Raise the knife hand above the belt for a natural horizontal cut
     _sp_firearm_visual.position = _sp_melee_controller.position
     _sp_firearm_visual.rotation = _facing.angle()
     # Equipped inventory identity remains authoritative. Quick melee has no swap.
