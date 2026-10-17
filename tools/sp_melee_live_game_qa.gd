@@ -14,6 +14,49 @@ func _run_test() -> void:
     if player == null:
         _fail("Player missing from actual game scene")
         return
+    # Phase v254: the former grey pole was a Line2D. Reject it outright.
+    var gun_visual = player._sp_firearm_visual
+    if gun_visual is Line2D or gun_visual.name != "IndependentPixelFirearmArt":
+        _fail("Obsolete grey firearm pole still present")
+        return
+    if player.get_node_or_null("EXPHeldEquippedFirearm") != null:
+        _fail("Legacy EXPHeldEquippedFirearm grey line remains in character")
+        return
+    gun_visual.configure_equipped("9mm_pistol", "firearm")
+    if gun_visual.weapon_family != "pistol":
+        _fail("9mm pistol art was not selected")
+        return
+    gun_visual.configure_equipped("survival_rifle", "firearm")
+    if gun_visual.weapon_family != "rifle":
+        _fail("Rifle art variant was not selected")
+        return
+    gun_visual.configure_equipped("tactical_smg", "firearm")
+    if gun_visual.weapon_family != "smg":
+        _fail("SMG art variant was not selected")
+        return
+    gun_visual.configure_equipped("pump_shotgun", "firearm")
+    if gun_visual.weapon_family != "shotgun":
+        _fail("Shotgun art variant was not selected")
+        return
+    gun_visual.configure_equipped("", "")
+    if gun_visual.weapon_family != "":
+        _fail("Gun visible when no firearm equipped")
+        return
+    gun_visual.set_aim_vector(Vector2.LEFT)
+    if gun_visual.scale.y >= 0.0:
+        _fail("Gun grip inverted when aiming left")
+        return
+    gun_visual.set_aim_vector(Vector2.RIGHT)
+    if gun_visual.scale.y <= 0.0:
+        _fail("Gun grip inverted when aiming right")
+        return
+    gun_visual.fired()
+    if gun_visual.muzzle_flash_time > 0.0:
+        _fail("Empty weapon generates muzzle flash")
+        return
+    gun_visual.configure_equipped(player.equipment.equipped_weapon_id, player.equipment.get_weapon_category())
+    player._sp_melee_update_visuals()
+    print("SP_FIREARM_V254_ART_QA_PASS 4 pixel models, empty state, left/right aim, grey pole removed")
     # Isolate the melee collision mechanics from procedural world obstacles
     # already covered by the standalone native ray-blocking test.
     player._sp_melee_controller.wall_collision_mask = 0
