@@ -19,7 +19,13 @@ static func slash_angle(aim: float, t: float) -> float:
     # forward/up during IMPACT instead of downward throughout the active hit.
     # Damage uses the exact same non-linear angle trajectory.
     if side(aim) > 0.0:
-        fraction = pow(fraction, 0.40)
+        # Right-hand knife: cut with the edge FORWARD/UP rather than drawing
+        # a dangling inverted blade below the waist during the active strike.
+        # Clamp to right-facing hemisphere and retain the requested aim ray
+        # inside each swept sector (forward / upper-right / lower-right).
+        var starting_angle: float = minf(aim + deg_to_rad(20.0), deg_to_rad(83.0))
+        var ending_angle: float = maxf(aim - deg_to_rad(80.0), -deg_to_rad(83.0))
+        return lerpf(starting_angle, ending_angle, pow(fraction,0.40))
     var travel: float = lerpf(-HALF_SWEEP, HALF_SWEEP, fraction)
     return aim - travel
 
