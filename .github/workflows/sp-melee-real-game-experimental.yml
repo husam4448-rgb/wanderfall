@@ -1,11 +1,13 @@
 name: SP Melee — Original Playable Game Experimental Integration
 on:
   push:
-    branches: [sp-v254-firearm-art-aim-phase]
+    branches: [sp-v255-compact-weapons-attached-hands]
     paths:
       - 'patches/apply_sp_melee_phase16_experimental.py'
       - '.github/workflows/sp-melee-real-game-experimental.yml'
       - 'melee-six-prototype/FirearmVisual.gd'
+      - 'melee-six-prototype/HandVisual.gd'
+      - 'melee-six-prototype/KnifeVisual.gd'
       - 'melee-six-prototype/MeleeController.gd'
       - 'melee-six-prototype/SlashMath.gd'
       - 'melee-six-prototype/SurvivorWalkSprite.gd'
@@ -23,7 +25,7 @@ jobs:
     env:
       GAME_DIR: /tmp/sp_original_melee_game
       GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
-      APK_PATH: SurvivalParadise-Experimental-PixelWeapons-v254.apk
+      APK_PATH: SurvivalParadise-Experimental-CompactWeaponHands-v255.apk
     steps:
       - uses: actions/checkout@v4
       - name: Reconstruct exact source and apply bounded combat patch
@@ -44,6 +46,8 @@ jobs:
           grep -q 'SP_SixAngleRotatingKnife' "$GAME_DIR/scripts/player.gd"
           grep -q 'IndependentPixelFirearmArt' "$GAME_DIR/scripts/player.gd"
           test -s "$GAME_DIR/assets/sp_melee/FirearmVisual.gd"
+          test -s "$GAME_DIR/assets/sp_melee/HandVisual.gd"
+          grep -q 'GrippingHandChildOfGun' "$GAME_DIR/assets/sp_melee/FirearmVisual.gd"
           if grep -q '_sp_firearm_visual = Line2D.new()' "$GAME_DIR/scripts/player.gd"; then echo "Legacy grey pole remains" >&2; exit 1; fi
       - name: Prepare Godot 4.7.2 native game engine
         run: |
@@ -89,8 +93,8 @@ jobs:
           from pathlib import Path
           p=Path('/tmp/sp_original_melee_game/export_presets.cfg')
           s=p.read_text(encoding='utf-8')
-          s=s.replace('version/code=16','version/code=254',1)
-          s=s.replace('version/name="0.16.0"','version/name="0.16.0-EXP-PIXEL-WEAPONS"',1)
+          s=s.replace('version/code=16','version/code=255',1)
+          s=s.replace('version/name="0.16.0"','version/name="0.16.0-EXP-COMPACT-HANDS"',1)
           s=s.replace('package/unique_name="org.wanderfall.game"','package/unique_name="org.survivalparadise.meleeexp"',1)
           s=s.replace('package/name="Wanderfall"','package/name="SP Melee Experimental"',1)
           p.write_text(s,encoding='utf-8')
@@ -102,7 +106,7 @@ jobs:
           "$SDK/build-tools/35.0.1/apksigner" verify --verbose --print-certs "$APK_PATH" >sp_melee_phase16_signature.txt
           "$SDK/build-tools/35.0.1/aapt" dump badging "$APK_PATH" >sp_melee_phase16_identity.txt
           grep -q "name='org.survivalparadise.meleeexp'" sp_melee_phase16_identity.txt
-          grep -q "versionCode='254'" sp_melee_phase16_identity.txt
+          grep -q "versionCode='255'" sp_melee_phase16_identity.txt
           sha256sum "$APK_PATH" >sp_melee_phase16_sha256.txt
       - name: Retain proof, actual APK and failures
         if: always()
@@ -113,6 +117,6 @@ jobs:
           retention-days: 14
           compression-level: 0
           path: |
-            SurvivalParadise-Experimental-PixelWeapons-v254.apk
+            SurvivalParadise-Experimental-CompactWeaponHands-v255.apk
             sp_melee_phase16_*.log
             sp_melee_phase16_*.txt
