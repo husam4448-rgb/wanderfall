@@ -23,6 +23,10 @@ var breathing_phase: float = 0.0
 var crouching: bool = false
 var move_velocity: Vector2 = Vector2.ZERO
 var face_right: bool = true
+var near_knee: Vector2 = Vector2.ZERO
+var near_ankle: Vector2 = Vector2.ZERO
+var far_knee: Vector2 = Vector2.ZERO
+var far_ankle: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
     texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -63,21 +67,21 @@ func _joint(point: Vector2, inside: Color, radius: float) -> void:
     draw_circle(_q(point), radius + 1.3, OUTLINE)
     draw_circle(_q(point), radius, inside)
 
-func _leg(hip: Vector2, phase: float, amplitude: float, near: bool) -> void:
-    # Adapted exclusively from the D2B.2A hip->knee->ankle opposing
-    # stride and D2B.2B capped boot; no torso/arms/head regeneration.
+func _solve_b2b_leg(hip: Vector2, phase: float, amplitude: float) -> Array[Vector2]:
+    # Original B2B skeleton mapping: hip->knee->ankle, opposing gait.
     var stride: float = sin(phase) * amplitude
-    var forward: float = maxf(0.0, sin(phase))
-    var lift: float = 3.0 * forward * gait_weight
+    var lift: float = 3.0 * maxf(0.0, sin(phase)) * gait_weight
     var forward_axis: Vector2 = move_velocity.normalized() if move_velocity.length_squared() > 0.1 else Vector2.RIGHT
-    # Keep the approved sideways silhouette even when the player moves north/south.
-    var axis_x: float = maxf(0.60, absf(forward_axis.x))
-    var x_stride: float = stride * axis_x
-    var knee: Vector2 = _q(hip + Vector2(x_stride * 0.54, 7.6 - lift * 0.36))
-    var ankle: Vector2 = _q(hip + Vector2(x_stride, 11.7 - lift))
+    var x_stride: float = stride * maxf(0.60, absf(forward_axis.x))
+    return [
+        _q(hip + Vector2(x_stride * 0.54, 7.6 - lift * 0.36)),
+        _q(hip + Vector2(x_stride, 11.7 - lift))
+    ]
+
+func _leg(hip: Vector2, knee: Vector2, ankle: Vector2, near: bool) -> void:
+    # Connected outlines at hip, knee, ankle plus solid boot shape.
     var pants: Color = PANTS_NEAR if near else PANTS_FAR
     var boots: Color = BOOT_NEAR if near else BOOT_FAR
-    # Continuous outlines and knee caps avoid every transparent joint gap.
     _limb(hip, knee, pants, 9.0)
     _joint(knee, PANTS_KNEE if near else pants, 4.3)
     _limb(knee, ankle, pants.darkened(0.06), 8.2)
@@ -90,8 +94,8 @@ func _draw() -> void:
     if gait_weight <= 0.08:
         return
     # Far limb behind near limb, both behind the original pelvis pixels.
-    _leg(FAR_HIP, gait_phase + PI, 5.4 * gait_weight, false)
-    _leg(NEAR_HIP, gait_phase, 5.4 * gait_weight, true)
+    _leg(FAR_HIP, far_knee, far_ankle, false)
+    _leg(NEAR_HIP, near_knee, near_ankle, true)
 
 func advance(velocity_world: Vector2, delta: float, facing_right: bool) -> void:
     if upper == null:
@@ -107,6 +111,12 @@ func advance(velocity_world: Vector2, delta: float, facing_right: bool) -> void:
         gait_phase = fposmod(gait_phase + delta * lerpf(6.5,10.2,clampf((speed-90.0)/300.0,0.0,1.0)), TAU)
     elif gait_weight < 0.08:
         gait_phase = 0.0
+    var near_pose: Array[Vector2] = _solve_b2b_leg(NEAR_HIP, gait_phase, 5.4 * gait_weight)
+    var far_pose: Array[Vector2] = _solve_b2b_leg(FAR_HIP, gait_phase + PI, 5.4 * gait_weight)
+    near_knee = near_pose[0]
+    near_ankle = near_pose[1]
+    far_knee = far_pose[0]
+    far_ankle = far_pose[1]
     var articulated: bool = gait_weight > 0.08
     near_hip.visible = not articulated
     far_hip.visible = not articulated
