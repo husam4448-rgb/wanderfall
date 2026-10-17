@@ -137,7 +137,7 @@ func _draw() -> void:
     var previous: Vector2
     for i in range(29):
         var f: float = float(i) / 28.0
-        var a: float = theta + length * (1.0 - f)
+        var a: float = theta - Math2D.side(aim) * length * (1.0 - f)
         var p: Vector2 = Vector2.RIGHT.rotated(a) * Math2D.OUTER_RADIUS
         if i > 0:
             var brightness: float = lerpf(0.34, 1.0, f)
