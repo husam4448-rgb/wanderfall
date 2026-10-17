@@ -7,7 +7,7 @@ NAMES=['forward_right','up_right','down_right','forward_left','up_left','down_le
 FRAMES=[0,2,4,6,8,11]
 E=Path('melee-six-prototype/evidence')
 E.mkdir(parents=True,exist_ok=True)
-report={'godot_screenshots':0,'slash_white_pixels':{},'source_art':'approved_clean_torso_right.png','user_visual_approval':'PENDING','apk':'NOT BUILT'}
+report={'nominal_slash_duration_ms':165,'godot_screenshots':0,'slash_white_pixels':{},'source_art':'approved_clean_torso_right.png','user_visual_approval':'PENDING','apk':'NOT BUILT'}
 all_rows={}
 for label in NAMES:
     parts=[]
@@ -32,7 +32,7 @@ for label in NAMES:
             report['slash_white_pixels'][f'{label}_f{f:02d}']=count
         parts.append(im)
     out=E/f'{label}.gif'
-    parts[0].save(out,save_all=True,append_images=parts[1:],duration=[110,90,85,85,90,150],loop=0,optimize=False)
+    parts[0].save(out,save_all=True,append_images=parts[1:],duration=[25,28,28,28,28,28],loop=0,optimize=False)
     all_rows[label]=parts
 # Composite overview from real Godot screenshots, not fake sprite generation
 montage=[]
@@ -42,6 +42,6 @@ for frame_index in range(len(FRAMES)):
         src=all_rows[label][frame_index].crop((205,60,655,420))
         panel.paste(src,((i%3)*450,(i//3)*360))
     montage.append(panel)
-montage[0].save(E/'all_six_godot_preview.gif',save_all=True,append_images=montage[1:],duration=[110,90,85,85,90,150],loop=0,optimize=False)
+montage[0].save(E/'all_six_godot_preview.gif',save_all=True,append_images=montage[1:],duration=[25,28,28,28,28,28],loop=0,optimize=False)
 (E/'qa_report.json').write_text(json.dumps(report,indent=2))
 print('SP_MELEE_RENDER_QA_PASS '+json.dumps(report))
