@@ -1,4 +1,8 @@
 extends Node2D
+const HandVisual = preload("res://HandVisual.gd")
+const COMPACT_SCALE: float = 0.73
+var grip_hand: Node2D
+var support_hand: Node2D
 ## SP v254: firearm art for the two-sided approved character.
 ## This REPLACES the old Line2D grey pole. All weapons face local +X.
 ## Actual equipment, ammunition, aiming and shooting stay in player.gd.
@@ -19,6 +23,13 @@ func _ready() -> void:
     z_index = 4
     set_process(true)
     visible = false
+    grip_hand = HandVisual.new()
+    grip_hand.name = "GrippingHandChildOfGun"
+    add_child(grip_hand)
+    support_hand = HandVisual.new()
+    support_hand.name = "SupportHandChildOfGun"
+    add_child(support_hand)
+    _place_hands()
 
 func configure_equipped(item_id: String, category: String) -> void:
     current_weapon_id = item_id
@@ -37,6 +48,7 @@ func configure_equipped(item_id: String, category: String) -> void:
     else:
         # Fallback to a recognizable compact pistol, NEVER to a line/pole.
         weapon_family = "pistol"
+    _place_hands()
     queue_redraw()
 
 func set_aim_vector(direction: Vector2) -> void:
@@ -45,7 +57,34 @@ func set_aim_vector(direction: Vector2) -> void:
     current_aim = direction.normalized()
     rotation = current_aim.angle()
     # Prevent guns rotating upside-down when mirrored to face left.
-    scale.y = -1.0 if current_aim.x < 0.0 else 1.0
+    scale = Vector2(COMPACT_SCALE, -COMPACT_SCALE if current_aim.x < 0.0 else COMPACT_SCALE)
+
+func _place_hands() -> void:
+    if grip_hand == null or support_hand == null:
+        return
+    # Same circular hands follow the weapon's rotation/position/visibility.
+    match weapon_family:
+        "pistol":
+            grip_hand.position = Vector2(10, 8)
+            support_hand.position = Vector2(18, 4)
+            support_hand.visible = true
+        "rifle":
+            grip_hand.position = Vector2(8, 9)
+            support_hand.position = Vector2(24, 8)
+            support_hand.visible = true
+        "smg":
+            grip_hand.position = Vector2(10, 9)
+            support_hand.position = Vector2(23, 8)
+            support_hand.visible = true
+        "shotgun":
+            grip_hand.position = Vector2(7, 8)
+            support_hand.position = Vector2(27, 7)
+            support_hand.visible = true
+        _:
+            grip_hand.visible = false
+            support_hand.visible = false
+            return
+    grip_hand.visible = true
 
 func fired() -> void:
     if weapon_family.is_empty():
