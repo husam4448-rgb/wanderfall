@@ -1,7 +1,7 @@
 name: SP Six-Angle Melee — Native Godot Technical and Visual QA
 on:
   push:
-    branches: [sp-melee-knife-orientation-and-gait]
+    branches: [sp-b2b-leg-rig-downslash]
     paths:
       - 'melee-six-prototype/**'
       - 'tools/qa_sp_melee_six.py'
