@@ -52,7 +52,7 @@ func _run_test() -> void:
             return
         await get_tree().create_timer(0.27).timeout
         if i == 0 and not player._sp_melee_controller.knife.rotation < -0.02:
-            _fail("RIGHT knife must sweep up/forward, not finish upside down")
+            _fail("RIGHT knife must sweep up/forward; rotation="+str(player._sp_melee_controller.knife.rotation)+" elapsed="+str(player._sp_melee_controller.elapsed)+" aim="+str(player._sp_melee_controller.aim))
             return
         await get_tree().process_frame
         await RenderingServer.frame_post_draw
