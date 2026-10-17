@@ -132,12 +132,12 @@ func has_silhouette_at(world_point: Vector2) -> bool:
         return true
     if gait_weight > 0.08:
         var local: Vector2 = to_local(world_point)
-        return _inside_b2b_leg(local, NEAR_HIP, near_knee, near_ankle) or \\
-            _inside_b2b_leg(local, FAR_HIP, far_knee, far_ankle)
+        return (_inside_b2b_leg(local, NEAR_HIP, near_knee, near_ankle) or
+                _inside_b2b_leg(local, FAR_HIP, far_knee, far_ankle))
     var near_sprite: Sprite2D = near_hip.get_child(0) as Sprite2D
     var far_sprite: Sprite2D = far_hip.get_child(0) as Sprite2D
-    return _inside_image(near_sprite,_near_alpha,world_point) or \\
-        _inside_image(far_sprite,_far_alpha,world_point)
+    return (_inside_image(near_sprite,_near_alpha,world_point) or
+            _inside_image(far_sprite,_far_alpha,world_point))
 ''')
 
 # True gun shape and hands are included; their child transforms rotate with aim.
@@ -209,8 +209,11 @@ patch(overlay,
                 draw_circle(origin + sample + Vector2(0,-0.7),0.72,edge)
 ''',
 '''    const STEP := 2
-    var is_new_player: bool = actor.is_in_group("player_actor") and \\
-        actor.has_method("_sp_occlusion_shape_contains") and actor.get("body_type") == "male"
+    var is_new_player: bool = (
+        actor.is_in_group("player_actor")
+        and actor.has_method("_sp_occlusion_shape_contains")
+        and actor.get("body_type") == "male"
+    )
     # Expanded bounds cover the approved backpack/hair plus held gun. Player
     # mask samples the same alpha texture and linked legs as the visible rig.
     var y0: int = -47 if is_new_player else -27
