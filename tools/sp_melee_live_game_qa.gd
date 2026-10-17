@@ -81,6 +81,10 @@ func _run_test() -> void:
     if walker == null or walker.near_hip == null or walker.far_hip == null:
         _fail("Approved independent leg joints missing")
         return
+    # Isolate leg locomotion from randomly generated spawn obstacles.
+    # This only disables player-world contact within CI, not in the APK.
+    var previous_collision_mask: int = player.collision_mask
+    player.collision_mask = 0
     var start_pos: Vector2 = player.global_position
     var near_min: float = 99.0
     var near_max: float = -99.0
@@ -124,6 +128,7 @@ func _run_test() -> void:
     InputState.set_mobile_move(Vector2.ZERO)
     for frame in range(24):
         await get_tree().physics_frame
+    player.collision_mask = previous_collision_mask
     if absf(walker.near_hip.rotation)>0.015 or absf(walker.far_hip.rotation)>0.015:
         _fail("Legs did not restore exact neutral pose after walking")
         return
