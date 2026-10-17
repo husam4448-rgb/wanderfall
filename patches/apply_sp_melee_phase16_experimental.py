@@ -14,7 +14,7 @@ art=root/'assets'/'sp_melee';art.mkdir(parents=True,exist_ok=True)
 shutil.copy2(repo/'melee-six-prototype/assets/approved_clean_torso_right.png',art/'approved_clean_torso_right.png')
 subprocess.run([sys.executable,str(repo/'tools/build_sp_melee_walk_layers.py'),str(art/'approved_clean_torso_right.png'),str(art)],check=True)
 shutil.copy2(repo/'melee-six-prototype/SurvivorWalkSprite.gd',art/'SurvivorWalkSprite.gd')
-for name in ('SlashMath.gd','MeleeController.gd','KnifeVisual.gd','FirearmVisual.gd'):
+for name in ('SlashMath.gd','MeleeController.gd','KnifeVisual.gd','FirearmVisual.gd','HandVisual.gd'):
     shutil.copy2(repo/'melee-six-prototype'/name,art/name)
 patch('scripts/input_state.gd','var _attack_requested := false\n','var _attack_requested := false\nvar _quick_melee_requested := false\n','input state declaration')
 patch('scripts/input_state.gd','func request_attack() -> void:\n','func request_quick_melee() -> void:\n    _quick_melee_requested = true\n\nfunc consume_quick_melee_request() -> bool:\n    var value := _quick_melee_requested\n    _quick_melee_requested = false\n    return value\n\nfunc request_attack() -> void:\n','quick melee input method')
@@ -70,7 +70,8 @@ func _sp_melee_update_visuals() -> void:
     var side_right: bool = _facing.x >= 0.0
     _sp_sprite.advance(velocity, get_physics_process_delta_time(), side_right)
     _sp_melee_controller.position = Vector2(8 if side_right else -8, -6)  # Raise the knife hand above the belt for a natural horizontal cut
-    _sp_firearm_visual.position = _sp_melee_controller.position
+    # Gun and its child hands are slightly tucked into the clean torso.
+    _sp_firearm_visual.position = Vector2(4 if side_right else -4, -6)
     var equipped_id: String = equipment.equipped_weapon_id
     var category: String = equipment.get_weapon_category()
     _sp_firearm_visual.configure_equipped(equipped_id, category)
@@ -118,6 +119,12 @@ ctrl=root/'assets/sp_melee/MeleeController.gd'
 s=ctrl.read_text(encoding='utf-8').replace('target.call("take_damage", base_damage)','target.call("take_damage", base_damage, attacker)')
 s=s.replace("res://SlashMath.gd","res://assets/sp_melee/SlashMath.gd").replace("res://KnifeVisual.gd","res://assets/sp_melee/KnifeVisual.gd")
 ctrl.write_text(s,encoding='utf-8')
+# Hand art remains a reusable local child module in both experiment and game.
+for fname in ('FirearmVisual.gd','KnifeVisual.gd'):
+    file=root/'assets/sp_melee'/fname
+    source=file.read_text(encoding='utf-8')
+    assert 'res://HandVisual.gd' in source
+    file.write_text(source.replace('res://HandVisual.gd','res://assets/sp_melee/HandVisual.gd'),encoding='utf-8')
 # Narrow legacy Godot-4.7 runtime compatibility fixes for original Phase16 source.
 for item in (
     ('scripts/ecology/wildlife_actor.gd','    drops = configured_drops.duplicate(true) if configured_drops is Array else []','    drops.clear()\n    if configured_drops is Array:\n        for entry in configured_drops:\n            if entry is Dictionary:\n                drops.append(entry)','wildlife typed drop array'),
