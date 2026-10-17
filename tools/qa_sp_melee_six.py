@@ -17,7 +17,7 @@ for label in NAMES:
         im=Image.open(p).convert('RGB')
         assert im.size==(900,520), f'wrong output resolution {p}: {im.size}'
         report['godot_screenshots']+=1
-        if f in (4,6,8):
+        if f in (4,6): # frame 8 is the end of active swing: trail should have vanished
             cx=420+(23 if label.endswith('right') else -23)
             cy=255+29
             count=0
