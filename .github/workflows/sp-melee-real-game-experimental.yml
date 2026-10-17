@@ -1,11 +1,14 @@
 name: SP Melee — Original Playable Game Experimental Integration
 on:
   push:
-    branches: [sp-melee-six-angle-prototype]
+    branches: [sp-melee-knife-orientation-and-gait]
     paths:
       - 'patches/apply_sp_melee_phase16_experimental.py'
       - '.github/workflows/sp-melee-real-game-experimental.yml'
       - 'melee-six-prototype/MeleeController.gd'
+      - 'melee-six-prototype/SlashMath.gd'
+      - 'melee-six-prototype/SurvivorWalkSprite.gd'
+      - 'tools/build_sp_melee_walk_layers.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -16,12 +19,13 @@ jobs:
     env:
       GAME_DIR: /tmp/sp_original_melee_game
       GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
-      APK_PATH: SurvivalParadise-Experimental-Melee-Phase16.apk
+      APK_PATH: SurvivalParadise-Experimental-Melee-GaitFix.apk
     steps:
       - uses: actions/checkout@v4
       - name: Reconstruct exact source and apply bounded combat patch
         run: |
           set -euo pipefail
+          python3 -m pip install --quiet Pillow
           python3 -m py_compile patches/apply_sp_melee_phase16_experimental.py
           cat source_parts/part_*.b64 | base64 -d > /tmp/sp_source.tar.xz
           echo 'ae4eff17e5f281f5867ac2d82207fcf96e6c8b649432acd48816aebab76fa308  /tmp/sp_source.tar.xz' | sha256sum -c -
@@ -31,6 +35,8 @@ jobs:
           python3 patches/apply_sp_melee_phase16_experimental.py "$GAME_DIR"
           test -s "$GAME_DIR/scripts/player.gd"
           test -s "$GAME_DIR/assets/sp_melee/MeleeController.gd"
+          test -s "$GAME_DIR/assets/sp_melee/approved_near_leg.png"
+          test -s "$GAME_DIR/assets/sp_melee/approved_far_leg.png"
           grep -q 'SP_SixAngleRotatingKnife' "$GAME_DIR/scripts/player.gd"
       - name: Prepare Godot 4.7.2 native game engine
         run: |
@@ -76,8 +82,8 @@ jobs:
           from pathlib import Path
           p=Path('/tmp/sp_original_melee_game/export_presets.cfg')
           s=p.read_text(encoding='utf-8')
-          s=s.replace('version/code=16','version/code=250',1)
-          s=s.replace('version/name="0.16.0"','version/name="0.16.0-EXP-MELEE"',1)
+          s=s.replace('version/code=16','version/code=251',1)
+          s=s.replace('version/name="0.16.0"','version/name="0.16.0-EXP-MELEE-GAIT"',1)
           s=s.replace('package/unique_name="org.wanderfall.game"','package/unique_name="org.survivalparadise.meleeexp"',1)
           s=s.replace('package/name="Wanderfall"','package/name="SP Melee Experimental"',1)
           p.write_text(s,encoding='utf-8')
@@ -89,7 +95,7 @@ jobs:
           "$SDK/build-tools/35.0.1/apksigner" verify --verbose --print-certs "$APK_PATH" >sp_melee_phase16_signature.txt
           "$SDK/build-tools/35.0.1/aapt" dump badging "$APK_PATH" >sp_melee_phase16_identity.txt
           grep -q "name='org.survivalparadise.meleeexp'" sp_melee_phase16_identity.txt
-          grep -q "versionCode='250'" sp_melee_phase16_identity.txt
+          grep -q "versionCode='251'" sp_melee_phase16_identity.txt
           sha256sum "$APK_PATH" >sp_melee_phase16_sha256.txt
       - name: Retain proof, actual APK and failures
         if: always()
