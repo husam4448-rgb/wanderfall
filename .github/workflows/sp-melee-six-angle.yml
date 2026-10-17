@@ -1,7 +1,7 @@
 name: SP Six-Angle Melee — Native Godot Technical and Visual QA
 on:
   push:
-    branches: [sp-melee-six-angle-prototype]
+    branches: [sp-melee-knife-orientation-and-gait]
     paths:
       - 'melee-six-prototype/**'
       - 'tools/qa_sp_melee_six.py'
@@ -24,7 +24,9 @@ jobs:
           test -s melee-six-prototype/MeleeController.gd
           file melee-six-prototype/assets/approved_clean_torso_right.png
           python3 -m pip install --quiet Pillow
-          python3 -m py_compile tools/qa_sp_melee_six.py
+          python3 -m py_compile tools/qa_sp_melee_six.py tools/build_sp_melee_walk_layers.py
+          python3 tools/build_sp_melee_walk_layers.py melee-six-prototype/assets/approved_clean_torso_right.png /tmp/sp_gait_parts
+          test -s /tmp/sp_gait_parts/approved_near_leg.png
       - name: Install pinned Godot 4.7.2 and Xvfb
         run: |
           set -euo pipefail
