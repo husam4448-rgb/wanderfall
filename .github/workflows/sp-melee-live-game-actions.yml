@@ -1,9 +1,10 @@
 name: SP Melee — Six Real-Game Combat Actions and Screenshots
 on:
   push:
-    branches: [sp-melee-knife-orientation-and-gait]
+    branches: [sp-b2b-leg-rig-downslash]
     paths:
       - 'tools/sp_melee_live_game_qa.gd'
+      - 'tools/build_sp_melee_walk_layers.py'
       - '.github/workflows/sp-melee-live-game-actions.yml'
       - 'melee-six-prototype/MeleeController.gd'
       - 'melee-six-prototype/SlashMath.gd'
