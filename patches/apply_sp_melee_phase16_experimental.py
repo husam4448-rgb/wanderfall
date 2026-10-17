@@ -112,5 +112,6 @@ func _sp_melee_on_hit(target: Node, damage: float) -> void:
 # Accept actual source-node source attribution on target, even if target has a default source argument.
 ctrl=root/'assets/sp_melee/MeleeController.gd'
 s=ctrl.read_text(encoding='utf-8').replace('target.call("take_damage", base_damage)','target.call("take_damage", base_damage, attacker)')
+s=s.replace("res://SlashMath.gd","res://assets/sp_melee/SlashMath.gd").replace("res://KnifeVisual.gd","res://assets/sp_melee/KnifeVisual.gd")
 ctrl.write_text(s,encoding='utf-8')
 print('SP_MELEE_PHASE16_SOURCE_PATCH_APPLIED safe isolated source copy')
