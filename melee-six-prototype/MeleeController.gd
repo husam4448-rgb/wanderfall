@@ -141,6 +141,12 @@ func _draw() -> void:
             var brightness: float = lerpf(0.34, 1.0, f)
             draw_line(previous, p, Color(0.94, 0.975, 1.0, brightness), 3.0 if i > 10 else 2.0, false)
         previous = p
+    # Bridge the blade's REAL tip to the mechanically extended white edge.
+    # This avoids a disconnected floating arc in the approved pixel-art scene.
+    var tip_direction: Vector2 = Vector2.RIGHT.rotated(theta)
+    draw_line(tip_direction * Math2D.BLADE_REACH,
+              tip_direction * Math2D.OUTER_RADIUS,
+              Color(0.96, 0.98, 1.0, 0.94), 2.0, false)
     # Debug view overlays exactly the same radius used by swept hit checks.
     if OS.get_environment("SP_MELEE_DEBUG_HITBOX") == "1":
         draw_arc(Vector2.ZERO, Math2D.OUTER_RADIUS, aim-Math2D.HALF_SWEEP, aim+Math2D.HALF_SWEEP, 25, Color(1, 0.6, 0.15, 0.8), 1.0)
