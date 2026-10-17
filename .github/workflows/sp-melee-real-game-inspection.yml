@@ -4,6 +4,7 @@ on:
     branches: [sp-melee-six-angle-prototype]
     paths:
       - 'tools/inspect_sp_melee_integration.py'
+      - 'tools/export_sp_melee_source.py'
       - '.github/workflows/sp-melee-real-game-inspection.yml'
   workflow_dispatch:
 permissions:
@@ -27,10 +28,14 @@ jobs:
           set -euo pipefail
           python3 tools/inspect_sp_melee_integration.py /tmp/sp_melee_source_game
           test -s sp_melee_source_inspection.txt
+          python3 tools/export_sp_melee_source.py /tmp/sp_melee_source_game
+          test -s sp_melee_integration_source/scripts/player.gd
       - name: Preserve source-inspection report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: SP-Melee-RealGame-ReadOnlyInspection-${{ github.sha }}
-          path: sp_melee_source_inspection.txt
+          path: |
+            sp_melee_source_inspection.txt
+            sp_melee_integration_source/
           retention-days: 14
