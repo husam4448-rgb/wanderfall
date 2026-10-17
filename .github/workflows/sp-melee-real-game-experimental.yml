@@ -1,9 +1,11 @@
 name: SP Melee — Original Playable Game Experimental Integration
 on:
   push:
-    branches: [sp-v255-compact-weapons-attached-hands]
+    branches: [sp-v256-independent-aim-edge-locks]
     paths:
       - 'patches/apply_sp_melee_phase16_experimental.py'
+      - 'patches/apply_sp_v256_dual_edge_locks.py'
+      - 'controls/EdgeLockJoystick.gd'
       - '.github/workflows/sp-melee-real-game-experimental.yml'
       - 'melee-six-prototype/FirearmVisual.gd'
       - 'melee-six-prototype/HandVisual.gd'
@@ -25,20 +27,21 @@ jobs:
     env:
       GAME_DIR: /tmp/sp_original_melee_game
       GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
-      APK_PATH: SurvivalParadise-Experimental-CompactWeaponHands-v255.apk
+      APK_PATH: SurvivalParadise-Experimental-DualStickEdgeLock-v256.apk
     steps:
       - uses: actions/checkout@v4
       - name: Reconstruct exact source and apply bounded combat patch
         run: |
           set -euo pipefail
           python3 -m pip install --quiet Pillow
-          python3 -m py_compile patches/apply_sp_melee_phase16_experimental.py
+          python3 -m py_compile patches/apply_sp_melee_phase16_experimental.py patches/apply_sp_v256_dual_edge_locks.py
           cat source_parts/part_*.b64 | base64 -d > /tmp/sp_source.tar.xz
           echo 'ae4eff17e5f281f5867ac2d82207fcf96e6c8b649432acd48816aebab76fa308  /tmp/sp_source.tar.xz' | sha256sum -c -
           mkdir -p "$GAME_DIR"
           tar -xJf /tmp/sp_source.tar.xz -C "$GAME_DIR"
           python3 patches/apply_godot_47_fixes.py "$GAME_DIR"
           python3 patches/apply_sp_melee_phase16_experimental.py "$GAME_DIR"
+          python3 patches/apply_sp_v256_dual_edge_locks.py "$GAME_DIR"
           test -s "$GAME_DIR/scripts/player.gd"
           test -s "$GAME_DIR/assets/sp_melee/MeleeController.gd"
           test -s "$GAME_DIR/assets/sp_melee/approved_near_leg.png"
@@ -47,6 +50,8 @@ jobs:
           grep -q 'IndependentPixelFirearmArt' "$GAME_DIR/scripts/player.gd"
           test -s "$GAME_DIR/assets/sp_melee/FirearmVisual.gd"
           test -s "$GAME_DIR/assets/sp_melee/HandVisual.gd"
+          test -s "$GAME_DIR/scripts/controls/EdgeLockJoystick.gd"
+          grep -q 'IndependentAimEdgeLockJoystick' "$GAME_DIR/scripts/mobile_hud.gd"
           grep -q 'GrippingHandChildOfGun' "$GAME_DIR/assets/sp_melee/FirearmVisual.gd"
           if grep -q '_sp_firearm_visual = Line2D.new()' "$GAME_DIR/scripts/player.gd"; then echo "Legacy grey pole remains" >&2; exit 1; fi
       - name: Prepare Godot 4.7.2 native game engine
@@ -93,8 +98,8 @@ jobs:
           from pathlib import Path
           p=Path('/tmp/sp_original_melee_game/export_presets.cfg')
           s=p.read_text(encoding='utf-8')
-          s=s.replace('version/code=16','version/code=255',1)
-          s=s.replace('version/name="0.16.0"','version/name="0.16.0-EXP-COMPACT-HANDS"',1)
+          s=s.replace('version/code=16','version/code=256',1)
+          s=s.replace('version/name="0.16.0"','version/name="0.16.0-EXP-DUAL-EDGE-LOCK"',1)
           s=s.replace('package/unique_name="org.wanderfall.game"','package/unique_name="org.survivalparadise.meleeexp"',1)
           s=s.replace('package/name="Wanderfall"','package/name="SP Melee Experimental"',1)
           p.write_text(s,encoding='utf-8')
@@ -106,7 +111,7 @@ jobs:
           "$SDK/build-tools/35.0.1/apksigner" verify --verbose --print-certs "$APK_PATH" >sp_melee_phase16_signature.txt
           "$SDK/build-tools/35.0.1/aapt" dump badging "$APK_PATH" >sp_melee_phase16_identity.txt
           grep -q "name='org.survivalparadise.meleeexp'" sp_melee_phase16_identity.txt
-          grep -q "versionCode='255'" sp_melee_phase16_identity.txt
+          grep -q "versionCode='256'" sp_melee_phase16_identity.txt
           sha256sum "$APK_PATH" >sp_melee_phase16_sha256.txt
       - name: Retain proof, actual APK and failures
         if: always()
