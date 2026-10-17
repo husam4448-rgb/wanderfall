@@ -27,7 +27,9 @@ func _verify() -> void:
     # Menu dismissal follows the original GameSettings pause reason.
     if menu.root != null:
         menu.root.visible = false
-    GameSettings.set_pause_reason("main_menu", false)
+    var game_settings: Node = root.get_node_or_null("GameSettings")
+    if game_settings != null:
+        game_settings.call("set_pause_reason", "main_menu", false)
     main.call("start_new_game_safe_camp")
     await create_timer(1.35).timeout
     if player._sp_sprite == null or player._sp_melee_controller == null or player._sp_firearm_visual == null:
