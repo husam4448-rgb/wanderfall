@@ -1,0 +1,63 @@
+name: SP Six-Angle Melee — Native Godot Technical and Visual QA
+on:
+  push:
+    branches: [sp-melee-six-angle-prototype]
+    paths:
+      - 'melee-six-prototype/**'
+      - 'tools/qa_sp_melee_six.py'
+      - '.github/workflows/sp-melee-six-angle.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  godot-geometry-and-visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    env:
+      GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pin and audit source files
+        run: |
+          set -euo pipefail
+          test -s melee-six-prototype/assets/approved_clean_torso_right.png
+          test -s melee-six-prototype/MeleeController.gd
+          file melee-six-prototype/assets/approved_clean_torso_right.png
+          python3 -m pip install --quiet Pillow
+          python3 -m py_compile tools/qa_sp_melee_six.py
+      - name: Install pinned Godot 4.7.2 and Xvfb
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          echo 'cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip' | sha256sum -c -
+          unzip -q /tmp/godot.zip -d /tmp
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb >/dev/null
+      - name: Import and compile native project
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --editor --path melee-six-prototype --quit >sp-melee-parse.log 2>&1
+          cat sp-melee-parse.log
+          if grep -E 'SCRIPT ERROR|Parse Error|Compile Error|Failed to load script' sp-melee-parse.log; then exit 1; fi
+      - name: Execute actual geometry checks and render 36 native frames
+        run: |
+          set -euo pipefail
+          mkdir -p melee-six-prototype/evidence
+          SP_MELEE_QA=1 timeout 150s xvfb-run -a "$GODOT_BIN" --path melee-six-prototype --resolution 900x520 >sp-melee-native.log 2>&1
+          cat sp-melee-native.log
+          grep -q 'SP_MELEE_QA_GEOMETRY_PASS checks=24' sp-melee-native.log
+          grep -q 'SP_MELEE_QA_GODOT_CAPTURE_PASS 36 screenshots' sp-melee-native.log
+      - name: Verify white slash arc against collision radius; create GIFs
+        run: |
+          set -euo pipefail
+          python3 tools/qa_sp_melee_six.py | tee sp-melee-visual-qa.log
+      - name: Preserve actual Godot QA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SP-Melee-SixAngle-ActualGodot-${{ github.sha }}
+          if-no-files-found: warn
+          retention-days: 21
+          path: |
+            melee-six-prototype/evidence/
+            sp-melee-*.log
