@@ -14,7 +14,13 @@ static func slash_angle(aim: float, t: float) -> float:
     # Right-hand knife now cuts UPWARD through the outer sector, rather than
     # ending with an inverted down-pointing blade on the character's right.
     # Left keeps its accepted hand-specific direction.
-    var travel: float = lerpf(-HALF_SWEEP, HALF_SWEEP, clampf(t, 0.0, 1.0))
+    var fraction: float = clampf(t, 0.0, 1.0)
+    # Right-hand slash front-loads blade rotation so the cutting edge points
+    # forward/up during IMPACT instead of downward throughout the active hit.
+    # Damage uses the exact same non-linear angle trajectory.
+    if side(aim) > 0.0:
+        fraction = pow(fraction, 0.40)
+    var travel: float = lerpf(-HALF_SWEEP, HALF_SWEEP, fraction)
     return aim - travel
 
 static func aim_family(aim: float) -> String:
