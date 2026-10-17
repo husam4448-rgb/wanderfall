@@ -5,6 +5,7 @@ on:
     branches: [ sp-v257-restore-d2d14-world-hud ]
     paths:
       - '.github/workflows/sp-v257-restore-plus-approved-survivor.yml'
+      - 'tools/qa_sp_v257_restored_world_hud.gd'
   workflow_dispatch:
 
 permissions:
