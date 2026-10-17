@@ -83,7 +83,12 @@ for f in root.rglob('*'):
     if f.is_file() and f.suffix in {'.gd','.tscn','.tres','.gdshader','.godot'} and f!=unused_script:
         source=f.read_text(encoding='utf-8',errors='ignore')
         if 'res://assets/models/' in source or 'ProductionSurvivorVisual' in source or 'production_survivor_visual.gd' in source:
-            raise SystemExit("SP_V258_FAIL model still referenced by "+str(f))
+            if f.is_relative_to(root/'tools'):
+                # Offline D2D sprite-baking utility, never part of runtime.
+                # Keep the GitHub source; omit only from this optimized APK.
+                f.unlink()
+                continue
+            raise SystemExit("SP_V258_FAIL LIVE runtime model dependency: "+str(f))
 unused_script.unlink()
 shutil.rmtree(model_dir)
 for rel, data in original.items():
