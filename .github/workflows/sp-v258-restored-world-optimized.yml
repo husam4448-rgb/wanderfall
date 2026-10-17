@@ -2,7 +2,7 @@ name: Survival Paradise v258 — Original World/HUD, Performance + Lean ARM64 AP
 
 on:
   push:
-    branches: [ sp-v257-restore-d2d14-world-hud ]
+    branches: [ sp-v258-hud-world-performance-arm64-lean ]
     paths:
       - '.github/workflows/sp-v258-restored-world-optimized.yml'
       - 'tools/qa_sp_v257_restored_world_hud.gd'
@@ -36,7 +36,7 @@ jobs:
       - name: Checkout approved character and combat overlay in isolation
         uses: actions/checkout@v4
         with:
-          ref: sp-v257-restore-d2d14-world-hud
+          ref: sp-v258-hud-world-performance-arm64-lean
           path: v257_overlay
           sparse-checkout: |
             patches/apply_sp_v257_d2d14_survivor_bridge.py
