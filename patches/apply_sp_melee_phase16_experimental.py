@@ -90,7 +90,8 @@ func _sp_start_swing(aim: Vector2, amount: float) -> bool:
     _sp_melee_controller.base_damage = amount
     if not _sp_melee_controller.begin_slash(aim, _sp_firearm_visual if equipment.get_weapon_category() == "firearm" else null, self):
         return false
-    _attack_cooldown = maxf(_attack_cooldown, 0.6)
+    # 0.165s cut; retain a short mechanical cooldown against input spam.
+    _attack_cooldown = maxf(_attack_cooldown, 0.25)
     NoiseManager.emit_noise(global_position,65.0,"player")
     AudioEventBus.emit_event("melee_swing",global_position)
     return true
