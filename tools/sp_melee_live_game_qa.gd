@@ -51,7 +51,20 @@ func _run_test() -> void:
         if player.survival_stats.stamina > 91.01:
             _fail("Knife swing did not consume stamina at angle "+str(i))
             return
-        await get_tree().create_timer(0.27).timeout
+        # Physics-frame synchronized: 165ms slash cannot use the old
+        # 270ms capture delay; it would already be finished.
+        var controller = player._sp_melee_controller
+        var slash_duration: float = float(controller.WINDUP + controller.ACTIVE + controller.RECOVERY)
+        if slash_duration > 0.18 or slash_duration < 0.10:
+            _fail("Knife slash is not near-instant: "+str(slash_duration))
+            return
+        var active_frame_count: int = 0
+        while controller.attacking and controller.elapsed < controller.WINDUP + controller.ACTIVE * 0.55:
+            await get_tree().physics_frame
+            active_frame_count += 1
+            if active_frame_count > 18:
+                _fail("Knife active-frame timing stalled")
+                return
         var upper_angle: float = SlashMath.slash_angle(ANGLES[i], 0.0)
         var lower_angle: float = SlashMath.slash_angle(ANGLES[i], 1.0)
         if not sin(lower_angle) > sin(upper_angle) + 0.65:
@@ -68,7 +81,14 @@ func _run_test() -> void:
         if image.save_png(path) != OK:
             _fail("Could not save in-game slash image")
             return
-        await get_tree().create_timer(0.48).timeout
+        var remaining_frames: int = 0
+        while controller.attacking and remaining_frames < 18:
+            await get_tree().physics_frame
+            remaining_frames += 1
+        if controller.attacking:
+            _fail("Short slash did not complete in under 18 remaining physics frames")
+            return
+        await get_tree().process_frame
         if victim.hits != 1 or far.hits != 0 or miss.hits != 0:
             _fail("Melee contact invalid at "+str(i)+" hits="+str([victim.hits,far.hits,miss.hits]))
             return
@@ -83,7 +103,8 @@ func _run_test() -> void:
         far.queue_free()
         miss.queue_free()
         await get_tree().process_frame
-    print("SP_MELEE_LIVE_GAME_QA_PASS checks="+str(checks)+" 6 angles; source player, input, equipped firearm, stamina, correct hits, recover")
+    print("SP_MELEE_LIVE_GAME_QA_PASS checks="+str(checks)+" 6 angles; fast window, equipped firearm, damage")
+    print("SP_MELEE_FAST_SLASH_QA_PASS 165ms complete, physics-frame swept hits on all 6 aim zones")
     var walker = player._sp_sprite
     if walker == null or walker.near_hip == null or walker.far_hip == null:
         _fail("Approved independent leg joints missing")
@@ -92,6 +113,9 @@ func _run_test() -> void:
     # This only disables player-world contact within CI, not in the APK.
     var previous_collision_mask: int = player.collision_mask
     player.collision_mask = 0
+    if walker.BOOT_WIDTH != 11.0 or walker.BOOT_HEIGHT != 6.0:
+        _fail("Boot footprint must be a fixed 11 x 6 square-edged pixel shape")
+        return
     var start_pos: Vector2 = player.global_position
     var near_min: float = 99.0
     var near_max: float = -99.0
@@ -145,7 +169,7 @@ func _run_test() -> void:
     if not walker.near_hip.visible or not walker.far_hip.visible or walker.gait_weight > 0.08:
         _fail("Legs did not restore exact neutral pose after walking")
         return
-    print("SP_MELEE_GAIT_QA_PASS B2B connected hip knee ankle, pelvis coverage, mirrored opposite stride and idle reset")
+    print("SP_MELEE_GAIT_QA_PASS B2B linked hips, constant rectangle 11x6 boots, no tapered feet, mirrored opposite stride and idle reset")
     get_tree().quit(0)
 
 func _fail(reason: String) -> void:
