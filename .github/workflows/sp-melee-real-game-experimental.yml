@@ -1,11 +1,14 @@
 name: SP Melee — Original Playable Game Experimental Integration
 on:
   push:
-    branches: [sp-melee-knife-orientation-and-gait]
+    branches: [sp-b2b-leg-rig-downslash]
     paths:
       - 'patches/apply_sp_melee_phase16_experimental.py'
       - '.github/workflows/sp-melee-real-game-experimental.yml'
       - 'melee-six-prototype/MeleeController.gd'
+      - 'melee-six-prototype/SlashMath.gd'
+      - 'melee-six-prototype/SurvivorWalkSprite.gd'
+      - 'tools/build_sp_melee_walk_layers.py'
       - 'melee-six-prototype/SlashMath.gd'
       - 'melee-six-prototype/SurvivorWalkSprite.gd'
       - 'tools/build_sp_melee_walk_layers.py'
@@ -19,7 +22,7 @@ jobs:
     env:
       GAME_DIR: /tmp/sp_original_melee_game
       GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
-      APK_PATH: SurvivalParadise-Experimental-Melee-GaitFix.apk
+      APK_PATH: SurvivalParadise-Experimental-B2B-DownSlash.apk
     steps:
       - uses: actions/checkout@v4
       - name: Reconstruct exact source and apply bounded combat patch
@@ -82,8 +85,8 @@ jobs:
           from pathlib import Path
           p=Path('/tmp/sp_original_melee_game/export_presets.cfg')
           s=p.read_text(encoding='utf-8')
-          s=s.replace('version/code=16','version/code=251',1)
-          s=s.replace('version/name="0.16.0"','version/name="0.16.0-EXP-MELEE-GAIT"',1)
+          s=s.replace('version/code=16','version/code=252',1)
+          s=s.replace('version/name="0.16.0"','version/name="0.16.0-EXP-B2B-DOWNSLASH"',1)
           s=s.replace('package/unique_name="org.wanderfall.game"','package/unique_name="org.survivalparadise.meleeexp"',1)
           s=s.replace('package/name="Wanderfall"','package/name="SP Melee Experimental"',1)
           p.write_text(s,encoding='utf-8')
@@ -95,7 +98,7 @@ jobs:
           "$SDK/build-tools/35.0.1/apksigner" verify --verbose --print-certs "$APK_PATH" >sp_melee_phase16_signature.txt
           "$SDK/build-tools/35.0.1/aapt" dump badging "$APK_PATH" >sp_melee_phase16_identity.txt
           grep -q "name='org.survivalparadise.meleeexp'" sp_melee_phase16_identity.txt
-          grep -q "versionCode='251'" sp_melee_phase16_identity.txt
+          grep -q "versionCode='252'" sp_melee_phase16_identity.txt
           sha256sum "$APK_PATH" >sp_melee_phase16_sha256.txt
       - name: Retain proof, actual APK and failures
         if: always()
@@ -106,6 +109,6 @@ jobs:
           retention-days: 14
           compression-level: 0
           path: |
-            SurvivalParadise-Experimental-Melee-GaitFix.apk
+            SurvivalParadise-Experimental-B2B-DownSlash.apk
             sp_melee_phase16_*.log
             sp_melee_phase16_*.txt
