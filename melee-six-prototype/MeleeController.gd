@@ -51,6 +51,7 @@ func begin_slash(aim_vector: Vector2, firearm_visual: CanvasItem = null, actor: 
         firearm.visible = false
     knife.visible = true
     knife.rotation = Math2D.slash_angle(aim, 0.0)
+    knife.scale.y = -1.0 if Math2D.side(aim) > 0.0 else 1.0
     set_physics_process(true)
     queue_redraw()
     return true
@@ -66,6 +67,7 @@ func _physics_process(delta: float) -> void:
         _damage_swept_sector(Math2D.slash_angle(aim, a), Math2D.slash_angle(aim, b))
     var progress: float = clampf((elapsed - WINDUP) / ACTIVE, 0.0, 1.0)
     knife.rotation = Math2D.slash_angle(aim, progress)
+    knife.scale.y = -1.0 if Math2D.side(aim) > 0.0 else 1.0
     queue_redraw()
     if elapsed >= TOTAL:
         _finish_slash()
@@ -135,7 +137,7 @@ func _draw() -> void:
     var previous: Vector2
     for i in range(29):
         var f: float = float(i) / 28.0
-        var a: float = theta - Math2D.side(aim) * length * (1.0 - f)
+        var a: float = theta + length * (1.0 - f)
         var p: Vector2 = Vector2.RIGHT.rotated(a) * Math2D.OUTER_RADIUS
         if i > 0:
             var brightness: float = lerpf(0.34, 1.0, f)
