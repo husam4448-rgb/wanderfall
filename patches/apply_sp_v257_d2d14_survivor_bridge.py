@@ -55,9 +55,9 @@ def rep(old,new,label):
 
 rep('var _baked_visual: Node2D = null\n',
 '''var _baked_visual: Node2D = null
-var _sp_sprite: Node2D = null
-var _sp_melee_controller: Node2D = null
-var _sp_firearm_visual: Node2D = null
+var _sp_sprite = null
+var _sp_melee_controller = null
+var _sp_firearm_visual = null
 var _sp_last_ammo: int = -1
 var _sp_last_weapon_id: String = ""
 ''','additional visual nodes')
