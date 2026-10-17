@@ -1,7 +1,13 @@
 extends Node2D
+const HandVisual = preload("res://HandVisual.gd")
+var grip_hand: Node2D
 ## Knife points toward +X. Parent MeleeController rotates this layer; no arms.
 func _ready() -> void:
     z_index = 2
+    grip_hand = HandVisual.new()
+    grip_hand.name = "KnifeGripHandChildOfBlade"
+    grip_hand.position = Vector2(5, 3)
+    add_child(grip_hand)
     queue_redraw()
 
 func _draw() -> void:
