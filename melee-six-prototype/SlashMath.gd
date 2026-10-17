@@ -11,7 +11,11 @@ static func side(aim: float) -> float:
     return 1.0 if cos(aim) >= 0.0 else -1.0
 
 static func slash_angle(aim: float, t: float) -> float:
-    return aim + side(aim) * lerpf(-HALF_SWEEP, HALF_SWEEP, clampf(t, 0.0, 1.0))
+    # Right-hand knife now cuts UPWARD through the outer sector, rather than
+    # ending with an inverted down-pointing blade on the character's right.
+    # Left keeps its accepted hand-specific direction.
+    var travel: float = lerpf(-HALF_SWEEP, HALF_SWEEP, clampf(t, 0.0, 1.0))
+    return aim - travel
 
 static func aim_family(aim: float) -> String:
     var facing: String = "right" if cos(aim) >= 0.0 else "left"
