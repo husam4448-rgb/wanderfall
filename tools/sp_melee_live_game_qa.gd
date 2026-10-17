@@ -76,7 +76,15 @@ func _run_test() -> void:
     if gun_visual.grip_hand.visible or gun_visual.support_hand.visible:
         _fail("Hands are floating independently with no weapon")
         return
-    # Snapshot all firearm variants from the actual game renderer.
+    # Freeze player pose during ART-ONLY snapshots; otherwise its live
+    # equipment controller overwrites each test model with the equipped pistol.
+    # Restore both process modes before any combat/movement QA.
+    var prior_direction: Vector2 = player._facing
+    player.set_physics_process(false)
+    player.set_process(false)
+    player._facing = Vector2.RIGHT
+    gun_visual.position = Vector2(4, -6)
+    gun_visual.set_aim_vector(Vector2.RIGHT)
     for weapon_id in ["9mm_pistol", "survival_rifle", "tactical_smg", "pump_shotgun"]:
         gun_visual.configure_equipped(weapon_id, "firearm")
         gun_visual.visible = true
@@ -87,6 +95,9 @@ func _run_test() -> void:
         if art_frame.save_png(art_path) != OK:
             _fail("Unable to capture actual game gun art " + weapon_id)
             return
+    player._facing = prior_direction
+    player.set_physics_process(true)
+    player.set_process(true)
     gun_visual.configure_equipped(player.equipment.equipped_weapon_id, player.equipment.get_weapon_category())
     player._sp_melee_update_visuals()
     print("SP_FIREARM_V254_ART_QA_PASS 4 pixel models, empty state, left/right aim, grey pole removed")
