@@ -9,10 +9,10 @@
 
 | Build | Exact APK bytes | MiB |
 |---|---:|---:|
-| v257 | 80,4xx,xxx (~76.69 MiB) | 76.69 |
+| v257 | 80,419,456 | 76.69 |
 | **v258** | **30,553,727** | **29.14** |
 
-**Approximate reduction: 62.0%.** This is a material binary-size reduction, not compression of the download wrapper.
+**Measured reduction: 62.007%.** This is a material binary-size reduction, not compression of the download wrapper.
 
 Root causes confirmed by comparing v256 and v257 APK ZIP manifests:
 1. Both ARM32 (27.56 MiB compressed) and ARM64 (24.29 MiB) Godot Android runtime libraries were bundled. The target Samsung Galaxy S24 Ultra is ARM64; v258 exports **ARM64 only**, with no 32-bit Godot engine.
