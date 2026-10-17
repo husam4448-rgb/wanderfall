@@ -335,13 +335,23 @@ func _run_test() -> void:
     if swing_frames < 15:
         _fail("Legs do not alternately counter-rotate across full gait cycle")
         return
+    # v256: moving left alone MUST NOT mirror weapon aim/body facing.
+    InputState.set_mobile_aim(Vector2.RIGHT)
     InputState.set_mobile_move(Vector2.LEFT)
-    for frame in range(18):
+    for frame in range(12):
         await get_tree().physics_frame
-    if walker.scale.x >= 0.0:
-        _fail("Sprite and legs do not mirror for left-facing walk")
+    if walker.scale.x <= 0.0 or player._facing.distance_to(Vector2.RIGHT) > 0.01:
+        _fail("Walking LEFT unexpectedly steered locked RIGHT aim")
+        return
+    # Aim stick alone changes facing and hence leg-mirror orientation.
+    InputState.set_mobile_aim(Vector2.LEFT)
+    for frame in range(12):
+        await get_tree().physics_frame
+    if walker.scale.x >= 0.0 or player._facing.distance_to(Vector2.LEFT) > 0.01:
+        _fail("Independent LEFT aim failed to mirror character")
         return
     InputState.set_mobile_move(Vector2.ZERO)
+    InputState.set_mobile_aim(Vector2.ZERO)
     for frame in range(24):
         await get_tree().physics_frame
     player.collision_mask = previous_collision_mask
