@@ -11,23 +11,14 @@ static func side(aim: float) -> float:
     return 1.0 if cos(aim) >= 0.0 else -1.0
 
 static func slash_angle(aim: float, t: float) -> float:
-    # Right-hand knife now cuts UPWARD through the outer sector, rather than
-    # ending with an inverted down-pointing blade on the character's right.
-    # Left keeps its accepted hand-specific direction.
-    var fraction: float = clampf(t, 0.0, 1.0)
-    # Right-hand slash front-loads blade rotation so the cutting edge points
-    # forward/up during IMPACT instead of downward throughout the active hit.
-    # Damage uses the exact same non-linear angle trajectory.
-    if side(aim) > 0.0:
-        # Right-hand knife: cut with the edge FORWARD/UP rather than drawing
-        # a dangling inverted blade below the waist during the active strike.
-        # Clamp to right-facing hemisphere and retain the requested aim ray
-        # inside each swept sector (forward / upper-right / lower-right).
-        var starting_angle: float = minf(aim + deg_to_rad(20.0), deg_to_rad(83.0))
-        var ending_angle: float = maxf(aim - deg_to_rad(80.0), -deg_to_rad(83.0))
-        return lerpf(starting_angle, ending_angle, pow(fraction,0.40))
-    var travel: float = lerpf(-HALF_SWEEP, HALF_SWEEP, fraction)
-    return aim - travel
+    # SIX ANGLES: start visibly ABOVE, cut DOWN through the aim ray,
+    # finish BELOW. Screen Y increases downward. This also reverses
+    # correctly for the LEFT-facing survivor.
+    # Actual hit tests use these same angles, so the active cutting
+    # trail, blade and damage geometry never contradict one another.
+    var progress: float = clampf(t, 0.0, 1.0)
+    var swing: float = lerpf(-HALF_SWEEP, HALF_SWEEP, progress)
+    return aim + side(aim) * swing
 
 static func aim_family(aim: float) -> String:
     var facing: String = "right" if cos(aim) >= 0.0 else "left"
