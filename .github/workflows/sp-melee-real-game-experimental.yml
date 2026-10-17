@@ -5,6 +5,7 @@ on:
     paths:
       - 'patches/apply_sp_melee_phase16_experimental.py'
       - '.github/workflows/sp-melee-real-game-experimental.yml'
+      - 'melee-six-prototype/MeleeController.gd'
   workflow_dispatch:
 permissions:
   contents: read
