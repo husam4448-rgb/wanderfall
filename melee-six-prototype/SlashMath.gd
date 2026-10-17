@@ -5,7 +5,7 @@ const BLADE_REACH: float = 36.0
 const TRAIL_EXTENSION: float = 0.35
 const OUTER_RADIUS: float = BLADE_REACH * (1.0 + TRAIL_EXTENSION)
 const INNER_RADIUS: float = 8.0
-const HALF_SWEEP: float = deg_to_rad(50.0)
+const HALF_SWEEP: float = 0.8726646259971648
 
 static func side(aim: float) -> float:
     return 1.0 if cos(aim) >= 0.0 else -1.0
