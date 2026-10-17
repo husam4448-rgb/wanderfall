@@ -51,7 +51,7 @@ func _run_test() -> void:
             _fail("Knife swing did not consume stamina at angle "+str(i))
             return
         await get_tree().create_timer(0.27).timeout
-        if i == 0 and not player._sp_melee_controller.knife.rotation < start_rotation:
+        if i == 0 and not player._sp_melee_controller.knife.rotation < -0.02:
             _fail("RIGHT knife must sweep up/forward, not finish upside down")
             return
         await get_tree().process_frame
