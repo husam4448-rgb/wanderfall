@@ -17,6 +17,7 @@ func _ready() -> void:
     body = Sprite2D.new()
     body.name = "ApprovedSleevelessTorsoBackpackLegs"
     body.texture = load("res://assets/approved_clean_torso_right.png")
+    body.scale = Vector2(2.0, 2.0) # Native 64×96 approved silhouette shown at pixel-perfect 128×192
     body.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
     add_child(body)
     controller = MeleeControllerScript.new()
