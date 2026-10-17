@@ -114,4 +114,23 @@ ctrl=root/'assets/sp_melee/MeleeController.gd'
 s=ctrl.read_text(encoding='utf-8').replace('target.call("take_damage", base_damage)','target.call("take_damage", base_damage, attacker)')
 s=s.replace("res://SlashMath.gd","res://assets/sp_melee/SlashMath.gd").replace("res://KnifeVisual.gd","res://assets/sp_melee/KnifeVisual.gd")
 ctrl.write_text(s,encoding='utf-8')
+# Narrow legacy Godot-4.7 runtime compatibility fixes for original Phase16 source.
+for item in (
+    ('scripts/ecology/wildlife_actor.gd','    drops = configured_drops.duplicate(true) if configured_drops is Array else []','    drops.clear()\n    if configured_drops is Array:\n        for entry in configured_drops:\n            if entry is Dictionary:\n                drops.append(entry)','wildlife typed drop array'),
+    ('scripts/ecology/wildlife_actor.gd','        drops = stored_drops.duplicate(true) if stored_drops is Array else drops','        if stored_drops is Array:\n            drops.clear()\n            for entry in stored_drops:\n                if entry is Dictionary:\n                    drops.append(entry)','wildlife saved drop array'),
+    ('scripts/social/friendly_npc.gd','    trade_stock = stock.duplicate(true) if stock is Array else []','    trade_stock.clear()\n    if stock is Array:\n        for entry in stock:\n            if entry is Dictionary:\n                trade_stock.append(entry)','npc typed stock array'),
+    ('scripts/social/faction_mobile_group.gd','    trade_stock = stock.duplicate(true) if stock is Array else []','    trade_stock.clear()\n    if stock is Array:\n        for entry in stock:\n            if entry is Dictionary:\n                trade_stock.append(entry)','faction group typed stock array'),
+    ('scripts/social/faction_mobile_group.gd','var other_faction := String(node.get("faction_id"))','var faction_value: Variant = node.get("faction_id")\n        var other_faction := str(faction_value) if faction_value != null else ""','null faction id safety'),
+):
+    patch(*item)
+append('scripts/player.gd', '''
+func consume_stamina(cost: float) -> bool:
+    if GameSettings.god_mode or not GameSettings.stamina_enabled:
+        return true
+    if survival_stats.stamina < cost:
+        return false
+    survival_stats.stamina = maxf(0.0, survival_stats.stamina - cost)
+    survival_stats.changed.emit()
+    return true
+''')
 print('SP_MELEE_PHASE16_SOURCE_PATCH_APPLIED safe isolated source copy')
