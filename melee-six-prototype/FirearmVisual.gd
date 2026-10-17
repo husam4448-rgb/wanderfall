@@ -15,7 +15,6 @@ var current_aim: Vector2 = Vector2.RIGHT
 var muzzle_flash_time: float = 0.0
 
 func _ready() -> void:
-    name = "PixelFirearmNotGreyPole"
     texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
     z_index = 4
     set_process(true)
