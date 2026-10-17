@@ -58,19 +58,40 @@ func _q(value: Vector2) -> Vector2:
     # Same B2B quantized half-pixel positions, for stable nearest-pixel art.
     return Vector2(roundf(value.x * 2.0) * 0.5, roundf(value.y * 2.0) * 0.5)
 
-func _limb(start: Vector2, finish: Vector2, inside: Color, thickness: float) -> void:
-    # Overlapping round-capped segments are seamless around joints.
-    draw_line(_q(start), _q(finish), OUTLINE, thickness + 3.0, false)
-    draw_line(_q(start), _q(finish), inside, thickness, false)
+# Zero-Sievert-inspired readability: squared pixels, fixed-width shins and
+# identical rectangular boots in EVERY frame. No circles or tapered strokes.
+const BOOT_WIDTH: float = 11.0
+const BOOT_HEIGHT: float = 6.0
 
-func _joint(point: Vector2, inside: Color, radius: float) -> void:
-    draw_circle(_q(point), radius + 1.3, OUTLINE)
-    draw_circle(_q(point), radius, inside)
+func _rect_at(x: float, y: float, w: float, h: float, color: Color) -> void:
+    draw_rect(Rect2(roundf(x), roundf(y), w, h), color, true)
+
+func _squared_bone(start: Vector2, finish: Vector2, fill: Color) -> void:
+    # B2B hip-knee-ankle geometry retained; only the visual rasterizer changes.
+    # Integer-width stripes preserve a chunky, parallel-sided silhouette.
+    var first_y: int = int(roundf(minf(start.y, finish.y)))
+    var last_y: int = int(roundf(maxf(start.y, finish.y)))
+    for row in range(first_y, last_y + 1):
+        var span: float = maxf(0.01, finish.y - start.y)
+        var fraction: float = clampf((float(row) - start.y) / span, 0.0, 1.0)
+        var center_x: float = roundf(lerpf(start.x, finish.x, fraction))
+        _rect_at(center_x - 5, float(row), 11.0, 1.0, OUTLINE)
+        _rect_at(center_x - 4, float(row), 9.0, 1.0, fill)
+
+func _rect_boot(ankle: Vector2, fill: Color) -> void:
+    # Invariable 11x6 boot with flat 11px sole, including during foot lift.
+    # Move only the position, NEVER rotate, scale, taper or skew its outline.
+    var x: float = roundf(ankle.x) - 5.0
+    var y: float = roundf(ankle.y) - 1.0
+    _rect_at(x, y, BOOT_WIDTH, BOOT_HEIGHT, OUTLINE)
+    _rect_at(x + 1.0, y + 1.0, BOOT_WIDTH - 2.0, 3.0, fill)
+    _rect_at(x + 1.0, y + 4.0, BOOT_WIDTH - 2.0, 1.0, fill.darkened(0.15))
+    _rect_at(x, y + 5.0, BOOT_WIDTH, 1.0, OUTLINE)
 
 func _solve_b2b_leg(hip: Vector2, phase: float, amplitude: float) -> Array[Vector2]:
     # Original B2B skeleton mapping: hip->knee->ankle, opposing gait.
     var stride: float = sin(phase) * amplitude
-    var lift: float = 3.0 * maxf(0.0, sin(phase)) * gait_weight
+    var lift: float = 1.55 * maxf(0.0, sin(phase)) * gait_weight
     var forward_axis: Vector2 = move_velocity.normalized() if move_velocity.length_squared() > 0.1 else Vector2.RIGHT
     var x_stride: float = stride * maxf(0.60, absf(forward_axis.x))
     return [
@@ -79,16 +100,12 @@ func _solve_b2b_leg(hip: Vector2, phase: float, amplitude: float) -> Array[Vecto
     ]
 
 func _leg(hip: Vector2, knee: Vector2, ankle: Vector2, near: bool) -> void:
-    # Connected outlines at hip, knee, ankle plus solid boot shape.
     var pants: Color = PANTS_NEAR if near else PANTS_FAR
     var boots: Color = BOOT_NEAR if near else BOOT_FAR
-    _limb(hip, knee, pants, 9.0)
-    _joint(knee, PANTS_KNEE if near else pants, 4.3)
-    _limb(knee, ankle, pants.darkened(0.06), 8.2)
-    _joint(ankle, pants.darkened(0.08), 3.8)
-    var toe: Vector2 = _q(ankle + Vector2(2.1, 2.7))
-    _limb(ankle + Vector2(-1, 0), toe, boots, 9.0)
-    draw_line(_q(toe + Vector2(-3, 2)), _q(toe + Vector2(3.2, 2)), OUTLINE, 2.0, false)
+    _squared_bone(hip, knee, pants)
+    _rect_at(knee.x - 5, knee.y - 1, 11, 3, pants)
+    _squared_bone(knee, ankle, pants.darkened(0.04))
+    _rect_boot(ankle, boots)
 
 func _draw() -> void:
     if gait_weight <= 0.08:
@@ -111,8 +128,8 @@ func advance(velocity_world: Vector2, delta: float, facing_right: bool) -> void:
         gait_phase = fposmod(gait_phase + delta * lerpf(6.5,10.2,clampf((speed-90.0)/300.0,0.0,1.0)), TAU)
     elif gait_weight < 0.08:
         gait_phase = 0.0
-    var near_pose: Array[Vector2] = _solve_b2b_leg(NEAR_HIP, gait_phase, 5.4 * gait_weight)
-    var far_pose: Array[Vector2] = _solve_b2b_leg(FAR_HIP, gait_phase + PI, 5.4 * gait_weight)
+    var near_pose: Array[Vector2] = _solve_b2b_leg(NEAR_HIP, gait_phase, 3.8 * gait_weight)
+    var far_pose: Array[Vector2] = _solve_b2b_leg(FAR_HIP, gait_phase + PI, 3.8 * gait_weight)
     near_knee = near_pose[0]
     near_ankle = near_pose[1]
     far_knee = far_pose[0]
@@ -126,5 +143,5 @@ func advance(velocity_world: Vector2, delta: float, facing_right: bool) -> void:
     near_hip.position = SOURCE_NEAR_PIVOT
     far_hip.position = SOURCE_FAR_PIVOT
     upper.scale.y = 1.0 + (0.003 * sin(breathing_phase) if not moving else 0.0)
-    position.y = -8.0 - (0.36 * absf(sin(gait_phase)) * gait_weight)
+    position.y = -8.0 - (0.18 * absf(sin(gait_phase)) * gait_weight)
     queue_redraw()
