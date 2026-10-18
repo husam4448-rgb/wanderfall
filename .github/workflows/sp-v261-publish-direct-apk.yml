@@ -1,0 +1,53 @@
+name: Survival Paradise v261 - Publish Direct APK Download
+
+on:
+  push:
+    branches: [sp-v261-canopy-lighting-modifier]
+    paths:
+      - '.github/workflows/sp-v261-publish-direct-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  publish:
+    name: Publish verified v261 APK as public GitHub Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      GH_TOKEN: ${{ github.token }}
+      APK_NAME: SurvivalParadise-TreeShadow-DayNight-v261.apk
+      RELEASE_TAG: sp-v261-tree-shadow-preview
+    steps:
+      - uses: actions/checkout@v4
+      - name: Obtain signed APK from completed v261 CI
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/v261-verified
+          gh run download 39094028890 -R "${GITHUB_REPOSITORY}" -n SP-TreeShadow-DayNight-v261 -D /tmp/v261-verified
+          cd /tmp/v261-verified
+          test -s "$APK_NAME"
+          test -s "$APK_NAME.sha256"
+          sha256sum -c "$APK_NAME.sha256"
+          unzip -t "$APK_NAME" >/dev/null
+          test "$(stat -c %s "$APK_NAME")" -gt 30000000
+          echo "PUBLIC_APK_VALIDATED: $APK_NAME, $(stat -c%s "$APK_NAME") bytes"
+      - name: Create direct public download
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /tmp/v261-verified
+          if gh release view "$RELEASE_TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "$APK_NAME" "$APK_NAME.sha256" --clobber -R "$GITHUB_REPOSITORY"
+          else
+            gh release create "$RELEASE_TAG" "$APK_NAME" "$APK_NAME.sha256" -R "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" \
+              --title "Survival Paradise v261 - Tree Shadow Lighting Preview" \
+              --notes "Signed test APK from passing v261 Android/Godot workflow run 39094028890. GPU tree color modulation, day/night tint controls. Android FPS and final visual approval pending." \
+              --prerelease
+          fi
+          gh release view "$RELEASE_TAG" -R "$GITHUB_REPOSITORY" --json assets,url -q '.url,.assets[].browserDownloadUrl'
+          echo "PUBLIC_APK_RELEASED"
