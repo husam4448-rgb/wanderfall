@@ -202,6 +202,10 @@ func _verify() -> void:
     if waist == null or not waist.visible:
         _fail("Connected static pelvis missing")
         return
+    # Clear residual walking-step fade before testing pure idle breathing.
+    rig.gait_weight = 0.0
+    rig.gait_phase = 0.0
+    rig.position.y = -8.0
     var rest_belt: Vector2 = waist.global_position
     var old_rig_position: Vector2 = rig.position
     var minimum_head_y: float = INF
