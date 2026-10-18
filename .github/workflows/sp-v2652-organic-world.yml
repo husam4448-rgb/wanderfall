@@ -544,12 +544,14 @@ jobs:
           timeout 190s xvfb-run -a -s '-screen 0 1920x1080x24' "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1536x708 --script res://sp_v2652_organic_qa.gd > sp_v2652_organic_qa.log 2>&1 || { tail -125 sp_v2652_organic_qa.log; exit 1; }
           grep -q 'SP_V2652_ORGANIC_RASTER_ASSET_QA_PASS' sp_v2652_organic_qa.log
           grep -q 'SP_V2652_REAL_SCENE_QA_PASS' sp_v2652_organic_qa.log
+          grep -q 'SP_V2652_ACTUAL_POND_QA_PASS' sp_v2652_organic_qa.log
           grep -q 'SP_V2652_ALL_QA_PASS' sp_v2652_organic_qa.log
           if grep -E 'SCRIPT ERROR:|Compile Error:|Parse Error:' sp_v2652_organic_qa.log; then exit 1; fi
           mkdir -p v2652_evidence
           cp "$PROJECT_DIR"/SP_v2652_REAL_biome_*.png v2652_evidence/
-          rm -f "$PROJECT_DIR"/SP_v2652_REAL_biome_*.png "$PROJECT_DIR"/sp_v2652_organic_qa.gd
-          test "$(find v2652_evidence -maxdepth 1 -name '*.png' | wc -l)" -eq 4
+          cp "$PROJECT_DIR"/SP_v2652_REAL_pond.png v2652_evidence/
+          rm -f "$PROJECT_DIR"/SP_v2652_REAL_biome_*.png "$PROJECT_DIR"/SP_v2652_REAL_pond.png "$PROJECT_DIR"/sp_v2652_organic_qa.gd
+          test "$(find v2652_evidence -maxdepth 1 -name '*.png' | wc -l)" -eq 5
 
       - name: Use independent version and package identity for restored-world experiment
         run: |
