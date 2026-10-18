@@ -34,7 +34,7 @@ func _run() -> void:
         return
     for a in range(3):
         for b in range(a):
-            if not _ok(colors[a].distance_to(colors[b]) > 0.10,
+            if not _ok((absf(colors[a].r-colors[b].r) + absf(colors[a].g-colors[b].g) + absf(colors[a].b-colors[b].b)) > 0.10,
                     "forest/grassland/desert raster source too similar"):
                 return
     print("SP_V265_RASTER_ASSET_QA_PASS 18 imported PNGs, three material families and transparent foliage")
