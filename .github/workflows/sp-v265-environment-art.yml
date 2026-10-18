@@ -8,6 +8,7 @@ on:
       - 'tools/build_sp_v265_biome_art.py'
       - 'tools/qa_sp_v265_environment.gd'
       - 'patches/apply_sp_v265_environment_raster.py'
+      - 'patches/apply_sp_v265_biome_species.py'
       - 'patches/apply_sp_v264_smooth_biome_ecology.py'
       - 'tools/qa_sp_v264_biome_art.gd'
       - 'worldgen/**'
@@ -64,6 +65,7 @@ jobs:
             patches/apply_sp_v263_all_biome_world.py
             patches/apply_sp_v264_smooth_biome_ecology.py
             patches/apply_sp_v265_environment_raster.py
+            patches/apply_sp_v265_biome_species.py
             tools/build_sp_v265_biome_art.py
             tools/qa_sp_v265_environment.gd
             worldgen
@@ -338,6 +340,8 @@ jobs:
           python3 v257_overlay/tools/build_sp_v265_biome_art.py "$PROJECT_DIR/assets/biomes/v265"
           python3 -m py_compile v257_overlay/patches/apply_sp_v265_environment_raster.py
           python3 v257_overlay/patches/apply_sp_v265_environment_raster.py "$PROJECT_DIR"
+          python3 -m py_compile v257_overlay/patches/apply_sp_v265_biome_species.py
+          python3 v257_overlay/patches/apply_sp_v265_biome_species.py "$PROJECT_DIR"
           grep -q 'V263_BIOME_ATLAS.biome_for_chunk' "$PROJECT_DIR/scripts/world/world_chunk.gd"
           grep -q '_v264_draw_biome_terrain()' "$PROJECT_DIR/scripts/world/world_chunk.gd"
           grep -q 'V265_RASTER.paint' "$PROJECT_DIR/scripts/world/world_chunk.gd"
