@@ -1,7 +1,7 @@
 extends SceneTree
 ## SP v264: actual Godot biome transitions, runtime streaming and visual captures.
 const ATLAS = preload("res://scripts/world/world_biome_atlas.gd")
-const CHUNK = preload("res://scripts/world/world_chunk.gd")
+# Avoid early-loading a second copy of the runtime chunk script.
 const VISUALS = preload("res://scripts/world/world_biome_visuals.gd")
 var assertions: int = 0
 
@@ -101,11 +101,14 @@ func _run() -> void:
         if not _require(chunk.has_method("_v264_draw_biome_terrain"),
                 "real streamed chunk lacks the v264 renderer"):
             return
+    var chunk_constants: Dictionary = loaded.values()[0].get_script().get_script_constant_map()
+    if not _require(chunk_constants.has("CHUNK_SIZE"), "runtime CHUNK_SIZE constant missing"):
+        return
+    var chunk_size: float = float(chunk_constants["CHUNK_SIZE"])
     # Capture actual running Godot map/HUD in four different biomes, not an
     # illustrative screenshot from an image generator.
     for id in [0, 4, 6, 8]:
         var target_chunk: Vector2i = centers[id]
-        var chunk_size: float = float(CHUNK.CHUNK_SIZE)
         player.global_position = (Vector2(target_chunk) +
             Vector2(0.5, 0.5)) * chunk_size
         await create_timer(0.75).timeout
