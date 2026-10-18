@@ -298,7 +298,7 @@ jobs:
           python3 v257_overlay/patches/apply_sp_v259_occlusion_aim.py "$PROJECT_DIR"
           python3 -m py_compile v257_overlay/patches/apply_sp_v260_fast_canopy_breath.py
           python3 v257_overlay/patches/apply_sp_v260_fast_canopy_breath.py "$PROJECT_DIR"
-          grep -q 'is_new_player' "$PROJECT_DIR/scripts/world/occlusion_silhouette_overlay.gd"
+          grep -q 'func _draw_sprite_mask' "$PROJECT_DIR/scripts/world/occlusion_silhouette_overlay.gd"
           grep -q 'SP_ApprovedSimplifiedSurvivor' "$PROJECT_DIR/scripts/player.gd"
           test ! -e "$PROJECT_DIR/assets/models"
           test ! -e "$PROJECT_DIR/scripts/art/production_survivor_visual.gd"
