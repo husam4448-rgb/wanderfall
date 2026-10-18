@@ -529,7 +529,7 @@ jobs:
           "$APKSIGNER" verify --verbose --print-certs "$APK" | tee apk-signature.txt
           "$AAPT" dump badging "$APK" | tee apk-badging.txt
           grep -q "package: name='org.survivalparadise.restoredworld'" apk-badging.txt
-          grep -q "versionCode='262'" apk-badging.txt
+          grep -q "versionCode='263'" apk-badging.txt
           grep -q "versionName='0.21.0D2D.14-v263'" apk-badging.txt
           grep -q "application-label:'Survival Paradise Restored'" apk-badging.txt
           APK_BYTES="$(stat -c%s "$APK")"
