@@ -31,7 +31,12 @@ jobs:
           cd /tmp/v261-verified
           test -s "$APK_NAME"
           test -s "$APK_NAME.sha256"
-          sha256sum -c "$APK_NAME.sha256"
+          # The source CI wrote an absolute runner path into the checksum file.
+          # Compare the digest, not that runner-specific pathname.
+          expected="$(awk '{print $1}' "$APK_NAME.sha256")"
+          actual="$(sha256sum "$APK_NAME" | awk '{print $1}')"
+          test "$actual" = "$expected"
+          echo "APK_SHA256_PASS $actual"
           unzip -t "$APK_NAME" >/dev/null
           test "$(stat -c %s "$APK_NAME")" -gt 30000000
           echo "PUBLIC_APK_VALIDATED: $APK_NAME, $(stat -c%s "$APK_NAME") bytes"
