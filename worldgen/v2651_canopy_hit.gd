@@ -1,32 +1,33 @@
 extends RefCounted
-## WorldChunk's rare CPU canopy query uses precisely the same alpha source
-## and geometry as the GPU occlusion shader. Cached once per art variant.
-const RASTER = preload("res://scripts/world/world_biome_raster.gd")
-static var cached: Dictionary = {}
+## v265.1 CPU canopy query samples exact baked alpha atlas as the GPU shader.
+## No preload dependency on world renderer scripts.
+const CANOPY_ALPHA: Texture2D = preload("res://assets/biomes/v2651/canopy_alpha_atlas.png")
+static var cached_alpha: Image = null
 
 static func tile(macro: int, variation: int) -> int:
     match macro:
-        0: return posmod(variation,3)
-        2: return 3+posmod(variation,3)
-        4: return 6+posmod(variation,3)
-        _: return -1
+        0:
+            return posmod(variation,3)
+        2:
+            return 3 + posmod(variation,3)
+        4:
+            return 6 + posmod(variation,3)
+        _:
+            return -1
 
-static func hit(world_or_local_point: Vector2, tree_origin: Vector2,
+static func hit(point: Vector2, trunk_origin: Vector2,
         macro: int, variation: int) -> bool:
     var index: int = tile(macro,variation)
     if index < 0:
-        var legacy: Vector2 = (world_or_local_point -
-            (tree_origin + Vector2(0,-49))) / Vector2(50.0,57.0)
+        var legacy: Vector2 = point - trunk_origin - Vector2(0,-49)
+        legacy.x /= 50.0
+        legacy.y /= 57.0
         return legacy.length_squared() <= 1.0
-    var relative: Vector2 = world_or_local_point -
-        (tree_origin + Vector2(0,-43))
-    var pixel: Vector2 = relative + Vector2(56,56)
+    var pixel: Vector2 = point - trunk_origin + Vector2(56,99)
     if pixel.x < 0.0 or pixel.y < 0.0 or pixel.x >= 112.0 or pixel.y >= 112.0:
         return false
-    if not cached.has(index):
-        var texture: Texture2D = RASTER._get_texture(macro,posmod(variation,3),"foliage")
-        if texture == null:
-            return false
-        cached[index] = texture.get_image()
-    var img: Image = cached[index]
-    return img.get_pixel(int(pixel.x),int(pixel.y)).a > 0.15
+    if cached_alpha == null:
+        cached_alpha = CANOPY_ALPHA.get_image()
+    var gx: int = (index % 3)*112 + int(pixel.x)
+    var gy: int = int(index / 3)*112 + int(pixel.y)
+    return cached_alpha.get_pixel(gx,gy).a > 0.15
