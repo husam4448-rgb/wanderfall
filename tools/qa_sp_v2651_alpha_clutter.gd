@@ -91,7 +91,7 @@ func _run() -> void:
                 picked = true
                 break
             for child in chunk.get_children():
-                if child is NaturalResource and child.resource_type == "tree":
+                if child.has_method("has_active_tree_canopy") and str(child.get("resource_type")) == "tree":
                     player.global_position = child.global_position+Vector2(0,-41)
                     picked = true
                     break
