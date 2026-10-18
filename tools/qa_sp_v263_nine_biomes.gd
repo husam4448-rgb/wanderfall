@@ -99,7 +99,7 @@ func _run() -> void:
         return
     var walls: int = 0
     for child in world.get_children():
-        if child.name == "PermanentWorldBoundary":
+        if String(child.name).begins_with("PermanentWorldBoundary_"):
             walls += 1
     if walls != 4:
         _fail("Finite map requires four collision walls, has "+str(walls))
