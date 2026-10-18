@@ -77,7 +77,7 @@ func _player_state(actor: Node2D, state: Dictionary) -> bool:
     viewport.transparent_bg = true
     viewport.disable_3d = true
     viewport.render_target_clear_mode = SubViewport.CLEAR_MODE_ALWAYS
-    viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+    viewport.render_target_update_mode = SubViewport.UPDATE_WHEN_VISIBLE
     add_child(viewport)
     var canvas := Node2D.new()
     canvas.position = Vector2(CAPTURE_PIXELS*0.5,CAPTURE_PIXELS*0.5)
