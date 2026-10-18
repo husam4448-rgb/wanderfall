@@ -353,6 +353,25 @@ jobs:
           python3 v257_overlay/tools/build_sp_v2651_postcollapse_art.py "$PROJECT_DIR"
           python3 -m py_compile v257_overlay/patches/apply_sp_v2651_postcollapse_alpha.py
           python3 v257_overlay/patches/apply_sp_v2651_postcollapse_alpha.py "$PROJECT_DIR"
+
+          # Historical v261/v262 visual QA verified exact source alpha and
+          # explicitly pinned the old shader's filename. The v265.1 replacement
+          # preserves the same actor-composite mechanics with real canopy PNG
+          # alpha instead of ellipses; verify the new shader, not its old path.
+          python3 - <<'PY'
+          from pathlib import Path
+          old='mat.shader.resource_path != "res://occlusion/v261_mask.gdshader"'
+          new='mat.shader.resource_path != "res://occlusion/v2651_true_canopy_alpha.gdshader"'
+          for filename in (
+              "v257_overlay/tools/qa_sp_v261_real_game_visuals.gd",
+              "v257_overlay/tools/qa_sp_v262_uniform_opacity.gd",
+          ):
+              p=Path(filename)
+              src=p.read_text(encoding='utf-8')
+              assert src.count(old)==1,(filename,src.count(old))
+              p.write_text(src.replace(old,new),encoding='utf-8')
+          print("SP_V2651_LEGACY_QA_SHADER_EXPECTATION_UPDATED both legacy suites still enforce shader+actor occlusion")
+          PY
           grep -q 'V263_BIOME_ATLAS.biome_for_chunk' "$PROJECT_DIR/scripts/world/world_chunk.gd"
           grep -q '_v264_draw_biome_terrain()' "$PROJECT_DIR/scripts/world/world_chunk.gd"
           grep -q 'V265_RASTER.paint' "$PROJECT_DIR/scripts/world/world_chunk.gd"
