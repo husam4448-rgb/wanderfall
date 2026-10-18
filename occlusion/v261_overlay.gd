@@ -186,7 +186,7 @@ func _capture_state(actor: Node2D, state: Dictionary) -> bool:
     duplicate.scale = source.scale
     canvas.add_child(duplicate)
     state["preview_actor"] = duplicate
-    var weapon_source: Node2D = actor.get("_weapon_visual") as Node2D
+    var weapon_source: Node2D = _safe_node_property(actor, "_weapon_visual") as Node2D
     if weapon_source != null and weapon_source.visible:
         var weapon: Node2D = weapon_source.get_script().new()
         weapon.position = weapon_source.position
@@ -219,6 +219,8 @@ func _new_actor_state(actor: Node2D) -> Dictionary:
             ok = _capture_state(actor,state)
     elif actor.get_script() != null and String(actor.get_script().resource_path).ends_with("/zombie.gd"):
         ok = _zombie_state(actor,state)
+    elif actor.is_in_group("wildlife_actor"):
+        ok = _wildlife_state(actor,state)
     elif _safe_node_property(actor,"_actor_visual") != null or _safe_node_property(actor,"_baked_visual") != null:
         ok = _capture_state(actor,state)
     if not ok:
@@ -286,35 +288,41 @@ func _sync_capture(actor: Node2D,state: Dictionary) -> void:
     _last_npc_capture_updates += 1
 
 func _sync_actor(actor: Node2D,state: Dictionary) -> void:
-    var root_mask: Node2D = state["node"]
+    var node: Node2D = state["node"]
     if state["mode"] == "player":
         var rig: Node2D = actor._sp_sprite
         if rig == null or not rig.visible:
-            root_mask.visible = false
+            node.visible = false
             return
         var originals: Array = [rig.fixed_waist,rig.upper,
-                               rig.near_hip.get_child(0),rig.far_hip.get_child(0)]
-        var copies: Array = state["copies"]
-        for i in range(copies.size()):
-            var original: Sprite2D = originals[i]
-            var clone: Sprite2D = copies[i]
-            clone.texture = original.texture
-            clone.visible = original.is_visible_in_tree()
-            clone.global_transform = original.global_transform
+                                rig.near_hip.get_child(0),rig.far_hip.get_child(0)]
+        for i in range(state["copies"].size()):
+            var source: Sprite2D = originals[i]
+            var dest: Sprite2D = state["copies"][i]
+            dest.texture = source.texture
+            dest.visible = source.is_visible_in_tree()
+            dest.transform = actor.global_transform.affine_inverse() * source.global_transform
         var legs: Node2D = state["legs"]
         legs.synchronize(rig)
+        legs.transform = actor.global_transform.affine_inverse() * rig.global_transform
         var gun: Node2D = state["gun"]
-        var gun_original: Node2D = actor._sp_firearm_visual
-        gun.visible = gun_original != null and gun_original.visible
+        var held: Node2D = actor._sp_firearm_visual
+        gun.visible = held != null and held.visible
         if gun.visible:
-            var id: String = actor.equipment.equipped_weapon_id
-            var category: String = actor.equipment.get_weapon_category()
-            gun.configure_equipped(id,category)
-            gun.global_transform = gun_original.global_transform
-        root_mask.visible = true
+            gun.configure_equipped(actor.equipment.equipped_weapon_id,
+                                  actor.equipment.get_weapon_category())
+            gun.transform = actor.global_transform.affine_inverse() * held.global_transform
+        node.global_position = actor.global_position
+        node.visible = true
+    elif state["mode"] == "wildlife":
+        node.global_position = actor.global_position
+        var dead: bool = bool(_safe_node_property(actor,"_dead"))
+        var sprite: Sprite2D = state["sprite"]
+        sprite.texture = WILDLIFE_TEXTURES["dead"] if dead else WILDLIFE_TEXTURES[state["species"]]
+        node.visible = not bool(_safe_node_property(actor,"_looted"))
     else:
-        root_mask.global_position = actor.global_position
-        root_mask.visible = true
+        node.global_position = actor.global_position
+        node.visible = true
 
 func _refresh() -> void:
     if world_manager == null or not is_instance_valid(world_manager):
@@ -335,6 +343,11 @@ func _refresh() -> void:
             npc_masks += 1
             if npc_masks > MAX_NPC_MASKS:
                 continue
+        if _states.has(id) and actor.is_in_group("player_actor"):
+            var required: String = "player" if actor.get("body_type") == "male" else "capture"
+            if _states[id]["mode"] != required:
+                _dispose(_states[id])
+                _states.erase(id)
         if not _states.has(id):
             var state: Dictionary = _new_actor_state(actor)
             if state.is_empty():
