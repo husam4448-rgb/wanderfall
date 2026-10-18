@@ -223,7 +223,7 @@ func _verify() -> void:
     if maximum_head_y-minimum_head_y < 0.9:
         _fail("Head/torso breathing is imperceptible")
         return
-    if not player._sp_occlusion_shape_contains(waist.to_global(Vector2(0,20))):
+    if not player._sp_occlusion_shape_contains(waist.to_global(Vector2(0,25))):
         _fail("Fixed waist missing from actual foliage sprite silhouette")
         return
     print("SP_V260_CONNECTED_BREATH_QA_PASS upper/head moves 1.25 source pixels; fixed pelvis and boots never separate")
@@ -245,7 +245,8 @@ func _verify() -> void:
         return
     # Run tree renderer near the real player: cache image once, never get_pixel
     # per frame; samples stay substantially below old ~4000/tree overlay calls.
-    overlay._draw_partial_silhouette(player)
+    overlay.queue_redraw()
+    await RenderingServer.frame_post_draw
     if overlay._last_mask_queries > 480:
         _fail("Foliage overlay still makes excessive per-pixel canopy queries: "+str(overlay._last_mask_queries))
         return
