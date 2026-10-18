@@ -1,10 +1,13 @@
-name: Survival Paradise v263 — All-biome world generator investigation
+name: Survival Paradise v263 — Seeded Finite World with All Nine Biomes
 
 on:
   push:
     branches: [ sp-v263-guaranteed-all-biome-world-atlas ]
     paths:
       - '.github/workflows/sp-v263-world-atlas.yml'
+      - 'worldgen/**'
+      - 'patches/apply_sp_v263_all_biome_world.py'
+      - 'tools/qa_sp_v263_world_atlas.gd'
       - 'occlusion/**'
       - 'patches/apply_sp_v261_precise_gpu_occlusion.py'
       - 'patches/apply_sp_v262_single_tint.py'
@@ -28,7 +31,7 @@ env:
   GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
   GODOT_TEMPLATES_TPZ: /tmp/Godot_v4.7.2-stable_export_templates.tpz
   GODOT_TEMPLATES_SHA256: f298490b8d44d934be425a5a65a51bf15f422428b229a06a6e11d9ffea248011
-  APK_PATH: SurvivalParadise-UniformOpacity-AllActors-v262.apk
+  APK_PATH: SurvivalParadise-AllBiomes-ProceduralWorld-v263.apk
   MAX_APK_BYTES: '419430400'
 
 jobs:
@@ -53,6 +56,9 @@ jobs:
             patches/apply_sp_v260_fast_canopy_breath.py
             patches/apply_sp_v261_precise_gpu_occlusion.py
             patches/apply_sp_v262_single_tint.py
+            patches/apply_sp_v263_all_biome_world.py
+            worldgen
+            tools/qa_sp_v263_world_atlas.gd
             occlusion
             tools/qa_sp_v261_real_game_visuals.gd
             tools/qa_sp_v262_uniform_opacity.gd
@@ -315,22 +321,10 @@ jobs:
           python3 v257_overlay/patches/apply_sp_v261_precise_gpu_occlusion.py "$PROJECT_DIR"
           python3 -m py_compile v257_overlay/patches/apply_sp_v262_single_tint.py
           python3 v257_overlay/patches/apply_sp_v262_single_tint.py "$PROJECT_DIR"
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
-          for name in ['scripts/world/world_chunk.gd','scripts/world/world_manager.gd','scripts/world/world_gen.gd','scripts/save/save_manager.gd']:
-              p=Path('game')/name
-              if not p.exists(): continue
-              s=p.read_text()
-              print('V263_SOURCE_INSPECT',name,'bytes',len(s))
-              for line in s.splitlines():
-                  if re.match(r'^func .*',line) and any(x in line.lower() for x in ['biome','chunk','setup','seed','position','save','load','world','player']):
-                      pos=s.index(line)
-                      print('V263_FUNCTION_START',name,repr(s[pos:pos+1100]))
-              if name.endswith('world_chunk.gd'):
-                  for m in list(re.finditer(r'biome_id\s*=',s))[:15]:
-                      print('V263_BIOME_ASSIGN',repr(s[max(0,m.start()-200):m.start()+220]))
-          PY
+          python3 -m py_compile v257_overlay/patches/apply_sp_v263_all_biome_world.py
+          python3 v257_overlay/patches/apply_sp_v263_all_biome_world.py "$PROJECT_DIR"
+          grep -q 'V263_BIOME_ATLAS.biome_for_chunk' "$PROJECT_DIR/scripts/world/world_chunk.gd"
+          grep -q 'if not V263_BIOME_ATLAS.is_inside_world' "$PROJECT_DIR/scripts/world/world_manager.gd"
           grep -q 'OneFlatOpacityAlphaComposite' "$PROJECT_DIR/scripts/world/occlusion_silhouette_overlay.gd"
           grep -q 'func _nearby_centers' "$PROJECT_DIR/scripts/world/occlusion_silhouette_overlay.gd"
           grep -q 'SP_ApprovedSimplifiedSurvivor' "$PROJECT_DIR/scripts/player.gd"
@@ -414,6 +408,22 @@ jobs:
           "$GODOT_BIN" --headless --editor --path "$PROJECT_DIR" --quit --verbose 2>&1 | tee godot-v0179-parser.log
           if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|ERROR: Failed to create an autoload|Compile Error:|Parse Error:' godot-v0179-parser.log; then exit 1; fi
 
+      - name: Verify all nine biomes for every seed and actual gameplay streaming
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp v257_overlay/tools/qa_sp_v263_world_atlas.gd "$PROJECT_DIR/sp_v263_atlas_qa.gd"
+          timeout 150s xvfb-run -a -s '-screen 0 1920x1080x24' "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1536x708 --script res://sp_v263_atlas_qa.gd > sp_v263_atlas_qa.log 2>&1 || { tail -100 sp_v263_atlas_qa.log; exit 1; }
+          grep -q 'SP_V263_NINE_BIOME_SEEDS_QA_PASS' sp_v263_atlas_qa.log
+          grep -q 'SP_V263_REAL_GAME_QA_PASS' sp_v263_atlas_qa.log
+          grep -q 'SP_V263_ALL_QA_PASS' sp_v263_atlas_qa.log
+          if grep -E 'SCRIPT ERROR:|Compile Error:|Parse Error:' sp_v263_atlas_qa.log; then exit 1; fi
+          mkdir -p v263_evidence
+          cp "$PROJECT_DIR"/SP_v263_ATLAS_seed_*.png v263_evidence/
+          cp "$PROJECT_DIR"/SP_v263_playable_world.png v263_evidence/
+          rm -f "$PROJECT_DIR"/SP_v263_ATLAS_seed_*.png "$PROJECT_DIR"/SP_v263_playable_world.png "$PROJECT_DIR"/sp_v263_atlas_qa.gd
+          test "$(find v263_evidence -maxdepth 1 -name '*.png' | wc -l)" -eq 3
+
       - name: Use independent version and package identity for restored-world experiment
         run: |
           set -euo pipefail
@@ -428,8 +438,8 @@ jobs:
           s=s.replace('architectures/armeabi-v7a=true','architectures/armeabi-v7a=false',1)
           s=s.replace('org.wanderfall.game','org.survivalparadise.restoredworld',1)
           s=s.replace('package/name="Wanderfall"','package/name="Survival Paradise Restored"',1)
-          s=s.replace('version/code=87','version/code=262',1)
-          s=s.replace('version/name="0.21.0D2D.14"','version/name="0.21.0D2D.14-v262"',1)
+          s=s.replace('version/code=87','version/code=263',1)
+          s=s.replace('version/name="0.21.0D2D.14"','version/name="0.21.0D2D.14-v263"',1)
           p.write_text(s,encoding='utf-8')
           PY
       - name: Preserve exact restored world HUD source for visual-to-runtime integration
@@ -519,8 +529,8 @@ jobs:
           "$APKSIGNER" verify --verbose --print-certs "$APK" | tee apk-signature.txt
           "$AAPT" dump badging "$APK" | tee apk-badging.txt
           grep -q "package: name='org.survivalparadise.restoredworld'" apk-badging.txt
-          grep -q "versionCode='262'" apk-badging.txt
-          grep -q "versionName='0.21.0D2D.14-v262'" apk-badging.txt
+          grep -q "versionCode='263'" apk-badging.txt
+          grep -q "versionName='0.21.0D2D.14-v263'" apk-badging.txt
           grep -q "application-label:'Survival Paradise Restored'" apk-badging.txt
           APK_BYTES="$(stat -c%s "$APK")"
           test "$APK_BYTES" -lt "$MAX_APK_BYTES"
@@ -530,7 +540,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           from zipfile import ZipFile
-          p=Path("SurvivalParadise-UniformOpacity-AllActors-v262.apk")
+          p=Path("SurvivalParadise-AllBiomes-ProceduralWorld-v263.apk")
           with ZipFile(p) as z:
               assert not any("v262_visual_" in n or "SP_v257_ActualRestored" in n for n in z.namelist())
           print("SP_V261_LEAN_APK_QA_PASS screenshots and test scripts excluded")
@@ -538,7 +548,7 @@ jobs:
           python3 - <<'PY'
           from zipfile import ZipFile
           from pathlib import Path
-          apk=Path("SurvivalParadise-UniformOpacity-AllActors-v262.apk")
+          apk=Path("SurvivalParadise-AllBiomes-ProceduralWorld-v263.apk")
           with ZipFile(apk) as z:
               names=z.namelist()
               assert 'lib/arm64-v8a/libgodot_android.so' in names
@@ -547,8 +557,18 @@ jobs:
               assert any('ground_blends.png' in name for name in names)
               print('SP_V258_APK_SIZE_QA_PASS bytes',apk.stat().st_size,'ARM64 only; old 3D models removed, world terrain retained')
           PY
-          sha256sum "$APK" | tee SurvivalParadise-UniformOpacity-AllActors-v262.apk.sha256
+          sha256sum "$APK" | tee SurvivalParadise-AllBiomes-ProceduralWorld-v263.apk.sha256
 
+      - name: Upload all-biomes debug maps and native world screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SP-v263-NineBiomeAtlas-QA
+          path: |
+            v263_evidence/*.png
+            sp_v263_atlas_qa.log
+          retention-days: 21
+          if-no-files-found: warn
       - name: Upload actual 1536x708 Godot HUD/world screenshot
         if: always()
         uses: actions/upload-artifact@v4
@@ -573,8 +593,8 @@ jobs:
         with:
           name: SP-UniformOpacity-Actors-v262
           path: |
-            SurvivalParadise-UniformOpacity-AllActors-v262.apk
-            SurvivalParadise-UniformOpacity-AllActors-v262.apk.sha256
+            SurvivalParadise-AllBiomes-ProceduralWorld-v263.apk
+            SurvivalParadise-AllBiomes-ProceduralWorld-v263.apk.sha256
             android-export.log
             authored2d-import.log
             godot-v0179-parser.log
