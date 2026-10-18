@@ -148,6 +148,33 @@ func _run() -> void:
         if not _assert(capture.save_png(ProjectSettings.globalize_path(
                 "res://"+filename))==OK,"native screenshot failed"):
             return
+    # Explicit water-edge visual evidence from ACTUAL generated/streamed pond.
+    # Earlier four biome captures could all miss water and conceal blob regressions.
+    var pond_found: bool = false
+    for macro in [0,1,2,3,4,5,6,7,8]:
+        if pond_found:
+            break
+        player.global_position = (Vector2(centers[macro])+Vector2(0.5,0.5))*size
+        await create_timer(0.66).timeout
+        var active: Dictionary = world.get("_loaded_chunks")
+        for chunk in active.values():
+            var ponds: Variant = chunk.get("_water_centers")
+            if not ponds is Array or ponds.is_empty():
+                continue
+            var pond_point: Vector2 = ponds[0]
+            player.global_position = chunk.global_position + pond_point + Vector2(157,69)
+            await create_timer(0.40).timeout
+            await RenderingServer.frame_post_draw
+            var evidence: Image = root.get_texture().get_image()
+            if not _assert(evidence.save_png(ProjectSettings.globalize_path(
+                "res://SP_v2652_REAL_pond.png")) == OK,
+                "actual world pond screenshot missing"):
+                return
+            pond_found = true
+            break
+    if not _assert(pond_found,"no generated real pond found across 9 biome areas"):
+        return
+    print("SP_V2652_ACTUAL_POND_QA_PASS world pond located and raster shoreline captured")
     print("SP_V2652_REAL_SCENE_QA_PASS live-world 4 regions and organic ecology with existing HUD/streaming")
     print("SP_V2652_ALL_QA_PASS assertions="+str(assertions))
     quit(0)
