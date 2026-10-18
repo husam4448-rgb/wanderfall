@@ -10,6 +10,15 @@ const ZOMBIE_MASK: Texture2D = preload("res://assets/sp_melee/v261_zombie_mask.p
 const MAX_CANOPIES: int = 24
 const MAX_NPC_MASKS: int = 12
 const CAPTURE_PIXELS: int = 128
+# Every actor has exactly ONE tinted final CanvasItem; overlapping pieces
+# are composited into RGBA first, eliminating alpha accumulation.
+const WILDLIFE_TEXTURES = {
+    "deer": preload("res://assets/sp_melee/v262_animal_deer.png"),
+    "boar": preload("res://assets/sp_melee/v262_animal_boar.png"),
+    "chicken": preload("res://assets/sp_melee/v262_animal_chicken.png"),
+    "rat": preload("res://assets/sp_melee/v262_animal_rat.png"),
+    "dead": preload("res://assets/sp_melee/v262_animal_dead.png")
+}
 var world_manager: Node = null
 var _actors: Array[Node2D] = []
 var _states: Dictionary = {}
@@ -27,7 +36,7 @@ func setup(manager_value: Node) -> void:
 func _collect_actors() -> void:
     _actors.clear()
     var seen: Dictionary = {}
-    for group_name in ["player_actor","hostile_actor","friendly_npc"]:
+    for group_name in ["player_actor","hostile_actor","friendly_npc","wildlife_actor","huntable_actor"]:
         for node in get_tree().get_nodes_in_group(group_name):
             if node is Node2D and is_instance_valid(node):
                 var id: int = node.get_instance_id()
@@ -60,30 +69,52 @@ func _player_state(actor: Node2D, state: Dictionary) -> bool:
     var rig: Node2D = actor._sp_sprite
     if rig == null or not rig.visible or rig.upper == null:
         return false
-    var root_mask := Node2D.new()
-    root_mask.name = "ApprovedPlayerExactSilhouette"
-    add_child(root_mask)
-    state["node"] = root_mask
-    state["mode"] = "player"
-    var mat: ShaderMaterial = state["material"]
+    # Render body/head/backpack, fixed waist, linked feet and equipment into
+    # ONE transparent RGBA buffer; tint only its single final Sprite2D.
+    var viewport := SubViewport.new()
+    viewport.name = "OnePlayerCompositeMaskNoOverdraw"
+    viewport.size = Vector2i(CAPTURE_PIXELS,CAPTURE_PIXELS)
+    viewport.transparent_bg = true
+    viewport.disable_3d = true
+    viewport.render_target_clear_mode = SubViewport.CLEAR_MODE_ALWAYS
+    viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+    add_child(viewport)
+    var canvas := Node2D.new()
+    canvas.position = Vector2(CAPTURE_PIXELS*0.5,CAPTURE_PIXELS*0.5)
+    viewport.add_child(canvas)
     var copies: Array = []
     for source in [rig.fixed_waist,rig.upper,
                    rig.near_hip.get_child(0),rig.far_hip.get_child(0)]:
-        copies.append(_copy_sprite(source,root_mask,mat))
-    state["copies"] = copies
+        var clone := Sprite2D.new()
+        clone.texture = source.texture
+        clone.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+        clone.z_index = source.z_index
+        canvas.add_child(clone)
+        copies.append(clone)
     var legs: Node2D = LEG_SCRIPT.new()
-    legs.name = "B2BExactMovingLegMask"
-    legs.material = mat
-    root_mask.add_child(legs)
-    state["legs"] = legs
+    legs.name = "UncoloredB2BLegsInsideMask"
+    legs.z_index = 2
+    canvas.add_child(legs)
     var gun: Node2D = GUN_SCRIPT.new()
-    gun.name = "ActualPixelGunAndHandsMask"
-    root_mask.add_child(gun)
-    gun.material = mat
-    for child in gun.get_children():
-        if child is CanvasItem:
-            child.use_parent_material = true
+    gun.name = "OriginalPixelGunAndHandsInsideMask"
     gun.set_process(false)
+    gun.z_index = 3
+    canvas.add_child(gun)
+    var node := Node2D.new()
+    node.name = "ApprovedPlayerOneTintOnly"
+    add_child(node)
+    var single := Sprite2D.new()
+    single.name = "OneFlatOpacityAlphaComposite"
+    single.texture = viewport.get_texture()
+    single.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+    single.material = state["material"]
+    node.add_child(single)
+    state["node"] = node
+    state["sprite"] = single
+    state["viewport"] = viewport
+    state["mode"] = "player"
+    state["copies"] = copies
+    state["legs"] = legs
     state["gun"] = gun
     return true
 
@@ -99,6 +130,25 @@ func _zombie_state(actor: Node2D, state: Dictionary) -> bool:
     sprite.material = state["material"]
     root_mask.add_child(sprite)
     state["sprite"] = sprite
+    return true
+
+func _wildlife_state(actor: Node2D, state: Dictionary) -> bool:
+    var species: String = String(_safe_node_property(actor,"species_id"))
+    if not WILDLIFE_TEXTURES.has(species):
+        return false  # No invented rectangular fallback.
+    var root_mask := Node2D.new()
+    root_mask.name = "TrueSpeciesAlphaSingleTint"
+    add_child(root_mask)
+    var sprite := Sprite2D.new()
+    sprite.name = "OneAnimalSilhouetteNoDoubleOverlay"
+    sprite.texture = WILDLIFE_TEXTURES[species]
+    sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+    sprite.material = state["material"]
+    root_mask.add_child(sprite)
+    state["mode"] = "wildlife"
+    state["node"] = root_mask
+    state["sprite"] = sprite
+    state["species"] = species
     return true
 
 func _safe_node_property(actor: Node2D, key: String) -> Variant:
