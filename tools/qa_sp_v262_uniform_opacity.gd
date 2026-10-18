@@ -104,7 +104,7 @@ func _run() -> void:
     if state["sprite"].material != state["material"]:
         _fail("Final composite output missing unified silhouette shader")
         return
-    if state["viewport"].render_target_update_mode != SubViewport.UPDATE_ALWAYS:
+    if state["viewport"].render_target_update_mode != SubViewport.UPDATE_WHEN_VISIBLE:
         _fail("Player RGBA alpha buffer is not updating with breathing/walking")
         return
     for source in state["copies"]:
