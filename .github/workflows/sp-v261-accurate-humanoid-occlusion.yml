@@ -437,6 +437,7 @@ jobs:
           cp v257_overlay/tools/qa_sp_v261_real_game_visuals.gd "$PROJECT_DIR/sp_v261_visual_qa.gd"
           timeout 140s xvfb-run -a -s '-screen 0 1920x1080x24' "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1536x708 --script res://sp_v261_visual_qa.gd > sp_v261_visual_qa.log 2>&1 || { tail -100 sp_v261_visual_qa.log; exit 1; }
           grep -q 'SP_V261_VISUAL_QA_PASS' sp_v261_visual_qa.log
+          grep -q 'SP_V261_MECHANICS_QA_PASS' sp_v261_visual_qa.log
           test "$(find "$PROJECT_DIR" -maxdepth 1 -name 'v261_visual_*.png' | wc -l)" -eq 7
           if grep -E 'SCRIPT ERROR:|Compile Error:|Parse Error:' sp_v261_visual_qa.log; then exit 1; fi
           python3 - <<'PY'
