@@ -197,6 +197,60 @@ func _verify() -> void:
     else:
         print("SP_V259_PARTIAL_TREE_PREVIEW_UNAVAILABLE procedural seed has no cover location nearby")
 
+    # v260: head/torso breathe, feet and pelvis never move independently.
+    var waist: Sprite2D = rig.fixed_waist
+    if waist == null or not waist.visible:
+        _fail("Connected static pelvis missing")
+        return
+    var rest_belt: Vector2 = waist.global_position
+    var old_rig_position: Vector2 = rig.position
+    var minimum_head_y: float = INF
+    var maximum_head_y: float = -INF
+    for tick in range(96):
+        rig.advance(Vector2.ZERO,1.0/60.0,true)
+        minimum_head_y = minf(minimum_head_y,rig.upper.position.y)
+        maximum_head_y = maxf(maximum_head_y,rig.upper.position.y)
+        if waist.global_position.distance_to(rest_belt) > 0.02:
+            _fail("Pelvis or boots shifted during breathing; seam can open")
+            return
+        if absf(rig.upper.scale.y-1.0)>0.0001:
+            _fail("Breathing scales the torso, causing hip gaps")
+            return
+        if rig.upper.position.y < -1.26 or rig.upper.position.y > 0.01:
+            _fail("Breathing amplitude exceeds safe 9px waist overlap")
+            return
+    rig.position = old_rig_position
+    if maximum_head_y-minimum_head_y < 0.9:
+        _fail("Head/torso breathing is imperceptible")
+        return
+    if not player._sp_occlusion_shape_contains(waist.to_global(Vector2(0,20))):
+        _fail("Fixed waist missing from actual foliage sprite silhouette")
+        return
+    print("SP_V260_CONNECTED_BREATH_QA_PASS upper/head moves 1.25 source pixels; fixed pelvis and boots never separate")
+
+    # Guaranteed upper bound: no GDScript nested pixel loops while foliage
+    # samples a true original-texture alpha mask, saving mobile CPU time.
+    var overlay: Node = null
+    for n in world.get_children():
+        if n.has_method("_draw_partial_silhouette") and n.has_method("_tiles_for"):
+            overlay = n
+            break
+    if overlay == null:
+        _fail("GPU texture tile canopy overlay missing")
+        return
+    var first_tiles: Array = overlay._tiles_for(rig.upper)
+    var waist_tiles: Array = overlay._tiles_for(waist)
+    if first_tiles.size() < 2 or first_tiles.size() > 42 or waist_tiles.size() > 24:
+        _fail("The source texture mask is not cached as bounded tiles")
+        return
+    # Run tree renderer near the real player: cache image once, never get_pixel
+    # per frame; samples stay substantially below old ~4000/tree overlay calls.
+    overlay._draw_partial_silhouette(player)
+    if overlay._last_mask_queries > 480:
+        _fail("Foliage overlay still makes excessive per-pixel canopy queries: "+str(overlay._last_mask_queries))
+        return
+    print("SP_V260_FAST_CANOPY_QA_PASS cached GPU original-sprite tiles; bounded occlusion queries="+str(overlay._last_mask_queries))
+
     # Ensure screen-backed visible game+HUD image rather than an offscreen
     # fake composition of old UI elements.
     await RenderingServer.frame_post_draw
