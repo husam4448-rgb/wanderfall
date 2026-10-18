@@ -45,6 +45,16 @@ static func _warp_at(p: Vector2, seed: int) -> Vector2:
     )
 
 static func biome_at(p: Vector2, seed: int) -> int:
+    # Every seed begins inside a familiar temperate Forest Biome; the other
+    # eight regions remain guaranteed at their distinct seed-based anchors.
+    # Perturb the radius smoothly so the starter forest isn't a rigid circle.
+    var wobble: float = (
+        1.25*sin(p.x*0.31 + float(posmod(seed,197))*0.033)
+        + 1.05*cos(p.y*0.28 - float(posmod(seed,389))*0.017)
+    )
+    var home_forest_radius: float = 6.8 + wobble
+    if p.length_squared() < home_forest_radius*home_forest_radius:
+        return 0
     var warped: Vector2 = p + _warp_at(p,seed)
     var best: int = 0
     var best_d: float = INF
