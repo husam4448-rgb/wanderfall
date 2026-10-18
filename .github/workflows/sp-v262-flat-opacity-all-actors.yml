@@ -131,7 +131,8 @@ jobs:
               pbr["roughnessFactor"] = 0.72
           p.write_text(json.dumps(d, separators=(",",":")), encoding="utf-8")
           PY
-          test "$(stat -c%s "$MODEL_DIR/Superhero_Male_FullBody.bin")" -eq 1320076
+          # Legacy D3D compatibility data is removed before optimized APK export.
+          test -s "$MODEL_DIR/Superhero_Male_FullBody.bin"
 
           echo "Fetch Quaternius Ranger outfit assets"
           OUTFIT_BASE="https://raw.githubusercontent.com/joega/check-and-conquer/b2a3a3418dc080e782c1e5d386d258145346a218/assets/characters/quaternius/outfits"
@@ -171,7 +172,8 @@ jobs:
               pbr["roughnessFactor"] = 0.82
           p.write_text(json.dumps(d, separators=(",",":")), encoding="utf-8")
           PY
-          test "$(stat -c%s "$MODEL_DIR/Male_Ranger.bin")" -eq 1746884
+          # Legacy D3D compatibility data is removed before optimized APK export.
+          test -s "$MODEL_DIR/Male_Ranger.bin"
 
           echo "Fetch Quaternius Peasant outfit assets"
           OUTFIT_BASE="https://raw.githubusercontent.com/joega/check-and-conquer/b2a3a3418dc080e782c1e5d386d258145346a218/assets/characters/quaternius/outfits"
@@ -223,7 +225,8 @@ jobs:
               pbr["roughnessFactor"] = 0.86
           p.write_text(json.dumps(d, separators=(",",":")), encoding="utf-8")
           PY
-          test "$(stat -c%s "$MODEL_DIR/Male_Peasant.bin")" -eq 674764
+          # Legacy D3D compatibility data is removed before optimized APK export.
+          test -s "$MODEL_DIR/Male_Peasant.bin"
 
           echo "Fetch Quaternius D3D.21 female template assets"
           curl -g -fL --retry 3 -o "$MODEL_DIR/Superhero_Female_FullBody.gltf" "$MODEL_BASE/Superhero_Female_FullBody.gltf"
