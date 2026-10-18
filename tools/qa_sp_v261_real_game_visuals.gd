@@ -1,7 +1,5 @@
 extends SceneTree
 ## Native in-game visual QA; rejects old anatomy/rectangular fallback.
-const ZombieSceneScript = preload("res://scripts/combat/zombie.gd")
-const FriendlySceneScript = preload("res://scripts/social/friendly_npc.gd")
 var main: Node = null
 var player: Node2D = null
 var world: Node2D = null
@@ -39,8 +37,8 @@ func _tree() -> Vector2:
         if trees is Array and not trees.is_empty():
             return chunk.global_position + trees[0] + Vector2(0,-49)
         for child in chunk.get_children():
-            if child is NaturalResource and child.resource_type == "tree":
-                if child.has_active_tree_canopy():
+            if child.has_method("has_active_tree_canopy") and String(child.get("resource_type")) == "tree":
+                if child.call("has_active_tree_canopy"):
                     return child.global_position + Vector2(0,-49)
     return Vector2.INF
 
@@ -129,6 +127,9 @@ func _run() -> void:
     await _capture("04_player_aiming_shooting")
     inputs.call("set_mobile_aim",Vector2.ZERO)
 
+    # Load gameplay classes after scene/autoloads are initialized, never via
+    # top-level preload in a --script SceneTree test harness.
+    var ZombieSceneScript: GDScript = load("res://scripts/combat/zombie.gd")
     var zombie: Node2D = ZombieSceneScript.new()
     main.add_child(zombie)
     zombie.global_position = tree_center + Vector2(-20,16)
@@ -146,6 +147,7 @@ func _run() -> void:
     await create_timer(0.16).timeout
     await _capture("06_zombie_walking")
 
+    var FriendlySceneScript: GDScript = load("res://scripts/social/friendly_npc.gd")
     var friend: Node2D = FriendlySceneScript.new()
     friend.setup(player,{"name":"Visual QA NPC","body_type":"female","weapon_id":"pistol_9mm"})
     main.add_child(friend)
