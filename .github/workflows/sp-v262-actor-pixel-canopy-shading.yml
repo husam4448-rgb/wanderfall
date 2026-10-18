@@ -312,7 +312,7 @@ jobs:
           python3 -m py_compile v257_overlay/patches/apply_sp_v262_pixel_only_shadows.py
           python3 v257_overlay/patches/apply_sp_v262_pixel_only_shadows.py "$PROJECT_DIR"
           grep -q "FOREST_SHADER" "$PROJECT_DIR/scripts/world/occlusion_silhouette_overlay.gd"
-          grep -q 'func _draw_sprite_mask' "$PROJECT_DIR/scripts/world/occlusion_silhouette_overlay.gd"
+          grep -q 'func _candidate_canopies' "$PROJECT_DIR/scripts/world/occlusion_silhouette_overlay.gd"
           grep -q 'SP_ApprovedSimplifiedSurvivor' "$PROJECT_DIR/scripts/player.gd"
           test ! -e "$PROJECT_DIR/assets/models"
           test ! -e "$PROJECT_DIR/scripts/art/production_survivor_visual.gd"
