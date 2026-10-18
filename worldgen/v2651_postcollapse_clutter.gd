@@ -66,6 +66,11 @@ static func paint(canvas: CanvasItem, coord: Vector2i,
                 # on existing interaction/POI infrastructure.
                 if canvas.has_method("_near_road") and bool(canvas.call("_near_road",p,63.0)):
                     continue
+                # Ignore pond footprints; no abandoned crate/scrap should float
+                # inside the mapped water body or its shallow bank.
+                if canvas.has_method("_point_inside_water_clearance") and bool(
+                    canvas.call("_point_inside_water_clearance",p,6.0)):
+                    continue
                 if canvas.has_method("_point_inside_building_clearance") and bool(
                     canvas.call("_point_inside_building_clearance",p,36.0)):
                     continue
