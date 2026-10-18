@@ -232,29 +232,24 @@ func _verify() -> void:
         return
     print("SP_V260_CONNECTED_BREATH_QA_PASS upper/head moves 1.25 source pixels; fixed pelvis and boots never separate")
 
-    # Guaranteed upper bound: no GDScript nested pixel loops while foliage
-    # samples a true original-texture alpha mask, saving mobile CPU time.
+    # v261 uses real GPU alpha, tree ellipse shader, and procedural zombie
+    # mask. The old tile-centered shadow renderer must be absent.
     var overlay: Node = null
     for n in world.get_children():
-        if n.has_method("_draw_partial_silhouette") and n.has_method("_tiles_for"):
+        if n.has_method("_nearby_centers") and n.has_method("_new_actor_state"):
             overlay = n
             break
     if overlay == null:
-        _fail("GPU texture tile canopy overlay missing")
+        _fail("v261 precise world-space GPU occlusion overlay missing")
         return
-    var first_tiles: Array = overlay._tiles_for(rig.upper)
-    var waist_tiles: Array = overlay._tiles_for(waist)
-    if first_tiles.size() < 2 or first_tiles.size() > 42 or waist_tiles.size() > 24:
-        _fail("The source texture mask is not cached as bounded tiles")
+    if overlay.has_method("_inside_actor_silhouette") or overlay.has_method("_draw_sprite_mask"):
+        _fail("Rejected old rectangular anatomy or center-tile renderer remains")
         return
-    # Run tree renderer near the real player: cache image once, never get_pixel
-    # per frame; samples stay substantially below old ~4000/tree overlay calls.
-    overlay.queue_redraw()
-    await RenderingServer.frame_post_draw
-    if overlay._last_mask_queries > 480:
-        _fail("Foliage overlay still makes excessive per-pixel canopy queries: "+str(overlay._last_mask_queries))
+    if overlay._last_mask_queries != 0:
+        _fail("Legacy per-pixel occlusion queries remain")
         return
-    print("SP_V260_FAST_CANOPY_QA_PASS cached GPU original-sprite tiles; bounded occlusion queries="+str(overlay._last_mask_queries))
+    print("SP_V261_GPU_MASK_QA_PASS exact RGBA player sources, world-space tree ellipse shader, no CPU pixel draw path")
+    print("SP_V260_FAST_CANOPY_QA_PASS v261 replaces tile probes with 0 per-pixel occlusion RPCs")
 
     # Ensure screen-backed visible game+HUD image rather than an offscreen
     # fake composition of old UI elements.
