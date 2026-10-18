@@ -36,6 +36,9 @@ func _run() -> void:
         if not Biomes.every_biome_exists(seed):
             _fail("Seed misses an anchor biome: "+str(seed))
             return
+        if Biomes.biome_for_chunk(Vector2i.ZERO,seed) != 0:
+            _fail("Default starting forest was not preserved: "+str(seed))
+            return
         var counts: PackedInt32Array = Biomes.counts_for_seed(seed)
         var sum: int = 0
         for i in range(Biomes.COUNT):
