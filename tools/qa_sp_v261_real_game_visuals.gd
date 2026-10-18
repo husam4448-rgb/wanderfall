@@ -173,5 +173,66 @@ func _run() -> void:
     if overlay._last_mask_queries != 0 or overlay._last_npc_capture_updates > overlay.MAX_NPC_MASKS:
         _fail("Old per-pixel CPU path returned")
         return
+    # Real game regression: knife auto-target must not alter stored firearm
+    # aim; six directional slashes must finish and restore gun; shooting still
+    # consumes exactly one round; zombie contact still damages the survivor.
+    player.global_position = tree_center + Vector2(150,70)
+    zombie.global_position = player.global_position + Vector2(-24,0)
+    zombie.set_physics_process(false)
+    inputs.call("set_mobile_move",Vector2.ZERO)
+    inputs.call("set_mobile_aim",Vector2.RIGHT)
+    await physics_frame
+    inputs.call("set_mobile_aim",Vector2.ZERO)
+    var initial_aim: Vector2 = player._facing
+    var initial_ammo: int = player.equipment.get_magazine_rounds()
+    var initial_enemy_health: float = zombie.health_component.health
+    player._attack_cooldown = 0.0
+    player.survival_stats.stamina = 100.0
+    if player._sp_nearest_hostile_direction().dot(Vector2.LEFT)<0.93:
+        _fail("Emergency knife did not choose the nearest left-side zombie")
+        return
+    player._try_quick_melee()
+    if not player._sp_melee_controller.attacking:
+        _fail("Equipped pistol cannot perform emergency knife attack")
+        return
+    await create_timer(0.22).timeout
+    if player._sp_melee_controller.attacking or player._facing.distance_to(initial_aim) > 0.01:
+        _fail("Quick slash lasted too long or hijacked firearm aim")
+        return
+    if zombie.health_component.health >= initial_enemy_health or initial_enemy_health-zombie.health_component.health > 20.0:
+        _fail("Zombie did not receive exactly one quick knife hit")
+        return
+    if not player._sp_firearm_visual.visible or player.equipment.get_magazine_rounds()!=initial_ammo:
+        _fail("Quick knife did not restore equipped firearm and ammunition")
+        return
+    zombie.global_position = player.global_position + Vector2(120,0)
+    for direction in [Vector2.RIGHT,Vector2.LEFT,Vector2(1,-1),Vector2(-1,-1),Vector2(1,1),Vector2(-1,1)]:
+        player._attack_cooldown = 0.0
+        player.survival_stats.stamina = 100.0
+        if not player._sp_start_fast_slash(direction,18.0):
+            _fail("One of six knife attack angles failed")
+            return
+        if player._sp_firearm_visual.visible:
+            _fail("Firearm remains rendered over active knife slash")
+            return
+        await create_timer(0.22).timeout
+        if player._sp_melee_controller.attacking or not player._sp_firearm_visual.visible:
+            _fail("Six-angle knife restore/cooldown failed")
+            return
+    player._attack_cooldown = 0.0
+    player._try_attack()
+    if player.equipment.get_magazine_rounds() != initial_ammo-1:
+        _fail("Normal pistol shot no longer consumes exactly one round")
+        return
+    var health_before_attack: float = player.survival_stats.health
+    zombie._attack_timer = 0.0
+    zombie._try_attack()
+    if player.survival_stats.health >= health_before_attack:
+        _fail("Zombie close-range hit no longer damages player")
+        return
+    if player._facing.distance_to(initial_aim)>0.01:
+        _fail("Combat unexpectedly changed retained right-stick aim")
+        return
+    print("SP_V261_MECHANICS_QA_PASS nearest-hostile auto knife, six fast angles, one-hit damage, gun hide/restore, retained aim, pistol ammo and zombie contact")
     print("SP_V261_VISUAL_QA_PASS 7 REAL GODOT screenshots, precise player alpha, connected B2B gait, curved zombie limbs, cached real NPC actor silhouette, shader world-tree clipping")
     quit(0)
