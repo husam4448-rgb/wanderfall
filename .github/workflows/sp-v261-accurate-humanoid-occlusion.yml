@@ -454,6 +454,23 @@ jobs:
           assert Path("SP_v261_actual_gameplay_7_scenarios.gif").stat().st_size>100000
           PY
 
+      - name: Keep QA screenshots and scripts outside the Android asset bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p v261_evidence
+          cp "$PROJECT_DIR"/v261_visual_*.png v261_evidence/
+          cp "$PROJECT_DIR"/SP_v257_ActualRestoredD2D14_HUD_World.png v261_evidence/
+          cp "$PROJECT_DIR"/SP_v259_ActualApprovedShape_UnderTrees.png v261_evidence/
+          cp SP_v261_actual_gameplay_7_scenarios.gif v261_evidence/
+          rm -f "$PROJECT_DIR"/v261_visual_*.png
+          rm -f "$PROJECT_DIR"/SP_v257_ActualRestoredD2D14_HUD_World.png
+          rm -f "$PROJECT_DIR"/SP_v259_ActualApprovedShape_UnderTrees.png
+          rm -f "$PROJECT_DIR"/sp_v261_visual_qa.gd "$PROJECT_DIR"/sp_v257_native_qa.gd
+          test "$(find v261_evidence -maxdepth 1 -name 'v261_visual_*.png' | wc -l)" -eq 7
+          # The export package must contain no generated QA image data.
+          test -z "$(find "$PROJECT_DIR" -maxdepth 1 -name 'v261_visual_*.png')"
+
       - name: Export APK
         shell: bash
         run: |
@@ -478,7 +495,16 @@ jobs:
           APK_BYTES="$(stat -c%s "$APK")"
           test "$APK_BYTES" -lt "$MAX_APK_BYTES"
           # Baseline v257 = 80.4 MB. Must be >25% smaller.
-          test "$APK_BYTES" -lt 60000000
+          test "$APK_BYTES" -lt 35000000
+          # Catch accidental screenshots re-entering the final APK.
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          p=Path("SurvivalParadise-AccurateSilhouette-v261.apk")
+          with ZipFile(p) as z:
+              assert not any("v261_visual_" in n or "SP_v257_ActualRestored" in n for n in z.namelist())
+          print("SP_V261_LEAN_APK_QA_PASS screenshots and test scripts excluded")
+          PY
           python3 - <<'PY'
           from zipfile import ZipFile
           from pathlib import Path
@@ -499,11 +525,9 @@ jobs:
         with:
           name: SP-v257-RealGodot-HUD-World-Screenshot
           path: |
-            game/SP_v257_ActualRestoredD2D14_HUD_World.png
-            game/SP_v259_ActualApprovedShape_UnderTrees.png
-            game/v261_visual_*.png
+            v261_evidence/*.png
             sp_v261_visual_qa.log
-            SP_v261_actual_gameplay_7_scenarios.gif
+            v261_evidence/SP_v261_actual_gameplay_7_scenarios.gif
             sp_v257_native_world_hud_qa.log
           if-no-files-found: warn
           retention-days: 21
