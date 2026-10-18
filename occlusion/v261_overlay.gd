@@ -39,7 +39,9 @@ func _new_material() -> ShaderMaterial:
     var mat := ShaderMaterial.new()
     mat.shader = MASK_SHADER
     mat.set_shader_parameter("canopy_count", 0)
-    mat.set_shader_parameter("canopy_centers", PackedVector2Array())
+    var blank := PackedVector2Array()
+    blank.resize(MAX_CANOPIES)
+    mat.set_shader_parameter("canopy_centers", blank)
     return mat
 
 func _copy_sprite(source: Sprite2D, owner: Node2D, mat: ShaderMaterial) -> Sprite2D:
@@ -99,9 +101,15 @@ func _zombie_state(actor: Node2D, state: Dictionary) -> bool:
     state["sprite"] = sprite
     return true
 
+func _safe_node_property(actor: Node2D, key: String) -> Variant:
+    for property in actor.get_property_list():
+        if String(property.get("name","")) == key:
+            return actor.get(key)
+    return null
+
 func _capture_state(actor: Node2D, state: Dictionary) -> bool:
-    var visual: Node2D = actor.get("_actor_visual") as Node2D
-    var baked: Node2D = actor.get("_baked_visual") as Node2D
+    var visual: Node2D = _safe_node_property(actor,"_actor_visual") as Node2D
+    var baked: Node2D = _safe_node_property(actor,"_baked_visual") as Node2D
     var source: Node2D = visual if visual != null and visual.visible else baked
     if source == null or not source.visible or source.get_script() == null:
         return false
@@ -161,7 +169,7 @@ func _new_actor_state(actor: Node2D) -> Dictionary:
             ok = _capture_state(actor,state)
     elif actor.get_script() != null and String(actor.get_script().resource_path).ends_with("/zombie.gd"):
         ok = _zombie_state(actor,state)
-    elif actor.get("_actor_visual") != null or actor.get("_baked_visual") != null:
+    elif _safe_node_property(actor,"_actor_visual") != null or _safe_node_property(actor,"_baked_visual") != null:
         ok = _capture_state(actor,state)
     if not ok:
         # No rectangle, circles, or invented fallback for unknown actors.
@@ -211,7 +219,10 @@ func _sync_capture(actor: Node2D,state: Dictionary) -> void:
     var viewport: SubViewport = state.get("viewport") as SubViewport
     if preview == null or viewport == null:
         return
-    var aim: Vector2 = actor.get("_visual_facing") if actor.get("_visual_facing") is Vector2 else Vector2.RIGHT
+    var facing_value: Variant = actor.get("_visual_facing")
+    if actor.is_in_group("player_actor"):
+        facing_value = actor._facing
+    var aim: Vector2 = facing_value if facing_value is Vector2 else Vector2.RIGHT
     if preview.has_method("set_facing"):
         preview.set_facing(aim)
     if preview.has_method("set_motion_state"):
@@ -238,7 +249,7 @@ func _sync_actor(actor: Node2D,state: Dictionary) -> void:
             var original: Sprite2D = originals[i]
             var clone: Sprite2D = copies[i]
             clone.texture = original.texture
-            clone.visible = original.visible
+            clone.visible = original.is_visible_in_tree()
             clone.global_transform = original.global_transform
         var legs: Node2D = state["legs"]
         legs.synchronize(rig)
