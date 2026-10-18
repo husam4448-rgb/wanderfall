@@ -48,13 +48,15 @@ func _create_world_boundary() -> void:
     var side: float = float(WorldBiomes.SIZE)*CHUNK_SIZE
     var min_edge: float = -float(WorldBiomes.RADIUS)*CHUNK_SIZE
     var midpoint: float = min_edge+side*0.5
+    var wall_index: int = 0
     for wall in [
         [Vector2(midpoint,min_edge-70.0),Vector2(side+320.0,140.0)],
         [Vector2(midpoint,min_edge+side+70.0),Vector2(side+320.0,140.0)],
         [Vector2(min_edge-70.0,midpoint),Vector2(140.0,side+320.0)],
         [Vector2(min_edge+side+70.0,midpoint),Vector2(140.0,side+320.0)]]:
         var body := StaticBody2D.new()
-        body.name = "PermanentWorldBoundary"
+        body.name = "PermanentWorldBoundary_%d" % wall_index
+        wall_index += 1
         body.position = wall[0]
         var shape := RectangleShape2D.new()
         shape.size = wall[1]
