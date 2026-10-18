@@ -385,8 +385,14 @@ func _process(delta: float) -> void:
         _last_npc_capture_updates = 0
         _refresh()
     for state in _states.values():
-        var actor: Node2D = state["actor"]
-        if is_instance_valid(actor) and state["node"].visible:
+        # A wildlife/NPC can queue_free between 8Hz refresh passes.
+        # Never cast a previously freed instance into typed Node2D.
+        var actor_ref: Variant = state.get("actor", null)
+        if not is_instance_valid(actor_ref):
+            continue
+        var actor: Node2D = actor_ref as Node2D
+        var node_ref: Variant = state.get("node", null)
+        if actor != null and is_instance_valid(node_ref) and node_ref.visible:
             _sync_actor(actor,state)
 
 func _draw_partial_silhouette(actor: Node2D) -> void:
