@@ -601,6 +601,8 @@ jobs:
           grep -q 'SP_V2654_ASSET_QA_PASS' sp_v2654_qa.log
           grep -q 'SP_V2654_SCALE_QA_PASS' sp_v2654_qa.log
           grep -q 'SP_V2654_NATIVE_CAMP_QA_PASS' sp_v2654_qa.log
+          grep -q 'SP_V2654_NO_WHITE_CARDS_QA_PASS' sp_v2654_qa.log
+          if grep -E 'Resource file not found: res://assets/biomes/v2653/v2654_' sp_v2654_qa.log; then exit 1; fi
           grep -q 'SP_V2654_ALL_QA_PASS' sp_v2654_qa.log
           if grep -E 'SCRIPT ERROR:|Compile Error:|Parse Error:' sp_v2654_qa.log; then exit 1; fi
           mkdir -p v2654_evidence
