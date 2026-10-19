@@ -44,7 +44,6 @@ jobs:
           python3 patches/apply_v017_ui_overhaul.py "$PROJECT_DIR"
           python3 patches/apply_v0190a_survival_paradise_art_foundation.py "$PROJECT_DIR"
           python3 patches/apply_v0190b_terrain_props.py "$PROJECT_DIR"
-          python3 patches/apply_v0190c1_world_coherence.py "$PROJECT_DIR"
           python3 patches/apply_sp_world_visual_w01.py "$PROJECT_DIR"
           grep -q 'SP_WORLD_VISUAL_W01' "$PROJECT_DIR/scripts/world/world_chunk.gd"
           python3 - <<'PY'
