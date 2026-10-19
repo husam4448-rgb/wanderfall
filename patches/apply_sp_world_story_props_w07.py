@@ -43,7 +43,7 @@ ground='    _sp_draw_ground_detail_w01()\n'
 if w.count(ground)!=1:raise SystemExit("W01 ground call not found")
 w=w.replace(ground,'    # W07: rejected W01 noisy ground overlay disabled.\n',1)
 old='    _draw_buildings()\n    _sp_draw_homestead_w05()\n'
-new='    _draw_buildings()\n    _sp_draw_story_sites_w07()\n    # W07: no artificial fixed-coordinate showcase homestead.\n'
+new='    _draw_buildings()\n    _sp_draw_story_sites_w07()\n    _sp_draw_homestead_w05()\n    _sp_draw_starter_site_w07()\n'
 if w.count(old)!=1:raise SystemExit("World draw ordering changed")
 w=w.replace(old,new,1)
 w+='''
@@ -54,6 +54,17 @@ func _sp_draw_w07_prop(index: int, center: Vector2, draw_size: Vector2) -> void:
     draw_texture_rect_region(SETTLEMENT_W07,
         Rect2(center-draw_size*0.5,draw_size),
         Rect2(float(col)*192.0,float(row)*192.0,192.0,192.0))
+
+func _sp_draw_starter_site_w07() -> void:
+    # One established remote homestead rather than identical random objects.
+    # Uses the original W05 cabin/physics; adds only source-authored utilities.
+    if chunk_coord != Vector2i(-1,-1):
+        return
+    var p:=Vector2(425.0,470.0)
+    _sp_draw_w07_prop(4,p+Vector2(166.0,-20.0),Vector2(81,95))
+    _sp_draw_w07_prop(0,p+Vector2(167.0,77.0),Vector2(92,67))
+    _sp_draw_w07_prop(8,p+Vector2(-111.0,102.0),Vector2(87,74))
+    _sp_draw_w07_prop(14,p+Vector2(64.0,126.0),Vector2(87,69))
 
 func _sp_draw_story_sites_w07() -> void:
     if _building_rects.is_empty():
