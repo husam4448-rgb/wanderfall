@@ -145,8 +145,8 @@ def overlay(s):
     s=once(s,'const ZOMBIE_MASK: Texture2D = preload("res://assets/sp_melee/v261_zombie_mask.png")',
              'const ZOMBIE_MASK: Texture2D = preload("res://assets/biomes/v2656/zombie_right_0.png")',
              'zombie occlusion sprite')
-    s=once(s,'    sprite.texture = ZOMBIE_MASK\\n    sprite.texture_filter',
-           '    sprite.texture = ZOMBIE_MASK\\n    sprite.position = Vector2(0.0,-11.0)\\n    sprite.texture_filter',
+    s=once(s,'    sprite.texture = ZOMBIE_MASK\n    sprite.texture_filter',
+           '    sprite.texture = ZOMBIE_MASK\n    sprite.position = Vector2(0.0,-11.0)\n    sprite.texture_filter',
            'zombie true alpha world anchor')
     return s
 edit("scripts/world/occlusion_silhouette_overlay.gd",overlay)
