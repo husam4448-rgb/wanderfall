@@ -1,0 +1,51 @@
+name: SP World W02 — CC0 foliage source inspection
+on:
+  push:
+    branches: [sp-world-visual-overhaul-20261019]
+    paths:
+      - '.github/workflows/sp-world-foliage-source-probe.yml'
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v5
+      - name: Obtain verified-license public-domain foliage source
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 2 -o /tmp/trees-and-bushes-CC0.zip 'https://opengameart.org/sites/default/files/trees_and_bushes_pack.zip'
+          sha256sum /tmp/trees-and-bushes-CC0.zip | tee foliage-source-sha256.txt
+          unzip -q /tmp/trees-and-bushes-CC0.zip -d foliage-source
+          find foliage-source -type f -printf '%p %s bytes\n' | head -80 | tee foliage-files.txt
+      - name: Inspect source sprites and make transparent contact sheet
+        run: |
+          python3 -m pip install --quiet pillow
+          python3 - <<'PY'
+          from PIL import Image,ImageDraw,ImageFont
+          from pathlib import Path
+          files=sorted(p for p in Path("foliage-source").rglob("*") if p.suffix.lower() in (".png",".webp"))
+          sheet=Image.new("RGB",(1000,max(320,((len(files)+5)//6)*190)),(34,42,39))
+          d=ImageDraw.Draw(sheet)
+          for i,p in enumerate(files):
+              im=Image.open(p).convert("RGBA")
+              print(p, im.size, "bbox",im.getchannel("A").getbbox())
+              im.thumbnail((153,148),Image.Resampling.NEAREST)
+              x=(i%6)*165+6;y=(i//6)*190+6
+              checker=Image.new("RGBA",im.size,(73,85,74,255));checker.alpha_composite(im)
+              sheet.paste(checker.convert("RGB"),(x,y))
+              d.text((x,y+152),p.name[:24],fill="white")
+          sheet.save("foliage-source-contact.jpg",quality=94)
+          assert files,"No PNG sprites present in CC0 source"
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: SP-W02-CC0-foliage-source-inspection
+          path: |
+            foliage-source-sha256.txt
+            foliage-files.txt
+            foliage-source-contact.jpg
+            foliage-source/**/*
+          retention-days: 7
