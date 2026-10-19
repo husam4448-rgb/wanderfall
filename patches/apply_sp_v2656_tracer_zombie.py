@@ -60,7 +60,8 @@ var _sp2656_fx: Node2D = null''',"fx field")
         var suppressed: bool = String(
             equipment.attachments.get("muzzle","")).contains("suppressor")
         _sp2656_fx.fire_visual(muzzle_world,visual_end,
-            equipment.equipped_weapon_id,ammo_name,suppressed)
+            equipment.equipped_weapon_id,ammo_name,suppressed,
+            GameSettings.reduced_flashes,PerformanceManager.get_effects_density())
 '''
     s=once(s,'    NoiseManager.emit_noise(global_position, float(data.get("noise", 500.0)), "player")',
             shot+'    NoiseManager.emit_noise(global_position, float(data.get("noise", 500.0)), "player")',"attach to real shoot")
@@ -97,7 +98,8 @@ var _sp2656_fx: Node2D = null
         var ammo: String = String(weapon_data.get("ammo_id",""))
         var suppressed: bool = String(weapon_attachments.get("muzzle","")).contains("suppressor")
         _sp2656_fx.fire_visual(muzzle,target_player.global_position,
-            equipped_weapon_id,ammo,suppressed)''',"hostile fx")
+            equipped_weapon_id,ammo,suppressed,
+            GameSettings.reduced_flashes,PerformanceManager.get_effects_density())''',"hostile fx")
     return s
 edit("scripts/combat/bandit.gd",bandit)
 
