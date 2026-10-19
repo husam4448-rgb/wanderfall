@@ -63,6 +63,15 @@ jobs:
             ("game/scripts/ui/ui_manager.gd", "            button.icon_max_width = 22\n", ""),
             ("game/scripts/ecology/wildlife_actor.gd", "var drops: Array[Dictionary] = []", "var drops: Array = []"),
           ]
+          # Preserve contents/order; relax old typed-array assignment in two
+          # legacy social setup scripts that receive untyped JSON configuration.
+          for rel in ("game/scripts/social/friendly_npc.gd", "game/scripts/social/faction_mobile_group.gd"):
+              p = Path(rel)
+              old_source = p.read_text(encoding="utf-8")
+              if "Array[Dictionary]" not in old_source:
+                  raise SystemExit("Missing expected social typed-array declaration: " + rel)
+              p.write_text(old_source.replace("Array[Dictionary]", "Array"), encoding="utf-8")
+              print("Applied CI legacy typed-array compatibility:", rel)
           for name, old, new in updates:
               p = Path(name)
               s = p.read_text(encoding="utf-8")
