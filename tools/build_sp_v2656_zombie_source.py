@@ -21,14 +21,12 @@ for facing in ("right","left"):
     source=base if facing=="right" else base.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
     for frame in range(4):
         im=Image.new("RGBA",(40,60),(0,0,0,0))
-        upper=source.crop((0,0,40,43))
-        lower_left=source.crop((0,43,20,60))
-        lower_right=source.crop((20,43,40,60))
-        phase=(0,2,0,-2)[frame]
-        bob=(0,1,0,1)[frame]
-        im.alpha_composite(upper,(0,bob))
-        im.alpha_composite(lower_left,(phase,43+bob if bob==0 else 43))
-        im.alpha_composite(lower_right,(-phase,43+bob if bob==0 else 43))
+        # The initial experimental half-leg slicing detached feet.
+        # Keep the original complete, anatomically coherent painted figure.
+        # Limited one-pixel weight-shift poses are preferable to broken anatomy.
+        offset_x=(0,1,0,-1)[frame]
+        bob=(0,0,1,0)[frame]
+        im.alpha_composite(source,(offset_x,bob))
         im.save(out/f"zombie_{facing}_{frame}.png",optimize=True)
 assert len(list(out.glob("zombie_*.png")))==8
 # QA contact sheet (isolated and transparent, not a fake gameplay image).
