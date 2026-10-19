@@ -233,6 +233,27 @@ def animal_frame(species,direction,frame):
         ty=base_y+int(h*.59)
         dd.line((tail_x,ty,tail_x+tail_sign*(5+frame%3),ty-1),
                 fill=(*cfg["shadow"],212),width=2)
+    # The common gameplay alpha/occlusion anchor is sprite pixel (32,36).
+    # Place a genuine fully opaque anatomical pixel there: translate the
+    # ENTIRE existing animal silhouette (body, legs, tail as one object), never
+    # paint fake center dots or damage the alpha source to appease a test.
+    if c.getpixel((32,36))[3]<245:
+        px=c.load()
+        candidates=[]
+        for py in range(24,48):
+            for px0 in range(19,46):
+                if px[px0,py][3]>=250:
+                    cost=(px0-32)**2+(py-36)**2
+                    candidates.append((cost,px0,py))
+        if not candidates:
+            raise RuntimeError("No opaque live animal core for "+species)
+        _,bx,by=min(candidates)
+        dx,dy=32-bx,36-by
+        # All sprite margins are transparent, so no wrapped material appears.
+        if abs(dx)>8 or abs(dy)>8:
+            raise RuntimeError("Animal occlusion anchor unacceptably far off: "+species)
+        c=ImageChops.offset(c,dx,dy)
+    assert c.getpixel((32,36))[3]>=245,(species,direction,frame)
     return c
 from PIL import ImageChops
 for species in MASS:
