@@ -1,0 +1,37 @@
+name: SP World W06 — Source Rocks Art Inspection
+on:
+  push:
+    branches: [sp-world-visual-overhaul-20261019]
+    paths: ['.github/workflows/sp-world-rocks-probe-w06.yml']
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v5
+      - name: Download shaded authored rock sprites
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 2 -o w06-rocks.png 'https://opengameart.org/sites/default/files/hjm-assorted_rocks_1.png'
+          sha256sum w06-rocks.png | tee w06-hash.txt
+          python3 -m pip install --quiet pillow
+          python3 - <<'PY'
+          from PIL import Image,ImageDraw
+          im=Image.open("w06-rocks.png").convert("RGBA")
+          print("W06_SOURCE",im.size,im.getchannel("A").getextrema())
+          contact=Image.new("RGB",im.size,(102,121,95))
+          contact.paste(im.convert("RGB"),(0,0),im.getchannel("A"))
+          contact.save("w06-rocks-contact.jpg",quality=94)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: SP-W06-Rocks-Art-Source
+          path: |
+            w06-rocks.png
+            w06-rocks-contact.jpg
+            w06-hash.txt
+          retention-days: 7
