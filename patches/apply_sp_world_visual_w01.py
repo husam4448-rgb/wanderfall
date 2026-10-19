@@ -114,7 +114,7 @@ func _sp_draw_ground_detail_w01() -> void:
             if posmod(stamp_hash, 5) == 0:
                 continue
             var origin := Vector2(gx * step, gy * step) - position
-            var jitter := Vector2(float(posmod(stamp_hash, 27) - 13), float(posmod(stamp_hash / 31, 25) - 12))
+            var jitter := Vector2(float(posmod(stamp_hash, 27) - 13), float(posmod(int(stamp_hash / 31), 25) - 12))
             var local_center := origin + jitter
             if local_center.x < 0.0 or local_center.y < 0.0 or local_center.x >= CHUNK_SIZE or local_center.y >= CHUNK_SIZE:
                 continue
