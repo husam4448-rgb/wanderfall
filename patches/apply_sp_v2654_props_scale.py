@@ -4,7 +4,7 @@ from pathlib import Path
 import re,sys
 root=Path(sys.argv[1]).resolve()
 a=root/"assets/biomes/v2653"
-assert len(list(a.glob("v2654_*.png")))==(30*2+36+64), "v2654 required raster assets missing"
+assert len(list(a.glob("v2654_*.png")))==(31*2+36+64), "v2654 required raster assets missing"
 protected=("scripts/world/world_manager.gd","scripts/save/save_manager.gd",
 "scripts/virtual_joystick.gd","scripts/mobile_hud.gd",
 "scripts/settlement/camp_manager.gd","scripts/social/faction_manager.gd")
@@ -38,9 +38,9 @@ def insert_helper(s):
     return swap(s,"extends Node2D\n","extends Node2D\n"+draw_utility(),"cache")
 
 def natural(s):
-    return swap(s,"_v2653_berry_image(macro,posmod(generation_seed,4))",
-     '''load("res://assets/biomes/v2653/v2654_berry_%d_%d.png" % [
-                  macro,posmod(generation_seed,4)])''',"attached berries")
+    return swap(s,'load("res://assets/biomes/v2653/berry_%d_%d.png" % [biome,variant])',
+     'load("res://assets/biomes/v2653/v2654_berry_%d_%d.png" % [biome,variant])',
+     "use cached attached berries to prevent unloaded texture white cards")
 write("scripts/ecology/natural_resource.gd",natural)
 
 def wild(s):
@@ -122,13 +122,21 @@ def events(s):
 write("scripts/events/dynamic_event_site.gd",events)
 
 def world(s):
-    s=swap(s,'    var keys: Array[String] = ["barrel","tire","pallet","fence","sign","rubble"]',
-       '''    var keys: Array[String] = ["barrel","tire","pallet","fence","sign","rubble"]''',"prop routing")
+    s=swap(s,'class_name WorldChunk\nextends Node2D',
+      '''class_name WorldChunk
+extends Node2D
+static var _sp2654_site_cache: Dictionary = {}
+static func _sp2654_site_texture(kind: String, variant: int) -> Texture2D:
+    var key: String = "%s_%d" % [kind,variant]
+    if not _sp2654_site_cache.has(key):
+        _sp2654_site_cache[key] = load(
+            "res://assets/biomes/v2653/v2654_%s.png" % key)
+    return _sp2654_site_cache[key]''',"persistent source sprite cache")
     old='''        var tex: Texture2D = V2651_CLUTTER._sprite(clampi(macro_biome_id,0,8),kind)'''
     new='''        var resolved: String = "scrap" if key == "rubble" else key
-        var tex: Texture2D = load("res://assets/biomes/v2653/v2654_%s_%d.png" % [
-            resolved,posmod(chunk_coord.x*19+chunk_coord.y*23+world_seed,2)])'''
-    return swap(s,old,new,"new source props")
+        var tex: Texture2D = _sp2654_site_texture(resolved,
+            posmod(chunk_coord.x*19+chunk_coord.y*23+world_seed,2))'''
+    return swap(s,old,new,"cached site props")
 write("scripts/world/world_chunk.gd",world)
 
 # World scale presentation: source art remains exactly the user-approved pixels.
