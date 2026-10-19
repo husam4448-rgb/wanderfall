@@ -58,6 +58,14 @@ jobs:
           PY
           python3 "$PROJECT_DIR/tools/preflight.py" "$PROJECT_DIR"
 
+      - name: Diagnose known Godot 4.7 legacy runtime incompatibilities
+        shell: bash
+        run: |
+          echo "=== Wildlife typed assignment context ==="
+          nl -ba "$PROJECT_DIR/scripts/world/world_chunk.gd" | sed -n '232,255p'
+          echo "=== Unsupported icon property assignments ==="
+          grep -Rn 'icon_max_width' "$PROJECT_DIR/scripts" | head -30 || true
+
       - name: Download pinned Godot 4.7.2 runtime
         shell: bash
         run: |
