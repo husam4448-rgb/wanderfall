@@ -1,7 +1,6 @@
 extends SceneTree
 ## v265.6 visual QA: original shooting semantics plus real bullet streak capture.
 const TRACER = preload("res://scripts/combat/sp_v2656_tracer_fx.gd")
-const ZOMBIE = preload("res://scripts/combat/zombie.gd")
 var checks: int = 0
 
 func _initialize() -> void:
@@ -82,7 +81,10 @@ func _run() -> void:
     var fx: Node = player.get_node_or_null("SP_2656_TransientBulletTracers")
     if not _require(fx!=null,"player ballistic FX not attached"):
         return
-    var zombie: Node2D = ZOMBIE.new()
+    var zombie_script: GDScript = load("res://scripts/combat/zombie.gd")
+    if not _require(zombie_script != null,"zombie runtime class not loaded"):
+        return
+    var zombie: Node2D = zombie_script.new()
     zombie.setup(player)
     var hostile_parent: Node = player.get_parent()
     hostile_parent.add_child(zombie)
