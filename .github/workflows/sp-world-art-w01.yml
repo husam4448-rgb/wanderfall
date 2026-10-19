@@ -70,7 +70,11 @@ jobs:
               old_source = p.read_text(encoding="utf-8")
               if "Array[Dictionary]" not in old_source:
                   raise SystemExit("Missing expected social typed-array declaration: " + rel)
-              p.write_text(old_source.replace("Array[Dictionary]", "Array"), encoding="utf-8")
+              replacement = old_source.replace("Array[Dictionary]", "Array")
+              if "var stack :=" not in replacement:
+                  raise SystemExit("Missing social item-stack inference anchor: " + rel)
+              replacement = replacement.replace("var stack :=", "var stack: Dictionary =")
+              p.write_text(replacement, encoding="utf-8")
               print("Applied CI legacy typed-array compatibility:", rel)
           for name, old, new in updates:
               p = Path(name)
