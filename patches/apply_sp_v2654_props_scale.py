@@ -147,9 +147,10 @@ def player(s):
     return s
 write("scripts/player.gd",player)
 def npc(s):
-    return swap(s,'    _actor_visual.setup_static(body_type, "friendly", equipped_visual_gear)',
+    return swap(s,'    _actor_visual.setup_static(body_type, "friendly", equipped_visual_gear)\n    _weapon_visual = WeaponVisualScript.new()',
        '''    _actor_visual.setup_static(body_type, "friendly", equipped_visual_gear)
-    _actor_visual.scale = Vector2(1.035,1.035)''',"slightly normalize NPC proportions")
+    _actor_visual.scale = Vector2(1.035,1.035)
+    _weapon_visual = WeaponVisualScript.new()''',"slightly normalize NPC proportions")
 write("scripts/social/friendly_npc.gd",npc)
 for path,old in before.items():
     assert (root/path).read_bytes()==old,"v2654 unexpectedly changed protected gameplay: "+path
