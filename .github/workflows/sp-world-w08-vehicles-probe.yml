@@ -1,0 +1,54 @@
+name: SP W08 — Overhead vehicle art source inspection
+on:
+  push:
+    branches: [sp-world-w07-props-vehicles-20261019]
+    paths: ['.github/workflows/sp-world-w08-vehicles-probe.yml']
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v5
+      - name: Verify vehicle pack contents and render readable contact review
+        run: |
+          set -euo pipefail
+          mkdir -p w08
+          curl -fL --retry 3 --retry-delay 2 -o w08/vehicles.zip 'https://opengameart.org/sites/default/files/2D_Car_Pack_DevilsWorkShop_V01.zip'
+          sha256sum w08/vehicles.zip | tee w08/source.sha256
+          python3 -m pip install --quiet pillow
+          python3 - <<'PY'
+          from PIL import Image,ImageDraw
+          import zipfile,io
+          z=zipfile.ZipFile('w08/vehicles.zip')
+          names=[f for f in z.namelist() if f.lower().endswith('.png') and not f.endswith('/')]
+          open('w08/all-images.txt','w').write('\n'.join(names))
+          print('Vehicle sprites',len(names),'sample',names[:40])
+          # Prefer separate top-view/iso PNGs over sprite atlases containing UI.
+          ranked=[n for n in names if any(w in n.lower() for w in ('top','iso','pickup','truck'))]
+          ranked=(ranked if ranked else names)[:24]
+          canvas=Image.new('RGB',(1200,((len(ranked)+4)//5)*205),'#454841')
+          d=ImageDraw.Draw(canvas)
+          for j,name in enumerate(ranked):
+              im=Image.open(io.BytesIO(z.read(name))).convert('RGBA')
+              if max(im.size)>3000:continue
+              if j<6:im.save(f'w08/car_{j}.png')
+              im.thumbnail((220,165))
+              x=j%5*240;y=j//5*205
+              canvas.paste(im,(x+(230-im.width)//2,y+(170-im.height)//2),im)
+              d.text((x+5,y+174),name[-36:],fill='white')
+              print('CANDIDATE',name,im.size)
+          canvas.save('w08/contact.jpg',quality=94)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: SP-W08-Overhead-Vehicles-Art-Inspection
+          path: |
+            w08/source.sha256
+            w08/all-images.txt
+            w08/car_*.png
+            w08/contact.jpg
+          retention-days: 14
+          if-no-files-found: warn
