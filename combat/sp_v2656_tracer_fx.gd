@@ -47,7 +47,8 @@ func fire_visual(muzzle_world: Vector2, end_world: Vector2,
         "width": float(spec["width"]),
         "color": spec["color"],
         "count": int(spec["count"]),
-        "flash": float(spec["flash"])
+        "flash": float(spec["flash"]),
+        "draws": 0
     })
     if streaks.size()>MAX_STREAKS:
         streaks.remove_at(0)
@@ -56,7 +57,12 @@ func fire_visual(muzzle_world: Vector2, end_world: Vector2,
 
 func _process(delta: float) -> void:
     for i in range(streaks.size()-1,-1,-1):
-        streaks[i]["t"]=float(streaks[i]["t"])-delta
+        # A momentary tracer still needs at least two rasterized frames.
+        # At 2 FPS native QA, wall-time-only lifetimes silently disappear.
+        if int(streaks[i]["draws"]) < 2:
+            streaks[i]["t"] = maxf(0.044,float(streaks[i]["t"])-delta)
+        else:
+            streaks[i]["t"] = float(streaks[i]["t"])-delta
         if float(streaks[i]["t"])<=0.0:
             streaks.remove_at(i)
     if streaks.is_empty():
@@ -80,19 +86,20 @@ func _draw() -> void:
         var pellets: int = int(shot["count"])
         # The entire path is faintly visible for only ~0.07–0.12 s.
         # The bright core travels during that interval instead of a static beam.
+        shot["draws"] = int(shot["draws"])+1
         for k in range(pellets):
             var offset: float = float(k)-float(pellets-1)*0.5
             var deviation: Vector2 = side*offset*(2.1 if pellets>1 else 0.0)
             var end_point: Vector2 = b+deviation*(length/260.0)
-            draw_line(a,end_point,Color(shade.r,shade.g,shade.b,0.16*ratio),
-                width+1.1,true)
+            draw_line(a,end_point,Color(shade.r,shade.g,shade.b,0.30*ratio),
+                width+1.4,true)
             var head: float = 1.0-ratio
             var front: float = clampf(head+0.22,0.0,1.0)
             var rear: float = maxf(0.0,front-0.23)
             var core_a: Vector2 = a.lerp(end_point,rear)
             var core_b: Vector2 = a.lerp(end_point,front)
             draw_line(core_a,core_b,
-                Color(shade.r,shade.g,shade.b,0.68*ratio),width,true)
+                Color(shade.r,shade.g,shade.b,0.88*ratio),width,true)
             draw_line(core_a.lerp(core_b,0.38),core_b,
                 Color(1.0,0.96,0.78,0.88*ratio),0.65,true)
         # Existing firearm art owns the true muzzle flash shape.
