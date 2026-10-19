@@ -200,7 +200,8 @@ def animal_frame(species,direction,frame):
         # upper segment originates beneath torso and attaches to lower section.
         swing=math.sin(phase+ (0 if n%2==0 else math.pi))*gait_speed
         x=base_x+xx
-        y=base_y+int(yy*.85)
+        # Attach to lower torso but never crop the feet outside 64x72.
+        y=base_y+min(int(yy*.55),int(h*.68))
         knee=(x+round(3.4*swing),y+cfg["leg"]*.50)
         foot=(x+round(7*swing),y+cfg["leg"])
         col=cfg["shadow"] if n%2 else cfg["light"]
