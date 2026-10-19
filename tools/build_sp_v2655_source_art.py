@@ -39,15 +39,16 @@ def animal_frame(species,direction,frame):
     right_faces=("deer","chicken")
     if (species in right_faces)!=(direction=="right"):
         original=ImageOps.mirror(original)
+    original.thumbnail((59,48),Image.Resampling.LANCZOS)
     w,h=original.size
     phase=math.tau*float(frame)/8
     bounce=round(1.1*(1.0-math.cos(phase*2.0)))
     # Keep original head and torso in the provided authored pixels. Shift the
     # lower silhouette by up to 2 px in opposite gait phase for each limb-pair.
-    out=Image.new("RGBA",(80,80))
+    out=Image.new("RGBA",(64,72))
     px=original.load()
-    x0=(80-w)//2
-    y0=27-h//2 - bounce
+    x0=(64-w)//2
+    y0=31-h//2 - bounce
     for y in range(h):
         for x in range(w):
             rgba=px[x,y]
@@ -61,13 +62,13 @@ def animal_frame(species,direction,frame):
                 y<h*.42 and x>w*.70 and species!="boar") else 0
             dx=x0+x+xshift
             dy=y0+y+head_move
-            if 0<=dx<80 and 0<=dy<80:
+            if 0<=dx<64 and 0<=dy<72:
                 out.putpixel((dx,dy),rgba)
     if species=="chicken":
         # Reference art has no sufficiently readable foot pixels. Hand-draw
         # two narrow orange-shaded shanks behind its rounded breast silhouette.
         dr=ImageDraw.Draw(out,"RGBA")
-        foot_center=40
+        foot_center=32
         fy=y0+h-2
         for leg,offset in ((-1,0),(1,math.pi)):
             dx=round(3.3*math.sin(phase+offset))
