@@ -1,0 +1,114 @@
+name: SP World Art W01 — Real Godot Runtime QA
+
+on:
+  push:
+    branches: [sp-world-visual-overhaul-20261019]
+    paths:
+      - 'patches/apply_sp_world_visual_w01.py'
+      - '.github/workflows/sp-world-art-w01.yml'
+      - '.ci/trigger-sp-world-art-w01'
+
+permissions:
+  contents: read
+
+env:
+  SOURCE_SHA256: ae4eff17e5f281f5867ac2d82207fcf96e6c8b649432acd48816aebab76fa308
+  SOURCE_ARCHIVE: /tmp/Wanderfall_Phase16_Game_Source.tar.xz
+  PROJECT_DIR: game
+  GODOT_ZIP: /tmp/Godot_v4.7.2-stable_linux.x86_64.zip
+  GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
+
+jobs:
+  world-art-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v5
+      - name: Reconstruct verified game source
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat source_parts/part_*.b64 | base64 -d > "$SOURCE_ARCHIVE"
+          echo "$SOURCE_SHA256  $SOURCE_ARCHIVE" | sha256sum -c -
+          mkdir -p "$PROJECT_DIR"
+          tar -xJf "$SOURCE_ARCHIVE" -C "$PROJECT_DIR"
+          test -f "$PROJECT_DIR/scripts/world/world_chunk.gd"
+
+      - name: Integrate W01 into actual world renderer
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pillow
+          python3 -m py_compile patches/apply_sp_world_visual_w01.py
+          python3 patches/apply_godot_47_fixes.py "$PROJECT_DIR"
+          python3 patches/apply_v017_ui_overhaul.py "$PROJECT_DIR"
+          python3 patches/apply_v0190a_survival_paradise_art_foundation.py "$PROJECT_DIR"
+          python3 patches/apply_v0190b_terrain_props.py "$PROJECT_DIR"
+          python3 patches/apply_v0190c1_world_coherence.py "$PROJECT_DIR"
+          python3 patches/apply_sp_world_visual_w01.py "$PROJECT_DIR"
+          grep -q 'SP_WORLD_VISUAL_W01' "$PROJECT_DIR/scripts/world/world_chunk.gd"
+          python3 - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          p = Path("game/assets/production/terrain/sp_world_detail_w01.png")
+          im = Image.open(p).convert("RGBA")
+          assert im.size == (384,96), im.size
+          assert im.getchannel("A").getextrema()[1] > 150
+          assert sum(1 for value in im.getchannel("A").getdata() if value != 0) > 500
+          print("W01 native terrain atlas verified", im.size)
+          PY
+          python3 "$PROJECT_DIR/tools/preflight.py" "$PROJECT_DIR"
+
+      - name: Download pinned Godot 4.7.2 runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 2 -o "$GODOT_ZIP" "https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip"
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  $GODOT_ZIP" | sha256sum -c -
+          unzip -q "$GODOT_ZIP" -d /tmp
+          test -x "$GODOT_BIN"
+          "$GODOT_BIN" --version
+
+      - name: Godot import, parser, runtime smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --editor --path "$PROJECT_DIR" --quit --verbose 2>&1 | tee w01-import.log
+          if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|Compile Error:|Parse Error:' w01-import.log; then exit 1; fi
+          timeout 25s "$GODOT_BIN" --headless --path "$PROJECT_DIR" --quit-after 90 --verbose 2>&1 | tee w01-smoke.log
+          if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|Compile Error:|Parse Error:|Invalid get index|Invalid call' w01-smoke.log; then exit 1; fi
+
+      - name: Optional actual scene screenshot for visual QA
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb imagemagick >/dev/null
+          xvfb-run -a bash -c '
+            "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1366x768 > w01-render.log 2>&1 &
+            pid=$!
+            sleep 10
+            import -window root w01-runtime.png || true
+            kill "$pid" 2>/dev/null || true
+            wait "$pid" 2>/dev/null || true
+          '
+          if test -s w01-runtime.png; then
+            file w01-runtime.png
+          else
+            echo "VISUAL QA PENDING: no live screenshot captured"
+          fi
+
+      - name: Archive exact scene, native art and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SP-World-W01-Real-Game-QA
+          path: |
+            game/assets/production/terrain/sp_world_detail_w01.png
+            game/scripts/world/world_chunk.gd
+            w01-import.log
+            w01-smoke.log
+            w01-render.log
+            w01-runtime.png
+          retention-days: 14
+          if-no-files-found: warn
