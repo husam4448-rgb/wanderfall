@@ -110,7 +110,7 @@ func _run() -> void:
     actor.setup(player,"sp2657_animal_probe",{
         "id":"deer","name":"Deer","speed":94.0,
         "temperament":"flee","health":35.0,"drops":[]
-    },player.global_position+Vector2(135,-36),2378)
+    },player.global_position+Vector2(250,-36),2378)
     main.add_child(actor)
     actor.set("_wander_direction",Vector2.RIGHT)
     actor.set("_wander_timer",15.0)
@@ -118,6 +118,7 @@ func _run() -> void:
     if not _require(String(actor.get("_v2653_face"))=="right"
         and bool(actor.get("_v2653_walking")),"deer gait not active"):return
     if not await _shot("SP_v2657_REAL_DEER_RIGHT.png"):return
+    actor.set("_flee_timer",0.0)
     actor.set("_wander_direction",Vector2.LEFT)
     actor.set("_wander_timer",15.0)
     await create_timer(.40).timeout
