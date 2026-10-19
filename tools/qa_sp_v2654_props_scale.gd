@@ -324,7 +324,7 @@ func _run() -> void:
     var variants := ["storage_box","guard_post","prison_cell","bedroll","campfire",
         "farm_plot","wall","barricade","watchtower","generator","solar_array",
         "battery_bank","rain_collector","water_tank","water_purifier",
-        "well_pump","alarm","table","bench","tarp","fence","sign","barrel",
+        "well_pump","alarm","table","bench","tarp","fence","sign","barrel","tire",
         "scrap","pallet","wreck","distress","cache","shelter","firepit"]
     for kind in variants:
         for variant in range(2):
@@ -350,7 +350,7 @@ func _run() -> void:
                     if not _assert(raw != baseline_pixels,
                         "rigid frozen wildlife while walking: "+species):
                         return
-    print("SP_V2654_ASSET_QA_PASS 160 additional raster files, attached berries and bidirectional moving wildlife")
+    print("SP_V2654_ASSET_QA_PASS 162 additional raster files, attached berries and bidirectional moving wildlife")
     # Verify only presentation scale changed, not player's collision/physics.
     var survivor: Node = player.get_node_or_null("SP_ApprovedSimplifiedSurvivor")
     if not _assert(survivor != null and is_equal_approx(absf(survivor.scale.x),0.51),
@@ -377,6 +377,30 @@ func _run() -> void:
     print("SP_V2654_NATIVE_CAMP_QA_PASS actual faction tents and prop raster renderer")
 
     print("SP_V2654_REAL_POI_RESOURCE_QA_PASS native berry bush and building captures")
+    # Visual regression: prevent white texture cards caused by non-retained
+    # textures in static CanvasItem draw lists, even if the parser passes.
+    var shot: Image = Image.load_from_file(ProjectSettings.globalize_path(
+        "res://SP_v2654_BERRY_RESOURCE.png"))
+    if not _assert(shot != null and shot.get_width() > 1200,
+        "cannot validate actual white-card regression screenshot"):
+        return
+    var white_cards: int = 0
+    for yy in range(162,mini(470,shot.get_height()-25),12):
+        for xx in range(445,mini(1100,shot.get_width()-25),12):
+            var clear_square: bool = true
+            for delta_pixel in [Vector2i(0,0),Vector2i(14,0),
+                    Vector2i(0,14),Vector2i(14,14),Vector2i(7,7)]:
+                var sample: Color = shot.get_pixel(
+                    xx+delta_pixel.x, yy+delta_pixel.y)
+                if sample.r<0.99 or sample.g<0.99 or sample.b<0.99:
+                    clear_square = false
+                    break
+            if clear_square:
+                white_cards += 1
+    if not _assert(white_cards == 0,
+        "white rectangular missing-texture cards still visible: "+str(white_cards)):
+        return
+    print("SP_V2654_NO_WHITE_CARDS_QA_PASS screen verified free of rectangular sprite failures")
     print("SP_V2654_REAL_SCENE_QA_PASS live-world 4 regions and organic ecology with existing HUD/streaming")
     print("SP_V2654_ALL_QA_PASS assertions="+str(assertions))
     quit(0)
