@@ -81,6 +81,19 @@ func _run() -> void:
     var fx: Node = player.get_node_or_null("SP_2656_TransientBulletTracers")
     if not _require(fx!=null,"player ballistic FX not attached"):
         return
+    # Move the close-range visual test away from the starting camp foliage.
+    # Captures must reveal the actual zombie, not only its silhouette overlay.
+    if world.has_method("is_world_point_tree_occluded"):
+        var start: Vector2 = player.global_position
+        for offset in [Vector2(-100,150),Vector2(90,160),
+            Vector2(-115,-130),Vector2(120,-120),Vector2(0,-195)]:
+            var p: Vector2 = start+offset
+            var hit: Vector2 = p+Vector2(154,0)
+            if not world.is_world_point_tree_occluded(p) and not (
+                world.is_world_point_tree_occluded(hit)):
+                player.global_position = p
+                break
+        await create_timer(0.24).timeout
     var zombie_script: GDScript = load("res://scripts/combat/zombie.gd")
     if not _require(zombie_script != null,"zombie runtime class not loaded"):
         return
@@ -88,7 +101,7 @@ func _run() -> void:
     zombie.setup(player)
     var hostile_parent: Node = player.get_parent()
     hostile_parent.add_child(zombie)
-    zombie.global_position = player.global_position+Vector2(185,0)
+    zombie.global_position = player.global_position+Vector2(154,0)
     await process_frame
     if not _require(zombie.is_in_group("hostile_actor"),
         "real zombie lost original combat/AI group"):
@@ -117,6 +130,10 @@ func _run() -> void:
          "shot beam starts somewhere other than player's real muzzle"):
         return
     await RenderingServer.frame_post_draw
+    var after_shot: Array = fx.get("streaks")
+    if not _require(not after_shot.is_empty() and int(after_shot[0]["draws"])>=1,
+        "real tracer did not appear during a rendered frame"):
+        return
     var shot: Image = root.get_texture().get_image()
     if not _require(shot.save_png(ProjectSettings.globalize_path(
         "res://SP_v2656_REAL_ZOMBIE_SHOT.png"))==OK,
