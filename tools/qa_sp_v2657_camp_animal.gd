@@ -33,8 +33,13 @@ func _run() -> void:
         if not _check(im.get_pixel(0,0).a<0.05,
             "camp painting includes an intrusive rectangular ground card"):
             return
-        if not _check(im.get_pixel(280,228).a>0.05,
-            "camp includes no central work or travel detail"):
+        var occupied: int = 0
+        for y in range(130,338,18):
+            for x in range(145,415,18):
+                if im.get_pixel(x,y).a > 0.04:
+                    occupied += 1
+        if not _check(occupied>12,
+            "camp lacks visible composed work and travel details"):
             return
     for species in ["deer","boar","chicken","rat"]:
         for side in ["left","right"]:
