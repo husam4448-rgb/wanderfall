@@ -120,11 +120,14 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get update -qq
-          sudo apt-get install -y -qq xvfb imagemagick >/dev/null
+          sudo apt-get install -y -qq xvfb imagemagick xdotool >/dev/null
           xvfb-run -a bash -c '
             "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1366x768 > w01-render.log 2>&1 &
             pid=$!
-            sleep 10
+            sleep 5
+            # UI position is from verified 1280x1024 live menu capture.
+            xdotool mousemove 768 373 click 1 || true
+            sleep 7
             import -window root w01-runtime.png || true
             kill "$pid" 2>/dev/null || true
             wait "$pid" 2>/dev/null || true
