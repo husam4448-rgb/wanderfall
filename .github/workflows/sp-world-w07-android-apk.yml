@@ -283,7 +283,7 @@ jobs:
           "$ANDROID_HOME/build-tools/35.0.1/apksigner" verify --verbose --print-certs "$APK" | tee w07-apk-signature.txt
           "$ANDROID_HOME/build-tools/35.0.1/aapt" dump badging "$APK" | tee w07-apk-badging.txt
           grep -q "package: name='org.wanderfall.game'" w07-apk-badging.txt
-          grep -q "versionCode='250'" w07-apk-badging.txt
+          grep -q "versionCode='271'" w07-apk-badging.txt
           unzip -l "$APK" | grep -q 'lib/arm64-v8a/libgodot_android.so'
           sha256sum "$APK" | tee "$APK_PATH.sha256"
           test "$(stat -c%s "$APK")" -lt 419430400
