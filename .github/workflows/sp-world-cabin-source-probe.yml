@@ -1,0 +1,38 @@
+name: SP W05 — Authentic cabin source art review
+on:
+  push:
+    branches: [sp-world-visual-overhaul-20261019]
+    paths: ['.github/workflows/sp-world-cabin-source-probe.yml']
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v5
+      - name: Fetch CC0 artist-authored log cabin sprites
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 2 -o w05-cabins.png 'https://opengameart.org/sites/default/files/wooden_buildings_01.png'
+          sha256sum w05-cabins.png | tee w05-source-sha256.txt
+          python3 -m pip install --quiet pillow
+          python3 - <<'PY'
+          from PIL import Image
+          im=Image.open("w05-cabins.png").convert("RGBA")
+          print("W05 Cabin art original size",im.size,"alpha",im.getchannel("A").getextrema())
+          preview=Image.new("RGBA",im.size,(84,95,82,255))
+          preview.alpha_composite(im)
+          preview=preview.convert("RGB")
+          preview.thumbnail((1600,1200),Image.Resampling.LANCZOS)
+          preview.save("w05-cabins-preview.jpg",quality=92)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: SP-W05-CC0-Cabin-Art-Review
+          path: |
+            w05-cabins.png
+            w05-source-sha256.txt
+            w05-cabins-preview.jpg
+          retention-days: 7
