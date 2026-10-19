@@ -204,6 +204,8 @@ jobs:
             sleep 5
             # Dedicated in-game QA flag starts a new game after menu init.
             sleep 9
+            import -window root w07e-gameplay-initial.png || true
+            sleep 17
             import -window root w07e-gameplay.png || true
             kill "$pid" 2>/dev/null || true
             wait "$pid" 2>/dev/null || true
@@ -240,5 +242,6 @@ jobs:
             w01-smoke.log
             w07e-render.log
             w07e-gameplay.png
+            w07e-gameplay-initial.png
           retention-days: 14
           if-no-files-found: warn
