@@ -17,6 +17,8 @@ jobs:
           curl -fL --retry 3 --retry-delay 2 -o /tmp/props-cc0.zip 'https://opengameart.org/sites/default/files/props_tilesets.zip'
           sha256sum /tmp/props-cc0.zip | tee w03-source-sha256.txt
           unzip -q /tmp/props-cc0.zip -d /tmp/props-cc0
+          cp /tmp/props-cc0/props_2x2.png w03-props-full.png
+          cp /tmp/props-cc0/props_4x4.png w03-tents-full.png
           find /tmp/props-cc0 -type f -printf '%p | %s bytes\n' | head -120 | tee w03-props-files.txt
       - name: Generate art contact sheet for review
         run: |
@@ -59,4 +61,6 @@ jobs:
             w03-source-sha256.txt
             w03-props-files.txt
             w03-props-contact.jpg
+            w03-props-full.png
+            w03-tents-full.png
           retention-days: 10
