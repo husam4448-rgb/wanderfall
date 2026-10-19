@@ -1,0 +1,62 @@
+name: SP W03 — Authored survival camp props inspection
+on:
+  push:
+    branches: [sp-world-visual-overhaul-20261019]
+    paths: ['.github/workflows/sp-world-props-source-probe.yml']
+permissions:
+  contents: read
+jobs:
+  inspect-props:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v5
+      - name: Acquire CC0 survival camp props
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 2 -o /tmp/props-cc0.zip 'https://opengameart.org/sites/default/files/props_tilesets.zip'
+          sha256sum /tmp/props-cc0.zip | tee w03-source-sha256.txt
+          unzip -q /tmp/props-cc0.zip -d /tmp/props-cc0
+          find /tmp/props-cc0 -type f -printf '%p | %s bytes\n' | head -120 | tee w03-props-files.txt
+      - name: Generate art contact sheet for review
+        run: |
+          python3 -m pip install --quiet pillow
+          python3 - <<'PY'
+          from PIL import Image,ImageDraw
+          from pathlib import Path
+          files=sorted(x for x in Path("/tmp/props-cc0").rglob("*") if x.suffix.lower() in (".png",".webp") and "__MACOSX" not in str(x))
+          print("IMAGE_COUNT",len(files))
+          for i,p in enumerate(files[:100]):
+              try:
+                  im=Image.open(p)
+                  print(i,str(p),im.size,im.mode)
+              except Exception as e:print("SKIP",str(p),str(e)[:100])
+          candidates=[]
+          for p in files:
+              try:
+                  im=Image.open(p).convert("RGBA")
+                  if im.width>=50 and im.height>=25:
+                      candidates.append((p,im))
+              except Exception:pass
+          page=candidates[:36]
+          sheet=Image.new("RGB",(1280,max(256,((len(page)+5)//6)*210)),(35,41,38))
+          d=ImageDraw.Draw(sheet)
+          for i,(p,im) in enumerate(page):
+              im.thumbnail((199,170),Image.Resampling.LANCZOS)
+              x=(i%6)*213+5;y=(i//6)*210+5
+              bg=Image.new("RGBA",im.size,(82,92,80,255))
+              bg.alpha_composite(im)
+              sheet.paste(bg.convert("RGB"),(x,y))
+              d.text((x,y+175),p.name[:27],fill="white")
+          sheet.save("w03-props-contact.jpg",quality=93)
+          assert page,"No usable art found"
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: SP-W03-Camp-Props-Source-Review
+          path: |
+            w03-source-sha256.txt
+            w03-props-files.txt
+            w03-props-contact.jpg
+          retention-days: 10
