@@ -176,7 +176,7 @@ DETAIL_TYPES = [
  "storage_box","guard_post","prison_cell","bedroll","campfire","farm_plot",
  "wall","barricade","watchtower","generator","solar_array","battery_bank",
  "rain_collector","water_tank","water_purifier","well_pump","alarm",
- "table","bench","tarp","fence","sign","barrel","scrap","pallet",
+ "table","bench","tarp","fence","sign","barrel","tire","scrap","pallet",
  "wreck","distress","cache","shelter","firepit"
 ]
 def sp2654_prop(kind, variant):
@@ -209,6 +209,21 @@ def sp2654_prop(kind, variant):
         polygon([(21,44),(37,31),(84,38),(90,61),(69,70),(24,61)],B)
         for k in range(9):
             stroke([(24,41+k*2),(75,51+k*2)],A,1,100)
+    elif kind=="tire":
+        d.ellipse((20,31,92,76),fill=(24,25,24,185))
+        d.ellipse((24,19,87,72),fill=(34,35,33,255))
+        d.ellipse((33,25,79,63),fill=(67,69,63,255))
+        d.ellipse((39,30,73,57),fill=(20,22,22,255))
+        for k in range(21):
+            a=math.tau*k/21
+            x=56+math.cos(a)*27
+            y=45+math.sin(a)*20
+            stroke([(x,y),(x+math.cos(a)*5,y+math.sin(a)*5)],(95,94,79),2,190)
+        for k in range(13):
+            a=math.tau*k/13
+            x=56+math.cos(a)*19
+            y=45+math.sin(a)*14
+            stroke([(x,y),(x+math.cos(a)*3,y+math.sin(a)*3)],(22,25,24),1,220)
     elif kind in ("campfire","firepit"):
         for i in range(17):
             a=math.tau*i/17;t=r.uniform(14,28)
