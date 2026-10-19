@@ -65,6 +65,8 @@ jobs:
           nl -ba "$PROJECT_DIR/scripts/world/world_chunk.gd" | sed -n '232,255p'
           echo "=== Unsupported icon property assignments ==="
           grep -Rn 'icon_max_width' "$PROJECT_DIR/scripts" | head -30 || true
+          echo "=== Wildlife dynamic array assignment declarations ==="
+          grep -Rn -C 3 'Array\[Dictionary\]' "$PROJECT_DIR/scripts/ecology/wildlife_actor.gd" || true
 
       - name: Download pinned Godot 4.7.2 runtime
         shell: bash
