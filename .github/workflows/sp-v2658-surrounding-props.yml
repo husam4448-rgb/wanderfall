@@ -428,7 +428,7 @@ jobs:
           python3 -m py_compile v257_overlay/patches/apply_sp_v2658_prop_art.py
           python3 v257_overlay/patches/apply_sp_v2658_prop_art.py "$PROJECT_DIR"
           grep -q 'v2657/hero_cabin' "$PROJECT_DIR/scripts/world/world_chunk.gd"
-          grep -q 'v2657/camp_scene' "$PROJECT_DIR/scripts/social/faction_camp.gd"
+          grep -q 'v2658/camp_scene' "$PROJECT_DIR/scripts/social/faction_camp.gd"
           grep -q 'SP2656_TRACER' "$PROJECT_DIR/scripts/player.gd"
           grep -q 'SP2656_RIGHT' "$PROJECT_DIR/scripts/combat/zombie.gd"
 
