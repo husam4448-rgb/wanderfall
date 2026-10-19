@@ -1,0 +1,67 @@
+name: SP W07 — Licensed environment art intake
+
+on:
+  push:
+    branches: [sp-world-w07-props-vehicles-20261019]
+    paths: ['.github/workflows/sp-world-w07-source-review.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v5
+      - name: Retrieve licensed pixel/isometric world source
+        run: |
+          set -euo pipefail
+          mkdir -p w07-art
+          curl -fL --retry 3 --retry-delay 2 -o w07-art/medieval_props_sheets.zip 'https://opengameart.org/sites/default/files/medieval_props_sheets.zip'
+          curl -fL --retry 3 --retry-delay 2 -o w07-art/wrecked_cars.png 'https://opengameart.org/sites/default/files/cars_0_0.png'
+          sha256sum w07-art/* | tee w07-art/source-hashes.txt
+          python3 -m pip install --quiet pillow
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image,ImageDraw,ImageOps
+          import zipfile,io
+          root=Path('w07-art')
+          archive=zipfile.ZipFile(root/'medieval_props_sheets.zip')
+          files=[i for i in archive.infolist() if i.filename.lower().endswith('.png') and not i.is_dir()]
+          (root/'all-sheet-names.txt').write_text('\n'.join(f'{f.filename} {f.file_size}' for f in files))
+          print('MEDIEVAL SHEET COUNT',len(files),'FIRST 40', [x.filename for x in files[:40]])
+          selected=sorted(files,key=lambda z:z.file_size,reverse=True)[:24]
+          canvas=Image.new('RGB',(1280,((len(selected)+5)//6)*185),'#242523')
+          d=ImageDraw.Draw(canvas)
+          for j,info in enumerate(selected):
+              raw=archive.read(info)
+              im=Image.open(io.BytesIO(raw)).convert('RGBA')
+              print('SOURCE',info.filename,im.size,info.file_size)
+              if j<8:
+                  im.save(root/f'sheet_{j}.png')
+              im.thumbnail((204,145),Image.Resampling.LANCZOS)
+              tile=Image.new('RGBA',(204,145),'#454841')
+              tile.alpha_composite(im,((204-im.width)//2,(145-im.height)//2))
+              x=(j%6)*213;y=(j//6)*185
+              canvas.paste(tile.convert('RGB'),(x,y))
+              d.text((x+4,y+148),info.filename[-31:],fill='white')
+          canvas.save(root/'props_contact.jpg',quality=92)
+          car=Image.open(root/'wrecked_cars.png')
+          print('CARS SOURCE SIZE',car.size,'MODE',car.mode)
+          car.convert('RGBA').save(root/'wrecked_cars_original.png')
+          PY
+      - name: Archive verified source and contact atlas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SP-W07-Art-Source-Inspection
+          path: |
+            w07-art/source-hashes.txt
+            w07-art/all-sheet-names.txt
+            w07-art/sheet_*.png
+            w07-art/wrecked_cars_original.png
+            w07-art/props_contact.jpg
+          retention-days: 14
+          if-no-files-found: warn
