@@ -185,10 +185,11 @@ def animal_frame(species,direction,frame):
     if natural_right != (direction=="right"):
         im=ImageOps.mirror(im)
     im.thumbnail(cfg["body"],Image.Resampling.LANCZOS)
-    # Compose on stable 64x72 canvas. Floor contact at y≈55px, and matched
-    # origin across all species without rescaling gameplay collision.
+    # Center the anatomical torso near alpha sample (32,36) while keeping
+    # knees, hooves and feet within the 64x72 canvas; the earlier 45-h//2
+    # offset pushed the animal too low and clipped limbs.
     w,h=im.size
-    base_x=(64-w)//2; base_y=45-h//2
+    base_x=(64-w)//2; base_y=36-h//2
     phase=2*math.pi*frame/8
     c=Image.new("RGBA",(64,72))
     d=ImageDraw.Draw(c,"RGBA")
