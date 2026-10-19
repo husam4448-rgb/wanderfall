@@ -110,9 +110,9 @@ paint=ImageDraw.Draw(panel)
 for idx,species in enumerate(("deer","boar","chicken","rat")):
     paint.text((18+idx*251,9),species.upper()+" source and frame sequence",
               fill=(233,226,206))
-    art=decode(species)
-    art.thumbnail((120,100),Image.Resampling.LANCZOS)
-    panel.paste(art,(18+idx*251,35),art)
+    specimen=decode(species)
+    specimen.thumbnail((120,100),Image.Resampling.LANCZOS)
+    panel.paste(specimen,(18+idx*251,35),specimen)
     for k,frame in enumerate((0,2,4,6)):
         im=Image.open(out/f"v2654_animal_{species}_right_{frame}.png").convert("RGBA")
         im=im.resize((80,90),Image.Resampling.NEAREST)
