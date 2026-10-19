@@ -103,4 +103,23 @@ for prop in ("table","workbench"):
         by=max(0,int(base.height*.19))
         base.alpha_composite(src,(bx,by))
         base.save(p,optimize=True)
+# Show exactly the raster sources and a four-frame motion sequence, at
+# gameplay-equivalent small sizes beside a zoomed inspectable view.
+panel=Image.new("RGB",(1024,420),(43,47,43))
+paint=ImageDraw.Draw(panel)
+for idx,species in enumerate(("deer","boar","chicken","rat")):
+    paint.text((18+idx*251,9),species.upper()+" source and frame sequence",
+              fill=(233,226,206))
+    art=decode(species)
+    art.thumbnail((120,100),Image.Resampling.LANCZOS)
+    panel.paste(art,(18+idx*251,35),art)
+    for k,frame in enumerate((0,2,4,6)):
+        im=Image.open(out/f"v2654_animal_{species}_right_{frame}.png").convert("RGBA")
+        im=im.resize((80,90),Image.Resampling.NEAREST)
+        dx=10+idx*251+(k%2)*112
+        dy=144+(k//2)*118
+        panel.paste(im,(dx,dy),im)
+paint.text((18,393),"SOURCE-PAINTED ANATOMY; GAIT IS STILL A LIMITED ART-DEFORMATION PROTOTYPE",
+           fill=(209,195,157))
+panel.save(root/"SP_v2655_SOURCE_ART_QA.png")
 print("SP_V2655_SOURCE_ART_PASS 7 traced original-image assets and 64 bidirectional motion frames")
