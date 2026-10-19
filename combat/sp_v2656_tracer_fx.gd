@@ -25,8 +25,9 @@ func _ready() -> void:
     set_process(false)
 
 func fire_visual(muzzle_world: Vector2, end_world: Vector2,
-        weapon: String, ammo: String, suppressed: bool = false) -> void:
-    if PerformanceManager.get_effects_density() < 0.32:
+        weapon: String, ammo: String, suppressed: bool = false,
+        reduced_flash: bool = false, density: float = 1.0) -> void:
+    if density < 0.32:
         return
     var diff: Vector2 = end_world-muzzle_world
     if diff.length_squared() < 16.0:
@@ -35,7 +36,7 @@ func fire_visual(muzzle_world: Vector2, end_world: Vector2,
     var spec: Dictionary = profile(weapon,ammo)
     if suppressed:
         spec["flash"] = 0.18
-    if GameSettings.reduced_flashes:
+    if reduced_flash:
         spec["flash"] = 0.0
     var duration: float = float(spec["life"])
     streaks.append({
