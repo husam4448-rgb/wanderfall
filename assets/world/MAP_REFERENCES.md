@@ -8,6 +8,10 @@ These files are **high-quality map design references**, not installable or gamep
 | [Eastern highlands](../Forest/MapReferences/SP_Forest_Map_EasternHighlands_02.webp) | Forest | 1312 × 1199 | `/SurvivalParadise/MapSources/SP_Forest_Map_EasternHighlands_02.png` | quality 96 |
 | [Scrapyard district](../Industrial/MapReferences/SP_Industrial_Map_ScrapyardDistrict_01.webp) | Industrial | 1448 × 1086 | `/SurvivalParadise/MapSources/SP_Industrial_Map_ScrapyardDistrict_01.png` | quality 96 |
 
+| [Canyon / oasis / industrial transition](../Desert/MapReferences/SP_Desert_Map_CanyonOasisIndustrialTransition_01.webp) | Desert (provisional transition) | 1402 × 1122 | `/SurvivalParadise/MapSources/SP_Desert_Map_CanyonOasisIndustrialTransition_01.png` | quality 96 |
+
+Note: The Desert entry is a canyon/oasis/industrial transition concept, **not** an approved sparsely vegetated open Arabian-desert map. All entries are illustrative references, not playable terrain.
+
 ## World-generation approach
 - Use procedural **chunked terrain** with deterministic seeds and persistent chunk edits.
 - Embed **handcrafted points of interest** and authored landmarks in terrain, with metadata for entrances, occlusion, collisions, and looting.

@@ -53,4 +53,4 @@
 ## World expansion — master layout concepts (2026-10-20)
 - [Three world-overview concept drafts](../../assets/world/WorldPlanning/README.md) are preserved for reference. **None is an approved biome map or playable terrain**.
 - [World biome production roadmap](world/WORLD_EXPANSION_PLAN.json) specifies distinct Desert, Grassland, Swamp, Highlands, Coastal, Arid Scrubland, City, Forest and Industrial regions, plus the future Godot chunk requirements.
-- The next real map deliverable is a **single-biome Desert region**; previous whole-continent generations are not counted as that deliverable.
+- A provisional [Desert canyon / oasis / industrial-transition map](../../assets/world/Desert/MapReferences/SP_Desert_Map_CanyonOasisIndustrialTransition_01.webp) is now saved as **reference only**, not a playable/approved sparse desert. The next strict Desert target is a single-biome open gravel plain with dry wadis and sparse regional flora; whole-continent draft images still do not count.

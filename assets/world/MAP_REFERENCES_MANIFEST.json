@@ -40,6 +40,20 @@
       "width": 1448,
       "height": 1086,
       "status": "reference_not_playable"
+    },
+    {
+      "biome": "Desert",
+      "id": "SP_Desert_Map_CanyonOasisIndustrialTransition_01",
+      "sourceLibraryPath": "/SurvivalParadise/MapSources/SP_Desert_Map_CanyonOasisIndustrialTransition_01.png",
+      "sourceSizeBytes": 4304286,
+      "sourceSHA256": "db5bf67bd7dc29be61c5982f89142bd202c7a3152316e369d5b736f350d7e8ac",
+      "repoPath": "assets/world/Desert/MapReferences/SP_Desert_Map_CanyonOasisIndustrialTransition_01.webp",
+      "repoSizeBytes": 1053440,
+      "repoSHA256": "5ffd67f229d6184f5cfd55e6d399c41e453df6d1dfe78532927909cdd91973bc",
+      "width": 1402,
+      "height": 1122,
+      "status": "reference_provisional_not_playable",
+      "notes": "Canyon/outpost and water/industrial-transition concept. Not the final sparse open Arabian-desert region; no edge matching, tileability or in-engine QA."
     }
   ]
 }

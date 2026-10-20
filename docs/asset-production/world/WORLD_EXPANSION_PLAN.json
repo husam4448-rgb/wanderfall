@@ -20,9 +20,11 @@
       "id": "desert",
       "name": "Iraqi / Arabian Desert",
       "priority": 1,
-      "existing_refs": [],
-      "next_region": "Dedicated gravel-desert wadi and oasis map",
-      "status": "nature_prototypes_only"
+      "existing_refs": [
+        "SP_Desert_Map_CanyonOasisIndustrialTransition_01"
+      ],
+      "next_region": "Open Iraqi/Arabian gravel plain and dry wadi with sparse shrubs, small ruins, and limited oasis vegetation; no large river, dramatic coastal cliffs, or industrial facilities as the main focus",
+      "status": "provisional_canyon_transition_reference_only"
     },
     {
       "id": "grassland",
@@ -94,7 +96,7 @@
     "QA": "Test walking clearance, collisions, visual scale, terrain seam continuity, load performance and Android memory before marking playable"
   },
   "next_batch": [
-    "Create standalone Desert region map (not continent diagram); require full-bleed single region, no labels",
+    "Create strict open Arabian desert region (sparse gravel plain/wadi), separate from saved canyon/oasis/industrial transition concept",
     "Create Grassland/Farmland standalone region map",
     "Create Swamp standalone region map",
     "Create Coastal standalone region map",
