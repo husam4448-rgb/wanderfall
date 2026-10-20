@@ -1,0 +1,2832 @@
+{
+  "project": "Survival Paradise",
+  "version": 1,
+  "count": 281,
+  "seed": 20261020,
+  "tileSize": 256,
+  "biomes": [
+    "AridScrubland",
+    "City",
+    "Coastal",
+    "Desert",
+    "Forest",
+    "Grassland",
+    "Industrial",
+    "RockyHighlands",
+    "Shared",
+    "Swamp"
+  ],
+  "asset_status": "provisional; not yet art-approved or game-tested",
+  "assets": [
+    {
+      "path": "AridScrubland/Nature/SP_AridScrubland_Nature_Cluster_01.png",
+      "biome": "AridScrubland",
+      "width": 144,
+      "height": 144,
+      "bytes": 1840,
+      "sha256": "f7e13d82f883661459ea166fd80aa1fdc89f7084784d9e222bc222f5b452a7ed",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "AridScrubland/Nature/SP_AridScrubland_Nature_Cluster_02.png",
+      "biome": "AridScrubland",
+      "width": 144,
+      "height": 144,
+      "bytes": 1948,
+      "sha256": "7a0a56d36309167248f9b2e69a0df8ca05045c14dbcaa8f5bd07fd941f3cb48b",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "AridScrubland/Nature/SP_AridScrubland_Nature_Cluster_03.png",
+      "biome": "AridScrubland",
+      "width": 144,
+      "height": 144,
+      "bytes": 1944,
+      "sha256": "ee28a1eeb624fc53655d4f6266f4ba8a5d980399ce41c993bbeb9f1c097cf0e2",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "AridScrubland/Nature/SP_AridScrubland_Nature_Cluster_04.png",
+      "biome": "AridScrubland",
+      "width": 144,
+      "height": 144,
+      "bytes": 1975,
+      "sha256": "3822d681f0c147bb0a0d83ac46a4b6de1c664ff914cfd57043315e0a9a27a55b",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "AridScrubland/Structures/SP_AridScrubland_Structure_ShelterFacade_01.png",
+      "biome": "AridScrubland",
+      "width": 176,
+      "height": 152,
+      "bytes": 1794,
+      "sha256": "e4c20cc685bcde0a19674d5ff52120d5c90e19eec3f47257616fcfd2f6a1f85e",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "AridScrubland/Structures/SP_AridScrubland_Structure_ShelterFacade_02.png",
+      "biome": "AridScrubland",
+      "width": 176,
+      "height": 152,
+      "bytes": 1793,
+      "sha256": "afb436c9982dbfd53873342998c62a262a75b946dbbbe70c2a984abb7ed609f5",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "AridScrubland/Structures/SP_AridScrubland_Structure_ShelterFacade_03.png",
+      "biome": "AridScrubland",
+      "width": 176,
+      "height": 152,
+      "bytes": 1809,
+      "sha256": "62e8685522676257cd00caa0dfbe6d64a3c9ca80be9f725fc984b4af49a09b82",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "AridScrubland/Structures/SP_AridScrubland_Structure_ShelterFacade_04.png",
+      "biome": "AridScrubland",
+      "width": 176,
+      "height": 152,
+      "bytes": 1853,
+      "sha256": "b1562c423fd9c1a4dd00e2095c3e26f9157d14c8fc1f83e3957c99787f8ed742",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "AridScrubland/Terrain/SP_AridScrubland_Terrain_Base_01.png",
+      "biome": "AridScrubland",
+      "width": 256,
+      "height": 256,
+      "bytes": 89226,
+      "sha256": "78887bb622df53cbeff3a89ca4e9a4650a44ee1af020ef1604c5c8d0db072e88",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "AridScrubland/TerrainDetails/SP_AridScrubland_Decal_CrackNetwork_01.png",
+      "biome": "AridScrubland",
+      "width": 256,
+      "height": 256,
+      "bytes": 1717,
+      "sha256": "4aa5694599d3c4f2449859ea39311e0808e72c178fd3876470bb2572b85bed53",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "AridScrubland/TerrainDetails/SP_AridScrubland_Decal_CrackNetwork_02.png",
+      "biome": "AridScrubland",
+      "width": 256,
+      "height": 256,
+      "bytes": 1725,
+      "sha256": "d84c69531ac01c30d2b7237054b6456ca3769a768c6575023b5745609b85c22b",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "AridScrubland/TerrainDetails/SP_AridScrubland_Decal_DarkStain_01.png",
+      "biome": "AridScrubland",
+      "width": 256,
+      "height": 256,
+      "bytes": 4198,
+      "sha256": "52aac8f6d74c9d2aec27e8d7cdd1cd62cd4527ae791964c370843d2e26271295",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "AridScrubland/TerrainDetails/SP_AridScrubland_Decal_DarkStain_02.png",
+      "biome": "AridScrubland",
+      "width": 256,
+      "height": 256,
+      "bytes": 4017,
+      "sha256": "7255847ecdf184193c0eab139308bde28bc0b0b8556a08c4e0295d9a6e7b44c2",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "AridScrubland/TerrainDetails/SP_AridScrubland_Decal_DebrisScatter_01.png",
+      "biome": "AridScrubland",
+      "width": 256,
+      "height": 256,
+      "bytes": 2519,
+      "sha256": "2b1a492da47fc73f44da0056bf354d63c03fb67bd1f4d8d66a90c840cd36fd5c",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "AridScrubland/TerrainDetails/SP_AridScrubland_Decal_DebrisScatter_02.png",
+      "biome": "AridScrubland",
+      "width": 256,
+      "height": 256,
+      "bytes": 2423,
+      "sha256": "45de95ab6e40d3c410fa0b8428c2d977aa21db60ea4d0265c08ca4f4febaa888",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "AridScrubland/TerrainDetails/SP_AridScrubland_Decal_DenseTexture_01.png",
+      "biome": "AridScrubland",
+      "width": 256,
+      "height": 256,
+      "bytes": 10251,
+      "sha256": "64d6d3ce458d08b0dc9d7ccb9fd3587d65192a134cd9cdfee6a0b244ca7bdbf0",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "AridScrubland/TerrainDetails/SP_AridScrubland_Decal_DenseTexture_02.png",
+      "biome": "AridScrubland",
+      "width": 256,
+      "height": 256,
+      "bytes": 10268,
+      "sha256": "52f082c37a4da4bf11c3f124c6ddf3a977b9eed9f1c31e54e9a6d6d377216df9",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "AridScrubland/TerrainDetails/SP_AridScrubland_Decal_PebbleScatter_01.png",
+      "biome": "AridScrubland",
+      "width": 256,
+      "height": 256,
+      "bytes": 4043,
+      "sha256": "8e4819ba743abba74f81edd5a213f316a56e25ac13181931ec71dbf2138773d3",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "AridScrubland/TerrainDetails/SP_AridScrubland_Decal_PebbleScatter_02.png",
+      "biome": "AridScrubland",
+      "width": 256,
+      "height": 256,
+      "bytes": 4236,
+      "sha256": "18d3ead6d64001862df6b2316e26413a017a3c34476e74af0c7cd8f92609efe9",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "AridScrubland/TerrainDetails/SP_AridScrubland_Decal_ScuffedSoil_01.png",
+      "biome": "AridScrubland",
+      "width": 256,
+      "height": 256,
+      "bytes": 6263,
+      "sha256": "8196b1d8052426b10bf102d2bad116781b401ea8949ce8b837246fcef61fafbd",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "AridScrubland/TerrainDetails/SP_AridScrubland_Decal_ScuffedSoil_02.png",
+      "biome": "AridScrubland",
+      "width": 256,
+      "height": 256,
+      "bytes": 5987,
+      "sha256": "fee1d68f6b815ae66c116724506ea4f7133caa620247db27875ee1384efe3a4b",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "AridScrubland/TerrainDetails/SP_AridScrubland_Decal_VegetationTufts_01.png",
+      "biome": "AridScrubland",
+      "width": 256,
+      "height": 256,
+      "bytes": 2421,
+      "sha256": "182b4c051b020140cd6e2a1034eab7684681a2188a318a4c9b07935ddff91424",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "AridScrubland/TerrainDetails/SP_AridScrubland_Decal_VegetationTufts_02.png",
+      "biome": "AridScrubland",
+      "width": 256,
+      "height": 256,
+      "bytes": 2475,
+      "sha256": "207078997f0876217f7a218e2925106839e6083d3b2de74d0286ffd42a228914",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "AridScrubland/TerrainDetails/SP_AridScrubland_Decal_WeatheredPatch_01.png",
+      "biome": "AridScrubland",
+      "width": 256,
+      "height": 256,
+      "bytes": 5899,
+      "sha256": "4427d2625c4a8dc0e039bf740fdf9a40aa0cd754c5b860f825e8cbe3e087dd38",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "AridScrubland/TerrainDetails/SP_AridScrubland_Decal_WeatheredPatch_02.png",
+      "biome": "AridScrubland",
+      "width": 256,
+      "height": 256,
+      "bytes": 5711,
+      "sha256": "ade1b77318b0de4465a7a7569a675e12125eabcc8089e2797ba83e16cc6849de",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "City/Nature/SP_City_Nature_Cluster_01.png",
+      "biome": "City",
+      "width": 144,
+      "height": 144,
+      "bytes": 1838,
+      "sha256": "b30177dec1164ae81b61adb70f5201217eb539d4ca4fe8a9da7ce3c34749570a",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "City/Nature/SP_City_Nature_Cluster_02.png",
+      "biome": "City",
+      "width": 144,
+      "height": 144,
+      "bytes": 1898,
+      "sha256": "f17fa586ee3179c45d7e3b499fd7996d7c3a0f1578baae6656fb00c34876f09b",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "City/Nature/SP_City_Nature_Cluster_03.png",
+      "biome": "City",
+      "width": 144,
+      "height": 144,
+      "bytes": 850,
+      "sha256": "f271415e6b1ab60592e8c63b8def1f8804926c57ff5c6d916352d4cab269cb67",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "City/Nature/SP_City_Nature_Cluster_04.png",
+      "biome": "City",
+      "width": 144,
+      "height": 144,
+      "bytes": 849,
+      "sha256": "6c6d5078632fe03f02bdb844917b1be3205e213e19715595646a808d70652bb1",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "City/Structures/SP_City_Structure_ShelterFacade_01.png",
+      "biome": "City",
+      "width": 176,
+      "height": 152,
+      "bytes": 1788,
+      "sha256": "ad7e331870c6007d63dcc04c021cdacfce276decbfc7e27ee532c564aa2c2f3a",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "City/Structures/SP_City_Structure_ShelterFacade_02.png",
+      "biome": "City",
+      "width": 176,
+      "height": 152,
+      "bytes": 1833,
+      "sha256": "385589b4978749beec64169adb95f18cd11dab7c940b469b7bef80d28c34a6bb",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "City/Structures/SP_City_Structure_ShelterFacade_03.png",
+      "biome": "City",
+      "width": 176,
+      "height": 152,
+      "bytes": 1741,
+      "sha256": "110b09b912cf5682b31840040563039766e5c328f9c98af39e91dd0c012b4259",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "City/Structures/SP_City_Structure_ShelterFacade_04.png",
+      "biome": "City",
+      "width": 176,
+      "height": 152,
+      "bytes": 1763,
+      "sha256": "a02e54960858c2245aea77a91e39b79321b0d071e586c3787384e84226168e46",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "City/Terrain/SP_City_Terrain_Base_01.png",
+      "biome": "City",
+      "width": 256,
+      "height": 256,
+      "bytes": 85582,
+      "sha256": "2c9cc176382512d57033af5830822df4c4ebe2ae31d12b509c595e76e4dd6bdf",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "City/TerrainDetails/SP_City_Decal_CrackNetwork_01.png",
+      "biome": "City",
+      "width": 256,
+      "height": 256,
+      "bytes": 1475,
+      "sha256": "d9cb2df1a74a98a0bc9b4b0abfaaf7787c95e82daa8dd8b06dabab256b21c6b1",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "City/TerrainDetails/SP_City_Decal_CrackNetwork_02.png",
+      "biome": "City",
+      "width": 256,
+      "height": 256,
+      "bytes": 1799,
+      "sha256": "793450f37d558f3bec74a2bca8871d724d2ecfc3d222b7a590381a6f0454d3b2",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "City/TerrainDetails/SP_City_Decal_DarkStain_01.png",
+      "biome": "City",
+      "width": 256,
+      "height": 256,
+      "bytes": 4292,
+      "sha256": "6384c9626276ca7c796c1c0cdd92908d2203844a11238741b2e86a350e7ce9a6",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "City/TerrainDetails/SP_City_Decal_DarkStain_02.png",
+      "biome": "City",
+      "width": 256,
+      "height": 256,
+      "bytes": 4397,
+      "sha256": "19fb225a43ad1552219e9871b53f777fe43c9ca31d2d942e689feef74eb2228f",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "City/TerrainDetails/SP_City_Decal_DebrisScatter_01.png",
+      "biome": "City",
+      "width": 256,
+      "height": 256,
+      "bytes": 2620,
+      "sha256": "814093032a9d1ffd79e535585cd64fb6f0c7d4cc90af7c4f8c85ab1682e3dcc1",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "City/TerrainDetails/SP_City_Decal_DebrisScatter_02.png",
+      "biome": "City",
+      "width": 256,
+      "height": 256,
+      "bytes": 2591,
+      "sha256": "93affa82f394128460de3cc19085d441ad300b1dfd748338e1382ba48d85a67e",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "City/TerrainDetails/SP_City_Decal_DenseTexture_01.png",
+      "biome": "City",
+      "width": 256,
+      "height": 256,
+      "bytes": 10329,
+      "sha256": "5106edc0fdfa55008b8c65366c664552bf8591590f9e17aeaca2959d1db4723e",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "City/TerrainDetails/SP_City_Decal_DenseTexture_02.png",
+      "biome": "City",
+      "width": 256,
+      "height": 256,
+      "bytes": 10125,
+      "sha256": "3724c2cf1d3906ab64095a6b747c6b0c0bb545bdefbefe65f91d5f71ef2e9d57",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "City/TerrainDetails/SP_City_Decal_PebbleScatter_01.png",
+      "biome": "City",
+      "width": 256,
+      "height": 256,
+      "bytes": 4071,
+      "sha256": "dcd421fd0864eb4416cd964c8e133abcc717ceefcae5984f0024f52974f4a260",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "City/TerrainDetails/SP_City_Decal_PebbleScatter_02.png",
+      "biome": "City",
+      "width": 256,
+      "height": 256,
+      "bytes": 4162,
+      "sha256": "0a69ea3d162a0d79527f17d9e918014b9ab66729778d118856d3cd804ee76ede",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "City/TerrainDetails/SP_City_Decal_ScuffedSoil_01.png",
+      "biome": "City",
+      "width": 256,
+      "height": 256,
+      "bytes": 5974,
+      "sha256": "c8ca7cbe59754f78ebfaa8e56430705b1f371cf1a8c2548800cacfcc38f516cf",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "City/TerrainDetails/SP_City_Decal_ScuffedSoil_02.png",
+      "biome": "City",
+      "width": 256,
+      "height": 256,
+      "bytes": 5999,
+      "sha256": "7046e0401a081fbcdd3ede2ad59cf5f639158e54850df53359d68f7b43dabff9",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "City/TerrainDetails/SP_City_Decal_VegetationTufts_01.png",
+      "biome": "City",
+      "width": 256,
+      "height": 256,
+      "bytes": 2572,
+      "sha256": "cbdfc1d896dd9c664f81042e30a0f712ceeca714c0a3e073503abde638c5e51f",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "City/TerrainDetails/SP_City_Decal_VegetationTufts_02.png",
+      "biome": "City",
+      "width": 256,
+      "height": 256,
+      "bytes": 2454,
+      "sha256": "b1f99b3577203388fdb2383c8d6e01906b453202fec766f2611473320ccc1f3b",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "City/TerrainDetails/SP_City_Decal_WeatheredPatch_01.png",
+      "biome": "City",
+      "width": 256,
+      "height": 256,
+      "bytes": 5601,
+      "sha256": "af8303ba7603e12d405fece09eb71463efc088acbe7b2185636f42a4d99761ca",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "City/TerrainDetails/SP_City_Decal_WeatheredPatch_02.png",
+      "biome": "City",
+      "width": 256,
+      "height": 256,
+      "bytes": 5754,
+      "sha256": "b2e6e08b31fcbf4fe0387351c8bc2539fc5fb8310ebc9c7c7d9320c20224d7fe",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Coastal/Nature/SP_Coastal_Nature_Cluster_01.png",
+      "biome": "Coastal",
+      "width": 144,
+      "height": 144,
+      "bytes": 1960,
+      "sha256": "6fa6af166281ecd54860b5b2ff9882e30d9e60010be49e53b3bb5130eb06e2d7",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Coastal/Nature/SP_Coastal_Nature_Cluster_02.png",
+      "biome": "Coastal",
+      "width": 144,
+      "height": 144,
+      "bytes": 1638,
+      "sha256": "81cd42214da734bcac4eae01eeacf525710cfffaa68240010a68f6b4f53d5795",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Coastal/Nature/SP_Coastal_Nature_Cluster_03.png",
+      "biome": "Coastal",
+      "width": 144,
+      "height": 144,
+      "bytes": 1907,
+      "sha256": "7425fdb26b4c83032e249e507981ba93f5a1de3506ba87f7908cc4e482aefdb9",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Coastal/Nature/SP_Coastal_Nature_Cluster_04.png",
+      "biome": "Coastal",
+      "width": 144,
+      "height": 144,
+      "bytes": 696,
+      "sha256": "90d2c609370dad958abfd7afa3f705185b7f26508bf0e0f19111d70cbc4d7ae0",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Coastal/Structures/SP_Coastal_Structure_ShelterFacade_01.png",
+      "biome": "Coastal",
+      "width": 176,
+      "height": 152,
+      "bytes": 1748,
+      "sha256": "de10f410bac1081c7c250086ae30305ce7a5ff6cf959b7d382a7766c55237677",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Coastal/Structures/SP_Coastal_Structure_ShelterFacade_02.png",
+      "biome": "Coastal",
+      "width": 176,
+      "height": 152,
+      "bytes": 1836,
+      "sha256": "7e5370262e940c9072b40b3f356376c32861e547dec1cafe0bac4fb4cdae6c85",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Coastal/Structures/SP_Coastal_Structure_ShelterFacade_03.png",
+      "biome": "Coastal",
+      "width": 176,
+      "height": 152,
+      "bytes": 1783,
+      "sha256": "c69bf92d3a3de9c6a673ed651ea3aac6f94d75debb02537f3dcb92fd12a67405",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Coastal/Structures/SP_Coastal_Structure_ShelterFacade_04.png",
+      "biome": "Coastal",
+      "width": 176,
+      "height": 152,
+      "bytes": 1717,
+      "sha256": "55367b22d31175193aa9218a2cd100896fc14e1b197cc7691ef37baee9f099db",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Coastal/Terrain/SP_Coastal_Terrain_Base_01.png",
+      "biome": "Coastal",
+      "width": 256,
+      "height": 256,
+      "bytes": 94105,
+      "sha256": "1cc20b6aa9357eb019fb703f0c408cfc6ec87ebc83dafee558b2ad640c53cad4",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Coastal/TerrainDetails/SP_Coastal_Decal_CrackNetwork_01.png",
+      "biome": "Coastal",
+      "width": 256,
+      "height": 256,
+      "bytes": 1394,
+      "sha256": "f1a9bedb61243c33319ee943de630ab0d82a97de5b702c0090b31d2dfe3107e5",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Coastal/TerrainDetails/SP_Coastal_Decal_CrackNetwork_02.png",
+      "biome": "Coastal",
+      "width": 256,
+      "height": 256,
+      "bytes": 1459,
+      "sha256": "ca1f96fcad1130df8a42bb3982d4e5ba104fdeacd0feb9321564caec5475cb14",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Coastal/TerrainDetails/SP_Coastal_Decal_DarkStain_01.png",
+      "biome": "Coastal",
+      "width": 256,
+      "height": 256,
+      "bytes": 4182,
+      "sha256": "f398b048b90183bd8659865af5003ee9b85d8eca943163ec298457304ab54568",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Coastal/TerrainDetails/SP_Coastal_Decal_DarkStain_02.png",
+      "biome": "Coastal",
+      "width": 256,
+      "height": 256,
+      "bytes": 4246,
+      "sha256": "75b7a0246c3b97620bf767486f9c8dc7a5a9c844d9a60aa5625ee2a486e9a7b8",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Coastal/TerrainDetails/SP_Coastal_Decal_DebrisScatter_01.png",
+      "biome": "Coastal",
+      "width": 256,
+      "height": 256,
+      "bytes": 2571,
+      "sha256": "f277e70203ee2b8a431f07e88aef2ccc034bf4546870d02bb027710c7f7236ea",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Coastal/TerrainDetails/SP_Coastal_Decal_DebrisScatter_02.png",
+      "biome": "Coastal",
+      "width": 256,
+      "height": 256,
+      "bytes": 2543,
+      "sha256": "2ebf4c7e9068123cf5d532ccdc93f621279890018f3f307c3f0522838483a1f3",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Coastal/TerrainDetails/SP_Coastal_Decal_DenseTexture_01.png",
+      "biome": "Coastal",
+      "width": 256,
+      "height": 256,
+      "bytes": 10371,
+      "sha256": "4cae66cd687c79536b79e113262ba5f5f21bb30c76a3a7677ca7fa6c22194631",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Coastal/TerrainDetails/SP_Coastal_Decal_DenseTexture_02.png",
+      "biome": "Coastal",
+      "width": 256,
+      "height": 256,
+      "bytes": 10351,
+      "sha256": "bdceca7c20761a91d66e4506e451b6046fe9442435479d5eccd133775f93eef0",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Coastal/TerrainDetails/SP_Coastal_Decal_PebbleScatter_01.png",
+      "biome": "Coastal",
+      "width": 256,
+      "height": 256,
+      "bytes": 4310,
+      "sha256": "8c9b9aeb6ea925d2a27d9eb259d4f6972ea6cb50da93286de4efe666db0897f6",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Coastal/TerrainDetails/SP_Coastal_Decal_PebbleScatter_02.png",
+      "biome": "Coastal",
+      "width": 256,
+      "height": 256,
+      "bytes": 4410,
+      "sha256": "ffa1cf189bb7d03a9ead80e0114b84d1e7f6699a9955c7bc6b3d41472a3461d5",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Coastal/TerrainDetails/SP_Coastal_Decal_ScuffedSoil_01.png",
+      "biome": "Coastal",
+      "width": 256,
+      "height": 256,
+      "bytes": 6000,
+      "sha256": "41e665e64f89a34aab838daf4d19f7bbcaa78a37d831873463d3477b2fd68377",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Coastal/TerrainDetails/SP_Coastal_Decal_ScuffedSoil_02.png",
+      "biome": "Coastal",
+      "width": 256,
+      "height": 256,
+      "bytes": 6050,
+      "sha256": "eecc88d959dc13bd3ba3487ae8d23dd84ee7f19f010cce632919499717dc6ecb",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Coastal/TerrainDetails/SP_Coastal_Decal_VegetationTufts_01.png",
+      "biome": "Coastal",
+      "width": 256,
+      "height": 256,
+      "bytes": 2576,
+      "sha256": "c2d485fd90e458a126481afd45bb0767df0810ab9e1cf0179c8091c5782c65ab",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Coastal/TerrainDetails/SP_Coastal_Decal_VegetationTufts_02.png",
+      "biome": "Coastal",
+      "width": 256,
+      "height": 256,
+      "bytes": 2594,
+      "sha256": "9a9efdf3cdf677cd4b5ab6da2bf36d697f3cae9ea3e3bc1e6e7e2917783cafa1",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Coastal/TerrainDetails/SP_Coastal_Decal_WeatheredPatch_01.png",
+      "biome": "Coastal",
+      "width": 256,
+      "height": 256,
+      "bytes": 5876,
+      "sha256": "ee6330d4d50ee470efd994cbcb456844176985396d40ad11f1a93d0d6cf0b8d4",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Coastal/TerrainDetails/SP_Coastal_Decal_WeatheredPatch_02.png",
+      "biome": "Coastal",
+      "width": 256,
+      "height": 256,
+      "bytes": 5754,
+      "sha256": "cfa96a91bfacb511628ea73a1950261257161d0995c81c44050b1b983434da81",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Desert/Structures/SP_Desert_Structure_ShelterFacade_01.png",
+      "biome": "Desert",
+      "width": 176,
+      "height": 152,
+      "bytes": 1745,
+      "sha256": "345c82beb64e7e2fe91eb73fdbbdaa3d91ba8609c452f2af44ea6af02864ae50",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Desert/Structures/SP_Desert_Structure_ShelterFacade_02.png",
+      "biome": "Desert",
+      "width": 176,
+      "height": 152,
+      "bytes": 1732,
+      "sha256": "2be589a8c129021508e80ba6c39bd149d52e3643a758123344d8e5daf3367c7e",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Desert/Structures/SP_Desert_Structure_ShelterFacade_03.png",
+      "biome": "Desert",
+      "width": 176,
+      "height": 152,
+      "bytes": 1831,
+      "sha256": "09fac61ff21e28200a58ea39a6cadcf18a46589cf465b0e6d3538ec43028f844",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Desert/Structures/SP_Desert_Structure_ShelterFacade_04.png",
+      "biome": "Desert",
+      "width": 176,
+      "height": 152,
+      "bytes": 1741,
+      "sha256": "be1860572363c5514eaebd95e27b4f68f88e74896895bba9d436bcc5acdeb82a",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Desert/Terrain/SP_Desert_Terrain_Base_01.png",
+      "biome": "Desert",
+      "width": 256,
+      "height": 256,
+      "bytes": 95328,
+      "sha256": "0b22f46d6375f44e580d02e193f73ced4ad4a79432dc576a6ea9a0218a9c0524",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Desert/TerrainDetails/SP_Desert_Decal_CrackNetwork_01.png",
+      "biome": "Desert",
+      "width": 256,
+      "height": 256,
+      "bytes": 1598,
+      "sha256": "7c3ba6289d1f8c342d043ccb17daaeb882ded31af68357051f143d2e1ac631d2",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Desert/TerrainDetails/SP_Desert_Decal_CrackNetwork_02.png",
+      "biome": "Desert",
+      "width": 256,
+      "height": 256,
+      "bytes": 1655,
+      "sha256": "76990f4caa93d1ffcbd5a26b919d394136591e1a4ef474aaee8687375ef114a9",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Desert/TerrainDetails/SP_Desert_Decal_DarkStain_01.png",
+      "biome": "Desert",
+      "width": 256,
+      "height": 256,
+      "bytes": 4197,
+      "sha256": "9793d3ad7c1d8b74dbb6bc3e05d1564ea5683cf86e1df1932f46d7f672156313",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Desert/TerrainDetails/SP_Desert_Decal_DarkStain_02.png",
+      "biome": "Desert",
+      "width": 256,
+      "height": 256,
+      "bytes": 3944,
+      "sha256": "b7fc7b0c6d361470ee27e71838805f55650beb10f16a10f70d3649f7f01314a9",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Desert/TerrainDetails/SP_Desert_Decal_DebrisScatter_01.png",
+      "biome": "Desert",
+      "width": 256,
+      "height": 256,
+      "bytes": 2413,
+      "sha256": "362dd0ee1e504f8a65215afdbceb4bc4dc5c880b457ad3373329f75c25658ca1",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Desert/TerrainDetails/SP_Desert_Decal_DebrisScatter_02.png",
+      "biome": "Desert",
+      "width": 256,
+      "height": 256,
+      "bytes": 2597,
+      "sha256": "f71a00ac4395ae2fad5c8641b8c504c57ce8448d4b65e2ab37914fa0aa3ba79f",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Desert/TerrainDetails/SP_Desert_Decal_DenseTexture_01.png",
+      "biome": "Desert",
+      "width": 256,
+      "height": 256,
+      "bytes": 10326,
+      "sha256": "513d4d5853500dd52dd3fa030181f390ab71b2098fe0533392fbfd471066279e",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Desert/TerrainDetails/SP_Desert_Decal_DenseTexture_02.png",
+      "biome": "Desert",
+      "width": 256,
+      "height": 256,
+      "bytes": 10371,
+      "sha256": "61c406aaf1aba77592364893898531a84c0f1dd3b71edf5e70e2cae7212f14a5",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Desert/TerrainDetails/SP_Desert_Decal_PebbleScatter_01.png",
+      "biome": "Desert",
+      "width": 256,
+      "height": 256,
+      "bytes": 4110,
+      "sha256": "73201f407657b86b6fc41c1f7c914963be7664c84da3031247b93a776057f098",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Desert/TerrainDetails/SP_Desert_Decal_PebbleScatter_02.png",
+      "biome": "Desert",
+      "width": 256,
+      "height": 256,
+      "bytes": 4202,
+      "sha256": "b606dd61cce42c1f09b6400a81a57f9abeb21e8e57bc0cf0cc2c6a3aebdfec2e",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Desert/TerrainDetails/SP_Desert_Decal_ScuffedSoil_01.png",
+      "biome": "Desert",
+      "width": 256,
+      "height": 256,
+      "bytes": 6138,
+      "sha256": "2e207625e718a1ac136c125dc56d517e405223bedad566bd87005e9c64299d1e",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Desert/TerrainDetails/SP_Desert_Decal_ScuffedSoil_02.png",
+      "biome": "Desert",
+      "width": 256,
+      "height": 256,
+      "bytes": 6194,
+      "sha256": "abdc9f24387c6c82cea731287e90ba10c2534f380cdf8e9878641ee3077cc373",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Desert/TerrainDetails/SP_Desert_Decal_VegetationTufts_01.png",
+      "biome": "Desert",
+      "width": 256,
+      "height": 256,
+      "bytes": 2600,
+      "sha256": "62e3c7a2b092916cc558506e3934d920e5e358d61ea836b763f8efaf847482f0",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Desert/TerrainDetails/SP_Desert_Decal_VegetationTufts_02.png",
+      "biome": "Desert",
+      "width": 256,
+      "height": 256,
+      "bytes": 2396,
+      "sha256": "b0e639bb572f575fbd1e37a45aef5e9a235e699dec91a20112ca315ee32b468c",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Desert/TerrainDetails/SP_Desert_Decal_WeatheredPatch_01.png",
+      "biome": "Desert",
+      "width": 256,
+      "height": 256,
+      "bytes": 5574,
+      "sha256": "4e363b84e6768fb83139c0b23a649cb5562d65523c201f152ed1c7f0efd53c13",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Desert/TerrainDetails/SP_Desert_Decal_WeatheredPatch_02.png",
+      "biome": "Desert",
+      "width": 256,
+      "height": 256,
+      "bytes": 5963,
+      "sha256": "b25101eb58db86a19d40145ff66042dce2af6b8eacfd202314bc865a8d25aa1c",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Forest/Structures/SP_Forest_Structure_ShelterFacade_01.png",
+      "biome": "Forest",
+      "width": 176,
+      "height": 152,
+      "bytes": 1750,
+      "sha256": "f83bd2d9e91553b73b5dca61f2328fe19949ec08be6c2c73f6910e7bf4071058",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Forest/Structures/SP_Forest_Structure_ShelterFacade_02.png",
+      "biome": "Forest",
+      "width": 176,
+      "height": 152,
+      "bytes": 1745,
+      "sha256": "92da8b44c8f89bbb7bee4eb439e5c35c710f3df98698e9984733c79cb34bb5c9",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Forest/Structures/SP_Forest_Structure_ShelterFacade_03.png",
+      "biome": "Forest",
+      "width": 176,
+      "height": 152,
+      "bytes": 1816,
+      "sha256": "388414baafbb78a76e81f002bb985b4b68995b5ce009dee3f5fc287a0e81ea9f",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Forest/Structures/SP_Forest_Structure_ShelterFacade_04.png",
+      "biome": "Forest",
+      "width": 176,
+      "height": 152,
+      "bytes": 1773,
+      "sha256": "f5296a4bb66edca1dfbba8474b9e0d3f23d5555b27b5d95518eb66f24794c8cb",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Forest/Terrain/SP_Forest_Terrain_Base_01.png",
+      "biome": "Forest",
+      "width": 256,
+      "height": 256,
+      "bytes": 86595,
+      "sha256": "be3a36bfb13d5f191e91dc338dfd4202edbb2ebfcc153dab19857fd14fbfdc56",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Forest/TerrainDetails/SP_Forest_Decal_CrackNetwork_01.png",
+      "biome": "Forest",
+      "width": 256,
+      "height": 256,
+      "bytes": 1597,
+      "sha256": "9a34fef370ade780cbb665328eeea05a3391123adbb916957a75fae3faa5da5f",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Forest/TerrainDetails/SP_Forest_Decal_CrackNetwork_02.png",
+      "biome": "Forest",
+      "width": 256,
+      "height": 256,
+      "bytes": 1652,
+      "sha256": "534ba16d2bb0ae48a17d447ff7221a1a182ea33618c0d82495d664cb8d4b093e",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Forest/TerrainDetails/SP_Forest_Decal_DarkStain_01.png",
+      "biome": "Forest",
+      "width": 256,
+      "height": 256,
+      "bytes": 4245,
+      "sha256": "4dfd23867e552e90e65fa4d9a21d378f44d77bb9a9587d38f1c95e00f9a5f661",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Forest/TerrainDetails/SP_Forest_Decal_DarkStain_02.png",
+      "biome": "Forest",
+      "width": 256,
+      "height": 256,
+      "bytes": 4026,
+      "sha256": "631d415d6f489a2b8e1f371db4983f2ea0f7baef0436214ecac12d0d2c84a56b",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Forest/TerrainDetails/SP_Forest_Decal_DebrisScatter_01.png",
+      "biome": "Forest",
+      "width": 256,
+      "height": 256,
+      "bytes": 2350,
+      "sha256": "6052f098a38844ca183881b7f5997ee7f5bd55ab389254c027e2c13b3892fc5c",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Forest/TerrainDetails/SP_Forest_Decal_DebrisScatter_02.png",
+      "biome": "Forest",
+      "width": 256,
+      "height": 256,
+      "bytes": 2531,
+      "sha256": "943470ee5ad83186872499f5d1bd47ad404825101d8042aa32eda7df12b14090",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Forest/TerrainDetails/SP_Forest_Decal_DenseTexture_01.png",
+      "biome": "Forest",
+      "width": 256,
+      "height": 256,
+      "bytes": 10605,
+      "sha256": "4aaf3e3d2fecbc50309637b287caf6905edab11f5754a8bed3a62f61c2705b95",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Forest/TerrainDetails/SP_Forest_Decal_DenseTexture_02.png",
+      "biome": "Forest",
+      "width": 256,
+      "height": 256,
+      "bytes": 10714,
+      "sha256": "85323c62cdde225b383fb9f9cb2f077686fe6399b02b7465fccd222df2f95049",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Forest/TerrainDetails/SP_Forest_Decal_PebbleScatter_01.png",
+      "biome": "Forest",
+      "width": 256,
+      "height": 256,
+      "bytes": 4167,
+      "sha256": "59055b5549a557e72c9d3b3cf9ab13df465ef7181ca653434db461a63db7d853",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Forest/TerrainDetails/SP_Forest_Decal_PebbleScatter_02.png",
+      "biome": "Forest",
+      "width": 256,
+      "height": 256,
+      "bytes": 4061,
+      "sha256": "3bc8f4b340e5293ebb2142d32628a87022692546b582da7423dd4fb444880e66",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Forest/TerrainDetails/SP_Forest_Decal_ScuffedSoil_01.png",
+      "biome": "Forest",
+      "width": 256,
+      "height": 256,
+      "bytes": 6102,
+      "sha256": "607c7f191bb08a1d7784207e18df0b51dfe55cb8a0abcc186f7ff5131829d539",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Forest/TerrainDetails/SP_Forest_Decal_ScuffedSoil_02.png",
+      "biome": "Forest",
+      "width": 256,
+      "height": 256,
+      "bytes": 6158,
+      "sha256": "aa28fffcc01a56149345b51ddc11f4bdfc2501701ce743e0f71ec804b01660cc",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Forest/TerrainDetails/SP_Forest_Decal_VegetationTufts_01.png",
+      "biome": "Forest",
+      "width": 256,
+      "height": 256,
+      "bytes": 2573,
+      "sha256": "4b9cc9601b352f6cff4fa5c5da586116734f3c919c882d66df95b10e5bfe1fba",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Forest/TerrainDetails/SP_Forest_Decal_VegetationTufts_02.png",
+      "biome": "Forest",
+      "width": 256,
+      "height": 256,
+      "bytes": 2398,
+      "sha256": "8579d0f2c8d95d24ae8063029670d5f2a42ea443ad761b5733f09b24b8812593",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Forest/TerrainDetails/SP_Forest_Decal_WeatheredPatch_01.png",
+      "biome": "Forest",
+      "width": 256,
+      "height": 256,
+      "bytes": 5537,
+      "sha256": "ff9652a33f762ab65b27a277ca54cc160d983c27f0e3a43327a0e58df6c61f54",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Forest/TerrainDetails/SP_Forest_Decal_WeatheredPatch_02.png",
+      "biome": "Forest",
+      "width": 256,
+      "height": 256,
+      "bytes": 5919,
+      "sha256": "905e6a7a3ba4d0323a532998b1f6481af3eeeaf3c13abcc475e5a4bcdc778a5c",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Grassland/Nature/SP_Grassland_Nature_Cluster_01.png",
+      "biome": "Grassland",
+      "width": 144,
+      "height": 144,
+      "bytes": 2076,
+      "sha256": "5d39a2720da1dff4e0052c0e3c368c11df72e93530fa5383bd47a6a0e9e4e237",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Grassland/Nature/SP_Grassland_Nature_Cluster_02.png",
+      "biome": "Grassland",
+      "width": 144,
+      "height": 144,
+      "bytes": 1812,
+      "sha256": "b593bdeb62be51b3b3bcf6b94674f7bc47895eceb2c65f41d8d3959230250b31",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Grassland/Nature/SP_Grassland_Nature_Cluster_03.png",
+      "biome": "Grassland",
+      "width": 144,
+      "height": 144,
+      "bytes": 2070,
+      "sha256": "2e36c15e7e4143b579dd81229b9a81167a19050160bfc0e71709a90bda9266bc",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Grassland/Nature/SP_Grassland_Nature_Cluster_04.png",
+      "biome": "Grassland",
+      "width": 144,
+      "height": 144,
+      "bytes": 2031,
+      "sha256": "e51a3414c23d961922ce994d2c493790d2926e29f2a90bc62f731f687ea68960",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Grassland/Structures/SP_Grassland_Structure_ShelterFacade_01.png",
+      "biome": "Grassland",
+      "width": 176,
+      "height": 152,
+      "bytes": 1799,
+      "sha256": "de9ee80287a06d0d7980eb299fd970f18e9ae39e4bef23be05b715652f5e1531",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Grassland/Structures/SP_Grassland_Structure_ShelterFacade_02.png",
+      "biome": "Grassland",
+      "width": 176,
+      "height": 152,
+      "bytes": 1793,
+      "sha256": "c636ca6cf6a03fb7c720fd2785d8c0cca9c29ac1c4a5907f06ab140ff565e92d",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Grassland/Structures/SP_Grassland_Structure_ShelterFacade_03.png",
+      "biome": "Grassland",
+      "width": 176,
+      "height": 152,
+      "bytes": 1785,
+      "sha256": "a3bfbfda7c44b3facc2ea6e9c904227922d79be37ccc5bada3d706fa49f56f65",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Grassland/Structures/SP_Grassland_Structure_ShelterFacade_04.png",
+      "biome": "Grassland",
+      "width": 176,
+      "height": 152,
+      "bytes": 1798,
+      "sha256": "9517d5e0baf84c58b32ae4eb8d11bd81f59ee1f53efd92592efd46af44e63ccc",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Grassland/Terrain/SP_Grassland_Terrain_Base_01.png",
+      "biome": "Grassland",
+      "width": 256,
+      "height": 256,
+      "bytes": 88362,
+      "sha256": "98b7ec70349a781326dcbc49627bb2a5c5a6517a2e6bceb8e80a54ac87c5a96c",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Grassland/TerrainDetails/SP_Grassland_Decal_CrackNetwork_01.png",
+      "biome": "Grassland",
+      "width": 256,
+      "height": 256,
+      "bytes": 1465,
+      "sha256": "5a46c031cc6dd8b766f25b30e15c41f95d394567068b51b0b2b5768c39548538",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Grassland/TerrainDetails/SP_Grassland_Decal_CrackNetwork_02.png",
+      "biome": "Grassland",
+      "width": 256,
+      "height": 256,
+      "bytes": 1493,
+      "sha256": "da2cb5fb5787c5cb0df894ae2a3d9fa30f67fee825114ccfc09f425659de0c75",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Grassland/TerrainDetails/SP_Grassland_Decal_DarkStain_01.png",
+      "biome": "Grassland",
+      "width": 256,
+      "height": 256,
+      "bytes": 4228,
+      "sha256": "c3232462893b8c2046480f69a7cabd77618bb61fb9066d26c51ec5e27256d0ba",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Grassland/TerrainDetails/SP_Grassland_Decal_DarkStain_02.png",
+      "biome": "Grassland",
+      "width": 256,
+      "height": 256,
+      "bytes": 3981,
+      "sha256": "3b9a7d7e7a904d90c9593208af796e3f0bdfd4c897a9365e461368a808904e09",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Grassland/TerrainDetails/SP_Grassland_Decal_DebrisScatter_01.png",
+      "biome": "Grassland",
+      "width": 256,
+      "height": 256,
+      "bytes": 2588,
+      "sha256": "6ceb268c51afc8348e0f9823ee56f0641fe815460a3076cf0b5e09404ce56e9b",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Grassland/TerrainDetails/SP_Grassland_Decal_DebrisScatter_02.png",
+      "biome": "Grassland",
+      "width": 256,
+      "height": 256,
+      "bytes": 2605,
+      "sha256": "40255c7de3a2925f99a942f53dab50771ca7ec37175626c5946f27f1c3e3bbf7",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Grassland/TerrainDetails/SP_Grassland_Decal_DenseTexture_01.png",
+      "biome": "Grassland",
+      "width": 256,
+      "height": 256,
+      "bytes": 10349,
+      "sha256": "bbba199597962cb7b627f7f1407b4a563f4ee5dcfc4c1547bd3d633777ef9e56",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Grassland/TerrainDetails/SP_Grassland_Decal_DenseTexture_02.png",
+      "biome": "Grassland",
+      "width": 256,
+      "height": 256,
+      "bytes": 10320,
+      "sha256": "6a7e192917e7697b5d064e08d24d63d9b9d14f14b012d2a4558a4a96e7a68154",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Grassland/TerrainDetails/SP_Grassland_Decal_PebbleScatter_01.png",
+      "biome": "Grassland",
+      "width": 256,
+      "height": 256,
+      "bytes": 4095,
+      "sha256": "e3b5fcb0bd6fa8538a8ec9ba2a27229d2419a67038e6655df4a5cdce4b7cb624",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Grassland/TerrainDetails/SP_Grassland_Decal_PebbleScatter_02.png",
+      "biome": "Grassland",
+      "width": 256,
+      "height": 256,
+      "bytes": 4166,
+      "sha256": "a80861c6f63895041c5e339d728bc70ceeda3e47d9cfc35f9f4a8aad656533b1",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Grassland/TerrainDetails/SP_Grassland_Decal_ScuffedSoil_01.png",
+      "biome": "Grassland",
+      "width": 256,
+      "height": 256,
+      "bytes": 6255,
+      "sha256": "e0bebae1449b274e545ca061859961dd9acb4486b0f7b743e385326e27e32bd6",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Grassland/TerrainDetails/SP_Grassland_Decal_ScuffedSoil_02.png",
+      "biome": "Grassland",
+      "width": 256,
+      "height": 256,
+      "bytes": 6247,
+      "sha256": "a0b4d6a82eae33efc631b4b5cbec64c2b917156157c43c281f6c52bd4c3fa853",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Grassland/TerrainDetails/SP_Grassland_Decal_VegetationTufts_01.png",
+      "biome": "Grassland",
+      "width": 256,
+      "height": 256,
+      "bytes": 2476,
+      "sha256": "72b0628ff35746f72d007434456123034dd3a14c931f57961ac510bdfb39f2f4",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Grassland/TerrainDetails/SP_Grassland_Decal_VegetationTufts_02.png",
+      "biome": "Grassland",
+      "width": 256,
+      "height": 256,
+      "bytes": 2385,
+      "sha256": "131e9ea89a91e079953a416bdda26d0e2a22030dbd3381efd59f10bf7ee9ef51",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Grassland/TerrainDetails/SP_Grassland_Decal_WeatheredPatch_01.png",
+      "biome": "Grassland",
+      "width": 256,
+      "height": 256,
+      "bytes": 6014,
+      "sha256": "7dcd6839561581f068c0bb72ebc21368f913cde6e83c9f7b5801e42405e906a0",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Grassland/TerrainDetails/SP_Grassland_Decal_WeatheredPatch_02.png",
+      "biome": "Grassland",
+      "width": 256,
+      "height": 256,
+      "bytes": 5561,
+      "sha256": "9ed1938f039968cbb280b7f078852a0cf2b98d008df17706f535530cde7fe60e",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Industrial/Nature/SP_Industrial_Nature_Cluster_01.png",
+      "biome": "Industrial",
+      "width": 144,
+      "height": 144,
+      "bytes": 1834,
+      "sha256": "35a8d6c270ae238d87eb3898577b77e6fd3c4ff05ba10b76806da7e3ead32420",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Industrial/Nature/SP_Industrial_Nature_Cluster_02.png",
+      "biome": "Industrial",
+      "width": 144,
+      "height": 144,
+      "bytes": 1865,
+      "sha256": "030c95c097f854a53eb209dfc5caf3fee95b86d3769db95f05fcf4d8167ac3e5",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Industrial/Nature/SP_Industrial_Nature_Cluster_03.png",
+      "biome": "Industrial",
+      "width": 144,
+      "height": 144,
+      "bytes": 850,
+      "sha256": "2025332440b630e7a514bf9bed758e042e900808d2461d783ea4efc2b90a6afb",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Industrial/Nature/SP_Industrial_Nature_Cluster_04.png",
+      "biome": "Industrial",
+      "width": 144,
+      "height": 144,
+      "bytes": 930,
+      "sha256": "d661aee99eb7b72d0b51ae0338be6a13430cf8e91c45ef4740acab3c5bc28b96",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Industrial/Structures/SP_Industrial_Structure_ShelterFacade_01.png",
+      "biome": "Industrial",
+      "width": 176,
+      "height": 152,
+      "bytes": 1793,
+      "sha256": "a59e682fe282594d662c26594e96826a6d3886072b407b94f16a704517f848cc",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Industrial/Structures/SP_Industrial_Structure_ShelterFacade_02.png",
+      "biome": "Industrial",
+      "width": 176,
+      "height": 152,
+      "bytes": 1780,
+      "sha256": "7c626685e24908d49a24ecc87ab7c4abb0138043a67f72cdbca540c821bd6888",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Industrial/Structures/SP_Industrial_Structure_ShelterFacade_03.png",
+      "biome": "Industrial",
+      "width": 176,
+      "height": 152,
+      "bytes": 1786,
+      "sha256": "457f38e6413adbd4bef82e326ed02b0eb8cf7eed471c1ac7e196b265d40810f5",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Industrial/Structures/SP_Industrial_Structure_ShelterFacade_04.png",
+      "biome": "Industrial",
+      "width": 176,
+      "height": 152,
+      "bytes": 1757,
+      "sha256": "f5b31d654770c2795f41a2105d2f5096b155bc849b734fba8b95597d583c2d48",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Industrial/Terrain/SP_Industrial_Terrain_Base_01.png",
+      "biome": "Industrial",
+      "width": 256,
+      "height": 256,
+      "bytes": 86375,
+      "sha256": "d9fef2991c4b2ab73a5ade7b4517c2aec2a5bc4ac73a388450c8528044bda326",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Industrial/TerrainDetails/SP_Industrial_Decal_CrackNetwork_01.png",
+      "biome": "Industrial",
+      "width": 256,
+      "height": 256,
+      "bytes": 1686,
+      "sha256": "eb87361ba76cbe8b104558b449cbae7ce2a333dc84215445be5e11a8d896ab24",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Industrial/TerrainDetails/SP_Industrial_Decal_CrackNetwork_02.png",
+      "biome": "Industrial",
+      "width": 256,
+      "height": 256,
+      "bytes": 1667,
+      "sha256": "442689a574da69250d890d264ff591db6500e9965e6c5dee0fe6663b4fd7b28a",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Industrial/TerrainDetails/SP_Industrial_Decal_DarkStain_01.png",
+      "biome": "Industrial",
+      "width": 256,
+      "height": 256,
+      "bytes": 4420,
+      "sha256": "92d14ce8b81e372eb46c4ab113a5dc53bf1844571752c8223017e54e6baa670a",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Industrial/TerrainDetails/SP_Industrial_Decal_DarkStain_02.png",
+      "biome": "Industrial",
+      "width": 256,
+      "height": 256,
+      "bytes": 4041,
+      "sha256": "7d158df7e78421477be69c6e87d6bfc8c6c22663335bbd4477765bf59a08c381",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Industrial/TerrainDetails/SP_Industrial_Decal_DebrisScatter_01.png",
+      "biome": "Industrial",
+      "width": 256,
+      "height": 256,
+      "bytes": 2565,
+      "sha256": "36dd2d42ed688addcca2371e435bc8ef5dcf365cf4a21b34b3b5fe7c6a2eed02",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Industrial/TerrainDetails/SP_Industrial_Decal_DebrisScatter_02.png",
+      "biome": "Industrial",
+      "width": 256,
+      "height": 256,
+      "bytes": 2607,
+      "sha256": "3524bafb3dc79fada648486c44a61362865a4460a0f47ee1eb5569b808460aa2",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Industrial/TerrainDetails/SP_Industrial_Decal_DenseTexture_01.png",
+      "biome": "Industrial",
+      "width": 256,
+      "height": 256,
+      "bytes": 10318,
+      "sha256": "48cce092fd5271b052b5ec1e51feceb4ee1536a5bbe0f6dbc74ae78740f18452",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Industrial/TerrainDetails/SP_Industrial_Decal_DenseTexture_02.png",
+      "biome": "Industrial",
+      "width": 256,
+      "height": 256,
+      "bytes": 10088,
+      "sha256": "fc416168e831beb3a4dce35e1ebb07efd195837ad443671be10510a4d9840f2d",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Industrial/TerrainDetails/SP_Industrial_Decal_PebbleScatter_01.png",
+      "biome": "Industrial",
+      "width": 256,
+      "height": 256,
+      "bytes": 4279,
+      "sha256": "aeadb115e828139d37f87e0ebc4f09953b9bbbeae277f391e4eb88190b4c598a",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Industrial/TerrainDetails/SP_Industrial_Decal_PebbleScatter_02.png",
+      "biome": "Industrial",
+      "width": 256,
+      "height": 256,
+      "bytes": 4173,
+      "sha256": "8ab56b97ba2879dcb20072ffd630d0b95f00b0de629564661b6e8ae199fd9d32",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Industrial/TerrainDetails/SP_Industrial_Decal_ScuffedSoil_01.png",
+      "biome": "Industrial",
+      "width": 256,
+      "height": 256,
+      "bytes": 6233,
+      "sha256": "cf3c2b0897708330be98ea9e11a0931d35e312b9539908de0448959108f25e20",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Industrial/TerrainDetails/SP_Industrial_Decal_ScuffedSoil_02.png",
+      "biome": "Industrial",
+      "width": 256,
+      "height": 256,
+      "bytes": 5923,
+      "sha256": "414250bb623dfcd7c8cc72aa8728dc71f0ec03c194bb821e5c8725ce2cec4a1e",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Industrial/TerrainDetails/SP_Industrial_Decal_VegetationTufts_01.png",
+      "biome": "Industrial",
+      "width": 256,
+      "height": 256,
+      "bytes": 2492,
+      "sha256": "5ae5ce9652862bdf20746fa0f6d68b3871479128c782275e3fc99d1b77006778",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Industrial/TerrainDetails/SP_Industrial_Decal_VegetationTufts_02.png",
+      "biome": "Industrial",
+      "width": 256,
+      "height": 256,
+      "bytes": 2559,
+      "sha256": "357d0ab70c6c7592600507478ce396e28661794bcdde9b0920c69ee0dd20ca24",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Industrial/TerrainDetails/SP_Industrial_Decal_WeatheredPatch_01.png",
+      "biome": "Industrial",
+      "width": 256,
+      "height": 256,
+      "bytes": 5720,
+      "sha256": "d47f76cbccc4b30da94f756aabc1e8c68c91c41b924abdc82a3294fe006b8a93",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Industrial/TerrainDetails/SP_Industrial_Decal_WeatheredPatch_02.png",
+      "biome": "Industrial",
+      "width": 256,
+      "height": 256,
+      "bytes": 5863,
+      "sha256": "d8de927ca18214bd3774860f2678fca2f4058e329017a9190f3ead1f94a9ac28",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "RockyHighlands/Nature/SP_RockyHighlands_Nature_Cluster_01.png",
+      "biome": "RockyHighlands",
+      "width": 144,
+      "height": 144,
+      "bytes": 823,
+      "sha256": "09c84ff409df778d8855fdacc38ea215537c8927d96278412e367458a274c69a",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "RockyHighlands/Nature/SP_RockyHighlands_Nature_Cluster_02.png",
+      "biome": "RockyHighlands",
+      "width": 144,
+      "height": 144,
+      "bytes": 952,
+      "sha256": "41661f36e35555434b816dc8a10bb69c11d22678438d5d92d3ee3a2838840c55",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "RockyHighlands/Nature/SP_RockyHighlands_Nature_Cluster_03.png",
+      "biome": "RockyHighlands",
+      "width": 144,
+      "height": 144,
+      "bytes": 1942,
+      "sha256": "bb2d5fa09f02a63b8f1998c007f2b749d233aca6244bfbb9e2a61b758b0339ce",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "RockyHighlands/Nature/SP_RockyHighlands_Nature_Cluster_04.png",
+      "biome": "RockyHighlands",
+      "width": 144,
+      "height": 144,
+      "bytes": 1902,
+      "sha256": "c86c8c0a36806d537e646f79a375623d4d7b37567337343eb8b719e1faa58c80",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "RockyHighlands/Structures/SP_RockyHighlands_Structure_ShelterFacade_01.png",
+      "biome": "RockyHighlands",
+      "width": 176,
+      "height": 152,
+      "bytes": 1796,
+      "sha256": "2e330e93e3055ea0c011b1e2e779545c40d0ca4c4254d48b5d303ca81456b9bd",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "RockyHighlands/Structures/SP_RockyHighlands_Structure_ShelterFacade_02.png",
+      "biome": "RockyHighlands",
+      "width": 176,
+      "height": 152,
+      "bytes": 1826,
+      "sha256": "11fbc67889712ff3c5e7bebf9fad024fae44754ddcaf3e4ddcd37f3cc812092a",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "RockyHighlands/Structures/SP_RockyHighlands_Structure_ShelterFacade_03.png",
+      "biome": "RockyHighlands",
+      "width": 176,
+      "height": 152,
+      "bytes": 1710,
+      "sha256": "eabf5fd0f933736f688cb1911caa0879e9f15d723439d1aa765d524743bd0648",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "RockyHighlands/Structures/SP_RockyHighlands_Structure_ShelterFacade_04.png",
+      "biome": "RockyHighlands",
+      "width": 176,
+      "height": 152,
+      "bytes": 1878,
+      "sha256": "d9417dbb1c42bf6932bc7c43f4d8c0e58e3680f3225c19dee0cfd32bc24c342c",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "RockyHighlands/Terrain/SP_RockyHighlands_Terrain_Base_01.png",
+      "biome": "RockyHighlands",
+      "width": 256,
+      "height": 256,
+      "bytes": 86939,
+      "sha256": "dd94e3206bf6bb1101999dae2567c313571438bcf7be4a959dd530a029e1483e",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "RockyHighlands/TerrainDetails/SP_RockyHighlands_Decal_CrackNetwork_01.png",
+      "biome": "RockyHighlands",
+      "width": 256,
+      "height": 256,
+      "bytes": 1461,
+      "sha256": "94eaa1879b32e0a647f8186987dabdd0b145a331df68336ef0deda387d27993a",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "RockyHighlands/TerrainDetails/SP_RockyHighlands_Decal_CrackNetwork_02.png",
+      "biome": "RockyHighlands",
+      "width": 256,
+      "height": 256,
+      "bytes": 1437,
+      "sha256": "b0d0ee0760fe6235abe919e1d6fdecd5e3733cb750c1bf2f22ec5922c1f7d639",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "RockyHighlands/TerrainDetails/SP_RockyHighlands_Decal_DarkStain_01.png",
+      "biome": "RockyHighlands",
+      "width": 256,
+      "height": 256,
+      "bytes": 4300,
+      "sha256": "758aa4631ab6d481e10937a800fd6aac4cc5f1311847c21e5b34321d6c7a1665",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "RockyHighlands/TerrainDetails/SP_RockyHighlands_Decal_DarkStain_02.png",
+      "biome": "RockyHighlands",
+      "width": 256,
+      "height": 256,
+      "bytes": 4467,
+      "sha256": "442b7c9cff05ff5c2083c77e766fb5840118e73506f8bf515d55f89aae08d259",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "RockyHighlands/TerrainDetails/SP_RockyHighlands_Decal_DebrisScatter_01.png",
+      "biome": "RockyHighlands",
+      "width": 256,
+      "height": 256,
+      "bytes": 2634,
+      "sha256": "66b3a73ce36421f57eef0f6f208129f82181236e14c66470a677bf8ca08856f6",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "RockyHighlands/TerrainDetails/SP_RockyHighlands_Decal_DebrisScatter_02.png",
+      "biome": "RockyHighlands",
+      "width": 256,
+      "height": 256,
+      "bytes": 2684,
+      "sha256": "a44fc963a8f385f7531c059deb42ae2ad2534a5f9b1b73e599539c62477b974a",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "RockyHighlands/TerrainDetails/SP_RockyHighlands_Decal_DenseTexture_01.png",
+      "biome": "RockyHighlands",
+      "width": 256,
+      "height": 256,
+      "bytes": 10491,
+      "sha256": "a89930d50d4104a100adcdf362359188617ff43e28f1c1dc8e1c6766c1c74867",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "RockyHighlands/TerrainDetails/SP_RockyHighlands_Decal_DenseTexture_02.png",
+      "biome": "RockyHighlands",
+      "width": 256,
+      "height": 256,
+      "bytes": 10278,
+      "sha256": "e617bb05df972bd7ac45e71362ce6322973e75b1fcd0b89f8397a34cc75e8667",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "RockyHighlands/TerrainDetails/SP_RockyHighlands_Decal_PebbleScatter_01.png",
+      "biome": "RockyHighlands",
+      "width": 256,
+      "height": 256,
+      "bytes": 4145,
+      "sha256": "1653af35f72dce6343d543becd100bf1aded3d7e8872048dee2c08936792d4d2",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "RockyHighlands/TerrainDetails/SP_RockyHighlands_Decal_PebbleScatter_02.png",
+      "biome": "RockyHighlands",
+      "width": 256,
+      "height": 256,
+      "bytes": 4005,
+      "sha256": "4cdde1606fb1f7ead4c7b6ef26921dd2ec5827a236c4c3e01e2e675b775850d8",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "RockyHighlands/TerrainDetails/SP_RockyHighlands_Decal_ScuffedSoil_01.png",
+      "biome": "RockyHighlands",
+      "width": 256,
+      "height": 256,
+      "bytes": 6282,
+      "sha256": "f89b560a3b8ef51d91a73aa24ec70ee0779c45aed1538858ab8a81cd38cb5919",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "RockyHighlands/TerrainDetails/SP_RockyHighlands_Decal_ScuffedSoil_02.png",
+      "biome": "RockyHighlands",
+      "width": 256,
+      "height": 256,
+      "bytes": 5933,
+      "sha256": "a032c442714936e1298c79f3ea202b207660974ec9cb09293ffc15e82f73aae1",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "RockyHighlands/TerrainDetails/SP_RockyHighlands_Decal_VegetationTufts_01.png",
+      "biome": "RockyHighlands",
+      "width": 256,
+      "height": 256,
+      "bytes": 2626,
+      "sha256": "616fe13e6b68e4bfec467cc75761b7a938f824ee95e4961b7feaacab10a06711",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "RockyHighlands/TerrainDetails/SP_RockyHighlands_Decal_VegetationTufts_02.png",
+      "biome": "RockyHighlands",
+      "width": 256,
+      "height": 256,
+      "bytes": 2466,
+      "sha256": "c293522af4e61c0a66415c7ab3abd1aa0cf0e98c7a30953229203e3a1e4b0fd5",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "RockyHighlands/TerrainDetails/SP_RockyHighlands_Decal_WeatheredPatch_01.png",
+      "biome": "RockyHighlands",
+      "width": 256,
+      "height": 256,
+      "bytes": 5659,
+      "sha256": "2df5bd84dec57ad2bd17e6bcb397b45697cbf7640f7f16329105b56710f98c7f",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "RockyHighlands/TerrainDetails/SP_RockyHighlands_Decal_WeatheredPatch_02.png",
+      "biome": "RockyHighlands",
+      "width": 256,
+      "height": 256,
+      "bytes": 5857,
+      "sha256": "e495268c7e89e343c4512bae99a9a6c3a53a7906a186f6b08ef96fb1c9433935",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Asphalt/SP_Road_Asphalt_00.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 25137,
+      "sha256": "9f2d508f169fa41c1318540ec4c6808c8945fbb7f1bc1edfd6bebbd000dbe398",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Asphalt/SP_Road_Asphalt_01.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 30826,
+      "sha256": "57452a63a23e903656e2ff757bf7937560ee187478ffca3215e8760a0712283e",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Asphalt/SP_Road_Asphalt_02.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 29538,
+      "sha256": "7dc61ecf79e1f370e01d5d22d2aadae5cce5a9fca489bfb45adfae758062c3ae",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Asphalt/SP_Road_Asphalt_03.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 37415,
+      "sha256": "c357e59c8f17391bf195182e2776a8b945b4dd08868c6cf79fc88c2a4f2961f0",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Asphalt/SP_Road_Asphalt_04.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 30326,
+      "sha256": "6cbc7c96bec01bc10986c1ec530756635075ed4a07e70bdb6c62bda497ce74f2",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Asphalt/SP_Road_Asphalt_05.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 40355,
+      "sha256": "a9a04304eafabe40e6c1b1e87c9cdfc46a9292b4886ae7c86be04caa4f42c32e",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Asphalt/SP_Road_Asphalt_06.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 37118,
+      "sha256": "cf4f501a267c2eea926ff7a50c583d4b93cfc1045c3a79f2c590c76edbe3ed78",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Asphalt/SP_Road_Asphalt_07.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 44815,
+      "sha256": "e49bbe0bf3fc04bda01c8c70b3c33169f565111880523d19656158e27c216129",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Asphalt/SP_Road_Asphalt_08.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 29671,
+      "sha256": "a8a81ccfac44bfb275de3ca9b0a9a443877f27c02f8afa992c77d43bf938cf2c",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Asphalt/SP_Road_Asphalt_09.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 37279,
+      "sha256": "e9badb2885bef3306080f75c2459811f7ea20ebb8567962d5775a0f917f74392",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Asphalt/SP_Road_Asphalt_10.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 37470,
+      "sha256": "d4ad2d11c8d82c81862d06b3b6c86a0f0ece701f03dd794d90454ea669d4b65d",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Asphalt/SP_Road_Asphalt_11.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 43828,
+      "sha256": "2470bd5e216284c00898c8ce5cbf2f64931321fd99287a77838d5b43db47a7e9",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Asphalt/SP_Road_Asphalt_12.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 37491,
+      "sha256": "d946f58afb4d55e92437add13e8065064c2a2c64cf8dff7e6c64271df7d60d8e",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Asphalt/SP_Road_Asphalt_13.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 45134,
+      "sha256": "36bf784fc87627dcf630257d15b1fe8858e6b33ea51ea91bdeed83b537b56056",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Asphalt/SP_Road_Asphalt_14.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 43697,
+      "sha256": "8f07eb4f337d8ffd19ecf678e11e5f1044df08374232fd4622b6591b49316d42",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Asphalt/SP_Road_Asphalt_15.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 50789,
+      "sha256": "08274d0110dd621a51f4ce3512ec222557808d482a9260273cd526ba22d2063e",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Concrete/SP_Road_Concrete_00.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 25298,
+      "sha256": "89e0db5bc42cd21c43bf17f971e3aa0ef83768ebdc2119fccc2c147ae8d8e3d1",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Concrete/SP_Road_Concrete_01.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 31229,
+      "sha256": "f6a2ff6dbf1df4ec6dc6c12ad80bddfbc991e3e5e0a45c48a3d9208e582bfd3f",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Concrete/SP_Road_Concrete_02.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 29907,
+      "sha256": "84190bffe1595d871b6f871d529161127d8abf886b21eedbd4c4a8bc280d82ce",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Concrete/SP_Road_Concrete_03.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 37936,
+      "sha256": "ee536d4140cd0b010fe0653e479db19320347f04322170e9c603edde4a347c32",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Concrete/SP_Road_Concrete_04.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 31045,
+      "sha256": "3ab990fb8235ea145865c041da67c1e00f2585b659fa783a996f9b3cf2e64967",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Concrete/SP_Road_Concrete_05.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 40553,
+      "sha256": "bfac8597f810baf9930e5c515ee5b8774870af4f897c0c7e8af53062b6924f50",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Concrete/SP_Road_Concrete_06.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 37602,
+      "sha256": "821864ee5d4b8b3cf4e94c24847b3cfcbfbbbc17e9bc64642a0a76ed3d8d7e25",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Concrete/SP_Road_Concrete_07.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 45740,
+      "sha256": "59ee48b52669cbd46000c663c072eb5a228d52e241026d51b818d08f0b9d7e0f",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Concrete/SP_Road_Concrete_08.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 30088,
+      "sha256": "b58e13bd4f0e4c52d4f1efa4a3c09ee34eeadd31d795aff3183909c3f9e63fc9",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Concrete/SP_Road_Concrete_09.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 37883,
+      "sha256": "95367c29cd5c462670381ad67d84e41ddb1653506cea7a6e67a314aae514f67f",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Concrete/SP_Road_Concrete_10.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 37720,
+      "sha256": "2650b1366e823f6bec1188be0a81f839ed540b9110c4283ec17e6865dcce79fd",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Concrete/SP_Road_Concrete_11.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 44442,
+      "sha256": "759d701c7113cda118f7e855a2303341acaffdeb94348595436f4315d9e8f876",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Concrete/SP_Road_Concrete_12.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 37948,
+      "sha256": "0dfd0e43a0bc21d92eff15bbe1ef85131f883813a5ab2e2a40a67f2b719d2127",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Concrete/SP_Road_Concrete_13.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 45632,
+      "sha256": "cfdcab5429846096cc4ca952f231babcd8b6e724d742995e8c6ac6e0b20bf6f6",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Concrete/SP_Road_Concrete_14.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 44069,
+      "sha256": "41421c5a4b82b1c06b4b251537fc518ad11464ec68d2d7cf8ac26285cadf6255",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Concrete/SP_Road_Concrete_15.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 51395,
+      "sha256": "b8b89b9d54bab78b6ccee50f784937596ad0a99106aa8d133438e2b2828c8360",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Dirt/SP_Road_Dirt_00.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 25276,
+      "sha256": "b908992a0751382d569e8abd7a8113a9ad35338e22aea74be14619c90e85bc39",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Dirt/SP_Road_Dirt_01.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 31205,
+      "sha256": "6114d713c65fd95485babff793a1ab33c51491451a3891c9c3044abe6a7bfe44",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Dirt/SP_Road_Dirt_02.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 30079,
+      "sha256": "4f56e775af5862fd13ca00c965aba51272b9403f1353d8b8209ac17468c77441",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Dirt/SP_Road_Dirt_03.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 37751,
+      "sha256": "3ef25b38dc84bfdd753a425c188a74f2eeabadca5cf4fd2614e09e2fe3c5e96b",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Dirt/SP_Road_Dirt_04.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 31085,
+      "sha256": "ee75739f131915da834112cf204154b66face922ed90c0e724abd1969e09235f",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Dirt/SP_Road_Dirt_05.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 40171,
+      "sha256": "5d8fc6908492710f1257ee007912478f0c9159d5134083a41f2515f2f3258e5d",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Dirt/SP_Road_Dirt_06.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 37558,
+      "sha256": "38e8fee729448dfe6f0f8c15a18d96b7581ab826b6dd0f99305e9a8dad4624ac",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Dirt/SP_Road_Dirt_07.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 45468,
+      "sha256": "defb922c947e3738a288df87c4e68313350084caf5f5048890635efb0eba9612",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Dirt/SP_Road_Dirt_08.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 30321,
+      "sha256": "86a54eb6aa1d83ea06709e7a287edb0939dd034a57526b9d0247911e80bdb19a",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Dirt/SP_Road_Dirt_09.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 38052,
+      "sha256": "9e08abc5dc1b043bb64a78ca68390379c18b181279581b1b37dcca1a8fca69ce",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Dirt/SP_Road_Dirt_10.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 37526,
+      "sha256": "a8c54b0ab9c664eaa9b62c8fb75519661163ac2ca7b5602a97a5ce3142aa926b",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Dirt/SP_Road_Dirt_11.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 44135,
+      "sha256": "50839675cb6695773f748f58d17d6b31183b375f0674777e1311cda1323062be",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Dirt/SP_Road_Dirt_12.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 38319,
+      "sha256": "1ab78f65a603a4c8f1e9f4a20fd1be3245c8b5a47f1424b780f988fb8adbffb9",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Dirt/SP_Road_Dirt_13.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 45569,
+      "sha256": "455818eb4deb0592c85b396505079678b8bae43bc590d62c12694a1ef0d194eb",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Dirt/SP_Road_Dirt_14.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 44390,
+      "sha256": "1e505a61872dae25c30cb7793d8396a2959529417019cd6b9719e6df5f2b10ef",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Dirt/SP_Road_Dirt_15.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 51362,
+      "sha256": "6693bcd668e4c2fc53c7afb9088cf09f76d302c5530553b93f34150dcc523e9c",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Gravel/SP_Road_Gravel_00.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 25388,
+      "sha256": "6d7b07d9e7bef6986d7d6f6e02921e64da86ea2f45b1d1c23e76524069658088",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Gravel/SP_Road_Gravel_01.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 31431,
+      "sha256": "a6c6189bcb0ef360c08be9478bcab8eda57488cb453bc03f811d92fba1658063",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Gravel/SP_Road_Gravel_02.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 30232,
+      "sha256": "255b127942a5369a4ea054bf68276ff7e7a9a92f7789b44774e31d685cf28d92",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Gravel/SP_Road_Gravel_03.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 37920,
+      "sha256": "052f77ab7aa1ced04be505c5c190e145d6f1b06a36e022a44089b2153278f23b",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Gravel/SP_Road_Gravel_04.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 30973,
+      "sha256": "6ede551f6eb95b8933d7021fa51cff1ab61e02664f6a4b42ad33e4a771418322",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Gravel/SP_Road_Gravel_05.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 40407,
+      "sha256": "bb3bbaeadb2dd7ff818bd948c96053e8e66e9dca7068b49bc7b4148450688801",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Gravel/SP_Road_Gravel_06.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 37676,
+      "sha256": "58880d421c4981ab08ea02e9ec7b0983b58f77a4c266e5e228e6f1eaeda8ecfc",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Gravel/SP_Road_Gravel_07.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 45481,
+      "sha256": "b9b254c814553613b839c128faaa8edffe2dc3b7769979083380ca0f749c1ccb",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Gravel/SP_Road_Gravel_08.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 30106,
+      "sha256": "1690b631e4a658bbc786d346e9658cf5c6534c6fed7ebe965c6950beba5c1028",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Gravel/SP_Road_Gravel_09.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 37728,
+      "sha256": "ad195c01c9174b3733743100a6d01ab5f76047f16f47f47f98eb8be16c0576ac",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Gravel/SP_Road_Gravel_10.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 37683,
+      "sha256": "b4afaf13910f1e69b40f4bcf2158a6732939217acb5e1d3d2aaa86cdda232ce9",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Gravel/SP_Road_Gravel_11.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 44179,
+      "sha256": "b54ea19de40efa578ea95d1b9703171e30e8155ffd0ac9a4a2b8e353b71dc897",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Gravel/SP_Road_Gravel_12.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 38202,
+      "sha256": "89bc63f555eb87f9cc7b7d368e81a231473c08a3d2eb530913cfaeeb388c6ea6",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Gravel/SP_Road_Gravel_13.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 45638,
+      "sha256": "f35933adb97b371ca07be2cf4bbc91986b5f9a84a1e3f6b4a8af3a908f8e3163",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Gravel/SP_Road_Gravel_14.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 44412,
+      "sha256": "3252b09b3b0583c02d47bd9aa65bbe96d7402c2a837ec4145bc8a1ade6d0dd14",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Shared/Roads/Gravel/SP_Road_Gravel_15.png",
+      "biome": "Shared",
+      "width": 256,
+      "height": 256,
+      "bytes": 51510,
+      "sha256": "21b2d0e0dde7b2241ca16a9cc3b48b75f6ee828985d8be2d21a6cf699051ef04",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Swamp/Nature/SP_Swamp_Nature_Cluster_01.png",
+      "biome": "Swamp",
+      "width": 144,
+      "height": 144,
+      "bytes": 1719,
+      "sha256": "acc0c3fe0a425c3283c5afbcf23142bb9f0273a19ad3e2385a2f7bdb484b28d0",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Swamp/Nature/SP_Swamp_Nature_Cluster_02.png",
+      "biome": "Swamp",
+      "width": 144,
+      "height": 144,
+      "bytes": 1957,
+      "sha256": "fb3e1c9332dca8a0d54143fd8df49e99d70a7b2c2ae0ebf23537254e454b82a9",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Swamp/Nature/SP_Swamp_Nature_Cluster_03.png",
+      "biome": "Swamp",
+      "width": 144,
+      "height": 144,
+      "bytes": 1832,
+      "sha256": "d555c850b9db6cc7619e386eb5bcc1275c984101057db0f34b0d3596e017f943",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Swamp/Nature/SP_Swamp_Nature_Cluster_04.png",
+      "biome": "Swamp",
+      "width": 144,
+      "height": 144,
+      "bytes": 2040,
+      "sha256": "dc547bb12eecbd51968fd344f9f47acae2f4868cc67a1dc9a3a1f952bf8b6c9c",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Swamp/Structures/SP_Swamp_Structure_ShelterFacade_01.png",
+      "biome": "Swamp",
+      "width": 176,
+      "height": 152,
+      "bytes": 1856,
+      "sha256": "50e71f0ec99a70ac6ae08821ebab1eb55c498eeb6c90930e8d63bffc26c72d5b",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Swamp/Structures/SP_Swamp_Structure_ShelterFacade_02.png",
+      "biome": "Swamp",
+      "width": 176,
+      "height": 152,
+      "bytes": 1794,
+      "sha256": "4cb8a41dd577c3e5f9fe323fc2c64404737f8ee4d270cc0f2fc7ed484246b62d",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Swamp/Structures/SP_Swamp_Structure_ShelterFacade_03.png",
+      "biome": "Swamp",
+      "width": 176,
+      "height": 152,
+      "bytes": 1718,
+      "sha256": "2fce70c9f9acf4abcc9f46f4e6f89155552cd862bcf01418cc177f931ce1c157",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Swamp/Structures/SP_Swamp_Structure_ShelterFacade_04.png",
+      "biome": "Swamp",
+      "width": 176,
+      "height": 152,
+      "bytes": 1741,
+      "sha256": "66fb8c5a6edab213ae068e4b8b45cfb0989753391afbe7ddeead0aada0816c9e",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Swamp/Terrain/SP_Swamp_Terrain_Base_01.png",
+      "biome": "Swamp",
+      "width": 256,
+      "height": 256,
+      "bytes": 85626,
+      "sha256": "ca4c01f4532c92b80d677cbbb4bdff015835e8bfa8100462e654d293498aa6ec",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Swamp/TerrainDetails/SP_Swamp_Decal_CrackNetwork_01.png",
+      "biome": "Swamp",
+      "width": 256,
+      "height": 256,
+      "bytes": 1360,
+      "sha256": "2408ba15a1eba3a27e015178a6adc34cb25a9d04d750d411d2649db9c46024cf",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Swamp/TerrainDetails/SP_Swamp_Decal_CrackNetwork_02.png",
+      "biome": "Swamp",
+      "width": 256,
+      "height": 256,
+      "bytes": 1419,
+      "sha256": "bc2d30cb5d4fb3bbb3da79e30d02f0caa1c3599d4dd9e8b37bfc773800107ca1",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Swamp/TerrainDetails/SP_Swamp_Decal_DarkStain_01.png",
+      "biome": "Swamp",
+      "width": 256,
+      "height": 256,
+      "bytes": 4128,
+      "sha256": "12e3cf3ead43b434ff68b01008412b9154c44e898f160586a2155016dc5d9614",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Swamp/TerrainDetails/SP_Swamp_Decal_DarkStain_02.png",
+      "biome": "Swamp",
+      "width": 256,
+      "height": 256,
+      "bytes": 4543,
+      "sha256": "430b8ecd04b83e1fe7e5c26f5819c7aaf7e0908f94fde1db4672cc9da65da1e8",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Swamp/TerrainDetails/SP_Swamp_Decal_DebrisScatter_01.png",
+      "biome": "Swamp",
+      "width": 256,
+      "height": 256,
+      "bytes": 2481,
+      "sha256": "e9104d298ee9205442f3731c74cfe731a22a4efe7a1a4a3fca6ee659fbea6a1b",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Swamp/TerrainDetails/SP_Swamp_Decal_DebrisScatter_02.png",
+      "biome": "Swamp",
+      "width": 256,
+      "height": 256,
+      "bytes": 2410,
+      "sha256": "6a7e95b28f6ce885bf604db3ef03a56ff3d6487363d0428692e643af96cf05cc",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Swamp/TerrainDetails/SP_Swamp_Decal_DenseTexture_01.png",
+      "biome": "Swamp",
+      "width": 256,
+      "height": 256,
+      "bytes": 10784,
+      "sha256": "34d91d1a740716333cc2603e2e68c866de112d569b161de13d17e05aec7f3bad",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Swamp/TerrainDetails/SP_Swamp_Decal_DenseTexture_02.png",
+      "biome": "Swamp",
+      "width": 256,
+      "height": 256,
+      "bytes": 10576,
+      "sha256": "bd1fa1e04d48f639378cea14471e75e232b73a21cd4f5f81934b673a86f45b7e",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Swamp/TerrainDetails/SP_Swamp_Decal_PebbleScatter_01.png",
+      "biome": "Swamp",
+      "width": 256,
+      "height": 256,
+      "bytes": 3906,
+      "sha256": "2e2caf728f27cd9266d701bbaf26183bab699d4c837888419e6aadc5107ec8b3",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Swamp/TerrainDetails/SP_Swamp_Decal_PebbleScatter_02.png",
+      "biome": "Swamp",
+      "width": 256,
+      "height": 256,
+      "bytes": 4148,
+      "sha256": "9980ed34baf99260ac1b06ad2e37e75e3a96716df031ade9f70286c44c0b0277",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Swamp/TerrainDetails/SP_Swamp_Decal_ScuffedSoil_01.png",
+      "biome": "Swamp",
+      "width": 256,
+      "height": 256,
+      "bytes": 5922,
+      "sha256": "6811fe021e08450e7a99afe04df5a8db3c9a52868cea611c44be8ea0e003db09",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Swamp/TerrainDetails/SP_Swamp_Decal_ScuffedSoil_02.png",
+      "biome": "Swamp",
+      "width": 256,
+      "height": 256,
+      "bytes": 6324,
+      "sha256": "4d348b85855bf3fc527e85483c119bf6c0d56fdec1b4df32f5ad8ff3409f7904",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Swamp/TerrainDetails/SP_Swamp_Decal_VegetationTufts_01.png",
+      "biome": "Swamp",
+      "width": 256,
+      "height": 256,
+      "bytes": 2401,
+      "sha256": "91b7f4e8854f7f0fdc1e701d4a0d7f096847e36381a2be2367ab015c4a8cc09e",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Swamp/TerrainDetails/SP_Swamp_Decal_VegetationTufts_02.png",
+      "biome": "Swamp",
+      "width": 256,
+      "height": 256,
+      "bytes": 2463,
+      "sha256": "6c46614d7facf2ec018778f95535de271059fad54b162b0210346359542bccf7",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Swamp/TerrainDetails/SP_Swamp_Decal_WeatheredPatch_01.png",
+      "biome": "Swamp",
+      "width": 256,
+      "height": 256,
+      "bytes": 5785,
+      "sha256": "a850f9a0cc804afc5d99f923d32a297f92130ce7a37ffadedf3f19ee4772bf4b",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    },
+    {
+      "path": "Swamp/TerrainDetails/SP_Swamp_Decal_WeatheredPatch_02.png",
+      "biome": "Swamp",
+      "width": 256,
+      "height": 256,
+      "bytes": 5763,
+      "sha256": "7da54cdcd027c316954c4a7b0372b219f6ae954a081faba26c913ac37bbbb929",
+      "review_status": "generated_unapproved",
+      "alpha": true
+    }
+  ]
+}
