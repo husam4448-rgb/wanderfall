@@ -14,7 +14,7 @@
 
 | Biome | Nature assets | Structures/props | Notes |
 | --- | --- | --- | --- |
-| Forest | 84 accepted; **33 PNGs uploaded, 51 pending** | Not catalogued here | Wood 12/12, Rocks 17/17, Trees 4/20; remaining trees, bushes, ground clutter still awaiting binary upload |
+| Forest | 84 accepted; **39 PNGs uploaded, 45 pending** | Not catalogued here | Wood 12/12, Rocks 17/17, Trees 10/20; remaining trees, bushes, ground clutter still awaiting binary upload |
 | Desert | 26 prototype PNGs; **2 PNGs uploaded, 24 pending** | 0 | Two tree PNGs uploaded; 10 tree and 14 shrub PNGs still to upload. Other 92 planned desert assets not yet generated |
 | Grassland | Not started | Not started | Needs distinct biome-specific vegetation |
 | Swamp / wetland | Not started | Not started | Needs distinct biome-specific vegetation |
@@ -24,7 +24,7 @@
 | City / small urban | Not started | Not started | Needs both urban nature (courtyard trees, weeds, vines) **and** houses, markets, roads, utilities, etc. |
 
 ## Verified GitHub binary asset checkpoint
-- Original PNGs byte-for-byte verified against the source ZIPs: **35 / 110 uploaded** (Forest 33/84; Desert 2/26). 75 remain.
+- Original PNGs byte-for-byte verified against the source ZIPs: **41 / 110 uploaded** (Forest 39/84; Desert 2/26). 69 remain.
 - [Per-file upload state / SHA-256 source ledger](ASSET_UPLOAD_STATUS.json), [full binary transfer plan](ASSET_BINARY_TRANSFER_PLAN.json).
 - **Upload sequence before new asset generation:** finish Forest Trees, Bushes and GroundClutter; finish Desert Tree and Shrub; re-verify Git tree. Update this index after each completed batch.
 - All other biomes require **their own** Nature assets and Structures/Props, including City / small urban vegetation, homes, markets and utilities.
