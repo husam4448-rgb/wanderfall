@@ -87,7 +87,7 @@ func _test() -> void:
         atlas.texture = transition_texture
         atlas.create_tile(Vector2i.ZERO)
         var source_id := transition_set.add_source(atlas)
-        transition_layer.set_cell(Vector2i(index % 9, index / 9), source_id, Vector2i.ZERO)
+        transition_layer.set_cell(Vector2i(index % 9, int(index / 9)), source_id, Vector2i.ZERO)
         index += 1
     if transition_layer.get_used_cells().size() != 36:
         _fail("transition cells missing")
