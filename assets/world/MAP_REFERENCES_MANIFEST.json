@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "created": "2026-10-20",
+  "assets": [
+    {
+      "biome": "Forest",
+      "id": "SP_Forest_Map_LoggingSettlement_01",
+      "sourceLibraryPath": "/SurvivalParadise/MapSources/SP_Forest_Map_LoggingSettlement_01.png",
+      "sourceSizeBytes": 4483481,
+      "sourceSHA256": "7c931c8a4b11a8b504a6a770d220541e961becf68c0e5b9e700a401cbcc7e176",
+      "repoPath": "assets/world/Forest/MapReferences/SP_Forest_Map_LoggingSettlement_01.webp",
+      "repoSizeBytes": 1124022,
+      "repoSHA256": "8326a1e9105a68fcaff1406ddeb6d024ad5b4fce1138ac9ebaae0ea572106a04",
+      "width": 1448,
+      "height": 1086,
+      "status": "reference_not_playable"
+    },
+    {
+      "biome": "Forest",
+      "id": "SP_Forest_Map_EasternHighlands_02",
+      "sourceLibraryPath": "/SurvivalParadise/MapSources/SP_Forest_Map_EasternHighlands_02.png",
+      "sourceSizeBytes": 4029068,
+      "sourceSHA256": "318d36ef51530977d64e0ccb9bdc237c431c0cd3f4e65accf7f1e9c3d79ebf5b",
+      "repoPath": "assets/world/Forest/MapReferences/SP_Forest_Map_EasternHighlands_02.webp",
+      "repoSizeBytes": 984572,
+      "repoSHA256": "0fbd3fb42b71a11bbcb7f5676a08d3a66258ed3769db6d672c06e40b89c52c57",
+      "width": 1312,
+      "height": 1199,
+      "status": "reference_not_playable_not_edge_matched"
+    },
+    {
+      "biome": "Industrial",
+      "id": "SP_Industrial_Map_ScrapyardDistrict_01",
+      "sourceLibraryPath": "/SurvivalParadise/MapSources/SP_Industrial_Map_ScrapyardDistrict_01.png",
+      "sourceSizeBytes": 4402420,
+      "sourceSHA256": "03e2ba7916d98da0f10e101ae03f9be1dd11358705a0969323e0b70b37f8c388",
+      "repoPath": "assets/world/Industrial/MapReferences/SP_Industrial_Map_ScrapyardDistrict_01.webp",
+      "repoSizeBytes": 1095258,
+      "repoSHA256": "cc12bde63cff6e6aea480256045b89e2cd9ddc6816d94c9539cafcdbe518fac2",
+      "width": 1448,
+      "height": 1086,
+      "status": "reference_not_playable"
+    }
+  ]
+}

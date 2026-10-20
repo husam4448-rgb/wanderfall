@@ -41,3 +41,11 @@
 2. Produce one asset per transparent image, visually QA the output, and keep filename and category accurate.
 3. Commit actual image PNGs and update the per-file upload status/checklists after each verified batch; store both Nature and Structures/Props for each biome.
 4. Do not mark an asset integrated, production ready, or in GitHub unless independently verified.
+
+## World map references (stored 2026-10-20)
+- [Forest: logging settlement layout](../../assets/world/Forest/MapReferences/SP_Forest_Map_LoggingSettlement_01.webp)
+- [Forest: eastern highlands / marsh concept](../../assets/world/Forest/MapReferences/SP_Forest_Map_EasternHighlands_02.webp)
+- [Industrial: scrapyard district layout](../../assets/world/Industrial/MapReferences/SP_Industrial_Map_ScrapyardDistrict_01.webp)
+- [Map references index and generation rules](../../assets/world/MAP_REFERENCES.md)
+- Source, full-resolution PNGs are backed up in this project's persistent file Library under `/SurvivalParadise/MapSources/`; GitHub carries visually high-quality WebP copies (quality 96), not byte-identical PNGs.
+- **Map images are reference art**, not playable Godot maps; no collision, pathfinding, interactables, tile seams, or traversal QA has been completed. The eastern highlands image is **not edge-matched** to the settlement image; avoid treating the pair as a seamless stitched map.
