@@ -1,0 +1,780 @@
+{
+  "schema": 1,
+  "description": "Exact original image-file upload status; regenerate from the Git tree to avoid stale claims.",
+  "verified_main_commit": "9593a0c957be48a93a5dd4bbe017c675c6fb42d0",
+  "source_count": 110,
+  "uploaded": 35,
+  "remaining": 75,
+  "entries": [
+    {
+      "path": "assets/world/Forest/Nature/Wood/SP_Root_Uprooted_01.png",
+      "source_sha256": "a432d701a923c0da1cdc5788311dc6c6916d5a964420bceb27ff909dc420096c",
+      "source_bytes": 127929,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "034d4c49a635cb80310e56a3b81320035f20ac2c"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Wood/SP_Log_Fallen_01.png",
+      "source_sha256": "ebac16459d2430d23b285624b9078f24e2ae9a1c96b8c7c14327278e030271fe",
+      "source_bytes": 91484,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "b612bd026e0ca6170e64434cf7a8b566ce0684e7"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Wood/SP_Stump_Hollow_01.png",
+      "source_sha256": "7026fa4cca25eec237db690cd79ce91c4e998d716d864af00b2d37094751473e",
+      "source_bytes": 103888,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "350d6704f7fad5f012041b47246b439f7a474c84"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Wood/SP_Log_CutPile_01.png",
+      "source_sha256": "35236129e1c013955c9f1b2ce0361643de6bfb5d03e414a103e5c949dca7282f",
+      "source_bytes": 138655,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "c5f0c597bf5ff72c6424990610bfc66ba909e921"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Wood/SP_Stump_Chopped_01.png",
+      "source_sha256": "92a73d09a9ad6b7389ffd7a2cd8307b6ad2a3e0d91f2ad0a63ba69da0b264ff8",
+      "source_bytes": 96707,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "d2dc2b4c1eb7ed66893c7cc436247ad50f0fb954"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Wood/SP_Log_Root_01.png",
+      "source_sha256": "016e3af3b08331abe1f6f8857058d28a74e66764d004278d9eab1283b5497403",
+      "source_bytes": 114030,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "e0dcf2dabaeaa543bf83598996960e764a363bc5"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Wood/SP_Branches_Pile_02.png",
+      "source_sha256": "8971dc502286eb599ec05044b2bd61d873aaaee92502a9de70036844eb85fff3",
+      "source_bytes": 113585,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "fe16f419eb29816b3f336b50134866dcf06cb98a"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Wood/SP_Log_Fallen_02.png",
+      "source_sha256": "a3d7b57644c87d4ec54062fc5a23bddb6b9b329d455e97644096dd685f1c4934",
+      "source_bytes": 105077,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "c65ff1b58b08c7d46a5d92016554ac768145d7ef"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Wood/SP_Branches_Pile_01.png",
+      "source_sha256": "0739639bb45cf381e2e2ea0d1df3503c0757c0890934035ef15407bc5d9a7640",
+      "source_bytes": 104140,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "e861919a2ea9f2853fe14c683657ac2f788ca6c7"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Wood/SP_Stump_Old_01.png",
+      "source_sha256": "26b027dfa17d61bb23668d7ffbbf4d341b7ac68d8af3344157d744f3e37013ab",
+      "source_bytes": 83284,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "00f45636a59f955485285caf44c9acab8ad9b1ba"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Wood/SP_Stump_ChoppedRoots_02.png",
+      "source_sha256": "8ded2cbd4f5821bd4c50e91437c969393516467f0d03747be3bdfc69db09e9e1",
+      "source_bytes": 122297,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "158ada9ebe12cd9bf08763ca395b4b307139504f"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Wood/SP_Branches_LargePile_01.png",
+      "source_sha256": "93c11d322d649a88938589c513c99b1283bd12a5b255156c2ee0e5d2c1c56f15",
+      "source_bytes": 136357,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "b9f092d91bb212fdc83161b84f0b8f2b95c86956"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Rocks/SP_Rock_Light_01.png",
+      "source_sha256": "a32595801f22be5db4ecc5971a59969c42cea595d1c348c83679474559109ec0",
+      "source_bytes": 92684,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "f8455dcfc837644672c3534571f87a48352b9a2f"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Rocks/SP_Rock_MossCluster_01.png",
+      "source_sha256": "2be23ad03b8779d167e9c2519e51bed7e9f56a7cb13393461d81a00126aabd87",
+      "source_bytes": 169395,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "80b753b7756f76731ca5b32670573bdf863d72f7"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Rocks/SP_Rock_Medium_02.png",
+      "source_sha256": "5983bc97366d80e6825922c27d95ce98e30c3858f176c7ded0702b84067a0ab9",
+      "source_bytes": 89340,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "b93e51b88a7fa83ce1d5fb20b6a6bf1011be7d57"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Rocks/SP_Rock_JaggedCluster_01.png",
+      "source_sha256": "6ee3a0d55eff011765abbb4175bd5e6bfdd563386b96f82c3464562572fb4aca",
+      "source_bytes": 214219,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "ecc474db9c0ee3d71ac07093e1a9c56cdd92689f"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Rocks/SP_Rock_Large_02.png",
+      "source_sha256": "2963a9ba5e04e8a5e33b4e346924600abd4869fc4ee056bc2a7a64e3ec49e825",
+      "source_bytes": 122286,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "16254a5147922c082f098e085c77109adb40f658"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Rocks/SP_Rock_Small_01.png",
+      "source_sha256": "89efff05bf80d15b7237f550a34ce5f4eb3f9fa45b9b0ece86840ead1424a0d2",
+      "source_bytes": 42093,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "3af038ee9818ce8dc1a67e15736ddc7de51839a1"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Rocks/SP_Rock_FlatCluster_01.png",
+      "source_sha256": "f716e190963b2b3340febd3947468285a1f544dbf8b13f319558d1ac8c5be096",
+      "source_bytes": 194944,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "bfc058383ea0fb06983db7f257315eafb072e2e1"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Rocks/SP_Rock_Cluster_01.png",
+      "source_sha256": "685e7e8f793f20de3ed2abee3b1457b155230de2346c9232243f80f7d8035aab",
+      "source_bytes": 121422,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "045926a950ddaa686a1fba735518e5d129b33e75"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Rocks/SP_Rock_Cluster_02.png",
+      "source_sha256": "e919b8bdd95cf55bd462d9b7259c51266ddb5433b59b1c89bfab13f258286465",
+      "source_bytes": 129638,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "25e27e6c4864c18205f97ef3e1bef5a978adefc1"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Rocks/SP_Rock_Medium_01.png",
+      "source_sha256": "54645272102b533863741ace37d889e58999c8b1f5ca65fc95ae8a42acbca14a",
+      "source_bytes": 66816,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "0b4f888a38892b16b758d65a6b6ec472ac35f950"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Rocks/SP_Rock_Dark_01.png",
+      "source_sha256": "91b59d89fc3d1063a42d124ea959af25e7d9e0f078e28a88ec3736fd7ec7de4a",
+      "source_bytes": 79894,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "b09006b0a5440347e5eb1fd38b27b9f1843fd0e7"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Rocks/SP_Rock_DarkCluster_01.png",
+      "source_sha256": "ef2d71944ccbfe48641cf37efa5fc3a2e965b7e4d8ec8bd207a0fd9f2036a8f7",
+      "source_bytes": 162783,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "eee8a66bd7ad296bff41a90e602690c533991ee7"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Rocks/SP_Rock_Large_01.png",
+      "source_sha256": "9e89b727e8f254b6633b3741e636853f6069f8ed44d783f8869a61c09ee077e5",
+      "source_bytes": 129796,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "958d0deb11ec36b18ed60c0544e200bbb31c197e"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Rocks/SP_Rock_Scattered_01.png",
+      "source_sha256": "716ac730aaf539fda915ad910cfc154ab02385b4d4489761941bbc732269213b",
+      "source_bytes": 62126,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "4504a7a20dda057e2df6fc17e7ce165608a0c829"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Rocks/SP_Rock_Slab_01.png",
+      "source_sha256": "367843f065f8b460f1bb1504cdf47336e4369fb7d4f2bb503938b0cfe847927d",
+      "source_bytes": 117871,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "84bab792e2d688962c1a6323438de4bebd4a3bad"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Rocks/SP_Rock_Small_02.png",
+      "source_sha256": "5b47ad39ba22e8b168f3567d7d04bc55e5e2eb7cb90fbe236313c9fda8ba2abc",
+      "source_bytes": 40422,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "0a422a0a28cd8b96c756843102ba2d50c319c9d2"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Rocks/SP_Rock_ChalkCluster_01.png",
+      "source_sha256": "573e25ffbf38c7705180b5b990e733d2c05d0eb1444d6aca70e22b72f7d65e4f",
+      "source_bytes": 162006,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "47f3d860f0048600a60264e463fd0b2544072634"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Trees/SP_Tree_Wide_01.png",
+      "source_sha256": "fc391594f295f21ea3c60ff1af2d4f22f95d4f83ffd870209910949a44c4beb1",
+      "source_bytes": 171087,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/Trees/SP_Tree_Autumn_01.png",
+      "source_sha256": "7d3f5c4480941792fe9c14c0fe6ad6e9238868db900f066cbe9673aa7d59281a",
+      "source_bytes": 113676,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/Trees/SP_Tree_Dead_02.png",
+      "source_sha256": "845a94b8baaa436ee75f919ad2163140553c170e0784e042e82e2db28e3c9556",
+      "source_bytes": 82844,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "7792116fde8ec04bd992d56d386392b413950064"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Trees/SP_Tree_Tall_01.png",
+      "source_sha256": "71e032c797a744b57f5dd5c472bb7ea7cf0eb06181c6bad7d81c0b0d66e993f3",
+      "source_bytes": 97367,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "4a32a1bff545c3542ef934c25048ae5ce971475a"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Trees/SP_Tree_Weeping_01.png",
+      "source_sha256": "e18847dc8cd7b270214bb34f0446a4f01ff35d9bdf8f71e4d4da8692270929cc",
+      "source_bytes": 152630,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/Trees/SP_Tree_BurntSnag_01.png",
+      "source_sha256": "e9290782e178b38933a75708833ab38c218ea1f7fd2ca8637a10b8122ef125e3",
+      "source_bytes": 70031,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "cac617d73d327579dcdf1e861454b5bead3b41b3"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Trees/SP_Tree_DeadTwisted_01.png",
+      "source_sha256": "030591405305e9f8b299cfb2d94b78a6a11c2f9cd2846fcb03eab69bc82f7786",
+      "source_bytes": 111420,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/Trees/SP_Tree_Green_02.png",
+      "source_sha256": "c86454d144b3b422e2b7b059aae72e078493223a9a2f1c62c1b4aa231252301d",
+      "source_bytes": 105729,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/Trees/SP_Tree_Sparse_01.png",
+      "source_sha256": "e6bdd85aab7f034d8da76890760ada8ec208b2625e4c1748967366956461785e",
+      "source_bytes": 129171,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/Trees/SP_Tree_Green_05.png",
+      "source_sha256": "14a5de021b6b0002134bfa6efb21a23a07316228313ad0eeb358487c01c54f91",
+      "source_bytes": 153641,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/Trees/SP_Tree_ConiferSparse_01.png",
+      "source_sha256": "540f977594c2e28d35648a5e382f894a73380402b94e2bbd7b2b5d1707250d7a",
+      "source_bytes": 143023,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/Trees/SP_Tree_Green_03.png",
+      "source_sha256": "1d92bb1baf7c7d62cd5a92459e93c596d472a72e9aad9c0c97fb28095f0fdef1",
+      "source_bytes": 97775,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/Trees/SP_Tree_Green_04.png",
+      "source_sha256": "6d26f8b8205307bf43d9af1e4a140278ab572f13e02621306ad709772aaa8120",
+      "source_bytes": 117905,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/Trees/SP_Tree_Gnarled_01.png",
+      "source_sha256": "0ff19a1035bd5b4a91b2e229f9c783b4795fb92b5bf777a91a3cd458466746e9",
+      "source_bytes": 146285,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/Trees/SP_Tree_Green_01.png",
+      "source_sha256": "75edb51e77403a4db008b281b3f67a55555a631924efa63a9d7a2a712a334d1e",
+      "source_bytes": 143278,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/Trees/SP_Tree_Damaged_01.png",
+      "source_sha256": "babc1f41f6b4448332e1f918454e0a33fedc0ed8beac424b459730be8df37e89",
+      "source_bytes": 56738,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "0093a67c804090b421415aece41459d004401b06"
+    },
+    {
+      "path": "assets/world/Forest/Nature/Trees/SP_Tree_DeadCrooked_01.png",
+      "source_sha256": "19c88cf69a9333ead4efef02543ace9fe3bf86469e55dec8398198fbd486d744",
+      "source_bytes": 93892,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/Trees/SP_Tree_PineSparse_01.png",
+      "source_sha256": "133253803f60a8b276e9f42de539df1ca5ffec648b9473d09eb67bf4d85c63e7",
+      "source_bytes": 149625,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/Trees/SP_Tree_Dark_01.png",
+      "source_sha256": "17af34dcee5374e27e574a5580336635acc1f8baa42491eb51c2ec38072f216d",
+      "source_bytes": 117112,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/Trees/SP_Tree_Dead_01.png",
+      "source_sha256": "5258d0e0bd0f82b03233cd068fb91086f0257f2c88843f061872c606d58ec32e",
+      "source_bytes": 83599,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/GroundClutter/SP_Branches_CharredPile_01.png",
+      "source_sha256": "4e89b3bbfa8ac4e21d80d63a76f14567c44ac6422787df2b022bb66797110214",
+      "source_bytes": 122044,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/GroundClutter/SP_Mushroom_BrownPatch_01.png",
+      "source_sha256": "040d03b884dd809c043755e85bce42676b687a1c323c6d6d61d66f89843504b1",
+      "source_bytes": 121771,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/GroundClutter/SP_Grass_Tall_01.png",
+      "source_sha256": "8f8182d79e81502cd6db6961f10e598597dfd158515269e21f82fb866d673b9c",
+      "source_bytes": 72742,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/GroundClutter/SP_Weed_Patch_02.png",
+      "source_sha256": "194beabd202f695c160369c398541079a5c03b75ec168a4fe3bb6dcec2782717",
+      "source_bytes": 69907,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/GroundClutter/SP_Mushroom_Patch_01.png",
+      "source_sha256": "a87bb29d7b300b7bc639fdba7d141e23c881ef8d356a351fc2bef0a3b4b482c0",
+      "source_bytes": 73257,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/GroundClutter/SP_Leaf_Pile_01.png",
+      "source_sha256": "74ee5ae78cd34446208983a1bb6ab0b6bd9f1c4be89e6add0f3f61cde709e270",
+      "source_bytes": 79551,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/GroundClutter/SP_Branch_Pile_01.png",
+      "source_sha256": "1d93c76ffcd8e7dbb039fa1ae6bf1e28f9742497c1cce215ea21dcbbef8eec46",
+      "source_bytes": 97326,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/GroundClutter/SP_Mushroom_Patch_02.png",
+      "source_sha256": "67ba9c0f64c88474860b579a40cfd3aed5a868baf5e5d0a0f017eb5a06a8bbe1",
+      "source_bytes": 71028,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/GroundClutter/SP_Weed_Patch_01.png",
+      "source_sha256": "3f23ff7bd39c98ac2a1d8b015a41d83ecfaaee4ac68ca493743205c6625d7af5",
+      "source_bytes": 74274,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/GroundClutter/SP_Grass_Clump_01.png",
+      "source_sha256": "1ee483b9533897bc3b8ecd0b19412df9af2ce0b2a3f20c4630eb497129e0c684",
+      "source_bytes": 80791,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/GroundClutter/SP_Grass_ReedClump_01.png",
+      "source_sha256": "4f9b223daebc80223b142ddd668f5e6f7a4ca6e560617dd59527228d44e9f9aa",
+      "source_bytes": 119711,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/GroundClutter/SP_Grass_Clump_02.png",
+      "source_sha256": "e655935e0161680aab8123a9b707f65538be46ff00e07457239eba5c92271e69",
+      "source_bytes": 73071,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/GroundClutter/SP_Leaves_AutumnPile_01.png",
+      "source_sha256": "3a6688de27d8f7af6880202bc7abbd88dfb44b9e2cd50923206cb35193e6605f",
+      "source_bytes": 133371,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/GroundClutter/SP_Plant_Broadleaf_01.png",
+      "source_sha256": "524e278a3a480a6bb8ed16fd7ae3acbaf64d144345dbc0136578c9efd34c9e1c",
+      "source_bytes": 98238,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/GroundClutter/SP_Flowers_DaisyPatch_01.png",
+      "source_sha256": "385a6f9e40f7601c40c0ec0805b3afdd20eab1344b415ae34ce25bd7524a9aa7",
+      "source_bytes": 109029,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/GroundClutter/SP_Plant_Fern_01.png",
+      "source_sha256": "f42229e124961ae9dd4c9a44df4aa54b808d1c87806dc1f1dad83ad5931e5470",
+      "source_bytes": 91722,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/GroundClutter/SP_Plant_LowFoliage_01.png",
+      "source_sha256": "efd28a663fdd9d63f4050f360f6c9e905e8033ae1410f6a514ed214c258695eb",
+      "source_bytes": 106584,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/GroundClutter/SP_Debris_Leaves_01.png",
+      "source_sha256": "367efc829bdffae392ffad3b1bd949236189d508170eb89132b2be69087bcad3",
+      "source_bytes": 91545,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/GroundClutter/SP_Grass_DryClump_01.png",
+      "source_sha256": "d6c19bfc6c8dbe27c3be729f9d16584dd10a4b15ff42733648cf5813cbc577e6",
+      "source_bytes": 147505,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/Bushes/SP_Bush_SparseTwigs_01.png",
+      "source_sha256": "a76c83beaeb796d820d4cf8c6ffdf35bb9464facfef46c9dc2008cf46d483afe",
+      "source_bytes": 143521,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/Bushes/SP_Bush_Shrub_01.png",
+      "source_sha256": "7d569655b82b64d0d4ebd902bf9d8740546ac33b74f0f7c49a646a45d05fb034",
+      "source_bytes": 116050,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/Bushes/SP_Bush_DeadBrush_01.png",
+      "source_sha256": "a4492ad75175f0ea789756fa6921cf66c6b2017ca5b4324170d8552e4184f516",
+      "source_bytes": 151970,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/Bushes/SP_Bush_LowSprawling_01.png",
+      "source_sha256": "ed4444f7abb5c56e508ec567c83d034c4f08d794205dcf203d6028dbfc6ae929",
+      "source_bytes": 123441,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/Bushes/SP_Bush_LushUpright_01.png",
+      "source_sha256": "cf3a1e595f3d661e5306a0d21955ff91ab557d7ea90e1995cc8ac4140facb576",
+      "source_bytes": 166783,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/Bushes/SP_Bush_FlowerWhite_01.png",
+      "source_sha256": "03552e6174bd7877dd9d6d3f0a90d60dbe528f3781c56e82494f388a9b4de501",
+      "source_bytes": 180004,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/Bushes/SP_Bush_Dead_01.png",
+      "source_sha256": "51ee3c2a6b016bfe32630126f9ec6e80d46f592ece37693f99a50147356c6002",
+      "source_bytes": 146240,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/Bushes/SP_Bush_ThicketDry_01.png",
+      "source_sha256": "f2a917c764cfdc1a9a1334e68e8014a1c9aa0a656cea90c1c3877585387b7aa3",
+      "source_bytes": 167426,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/Bushes/SP_Bush_Golden_01.png",
+      "source_sha256": "1f5644e0eaa80dc4e062a6c29961c5bed5e220f2f2a2583dd0f5d90c575c4746",
+      "source_bytes": 168809,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/Bushes/SP_Bush_Round_01.png",
+      "source_sha256": "f1ee285a9898c621c82766ded812c75d52a0e0af67f55471d266830f915a4bfa",
+      "source_bytes": 101697,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/Bushes/SP_Bush_Dense_01.png",
+      "source_sha256": "24bed9887d34b1cc0091ea54a13e5bcaab1370acab90785b00ebc0ad2d47c0eb",
+      "source_bytes": 142157,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/Bushes/SP_Bush_Berry_01.png",
+      "source_sha256": "b5c958f143afef17630e91374775378515c70c130ef340c96bbedab90f17872b",
+      "source_bytes": 135347,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/Bushes/SP_Bush_Dense_02.png",
+      "source_sha256": "a736e0ca18e1482708fb4ccada5a6552a74f2570db2bfb4f95b8153e63ff84e1",
+      "source_bytes": 145858,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/Bushes/SP_Bush_Shrub_02.png",
+      "source_sha256": "5c0bf7e5ac63781a94f8c8802debb2c46cefba8920e3cc80c102bbce28699e55",
+      "source_bytes": 133489,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/Bushes/SP_Bush_Round_02.png",
+      "source_sha256": "37d46abdf49221e063faeb494dcb9c0fe065d2f4403a4bab0af7e6bd11fda020",
+      "source_bytes": 120905,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Forest/Nature/Bushes/SP_Bush_Wild_01.png",
+      "source_sha256": "729f0f2522b9c58778fe2d1868f9435aa91f018bbfd82646d864922ed5be6dec",
+      "source_bytes": 134133,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Desert/Nature/Tree/SP_Desert_Tree_Acacia_01.png",
+      "source_sha256": "b11524d5f4cddc5063ffad62cde4a4b0f7b6e5a17605713b530e39d11b693ae4",
+      "source_bytes": 613056,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Desert/Nature/Tree/SP_Desert_Tree_Acacia_02.png",
+      "source_sha256": "338bfe7f2b2015771cb8c0809da15955bd905236157698e9434fa378a161b275",
+      "source_bytes": 277749,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "9ab70368816ddeebe07df61e733dddc3e5fc59c4"
+    },
+    {
+      "path": "assets/world/Desert/Nature/Tree/SP_Desert_Tree_Acacia_03.png",
+      "source_sha256": "76fb2422b7adafa90730703f2be626737a76f44950e5f9993b73c4a62ea34843",
+      "source_bytes": 428811,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Desert/Nature/Tree/SP_Desert_Tree_Acacia_04.png",
+      "source_sha256": "9c9dd9e04e0ac2276ed265dd616ba77770620c4c7e7127e09fd15fb9b01009c9",
+      "source_bytes": 345765,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Desert/Nature/Tree/SP_Desert_Tree_DatePalm_01.png",
+      "source_sha256": "96800d9da7f058e168f2ce1ee99aa93cc1b9111998df7e1380a6fa367bb2be47",
+      "source_bytes": 588878,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Desert/Nature/Tree/SP_Desert_Tree_DatePalm_02.png",
+      "source_sha256": "fe391d82b2c943308c4c83e0793badc90c3a9b6b3124b59dfa0c19cc8a1b5a19",
+      "source_bytes": 575876,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Desert/Nature/Tree/SP_Desert_Tree_DeadTree_01.png",
+      "source_sha256": "9c69b6603f429654336cdc51e50324d29b34a7c51d4775fe52336947d6bba722",
+      "source_bytes": 244377,
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "6087b137a00df1d844fdc185ae32a5410c663ad4"
+    },
+    {
+      "path": "assets/world/Desert/Nature/Tree/SP_Desert_Tree_DeadTree_02.png",
+      "source_sha256": "6529b9c86b50ebd95926e683551a9a4a3c2057cb0325078bb1e4ff3dfcdbb741",
+      "source_bytes": 316887,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Desert/Nature/Tree/SP_Desert_Tree_ScrubTree_01.png",
+      "source_sha256": "e22e4ad80693d42400e7e44a907341b1d7fe1303e73c43658fed10abd46e3857",
+      "source_bytes": 542701,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Desert/Nature/Tree/SP_Desert_Tree_Sidr_01.png",
+      "source_sha256": "32bb3411373a63e57c57862965970d18efb95a945792cc3846d2990839b5d1c2",
+      "source_bytes": 585891,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Desert/Nature/Tree/SP_Desert_Tree_Tamarisk_01.png",
+      "source_sha256": "db450110db54245d47aac0f6535d43fcb78b76b631ce00cd7107cb387d1a8237",
+      "source_bytes": 662345,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Desert/Nature/Tree/SP_Desert_Tree_Tamarisk_02.png",
+      "source_sha256": "ac132623052d6cc72e7969bc37f3d201ac5d71181cb0661748abcc9daeb5c782",
+      "source_bytes": 535232,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Desert/Nature/Shrub/SP_Desert_Shrub_Artemisia_01.png",
+      "source_sha256": "84765c99048d88c63b534f5849ccb9454f61a72169d872d509796b5e5ba600a2",
+      "source_bytes": 412779,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Desert/Nature/Shrub/SP_Desert_Shrub_Artemisia_02.png",
+      "source_sha256": "d759625b09f936def99c34798cc1282ed81ba31423fba4f834334cc748fb2765",
+      "source_bytes": 320208,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Desert/Nature/Shrub/SP_Desert_Shrub_Calligonum_01.png",
+      "source_sha256": "61c480dfef9d70b25af1bbcf8c08e7be6bfb404a0f02f3df2542b451280163fe",
+      "source_bytes": 430407,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Desert/Nature/Shrub/SP_Desert_Shrub_Calligonum_02.png",
+      "source_sha256": "03872a26948b6d51cd7736a6363fd58259c3f729a51d1dcc47008ce7ef2448f2",
+      "source_bytes": 519197,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Desert/Nature/Shrub/SP_Desert_Shrub_DriedShrub_01.png",
+      "source_sha256": "0631c8e37dee80dcb060dddb18328cddf50ec8c8cebbed7c5f4d0257b61de2e2",
+      "source_bytes": 473161,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Desert/Nature/Shrub/SP_Desert_Shrub_Haloxylon_01.png",
+      "source_sha256": "fc930214bd4b9c0ff961c26c8d73cf846308abbfeaf17063b4b69f47ba4496e0",
+      "source_bytes": 429590,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Desert/Nature/Shrub/SP_Desert_Shrub_Haloxylon_02.png",
+      "source_sha256": "7a396c8321d2dcfbf3a4302a2f626decc18752058437c73ddd860eeeb0a92170",
+      "source_bytes": 494629,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Desert/Nature/Shrub/SP_Desert_Shrub_Rhanterium_01.png",
+      "source_sha256": "99bbee05532c7ae03d0b97fb2d90367c398246ade46baacd5891305fddafb5f1",
+      "source_bytes": 417747,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Desert/Nature/Shrub/SP_Desert_Shrub_Rhanterium_02.png",
+      "source_sha256": "ca9beea03c1d43e55da764e09b359c45ffa007c351bbf66cc0724fe53923f8b7",
+      "source_bytes": 383901,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Desert/Nature/Shrub/SP_Desert_Shrub_Saltbush_01.png",
+      "source_sha256": "5c07b6a7b6bc7fe85bbf00796e71114f6bf2d3b4f2e1b9469fadf6c41c4a724a",
+      "source_bytes": 483237,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Desert/Nature/Shrub/SP_Desert_Shrub_Saltbush_02.png",
+      "source_sha256": "d7305c8ebe045dff0c4d697110195582a14392405da9fe1063fdb85b22a3176e",
+      "source_bytes": 385394,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Desert/Nature/Shrub/SP_Desert_Shrub_TamariskYoung_01.png",
+      "source_sha256": "d4af5279319bb1ae11634201031f3962ca5b7ffa392ddcd72f298ce2cf52629d",
+      "source_bytes": 530654,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Desert/Nature/Shrub/SP_Desert_Shrub_Thorn_01.png",
+      "source_sha256": "607aa2f53e00eacc6b889ac28b0527ee028d4e095ec864db6d630127aecdacac",
+      "source_bytes": 513008,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    },
+    {
+      "path": "assets/world/Desert/Nature/Shrub/SP_Desert_Shrub_Thorn_02.png",
+      "source_sha256": "691d6a6f9357ce8ecf54be6a1f921f75b3aba96f8d6ff6f9763b1acc9017039c",
+      "source_bytes": 442761,
+      "github_status": "NOT_UPLOADED",
+      "github_git_blob_sha": null
+    }
+  ]
+}
