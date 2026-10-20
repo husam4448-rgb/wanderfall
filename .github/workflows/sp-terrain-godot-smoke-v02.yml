@@ -7,6 +7,7 @@ on:
       - '.github/workflows/sp-terrain-godot-smoke-v02.yml'
       - 'prototypes/terrain_v01/**'
       - 'tools/render_terrain_layout_v02.py'
+      - 'tools/generate_biome_transitions_v02.py'
   workflow_dispatch:
 
 permissions:
@@ -45,6 +46,13 @@ jobs:
           cp prototypes/terrain_v01/terrain_godot_probe.gd /tmp/sp_terrain_godot/terrain_godot_probe.gd
           cp assets/world/terrain_prototype/v01/extracted/ASSET_MANIFEST.json /tmp/sp_terrain_godot/ASSET_MANIFEST.json
           cp -a assets/world/terrain_prototype/v01/extracted/GameAssets /tmp/sp_terrain_godot/GameAssets
+      - name: Generate edge-safe biome transition prototypes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pillow numpy
+          python3 tools/generate_biome_transitions_v02.py /tmp/sp_terrain_godot/GameAssets /tmp/sp_terrain_godot/Transitions
+          test "$(find /tmp/sp_terrain_godot/Transitions -name 'SP_Transition_*.png' | wc -l)" -eq 36
       - name: Install pinned Godot
         shell: bash
         run: |
@@ -61,7 +69,7 @@ jobs:
           "$GODOT" --headless --editor --path /tmp/sp_terrain_godot --quit 2>&1 | tee godot-import.log
           if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|Parse Error:|Compile Error:' godot-import.log; then exit 1; fi
           timeout 60s "$GODOT" --headless --path /tmp/sp_terrain_godot --script /tmp/sp_terrain_godot/terrain_godot_probe.gd 2>&1 | tee godot-probe.log
-          grep -F 'SP_TERRAIN_GODOT_IMPORT_PASS assets=281 biomes=9 road_masks=64 tilemap_layers=2' godot-probe.log
+          grep -F 'SP_TERRAIN_GODOT_IMPORT_PASS assets=281 biomes=9 road_masks=64 transitions=36 tilemap_layers=3' godot-probe.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
