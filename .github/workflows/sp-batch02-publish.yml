@@ -1,0 +1,47 @@
+name: Publish Survival Paradise Batch02 assets
+on:
+  push:
+    branches: [sp-batch02-downloads-20261020]
+    paths:
+      - '.github/workflows/sp-batch02-publish.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reconstruct and verify original archive
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64,hashlib,zipfile
+          d=Path('art_source/batch02_20261020/source_chunks')
+          parts=sorted(d.glob('*.txt'))
+          assert len(parts)==30, len(parts)
+          data=base64.b64decode(''.join(p.read_text() for p in parts),validate=True)
+          assert len(data)==1692466, len(data)
+          assert hashlib.sha256(data).hexdigest()=='3a3de4cd897cb8937092e47f38b52a41308cc33a26d02050da1da5b18af9e5b0'
+          out=Path('art_source/batch02_20261020/downloads')
+          out.mkdir(parents=True,exist_ok=True)
+          archive=out/'SurvivalParadise_Batch02_Sheets.zip'
+          archive.write_bytes(data)
+          with zipfile.ZipFile(archive) as z:
+              names=z.namelist()
+              assert len(names)==7, names
+              assert all(n.startswith('SP_') and n.endswith('_SourceSheet.png') and '/' not in n for n in names), names
+              assert z.testzip() is None
+              for n in names:
+                  (out/n).write_bytes(z.read(n))
+          print('PASS original ZIP checksum + 7 PNGs')
+          PY
+      - name: Commit downloadable assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add art_source/batch02_20261020/downloads
+          if ! git diff --cached --quiet; then
+            git commit -m "assets(batch02): publish seven original PNGs and verified ZIP"
+            git push
+          fi
