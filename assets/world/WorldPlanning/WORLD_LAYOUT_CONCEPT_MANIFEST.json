@@ -1,0 +1,57 @@
+{
+  "project": "Survival Paradise",
+  "record_type": "world_layout_concepts",
+  "version": 1,
+  "updated": "2026-10-20",
+  "acceptance": "No draft is approved as the canonical world layout. None is a biome-specific map or playable Godot world.",
+  "images": [
+    {
+      "id": "SP_World_MasterOverview_Concept_01",
+      "repo_path": "assets/world/WorldPlanning/SP_World_MasterOverview_Concept_01.webp",
+      "source_library_path": "/SurvivalParadise/MapSources/SP_World_MasterOverview_Concept_01.png",
+      "source_png_sha256": "a6f9996559a75a17c9d47cfa0bf4f132308e0bf9025d807d9405b984042dca75",
+      "github_webp_sha256": "8a5e03db9b1ffebc1fdaad6fb901129ba0a83b5038405e0ea3f054c937cef30f",
+      "source_bytes": 4207974,
+      "github_bytes": 927376,
+      "dimensions_px": [
+        1536,
+        1024
+      ],
+      "type": "moodboard_with_panels",
+      "qa_status": "concept_draft_unapproved_not_playable",
+      "description": "Composite overview with inset panels and legend; reference only"
+    },
+    {
+      "id": "SP_World_MasterOverview_Concept_02",
+      "repo_path": "assets/world/WorldPlanning/SP_World_MasterOverview_Concept_02.webp",
+      "source_library_path": "/SurvivalParadise/MapSources/SP_World_MasterOverview_Concept_02.png",
+      "source_png_sha256": "c320408c0e58afeeb2ffb0729920ce67bdc2454672e3ba8f73fd2fc3f5e3917c",
+      "github_webp_sha256": "05daa4d90c7132a43fa963712246330f4b532b575fc44707913e0b640a2d4567",
+      "source_bytes": 4297497,
+      "github_bytes": 958786,
+      "dimensions_px": [
+        1536,
+        1024
+      ],
+      "type": "continental_layout_draft",
+      "qa_status": "concept_draft_unapproved_not_playable",
+      "description": "Seven-region continental overview; annotations and coarse geography"
+    },
+    {
+      "id": "SP_World_MasterOverview_Concept_03",
+      "repo_path": "assets/world/WorldPlanning/SP_World_MasterOverview_Concept_03.webp",
+      "source_library_path": "/SurvivalParadise/MapSources/SP_World_MasterOverview_Concept_03.png",
+      "source_png_sha256": "24107399bfe5ddfe6cb0621f825c68d8f20ef99b03e288dc043f34252a8598fc",
+      "github_webp_sha256": "1ade1ccbb4237ffc2868f6e9466853919d35f952901c99c6751b624df42f81eb",
+      "source_bytes": 3988055,
+      "github_bytes": 874910,
+      "dimensions_px": [
+        1312,
+        1199
+      ],
+      "type": "alternate_layout_draft",
+      "qa_status": "concept_draft_unapproved_not_playable",
+      "description": "Alternate continent map with unplanned volcanic biome and islands; not approved"
+    }
+  ]
+}

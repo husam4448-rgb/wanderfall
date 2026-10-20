@@ -49,3 +49,8 @@
 - [Map references index and generation rules](../../assets/world/MAP_REFERENCES.md)
 - Source, full-resolution PNGs are backed up in this project's persistent file Library under `/SurvivalParadise/MapSources/`; GitHub carries visually high-quality WebP copies (quality 96), not byte-identical PNGs.
 - **Map images are reference art**, not playable Godot maps; no collision, pathfinding, interactables, tile seams, or traversal QA has been completed. The eastern highlands image is **not edge-matched** to the settlement image; avoid treating the pair as a seamless stitched map.
+
+## World expansion — master layout concepts (2026-10-20)
+- [Three world-overview concept drafts](../../assets/world/WorldPlanning/README.md) are preserved for reference. **None is an approved biome map or playable terrain**.
+- [World biome production roadmap](world/WORLD_EXPANSION_PLAN.json) specifies distinct Desert, Grassland, Swamp, Highlands, Coastal, Arid Scrubland, City, Forest and Industrial regions, plus the future Godot chunk requirements.
+- The next real map deliverable is a **single-biome Desert region**; previous whole-continent generations are not counted as that deliverable.

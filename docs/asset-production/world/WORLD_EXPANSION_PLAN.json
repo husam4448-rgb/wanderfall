@@ -1,0 +1,104 @@
+{
+  "project": "Survival Paradise",
+  "updated": "2026-10-20",
+  "record_type": "procedural_world_biome_production_roadmap",
+  "source_of_truth": "docs/asset-production/README.md",
+  "world_strategy": "Hybrid deterministic procedural terrain chunks + authored POI scenes",
+  "biomes": [
+    {
+      "id": "forest",
+      "name": "Forest",
+      "priority": 2,
+      "existing_refs": [
+        "SP_Forest_Map_LoggingSettlement_01",
+        "SP_Forest_Map_EasternHighlands_02"
+      ],
+      "next_region": "Forest edge / transition to grasslands",
+      "status": "reference_maps_only"
+    },
+    {
+      "id": "desert",
+      "name": "Iraqi / Arabian Desert",
+      "priority": 1,
+      "existing_refs": [],
+      "next_region": "Dedicated gravel-desert wadi and oasis map",
+      "status": "nature_prototypes_only"
+    },
+    {
+      "id": "grassland",
+      "name": "Grassland / Farm Country",
+      "priority": 3,
+      "existing_refs": [],
+      "next_region": "Abandoned agricultural valley with roads, field boundaries and farmhouse clusters",
+      "status": "planned"
+    },
+    {
+      "id": "swamp",
+      "name": "Swamp / Wetland",
+      "priority": 4,
+      "existing_refs": [],
+      "next_region": "Flooded lowlands with causeways and isolated landmarks",
+      "status": "planned"
+    },
+    {
+      "id": "rocky_highlands",
+      "name": "Rocky Highlands",
+      "priority": 5,
+      "existing_refs": [],
+      "next_region": "Rocky hills, quarry, stony plateau, cliff-edge paths",
+      "status": "planned"
+    },
+    {
+      "id": "coastal",
+      "name": "Coastal",
+      "priority": 6,
+      "existing_refs": [],
+      "next_region": "Coastal village, docks, estuary, broken highway",
+      "status": "planned"
+    },
+    {
+      "id": "arid_scrubland",
+      "name": "Arid Scrubland",
+      "priority": 7,
+      "existing_refs": [],
+      "next_region": "Transition between desert and grassland with sparse low vegetation",
+      "status": "planned"
+    },
+    {
+      "id": "city",
+      "name": "City / Small Urban",
+      "priority": 8,
+      "existing_refs": [],
+      "next_region": "Abandoned town districts and urban nature, houses, shops, markets",
+      "status": "planned"
+    },
+    {
+      "id": "industrial",
+      "name": "Industrial",
+      "priority": 9,
+      "existing_refs": [
+        "SP_Industrial_Map_ScrapyardDistrict_01"
+      ],
+      "next_region": "Factory yard and logistics warehouse expansion",
+      "status": "reference_maps_only"
+    }
+  ],
+  "requirements": {
+    "terrain": "Individual terrain/road decals or seamless tileable pieces, not one baked map image",
+    "projection": "Consistent overhead with slight 2.5D / oblique depth; readable 2D sprites",
+    "props": "Separate transparent PNG sprites per object with checked alpha and matching scale",
+    "buildings": "Exterior world fillers only unless explicit gameplay interiors; no fake stairs, steps or ramps",
+    "seams": "Coordinate-aware roads, rivers, rails and paths across chunk edges",
+    "persistence": "World seed plus per-chunk stored player modifications",
+    "Godot": "Separate TileMapLayer terrain, collision, occlusion, navigation, and interactive POIs",
+    "QA": "Test walking clearance, collisions, visual scale, terrain seam continuity, load performance and Android memory before marking playable"
+  },
+  "next_batch": [
+    "Create standalone Desert region map (not continent diagram); require full-bleed single region, no labels",
+    "Create Grassland/Farmland standalone region map",
+    "Create Swamp standalone region map",
+    "Create Coastal standalone region map",
+    "Register new map-reference art as provisional and only approve upon visual QA",
+    "Create actual modular tiles/POIs and build playable chunk generation with Godot"
+  ]
+}
