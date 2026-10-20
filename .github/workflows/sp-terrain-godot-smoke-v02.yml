@@ -1,0 +1,72 @@
+name: SP Terrain V02 - Godot import smoke
+
+on:
+  push:
+    branches: [sp-terrain-prototype-20261020]
+    paths:
+      - '.github/workflows/sp-terrain-godot-smoke-v02.yml'
+      - 'prototypes/terrain_v01/**'
+      - 'tools/render_terrain_layout_v02.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  terrain-godot-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate all source images against manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          p=Path('assets/world/terrain_prototype/v01/extracted')
+          manifest=json.loads((p/'ASSET_MANIFEST.json').read_text())
+          assets=manifest['assets']
+          assert len(assets)==281
+          for a in assets:
+              f=p/'GameAssets'/a['path']
+              assert f.is_file(), a['path']
+              assert f.stat().st_size==a['bytes'], a['path']
+              assert hashlib.sha256(f.read_bytes()).hexdigest()==a['sha256'], a['path']
+          print('SP_TERRAIN_MANIFEST_PASS assets=281 verified=281')
+          PY
+      - name: Prepare isolated Godot 4 project
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/sp_terrain_godot
+          cp prototypes/terrain_v01/project.godot /tmp/sp_terrain_godot/project.godot
+          cp prototypes/terrain_v01/terrain_godot_probe.gd /tmp/sp_terrain_godot/terrain_godot_probe.gd
+          cp assets/world/terrain_prototype/v01/extracted/ASSET_MANIFEST.json /tmp/sp_terrain_godot/ASSET_MANIFEST.json
+          cp -a assets/world/terrain_prototype/v01/extracted/GameAssets /tmp/sp_terrain_godot/GameAssets
+      - name: Install pinned Godot
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 2 -o /tmp/sp_godot.zip 'https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip'
+          echo 'cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/sp_godot.zip' | sha256sum -c -
+          unzip -q /tmp/sp_godot.zip -d /tmp
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --version
+      - name: Import images and test TileMapLayers
+        shell: bash
+        run: |
+          set -euo pipefail
+          GODOT=/tmp/Godot_v4.7.2-stable_linux.x86_64
+          "$GODOT" --headless --editor --path /tmp/sp_terrain_godot --quit 2>&1 | tee godot-import.log
+          if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|Parse Error:|Compile Error:' godot-import.log; then exit 1; fi
+          timeout 60s "$GODOT" --headless --path /tmp/sp_terrain_godot --script /tmp/sp_terrain_godot/terrain_godot_probe.gd 2>&1 | tee godot-probe.log
+          grep -F 'SP_TERRAIN_GODOT_IMPORT_PASS assets=281 biomes=9 road_masks=64 tilemap_layers=2' godot-probe.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: terrain-v02-godot-import-logs
+          path: |
+            godot-import.log
+            godot-probe.log
+          if-no-files-found: ignore
