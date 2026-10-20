@@ -1,7 +1,12 @@
 config_version=5
 
 [application]
-config/name="Survival Paradise Terrain Asset Probe"
+config/name="Survival Paradise Terrain Visual QA"
+run/main_scene="res://terrain_preview.tscn"
+
+[display]
+window/size/viewport_width=768
+window/size/viewport_height=1024
 
 [rendering]
 renderer/rendering_method="gl_compatibility"
