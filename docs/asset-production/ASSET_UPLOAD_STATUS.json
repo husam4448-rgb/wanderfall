@@ -1,10 +1,10 @@
 {
   "schema": 1,
   "description": "Exact original image-file upload status; regenerate from the Git tree to avoid stale claims.",
-  "verified_main_commit": "9593a0c957be48a93a5dd4bbe017c675c6fb42d0",
+  "verified_main_commit": "98de294f56b2d16f9d60d5056c39639669c822bb",
   "source_count": 110,
-  "uploaded": 35,
-  "remaining": 75,
+  "uploaded": 41,
+  "remaining": 69,
   "entries": [
     {
       "path": "assets/world/Forest/Nature/Wood/SP_Root_Uprooted_01.png",
@@ -213,15 +213,15 @@
       "path": "assets/world/Forest/Nature/Trees/SP_Tree_Wide_01.png",
       "source_sha256": "fc391594f295f21ea3c60ff1af2d4f22f95d4f83ffd870209910949a44c4beb1",
       "source_bytes": 171087,
-      "github_status": "NOT_UPLOADED",
-      "github_git_blob_sha": null
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "3ad819f4e7c06f24d55e20cd280f37c020f15522"
     },
     {
       "path": "assets/world/Forest/Nature/Trees/SP_Tree_Autumn_01.png",
       "source_sha256": "7d3f5c4480941792fe9c14c0fe6ad6e9238868db900f066cbe9673aa7d59281a",
       "source_bytes": 113676,
-      "github_status": "NOT_UPLOADED",
-      "github_git_blob_sha": null
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "0198bb4e33c1ec24efa2f58753cb93683bc4650e"
     },
     {
       "path": "assets/world/Forest/Nature/Trees/SP_Tree_Dead_02.png",
@@ -241,8 +241,8 @@
       "path": "assets/world/Forest/Nature/Trees/SP_Tree_Weeping_01.png",
       "source_sha256": "e18847dc8cd7b270214bb34f0446a4f01ff35d9bdf8f71e4d4da8692270929cc",
       "source_bytes": 152630,
-      "github_status": "NOT_UPLOADED",
-      "github_git_blob_sha": null
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "7c9b86b318fe1f53a54f82c346514b683c53c65f"
     },
     {
       "path": "assets/world/Forest/Nature/Trees/SP_Tree_BurntSnag_01.png",
@@ -255,22 +255,22 @@
       "path": "assets/world/Forest/Nature/Trees/SP_Tree_DeadTwisted_01.png",
       "source_sha256": "030591405305e9f8b299cfb2d94b78a6a11c2f9cd2846fcb03eab69bc82f7786",
       "source_bytes": 111420,
-      "github_status": "NOT_UPLOADED",
-      "github_git_blob_sha": null
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "b638235d13939fb5399d841a1d57b8313202e1d4"
     },
     {
       "path": "assets/world/Forest/Nature/Trees/SP_Tree_Green_02.png",
       "source_sha256": "c86454d144b3b422e2b7b059aae72e078493223a9a2f1c62c1b4aa231252301d",
       "source_bytes": 105729,
-      "github_status": "NOT_UPLOADED",
-      "github_git_blob_sha": null
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "7b6b89143162a4921741891435f6871bffa13c63"
     },
     {
       "path": "assets/world/Forest/Nature/Trees/SP_Tree_Sparse_01.png",
       "source_sha256": "e6bdd85aab7f034d8da76890760ada8ec208b2625e4c1748967366956461785e",
       "source_bytes": 129171,
-      "github_status": "NOT_UPLOADED",
-      "github_git_blob_sha": null
+      "github_status": "UPLOADED",
+      "github_git_blob_sha": "9c18fdb656fbc293f203bbd24cd124b5fbe27b9a"
     },
     {
       "path": "assets/world/Forest/Nature/Trees/SP_Tree_Green_05.png",
