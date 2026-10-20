@@ -1,0 +1,26 @@
+name: SP Terrain Import v01
+on:
+  push:
+    branches:
+      - sp-terrain-prototype-20261020
+    paths:
+      - .github/workflows/sp-terrain-import-v01.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  import-terrain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reassemble archive
+        run: python3 tools/reconstruct_terrain_fragments_v01.py
+      - name: Extract source PNGs
+        run: python3 tools/import_terrain_v01.py art_source/world/terrain_prototype/v01/SurvivalParadise_ModularTerrain_281_PNG_v01.zip --extract-to assets/world/terrain_prototype/v01/extracted
+      - name: Commit isolated assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/world/terrain_prototype/v01/extracted
+          git diff --cached --quiet || (git commit -m "assets: import 281 verified terrain PNGs" && git push)
