@@ -1,7 +1,7 @@
 extends Node2D
 ## Actual Godot 4 rendered QA surface; NOT an approved gameplay map.
 
-const BIOMES = ["Forest", "Grassland", "Swamp", "Desert", "AridScrubland", "RockyHighlands", "Coastal", "City", "Industrial"]
+const BIOMES = ["Forest", "Forest", "Grassland", "Desert", "Desert", "AridScrubland", "City", "City", "Industrial", "City", "City", "City"]
 const TRANSITIONS = ["SP_Transition_Forest_To_Grassland_LR.png", "SP_Transition_Desert_To_AridScrubland_LR.png", "SP_Transition_City_To_Industrial_LR.png"]
 
 func create_atlas(tileset: TileSet, path: String) -> int:
@@ -35,11 +35,11 @@ func _ready() -> void:
     add_child(roads)
     for i in range(3):
         var mask = [2,10,8][i]
-        var sid = create_atlas(roads.tile_set, "res://GameAssets/Shared/Roads/Gravel/SP_Road_Gravel_%02d.png" % mask)
+        var sid = create_atlas(roads.tile_set, "res://GameAssets/Shared/Roads/Asphalt/SP_Road_Asphalt_%02d.png" % mask)
         if sid<0:
             get_tree().quit(1)
             return
-        roads.set_cell(Vector2i(i,1),sid,Vector2i.ZERO)
+        roads.set_cell(Vector2i(i,3),sid,Vector2i.ZERO)
 
     var blends := TileMapLayer.new()
     blends.name="BiomeEdgeTransitions"
@@ -51,7 +51,7 @@ func _ready() -> void:
         if sid<0:
             get_tree().quit(1)
             return
-        blends.set_cell(Vector2i(i,3),sid,Vector2i.ZERO)
+        blends.set_cell(Vector2i(1,i),sid,Vector2i.ZERO)
 
     await get_tree().process_frame
     await RenderingServer.frame_post_draw
