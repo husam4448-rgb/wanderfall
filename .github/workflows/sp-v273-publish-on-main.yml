@@ -1,0 +1,64 @@
+name: Publish Survival Paradise v273 Regional Maps and Directional LOS Prototype APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  public_release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Download APK from verified successful v273 native build
+        uses: actions/download-artifact@v4
+        with:
+          name: SP-PlayableWorld-v273
+          repository: husam4448-rgb/wanderfall
+          run-id: 39633281083
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: release
+
+      - name: Validate original verified package and signature metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="release/SurvivalParadise-WorldAssets-v273.apk"
+          test -s "$APK"
+          test "$(stat -c%s "$APK")" -gt 25000000
+          test "$(stat -c%s "$APK")" -lt 62914560
+          unzip -t "$APK" > /tmp/sp267_apk_zip_validation.log
+          test -s "release/apk-signature.txt"
+          test -s "release/apk-badging.txt"
+          grep -q "versionCode='281'" "release/apk-badging.txt"
+          grep -q "versionName='0.21.0D2D.14-v273'" "release/apk-badging.txt"
+          grep -Eq 'Verified using v2 scheme|Verified using v3 scheme' release/apk-signature.txt
+          # Original signed package has already passed its native CI checks;
+          # the archived checksum embeds the runner's absolute working path,
+          # so validate the downloaded copy's package metadata and generate
+          # a fresh portable digest rather than resolving a stale path.
+          sha256sum "$APK" | tee release/SP273_PUBLIC_RELEASE_SHA256.txt
+
+      - name: Publish public direct-download Android APK (no GitHub login)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: husam4448-rgb/wanderfall
+        run: |
+          set -euo pipefail
+          TAG=sp-world-v273
+          APK=release/SurvivalParadise-WorldAssets-v273.apk
+          if gh release view "$TAG" --repo "$GH_REPO" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" release/SP273_PUBLIC_RELEASE_SHA256.txt --repo "$GH_REPO" --clobber
+          else
+            gh release create "$TAG" "$APK" release/SP273_PUBLIC_RELEASE_SHA256.txt \
+              --repo "$GH_REPO" \
+              --target "e09ff14c3253d7b5115d143c335fb4cd1a7ba31e" \
+              --title "Survival Paradise v273 — Regional Maps, Path Transitions and Directional Vision" \
+              --notes "Experimental Survival Paradise regional-map + fog-of-war prototype: deterministic four-chunk regions; visible cardinal path exits and loading-screen transitions; darkened yet faintly visible terrain; aim-following directional player cone with 40 geometry raycasts; unseen actor masking; bandit and wildlife directional perception and wall-blocked gunfire. Preserves v272 20TPS S8 physics recovery, region-global world seed, base camp, nine biomes, original playable HUD and item/camp systems. VersionCode 281; native Godot scene QA and Android ARM64 signing validation passed. Not final NPC stealth AI, not benchmarked on Galaxy S8; test device FPS, portals and combat."
+          fi
+          gh release view "$TAG" --repo "$GH_REPO" --json assets,url,tagName --jq '{tag: .tagName, release: .url, assets: [.assets[].name]}'
