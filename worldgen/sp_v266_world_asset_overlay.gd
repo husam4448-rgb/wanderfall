@@ -42,7 +42,7 @@ static func paint_ground(canvas: CanvasItem, biome_id: int, coord: Vector2i, see
                 var extent: Vector2 = Vector2(minf(256.0, chunk_size-start.x), minf(256.0, chunk_size-start.y))
                 if extent.x > 0.0 and extent.y > 0.0:
                     canvas.draw_texture_rect(base, Rect2(start, extent), false,
-                        Color(1, 1, 1, 0.20))
+                        Color(1, 1, 1, 0.64))
     var rng := RandomNumberGenerator.new()
     rng.seed = int(abs(coord.x*73856093 + coord.y*19349663 + seed*83492791 + 31))
     for i in range(12):
