@@ -23,6 +23,13 @@ jobs:
           folder=Path('art_source/world_assets/batch03_20261021')
           chunks=sorted((folder/'chunks').glob('*.txt'))
           assert len(chunks)==135, f'Chunks missing: {len(chunks)}'
+          allowed=set('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=')
+          bad=[]
+          for part in chunks:
+              s=part.read_text(encoding='ascii')
+              invalid=[(i,repr(c)) for i,c in enumerate(s) if c not in allowed]
+              if invalid: bad.append((part.name,len(s),invalid[:4]))
+          assert not bad, f'Invalid base64 source: {bad}'
           raw=base64.b64decode(''.join(x.read_text(encoding='ascii') for x in chunks),validate=True)
           assert len(raw)==13256908, f'Wrong package length: {len(raw)}'
           assert hashlib.sha256(raw).hexdigest()=='34ed819d2de31a282e06cf17615ab4aaadebc033a6579c4aa93074a9d31f062f'
