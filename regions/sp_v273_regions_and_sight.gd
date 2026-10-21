@@ -40,6 +40,7 @@ var enabled: bool = true
 var transitioning: bool = false
 var overlay: ColorRect
 var overlay_shader: ShaderMaterial
+var fade_layer: CanvasLayer
 var fade: ColorRect
 var label: Label
 var gate_art: Node2D
@@ -52,7 +53,7 @@ var _last_screen: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
     name = "SP273RegionalSight"
-    layer = 65
+    layer = 1
     process_mode = Node.PROCESS_MODE_ALWAYS
     for i in range(RAY_COUNT):
         _rays.append(RANGE)
@@ -66,12 +67,15 @@ func _ready() -> void:
     overlay.material = overlay_shader
     overlay.visible = false
     add_child(overlay)
+    fade_layer=CanvasLayer.new()
+    fade_layer.layer=98
+    add_child(fade_layer)
     fade = ColorRect.new()
     fade.name = "RegionLoadingScreen"
     fade.color = Color(0.008, 0.018, 0.018, 0.96)
     fade.mouse_filter = Control.MOUSE_FILTER_STOP
     fade.visible = false
-    add_child(fade)
+    fade_layer.add_child(fade)
     label = Label.new()
     label.name = "LoadingLabel"
     label.text = "Traveling to the next region..."
@@ -130,12 +134,12 @@ func _attach_when_game_exists() -> void:
     gate_art = load("res://scripts/world/sp_v273_region_gates.gd").new()
     gate_art.name="RegionalPathGates"
     world.add_child(gate_art)
-    gate_art.call("set_region",region,int(world.get("CHUNK_SIZE")))
+    gate_art.call("set_region",region,int(world.call("sp273_chunk_size")))
     overlay.visible = true
     _update_fog()
 
 func _bounds() -> Rect2:
-    var chunk_size: float=float(world.get("CHUNK_SIZE"))
+    var chunk_size: float=float(world.call("sp273_chunk_size"))
     var origin: Vector2=Vector2(region*REGION_SIDE)*chunk_size
     return Rect2(origin,Vector2.ONE*chunk_size*REGION_SIDE)
 
@@ -175,8 +179,8 @@ func _check_portal() -> void:
     if portal:
         var next_origin:Vector2i=chunk_origin_of_region(new_region)
         var center_coord:Vector2i=next_origin+Vector2i.ONE
-        var atlas:Script=load("res://scripts/world/world_biome_atlas.gd")
-        if atlas.is_inside_world(center_coord):
+        var atlas=load("res://scripts/world/world_biome_atlas.gd")
+        if atlas.call("is_inside_world",center_coord):
             _travel_to(new_region,spawn)
         else:
             player.global_position=pos.clamp(bounds.position+Vector2.ONE*inset,bounds.end-Vector2.ONE*inset)
@@ -196,7 +200,7 @@ func _travel_to(next_region: Vector2i, spawn: Vector2) -> void:
     player.global_position=spawn
     world.call("sp273_activate_region",next_region)
     if is_instance_valid(gate_art):
-        gate_art.call("set_region",next_region,int(world.get("CHUNK_SIZE")))
+        gate_art.call("set_region",next_region,int(world.call("sp273_chunk_size")))
     _actor_timer=0.25
     _update_actor_visibility()
     await get_tree().process_frame
@@ -221,7 +225,7 @@ func _update_fog() -> void:
     for i in range(RAY_COUNT):
         var theta:float=_facing.angle() + (float(i)/float(RAY_COUNT-1)-0.5)*FOV
         var unit:=Vector2.RIGHT.rotated(theta)
-        var query:=PhysicsRayQueryParameters2D.create(origin,origin+unit*RANGE,1,[player.get_rid()])
+        var query:=PhysicsRayQueryParameters2D.create(origin,origin+unit*RANGE,1,[(player as CollisionObject2D).get_rid()])
         var hit:Dictionary=space.intersect_ray(query)
         var distance:float=RANGE
         if not hit.is_empty():
