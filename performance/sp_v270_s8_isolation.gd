@@ -87,11 +87,11 @@ func _find_entities() -> void:
                 canopy = child
                 break
 
-func _remember_visible(node: CanvasItem, show: bool) -> void:
+func _remember_visible(node: Node, show: bool) -> void:
     if node == null or not is_instance_valid(node):
         return
-    remembered.append({"node":node,"property":"visible","value":node.visible})
-    node.visible = show
+    remembered.append({"node":node,"property":"visible","value":node.get("visible")})
+    node.set("visible",show)
 
 func _remember_process(node: Node, value: int) -> void:
     if node == null or not is_instance_valid(node):
@@ -133,7 +133,7 @@ func _apply_mode(value: int) -> void:
             if main != null:
                 for child in main.get_children():
                     if child is CanvasLayer:
-                        _remember_visible(child as CanvasItem,false)
+                        _remember_visible(child,false)
     _refresh()
 
 func _next_test() -> void:
