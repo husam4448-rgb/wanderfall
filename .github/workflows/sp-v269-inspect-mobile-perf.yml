@@ -40,3 +40,11 @@ jobs:
                       print('---',i+1)
                       print('\\n'.join(lines[max(0,i-3):min(len(lines),i+5)]))
           PY
+          echo '=== SOURCE PERFORMANCE CONTROLS ==='
+          grep -Rin -E 'Balanced|Profile|render_scale|performance_preset|profile_active|PERF|1258x612' /tmp/sp269/scripts | head -100 || true
+          echo '=== ORIGINAL WORLD_MANAGER SCRIPT ==='
+          sed -n '1,135p' /tmp/sp269/scripts/world/world_manager.gd
+          echo '=== PROJECT.GODOT HEAD ==='
+          sed -n '1,130p' /tmp/sp269/project.godot
+          echo '=== ANDROID EXPORT SIGNING ==='
+          grep -E 'keystore/|architectures/|version/code|package/' /tmp/sp269/export_presets.cfg
