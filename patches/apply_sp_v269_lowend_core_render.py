@@ -65,8 +65,8 @@ new='''func get_metrics_summary() -> String:
     ]
     var process_ms: float = Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0
     var physics_ms: float = Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0
-    var draw_items: int = int(Performance.get_monitor(Performance.RENDER_2D_ITEMS_IN_FRAME))
-    return main_text + "\\nMain %.1fms | Physics %.1fms | 2D items %d" % [
+    var draw_items: int = int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME))
+    return main_text + "\\nMain %.1fms | Physics %.1fms | Draw calls %d" % [
         process_ms, physics_ms, draw_items]
 
 '''
@@ -80,4 +80,4 @@ assert "const GRID: int = 5" in vg and "for i in range(18)" in vg
 assert "const MATERIAL_GRID: int = 3" in rg and "float(ix)*128.0" in rg
 assert "SP267_PROPS.paint_props" in (game/"scripts/world/world_chunk.gd").read_text()
 print("SP269_RENDER_COST_OPT_PASS legacy biome mesh 5x5, atlas material 3x3, 65pct fewer decorative strokes, 7 authored prop atlases")
-print("SP269_PERF_TELEMETRY_QA_PASS in-game PERF reports main/physics ms and 2D render items")
+print("SP269_PERF_TELEMETRY_QA_PASS in-game PERF reports main/physics ms and draw-call count")
