@@ -519,7 +519,7 @@ jobs:
           SP268QA
           python3 -m py_compile v257_overlay/patches/apply_sp_v269_lowend_core_render.py
           python3 v257_overlay/patches/apply_sp_v269_lowend_core_render.py "$PROJECT_DIR"
-          grep -q 'RENDER_2D_ITEMS_IN_FRAME' "$PROJECT_DIR/scripts/performance/performance_manager.gd"
+          grep -q 'RENDER_TOTAL_DRAW_CALLS_IN_FRAME' "$PROJECT_DIR/scripts/performance/performance_manager.gd"
           mkdir -p v269_evidence
           cat > v269_evidence/SP269_REPORT.txt <<'REPORT'
           S8 lower-core render investigation:
