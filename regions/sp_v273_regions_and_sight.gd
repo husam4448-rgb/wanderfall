@@ -6,7 +6,7 @@ const PORTAL_WIDTH: float = 180.0
 const RAY_COUNT: int = 40
 const FOV: float = deg_to_rad(116.0)
 const RANGE: float = 780.0
-const ALPHA: float = 0.84
+const ALPHA: float = 0.74
 const SHADER := """
 shader_type canvas_item;
 render_mode unshaded;
@@ -48,6 +48,7 @@ var _rays: PackedFloat32Array = PackedFloat32Array()
 var _facing: Vector2 = Vector2.RIGHT
 var _vision_timer: float = 0.0
 var _actor_timer: float = 0.0
+var _hud_timer: float = 0.0
 var _known_actor_visibility: Dictionary = {}
 var _last_screen: Vector2 = Vector2.ZERO
 
@@ -107,6 +108,10 @@ func _process(delta: float) -> void:
         return
     if transitioning:
         return
+    _hud_timer+=delta
+    if _hud_timer>=1.0:
+        _hud_timer=0.0
+        _raise_interface_layers()
     _check_portal()
     _vision_timer += delta
     _actor_timer += delta
@@ -132,6 +137,7 @@ func _attach_when_game_exists() -> void:
     main_scene = root_scene
     world = w
     player = p
+    _raise_interface_layers()
     var start_chunk: Vector2i=world.call("world_to_chunk",player.global_position)
     region = region_for_chunk(start_chunk)
     world.call("sp273_activate_region",region)
@@ -141,6 +147,24 @@ func _attach_when_game_exists() -> void:
     gate_art.call("set_region",region,int(world.call("sp273_chunk_size")))
     overlay.visible = true
     _update_fog()
+
+func _raise_interface_layers() -> void:
+    # Fog covers only the world. Keep original touchscreen controls, character
+    # health bars and settings above it, including legacy HUD CanvasLayers
+    # whose original layer defaults to zero.
+    if world==null or not is_instance_valid(world):
+        return
+    var nodes:Array[Node]=[get_tree().root]
+    while not nodes.is_empty():
+        var node:Node=nodes.pop_back()
+        if node==self or node==fade_layer:
+            continue
+        if node is CanvasLayer and not world.is_ancestor_of(node):
+            var layer_node:CanvasLayer=node as CanvasLayer
+            if layer_node.layer<=1:
+                layer_node.layer=12
+        for child in node.get_children():
+            nodes.append(child)
 
 func _bounds() -> Rect2:
     var chunk_size: float=float(world.call("sp273_chunk_size"))
@@ -197,7 +221,7 @@ func _travel_to(next_region: Vector2i, spawn: Vector2) -> void:
     overlay.visible=false
     var was_physics: bool=player.is_physics_processing()
     player.set_physics_process(false)
-    await get_tree().create_timer(0.14,true).timeout
+    await get_tree().create_timer(0.35,true).timeout
     if not is_instance_valid(world) or not is_instance_valid(player):
         return
     region=next_region
@@ -208,7 +232,7 @@ func _travel_to(next_region: Vector2i, spawn: Vector2) -> void:
     _actor_timer=0.25
     _update_actor_visibility()
     await get_tree().process_frame
-    await get_tree().create_timer(0.12,true).timeout
+    await get_tree().create_timer(0.22,true).timeout
     player.set_physics_process(was_physics)
     fade.visible=false
     overlay.visible=true
