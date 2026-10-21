@@ -1,0 +1,64 @@
+name: Publish Survival Paradise v274 Larger Regional World and Precise Sight APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  public_release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Download APK from verified successful v274 native build
+        uses: actions/download-artifact@v4
+        with:
+          name: SP-PlayableWorld-v274
+          repository: husam4448-rgb/wanderfall
+          run-id: 39637442266
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: release
+
+      - name: Validate original verified package and signature metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="release/SurvivalParadise-WorldAssets-v274.apk"
+          test -s "$APK"
+          test "$(stat -c%s "$APK")" -gt 25000000
+          test "$(stat -c%s "$APK")" -lt 62914560
+          unzip -t "$APK" > /tmp/sp267_apk_zip_validation.log
+          test -s "release/apk-signature.txt"
+          test -s "release/apk-badging.txt"
+          grep -q "versionCode='282'" "release/apk-badging.txt"
+          grep -q "versionName='0.21.0D2D.14-v274'" "release/apk-badging.txt"
+          grep -Eq 'Verified using v2 scheme|Verified using v3 scheme' release/apk-signature.txt
+          # Original signed package has already passed its native CI checks;
+          # the archived checksum embeds the runner's absolute working path,
+          # so validate the downloaded copy's package metadata and generate
+          # a fresh portable digest rather than resolving a stale path.
+          sha256sum "$APK" | tee release/SP273_PUBLIC_RELEASE_SHA256.txt
+
+      - name: Publish public direct-download Android APK (no GitHub login)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: husam4448-rgb/wanderfall
+        run: |
+          set -euo pipefail
+          TAG=sp-world-v274
+          APK=release/SurvivalParadise-WorldAssets-v274.apk
+          if gh release view "$TAG" --repo "$GH_REPO" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" release/SP273_PUBLIC_RELEASE_SHA256.txt --repo "$GH_REPO" --clobber
+          else
+            gh release create "$TAG" "$APK" release/SP273_PUBLIC_RELEASE_SHA256.txt \
+              --repo "$GH_REPO" \
+              --target "e49fd70a65f5e71df5c7c57e973ef746e4104055" \
+              --title "Survival Paradise v274 — Larger Maps and Refined Line of Sight" \
+              --notes "v274 experimental correction to player-reported v273 limitations. Logical zone size increased from 2x2 to 8x8 chunks (16x larger area), with camp near center and only 3x3 chunks dynamically loaded around player. Road/path region transitions remain; terrain and all authored visuals preserved. Sight cone changed to 96 smoothly interpolated rays and mildly softened ambient fog. Only building collision geometry casts major sight occlusion; tiny rock colliders no longer create unreasonably long black wedges. Enemy and animal LOS, v272 Galaxy S8 physics optimization, save/player/HUD unchanged. Godot native QA validated region bounds, transitions, obstacle occlusion, screenshots and full Android export/signature. On-device FPS, human shadow review and region-save persistence pending."
+          fi
+          gh release view "$TAG" --repo "$GH_REPO" --json assets,url,tagName --jq '{tag: .tagName, release: .url, assets: [.assets[].name]}'
