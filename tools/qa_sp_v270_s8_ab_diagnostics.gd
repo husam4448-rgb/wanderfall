@@ -32,12 +32,12 @@ func _run() -> void:
         settings.call("set_pause_reason", "main_menu", false)
     main.call("start_new_game_safe_camp")
     await create_timer(0.5).timeout
-    var diagnostic: Node = root.get_node_or_null("S8Diagnostic")
+    var diagnostic: Variant = root.get_node_or_null("S8Diagnostic")
     if diagnostic == null:
         _fail("on-device overlay not attached")
         return
     var world: Node2D = main.get_node_or_null("WorldManager")
-    if world == null or not world.visible or world.get_active_chunk_count() < 1:
+    if world == null or not world.visible or int(world.call("get_active_chunk_count")) < 1:
         _fail("actual game world not running")
         return
     diagnostic.panel.visible = true
