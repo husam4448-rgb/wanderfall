@@ -1,0 +1,1078 @@
+name: Survival Paradise v274 — Large Regions and Accurate Fog Vision APK
+
+on:
+  push:
+    branches: [ sp-v274-large-regions-precise-vision-20261021 ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  SOURCE_SHA256: ae4eff17e5f281f5867ac2d82207fcf96e6c8b649432acd48816aebab76fa308
+  SOURCE_ARCHIVE: /tmp/Wanderfall_Phase16_Game_Source.tar.xz
+  PROJECT_DIR: game
+  GODOT_ZIP: /tmp/Godot_v4.7.2-stable_linux.x86_64.zip
+  GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
+  GODOT_TEMPLATES_TPZ: /tmp/Godot_v4.7.2-stable_export_templates.tpz
+  GODOT_TEMPLATES_SHA256: f298490b8d44d934be425a5a65a51bf15f422428b229a06a6e11d9ffea248011
+  APK_PATH: SurvivalParadise-WorldAssets-v274.apk
+  MAX_APK_BYTES: '62914560'
+
+jobs:
+  build:
+    name: Validate and export Wanderfall v0.17.9 Quick-Use APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: 5a0ee30331ddf559ba6c5794441b43d867027d0b
+      - name: Checkout approved character and combat overlay in isolation
+        uses: actions/checkout@v4
+        with:
+          ref: sp-v274-large-regions-precise-vision-20261021
+          path: v257_overlay
+          sparse-checkout: |
+            patches/apply_sp_v257_d2d14_survivor_bridge.py
+            patches/apply_sp_v257_legacy_runtime_fixes.py
+            patches/apply_sp_v258_performance.py
+            patches/apply_sp_v259_occlusion_aim.py
+            patches/apply_sp_v260_fast_canopy_breath.py
+            patches/apply_sp_v261_precise_gpu_occlusion.py
+            patches/apply_sp_v262_single_tint.py
+            patches/apply_sp_v263_all_biome_world.py
+            patches/apply_sp_v264_smooth_biome_ecology.py
+            patches/apply_sp_v265_environment_raster.py
+            patches/apply_sp_v265_biome_species.py
+            patches/apply_sp_v2651_postcollapse_alpha.py
+            tools/build_sp_v2651_postcollapse_art.py
+            tools/qa_sp_v2651_alpha_clutter.gd
+            tools/build_sp_v2652_organic_rasters.py
+            patches/apply_sp_v2652_organic_world.py
+            tools/qa_sp_v2652_organic_world.gd
+            tools/build_sp_v2653_reclaimed_art.py
+            patches/apply_sp_v2653_reclaimed_animals.py
+            tools/qa_sp_v2653_assets_and_gait.gd
+            tools/build_sp_v2654_reclaimed_art.py
+            tools/build_sp_v2655_source_art.py
+            source_art/v2655
+            source_art/v2656
+            combat/sp_v2656_tracer_fx.gd
+            tools/build_sp_v2656_zombie_source.py
+            patches/apply_sp_v2656_tracer_zombie.py
+            tools/qa_sp_v2656_shot_and_zombie.gd
+            tools/build_sp_v2657_camp_animal_art.py
+            patches/apply_sp_v2657_art_convergence.py
+            tools/qa_sp_v2657_real_camp_animals.gd
+            tools/build_sp_v2658_camp_props.py
+            patches/apply_sp_v2658_prop_art.py
+            patches/apply_sp_v266_world_assets.py
+            patches/apply_sp_v267_live_world_props.py
+            patches/apply_sp_v268_lowend_world.py
+            patches/apply_sp_v269_lowend_core_render.py
+            patches/apply_sp_v270_s8_ab_diagnostics.py
+            patches/apply_sp_v271_true_pause_diagnostics.py
+            patches/apply_sp_v272_s8_physics_recovery.py
+            patches/apply_sp_v273_regions_and_sight.py
+            patches/apply_sp_v273_npc_los.py
+            patches/apply_sp_v274_region_shadow_correction.py
+            regions/sp_v274_large_regions_precise_sight.gd
+            regions/sp_v274_large_region_gates.gd
+            tools/qa_sp_v274_large_regions_vision.gd
+            regions/sp_v273_regions_and_sight.gd
+            regions/sp_v273_region_gates.gd
+            tools/qa_sp_v273_regions_and_sight.gd
+            performance/sp_v272_remote_actor_physics_lod.gd
+            tools/qa_sp_v272_s8_physics_lod.gd
+            performance/sp_v271_s8_true_pause_diagnostic.gd
+            tools/qa_sp_v271_true_pause_diagnostics.gd
+            performance/sp_v270_s8_isolation.gd
+            tools/qa_sp_v270_s8_ab_diagnostics.gd
+            tools/build_sp_v268_android_atlases.py
+            tools/build_sp_v267_authored_props.py
+            tools/qa_sp_v266_world_assets.gd
+            tools/qa_sp_v2658_camp_props.gd
+            patches/apply_sp_v2654_props_scale.py
+            tools/qa_sp_v2654_props_scale.gd
+            tools/build_sp_v265_biome_art.py
+            tools/qa_sp_v265_environment.gd
+            worldgen
+            tools/qa_sp_v263_world_atlas.gd
+            tools/qa_sp_v264_biome_art.gd
+            occlusion
+            tools/qa_sp_v261_real_game_visuals.gd
+            tools/qa_sp_v262_uniform_opacity.gd
+            melee-six-prototype
+            tools/build_sp_melee_walk_layers.py
+            tools/qa_sp_v257_restored_world_hud.gd
+
+      - name: Checkout 281 verified terrain source assets for opt-in live integration
+        uses: actions/checkout@v4
+        with:
+          ref: sp-assets-batch03-no-passages-20261021
+          path: terrain_source
+          sparse-checkout: |
+            assets/world/terrain_prototype/v01/extracted/GameAssets
+
+      - name: Checkout approved 21 Batch03 art sheets for genuine sprite extraction
+        uses: actions/checkout@v4
+        with:
+          ref: sp-assets-batch03-no-passages-20261021
+          path: sp267_sheets
+          sparse-checkout: |
+            art_source/world_assets/batch03_20261021/published
+
+      - name: Reconstruct source and apply Quick-Use v0.17.9
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat source_parts/part_*.b64 > /tmp/wanderfall_source.b64
+          base64 --decode /tmp/wanderfall_source.b64 > "$SOURCE_ARCHIVE"
+          echo "$SOURCE_SHA256  $SOURCE_ARCHIVE" | sha256sum -c -
+          mkdir -p "$PROJECT_DIR"
+          tar -xJf "$SOURCE_ARCHIVE" -C "$PROJECT_DIR"
+          python3 patches/apply_godot_47_fixes.py "$PROJECT_DIR"
+          python3 patches/apply_v017_ui_overhaul.py "$PROJECT_DIR"
+          python3 patches/apply_v0171_inventory_polish.py "$PROJECT_DIR"
+          python3 patches/apply_v0172_hud_customization.py "$PROJECT_DIR"
+          python3 patches/fix_v0173_applicator_path.py
+          python3 patches/apply_v0173_touch_layout_fixes.py "$PROJECT_DIR"
+          python3 patches/apply_v0174_ui_pause_completion.py "$PROJECT_DIR"
+
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('patches/apply_v0175_hotbar_sensitivity.py')
+          s = p.read_text(encoding='utf-8')
+          old = '''replace_once(\n    "scripts/settings/settings_hud.gd",\n    '    if ui_buttons.has("quickbar_visible"):\\n        ui_buttons["quickbar_visible"].text = "QUICKBAR: %s" % ("ON" if GameSettings.quickbar_visible else "OFF")\\n\\n    var pause_names :=',\n    '    if ui_buttons.has("quickbar_visible"):\\n        ui_buttons["quickbar_visible"].text = "QUICKBAR: %s" % ("ON" if GameSettings.quickbar_visible else "OFF")\\n'\n    '    if movement_sensitivity_slider != null:\\n'\n    '        movement_sensitivity_slider.set_value_no_signal(GameSettings.movement_stick_sensitivity)\\n'\n    '    if movement_sensitivity_label != null:\\n'\n    '        movement_sensitivity_label.text = "×%.2f" % GameSettings.movement_stick_sensitivity\\n\\n'\n    '    var pause_names :=',\n)'''
+          new = '''replace_once(\n    "scripts/settings/settings_hud.gd",\n    '    var pause_names :=',\n    '    if movement_sensitivity_slider != null:\\n'\n    '        movement_sensitivity_slider.set_value_no_signal(GameSettings.movement_stick_sensitivity)\\n'\n    '    if movement_sensitivity_label != null:\\n'\n    '        movement_sensitivity_label.text = "×%.2f" % GameSettings.movement_stick_sensitivity\\n\\n'\n    '    var pause_names :=',\n)'''
+          if old not in s:
+              raise SystemExit('Expected v0.17.5 applicator block not found')
+          p.write_text(s.replace(old, new, 1), encoding='utf-8')
+          PY
+
+          python3 patches/apply_v0175_hotbar_sensitivity.py "$PROJECT_DIR"
+          python3 patches/apply_v0176_hotbar_deadzone.py "$PROJECT_DIR"
+          python3 patches/apply_v0177_mobile_hotbar_layers.py "$PROJECT_DIR"
+          python3 patches/apply_v0178_dedicated_hotbar_layer.py "$PROJECT_DIR"
+          python3 patches/apply_v0179_quick_item_buttons.py "$PROJECT_DIR"
+          # Fetch Quaternius D3D.1 character assets (same CC0 model contained in the uploaded pack).
+          echo "Fetch Quaternius D3D.1 character assets"
+          MODEL_DIR="$PROJECT_DIR/assets/models/superhero_male"
+          mkdir -p "$MODEL_DIR"
+          MODEL_BASE="https://raw.githubusercontent.com/robert-porter/sprite-renderer/fb8b9ee247ed2e5d9b5dfebd408382156be3b57f/assets/quaternius/universal/universal-base-characters/Universal%20Base%20Characters%5BStandard%5D/Base%20Characters/Godot%20-%20UE"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/Superhero_Male_FullBody.gltf" "$MODEL_BASE/Superhero_Male_FullBody.gltf"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/Superhero_Male_FullBody.bin" "$MODEL_BASE/Superhero_Male_FullBody.bin"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/T_Hair_1_BaseColor.png" "$MODEL_BASE/T_Hair_1_BaseColor.png"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/T_Eye_Brown.png" "$MODEL_BASE/T_Eye_Brown.png"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/T_Superhero_Male_Dark.png" "$MODEL_BASE/T_Superhero_Male_Dark.png"
+
+          # Mobile prototype keeps only albedo maps; remove multi-megabyte normal/roughness
+          # references while preserving geometry, weights, skeleton and original base colors.
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("game/assets/models/superhero_male/Superhero_Male_FullBody.gltf")
+          d = json.loads(p.read_text(encoding="utf-8"))
+          d["images"] = [
+              {"mimeType":"image/png","name":"HairBase","uri":"T_Hair_1_BaseColor.png"},
+              {"mimeType":"image/png","name":"EyeBase","uri":"T_Eye_Brown.png"},
+              {"mimeType":"image/png","name":"BodyBase","uri":"T_Superhero_Male_Dark.png"},
+          ]
+          d["samplers"] = [{"magFilter":9729,"minFilter":9987,"wrapS":10497,"wrapT":10497}]
+          d["textures"] = [
+              {"sampler":0,"source":0},
+              {"sampler":0,"source":1},
+              {"sampler":0,"source":2},
+          ]
+          for i, mat in enumerate(d.get("materials", [])):
+              mat.pop("normalTexture", None)
+              pbr = mat.setdefault("pbrMetallicRoughness", {})
+              pbr["baseColorTexture"] = {"index": i}
+              pbr.pop("metallicRoughnessTexture", None)
+              pbr["metallicFactor"] = 0.0
+              pbr["roughnessFactor"] = 0.72
+          p.write_text(json.dumps(d, separators=(",",":")), encoding="utf-8")
+          PY
+          # Legacy D3D compatibility data is removed before optimized APK export.
+          test -s "$MODEL_DIR/Superhero_Male_FullBody.bin"
+
+          echo "Fetch Quaternius Ranger outfit assets"
+          OUTFIT_BASE="https://raw.githubusercontent.com/joega/check-and-conquer/b2a3a3418dc080e782c1e5d386d258145346a218/assets/characters/quaternius/outfits"
+          curl -fL --retry 3 -o "$MODEL_DIR/Male_Ranger.gltf" "$OUTFIT_BASE/Male_Ranger.gltf"
+          curl -fL --retry 3 -o "$MODEL_DIR/Male_Ranger.bin" "$OUTFIT_BASE/Male_Ranger.bin"
+          curl -fL --retry 3 -o "$MODEL_DIR/T_Ranger_BaseColor.png" "$OUTFIT_BASE/T_Ranger_BaseColor.png"
+          curl -fL --retry 3 -o "$MODEL_DIR/T_Regular_Male_Dark_BaseColor.png" "$OUTFIT_BASE/T_Regular_Male_Dark_BaseColor.png"
+
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("game/assets/models/superhero_male/Male_Ranger.gltf")
+          d = json.loads(p.read_text(encoding="utf-8"))
+          d["images"] = [
+              {"mimeType":"image/png","name":"RangerBase","uri":"T_Ranger_BaseColor.png"},
+              {"mimeType":"image/png","name":"RegularMaleBase","uri":"T_Regular_Male_Dark_BaseColor.png"},
+          ]
+          d["samplers"] = [{"magFilter":9729,"minFilter":9987,"wrapS":10497,"wrapT":10497}]
+          d["textures"] = [
+              {"sampler":0,"source":0},
+              {"sampler":0,"source":1},
+          ]
+          mats = d.get("materials", [])
+          if len(mats) >= 1:
+              mats[0].pop("normalTexture", None)
+              pbr = mats[0].setdefault("pbrMetallicRoughness", {})
+              pbr["baseColorTexture"] = {"index":0}
+              pbr.pop("metallicRoughnessTexture", None)
+              pbr["metallicFactor"] = 0.0
+              pbr["roughnessFactor"] = 0.78
+          if len(mats) >= 2:
+              mats[1].pop("normalTexture", None)
+              pbr = mats[1].setdefault("pbrMetallicRoughness", {})
+              pbr["baseColorTexture"] = {"index":1}
+              pbr.pop("metallicRoughnessTexture", None)
+              pbr["metallicFactor"] = 0.0
+              pbr["roughnessFactor"] = 0.82
+          p.write_text(json.dumps(d, separators=(",",":")), encoding="utf-8")
+          PY
+          # Legacy D3D compatibility data is removed before optimized APK export.
+          test -s "$MODEL_DIR/Male_Ranger.bin"
+
+          echo "Fetch Quaternius Peasant outfit assets"
+          OUTFIT_BASE="https://raw.githubusercontent.com/joega/check-and-conquer/b2a3a3418dc080e782c1e5d386d258145346a218/assets/characters/quaternius/outfits"
+          curl -fL --retry 3 -o "$MODEL_DIR/Male_Peasant.gltf" "$OUTFIT_BASE/Male_Peasant.gltf"
+          curl -fL --retry 3 -o "$MODEL_DIR/Male_Peasant.bin" "$OUTFIT_BASE/Male_Peasant.bin"
+          curl -fL --retry 3 -o "$MODEL_DIR/T_Peasant_BaseColor.png" "$OUTFIT_BASE/T_Peasant_BaseColor.png"
+
+          echo "Fetch compatible D3D.9 survivor hair"
+          curl -fL --retry 3 -o "$MODEL_DIR/Hair_SimpleParted.gltf" "https://raw.githubusercontent.com/joega/check-and-conquer/b2a3a3418dc080e782c1e5d386d258145346a218/assets/characters/quaternius/hair/Hair_SimpleParted.gltf"
+          curl -fL --retry 3 -o "$MODEL_DIR/Hair_SimpleParted.bin" "https://raw.githubusercontent.com/joega/check-and-conquer/b2a3a3418dc080e782c1e5d386d258145346a218/assets/characters/quaternius/hair/Hair_SimpleParted.bin"
+          curl -fL --retry 3 -o "$MODEL_DIR/T_Hair_1_Normal.png" "https://raw.githubusercontent.com/joega/check-and-conquer/b2a3a3418dc080e782c1e5d386d258145346a218/assets/characters/quaternius/hair/T_Hair_1_Normal.png"
+          echo "Fetch Quaternius D3D.22 long female hair"
+          FEMALE_HAIR_BASE="https://raw.githubusercontent.com/robert-porter/sprite-renderer/fb8b9ee247ed2e5d9b5dfebd408382156be3b57f/assets/quaternius/universal/universal-base-characters/Universal%20Base%20Characters%5BStandard%5D/Hairstyles/Rigged%20to%20Head%20Bone/glTF%20(Godot%20-Unreal)"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/Hair_Long.gltf" "$FEMALE_HAIR_BASE/Hair_Long.gltf"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/Hair_Long.bin" "$FEMALE_HAIR_BASE/Hair_Long.bin"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/T_Hair_2_Normal.png" "$FEMALE_HAIR_BASE/T_Hair_2_Normal.png"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/T_Hair_2_BaseColor.png" "$FEMALE_HAIR_BASE/T_Hair_2_BaseColor.png"
+          test -s "$MODEL_DIR/Hair_Long.bin"
+
+
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("game/assets/models/superhero_male/Male_Peasant.gltf")
+          d = json.loads(p.read_text(encoding="utf-8"))
+          d["images"] = [
+              {"mimeType":"image/png","name":"PeasantBase","uri":"T_Peasant_BaseColor.png"},
+              {"mimeType":"image/png","name":"RegularMaleBase","uri":"T_Regular_Male_Dark_BaseColor.png"},
+          ]
+          d["samplers"] = [{"magFilter":9729,"minFilter":9987,"wrapS":10497,"wrapT":10497}]
+          d["textures"] = [
+              {"sampler":0,"source":0},
+              {"sampler":0,"source":1},
+          ]
+          mats = d.get("materials", [])
+          if len(mats) >= 1:
+              mats[0].pop("normalTexture", None)
+              pbr = mats[0].setdefault("pbrMetallicRoughness", {})
+              pbr["baseColorTexture"] = {"index":0}
+              pbr.pop("metallicRoughnessTexture", None)
+              pbr["metallicFactor"] = 0.0
+              pbr["roughnessFactor"] = 0.82
+          if len(mats) >= 2:
+              mats[1].pop("normalTexture", None)
+              pbr = mats[1].setdefault("pbrMetallicRoughness", {})
+              pbr["baseColorTexture"] = {"index":1}
+              pbr.pop("metallicRoughnessTexture", None)
+              pbr["metallicFactor"] = 0.0
+              pbr["roughnessFactor"] = 0.86
+          p.write_text(json.dumps(d, separators=(",",":")), encoding="utf-8")
+          PY
+          # Legacy D3D compatibility data is removed before optimized APK export.
+          test -s "$MODEL_DIR/Male_Peasant.bin"
+
+          echo "Fetch Quaternius D3D.21 female template assets"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/Superhero_Female_FullBody.gltf" "$MODEL_BASE/Superhero_Female_FullBody.gltf"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/Superhero_Female_FullBody.bin" "$MODEL_BASE/Superhero_Female_FullBody.bin"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/T_Hair_2_BaseColor.png" "$MODEL_BASE/T_Hair_2_BaseColor.png"
+          curl -g -fL --retry 3 -o "$MODEL_DIR/T_Superhero_Female_Dark_BaseColor.png" "$MODEL_BASE/T_Superhero_Female_Dark_BaseColor.png"
+          curl -fL --retry 3 -o "$MODEL_DIR/Female_Ranger.gltf" "$OUTFIT_BASE/Female_Ranger.gltf"
+          curl -fL --retry 3 -o "$MODEL_DIR/Female_Ranger.bin" "$OUTFIT_BASE/Female_Ranger.bin"
+          curl -fL --retry 3 -o "$MODEL_DIR/Female_Peasant.gltf" "$OUTFIT_BASE/Female_Peasant.gltf"
+          curl -fL --retry 3 -o "$MODEL_DIR/Female_Peasant.bin" "$OUTFIT_BASE/Female_Peasant.bin"
+          curl -fL --retry 3 -o "$MODEL_DIR/T_Regular_Female_Dark_BaseColor.png" "$OUTFIT_BASE/T_Regular_Female_Dark_BaseColor.png"
+
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path("game/assets/models/superhero_male")
+
+          p=root/"Superhero_Female_FullBody.gltf"
+          d=json.loads(p.read_text(encoding="utf-8"))
+          d["images"]=[
+              {"mimeType":"image/png","name":"HairBase","uri":"T_Hair_2_BaseColor.png"},
+              {"mimeType":"image/png","name":"EyeBase","uri":"T_Eye_Brown.png"},
+              {"mimeType":"image/png","name":"BodyBase","uri":"T_Superhero_Female_Dark_BaseColor.png"},
+          ]
+          d["samplers"]=[{"magFilter":9729,"minFilter":9987,"wrapS":10497,"wrapT":10497}]
+          d["textures"]=[{"sampler":0,"source":0},{"sampler":0,"source":1},{"sampler":0,"source":2}]
+          for i,mat in enumerate(d.get("materials",[])):
+              mat.pop("normalTexture",None)
+              pbr=mat.setdefault("pbrMetallicRoughness",{})
+              pbr["baseColorTexture"]={"index":i}
+              pbr.pop("metallicRoughnessTexture",None)
+              pbr["metallicFactor"]=0.0
+              pbr["roughnessFactor"]=0.76
+          p.write_text(json.dumps(d,separators=(",",":")),encoding="utf-8")
+
+          p=root/"Female_Ranger.gltf"
+          d=json.loads(p.read_text(encoding="utf-8"))
+          d["images"]=[
+              {"mimeType":"image/png","name":"RangerBase","uri":"T_Ranger_BaseColor.png"},
+              {"mimeType":"image/png","name":"RegularFemaleBase","uri":"T_Regular_Female_Dark_BaseColor.png"},
+          ]
+          d["samplers"]=[{"magFilter":9729,"minFilter":9987,"wrapS":10497,"wrapT":10497}]
+          d["textures"]=[{"sampler":0,"source":0},{"sampler":0,"source":1}]
+          for i,mat in enumerate(d.get("materials",[])):
+              mat.pop("normalTexture",None)
+              pbr=mat.setdefault("pbrMetallicRoughness",{})
+              pbr["baseColorTexture"]={"index":min(i,1)}
+              pbr.pop("metallicRoughnessTexture",None)
+              pbr["metallicFactor"]=0.0
+              pbr["roughnessFactor"]=0.82
+          p.write_text(json.dumps(d,separators=(",",":")),encoding="utf-8")
+
+          p=root/"Female_Peasant.gltf"
+          d=json.loads(p.read_text(encoding="utf-8"))
+          d["images"]=[{"mimeType":"image/png","name":"PeasantBase","uri":"T_Peasant_BaseColor.png"}]
+          d["samplers"]=[{"magFilter":9729,"minFilter":9987,"wrapS":10497,"wrapT":10497}]
+          d["textures"]=[{"sampler":0,"source":0}]
+          for mat in d.get("materials",[]):
+              mat.pop("normalTexture",None)
+              pbr=mat.setdefault("pbrMetallicRoughness",{})
+              pbr["baseColorTexture"]={"index":0}
+              pbr.pop("metallicRoughnessTexture",None)
+              pbr["metallicFactor"]=0.0
+              pbr["roughnessFactor"]=0.86
+          p.write_text(json.dumps(d,separators=(",",":")),encoding="utf-8")
+          PY
+          test -s "$MODEL_DIR/Superhero_Female_FullBody.bin"
+          test -s "$MODEL_DIR/Female_Ranger.bin"
+          test -s "$MODEL_DIR/Female_Peasant.bin"
+
+          echo "Copy D2D.4.2 verified 2D atlases"
+          mkdir -p "$PROJECT_DIR/assets/authored2d"
+          cp assets/authored2d/d2d43_player_armed.webp "$PROJECT_DIR/assets/authored2d/"
+          test -s "$PROJECT_DIR/assets/authored2d/d2d43_player_armed.webp"
+
+          python3 "$PROJECT_DIR/tools/preflight.py" "$PROJECT_DIR"
+          python3 -m pip install --quiet Pillow numpy
+          python3 v257_overlay/patches/apply_sp_v257_d2d14_survivor_bridge.py "$PROJECT_DIR"
+          python3 v257_overlay/patches/apply_sp_v257_legacy_runtime_fixes.py "$PROJECT_DIR"
+          python3 v257_overlay/patches/apply_sp_v258_performance.py "$PROJECT_DIR"
+          python3 -m py_compile v257_overlay/patches/apply_sp_v259_occlusion_aim.py
+          python3 v257_overlay/patches/apply_sp_v259_occlusion_aim.py "$PROJECT_DIR"
+          python3 -m py_compile v257_overlay/patches/apply_sp_v260_fast_canopy_breath.py
+          python3 v257_overlay/patches/apply_sp_v260_fast_canopy_breath.py "$PROJECT_DIR"
+          python3 -m py_compile v257_overlay/patches/apply_sp_v261_precise_gpu_occlusion.py
+          python3 v257_overlay/patches/apply_sp_v261_precise_gpu_occlusion.py "$PROJECT_DIR"
+          python3 -m py_compile v257_overlay/patches/apply_sp_v262_single_tint.py
+          python3 v257_overlay/patches/apply_sp_v262_single_tint.py "$PROJECT_DIR"
+          python3 -m py_compile v257_overlay/patches/apply_sp_v263_all_biome_world.py
+          python3 v257_overlay/patches/apply_sp_v263_all_biome_world.py "$PROJECT_DIR"
+          python3 -m py_compile v257_overlay/patches/apply_sp_v264_smooth_biome_ecology.py
+          python3 v257_overlay/patches/apply_sp_v264_smooth_biome_ecology.py "$PROJECT_DIR"
+          python3 v257_overlay/tools/build_sp_v265_biome_art.py "$PROJECT_DIR/assets/biomes/v265"
+          python3 -m py_compile v257_overlay/patches/apply_sp_v265_environment_raster.py
+          python3 v257_overlay/patches/apply_sp_v265_environment_raster.py "$PROJECT_DIR"
+          python3 -m py_compile v257_overlay/patches/apply_sp_v265_biome_species.py
+          python3 v257_overlay/patches/apply_sp_v265_biome_species.py "$PROJECT_DIR"
+          python3 v257_overlay/tools/build_sp_v2651_postcollapse_art.py "$PROJECT_DIR"
+          python3 -m py_compile v257_overlay/patches/apply_sp_v2651_postcollapse_alpha.py
+          python3 v257_overlay/patches/apply_sp_v2651_postcollapse_alpha.py "$PROJECT_DIR"
+          python3 -m py_compile v257_overlay/tools/build_sp_v2652_organic_rasters.py
+          python3 v257_overlay/tools/build_sp_v2652_organic_rasters.py "$PROJECT_DIR"
+          python3 -m py_compile v257_overlay/patches/apply_sp_v2652_organic_world.py
+          python3 v257_overlay/patches/apply_sp_v2652_organic_world.py "$PROJECT_DIR"
+          python3 -m py_compile v257_overlay/tools/build_sp_v2653_reclaimed_art.py
+          python3 v257_overlay/tools/build_sp_v2653_reclaimed_art.py "$PROJECT_DIR"
+          python3 -m py_compile v257_overlay/patches/apply_sp_v2653_reclaimed_animals.py
+          python3 v257_overlay/patches/apply_sp_v2653_reclaimed_animals.py "$PROJECT_DIR"
+          python3 -m py_compile v257_overlay/tools/build_sp_v2654_reclaimed_art.py
+          python3 v257_overlay/tools/build_sp_v2654_reclaimed_art.py "$PROJECT_DIR"
+          python3 -m py_compile v257_overlay/patches/apply_sp_v2654_props_scale.py
+          python3 v257_overlay/patches/apply_sp_v2654_props_scale.py "$PROJECT_DIR"
+          python3 -m py_compile v257_overlay/tools/build_sp_v2655_source_art.py
+          python3 v257_overlay/tools/build_sp_v2655_source_art.py "$PROJECT_DIR"
+          python3 -m py_compile v257_overlay/tools/build_sp_v2656_zombie_source.py
+          python3 v257_overlay/tools/build_sp_v2656_zombie_source.py "$PROJECT_DIR"
+          mkdir -p v2656_evidence
+          test -s "$PROJECT_DIR/SP_v2656_ZOMBIE_SPRITES.png"
+          cp "$PROJECT_DIR/SP_v2656_ZOMBIE_SPRITES.png" v2656_evidence/
+          rm "$PROJECT_DIR/SP_v2656_ZOMBIE_SPRITES.png"
+          python3 -m py_compile v257_overlay/patches/apply_sp_v2656_tracer_zombie.py
+          python3 v257_overlay/patches/apply_sp_v2656_tracer_zombie.py "$PROJECT_DIR"
+          python3 -m py_compile v257_overlay/tools/build_sp_v2657_camp_animal_art.py
+          python3 v257_overlay/tools/build_sp_v2657_camp_animal_art.py "$PROJECT_DIR"
+          python3 -m py_compile v257_overlay/patches/apply_sp_v2657_art_convergence.py
+          python3 v257_overlay/patches/apply_sp_v2657_art_convergence.py "$PROJECT_DIR"
+          python3 -m py_compile v257_overlay/tools/build_sp_v2658_camp_props.py
+          python3 v257_overlay/tools/build_sp_v2658_camp_props.py "$PROJECT_DIR"
+          python3 -m py_compile v257_overlay/patches/apply_sp_v2658_prop_art.py
+          python3 v257_overlay/patches/apply_sp_v2658_prop_art.py "$PROJECT_DIR"
+          # Keep approved gameplay. Only layer art over existing world nodes.
+          mkdir -p "$PROJECT_DIR/assets/world/terrain_v01"
+          cp -a terrain_source/assets/world/terrain_prototype/v01/extracted/GameAssets "$PROJECT_DIR/assets/world/terrain_v01/"
+          test "$(find "$PROJECT_DIR/assets/world/terrain_v01/GameAssets" -name '*.png' | wc -l)" -eq 281
+          python3 -m py_compile v257_overlay/patches/apply_sp_v266_world_assets.py
+          python3 v257_overlay/patches/apply_sp_v266_world_assets.py "$PROJECT_DIR"
+          python3 -m pip install --quiet pillow numpy
+          python3 -m py_compile v257_overlay/tools/build_sp_v267_authored_props.py
+          python3 v257_overlay/tools/build_sp_v267_authored_props.py \
+            "sp267_sheets/art_source/world_assets/batch03_20261021/published" \
+            "$PROJECT_DIR/assets/world/props_v267"
+          python3 v257_overlay/patches/apply_sp_v267_live_world_props.py "$PROJECT_DIR"
+          grep -q SP267_PROPS.paint_props "$PROJECT_DIR/scripts/world/world_chunk.gd"
+          mkdir -p v267_evidence
+          cp "$PROJECT_DIR/assets/world/props_v267/SP267_EXTRACTED_PREVIEW.jpg" v267_evidence/
+          cp "$PROJECT_DIR/assets/world/props_v267/sp267_manifest.json" v267_evidence/
+          rm "$PROJECT_DIR/assets/world/props_v267/SP267_EXTRACTED_PREVIEW.jpg"
+          python3 - <<'SP267QA'
+          from PIL import Image
+          from pathlib import Path
+          base=Path("game/assets/world/props_v267")
+          for family in ["nature","urban","ruins","camp","wreck","rock","deadwood"]:
+              files=sorted((base/family).glob("*.png"))
+              assert len(files)>=4,(family,len(files))
+              for p in files:
+                  im=Image.open(p).convert("RGBA")
+                  assert im.size[0]>=25 and im.size[1]>=25,p
+                  assert im.getchannel("A").getextrema()[0]<=25,("opaque prop background",p)
+          print("SP267_TRANSPARENT_SPRITE_QA_PASS 120 authentic extracted game sprites")
+          SP267QA
+          python3 -m py_compile v257_overlay/tools/build_sp_v268_android_atlases.py v257_overlay/patches/apply_sp_v268_lowend_world.py
+          python3 v257_overlay/tools/build_sp_v268_android_atlases.py "$PROJECT_DIR/assets/world/props_v267"
+          python3 v257_overlay/patches/apply_sp_v268_lowend_world.py "$PROJECT_DIR"
+          mkdir -p v268_evidence
+          cp "$PROJECT_DIR/assets/world/props_v267/sp268_atlases.json" v268_evidence/
+          python3 - <<'SP268QA'
+          from pathlib import Path
+          from PIL import Image
+          import json
+          root=Path('game/assets/world/props_v267')
+          manifest=json.loads((root/'sp268_atlases.json').read_text())
+          assert manifest['runtime_max_additional_props_per_chunk']==6
+          assert not list(root.rglob('*_[0-9][0-9].png'))
+          for family,meta in manifest['atlases'].items():
+              p=root/meta['file']
+              im=Image.open(p)
+              assert im.mode=='RGBA' and max(im.size)<=1024 and p.stat().st_size>4000,(family,p)
+              assert im.getchannel('A').getextrema()[0]==0,(family,'missing alpha')
+          painter=Path('game/scripts/world/sp_v267_live_world_props.gd').read_text()
+          ground=Path('game/scripts/world/world_asset_overlay.gd').read_text()
+          assert 'for i in range(6):' in painter
+          assert 'draw_texture_rect_region(texture, dest, src)' in painter
+          assert 'var n: int = ceili(chunk_size / 256.0)' not in ground
+          assert 'canvas.draw_texture_rect(base' not in ground
+          assert 'SP267_PROPS.paint_props' in Path('game/scripts/world/world_chunk.gd').read_text()
+          print('SP268_LOW_END_STATIC_QA_PASS seven atlases, six draw max per chunk, legacy ground restored')
+          SP268QA
+          python3 -m py_compile v257_overlay/patches/apply_sp_v269_lowend_core_render.py
+          python3 v257_overlay/patches/apply_sp_v269_lowend_core_render.py "$PROJECT_DIR"
+          grep -q 'RENDER_TOTAL_DRAW_CALLS_IN_FRAME' "$PROJECT_DIR/scripts/performance/performance_manager.gd"
+          python3 -m py_compile v257_overlay/patches/apply_sp_v270_s8_ab_diagnostics.py
+          python3 v257_overlay/patches/apply_sp_v270_s8_ab_diagnostics.py "$PROJECT_DIR"
+          grep -q 'call_deferred("_sp_v270_attach_test_panel")' "$PROJECT_DIR/scripts/performance/performance_manager.gd"
+          grep -q 'EMPTY VIEW' "$PROJECT_DIR/scripts/performance/sp_v270_s8_isolation.gd"
+          python3 -m py_compile v257_overlay/patches/apply_sp_v271_true_pause_diagnostics.py
+          python3 v257_overlay/patches/apply_sp_v271_true_pause_diagnostics.py "$PROJECT_DIR"
+          grep -q 'PAUSE WHOLE GAME' "$PROJECT_DIR/scripts/performance/sp_v270_s8_isolation.gd"
+          grep -q 'PHYSICS 20Hz' "$PROJECT_DIR/scripts/performance/sp_v270_s8_isolation.gd"
+          python3 -m py_compile v257_overlay/patches/apply_sp_v272_s8_physics_recovery.py
+          python3 v257_overlay/patches/apply_sp_v272_s8_physics_recovery.py "$PROJECT_DIR"
+          python3 -m py_compile v257_overlay/patches/apply_sp_v273_regions_and_sight.py
+          python3 v257_overlay/patches/apply_sp_v273_regions_and_sight.py "$PROJECT_DIR"
+          python3 -m py_compile v257_overlay/patches/apply_sp_v273_npc_los.py
+          python3 v257_overlay/patches/apply_sp_v273_npc_los.py "$PROJECT_DIR"
+          python3 -m py_compile v257_overlay/patches/apply_sp_v274_region_shadow_correction.py
+          python3 v257_overlay/patches/apply_sp_v274_region_shadow_correction.py "$PROJECT_DIR"
+          grep -q 'uniform float ray_ranges\[96\]' "$PROJECT_DIR/scripts/world/sp_v273_regions_and_sight.gd"
+          grep -q 'body.collision_layer | 128' "$PROJECT_DIR/scripts/world/world_chunk.gd"
+          grep -q 'visible_target or alert_time' "$PROJECT_DIR/scripts/combat/bandit.gd"
+          grep -q 'sees_player or distance' "$PROJECT_DIR/scripts/ecology/wildlife_actor.gd"
+          grep -q sp273_activate_region "$PROJECT_DIR/scripts/world/world_manager.gd"
+          grep -q DirectionalFogOfWar "$PROJECT_DIR/scripts/world/sp_v273_regions_and_sight.gd"
+          grep -q 'S8 20Hz/1 + AI LOD' "$PROJECT_DIR/scripts/performance/sp_v270_s8_isolation.gd"
+          grep -q 'Engine.max_physics_steps_per_frame = 1' "$PROJECT_DIR/scripts/performance/performance_manager.gd"
+          mkdir -p v269_evidence
+          cat > v269_evidence/SP269_REPORT.txt <<'REPORT'
+          S8 lower-core render investigation:
+          Godot 4 Compatibility OpenGL renderer, nine chunks and 1280x720 source.
+          v269 reduces CPU-side 2D geometry, halves the material-grid resolution,
+          and adds live main/physics/2D counters to the existing PERF panel.
+          Device FPS still requires user testing.
+          REPORT
+          grep -q 'v2657/hero_cabin' "$PROJECT_DIR/scripts/world/world_chunk.gd"
+          grep -q 'v2658/camp_scene' "$PROJECT_DIR/scripts/social/faction_camp.gd"
+          grep -q 'SP2656_TRACER' "$PROJECT_DIR/scripts/player.gd"
+          grep -q 'SP2656_RIGHT' "$PROJECT_DIR/scripts/combat/zombie.gd"
+
+          mkdir -p v2655_evidence
+          test -s "$PROJECT_DIR/SP_v2655_SOURCE_ART_QA.png"
+          cp "$PROJECT_DIR/SP_v2655_SOURCE_ART_QA.png" v2655_evidence/
+          rm "$PROJECT_DIR/SP_v2655_SOURCE_ART_QA.png"
+          python3 - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          p=Path("game/assets/biomes/v2653")
+          for species in ["deer","boar","chicken","rat"]:
+              for side in ["left","right"]:
+                  a=[Image.open(p/f"v2654_animal_{species}_{side}_{i}.png").convert("RGBA") for i in range(8)]
+                  assert all(q.size == (64,72) for q in a)
+                  assert len({q.tobytes() for q in a}) >= 4
+                  assert all(q.getbbox() is not None for q in a)
+          print("SP_V2655_SOURCE_GAIT_BAKE_QA_PASS 64 PNGs from independent authored source silhouettes")
+          PY
+
+          # Historical v261/v262 visual QA verified exact source alpha and
+          # explicitly pinned the old shader's filename. The v265.1 replacement
+          # preserves the same actor-composite mechanics with real canopy PNG
+          # alpha instead of ellipses; verify the new shader, not its old path.
+          python3 - <<'PY'
+          from pathlib import Path
+          old='mat.shader.resource_path != "res://occlusion/v261_mask.gdshader"'
+          new='mat.shader.resource_path != "res://occlusion/v2651_true_canopy_alpha.gdshader"'
+          for filename in (
+              "v257_overlay/tools/qa_sp_v261_real_game_visuals.gd",
+              "v257_overlay/tools/qa_sp_v262_uniform_opacity.gd",
+          ):
+              p=Path(filename)
+              src=p.read_text(encoding='utf-8')
+              assert src.count(old)==1,(filename,src.count(old))
+              p.write_text(src.replace(old,new),encoding='utf-8')
+          print("SP_V2651_LEGACY_QA_SHADER_EXPECTATION_UPDATED both legacy suites still enforce shader+actor occlusion")
+          PY
+          grep -q 'V263_BIOME_ATLAS.biome_for_chunk' "$PROJECT_DIR/scripts/world/world_chunk.gd"
+          grep -q '_v264_draw_biome_terrain()' "$PROJECT_DIR/scripts/world/world_chunk.gd"
+          grep -q 'V265_RASTER.paint' "$PROJECT_DIR/scripts/world/world_chunk.gd"
+          grep -q 'V2651_CLUTTER.paint' "$PROJECT_DIR/scripts/world/world_chunk.gd"
+          grep -q 'V2652_ORGANIC.paint_grass' "$PROJECT_DIR/scripts/world/world_chunk.gd"
+          grep -q 'V2652_ORGANIC.paint_rocks' "$PROJECT_DIR/scripts/world/world_chunk.gd"
+          grep -q 'V2652_ORGANIC.paint_ponds' "$PROJECT_DIR/scripts/world/world_chunk.gd"
+          grep -q 'SP_V2653_' "$PROJECT_DIR/scripts/ecology/wildlife_actor.gd" || grep -q '_v2653_frame' "$PROJECT_DIR/scripts/ecology/wildlife_actor.gd"
+          grep -q '_v2653_berry_image' "$PROJECT_DIR/scripts/ecology/natural_resource.gd"
+          grep -q '_v2653_crate_image' "$PROJECT_DIR/scripts/items/loot_container.gd"
+          grep -q 'canopy_types' "$PROJECT_DIR/scripts/world/occlusion_silhouette_overlay.gd"
+          grep -q 'smooth_ground_color' "$PROJECT_DIR/scripts/world/world_biome_atlas.gd"
+          grep -q 'if not V263_BIOME_ATLAS.is_inside_world' "$PROJECT_DIR/scripts/world/world_manager.gd"
+          grep -q 'OneFlatOpacityAlphaComposite' "$PROJECT_DIR/scripts/world/occlusion_silhouette_overlay.gd"
+          grep -q 'func _nearby_centers' "$PROJECT_DIR/scripts/world/occlusion_silhouette_overlay.gd"
+          grep -q 'SP_ApprovedSimplifiedSurvivor' "$PROJECT_DIR/scripts/player.gd"
+          test ! -e "$PROJECT_DIR/assets/models"
+          test ! -e "$PROJECT_DIR/scripts/art/production_survivor_visual.gd"
+          grep -q 'SP_V258' v257_overlay/patches/apply_sp_v258_performance.py
+          grep -q 'AimJoystick' "$PROJECT_DIR/scripts/mobile_hud.gd"
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Prepare Android SDK
+        shell: bash
+        run: |
+          set -euo pipefail
+          ANDROID_SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          echo "ANDROID_HOME=$ANDROID_SDK" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK" >> "$GITHUB_ENV"
+          SDKMANAGER="$(command -v sdkmanager || true)"
+          [ -n "$SDKMANAGER" ] || SDKMANAGER="$ANDROID_SDK/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMANAGER" --licenses >/dev/null 2>&1 || true
+          "$SDKMANAGER" --sdk_root="$ANDROID_SDK" "platform-tools" "build-tools;35.0.1" "platforms;android-35" "cmdline-tools;latest" "cmake;3.10.2.4988404" "ndk;28.1.13356709"
+
+      - name: Prepare persistent Survival Paradise debug signing key
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.android"
+          base64 --decode signing/survival_paradise_debug.keystore.b64 > "$HOME/.android/debug.keystore"
+          chmod 600 "$HOME/.android/debug.keystore"
+          keytool -list -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey >/dev/null
+
+      - name: Install verified Godot editor and templates
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 2 -o "$GODOT_ZIP" "https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip"
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  $GODOT_ZIP" | sha256sum -c -
+          unzip -q "$GODOT_ZIP" -d /tmp
+          curl -fL --retry 3 --retry-delay 2 -o "$GODOT_TEMPLATES_TPZ" "https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_export_templates.tpz"
+          echo "$GODOT_TEMPLATES_SHA256  $GODOT_TEMPLATES_TPZ" | sha256sum -c -
+          rm -rf /tmp/godot_export_templates
+          mkdir -p /tmp/godot_export_templates
+          unzip -q "$GODOT_TEMPLATES_TPZ" -d /tmp/godot_export_templates
+          TEMPLATE_DIR="$HOME/.local/share/godot/export_templates/4.7.2.stable"
+          mkdir -p "$TEMPLATE_DIR"
+          cp -a /tmp/godot_export_templates/templates/. "$TEMPLATE_DIR/"
+
+      - name: Validate authored 2D sprite assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s "$PROJECT_DIR/assets/authored2d/d2d43_player_armed.webp"
+          for f in head torso upper_arm forearm_hand thigh shin_foot; do
+            test -s "$PROJECT_DIR/assets/authored2d/parts/${f}.png"
+          done
+          for f in backpack vest headgear pistol rifle; do
+            test -s "$PROJECT_DIR/assets/authored2d/gear/${f}.png"
+          done
+          "$GODOT_BIN" --headless --editor --path "$PROJECT_DIR" --quit --verbose 2>&1 | tee authored2d-import.log
+          if grep -E "ERROR: (Error loading image|Error importing).*assets/authored2d/gear" authored2d-import.log; then
+            echo "D2D.5.1 gear sprite import failed"
+            exit 1
+          fi
+          if grep -E "ERROR: (Error loading image|Error importing).*assets/authored2d/parts" authored2d-import.log; then
+            echo "D2D.5 modular body-part import failed"
+            exit 1
+          fi
+          if grep -E "ERROR: (Error loading image|Error importing).*assets/authored2d" authored2d-import.log; then
+            echo "Authored 2D import failed"
+            exit 1
+          fi
+
+      - name: Godot parser validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --editor --path "$PROJECT_DIR" --quit --verbose 2>&1 | tee godot-v0179-parser.log
+          if grep -E 'SCRIPT ERROR:|ERROR: Failed to load script|ERROR: Failed to create an autoload|Compile Error:|Parse Error:' godot-v0179-parser.log; then exit 1; fi
+
+      - name: Verify all nine biomes for every seed and actual gameplay streaming
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp v257_overlay/tools/qa_sp_v263_world_atlas.gd "$PROJECT_DIR/sp_v263_atlas_qa.gd"
+          timeout 150s xvfb-run -a -s '-screen 0 1920x1080x24' "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1536x708 --script res://sp_v263_atlas_qa.gd > sp_v263_atlas_qa.log 2>&1 || { tail -100 sp_v263_atlas_qa.log; exit 1; }
+          grep -q 'SP_V263_NINE_BIOME_SEEDS_QA_PASS' sp_v263_atlas_qa.log
+          grep -q 'SP_V263_REAL_GAME_QA_PASS' sp_v263_atlas_qa.log
+          grep -q 'SP_V263_ALL_QA_PASS' sp_v263_atlas_qa.log
+          if grep -E 'SCRIPT ERROR:|Compile Error:|Parse Error:' sp_v263_atlas_qa.log; then exit 1; fi
+          mkdir -p v263_evidence
+          cp "$PROJECT_DIR"/SP_v263_ATLAS_seed_*.png v263_evidence/
+          cp "$PROJECT_DIR"/SP_v263_playable_world.png v263_evidence/
+          rm -f "$PROJECT_DIR"/SP_v263_ATLAS_seed_*.png "$PROJECT_DIR"/SP_v263_playable_world.png "$PROJECT_DIR"/sp_v263_atlas_qa.gd
+          test "$(find v263_evidence -maxdepth 1 -name '*.png' | wc -l)" -eq 3
+
+      - name: QA native Godot smooth seams and real biome screenshots
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp v257_overlay/tools/qa_sp_v264_biome_art.gd "$PROJECT_DIR/sp_v264_biome_qa.gd"
+          timeout 180s xvfb-run -a -s '-screen 0 1920x1080x24' "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1536x708 --script res://sp_v264_biome_qa.gd > sp_v264_biome_qa.log 2>&1 || { tail -120 sp_v264_biome_qa.log; exit 1; }
+          grep -q 'SP_V264_MATERIAL_SEAM_QA_PASS' sp_v264_biome_qa.log
+          grep -q 'SP_V264_REAL_WORLD_QA_PASS' sp_v264_biome_qa.log
+          grep -q 'SP_V264_ALL_QA_PASS' sp_v264_biome_qa.log
+          if grep -E 'SCRIPT ERROR:|Compile Error:|Parse Error:' sp_v264_biome_qa.log; then exit 1; fi
+          mkdir -p v264_evidence
+          cp "$PROJECT_DIR"/SP_v264_REAL_biome_*.png v264_evidence/
+          rm -f "$PROJECT_DIR"/SP_v264_REAL_biome_*.png "$PROJECT_DIR"/sp_v264_biome_qa.gd
+          test "$(find v264_evidence -maxdepth 1 -name '*.png' | wc -l)" -eq 4
+
+      - name: Validate baked raster art and capture three real biome regions
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp v257_overlay/tools/qa_sp_v265_environment.gd "$PROJECT_DIR/sp_v265_environment_qa.gd"
+          timeout 185s xvfb-run -a -s '-screen 0 1920x1080x24' "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1536x708 --script res://sp_v265_environment_qa.gd > sp_v265_environment_qa.log 2>&1 || { tail -120 sp_v265_environment_qa.log; exit 1; }
+          grep -q 'SP_V265_RASTER_ASSET_QA_PASS' sp_v265_environment_qa.log
+          grep -q 'SP_V265_REAL_GAME_QA_PASS' sp_v265_environment_qa.log
+          grep -q 'SP_V265_ALL_QA_PASS' sp_v265_environment_qa.log
+          if grep -E 'SCRIPT ERROR:|Compile Error:|Parse Error:' sp_v265_environment_qa.log; then exit 1; fi
+          mkdir -p v265_evidence
+          cp "$PROJECT_DIR"/SP_v265_REAL_biome_*.png v265_evidence/
+          rm "$PROJECT_DIR"/SP_v265_REAL_biome_*.png "$PROJECT_DIR"/sp_v265_environment_qa.gd
+          test "$(find v265_evidence -maxdepth 1 -name '*.png' | wc -l)" -eq 3
+
+      - name: Validate exact tree-alpha texture and apocalyptic environment in actual Godot
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp v257_overlay/tools/qa_sp_v2651_alpha_clutter.gd "$PROJECT_DIR/sp_v2651_qa.gd"
+          timeout 180s xvfb-run -a -s '-screen 0 1920x1080x24' "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1536x708 --script res://sp_v2651_qa.gd > sp_v2651_qa.log 2>&1 || { tail -125 sp_v2651_qa.log; exit 1; }
+          grep -q 'SP_V2651_RASTER_ALPHA_ASSET_QA_PASS' sp_v2651_qa.log
+          grep -q 'SP_V2651_REAL_SCENE_QA_PASS' sp_v2651_qa.log
+          grep -q 'SP_V2651_ALL_QA_PASS' sp_v2651_qa.log
+          if grep -E 'SCRIPT ERROR:|Compile Error:|Parse Error:' sp_v2651_qa.log; then exit 1; fi
+          mkdir -p v2651_evidence
+          cp "$PROJECT_DIR"/SP_v2651_REAL_biome_*.png v2651_evidence/
+          rm -f "$PROJECT_DIR"/SP_v2651_REAL_biome_*.png "$PROJECT_DIR"/sp_v2651_qa.gd
+          test "$(find v2651_evidence -maxdepth 1 -name '*.png' | wc -l)" -eq 3
+
+      - name: Validate all organic raster materials, animal silhouettes, and four true biome captures
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp v257_overlay/tools/qa_sp_v2652_organic_world.gd "$PROJECT_DIR/sp_v2652_organic_qa.gd"
+          timeout 190s xvfb-run -a -s '-screen 0 1920x1080x24' "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1536x708 --script res://sp_v2652_organic_qa.gd > sp_v2652_organic_qa.log 2>&1 || { tail -125 sp_v2652_organic_qa.log; exit 1; }
+          grep -q 'SP_V2652_ORGANIC_RASTER_ASSET_QA_PASS' sp_v2652_organic_qa.log
+          grep -q 'SP_V2652_REAL_SCENE_QA_PASS' sp_v2652_organic_qa.log
+          grep -q 'SP_V2652_ACTUAL_POND_QA_PASS' sp_v2652_organic_qa.log
+          grep -q 'SP_V2652_ALL_QA_PASS' sp_v2652_organic_qa.log
+          if grep -E 'SCRIPT ERROR:|Compile Error:|Parse Error:' sp_v2652_organic_qa.log; then exit 1; fi
+          mkdir -p v2652_evidence
+          cp "$PROJECT_DIR"/SP_v2652_REAL_biome_*.png v2652_evidence/
+          cp "$PROJECT_DIR"/SP_v2652_REAL_pond.png v2652_evidence/
+          rm -f "$PROJECT_DIR"/SP_v2652_REAL_biome_*.png "$PROJECT_DIR"/SP_v2652_REAL_pond.png "$PROJECT_DIR"/sp_v2652_organic_qa.gd
+          test "$(find v2652_evidence -maxdepth 1 -name '*.png' | wc -l)" -eq 5
+
+      - name: Validate left/right wildlife leg movement, berry/POI rasters, and real in-game captures
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp v257_overlay/tools/qa_sp_v2653_assets_and_gait.gd "$PROJECT_DIR/sp_v2653_qa.gd"
+          timeout 220s xvfb-run -a -s '-screen 0 1920x1080x24' "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1536x708 --script res://sp_v2653_qa.gd > sp_v2653_qa.log 2>&1 || { tail -140 sp_v2653_qa.log; exit 1; }
+          grep -q 'SP_V2653_SPRITE_ANIMATION_QA_PASS' sp_v2653_qa.log
+          grep -q 'SP_V2653_NATIVE_ANIMAL_GAIT_QA_PASS' sp_v2653_qa.log
+          grep -q 'SP_V2653_REAL_POI_RESOURCE_QA_PASS' sp_v2653_qa.log
+          grep -q 'SP_V2653_ALL_QA_PASS' sp_v2653_qa.log
+          if grep -E 'SCRIPT ERROR:|Compile Error:|Parse Error:' sp_v2653_qa.log; then exit 1; fi
+          mkdir -p v2653_evidence
+          cp "$PROJECT_DIR"/SP_v2653_*.png v2653_evidence/
+          rm -f "$PROJECT_DIR"/SP_v2653_*.png "$PROJECT_DIR"/sp_v2653_qa.gd
+          test "$(find v2653_evidence -maxdepth 1 -name '*.png' | wc -l)" -ge 9
+
+      - name: QA faction shelters, 30 prop families, berry attachment and player world scale
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp v257_overlay/tools/qa_sp_v2654_props_scale.gd "$PROJECT_DIR/sp_v2654_qa.gd"
+          timeout 245s xvfb-run -a -s '-screen 0 1920x1080x24' "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1536x708 --script res://sp_v2654_qa.gd > sp_v2654_qa.log 2>&1 || { tail -135 sp_v2654_qa.log; exit 1; }
+          grep -q 'SP_V2654_ASSET_QA_PASS' sp_v2654_qa.log
+          grep -q 'SP_V2654_SCALE_QA_PASS' sp_v2654_qa.log
+          grep -q 'SP_V2654_NATIVE_CAMP_QA_PASS' sp_v2654_qa.log
+          grep -q 'SP_V2654_NO_WHITE_CARDS_QA_PASS' sp_v2654_qa.log
+          if grep -E 'Resource file not found: res://assets/biomes/v2653/v2654_' sp_v2654_qa.log; then exit 1; fi
+          grep -q 'SP_V2654_ALL_QA_PASS' sp_v2654_qa.log
+          if grep -E 'SCRIPT ERROR:|Compile Error:|Parse Error:' sp_v2654_qa.log; then exit 1; fi
+          mkdir -p v2654_evidence
+          cp "$PROJECT_DIR"/SP_v2654_*.png v2654_evidence/
+          rm -f "$PROJECT_DIR"/SP_v2654_*.png "$PROJECT_DIR"/sp_v2654_qa.gd
+          test "$(find v2654_evidence -maxdepth 1 -name '*.png' | wc -l)" -ge 10
+
+      - name: Native zombie silhouette and real muzzle tracer screenshot QA
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp v257_overlay/tools/qa_sp_v2656_shot_and_zombie.gd "$PROJECT_DIR/sp_v2656_qa.gd"
+          timeout 180s xvfb-run -a -s '-screen 0 1920x1080x24' "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1536x708 --script res://sp_v2656_qa.gd > sp_v2656_qa.log 2>&1 || { tail -135 sp_v2656_qa.log; exit 1; }
+          grep -q 'SP_V2656_ART_AND_TRACER_QA_PASS' sp_v2656_qa.log
+          grep -q 'SP_V2656_NATIVE_SHOOT_QA_PASS' sp_v2656_qa.log
+          grep -q 'SP_V2656_ALL_QA_PASS' sp_v2656_qa.log
+          if grep -E 'SCRIPT ERROR:|Compile Error:|Parse Error:' sp_v2656_qa.log; then exit 1; fi
+          cp "$PROJECT_DIR"/SP_v2656_REAL_ZOMBIE_SHOT.png v2656_evidence/
+          cp "$PROJECT_DIR"/SP_v2656_ZOMBIE_AND_TRACER_CLOSE.png v2656_evidence/
+          rm "$PROJECT_DIR"/SP_v2656_REAL_ZOMBIE_SHOT.png "$PROJECT_DIR"/SP_v2656_ZOMBIE_AND_TRACER_CLOSE.png "$PROJECT_DIR"/sp_v2656_qa.gd
+          test "$(find v2656_evidence -maxdepth 1 -name '*.png' | wc -l)" -eq 3
+
+      - name: Native v265.7 wildlife gait and actual built-world art screenshots
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp v257_overlay/tools/qa_sp_v2657_real_camp_animals.gd "$PROJECT_DIR/sp_v2657_scene_qa.gd"
+          timeout 180s xvfb-run -a -s '-screen 0 1920x1080x24' "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1536x708 --script res://sp_v2657_scene_qa.gd > sp_v2657_qa.log 2>&1 || { tail -160 sp_v2657_qa.log; exit 1; }
+          grep -q 'SP_V2657_RASTER_ART_QA_PASS' sp_v2657_qa.log
+          grep -q 'SP_V2657_NATIVE_CAMP_AND_WILDLIFE_QA_PASS' sp_v2657_qa.log
+          grep -q 'SP_V2657_ALL_QA_PASS' sp_v2657_qa.log
+          if grep -E 'SCRIPT ERROR:|Compile Error:|Parse Error:' sp_v2657_qa.log; then exit 1; fi
+          mkdir -p v2657_evidence
+          cp "$PROJECT_DIR"/SP_v2657_REAL_*.png v2657_evidence/
+          cp "$PROJECT_DIR"/SP_v2657_ANIMAL_GAIT_ATLAS.png v2657_evidence/
+          rm -f "$PROJECT_DIR"/SP_v2657_REAL_*.png "$PROJECT_DIR"/SP_v2657_ANIMAL_GAIT_ATLAS.png "$PROJECT_DIR"/sp_v2657_scene_qa.gd
+          test "$(find v2657_evidence -maxdepth 1 -name '*.png' | wc -l)" -eq 5
+
+      - name: Validate actual v265.8 surrounding camp prop replacements in native Godot
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp v257_overlay/tools/qa_sp_v2658_camp_props.gd "$PROJECT_DIR/sp_v2658_qa.gd"
+          timeout 190s xvfb-run -a -s '-screen 0 1920x1080x24' "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1536x708 --script res://sp_v2658_qa.gd > sp_v2658_qa.log 2>&1 || { tail -135 sp_v2658_qa.log; exit 1; }
+          grep -q 'SP_V2658_NEW_PROP_QA_PASS' sp_v2658_qa.log
+          grep -q 'SP_V2658_NATIVE_CAMP_AND_WILDLIFE_QA_PASS' sp_v2658_qa.log
+          grep -q 'SP_V2658_ALL_QA_PASS' sp_v2658_qa.log
+          if grep -E 'SCRIPT ERROR:|Compile Error:|Parse Error:' sp_v2658_qa.log; then exit 1; fi
+          mkdir -p v2658_evidence
+          cp "$PROJECT_DIR"/SP_v2658_REAL_*.png v2658_evidence/
+          cp "$PROJECT_DIR"/SP_v2658_ISOLATED_PROP_QA.png v2658_evidence/
+          rm "$PROJECT_DIR"/SP_v2658_REAL_*.png "$PROJECT_DIR"/SP_v2658_ISOLATED_PROP_QA.png "$PROJECT_DIR"/sp_v2658_qa.gd
+          test "$(find v2658_evidence -maxdepth 1 -name '*.png' | wc -l)" -eq 5
+
+      - name: Native Godot real nine-biome integrated-world QA
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp v257_overlay/tools/qa_sp_v266_world_assets.gd "$PROJECT_DIR/sp_v266_qa.gd"
+          timeout 190s xvfb-run -a -s '-screen 0 1920x1080x24' "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1536x708 --script res://sp_v266_qa.gd > sp_v266_qa.log 2>&1 || { tail -120 sp_v266_qa.log; exit 1; }
+          grep -q SP266_IMPORTED_ASSETS_PASS sp_v266_qa.log
+          grep -q SP266_REAL_PLAYABLE_WORLD_QA_PASS sp_v266_qa.log
+          grep -q SP266_ALL_QA_PASS sp_v266_qa.log
+          if grep -E 'SCRIPT ERROR:|Compile Error:|Parse Error:' sp_v266_qa.log; then exit 1; fi
+          mkdir -p v266_evidence
+          cp "$PROJECT_DIR"/SP_v266_REAL_WORLD_BIOME_*.png v266_evidence/
+          test "$(find v266_evidence -maxdepth 1 -name '*.png' | wc -l)" -eq 3
+          rm -f "$PROJECT_DIR"/SP_v266_REAL_WORLD_BIOME_*.png "$PROJECT_DIR"/sp_v266_qa.gd
+
+      - name: Native v270 reversible A/B performance isolation QA
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp v257_overlay/tools/qa_sp_v270_s8_ab_diagnostics.gd "$PROJECT_DIR/sp_v270_diag_qa.gd"
+          timeout 160s xvfb-run -a -s '-screen 0 1920x1080x24' "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1536x708 --script res://sp_v270_diag_qa.gd > sp_v270_diag_qa.log 2>&1 || { tail -160 sp_v270_diag_qa.log; exit 1; }
+          grep -q SP270_NATIVE_DIAGNOSTIC_QA_PASS sp_v270_diag_qa.log
+          if grep -E 'SCRIPT ERROR:|Compile Error:|Parse Error:' sp_v270_diag_qa.log; then exit 1; fi
+          mkdir -p v270_evidence
+          cp "$PROJECT_DIR"/SP270_REAL_*.png v270_evidence/
+          test "$(find v270_evidence -maxdepth 1 -name 'SP270_REAL_*.png' | wc -l)" -eq 3
+          rm "$PROJECT_DIR"/SP270_REAL_*.png "$PROJECT_DIR"/sp_v270_diag_qa.gd
+
+      - name: Native v272 Galaxy S8 physics catchup and sleeping ambient AI QA
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp v257_overlay/tools/qa_sp_v272_s8_physics_lod.gd "$PROJECT_DIR/sp_v272_qa.gd"
+          timeout 170s xvfb-run -a -s '-screen 0 1920x1080x24' "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1536x708 --script res://sp_v272_qa.gd > sp_v272_qa.log 2>&1 || { tail -140 sp_v272_qa.log; exit 1; }
+          grep -q SP272_NATIVE_PHYSICS_LOD_QA_PASS sp_v272_qa.log
+          if grep -E 'SCRIPT ERROR:|Compile Error:|Parse Error:' sp_v272_qa.log; then exit 1; fi
+          mkdir -p v272_evidence
+          printf 'SP272 S8 SINGLE PHYSICS STEP PLUS REMOTE AMBIENT AI LOD QA PASS\n' > v272_evidence/report.txt
+          rm "$PROJECT_DIR/sp_v272_qa.gd"
+
+      - name: QA native v274 large region transitions and physically bounded sight
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp v257_overlay/tools/qa_sp_v274_large_regions_vision.gd "$PROJECT_DIR/sp_v274_qa.gd"
+          timeout 170s xvfb-run -a -s '-screen 0 1920x1080x24' "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1536x708 --script res://sp_v274_qa.gd > sp_v274_qa.log 2>&1 || { tail -130 sp_v274_qa.log; exit 1; }
+          grep -q SP274_REGION_SIZE_QA_PASS sp_v274_qa.log
+          grep -q SP274_PRECISE_VISION_QA_PASS sp_v274_qa.log
+          if grep -E 'SCRIPT ERROR:|Compile Error:|Parse Error:|Shader compilation failed' sp_v274_qa.log; then exit 1; fi
+          mkdir -p v274_evidence
+          cp "$PROJECT_DIR"/SP274_*.png v274_evidence/
+          test "$(find v274_evidence -maxdepth 1 -name 'SP274_*.png' | wc -l)" -eq 2
+          rm "$PROJECT_DIR"/SP274_*.png "$PROJECT_DIR"/sp_v274_qa.gd
+
+      - name: Use independent version and package identity for restored-world experiment
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('game/export_presets.cfg')
+          s=p.read_text(encoding='utf-8')
+          assert 'org.wanderfall.game' in s and 'version/code=87' in s
+          # Galaxy S24 Ultra is ARM64. Do not ship a second unused ~28 MiB
+          # 32-bit Godot runtime. Legacy 32-bit-only devices are unsupported.
+          assert 'architectures/armeabi-v7a=true' in s and 'architectures/arm64-v8a=true' in s
+          s=s.replace('architectures/armeabi-v7a=true','architectures/armeabi-v7a=false',1)
+          s=s.replace('org.wanderfall.game','org.survivalparadise.restoredworld',1)
+          s=s.replace('package/name="Wanderfall"','package/name="Survival Paradise Restored"',1)
+          s=s.replace('version/code=87','version/code=282',1)
+          s=s.replace('version/name="0.21.0D2D.14"','version/name="0.21.0D2D.14-v274"',1)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Preserve exact restored world HUD source for visual-to-runtime integration
+        run: |
+          set -euo pipefail
+          tar -czf SP_D2D14_Original_HUD_World_Source.tar.gz -C "$PROJECT_DIR" scripts scenes assets/sp_melee project.godot export_presets.cfg
+          test -s SP_D2D14_Original_HUD_World_Source.tar.gz
+      - name: Real Godot screenshot/controls QA of restored D2D14 HUD and detailed world
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb >/dev/null
+          cp v257_overlay/tools/qa_sp_v257_restored_world_hud.gd "$PROJECT_DIR/sp_v257_native_qa.gd"
+          timeout 130s xvfb-run -a -s '-screen 0 1920x1080x24' "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1536x708 --script res://sp_v257_native_qa.gd > sp_v257_native_world_hud_qa.log 2>&1
+          cat sp_v257_native_world_hud_qa.log | grep 'SP_V257_'
+          grep -q 'SP_V257_RESTORED_HUD_WORLD_QA_PASS' sp_v257_native_world_hud_qa.log
+          grep -q 'SP_V258_HIDDEN_RENDER_QA_PASS' sp_v257_native_world_hud_qa.log
+          grep -q 'SP_V259_AIM_LATCH_QA_PASS' sp_v257_native_world_hud_qa.log
+          grep -q 'SP_V259_SPRITE_MASK_QA_PASS' sp_v257_native_world_hud_qa.log
+          grep -q 'SP_V260_CONNECTED_BREATH_QA_PASS' sp_v257_native_world_hud_qa.log
+          grep -q 'SP_V260_FAST_CANOPY_QA_PASS' sp_v257_native_world_hud_qa.log
+          grep -q 'SP_V261_GPU_MASK_QA_PASS' sp_v257_native_world_hud_qa.log
+          if grep -E 'SCRIPT ERROR:|Compile Error:|Parse Error:' sp_v257_native_world_hud_qa.log; then exit 1; fi
+          test -s "$PROJECT_DIR/SP_v257_ActualRestoredD2D14_HUD_World.png"
+
+      - name: Native seven-scenario accurate silhouettes with true gameplay sprites
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp v257_overlay/tools/qa_sp_v262_uniform_opacity.gd "$PROJECT_DIR/sp_v262_visual_qa.gd"
+          timeout 140s xvfb-run -a -s '-screen 0 1920x1080x24' "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1536x708 --script res://sp_v262_visual_qa.gd > sp_v262_visual_qa.log 2>&1 || { tail -100 sp_v262_visual_qa.log; exit 1; }
+          grep -q 'SP_V262_VISUAL_QA_PASS' sp_v262_visual_qa.log
+          grep -q 'SP_V262_ONE_TINT_PLAYER_QA_PASS' sp_v262_visual_qa.log
+          grep -q 'SP_V262_ONE_TINT_NPC_QA_PASS' sp_v262_visual_qa.log
+          grep -q 'SP_V262_WILDLIFE_QA_PASS' sp_v262_visual_qa.log
+          grep -q 'SP_V261_MECHANICS_QA_PASS' sp_v262_visual_qa.log
+          test "$(find "$PROJECT_DIR" -maxdepth 1 -name 'v262_visual_*.png' | wc -l)" -eq 13
+          if grep -E 'SCRIPT ERROR:|Compile Error:|Parse Error:' sp_v262_visual_qa.log; then exit 1; fi
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageDraw
+          files=sorted(Path("game").glob("v262_visual_*.png"))
+          assert len(files)==13
+          images=[]
+          for f in files:
+              im=Image.open(f).convert("RGB")
+              assert im.size[0]>=1200 and im.size[1]>=600
+              images.append(im)
+          images[0].save("SP_v262_actual_gameplay_13_scenarios.gif",save_all=True,
+             append_images=images[1:],duration=430,loop=0,optimize=False)
+          assert Path("SP_v262_actual_gameplay_13_scenarios.gif").stat().st_size>100000
+          PY
+
+      - name: Keep QA screenshots and scripts outside the Android asset bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p v262_evidence
+          cp "$PROJECT_DIR"/v262_visual_*.png v262_evidence/
+          cp "$PROJECT_DIR"/SP_v257_ActualRestoredD2D14_HUD_World.png v262_evidence/
+          cp "$PROJECT_DIR"/SP_v259_ActualApprovedShape_UnderTrees.png v262_evidence/
+          cp SP_v262_actual_gameplay_13_scenarios.gif v262_evidence/
+          rm -f "$PROJECT_DIR"/v262_visual_*.png
+          rm -f "$PROJECT_DIR"/SP_v257_ActualRestoredD2D14_HUD_World.png
+          rm -f "$PROJECT_DIR"/SP_v259_ActualApprovedShape_UnderTrees.png
+          rm -f "$PROJECT_DIR"/sp_v262_visual_qa.gd "$PROJECT_DIR"/sp_v257_native_qa.gd
+          test "$(find v262_evidence -maxdepth 1 -name 'v262_visual_*.png' | wc -l)" -eq 13
+          # The costly v266 281-PNG terrain prototype is visual-only.
+          # Its 256px tiled wallpaper is now inactive and gameplay does not
+          # reference it. Do not ship 281 unused high-resolution textures.
+          rm -rf "$PROJECT_DIR/assets/world/terrain_v01"
+          # The export package must contain no generated QA image data.
+          test -z "$(find "$PROJECT_DIR" -maxdepth 1 -name 'v262_visual_*.png')"
+
+      - name: Export APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --path "$PROJECT_DIR" --export-debug Android "$GITHUB_WORKSPACE/$APK_PATH" 2>&1 | tee android-export.log
+          test -s "$APK_PATH"
+
+      - name: Validate APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="$GITHUB_WORKSPACE/$APK_PATH"
+          APKSIGNER="$ANDROID_HOME/build-tools/35.0.1/apksigner"
+          AAPT="$ANDROID_HOME/build-tools/35.0.1/aapt"
+          unzip -t "$APK" > apk-zip-test.txt
+          "$APKSIGNER" verify --verbose --print-certs "$APK" | tee apk-signature.txt
+          "$AAPT" dump badging "$APK" | tee apk-badging.txt
+          grep -q "package: name='org.survivalparadise.restoredworld'" apk-badging.txt
+          grep -q "versionCode='282'" apk-badging.txt
+          grep -q "versionName='0.21.0D2D.14-v274'" apk-badging.txt
+          grep -q "application-label:'Survival Paradise Restored'" apk-badging.txt
+          APK_BYTES="$(stat -c%s "$APK")"
+          test "$APK_BYTES" -lt "$MAX_APK_BYTES"
+          # Baseline v257 = 80.4 MB. Must be >25% smaller.
+          test "$APK_BYTES" -lt 61000000
+          # Catch accidental screenshots re-entering the final APK.
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          p=Path("SurvivalParadise-WorldAssets-v274.apk")
+          with ZipFile(p) as z:
+              assert not any("v262_visual_" in n or "SP_v257_ActualRestored" in n for n in z.namelist())
+          print("SP_V261_LEAN_APK_QA_PASS screenshots and test scripts excluded")
+          PY
+          python3 - <<'PY'
+          from zipfile import ZipFile
+          from pathlib import Path
+          apk=Path("SurvivalParadise-WorldAssets-v274.apk")
+          with ZipFile(apk) as z:
+              names=z.namelist()
+              assert 'lib/arm64-v8a/libgodot_android.so' in names
+              assert 'lib/armeabi-v7a/libgodot_android.so' not in names
+              assert not any(name.startswith('assets/.godot/imported/T_Hair_') for name in names)
+              assert any('ground_blends.png' in name for name in names)
+              print('SP_V258_APK_SIZE_QA_PASS bytes',apk.stat().st_size,'ARM64 only; old 3D models removed, world terrain retained')
+          PY
+          sha256sum "$APK" | tee SurvivalParadise-WorldAssets-v274.apk.sha256
+
+      - name: Upload all-biomes debug maps and native world screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SP-v274-ExpandedVision-NativeQA
+          path: |
+            v263_evidence/*.png
+            sp_v263_atlas_qa.log
+            v264_evidence/*.png
+            sp_v264_biome_qa.log
+            v265_evidence/*.png
+            sp_v265_environment_qa.log
+            v2651_evidence/*.png
+            sp_v2651_qa.log
+            v2652_evidence/*.png
+            sp_v2652_organic_qa.log
+            v2653_evidence/*.png
+            v2654_evidence/*.png
+            v2655_evidence/*.png
+            v2656_evidence/*.png
+            v2657_evidence/*.png
+            v2658_evidence/*.png
+            v266_evidence/*.png
+            v267_evidence/*
+            v268_evidence/*
+            v269_evidence/*
+            v270_evidence/*
+            v272_evidence/*
+            v274_evidence/*
+            sp_v274_qa.log
+            sp_v272_qa.log
+            sp_v270_diag_qa.log
+            sp_v266_qa.log
+            v267_evidence/sp267_manifest.json
+            sp_v2658_qa.log
+            sp_v2657_qa.log
+            sp_v2656_qa.log
+            sp_v2654_qa.log
+            sp_v2653_qa.log
+          retention-days: 21
+          if-no-files-found: warn
+      - name: Upload actual 1536x708 Godot HUD/world screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SP-v257-RealGodot-HUD-World-Screenshot
+          path: |
+            v262_evidence/*.png
+            sp_v262_visual_qa.log
+            v262_evidence/SP_v262_actual_gameplay_13_scenarios.gif
+            sp_v257_native_world_hud_qa.log
+          if-no-files-found: warn
+          retention-days: 21
+      - name: Upload exact restored HUD/world runtime source
+        uses: actions/upload-artifact@v4
+        with:
+          name: SP-D2D14-Original-HUD-World-Code
+          path: SP_D2D14_Original_HUD_World_Source.tar.gz
+          retention-days: 21
+          if-no-files-found: error
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SP-PlayableWorld-v274
+          path: |
+            SurvivalParadise-WorldAssets-v274.apk
+            SurvivalParadise-WorldAssets-v274.apk.sha256
+            android-export.log
+            authored2d-import.log
+            godot-v0179-parser.log
+            apk-signature.txt
+            apk-badging.txt
+            apk-zip-test.txt
+          retention-days: 14
+          if-no-files-found: error
+          compression-level: 0
