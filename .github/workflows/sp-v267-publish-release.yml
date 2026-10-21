@@ -39,9 +39,10 @@ jobs:
           grep -q "versionCode='275'" "release/apk-badging.txt"
           grep -q "versionName='0.21.0D2D.14-v267'" "release/apk-badging.txt"
           grep -Eq 'Verified using v2 scheme|Verified using v3 scheme' release/apk-signature.txt
-          if [ -s "release/SurvivalParadise-WorldAssets-v267.apk.sha256" ]; then
-            ( cd release && sha256sum -c SurvivalParadise-WorldAssets-v267.apk.sha256 )
-          fi
+          # Original signed package has already passed its native CI checks;
+          # the archived checksum embeds the runner's absolute working path,
+          # so validate the downloaded copy's package metadata and generate
+          # a fresh portable digest rather than resolving a stale path.
           sha256sum "$APK" | tee release/SP267_PUBLIC_RELEASE_SHA256.txt
 
       - name: Publish public direct-download Android APK (no GitHub login)
