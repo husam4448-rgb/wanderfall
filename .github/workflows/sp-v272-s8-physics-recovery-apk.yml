@@ -5,6 +5,8 @@ on:
     branches: [ sp-v272-s8-physics-catchup-and-remote-ai-lod-20261021 ]
     paths:
       - '.github/workflows/sp-v272-s8-physics-recovery-apk.yml'
+      - 'performance/sp_v272_remote_actor_physics_lod.gd'
+      - 'patches/apply_sp_v272_s8_physics_recovery.py'
       - 'tools/build_sp_v2658_camp_props.py'
       - 'patches/apply_sp_v2658_prop_art.py'
       - 'patches/apply_sp_v266_world_assets.py'
