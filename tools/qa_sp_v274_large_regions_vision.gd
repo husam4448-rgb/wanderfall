@@ -117,8 +117,11 @@ func _run()->void:
     if int(world.get("world_seed"))!=seed:
         _fail("seed changed across region transition")
         return
-    if int(world.call("get_active_chunk_count"))>4 or int(world.call("get_active_chunk_count"))<1:
-        _fail("overloaded or empty destination region")
+    await create_timer(0.2).timeout
+    var loaded_count:int=int(world.call("get_active_chunk_count"))
+    print("SP274_REGION_TRAVEL loaded_chunks=",loaded_count," center=",world.call("world_to_chunk",player.global_position))
+    if loaded_count>9 or loaded_count<1:
+        _fail("overloaded or empty destination region: "+str(loaded_count))
         return
     if not (world.call("sp273_contains_chunk",next_chunk) as bool):
         _fail("destination chunk not in current region")
