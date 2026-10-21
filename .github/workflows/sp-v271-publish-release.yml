@@ -1,8 +1,8 @@
-name: Publish Survival Paradise v271 true pause diagnostic public APK
+name: Publish Survival Paradise v272 S8 physics recovery public APK
 
 on:
   push:
-    branches: [ sp-v271-s8-true-game-isolation-20261021 ]
+    branches: [ sp-v272-s8-physics-catchup-and-remote-ai-lod-20261021 ]
     paths:
       - '.github/workflows/sp-v271-publish-release.yml'
   workflow_dispatch:
@@ -16,12 +16,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
-      - name: Download APK from verified successful v271 native build
+      - name: Download APK from verified successful v272 native build
         uses: actions/download-artifact@v4
         with:
-          name: SP-PlayableWorld-v271
+          name: SP-PlayableWorld-v272
           repository: husam4448-rgb/wanderfall
-          run-id: 39586471297
+          run-id: 39622127320
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: release
 
@@ -29,21 +29,21 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          APK="release/SurvivalParadise-WorldAssets-v271.apk"
+          APK="release/SurvivalParadise-WorldAssets-v272.apk"
           test -s "$APK"
           test "$(stat -c%s "$APK")" -gt 25000000
           test "$(stat -c%s "$APK")" -lt 62914560
           unzip -t "$APK" > /tmp/sp267_apk_zip_validation.log
           test -s "release/apk-signature.txt"
           test -s "release/apk-badging.txt"
-          grep -q "versionCode='279'" "release/apk-badging.txt"
-          grep -q "versionName='0.21.0D2D.14-v271'" "release/apk-badging.txt"
+          grep -q "versionCode='280'" "release/apk-badging.txt"
+          grep -q "versionName='0.21.0D2D.14-v272'" "release/apk-badging.txt"
           grep -Eq 'Verified using v2 scheme|Verified using v3 scheme' release/apk-signature.txt
           # Original signed package has already passed its native CI checks;
           # the archived checksum embeds the runner's absolute working path,
           # so validate the downloaded copy's package metadata and generate
           # a fresh portable digest rather than resolving a stale path.
-          sha256sum "$APK" | tee release/SP271_PUBLIC_RELEASE_SHA256.txt
+          sha256sum "$APK" | tee release/SP272_PUBLIC_RELEASE_SHA256.txt
 
       - name: Publish public direct-download Android APK (no GitHub login)
         shell: bash
@@ -52,15 +52,15 @@ jobs:
           GH_REPO: husam4448-rgb/wanderfall
         run: |
           set -euo pipefail
-          TAG=sp-world-v271
-          APK=release/SurvivalParadise-WorldAssets-v271.apk
+          TAG=sp-world-v272
+          APK=release/SurvivalParadise-WorldAssets-v272.apk
           if gh release view "$TAG" --repo "$GH_REPO" >/dev/null 2>&1; then
-            gh release upload "$TAG" "$APK" release/SP271_PUBLIC_RELEASE_SHA256.txt --repo "$GH_REPO" --clobber
+            gh release upload "$TAG" "$APK" release/SP272_PUBLIC_RELEASE_SHA256.txt --repo "$GH_REPO" --clobber
           else
-            gh release create "$TAG" "$APK" release/SP271_PUBLIC_RELEASE_SHA256.txt \
+            gh release create "$TAG" "$APK" release/SP272_PUBLIC_RELEASE_SHA256.txt \
               --repo "$GH_REPO" \
               --target "$GITHUB_SHA" \
-              --title "Survival Paradise v271 — Galaxy S8 True Pause and Physics Diagnostic APK" \
-              --notes "Device-side Galaxy S8 bottleneck isolation: adds TRUE PAUSE and PAUSE + BLANK modes to stop the entire gameplay scene; PHYSICS 20 limits physics catch-up and restores ticks on exit. Includes previous BASELINE / HIDE WORLD / NO CANOPY FX / PAUSE WORLD SIM / EMPTY VIEW tests, existing gameplay, nine biomes and authored world sprites. Signed ARM64 Android APK versionCode 279, Godot native QA of reversible changes and APK validation passed. Do not claim performance improvements without on-device FPS readings."
+              --title "Survival Paradise v272 — Galaxy S8 Physics Recovery Test APK" \
+              --notes "Experimental Galaxy S8 physics catch-up recovery, based on measured 3-4 FPS at 60 physics ticks and 10 FPS at 20 ticks, with 57 FPS at true pause. On detected Galaxy S8, the game now requests 20 physics ticks per second and caps physics catch-up at one step per rendered frame. Adds reversible sleeping of distant ambient actors, in-game S8 low-end override controls, preserves nine-biome survival gameplay and authored sprite world. ARM64 Android package versionCode 280, signed, native Godot QA and APK validation passed. Device FPS improvement NOT YET VERIFIED."
           fi
           gh release view "$TAG" --repo "$GH_REPO" --json assets,url,tagName --jq '{tag: .tagName, release: .url, assets: [.assets[].name]}'
