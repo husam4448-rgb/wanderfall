@@ -1,72 +1,8 @@
-name: Survival Paradise v271 — Galaxy S8 True-Scene and Physics Isolation APK
+name: Survival Paradise v272 — S8 Physics Catchup and Offscreen AI Recovery APK
 
 on:
   push:
-    branches: [ sp-v271-s8-true-game-isolation-20261021 ]
-    paths:
-      - '.github/workflows/sp-v271-s8-true-pause-apk.yml'
-      - 'tools/build_sp_v2658_camp_props.py'
-      - 'patches/apply_sp_v2658_prop_art.py'
-      - 'patches/apply_sp_v266_world_assets.py'
-      - 'tools/qa_sp_v266_world_assets.gd'
-      - 'worldgen/sp_v266_world_asset_overlay.gd'
-      - 'worldgen/sp_v267_live_world_props.gd'
-      - 'tools/build_sp_v267_authored_props.py'
-      - 'patches/apply_sp_v267_live_world_props.py'
-      - 'tools/build_sp_v268_android_atlases.py'
-      - 'patches/apply_sp_v268_lowend_world.py'
-      - 'patches/apply_sp_v269_lowend_core_render.py'
-      - 'patches/apply_sp_v270_s8_ab_diagnostics.py'
-      - 'patches/apply_sp_v271_true_pause_diagnostics.py'
-      - 'performance/sp_v271_s8_true_pause_diagnostic.gd'
-      - 'tools/qa_sp_v271_true_pause_diagnostics.gd'
-      - 'performance/sp_v270_s8_isolation.gd'
-      - 'tools/qa_sp_v270_s8_ab_diagnostics.gd'
-      - 'worldgen/sp_v268_lowend_world_props.gd'
-      - 'tools/qa_sp_v2658_camp_props.gd'
-      - 'tools/build_sp_v2657_camp_animal_art.py'
-      - 'patches/apply_sp_v2657_art_convergence.py'
-      - 'tools/qa_sp_v2657_real_camp_animals.gd'
-      - 'source_art/v2656/**'
-      - 'tools/build_sp_v2656_zombie_source.py'
-      - 'patches/apply_sp_v2656_tracer_zombie.py'
-      - 'combat/sp_v2656_tracer_fx.gd'
-      - 'tools/qa_sp_v2656_shot_and_zombie.gd'
-      - 'tools/build_sp_v2655_source_art.py'
-      - 'source_art/v2655/**'
-      - 'tools/build_sp_v2654_reclaimed_art.py'
-      - 'patches/apply_sp_v2654_props_scale.py'
-      - 'tools/qa_sp_v2654_props_scale.gd'
-      - 'tools/build_sp_v2653_reclaimed_art.py'
-      - 'patches/apply_sp_v2653_reclaimed_animals.py'
-      - 'tools/qa_sp_v2653_assets_and_gait.gd'
-      - 'tools/build_sp_v2652_organic_rasters.py'
-      - 'patches/apply_sp_v2652_organic_world.py'
-      - 'tools/qa_sp_v2652_organic_world.gd'
-      - 'tools/build_sp_v2651_postcollapse_art.py'
-      - 'patches/apply_sp_v2651_postcollapse_alpha.py'
-      - 'tools/qa_sp_v2651_alpha_clutter.gd'
-      - 'worldgen/v2651_**'
-      - 'occlusion/v2651_**'
-      - 'tools/build_sp_v265_biome_art.py'
-      - 'tools/qa_sp_v265_environment.gd'
-      - 'patches/apply_sp_v265_environment_raster.py'
-      - 'patches/apply_sp_v265_biome_species.py'
-      - 'patches/apply_sp_v264_smooth_biome_ecology.py'
-      - 'tools/qa_sp_v264_biome_art.gd'
-      - 'worldgen/**'
-      - 'patches/apply_sp_v263_all_biome_world.py'
-      - 'tools/qa_sp_v263_world_atlas.gd'
-      - 'occlusion/**'
-      - 'patches/apply_sp_v261_precise_gpu_occlusion.py'
-      - 'patches/apply_sp_v262_single_tint.py'
-      - 'tools/qa_sp_v262_uniform_opacity.gd'
-      - 'tools/qa_sp_v261_real_game_visuals.gd'
-      - 'patches/apply_sp_v259_occlusion_aim.py'
-      - 'patches/apply_sp_v260_fast_canopy_breath.py'
-      - 'tools/qa_sp_v257_restored_world_hud.gd'
-      - 'patches/apply_sp_v257_legacy_runtime_fixes.py'
-      - 'patches/apply_sp_v258_performance.py'
+    branches: [ sp-v272-s8-physics-catchup-and-remote-ai-lod-20261021 ]
   workflow_dispatch:
 
 permissions:
@@ -80,7 +16,7 @@ env:
   GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
   GODOT_TEMPLATES_TPZ: /tmp/Godot_v4.7.2-stable_export_templates.tpz
   GODOT_TEMPLATES_SHA256: f298490b8d44d934be425a5a65a51bf15f422428b229a06a6e11d9ffea248011
-  APK_PATH: SurvivalParadise-WorldAssets-v271.apk
+  APK_PATH: SurvivalParadise-WorldAssets-v272.apk
   MAX_APK_BYTES: '62914560'
 
 jobs:
@@ -95,7 +31,7 @@ jobs:
       - name: Checkout approved character and combat overlay in isolation
         uses: actions/checkout@v4
         with:
-          ref: sp-v271-s8-true-game-isolation-20261021
+          ref: sp-v272-s8-physics-catchup-and-remote-ai-lod-20261021
           path: v257_overlay
           sparse-checkout: |
             patches/apply_sp_v257_d2d14_survivor_bridge.py
@@ -137,6 +73,9 @@ jobs:
             patches/apply_sp_v269_lowend_core_render.py
             patches/apply_sp_v270_s8_ab_diagnostics.py
             patches/apply_sp_v271_true_pause_diagnostics.py
+            patches/apply_sp_v272_s8_physics_recovery.py
+            performance/sp_v272_remote_actor_physics_lod.gd
+            tools/qa_sp_v272_s8_physics_lod.gd
             performance/sp_v271_s8_true_pause_diagnostic.gd
             tools/qa_sp_v271_true_pause_diagnostics.gd
             performance/sp_v270_s8_isolation.gd
@@ -540,6 +479,10 @@ jobs:
           python3 v257_overlay/patches/apply_sp_v271_true_pause_diagnostics.py "$PROJECT_DIR"
           grep -q 'PAUSE WHOLE GAME' "$PROJECT_DIR/scripts/performance/sp_v270_s8_isolation.gd"
           grep -q 'PHYSICS 20Hz' "$PROJECT_DIR/scripts/performance/sp_v270_s8_isolation.gd"
+          python3 -m py_compile v257_overlay/patches/apply_sp_v272_s8_physics_recovery.py
+          python3 v257_overlay/patches/apply_sp_v272_s8_physics_recovery.py "$PROJECT_DIR"
+          grep -q 'S8 20Hz/1 + AI LOD' "$PROJECT_DIR/scripts/performance/sp_v270_s8_isolation.gd"
+          grep -q 'Engine.max_physics_steps_per_frame = 1' "$PROJECT_DIR/scripts/performance/performance_manager.gd"
           mkdir -p v269_evidence
           cat > v269_evidence/SP269_REPORT.txt <<'REPORT'
           S8 lower-core render investigation:
@@ -871,17 +814,17 @@ jobs:
           test "$(find v270_evidence -maxdepth 1 -name 'SP270_REAL_*.png' | wc -l)" -eq 3
           rm "$PROJECT_DIR"/SP270_REAL_*.png "$PROJECT_DIR"/sp_v270_diag_qa.gd
 
-      - name: Native v271 true pause and catch-up physics-rate QA
+      - name: Native v272 Galaxy S8 physics catchup and sleeping ambient AI QA
         shell: bash
         run: |
           set -euo pipefail
-          cp v257_overlay/tools/qa_sp_v271_true_pause_diagnostics.gd "$PROJECT_DIR/sp_v271_qa.gd"
-          timeout 170s xvfb-run -a -s '-screen 0 1920x1080x24' "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1536x708 --script res://sp_v271_qa.gd > sp_v271_qa.log 2>&1 || { tail -140 sp_v271_qa.log; exit 1; }
-          grep -q SP271_NATIVE_ISOLATION_QA_PASS sp_v271_qa.log
-          if grep -E 'SCRIPT ERROR:|Compile Error:|Parse Error:' sp_v271_qa.log; then exit 1; fi
-          mkdir -p v271_evidence
-          printf 'SP271 TRUE WHOLE GAME PAUSE AND 20Hz PHYSICS QA PASS\n' > v271_evidence/report.txt
-          rm "$PROJECT_DIR/sp_v271_qa.gd"
+          cp v257_overlay/tools/qa_sp_v272_s8_physics_lod.gd "$PROJECT_DIR/sp_v272_qa.gd"
+          timeout 170s xvfb-run -a -s '-screen 0 1920x1080x24' "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1536x708 --script res://sp_v272_qa.gd > sp_v272_qa.log 2>&1 || { tail -140 sp_v272_qa.log; exit 1; }
+          grep -q SP272_NATIVE_PHYSICS_LOD_QA_PASS sp_v272_qa.log
+          if grep -E 'SCRIPT ERROR:|Compile Error:|Parse Error:' sp_v272_qa.log; then exit 1; fi
+          mkdir -p v272_evidence
+          printf 'SP272 S8 SINGLE PHYSICS STEP PLUS REMOTE AMBIENT AI LOD QA PASS\n' > v272_evidence/report.txt
+          rm "$PROJECT_DIR/sp_v272_qa.gd"
 
       - name: Use independent version and package identity for restored-world experiment
         run: |
@@ -897,8 +840,8 @@ jobs:
           s=s.replace('architectures/armeabi-v7a=true','architectures/armeabi-v7a=false',1)
           s=s.replace('org.wanderfall.game','org.survivalparadise.restoredworld',1)
           s=s.replace('package/name="Wanderfall"','package/name="Survival Paradise Restored"',1)
-          s=s.replace('version/code=87','version/code=279',1)
-          s=s.replace('version/name="0.21.0D2D.14"','version/name="0.21.0D2D.14-v271"',1)
+          s=s.replace('version/code=87','version/code=280',1)
+          s=s.replace('version/name="0.21.0D2D.14"','version/name="0.21.0D2D.14-v272"',1)
           p.write_text(s,encoding='utf-8')
           PY
       - name: Preserve exact restored world HUD source for visual-to-runtime integration
@@ -992,8 +935,8 @@ jobs:
           "$APKSIGNER" verify --verbose --print-certs "$APK" | tee apk-signature.txt
           "$AAPT" dump badging "$APK" | tee apk-badging.txt
           grep -q "package: name='org.survivalparadise.restoredworld'" apk-badging.txt
-          grep -q "versionCode='279'" apk-badging.txt
-          grep -q "versionName='0.21.0D2D.14-v271'" apk-badging.txt
+          grep -q "versionCode='280'" apk-badging.txt
+          grep -q "versionName='0.21.0D2D.14-v272'" apk-badging.txt
           grep -q "application-label:'Survival Paradise Restored'" apk-badging.txt
           APK_BYTES="$(stat -c%s "$APK")"
           test "$APK_BYTES" -lt "$MAX_APK_BYTES"
@@ -1003,7 +946,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           from zipfile import ZipFile
-          p=Path("SurvivalParadise-WorldAssets-v271.apk")
+          p=Path("SurvivalParadise-WorldAssets-v272.apk")
           with ZipFile(p) as z:
               assert not any("v262_visual_" in n or "SP_v257_ActualRestored" in n for n in z.namelist())
           print("SP_V261_LEAN_APK_QA_PASS screenshots and test scripts excluded")
@@ -1011,7 +954,7 @@ jobs:
           python3 - <<'PY'
           from zipfile import ZipFile
           from pathlib import Path
-          apk=Path("SurvivalParadise-WorldAssets-v271.apk")
+          apk=Path("SurvivalParadise-WorldAssets-v272.apk")
           with ZipFile(apk) as z:
               names=z.namelist()
               assert 'lib/arm64-v8a/libgodot_android.so' in names
@@ -1020,13 +963,13 @@ jobs:
               assert any('ground_blends.png' in name for name in names)
               print('SP_V258_APK_SIZE_QA_PASS bytes',apk.stat().st_size,'ARM64 only; old 3D models removed, world terrain retained')
           PY
-          sha256sum "$APK" | tee SurvivalParadise-WorldAssets-v271.apk.sha256
+          sha256sum "$APK" | tee SurvivalParadise-WorldAssets-v272.apk.sha256
 
       - name: Upload all-biomes debug maps and native world screenshot
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: SP-v271-S8TrueScene-NativeQA
+          name: SP-v272-S8PhysicsLOD-NativeQA
           path: |
             v263_evidence/*.png
             sp_v263_atlas_qa.log
@@ -1049,8 +992,8 @@ jobs:
             v268_evidence/*
             v269_evidence/*
             v270_evidence/*
-            v271_evidence/*
-            sp_v271_qa.log
+            v272_evidence/*
+            sp_v272_qa.log
             sp_v270_diag_qa.log
             sp_v266_qa.log
             v267_evidence/sp267_manifest.json
@@ -1083,10 +1026,10 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SP-PlayableWorld-v271
+          name: SP-PlayableWorld-v272
           path: |
-            SurvivalParadise-WorldAssets-v271.apk
-            SurvivalParadise-WorldAssets-v271.apk.sha256
+            SurvivalParadise-WorldAssets-v272.apk
+            SurvivalParadise-WorldAssets-v272.apk.sha256
             android-export.log
             authored2d-import.log
             godot-v0179-parser.log
