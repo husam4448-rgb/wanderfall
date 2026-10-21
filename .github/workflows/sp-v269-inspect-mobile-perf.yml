@@ -46,5 +46,10 @@ jobs:
           sed -n '1,135p' /tmp/sp269/scripts/world/world_manager.gd
           echo '=== PROJECT.GODOT HEAD ==='
           sed -n '1,130p' /tmp/sp269/project.godot
+          echo '=== PERFORMANCE MANAGER ==='
+          sed -n '1,205p' /tmp/sp269/scripts/performance/performance_manager.gd
+          echo '=== PERFORMANCE HUD ==='
+          sed -n '1,100p' /tmp/sp269/scripts/performance/performance_hud.gd
           echo '=== ANDROID EXPORT SIGNING ==='
           grep -E 'keystore/|architectures/|version/code|package/' /tmp/sp269/export_presets.cfg
+
