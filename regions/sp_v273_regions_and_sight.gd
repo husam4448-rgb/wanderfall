@@ -118,6 +118,10 @@ func _process(delta: float) -> void:
         _update_actor_visibility()
 
 func _attach_when_game_exists() -> void:
+    # Retain legacy 9-biome desktop QA; on Android the new map model is active.
+    # Native v273 QA opts in explicitly before instantiating main.tscn.
+    if OS.get_name() != "Android" and not bool(ProjectSettings.get_setting("sp273/force_enabled",false)):
+        return
     var root_scene := get_tree().current_scene
     if root_scene == null:
         return
