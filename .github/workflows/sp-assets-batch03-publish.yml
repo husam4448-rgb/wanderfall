@@ -4,6 +4,7 @@ on:
     branches: [sp-assets-batch03-no-passages-20261021]
     paths:
       - '.github/workflows/sp-assets-batch03-publish.yml'
+      - 'art_source/world_assets/batch03_20261021/chunks/**'
   workflow_dispatch:
 permissions:
   contents: write
