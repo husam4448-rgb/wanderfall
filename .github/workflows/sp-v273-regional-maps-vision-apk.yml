@@ -75,6 +75,7 @@ jobs:
             patches/apply_sp_v271_true_pause_diagnostics.py
             patches/apply_sp_v272_s8_physics_recovery.py
             patches/apply_sp_v273_regions_and_sight.py
+            patches/apply_sp_v273_npc_los.py
             regions/sp_v273_regions_and_sight.gd
             regions/sp_v273_region_gates.gd
             tools/qa_sp_v273_regions_and_sight.gd
@@ -487,6 +488,10 @@ jobs:
           python3 v257_overlay/patches/apply_sp_v272_s8_physics_recovery.py "$PROJECT_DIR"
           python3 -m py_compile v257_overlay/patches/apply_sp_v273_regions_and_sight.py
           python3 v257_overlay/patches/apply_sp_v273_regions_and_sight.py "$PROJECT_DIR"
+          python3 -m py_compile v257_overlay/patches/apply_sp_v273_npc_los.py
+          python3 v257_overlay/patches/apply_sp_v273_npc_los.py "$PROJECT_DIR"
+          grep -q 'visible_target or alert_time' "$PROJECT_DIR/scripts/combat/bandit.gd"
+          grep -q 'sees_player or distance' "$PROJECT_DIR/scripts/ecology/wildlife_actor.gd"
           grep -q sp273_activate_region "$PROJECT_DIR/scripts/world/world_manager.gd"
           grep -q DirectionalFogOfWar "$PROJECT_DIR/scripts/world/sp_v273_regions_and_sight.gd"
           grep -q 'S8 20Hz/1 + AI LOD' "$PROJECT_DIR/scripts/performance/sp_v270_s8_isolation.gd"
