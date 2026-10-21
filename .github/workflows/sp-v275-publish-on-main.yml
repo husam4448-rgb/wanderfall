@@ -1,0 +1,64 @@
+name: Publish Survival Paradise v275 S8 Rendering Diagnostic APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  public_release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Download APK from verified successful v275 native build
+        uses: actions/download-artifact@v4
+        with:
+          name: SP-PlayableWorld-v275
+          repository: husam4448-rgb/wanderfall
+          run-id: 39655658407
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: release
+
+      - name: Validate original verified package and signature metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="release/SurvivalParadise-WorldAssets-v275.apk"
+          test -s "$APK"
+          test "$(stat -c%s "$APK")" -gt 25000000
+          test "$(stat -c%s "$APK")" -lt 62914560
+          unzip -t "$APK" > /tmp/sp267_apk_zip_validation.log
+          test -s "release/apk-signature.txt"
+          test -s "release/apk-badging.txt"
+          grep -q "versionCode='283'" "release/apk-badging.txt"
+          grep -q "versionName='0.21.0D2D.14-v275'" "release/apk-badging.txt"
+          grep -Eq 'Verified using v2 scheme|Verified using v3 scheme' release/apk-signature.txt
+          # Original signed package has already passed its native CI checks;
+          # the archived checksum embeds the runner's absolute working path,
+          # so validate the downloaded copy's package metadata and generate
+          # a fresh portable digest rather than resolving a stale path.
+          sha256sum "$APK" | tee release/SP275_PUBLIC_RELEASE_SHA256.txt
+
+      - name: Publish public direct-download Android APK (no GitHub login)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: husam4448-rgb/wanderfall
+        run: |
+          set -euo pipefail
+          TAG=sp-world-v275
+          APK=release/SurvivalParadise-WorldAssets-v275.apk
+          if gh release view "$TAG" --repo "$GH_REPO" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" release/SP275_PUBLIC_RELEASE_SHA256.txt --repo "$GH_REPO" --clobber
+          else
+            gh release create "$TAG" "$APK" release/SP275_PUBLIC_RELEASE_SHA256.txt \
+              --repo "$GH_REPO" \
+              --target "238b02224979602bc18ac1e8879b1d7be224d36f" \
+              --title "Survival Paradise v275 — Galaxy S8 Rendering Diagnostic APK" \
+              --notes "v275 is an experimental device-diagnostic update based on v274. Adds reversible S8 TEST modes: FOG OFF isolates shader overlay fill cost; ONE CHUNK hides out-of-center chunk visuals while keeping streaming, physics and collision unchanged. RESTORE GAME reverses both. Native Godot QA, APK signing, export and archive verification passed on GitHub Actions run 39655658407. Galaxy S8 FPS and visual quality are NOT yet accepted; compare BASELINE / FOG OFF / ONE CHUNK while stationary at the same world location."
+          fi
+          gh release view "$TAG" --repo "$GH_REPO" --json assets,url,tagName --jq '{tag: .tagName, release: .url, assets: [.assets[].name]}'
