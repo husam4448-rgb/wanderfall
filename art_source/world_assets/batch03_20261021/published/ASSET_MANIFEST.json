@@ -1,0 +1,229 @@
+{
+  "project": "Survival Paradise",
+  "version": "Batch03_20261021",
+  "asset_count": 21,
+  "status": "SOURCE_SHEETS_NOT_CROPPED",
+  "usage": "Extract individual objects, clean shadows/backgrounds, configure collision/biome spawn rules before in-game use.",
+  "exclusion_rule": "No visually enterable gates, stairs, portals, buildings with entrance, ramps or stages without mechanics.",
+  "format": "Original-resolution high quality WebP (quality=95) optimized copies; original PNG files retained in source archive and Library.",
+  "assets": [
+    {
+      "filename": "top_down_realistic_rock_asset_sheet.webp",
+      "original": "top_down_realistic_rock_asset_sheet.png",
+      "source_png_sha256": "c450fb212bae6f56ad35c8624fb1a1caaf53c2f2e9231cedf1c187af72b94df5",
+      "source_png_bytes": 2976016,
+      "webp_sha256": "9ed6f3da3fa3330bbaa679ece26177a8e0058ab0b4a4e4b4d7bb3fb0dd659ec6",
+      "webp_bytes": 841178,
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "filename": "top_down_shrub_and_bush_sprite_atlas.webp",
+      "original": "top_down_shrub_and_bush_sprite_atlas.png",
+      "source_png_sha256": "ce01acd3946d5a6c1e356edf82a4b055ab42513409d39875d4affe140fdce840",
+      "source_png_bytes": 3533003,
+      "webp_sha256": "22b19f25c36c1650117ec83d57336a663bab42b45446ff64b072e12d5c516238",
+      "webp_bytes": 1309226,
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "filename": "top_down_dead_tree_asset_sheet.webp",
+      "original": "top_down_dead_tree_asset_sheet.png",
+      "source_png_sha256": "90e45427020a93363d3f35cef80233823915bcc1bf76a3ae9ce40dfce8167681",
+      "source_png_bytes": 2236523,
+      "webp_sha256": "30468f0c29c3dbe6d2812e28cbb577f4b496bb452c63952bda10906daeb3c9cc",
+      "webp_bytes": 844402,
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "filename": "industrial_container_asset_inventory.webp",
+      "original": "industrial_container_asset_inventory.png",
+      "source_png_sha256": "19c66d58378136e1e2310af43434d761e67544bef3a122931646a837564f47d2",
+      "source_png_bytes": 2993041,
+      "webp_sha256": "85e49e823f9ef69c06f9b02b980fe7288dc25592ac48f20e2bada78dfb857da9",
+      "webp_bytes": 618968,
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "filename": "weathered_road_sign_asset_collection.webp",
+      "original": "weathered_road_sign_asset_collection.png",
+      "source_png_sha256": "060c9b6f6aabd3ea7e0b122ff0a6c5a198cea394e32f769c155a6973d079cdab",
+      "source_png_bytes": 2493538,
+      "webp_sha256": "4e5f00156f1bd90993d6e3122774276ae41e5693bfa088e82003d2caccf63796",
+      "webp_bytes": 473524,
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "filename": "post_apocalyptic_barrier_tileset.webp",
+      "original": "post_apocalyptic_barrier_tileset.png",
+      "source_png_sha256": "67919b1380fc971375b596c01876d63891a1af2e5ef933f03fbc0557eec834e5",
+      "source_png_bytes": 2710877,
+      "webp_sha256": "7b2ab592271f316d40e7a1bb527cd5f57f6cfe1a5fe0a54d48371f57decfbf1a",
+      "webp_bytes": 507374,
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "filename": "post_apocalyptic_scrap_prop_sheet.webp",
+      "original": "post_apocalyptic_scrap_prop_sheet.png",
+      "source_png_sha256": "277f30ac779f162c0bb82abc1db5d7548971ca771a6c55d8df9ed9aecc0232e7",
+      "source_png_bytes": 3445916,
+      "webp_sha256": "6596bdb462cf7fd393889e1569034aa73d58daff94d0a67c170fe28474fc6f02",
+      "webp_bytes": 737500,
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "filename": "weathered_urban_utility_props_atlas.webp",
+      "original": "weathered_urban_utility_props_atlas.png",
+      "source_png_sha256": "e06e603a2c38fdc958124f891404277ab77ae4187749c0b7bc4a266d86ff3d11",
+      "source_png_bytes": 2486753,
+      "webp_sha256": "8229ae8b7ab0f07c8a4b886062511fd730673a47a19ff5101fd363f362596a89",
+      "webp_bytes": 425234,
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "filename": "post_apocalyptic_vehicle_asset_sheet.webp",
+      "original": "post_apocalyptic_vehicle_asset_sheet.png",
+      "source_png_sha256": "808c74c3596f7aa2f542f66d38be3aca312378d2d2c32892c291ab5822cb3f33",
+      "source_png_bytes": 3071591,
+      "webp_sha256": "81857917b7f83f2529f4a4e30d199b294c45e5541ae5b9fd144c6c99b8d51728",
+      "webp_bytes": 641726,
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "filename": "post_apocalyptic_roadside_prop_pack.webp",
+      "original": "post_apocalyptic_roadside_prop_pack.png",
+      "source_png_sha256": "274d631b5548dbd65b25dced7032152e3b533540bc70a53e1fb2bcb7647b293c",
+      "source_png_bytes": 2960554,
+      "webp_sha256": "3e5afeba829aea0a4134655cf540bfb6ce5b3a4f4a09901c758837737f3555a5",
+      "webp_bytes": 554776,
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "filename": "industrial_workshop_equipment_asset_grid.webp",
+      "original": "industrial_workshop_equipment_asset_grid.png",
+      "source_png_sha256": "66a69d7ac4770fd513066673fea91a7c0ac1e64fda443149d8a2fac09f8b4f0f",
+      "source_png_bytes": 2771250,
+      "webp_sha256": "1ae48a8ce40513b4d897eba93294e80671bc313ce1f4efd00cffcec3b9efb4d1",
+      "webp_bytes": 554802,
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "filename": "natural_ground_clutter_asset_sheet.webp",
+      "original": "natural_ground_clutter_asset_sheet.png",
+      "source_png_sha256": "dcf12d6e9bb4af60780e6fe703514f0bacb60e00c5203892bea027f261b1d826",
+      "source_png_bytes": 3188336,
+      "webp_sha256": "67aace7a768c386457de9f70c75e16dcf4f16f66dfe7fd3bc35d07e30b8c5f91",
+      "webp_bytes": 633658,
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "filename": "gritty_survival_loot_prop_sheet.webp",
+      "original": "gritty_survival_loot_prop_sheet.png",
+      "source_png_sha256": "937c7ce4d8c634022b339b3c162382c64df8c41c8e8d4eefa1a22a1269686d64",
+      "source_png_bytes": 2796760,
+      "webp_sha256": "76ccd0ed266118a5ecd6f67fcc3d5146f1bded1ff06ca7d9f479bc9f2463d6ae",
+      "webp_bytes": 566082,
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "filename": "post_apocalyptic_survival_camp_asset_atlas.webp",
+      "original": "post_apocalyptic_survival_camp_asset_atlas.png",
+      "source_png_sha256": "d72a1d46849c7ad5cd91f55f2e3b1be8d5275ca84743459ad0a272ea3328dc30",
+      "source_png_bytes": 2558391,
+      "webp_sha256": "c45f84d7ae52a10bfd70f3dfe968d0aba6771238a6050d7ae9b5e3ce2d346c53",
+      "webp_bytes": 483458,
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "filename": "post_apocalyptic_ruins_asset_grid.webp",
+      "original": "post_apocalyptic_ruins_asset_grid.png",
+      "source_png_sha256": "673d6a315601371ab1b61fc75e59a50340f2fc9834407083e844ca13c1896c40",
+      "source_png_bytes": 3075141,
+      "webp_sha256": "2dbfd024b9852dd5a6facef306b8ac3e905686a140c5c4d913d112e553196708",
+      "webp_bytes": 614112,
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "filename": "weathered_workshop_machinery_collection.webp",
+      "original": "weathered_workshop_machinery_collection.png",
+      "source_png_sha256": "268e5850285015de41aadc0e34328ed79fcf97853204bc153b2508972585e734",
+      "source_png_bytes": 2831278,
+      "webp_sha256": "0f1a9575e6633c74088ad3ec4ca9b6daae662aad55831b05c86ab260a816c150",
+      "webp_bytes": 583814,
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "filename": "post_apocalyptic_survival_loot_grid.webp",
+      "original": "post_apocalyptic_survival_loot_grid.png",
+      "source_png_sha256": "1be5a3acf052e5f6c1738c3b3f1dbfa3a8ef52ec7bcc34dededab104dde3bab4",
+      "source_png_bytes": 2704468,
+      "webp_sha256": "fa138ccdad5b9d89c8f8c4c49a8dd1044f625d84f62c236b3de7f08bf56187a3",
+      "webp_bytes": 552088,
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "filename": "nature_terrain_props_asset_grid.webp",
+      "original": "nature_terrain_props_asset_grid.png",
+      "source_png_sha256": "7debc3d830d77f8c808395a99591bc8c864d4d7de1729ba6b61b81ea9746e5a2",
+      "source_png_bytes": 3179772,
+      "webp_sha256": "a465635377008461eb9c032b43537b9dc4bb9f9567ca587ba6524ac4065a177a",
+      "webp_bytes": 645742,
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "filename": "post_apocalyptic_utility_asset_grid.webp",
+      "original": "post_apocalyptic_utility_asset_grid.png",
+      "source_png_sha256": "039aa5696b8d397d7f79e76d64e52a6790f7f03228a4e5f3e4a2c428d939dae6",
+      "source_png_bytes": 2608571,
+      "webp_sha256": "b4f9e5b346a31f9bb6f4f6a7be7fc549a0261eb4d9f3c311c00e7b0ecb9327c8",
+      "webp_bytes": 493620,
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "filename": "post_apocalyptic_urban_clutter_asset_sheet.webp",
+      "original": "post_apocalyptic_urban_clutter_asset_sheet.png",
+      "source_png_sha256": "4a321f7191c369d238fbaaf1dc64488a6fbc0833f218353ceb69391e0007854a",
+      "source_png_bytes": 3019783,
+      "webp_sha256": "08c5f9bbf0619dcb787e37e611caf6dead161cd3632173fc2adecae9e551347d",
+      "webp_bytes": 593610,
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "filename": "abandoned_wrecks_asset_sheet.webp",
+      "original": "abandoned_wrecks_asset_sheet.png",
+      "source_png_sha256": "17cd05c911dd0282f8761419010f26f17e4e78ca17940825ba38237021a6234d",
+      "source_png_bytes": 2865099,
+      "webp_sha256": "0e266f8c556518db2828db574cdcfc1881aaee4c9676e48f41a7905a1cb382f9",
+      "webp_bytes": 568794,
+      "width": 1254,
+      "height": 1254
+    }
+  ],
+  "excluded_originals": [
+    "post_apocalyptic_ruined_architecture_asset_sheet.png",
+    "post_apocalyptic_shelter_asset_sheet.png",
+    "a_top_down_clean_graphic_art_sheet_a_high_resolu.png",
+    "a_clean_studio_like_sprite_sheet_game_asset_com.png",
+    "a_clean_high_resolution_game_art_asset_sheet_layo.png",
+    "imagegen.png"
+  ]
+}
