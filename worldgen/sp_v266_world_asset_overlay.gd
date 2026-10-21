@@ -2,10 +2,19 @@ extends RefCounted
 ## Experimental art layer for the verified v265.8 playable world.
 ## No state, physics, AI, spawn positions, saves or road collision changes.
 const ROOT = "res://assets/world/terrain_v01/GameAssets/"
-const BIOMES = [
-    "Forest", "Grassland", "Desert", "AridScrubland", "RockyHighlands",
-    "Swamp", "Coastal", "City", "Industrial"
+const MACRO_MATERIALS = [
+    "Forest", "Forest", "Grassland", "Swamp", "Desert",
+    "RockyHighlands", "", "Coastal", "City"
 ]
+static func _material(biome_id: int, coord: Vector2i) -> String:
+    if biome_id < 0 or biome_id >= MACRO_MATERIALS.size():
+        return ""
+    # Large alternating material neighborhoods; 6 (snow) preserves v265.8 snow.
+    if biome_id == 4 and posmod(floori(float(coord.x)/12.0) + floori(float(coord.y)/12.0), 4) == 0:
+        return "AridScrubland"
+    if biome_id == 8 and posmod(floori(float(coord.x)/10.0) + floori(float(coord.y)/10.0), 3) == 0:
+        return "Industrial"
+    return MACRO_MATERIALS[biome_id]
 const DECALS = [
     "ScuffedSoil", "PebbleScatter", "DebrisScatter", "VegetationTufts",
     "CrackNetwork", "DarkStain", "WeatheredPatch", "DenseTexture"
@@ -18,9 +27,9 @@ static func _texture(path: String) -> Texture2D:
     return _textures[path] as Texture2D
 
 static func paint_ground(canvas: CanvasItem, biome_id: int, coord: Vector2i, seed: int, chunk_size: float) -> void:
-    if biome_id < 0 or biome_id >= BIOMES.size():
+    var biome: String = _material(biome_id, coord)
+    if biome.is_empty():
         return
-    var biome: String = BIOMES[biome_id]
     var base_path: String = ROOT + biome + "/Terrain/SP_" + biome + "_Terrain_Base_01.png"
     var base: Texture2D = _texture(base_path)
     if base != null:
@@ -50,9 +59,9 @@ static func paint_ground(canvas: CanvasItem, biome_id: int, coord: Vector2i, see
             Color(1, 1, 1, 0.63))
 
 static func paint_facade(canvas: CanvasItem, biome_id: int, rect: Rect2, variant: int) -> void:
-    if biome_id < 0 or biome_id >= BIOMES.size():
+    var biome: String = _material(biome_id, Vector2i.ZERO)
+    if biome.is_empty():
         return
-    var biome: String = BIOMES[biome_id]
     var path: String = ROOT + biome + "/Structures/SP_" + biome + "_Structure_ShelterFacade_%02d.png" % (posmod(variant,4)+1)
     var texture: Texture2D = _texture(path)
     if texture != null:
