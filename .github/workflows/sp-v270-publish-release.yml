@@ -1,0 +1,66 @@
+name: Publish Survival Paradise v270 S8 bottleneck isolation public APK
+
+on:
+  push:
+    branches: [ sp-v270-s8-bottleneck-isolation-20261021 ]
+    paths:
+      - '.github/workflows/sp-v270-publish-release.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  public_release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Download APK from verified successful v270 native build
+        uses: actions/download-artifact@v4
+        with:
+          name: SP-PlayableWorld-v270
+          repository: husam4448-rgb/wanderfall
+          run-id: 39573063500
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: release
+
+      - name: Validate original verified package and signature metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="release/SurvivalParadise-WorldAssets-v270.apk"
+          test -s "$APK"
+          test "$(stat -c%s "$APK")" -gt 25000000
+          test "$(stat -c%s "$APK")" -lt 62914560
+          unzip -t "$APK" > /tmp/sp267_apk_zip_validation.log
+          test -s "release/apk-signature.txt"
+          test -s "release/apk-badging.txt"
+          grep -q "versionCode='278'" "release/apk-badging.txt"
+          grep -q "versionName='0.21.0D2D.14-v270'" "release/apk-badging.txt"
+          grep -Eq 'Verified using v2 scheme|Verified using v3 scheme' release/apk-signature.txt
+          # Original signed package has already passed its native CI checks;
+          # the archived checksum embeds the runner's absolute working path,
+          # so validate the downloaded copy's package metadata and generate
+          # a fresh portable digest rather than resolving a stale path.
+          sha256sum "$APK" | tee release/SP270_PUBLIC_RELEASE_SHA256.txt
+
+      - name: Publish public direct-download Android APK (no GitHub login)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: husam4448-rgb/wanderfall
+        run: |
+          set -euo pipefail
+          TAG=sp-world-v270
+          APK=release/SurvivalParadise-WorldAssets-v270.apk
+          if gh release view "$TAG" --repo "$GH_REPO" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" release/SP270_PUBLIC_RELEASE_SHA256.txt --repo "$GH_REPO" --clobber
+          else
+            gh release create "$TAG" "$APK" release/SP270_PUBLIC_RELEASE_SHA256.txt \
+              --repo "$GH_REPO" \
+              --target "$GITHUB_SHA" \
+              --title "Survival Paradise v270 — Reversible S8 Performance Isolation APK" \
+              --notes "Experimental Galaxy S8 diagnostic APK with five reversible in-game S8 TEST modes: BASELINE, HIDE WORLD, NO CANOPY FX, PAUSE WORLD SIM and EMPTY VIEW. Includes main CPU time, physics ms and draw-call counters, seven integrated authored terrain object atlases, all nine biomes and original gameplay. Godot native QA of restoring gameplay passed and Android ARM64 package signature verified. No on-device FPS improvement claim. Use NEXT TEST and wait five seconds at each mode; compare FPS."
+          fi
+          gh release view "$TAG" --repo "$GH_REPO" --json assets,url,tagName --jq '{tag: .tagName, release: .url, assets: [.assets[].name]}'
