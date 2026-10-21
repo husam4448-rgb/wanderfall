@@ -15,6 +15,7 @@ func _capture(name:String)->void:
         _fail("screenshot "+name)
 
 func _run()->void:
+    ProjectSettings.set_setting("sp273/force_enabled",true)
     var game:PackedScene=load("res://scenes/main.tscn")
     if game==null:
         _fail("real main scene load")
