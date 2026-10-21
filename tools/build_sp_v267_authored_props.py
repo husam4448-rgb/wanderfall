@@ -16,7 +16,7 @@ packs = {
     "nature": ("nature_terrain_props_asset_grid.webp",6,5,None),
     "urban": ("post_apocalyptic_urban_clutter_asset_sheet.webp",6,4,None),
     "ruins": ("post_apocalyptic_ruins_asset_grid.webp",4,6,None),
-    "camp": ("post_apocalyptic_survival_camp_asset_atlas.webp",6,4,None),
+    "camp": ("post_apocalyptic_survival_camp_asset_atlas.webp",6,4,[(r,c) for r in (0,2,3) for c in range(6)]),
     "wreck": ("post_apocalyptic_vehicle_asset_sheet.webp",4,5,[(r,c) for r in range(4) for c in range(4)]),
     "rock": ("top_down_realistic_rock_asset_sheet.webp",4,4,[(0,c) for c in range(4)]),
     "deadwood": ("top_down_dead_tree_asset_sheet.webp",4,3,[(0,c) for c in range(4)]),
@@ -37,7 +37,7 @@ for family,(filename,cols,rows,slots) in packs.items():
         if family=="rock":
             box=(round(c*raw.width/4),0,round((c+1)*raw.width/4),322)
         elif family=="deadwood":
-            box=(round(c*raw.width/4),0,round((c+1)*raw.width/4),423)
+            box=[(0,0,470,455),(465,0,828,455),(820,0,1088,450),(1070,0,1254,448)][c]
         else:
             box=(round(c*raw.width/cols),round(r*raw.height/rows),
                  round((c+1)*raw.width/cols),round((r+1)*raw.height/rows))
@@ -74,7 +74,7 @@ for family,(filename,cols,rows,slots) in packs.items():
             preview_items.append((family,name,image.copy()))
         count+=1
     counts[family]=count
-assert counts=={"nature":30,"urban":24,"ruins":24,"camp":24,
+assert counts=={"nature":30,"urban":24,"ruins":24,"camp":18,
                "wreck":16,"rock":4,"deadwood":4},counts
 manifest={"source":"Survival Paradise Batch03 approved sprite sheets",
           "counts":counts,"total":sum(counts.values()),

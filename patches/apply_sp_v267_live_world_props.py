@@ -8,7 +8,7 @@ game=Path(sys.argv[1]).resolve()
 repo=Path(__file__).resolve().parent.parent
 art=game/"assets/world/props_v267"
 manifest=json.loads((art/"sp267_manifest.json").read_text())
-expected={"nature":30,"urban":24,"ruins":24,"camp":24,"wreck":16,"rock":4,"deadwood":4}
+expected={"nature":30,"urban":24,"ruins":24,"camp":18,"wreck":16,"rock":4,"deadwood":4}
 assert manifest["counts"]==expected,manifest
 for family,count in expected.items():
     assert len(list((art/family).glob("*.png")))==count,family
@@ -40,4 +40,4 @@ shutil.copy2(repo/"worldgen/sp_v267_live_world_props.gd",destination)
 for p,old in before.items():
     assert (game/p).read_bytes()==old,"SP267_PROTECTED_BEHAVIOR_CHANGED "+p
 assert s.count("SP267_PROPS.paint_props(")==1
-print("SP267_LIVE_RENDERER_WIRED_PASS 126 separated transparent sprites, 7 families, nine biomes")
+print("SP267_LIVE_RENDERER_WIRED_PASS 120 separated transparent sprites, 7 families, nine biomes")

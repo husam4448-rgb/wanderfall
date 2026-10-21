@@ -481,7 +481,7 @@ jobs:
                   im=Image.open(p).convert("RGBA")
                   assert im.size[0]>=25 and im.size[1]>=25,p
                   assert im.getchannel("A").getextrema()[0]<=25,("opaque prop background",p)
-          print("SP267_TRANSPARENT_SPRITE_QA_PASS 126 authentic extracted game sprites")
+          print("SP267_TRANSPARENT_SPRITE_QA_PASS 120 authentic extracted game sprites")
           SP267QA
           grep -q 'v2657/hero_cabin' "$PROJECT_DIR/scripts/world/world_chunk.gd"
           grep -q 'v2658/camp_scene' "$PROJECT_DIR/scripts/social/faction_camp.gd"

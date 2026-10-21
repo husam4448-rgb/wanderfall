@@ -2,7 +2,7 @@ extends RefCounted
 ## v267 actually paints extracted, transparent Batch03 art into LIVE streamed
 ## world chunks. Cosmetic-only placement: no fabricated collision, loot or doors.
 const ROOT: String = "res://assets/world/props_v267/"
-const COUNTS := {"nature":30,"urban":24,"ruins":24,"camp":24,
+const COUNTS := {"nature":30,"urban":24,"ruins":24,"camp":18,
                  "wreck":16,"rock":4,"deadwood":4}
 const POOLS := [
     ["nature","nature","nature","rock","deadwood"], # temperate
@@ -26,12 +26,12 @@ static func _load_art(family: String,index: int) -> Texture2D:
 
 static func _size_for(family: String) -> float:
     match family:
-        "nature": return 116.0
-        "rock": return 113.0
-        "deadwood": return 132.0
-        "ruins": return 170.0
-        "urban": return 133.0
-        "wreck": return 174.0
+        "nature": return 105.0
+        "rock": return 96.0
+        "deadwood": return 110.0
+        "ruins": return 145.0
+        "urban": return 115.0
+        "wreck": return 152.0
         "camp": return 97.0
     return 102.0
 
