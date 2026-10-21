@@ -595,7 +595,7 @@ jobs:
           SDKMANAGER="$(command -v sdkmanager || true)"
           [ -n "$SDKMANAGER" ] || SDKMANAGER="$ANDROID_SDK/cmdline-tools/latest/bin/sdkmanager"
           yes | "$SDKMANAGER" --licenses >/dev/null 2>&1 || true
-          "$SDKMANAGER" --sdk_root="$ANDROID_SDK" "platform-tools" "build-tools;35.0.1" "platforms;android-35" "cmdline-tools;latest" "cmake;3.10.2.4988404" "ndk;28.1.13356709"
+          "$SDKMANAGER" --sdk_root="$ANDROID_SDK" "platform-tools" "build-tools;35.0.1" "platforms;android-35" "cmake;3.10.2.4988404" "ndk;28.1.13356709"
 
       - name: Prepare persistent Survival Paradise debug signing key
         shell: bash
