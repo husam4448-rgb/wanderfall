@@ -27,7 +27,7 @@ replace('    var actions := HBoxContainer.new()\n', '''    var gpu_row := HBoxCo
     var actions := HBoxContainer.new()
 ''',"test buttons")
 replace('    panel.size = Vector2(346.0, 284.0)','    panel.size = Vector2(346.0, 326.0)',"panel size")
-replace('    _refresh()\n\nfunc _next_test() -> void:', '''        8: # The shader is removed, but all existing sight processing remains.
+replace('    _refresh()\n\nfunc _sp_v272_activate() -> void:', '''        8: # The shader is removed, but all existing sight processing remains.
             var fog: Node = get_tree().root.get_node_or_null("SP273RegionalSight")
             if fog != null:
                 var fog_rect: Variant = fog.get("overlay")
@@ -43,7 +43,7 @@ replace('    _refresh()\n\nfunc _next_test() -> void:', '''        8: # The shad
                         _remember_visible(chunk as CanvasItem, false)
     _refresh()
 
-func _next_test() -> void:''',"restore-safe modes")
+func _sp_v272_activate() -> void:''',"restore-safe modes")
 path.write_text(s)
 assert s.count("FOG OFF")>=2 and s.count("ONE CHUNK")>=2
 assert "func _restore_all()" in s and "func _reset()" in s
