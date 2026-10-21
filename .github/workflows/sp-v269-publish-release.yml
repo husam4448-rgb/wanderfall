@@ -1,0 +1,66 @@
+name: Publish Survival Paradise v269 S8 renderer diagnostics public APK
+
+on:
+  push:
+    branches: [ sp-v269-s8-render-diagnostics-20261021 ]
+    paths:
+      - '.github/workflows/sp-v269-publish-release.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  public_release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Download APK from verified successful v269 native build
+        uses: actions/download-artifact@v4
+        with:
+          name: SP-PlayableWorld-v269
+          repository: husam4448-rgb/wanderfall
+          run-id: 39563894184
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: release
+
+      - name: Validate original verified package and signature metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="release/SurvivalParadise-WorldAssets-v269.apk"
+          test -s "$APK"
+          test "$(stat -c%s "$APK")" -gt 25000000
+          test "$(stat -c%s "$APK")" -lt 62914560
+          unzip -t "$APK" > /tmp/sp267_apk_zip_validation.log
+          test -s "release/apk-signature.txt"
+          test -s "release/apk-badging.txt"
+          grep -q "versionCode='277'" "release/apk-badging.txt"
+          grep -q "versionName='0.21.0D2D.14-v269'" "release/apk-badging.txt"
+          grep -Eq 'Verified using v2 scheme|Verified using v3 scheme' release/apk-signature.txt
+          # Original signed package has already passed its native CI checks;
+          # the archived checksum embeds the runner's absolute working path,
+          # so validate the downloaded copy's package metadata and generate
+          # a fresh portable digest rather than resolving a stale path.
+          sha256sum "$APK" | tee release/SP269_PUBLIC_RELEASE_SHA256.txt
+
+      - name: Publish public direct-download Android APK (no GitHub login)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: husam4448-rgb/wanderfall
+        run: |
+          set -euo pipefail
+          TAG=sp-world-v269
+          APK=release/SurvivalParadise-WorldAssets-v269.apk
+          if gh release view "$TAG" --repo "$GH_REPO" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" release/SP269_PUBLIC_RELEASE_SHA256.txt --repo "$GH_REPO" --clobber
+          else
+            gh release create "$TAG" "$APK" release/SP269_PUBLIC_RELEASE_SHA256.txt \
+              --repo "$GH_REPO" \
+              --target "$GITHUB_SHA" \
+              --title "Survival Paradise v269 — Galaxy S8 Core Renderer Diagnostic APK" \
+              --notes "Experimental Galaxy S8 core-render diagnostic build. Cut original procedural ground mesh from 100 to 25 cells per streamed chunk, raster material regions from 36 to 9, and reduced repeated microclutter. Seven compact Batch03 authored prop atlases, nine-biome world, all gameplay and HUD retained. The in-game PERF panel now displays CPU main time, physics time and draw-call count. Signed Android ARM64 APK, versionCode 277, validated native Godot QA and APK integrity. Galaxy S8 FPS improvement NOT YET VERIFIED."
+          fi
+          gh release view "$TAG" --repo "$GH_REPO" --json assets,url,tagName --jq '{tag: .tagName, release: .url, assets: [.assets[].name]}'
