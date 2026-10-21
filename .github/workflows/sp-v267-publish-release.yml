@@ -1,0 +1,65 @@
+name: Publish Survival Paradise v267 public APK release
+
+on:
+  push:
+    branches: [ sp-v267-visible-batch03-world-props-20261021 ]
+    paths:
+      - '.github/workflows/sp-v267-publish-release.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  public_release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Download APK from verified successful v267 native build
+        uses: actions/download-artifact@v4
+        with:
+          name: SP-PlayableWorld-v267
+          repository: husam4448-rgb/wanderfall
+          run-id: 39547037256
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: release
+
+      - name: Validate original verified package and signature metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="release/SurvivalParadise-WorldAssets-v267.apk"
+          test -s "$APK"
+          test "$(stat -c%s "$APK")" -gt 40000000
+          test "$(stat -c%s "$APK")" -lt 62914560
+          unzip -t "$APK" > /tmp/sp267_apk_zip_validation.log
+          test -s "release/apk-signature.txt"
+          test -s "release/apk-badging.txt"
+          grep -q "versionCode='275'" "release/apk-badging.txt"
+          grep -q "versionName='0.21.0D2D.14-v267'" "release/apk-badging.txt"
+          grep -Eq 'Verified using v2 scheme|Verified using v3 scheme' release/apk-signature.txt
+          if [ -s "release/SurvivalParadise-WorldAssets-v267.apk.sha256" ]; then
+            ( cd release && sha256sum -c SurvivalParadise-WorldAssets-v267.apk.sha256 )
+          fi
+          sha256sum "$APK" | tee release/SP267_PUBLIC_RELEASE_SHA256.txt
+
+      - name: Publish public direct-download Android APK (no GitHub login)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: husam4448-rgb/wanderfall
+        run: |
+          set -euo pipefail
+          TAG=sp-world-v267
+          APK=release/SurvivalParadise-WorldAssets-v267.apk
+          if gh release view "$TAG" --repo "$GH_REPO" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" release/SP267_PUBLIC_RELEASE_SHA256.txt --repo "$GH_REPO" --clobber
+          else
+            gh release create "$TAG" "$APK" release/SP267_PUBLIC_RELEASE_SHA256.txt \
+              --repo "$GH_REPO" \
+              --target "$GITHUB_SHA" \
+              --title "Survival Paradise v267 — Authored World Assets (Android APK)" \
+              --notes "Actual Godot-rendered world integration of 120 individual approved Batch03 object sprites, including rock, vegetation, wrecks, ruins and survival-camp details. Existing character/HUD/gameplay retained. Signed Android ARM64 debug APK, version code 275, validated by GitHub Actions. Experimental world build; final gameplay/device QA remains pending."
+          fi
+          gh release view "$TAG" --repo "$GH_REPO" --json assets,url,tagName --jq '{tag: .tagName, release: .url, assets: [.assets[].name]}'
