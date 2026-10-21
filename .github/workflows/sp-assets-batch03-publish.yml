@@ -1,0 +1,61 @@
+name: SP Batch03 Publish 21 Filtered Sheets
+on:
+  push:
+    branches: [sp-assets-batch03-no-passages-20261021]
+    paths:
+      - '.github/workflows/sp-assets-batch03-publish.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  verify-and-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reassemble and validate 21-source-sheet package
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64,hashlib,zipfile,json
+          folder=Path('art_source/world_assets/batch03_20261021')
+          chunks=sorted((folder/'chunks').glob('*.txt'))
+          assert len(chunks)==135, f'Chunks missing: {len(chunks)}'
+          raw=base64.b64decode(''.join(x.read_text(encoding='ascii') for x in chunks),validate=True)
+          assert len(raw)==13256908, f'Wrong package length: {len(raw)}'
+          assert hashlib.sha256(raw).hexdigest()=='34ed819d2de31a282e06cf17615ab4aaadebc033a6579c4aa93074a9d31f062f'
+          output=folder/'published'
+          output.mkdir(parents=True,exist_ok=True)
+          package=output/'SurvivalParadise_Batch03_21Sheets_Optimized_WebP_20261021.zip'
+          package.write_bytes(raw)
+          with zipfile.ZipFile(package) as z:
+              assert z.testzip() is None
+              entries=z.namelist()
+              m=json.loads(z.read('ASSET_MANIFEST.json'))
+              assert m['asset_count']==21
+              assets=m['assets']
+              assert len(assets)==21
+              expected={x['filename'] for x in assets}
+              assert set(entries)==expected|{'ASSET_MANIFEST.json'}
+              for x in assets:
+                  name=x['filename']
+                  assert name.endswith('.webp') and '/' not in name
+                  data=z.read(name)
+                  assert len(data)==x['webp_bytes']
+                  assert hashlib.sha256(data).hexdigest()==x['webp_sha256']
+                  (output/name).write_bytes(data)
+              (output/'ASSET_MANIFEST.json').write_bytes(z.read('ASSET_MANIFEST.json'))
+          print('PASS: 135/135 chunks, exact archive hash, 21/21 individual sheet hashes')
+          PY
+      - name: Commit individually accessible files
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add art_source/world_assets/batch03_20261021/published
+          if ! git diff --cached --quiet; then
+            git commit -m "assets(batch03): publish 21 verified filtered source sheets"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
