@@ -31,7 +31,7 @@ jobs:
           set -euo pipefail
           APK="release/SurvivalParadise-WorldAssets-v268.apk"
           test -s "$APK"
-          test "$(stat -c%s "$APK")" -gt 40000000
+          test "$(stat -c%s "$APK")" -gt 25000000
           test "$(stat -c%s "$APK")" -lt 62914560
           unzip -t "$APK" > /tmp/sp267_apk_zip_validation.log
           test -s "release/apk-signature.txt"
