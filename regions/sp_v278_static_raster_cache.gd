@@ -49,6 +49,8 @@ func _pump() -> void:
         var chunk: Node2D = _work.pop_front()
         if not is_instance_valid(chunk) or not chunk.is_inside_tree():
             continue
+        if not chunk.visible:
+            continue
         if bool(chunk.get_meta("sp278_cached", false)):
             continue
         await _bake(chunk)
