@@ -1,0 +1,51 @@
+name: SP v276 Menu Handler Source Audit
+on:
+  push:
+    branches: [sp-v276-independent-hud-settings-20261022]
+    paths:
+      - .github/workflows/sp-v276-menu-handler-audit.yml
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: SP-D2D14-Original-HUD-World-Code
+          repository: husam4448-rgb/wanderfall
+          run-id: 39655658407
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: snapshot
+      - name: Report full menu handler implementations
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p extracted
+          tar -xzf snapshot/SP_D2D14_Original_HUD_World_Source.tar.gz -C extracted
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('extracted')
+          candidates=[]
+          for p in list((root/'scripts').rglob('*.gd')):
+            if any(k in p.name.lower() for k in ('menu','ui_manager','settings_hud')): candidates.append(p)
+          print("MENU_AUDIT_CANDIDATE_FILES",*[str(p.relative_to(root)) for p in candidates],sep="\n")
+          for p in candidates:
+            rel=str(p.relative_to(root))
+            content=p.read_text()
+            lines=content.splitlines()
+            print('\n=== FILE',rel,'LINES',len(lines),'===')
+            if ('menu' in p.name.lower() and 'menu' in rel) or rel.endswith('ui_manager.gd'):
+              indexes=range(len(lines)) if len(lines)<420 else sorted(set(j for i,l in enumerate(lines) if any(k in l.lower() for k in ('settings','ui','menu','panel','layer')) for j in range(max(0,i-3),min(len(lines),i+5))))
+            else:
+              indexes=sorted(set(j for i,l in enumerate(lines) if any(k in l.lower() for k in ('settings','ui','menu','panel','layer','editor')) for j in range(max(0,i-2),min(len(lines),i+4))))
+            for i in indexes: print('%04d|%s'%(i+1,lines[i]))
+          print('\n=== ROOT SOURCE MENU BINDINGS ===')
+          for p in (root/'scripts').rglob('*.gd'):
+            s=p.read_text()
+            matches=[(i,l) for i,l in enumerate(s.splitlines(),1) if 'ui settings' in l.lower() or 'ui_settings' in l.lower() or 'edit controls' in l.lower()]
+            if matches: print(p.relative_to(root),matches[:14])
+          PY
