@@ -18,9 +18,11 @@ func _run() -> void:
     current_scene = main
     await process_frame
     await process_frame
+    var gs: Node = root.get_node_or_null("GameSettings")
+    var ui: Node = root.get_node_or_null("UIManager")
     var perf: Node = root.get_node_or_null("PerformanceManager")
     var menu: Node = main.get_node_or_null("MainMenu")
-    if perf == null or menu == null:
+    if perf == null or menu == null or gs == null or ui == null:
         _fail("performance manager or main menu absent")
         return
     var original_canvas: Vector2i = root.content_scale_size
@@ -58,14 +60,14 @@ func _run() -> void:
     if summary == null or size_btn == null or control_btn == null:
         _fail("UI size controls not wired")
         return
-    var old_ui: float = GameSettings.ui_scale
+    var old_ui: float = float(gs.get("ui_scale"))
     size_btn.pressed.emit()
-    if is_equal_approx(GameSettings.ui_scale, old_ui) or not summary.text.contains("HUD"):
+    if is_equal_approx(float(gs.get("ui_scale")), old_ui) or not summary.text.contains("HUD"):
         _fail("UI size action failed to alter visible UI setting")
         return
-    var old_controls: float = GameSettings.control_scale
+    var old_controls: float = float(gs.get("control_scale"))
     control_btn.pressed.emit()
-    if is_equal_approx(GameSettings.control_scale, old_controls):
+    if is_equal_approx(float(gs.get("control_scale")), old_controls):
         _fail("control size action inert")
         return
     # Ensure entry remains safe when no game session has started.
@@ -82,10 +84,10 @@ func _run() -> void:
     menu.call("_show_section", ui_box)
     menu.call("_sp276_open_layout_editor")
     await process_frame
-    if bool(menu.get("root").visible) or not UIManager.layout_edit_mode:
+    if bool(menu.get("root").visible) or not bool(ui.get("layout_edit_mode")):
         _fail("editor not opened in gameplay")
         return
-    if UIManager.get_active_panel_id() != "control_editor":
+    if String(ui.call("get_active_panel_id")) != "control_editor":
         _fail("editor not the foreground active panel")
         return
     var editor: Node = null
@@ -98,7 +100,7 @@ func _run() -> void:
         return
     editor.call("_finish_control_editor")
     await process_frame
-    if UIManager.layout_edit_mode:
+    if bool(ui.get("layout_edit_mode")):
         _fail("editor exit failed")
         return
     menu.call("open_from_game")
