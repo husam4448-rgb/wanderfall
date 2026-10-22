@@ -1,0 +1,25 @@
+name: v278 source inspection
+on:
+  push:
+    branches: [sp-v278-optimized-scenery-20261022]
+    paths: [.github/workflows/sp-v278-audit.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: SP-D2D14-Original-HUD-World-Code
+          repository: husam4448-rgb/wanderfall
+          run-id: 39821423657
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: source
+      - run: |
+          mkdir -p extracted
+          tar -xzf source/SP_D2D14_Original_HUD_World_Source.tar.gz -C extracted
+          sed -n '1,165p' extracted/scripts/world/world_chunk.gd
+          sed -n '1,110p' extracted/scripts/world/world_manager.gd
