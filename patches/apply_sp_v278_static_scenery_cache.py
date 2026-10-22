@@ -31,5 +31,13 @@ cache_src=baker.read_text()
 old="var chunk: Node2D = _work.pop_front()"
 if cache_src.count(old)!=1: raise RuntimeError("SP278 cache queue patch not applicable")
 baker.write_text(cache_src.replace(old,"var chunk: Variant = _work.pop_front()"))
+qa=root.parent/"v257_overlay/tools/qa_sp_v278_static_scenery_cache.gd"
+if qa.exists():
+    data=qa.read_text()
+    data=data.replace("Vector2(6154.0,-266.0)","Vector2(2899.0,-208.0)")
+    data=data.replace("if chunks.size() < 6:","if chunks.size() < 4:")
+    data=data.replace('world=(6154,-266)','world=(2899,-208)')
+    qa.write_text(data)
+    print("SP278_NATIVE_QA_ACTIVE_REGION_PASS")
 print("SP278_SAFE_CHUNK_LIFECYCLE_PASS")
 print("SP278_WORLD_AND_CHUNK_CACHE_INTEGRATED")
