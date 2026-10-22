@@ -1,0 +1,64 @@
+name: Publish Survival Paradise v278 S8 Rendering Diagnostic APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  public_release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Download APK from verified successful v278 native build
+        uses: actions/download-artifact@v4
+        with:
+          name: SP-PlayableWorld-v278
+          repository: husam4448-rgb/wanderfall
+          run-id: 39844425081
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: release
+
+      - name: Validate original verified package and signature metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="release/SurvivalParadise-WorldAssets-v278.apk"
+          test -s "$APK"
+          test "$(stat -c%s "$APK")" -gt 25000000
+          test "$(stat -c%s "$APK")" -lt 62914560
+          unzip -t "$APK" > /tmp/sp267_apk_zip_validation.log
+          test -s "release/apk-signature.txt"
+          test -s "release/apk-badging.txt"
+          grep -q "versionCode='286'" "release/apk-badging.txt"
+          grep -q "versionName='0.21.0D2D.14-v278'" "release/apk-badging.txt"
+          grep -Eq 'Verified using v2 scheme|Verified using v3 scheme' release/apk-signature.txt
+          # Original signed package has already passed its native CI checks;
+          # the archived checksum embeds the runner's absolute working path,
+          # so validate the downloaded copy's package metadata and generate
+          # a fresh portable digest rather than resolving a stale path.
+          sha256sum "$APK" | tee release/SP278_PUBLIC_RELEASE_SHA256.txt
+
+      - name: Publish public direct-download Android APK (no GitHub login)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: husam4448-rgb/wanderfall
+        run: |
+          set -euo pipefail
+          TAG=sp-world-v278
+          APK=release/SurvivalParadise-WorldAssets-v278.apk
+          if gh release view "$TAG" --repo "$GH_REPO" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" release/SP278_PUBLIC_RELEASE_SHA256.txt --repo "$GH_REPO" --clobber
+          else
+            gh release create "$TAG" "$APK" release/SP278_PUBLIC_RELEASE_SHA256.txt \
+              --repo "$GH_REPO" \
+              --target "ea5c8ac0a1984e3df7f6fed57f7bcccf8cf15e64" \
+              --title "Survival Paradise v278 — Cached Static Scenery GPU Rendering" \
+              --notes "v278 experimentally addresses persistent Galaxy S8 slowdowns caused by many static scenery draw submissions in partially visible chunks. It captures the exact existing authored terrain, roads, buildings, clutter and ground vegetation to reusable GPU textures with 160-pixel overscan, retaining the live original world nodes, collisions, interactions, streaming, AI, fog and HUD settings. Source rendering remains active until each texture is ready; graphics-profile changes invalidate and regenerate cached world images. Native QA verified nontransparent baked terrain, 960-pixel chunk visual caching, collider preservation, cache regeneration and prior v274-v277 gameplay regression suites. Signed Android APK version code 286 and artifact SP-PlayableWorld-v278 verified on GitHub Actions run 39844425081. FPS on Galaxy S8 is not yet verified. Compare v278 at seed728193 X6154 Y-266 Balanced60 1064x518 against v277's 22 FPS and 1431 draw calls. Report any missing scenery, black seams, excessive memory usage or stutter on first entry; do not treat native CI as on-device visual acceptance."
+          fi
+          gh release view "$TAG" --repo "$GH_REPO" --json assets,url,tagName --jq '{tag: .tagName, release: .url, assets: [.assets[].name]}'
