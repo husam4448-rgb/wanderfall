@@ -1,0 +1,64 @@
+name: Publish Survival Paradise v277 S8 Rendering Diagnostic APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  public_release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Download APK from verified successful v277 native build
+        uses: actions/download-artifact@v4
+        with:
+          name: SP-PlayableWorld-v277
+          repository: husam4448-rgb/wanderfall
+          run-id: 39821423657
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: release
+
+      - name: Validate original verified package and signature metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="release/SurvivalParadise-WorldAssets-v277.apk"
+          test -s "$APK"
+          test "$(stat -c%s "$APK")" -gt 25000000
+          test "$(stat -c%s "$APK")" -lt 62914560
+          unzip -t "$APK" > /tmp/sp267_apk_zip_validation.log
+          test -s "release/apk-signature.txt"
+          test -s "release/apk-badging.txt"
+          grep -q "versionCode='285'" "release/apk-badging.txt"
+          grep -q "versionName='0.21.0D2D.14-v277'" "release/apk-badging.txt"
+          grep -Eq 'Verified using v2 scheme|Verified using v3 scheme' release/apk-signature.txt
+          # Original signed package has already passed its native CI checks;
+          # the archived checksum embeds the runner's absolute working path,
+          # so validate the downloaded copy's package metadata and generate
+          # a fresh portable digest rather than resolving a stale path.
+          sha256sum "$APK" | tee release/SP277_PUBLIC_RELEASE_SHA256.txt
+
+      - name: Publish public direct-download Android APK (no GitHub login)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: husam4448-rgb/wanderfall
+        run: |
+          set -euo pipefail
+          TAG=sp-world-v277
+          APK=release/SurvivalParadise-WorldAssets-v277.apk
+          if gh release view "$TAG" --repo "$GH_REPO" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" release/SP277_PUBLIC_RELEASE_SHA256.txt --repo "$GH_REPO" --clobber
+          else
+            gh release create "$TAG" "$APK" release/SP277_PUBLIC_RELEASE_SHA256.txt \
+              --repo "$GH_REPO" \
+              --target "bcc8876b93d7e60f38d5900a9af561edcded0016" \
+              --title "Survival Paradise v277 — Camera-Aware World Rendering Optimization" \
+              --notes "v277 is the first targeted world-rendering optimization for location-dependent Galaxy S8 slowdowns. Streamed world chunk visual canvases are checked against the camera viewport plus a 220-world-unit buffer to protect large trees and prop overhangs; fully offscreen chunks stop rendering. All visible art, 2D actor collision, streaming, AI and saved world data remain active. v276 independent UI/performance settings are preserved. Android APK code 285 exported and validated in native build run 39821423657. Device FPS improvement must be measured against v276 at the same coordinates and preset, particularly X2899 Y-208 (baseline 38 FPS / 1061 draw calls). Native validation does not establish device FPS acceptance."
+          fi
+          gh release view "$TAG" --repo "$GH_REPO" --json assets,url,tagName --jq '{tag: .tagName, release: .url, assets: [.assets[].name]}'
