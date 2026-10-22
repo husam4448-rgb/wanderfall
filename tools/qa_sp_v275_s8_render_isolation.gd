@@ -32,6 +32,10 @@ func _run() -> void:
     if diagnostic == null or world == null or fog == null:
         _fail("runtime diagnostic, world or fog absent")
         return
+    # Legacy v275 mode-restore QA predates v277 offscreen world culling.
+    # Turn off automatic culling only in this isolated QA script so its
+    # original all-chunks-visible contract remains meaningful.
+    world.call("sp277_set_visual_culling", false)
     var mask: CanvasItem = fog.get("overlay") as CanvasItem
     if mask == null or not mask.visible:
         _fail("baseline fog missing")
