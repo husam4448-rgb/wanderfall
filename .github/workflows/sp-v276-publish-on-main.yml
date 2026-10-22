@@ -1,0 +1,64 @@
+name: Publish Survival Paradise v276 S8 Rendering Diagnostic APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  public_release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Download APK from verified successful v276 native build
+        uses: actions/download-artifact@v4
+        with:
+          name: SP-PlayableWorld-v276
+          repository: husam4448-rgb/wanderfall
+          run-id: 39720555713
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: release
+
+      - name: Validate original verified package and signature metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="release/SurvivalParadise-WorldAssets-v276.apk"
+          test -s "$APK"
+          test "$(stat -c%s "$APK")" -gt 25000000
+          test "$(stat -c%s "$APK")" -lt 62914560
+          unzip -t "$APK" > /tmp/sp267_apk_zip_validation.log
+          test -s "release/apk-signature.txt"
+          test -s "release/apk-badging.txt"
+          grep -q "versionCode='284'" "release/apk-badging.txt"
+          grep -q "versionName='0.21.0D2D.14-v276'" "release/apk-badging.txt"
+          grep -Eq 'Verified using v2 scheme|Verified using v3 scheme' release/apk-signature.txt
+          # Original signed package has already passed its native CI checks;
+          # the archived checksum embeds the runner's absolute working path,
+          # so validate the downloaded copy's package metadata and generate
+          # a fresh portable digest rather than resolving a stale path.
+          sha256sum "$APK" | tee release/SP275_PUBLIC_RELEASE_SHA256.txt
+
+      - name: Publish public direct-download Android APK (no GitHub login)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: husam4448-rgb/wanderfall
+        run: |
+          set -euo pipefail
+          TAG=sp-world-v276
+          APK=release/SurvivalParadise-WorldAssets-v276.apk
+          if gh release view "$TAG" --repo "$GH_REPO" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" release/SP275_PUBLIC_RELEASE_SHA256.txt --repo "$GH_REPO" --clobber
+          else
+            gh release create "$TAG" "$APK" release/SP275_PUBLIC_RELEASE_SHA256.txt \
+              --repo "$GH_REPO" \
+              --target "e03ebd7bff738f6b390fd2a7d3676a2d5dbf0743" \
+              --title "Survival Paradise v276 — Fixed HUD Performance Scaling and UI Settings" \
+              --notes "v276 corrects the confirmed v275 Android UI settings defects. Performance profile switches now preserve a stable virtual HUD viewport so joystick and button positions do not move when FPS/quality presets change. On Galaxy S8 the virtual canvas stays at the existing Battery Saver raster resolution; FPS caps and world detail still change. The main menu now offers a dedicated UI SETTINGS / CONTROLS submenu for HUD window size, control size, text size, and touch size with visible numeric values, plus an EDIT CONTROLS entry while gameplay is active. Pre-session editor taps give an explanation rather than doing nothing. Native Godot validation verified five profile changes without viewport size changes and verified UI menu controls, opening/closing editor, and returning to menu. Signed Android export APK code 284 passed on GitHub Actions run 39720555713. Galaxy S8 actual user visual/performance acceptance remains pending; this does not yet optimize world rendering or eliminate all overlapping default HUD controls."
+          fi
+          gh release view "$TAG" --repo "$GH_REPO" --json assets,url,tagName --jq '{tag: .tagName, release: .url, assets: [.assets[].name]}'
