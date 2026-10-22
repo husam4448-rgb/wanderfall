@@ -1,0 +1,44 @@
+name: SP v277 Region Hotspot Source Audit
+on:
+  push:
+    branches: [sp-v277-region-performance-investigation-20261022]
+    paths:
+      - .github/workflows/sp-v277-hotspot-audit.yml
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Inspect actual v276 post-patch source
+        uses: actions/download-artifact@v4
+        with:
+          name: SP-D2D14-Original-HUD-World-Code
+          repository: husam4448-rgb/wanderfall
+          run-id: 39720555713
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: snapshot
+      - name: Report streaming, drawing, actor and fog expensive code
+        run: |
+          set -euo pipefail
+          mkdir -p src
+          tar -xzf snapshot/SP_D2D14_Original_HUD_World_Source.tar.gz -C src
+          python3 - <<'PY'
+          from pathlib import Path
+          r=Path('src')
+          for p in ['scripts/world/world_manager.gd','scripts/world/world_chunk.gd','scripts/world/world_asset_overlay.gd','scripts/world/sp_v273_regions_and_sight.gd','scripts/world/occlusion_silhouette_overlay.gd','scripts/performance/sp_v270_s8_isolation.gd']:
+            f=r/p
+            if not f.exists(): print("MISSING",p); continue
+            ls=f.read_text().splitlines()
+            print("\n########",p,"#",len(ls))
+            terms=('func ','_process','_physics_process','_draw','queue_redraw','chunk','visible','paint','spawn','populate','draw_','set_process','ray','cache','density','update')
+            windows=set()
+            for i,l in enumerate(ls):
+              if any(k in l for k in terms): windows.update(range(max(0,i-1),min(len(ls),i+3)))
+            if p.endswith('world_asset_overlay.gd') and len(windows)>400:
+              windows={i for i in windows if any(k in ls[i] for k in ('func ','queue_redraw','draw_','for ','render','visible'))}
+            for i in sorted(windows)[:720]: print(f"{i+1:04d}|{ls[i]}")
+          PY
