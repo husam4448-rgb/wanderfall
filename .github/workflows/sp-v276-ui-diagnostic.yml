@@ -1,0 +1,50 @@
+name: SP v276 UI Runtime Diagnostic Snapshot
+on:
+  push:
+    branches: [sp-v275-s8-render-isolation-20261021]
+    paths:
+      - .github/workflows/sp-v276-ui-diagnostic.yml
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Download archived post-patch v275 Android runtime
+        uses: actions/download-artifact@v4
+        with:
+          name: SP-D2D14-Original-HUD-World-Code
+          repository: husam4448-rgb/wanderfall
+          run-id: 39655658407
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: snapshot
+      - name: Print targeted source excerpts for UI layout and performance coupling
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p inspect
+          tar -xzf snapshot/SP_D2D14_Original_HUD_World_Source.tar.gz -C inspect
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('inspect')
+          paths=['scripts/performance/performance_manager.gd','scripts/performance/performance_hud.gd','scripts/settings/settings_hud.gd','scripts/ui/ui_manager.gd','scripts/mobile_hud.gd','scripts/settings/game_settings.gd','scenes/main.tscn']
+          keywords=('resolution','scale','profile','layout','ui settings','ui_settings','edit controls','_toggle_settings','settings_button','_refresh_settings_ui','touch','viewport','window_set_size','content_scale','stretch','render','_rebuild','set_size','ui_scale')
+          for path in paths:
+            f=root/path
+            if not f.exists():
+              print('MISSING '+path);continue
+            lines=f.read_text().splitlines()
+            print('\nFILE '+path+' TOTAL '+str(len(lines)))
+            if path.endswith('performance_manager.gd') or path.endswith('performance_hud.gd'):
+              chosen=set(range(len(lines)))
+            else:
+              matches=[i for i,line in enumerate(lines) if any(term in line.lower() for term in keywords)]
+              chosen=set()
+              for i in matches:
+                chosen.update(range(max(0,i-4),min(len(lines),i+6)))
+            for i in sorted(chosen):
+              print('%04d | %s'%(i+1,lines[i]))
+          PY
