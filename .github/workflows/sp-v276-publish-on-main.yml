@@ -41,7 +41,7 @@ jobs:
           # the archived checksum embeds the runner's absolute working path,
           # so validate the downloaded copy's package metadata and generate
           # a fresh portable digest rather than resolving a stale path.
-          sha256sum "$APK" | tee release/SP275_PUBLIC_RELEASE_SHA256.txt
+          sha256sum "$APK" | tee release/SP276_PUBLIC_RELEASE_SHA256.txt
 
       - name: Publish public direct-download Android APK (no GitHub login)
         shell: bash
@@ -53,9 +53,10 @@ jobs:
           TAG=sp-world-v276
           APK=release/SurvivalParadise-WorldAssets-v276.apk
           if gh release view "$TAG" --repo "$GH_REPO" >/dev/null 2>&1; then
-            gh release upload "$TAG" "$APK" release/SP275_PUBLIC_RELEASE_SHA256.txt --repo "$GH_REPO" --clobber
+            gh release delete-asset "$TAG" "SP275_PUBLIC_RELEASE_SHA256.txt" --repo "$GH_REPO" --yes >/dev/null 2>&1 || true
+            gh release upload "$TAG" "$APK" release/SP276_PUBLIC_RELEASE_SHA256.txt --repo "$GH_REPO" --clobber
           else
-            gh release create "$TAG" "$APK" release/SP275_PUBLIC_RELEASE_SHA256.txt \
+            gh release create "$TAG" "$APK" release/SP276_PUBLIC_RELEASE_SHA256.txt \
               --repo "$GH_REPO" \
               --target "e03ebd7bff738f6b390fd2a7d3676a2d5dbf0743" \
               --title "Survival Paradise v276 — Fixed HUD Performance Scaling and UI Settings" \
