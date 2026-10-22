@@ -26,4 +26,10 @@ w=replace(w,'    sp277_apply_culling_for_rect(sp277_world_camera_rect())','''   
 c=replace(c,'func _draw() -> void:\n    _draw_ground()','func _draw() -> void:\n    if bool(get_meta("sp278_cached", false)):\n        return\n    _draw_ground()')
 wfile.write_text(w)
 cfile.write_text(c)
+baker=root/"scripts/world/sp_v278_static_raster_cache.gd"
+cache_src=baker.read_text()
+old="var chunk: Node2D = _work.pop_front()"
+if cache_src.count(old)!=1: raise RuntimeError("SP278 cache queue patch not applicable")
+baker.write_text(cache_src.replace(old,"var chunk: Variant = _work.pop_front()"))
+print("SP278_SAFE_CHUNK_LIFECYCLE_PASS")
 print("SP278_WORLD_AND_CHUNK_CACHE_INTEGRATED")
