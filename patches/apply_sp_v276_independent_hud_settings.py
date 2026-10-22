@@ -73,12 +73,14 @@ var mods_box: VBoxContainer''',"menu UI state")
 
 replace(menu,'''    var text_scale := _menu_button("TEXT / UI SCALE", "settings")
     text_scale.pressed.connect(func(): GameSettings.cycle_scalar("text_scale"); _refresh_settings())
-    settings_box.add_child(text_scale)''','''    var text_scale := _menu_button("TEXT SIZE", "settings")
-    text_scale.pressed.connect(func(): GameSettings.cycle_scalar("text_scale"); _refresh_settings())
-    settings_box.add_child(text_scale)
+    settings_box.add_child(text_scale)''','''    # Consolidate all display/control-size settings in a separate screen,
+    # preventing menu scroll overflow on the Galaxy S8 518px viewport.
     ui_settings_button = _menu_button("UI SETTINGS / CONTROLS", "settings")
     ui_settings_button.pressed.connect(func(): _show_section(ui_settings_box); _refresh_ui_settings())
-    settings_box.add_child(ui_settings_button)''',"actual settings entry")
+    settings_box.add_child(ui_settings_button)''',"real settings entry, no duplicates")
+replace(menu,'''    var touch_scale := _menu_button("TOUCH CONTROL SIZE", "settings")
+    touch_scale.pressed.connect(func(): GameSettings.cycle_scalar("touch_scale"); _refresh_settings())
+    settings_box.add_child(touch_scale)''','',"move touch scale into UI submenu")
 replace(menu,'''    var mods_back := _menu_button("BACK", "close")
 ''','''    var mods_back := _menu_button("BACK", "close")
 ''',"unchanged mods anchor test") if False else None
