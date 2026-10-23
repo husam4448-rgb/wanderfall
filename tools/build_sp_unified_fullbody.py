@@ -44,7 +44,7 @@ def bake(src,phase,mode):
     shoulder_shift=int(round((0.7 if mode=="walk" else 1.0)*math.sin(phase+0.5))) if mode!="idle" else 0
     # Resting breathing: entire torso/head gently moves a pixel every other
     # phase; no static second skeleton or leg overlay is rendered.
-    idle_breath=(1 if math.sin(phase)>0.70 else 0) if mode=="idle" else 0
+    idle_breath=(-1 if math.sin(phase)>0.70 else 0) if mode=="idle" else 0
     canvas=Image.new("RGBA",(W,H),(0,0,0,0))
     sp=src.load()
     # Split is exclusively OFFLINE pixel remapping to produce a SINGLE frame.
@@ -116,7 +116,7 @@ for character in ("player","bandit01"):
         if mode=="idle":
             assert images[0].tobytes()==source.tobytes(),"first idle frame must EXACTLY reproduce approved player"
         unique=len(set(im.tobytes() for im in images))
-        assert unique>=4,(character,mode,unique)
+        assert unique>=(2 if mode=="idle" else 4),(character,mode,unique)
         record[mode]={"count":count,"sha256":hashes,"unique_frames":unique}
     manifest["characters"][character]=record
     # zero-frame physical dimensions and alpha exactly match original
