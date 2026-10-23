@@ -1,0 +1,38 @@
+name: SP279 inventory signals and social AI trace
+on:
+  push:
+    branches: [sp-v279-npc-loot-cpu-20261023]
+    paths: [.github/workflows/sp-v279-signal-trace.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  trace:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: SP-D2D14-Original-HUD-World-Code
+          repository: husam4448-rgb/wanderfall
+          run-id: 39844425081
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: backup
+      - run: |
+          mkdir src
+          tar -xzf backup/SP_D2D14_Original_HUD_World_Source.tar.gz -C src
+          python3 - <<'PY'
+          from pathlib import Path
+          r=Path("src")
+          for name in ["scripts/mobile_hud.gd","scripts/social/friendly_npc.gd","scripts/player.gd","scripts/items/inventory.gd"]:
+            ls=(r/name).read_text().splitlines()
+            matches=[]
+            for i,line in enumerate(ls):
+              if any(x in line for x in ("inventory.changed", "inventory_changed", "changed.connect", "_find_nearest_hostile", "take_all_to_player", "_refresh_inventory", "inventory.add_item", "WorldState.take_all", "func _process","_interaction_hint_timer")):
+                matches.append(i)
+            visible=set()
+            for i in matches:
+              visible.update(range(max(0,i-2),min(len(ls),i+8)))
+            print("===",name)
+            for i in sorted(visible): print("%d | %s"%(i+1,ls[i]))
+          PY
