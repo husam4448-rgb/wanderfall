@@ -38,7 +38,7 @@ jobs:
               canvas.paste(im.resize((192,288),Image.Resampling.NEAREST), (i*188,50), im.resize((192,288),Image.Resampling.NEAREST))
               pen.text((i*188+3,10),label,fill=(240,240,240))
           canvas.save('/tmp/sp286/v286_comparison.png',optimize=True)
-          encoded=base64.b64encode(Path('/tmp/sp286/v285_comparison.png').read_bytes()).decode('ascii')
+          encoded=base64.b64encode(Path('/tmp/sp286/v286_comparison.png').read_bytes()).decode('ascii')
           print('SP286_PREVIEW_PNG_BASE64_BEGIN')
           print(encoded)
           print('SP286_PREVIEW_PNG_BASE64_END')
