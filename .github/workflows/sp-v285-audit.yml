@@ -1,0 +1,49 @@
+name: SP285 inspect live NPC role mapping and original approved sprites
+on:
+  push:
+    branches: [sp-v285-npc-flip-art-20261023]
+    paths: [.github/workflows/sp-v285-audit.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            assets/authored2d/npc_specializations
+            assets/authored2d/npc_faces
+      - uses: actions/download-artifact@v4
+        with:
+          repository: husam4448-rgb/wanderfall
+          run-id: 39926901734
+          name: SP-D2D14-Original-HUD-World-Code
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: archive
+      - run: |
+          mkdir src
+          tar -xzf archive/SP_D2D14_Original_HUD_World_Source.tar.gz -C src
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          r=Path('src')
+          for name in ['scripts/social/friendly_npc.gd','scripts/combat/bandit.gd','scripts/art/sp_v283_shared_survivor_npc.gd']:
+              p=r/name
+              ls=p.read_text().splitlines()
+              print('BEGIN_FILE',name,len(ls))
+              for i,l in enumerate(ls,1):
+                  if ('friendly_npc' in name and (i<=180 or 'npc_role' in l or 'home_faction' in l or 'setup(' in l or 'visual' in l or 'face' in l or 'move_and_slide' in l)) or ('bandit.gd' in name and (i<=160 or 'facing' in l or '_sp283_shared_visual' in l)) or 'sp_v283_shared' in name:
+                      print('%04d | %s'%(i,l[:250]))
+              print('END_FILE',name)
+          root=Path('assets/authored2d/npc_specializations')
+          for x in sorted(root.glob('*Torso*png')):
+              im=Image.open(x).convert('RGBA')
+              a=im.getchannel('A')
+              print('ART',x.name,'size',im.size,'bbox',a.getbbox(),'alpha_count',sum(v>150 for v in a.getdata()))
+          for name in ['approved_upper.png','approved_near_leg.png','approved_far_leg.png']:
+              im=Image.open(r/'assets/sp_melee'/name).convert('RGBA')
+              print('PLAYER_ART',name,'size',im.size,'bbox',im.getchannel('A').getbbox())
+          PY
