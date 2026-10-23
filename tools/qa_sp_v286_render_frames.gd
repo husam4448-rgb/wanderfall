@@ -100,7 +100,7 @@ func _run() -> void:
             specimen.position = Vector2(x,y)
             specimen.scale = Vector2(2.18,2.18)
             if col != 0:
-                specimen.call("setup_npc",sex,ROLES[col-1],"VisualQA_%s_%s"%(sex,ROLES[col-1]),{}, "")
+                specimen.call("setup_npc",sex,ROLES[col-1],("VisualQA_%s_%s" % [sex, ROLES[col-1]]),{}, "")
                 _actors.append(specimen)
             elif specimen.has_method("advance"):
                 specimen.call("advance",Vector2.ZERO,0.05,true)
