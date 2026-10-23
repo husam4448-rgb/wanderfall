@@ -1,136 +1,3274 @@
 {
-  "schema": "SP_UNIFIED_FULLBODY_V1",
-  "target_canvas": [
+  "schema": "SP_WHOLE_FRAME_GAIT_V2",
+  "source_image": "approved_clean_torso_right.png",
+  "canvas": [
     64,
     96
   ],
-  "source": "approved_clean_torso_right.png",
-  "rendering": "exactly ONE Sprite2D full character for each frame",
+  "rendering": "one whole-character RGBA sprite per frame, no second skeleton",
+  "body_acts_in_sync": true,
+  "leg_cycle": "60 percent ground stance, 40 percent lifted swing; alternating by half cycle",
+  "knee": "forward-folding 2-link IK baked offline, NOT displayed skeletal rig",
+  "runtime_layers": 1,
   "no_static_torso_layer": true,
   "no_procedural_or_skeletal_legs": true,
   "no_parallel_character_skeleton": true,
-  "left_direction": "mirror same full-body frames",
-  "approval": "EXPERIMENTAL_NATIVE_GODOT_VISUAL_REVIEW_REQUIRED",
-  "integrated_into_playable_game": false,
+  "game_integration": "NOT_DONE",
+  "visual_qa": "PENDING_HUMAN_REVIEW",
+  "approved_for_release": false,
   "characters": {
     "player": {
       "idle": {
-        "count": 8,
+        "frames": 8,
         "sha256": [
           "53151c68e5112e4d480b7ffb0705df4f157e8b8870d0eb9b8473ea263c161948",
-          "4b6e5b7365ef0fbf68eacf186c6de0adc35497b0dcb0c51accbb53dded817c24",
+          "7f7cb96779af816178741c08157a0bfa0ee527ea7c1891a3bbc7ceb18dc6ae1f",
           "4b6e5b7365ef0fbf68eacf186c6de0adc35497b0dcb0c51accbb53dded817c24",
           "4b6e5b7365ef0fbf68eacf186c6de0adc35497b0dcb0c51accbb53dded817c24",
           "53151c68e5112e4d480b7ffb0705df4f157e8b8870d0eb9b8473ea263c161948",
           "53151c68e5112e4d480b7ffb0705df4f157e8b8870d0eb9b8473ea263c161948",
           "53151c68e5112e4d480b7ffb0705df4f157e8b8870d0eb9b8473ea263c161948",
-          "53151c68e5112e4d480b7ffb0705df4f157e8b8870d0eb9b8473ea263c161948"
+          "0185ff83a8f218943870f2495607a606192363d829d5067f9065bef43267b581"
         ],
-        "unique_frames": 2
+        "poses": [
+          {
+            "mode": "idle",
+            "frame": 0
+          },
+          {
+            "mode": "idle",
+            "frame": 1,
+            "body_offset": [
+              1,
+              -1
+            ]
+          },
+          {
+            "mode": "idle",
+            "frame": 2,
+            "body_offset": [
+              0,
+              -1
+            ]
+          },
+          {
+            "mode": "idle",
+            "frame": 3,
+            "body_offset": [
+              0,
+              -1
+            ]
+          },
+          {
+            "mode": "idle",
+            "frame": 4,
+            "body_offset": [
+              0,
+              0
+            ]
+          },
+          {
+            "mode": "idle",
+            "frame": 5,
+            "body_offset": [
+              0,
+              0
+            ]
+          },
+          {
+            "mode": "idle",
+            "frame": 6,
+            "body_offset": [
+              0,
+              0
+            ]
+          },
+          {
+            "mode": "idle",
+            "frame": 7,
+            "body_offset": [
+              1,
+              0
+            ]
+          }
+        ]
       },
       "walk": {
-        "count": 16,
+        "frames": 16,
         "sha256": [
-          "e0ac934c4cb795c606b447c03a5ecb3078344555ec8e244e6d6bdbe8436b3899",
-          "b23704304c704f9c861e4dba8381b9915550059598c474e5de5dc3d06bf7f6cd",
-          "96444e0d616cd58eff23a94f6ebc740d8822c425a39ba8619e2fe7558d0fa444",
-          "828b60a9ed09e4baa730b24b1a5b5d45f76ac9fc05a93c44fd5325a7d0fcfc2e",
-          "f7c5d1a5d7d171af01a4a339acb42909d0b351ed7e347f93999be962b7473a5f",
-          "828b60a9ed09e4baa730b24b1a5b5d45f76ac9fc05a93c44fd5325a7d0fcfc2e",
-          "aae072adf72db37cf0dccbbb4239557dbaa836bdbb45c9ec41349a4546dbb326",
-          "46db630bc322bfd32b8d7cb26cf24bf750bb964ce0b66d0b5d24bd10123a3bf0",
-          "4bf71131f3346477a8f69b088fec3b0d891bfc16520d2a84e50ebebc85438b22",
-          "e99f0dabeb6c72d95d4689ec442458f51cd9cff5f811b7fcdb843b0d057e3845",
-          "6be28e0fcb7f2f86e702f10d46517389a684f13a7c4a189a88e5a7c90353e1cd",
-          "82748c6c249570451874bf80ca0bba077a7ebad5ec7f4358d2515fca0bd8964e",
-          "7b9f1cbd92e54fe05c0af21bb9c665879de0c1e64040a52be9fbe615da1f80df",
-          "82748c6c249570451874bf80ca0bba077a7ebad5ec7f4358d2515fca0bd8964e",
-          "20554fa2e05859e2c28bb903d914ac2f335c35a3cef296ec1612a0b29847a714",
-          "398ed4dde0c09972d273988873686bc8d684dbde8cac1a643b3660c8bdeaa48e"
+          "4144bff2a79da03e33fc98f275e543a86276bd025efb34cb330d0fdb3b76bf95",
+          "ddb5b2757a42e64c4a4aeb2c991d78730218694808e169386905009235598a8b",
+          "d8e366bfac0dd44e3dc61b8021b3cadaa84f93bd50325901111b16b654dd834d",
+          "b7b37682ac08ac297c053f8d44f4ae65043cb3d3364c30095466ae818e3a1fca",
+          "814d83bfc55d03ea8b0d30faa23a4aef7fb0d6bfd3f8cbbc38feff647f42d34c",
+          "6d205c453658dc9f5f447bf91b160ec6c7c8ef5966cf394575cb52e6e66a4cb0",
+          "a36d0c50cc5968d555c6ef895fe4922bba5b07092cc8f3fcd32eee3abce72e43",
+          "b5a3e7e0d90d7ba31b6c1cb41c0a71da93010ff1d16844157af20472217c5e2e",
+          "52129d86aae7ec43fdf254e6e23ad26dbd2b3bc78142959a0506b00c9eca00aa",
+          "9951299a18e807f1757fd4de52a71d3a6b3045187731a3822f58812c664c5587",
+          "d8aeb21ddb9034163dd525d48369856c327e3c12c493b37a90fd44271f9a3983",
+          "5f2e842a31333cdd28c2a42195e2b31c35ef75fb04f3aaef9a64e0e47b3b70f1",
+          "b41b155cc86588103e90c0db7be6b99c46da5a3c0548c3447ba742434b922f76",
+          "f3ce18ddb3b5f1e20c54b05da38cec5268ef67de75a15aa302363ab01ff5f081",
+          "6cfa1ffaf1564fdf82b58bedcdbd33f339f74cd50e3fc5373754b364a264f516",
+          "fa12ff0ea2688eebafcfd368b5bfc1373d469b2a27b4be0c284ace8691169c1f"
         ],
-        "unique_frames": 14
+        "poses": [
+          {
+            "mode": "walk",
+            "frame": 0,
+            "near": {
+              "hip": [
+                34.0,
+                75.0
+              ],
+              "knee": [
+                43.97,
+                80.1
+              ],
+              "ankle": [
+                40.8,
+                90.0
+              ],
+              "sole": [
+                40.8,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                41.0,
+                75.0
+              ],
+              "knee": [
+                46.21,
+                84.92
+              ],
+              "ankle": [
+                37.13,
+                90.0
+              ],
+              "sole": [
+                37.13,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              0,
+              -1
+            ],
+            "lean": 1
+          },
+          {
+            "mode": "walk",
+            "frame": 1,
+            "near": {
+              "hip": [
+                34.0,
+                75.0
+              ],
+              "knee": [
+                43.77,
+                80.48
+              ],
+              "ankle": [
+                39.59,
+                90.0
+              ],
+              "sole": [
+                39.59,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                41.0,
+                75.0
+              ],
+              "knee": [
+                45.24,
+                85.37
+              ],
+              "ankle": [
+                35.92,
+                90.0
+              ],
+              "sole": [
+                35.92,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              0,
+              -1
+            ],
+            "lean": 1
+          },
+          {
+            "mode": "walk",
+            "frame": 2,
+            "near": {
+              "hip": [
+                35.0,
+                74.0
+              ],
+              "knee": [
+                43.99,
+                80.68
+              ],
+              "ankle": [
+                39.38,
+                90.0
+              ],
+              "sole": [
+                39.38,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                42.0,
+                74.0
+              ],
+              "knee": [
+                45.61,
+                84.6
+              ],
+              "ankle": [
+                36.33,
+                89.3
+              ],
+              "sole": [
+                36.33,
+                92.3
+              ],
+              "planted": false
+            },
+            "torso_offset": [
+              1,
+              -2
+            ],
+            "lean": 1
+          },
+          {
+            "mode": "walk",
+            "frame": 3,
+            "near": {
+              "hip": [
+                35.0,
+                75.0
+              ],
+              "knee": [
+                44.14,
+                81.48
+              ],
+              "ankle": [
+                38.17,
+                90.0
+              ],
+              "sole": [
+                38.17,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                42.0,
+                75.0
+              ],
+              "knee": [
+                47.58,
+                84.71
+              ],
+              "ankle": [
+                37.62,
+                87.72
+              ],
+              "sole": [
+                37.62,
+                90.72
+              ],
+              "planted": false
+            },
+            "torso_offset": [
+              1,
+              -1
+            ],
+            "lean": 1
+          },
+          {
+            "mode": "walk",
+            "frame": 4,
+            "near": {
+              "hip": [
+                35.0,
+                75.0
+              ],
+              "knee": [
+                43.69,
+                82.07
+              ],
+              "ankle": [
+                36.97,
+                90.0
+              ],
+              "sole": [
+                36.97,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                42.0,
+                75.0
+              ],
+              "knee": [
+                49.66,
+                83.17
+              ],
+              "ankle": [
+                39.87,
+                86.67
+              ],
+              "sole": [
+                39.87,
+                89.67
+              ],
+              "planted": false
+            },
+            "torso_offset": [
+              1,
+              -1
+            ],
+            "lean": 1
+          },
+          {
+            "mode": "walk",
+            "frame": 5,
+            "near": {
+              "hip": [
+                35.0,
+                75.0
+              ],
+              "knee": [
+                43.15,
+                82.68
+              ],
+              "ankle": [
+                35.76,
+                90.0
+              ],
+              "sole": [
+                35.76,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                42.0,
+                75.0
+              ],
+              "knee": [
+                51.44,
+                81.03
+              ],
+              "ankle": [
+                42.54,
+                86.42
+              ],
+              "sole": [
+                42.54,
+                89.42
+              ],
+              "planted": false
+            },
+            "torso_offset": [
+              1,
+              -1
+            ],
+            "lean": 1
+          },
+          {
+            "mode": "walk",
+            "frame": 6,
+            "near": {
+              "hip": [
+                35.0,
+                74.0
+              ],
+              "knee": [
+                42.0,
+                82.74
+              ],
+              "ankle": [
+                34.55,
+                90.0
+              ],
+              "sole": [
+                34.55,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                42.0,
+                74.0
+              ],
+              "knee": [
+                51.94,
+                79.16
+              ],
+              "ankle": [
+                45.11,
+                87.01
+              ],
+              "sole": [
+                45.11,
+                90.01
+              ],
+              "planted": false
+            },
+            "torso_offset": [
+              1,
+              -2
+            ],
+            "lean": 0
+          },
+          {
+            "mode": "walk",
+            "frame": 7,
+            "near": {
+              "hip": [
+                34.0,
+                75.0
+              ],
+              "knee": [
+                40.78,
+                83.92
+              ],
+              "ankle": [
+                32.34,
+                90.0
+              ],
+              "sole": [
+                32.34,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                41.0,
+                75.0
+              ],
+              "knee": [
+                51.32,
+                79.35
+              ],
+              "ankle": [
+                46.04,
+                88.3
+              ],
+              "sole": [
+                46.04,
+                91.3
+              ],
+              "planted": false
+            },
+            "torso_offset": [
+              0,
+              -1
+            ],
+            "lean": 0
+          },
+          {
+            "mode": "walk",
+            "frame": 8,
+            "near": {
+              "hip": [
+                34.0,
+                75.0
+              ],
+              "knee": [
+                39.95,
+                84.49
+              ],
+              "ankle": [
+                31.13,
+                90.0
+              ],
+              "sole": [
+                31.13,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                41.0,
+                75.0
+              ],
+              "knee": [
+                50.81,
+                80.4
+              ],
+              "ankle": [
+                46.8,
+                90.0
+              ],
+              "sole": [
+                46.8,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              0,
+              -1
+            ],
+            "lean": -1
+          },
+          {
+            "mode": "walk",
+            "frame": 9,
+            "near": {
+              "hip": [
+                34.0,
+                75.0
+              ],
+              "knee": [
+                39.04,
+                85.0
+              ],
+              "ankle": [
+                29.93,
+                90.0
+              ],
+              "sole": [
+                29.93,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                41.0,
+                75.0
+              ],
+              "knee": [
+                50.55,
+                80.86
+              ],
+              "ankle": [
+                45.59,
+                90.0
+              ],
+              "sole": [
+                45.59,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              0,
+              -1
+            ],
+            "lean": -1
+          },
+          {
+            "mode": "walk",
+            "frame": 10,
+            "near": {
+              "hip": [
+                33.0,
+                74.0
+              ],
+              "knee": [
+                37.44,
+                84.28
+              ],
+              "ankle": [
+                28.33,
+                89.3
+              ],
+              "sole": [
+                28.33,
+                92.3
+              ],
+              "planted": false
+            },
+            "far": {
+              "hip": [
+                40.0,
+                74.0
+              ],
+              "knee": [
+                48.7,
+                81.06
+              ],
+              "ankle": [
+                43.38,
+                90.0
+              ],
+              "sole": [
+                43.38,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              -1,
+              -2
+            ],
+            "lean": -1
+          },
+          {
+            "mode": "walk",
+            "frame": 11,
+            "near": {
+              "hip": [
+                33.0,
+                75.0
+              ],
+              "knee": [
+                39.41,
+                84.19
+              ],
+              "ankle": [
+                29.62,
+                87.72
+              ],
+              "sole": [
+                29.62,
+                90.72
+              ],
+              "planted": false
+            },
+            "far": {
+              "hip": [
+                40.0,
+                75.0
+              ],
+              "knee": [
+                48.77,
+                81.96
+              ],
+              "ankle": [
+                42.17,
+                90.0
+              ],
+              "sole": [
+                42.17,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              -1,
+              -1
+            ],
+            "lean": -1
+          },
+          {
+            "mode": "walk",
+            "frame": 12,
+            "near": {
+              "hip": [
+                33.0,
+                75.0
+              ],
+              "knee": [
+                41.37,
+                82.44
+              ],
+              "ankle": [
+                31.87,
+                86.67
+              ],
+              "sole": [
+                31.87,
+                89.67
+              ],
+              "planted": false
+            },
+            "far": {
+              "hip": [
+                40.0,
+                75.0
+              ],
+              "knee": [
+                48.25,
+                82.58
+              ],
+              "ankle": [
+                40.97,
+                90.0
+              ],
+              "sole": [
+                40.97,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              -1,
+              -1
+            ],
+            "lean": -1
+          },
+          {
+            "mode": "walk",
+            "frame": 13,
+            "near": {
+              "hip": [
+                33.0,
+                75.0
+              ],
+              "knee": [
+                42.9,
+                80.23
+              ],
+              "ankle": [
+                34.54,
+                86.42
+              ],
+              "sole": [
+                34.54,
+                89.42
+              ],
+              "planted": false
+            },
+            "far": {
+              "hip": [
+                40.0,
+                75.0
+              ],
+              "knee": [
+                47.63,
+                83.2
+              ],
+              "ankle": [
+                39.76,
+                90.0
+              ],
+              "sole": [
+                39.76,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              -1,
+              -1
+            ],
+            "lean": -1
+          },
+          {
+            "mode": "walk",
+            "frame": 14,
+            "near": {
+              "hip": [
+                33.0,
+                74.0
+              ],
+              "knee": [
+                43.22,
+                78.59
+              ],
+              "ankle": [
+                37.11,
+                87.01
+              ],
+              "sole": [
+                37.11,
+                90.01
+              ],
+              "planted": false
+            },
+            "far": {
+              "hip": [
+                40.0,
+                74.0
+              ],
+              "knee": [
+                46.41,
+                83.19
+              ],
+              "ankle": [
+                38.55,
+                90.0
+              ],
+              "sole": [
+                38.55,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              -1,
+              -2
+            ],
+            "lean": 0
+          },
+          {
+            "mode": "walk",
+            "frame": 15,
+            "near": {
+              "hip": [
+                34.0,
+                75.0
+              ],
+              "knee": [
+                44.5,
+                78.91
+              ],
+              "ankle": [
+                40.04,
+                88.3
+              ],
+              "sole": [
+                40.04,
+                91.3
+              ],
+              "planted": false
+            },
+            "far": {
+              "hip": [
+                41.0,
+                75.0
+              ],
+              "knee": [
+                47.1,
+                84.39
+              ],
+              "ankle": [
+                38.34,
+                90.0
+              ],
+              "sole": [
+                38.34,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              0,
+              -1
+            ],
+            "lean": 0
+          }
+        ]
       },
       "run": {
-        "count": 16,
+        "frames": 16,
         "sha256": [
-          "e0ac934c4cb795c606b447c03a5ecb3078344555ec8e244e6d6bdbe8436b3899",
-          "ef6892ae38eeb55bae110a00ac26c4d817ccca2a057f7393d1639cc76cdd2ec8",
-          "b8e9effcf07f5ee092bd1f391638583a4e72d67ac61582dfa3986eedb2b78517",
-          "7d996a99eac9a461c7605f99f8f30857231818e11e89cbc734ef52598ccf2b4d",
-          "06e16a32da4fd3b68ba334005435e73380dd7923f288b894c1020c224af5d41b",
-          "283b51fa100ffe6bb322086d8a6a54f76ec2fc370ab76f8515d99ac106763047",
-          "21db6e9ded95b0f17285ca19340cfb7df748ae945c13e1974acd0213a50e438a",
-          "5a5bfa527c3799e9fcb98821700d0526e6fb1eca9f407fb92c541fbc0fbad164",
-          "4bf71131f3346477a8f69b088fec3b0d891bfc16520d2a84e50ebebc85438b22",
-          "7fb80957e0aafcb9bd3dd1a46cb12483c785cbfd8ec65eaa026bbf5bd99274a5",
-          "aba66a5f153613529a853ece749f6573d7e10f6d144de0f5667063329db43352",
-          "9b71ed434346eafe0cdca9e67a6953b2a33009fb6953071240f4c9be47015398",
-          "05108ca22f601b19053f4d491f925d4400c40e7cc8c1ce0e361febd0f741fbe9",
-          "8597a941c1dde89e3066d2a1ff2d28b2b1705d8bd03ec996b33855d3f4a7dad3",
-          "08256bc7170f5f4b6deafd686906e177eb8e06dd981ff3d45e14bd609f6dab84",
-          "20d3e31d733d038425c401ebc402ce564bbb48bf14af6c9279740c0d202439d5"
+          "9364b598829767bfd3679504eac47d58223102512f1b1e29503ecc87771b5a5b",
+          "b403101296a9a4fded12f659ba13781582e71a69d4e8154a6c0776bf10808fe0",
+          "bbcb34f07f6758ab8f2743f3edb32e120eb27f482e4997013c06b67e68eceb61",
+          "49ffa006ba07dd95c5c7bfeed766ed54e891d6c7130de15f36d1a4e45eebecc4",
+          "159dc91682a9950a3af5ba4d5f4878f3611930fc619c346327e695c698c5b539",
+          "4bf9cec9bbee35d7c5d2928868eda6b1007c2679d393f38ed3648a3b4fecbd58",
+          "e654c405e3fb61b912549828cdc74a6e9d7dfce07c72df7a749dd2e661d993ca",
+          "96d218e7323888cd68e8e01c0e4fbe0658b67cdfac45a3bbd991ac009f81ed5c",
+          "bce6f2ba8da79dc51e1e233597737a5438a4ecf5cb4470ba27e216a87392dbf9",
+          "fec6eb1ea3a866e441d880b2f0e4cfac0ee26572e67084ded66a50fc36e41004",
+          "d8b79c299ce2cb67e4a50d424cc27f9c719d662b750d6e109f58b3ceb1c45fa1",
+          "b60c2b107319b27a22780dfbf9356531d19a0dfe24dce72cfdaca7c67f0d9807",
+          "12b79c8ece6cfe97f4d7cc73a1c4e13c85484b10a6b49540624e3584ad952a75",
+          "039dae9f8243d9b924e117eac10b1fd69312589258d2e581bdb5be7d10d503fa",
+          "5b917eda9c8759c0686600637ed183d76c856321a518be09c122004c5cd922af",
+          "82eb59b760971b8de7b3326e2b9377a8ed7e2238df262fc65a94d52755c66665"
         ],
-        "unique_frames": 16
+        "poses": [
+          {
+            "mode": "run",
+            "frame": 0,
+            "near": {
+              "hip": [
+                34.0,
+                75.0
+              ],
+              "knee": [
+                44.11,
+                79.82
+              ],
+              "ankle": [
+                42.0,
+                90.0
+              ],
+              "sole": [
+                42.0,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                41.0,
+                75.0
+              ],
+              "knee": [
+                45.57,
+                85.22
+              ],
+              "ankle": [
+                36.33,
+                90.0
+              ],
+              "sole": [
+                36.33,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              0,
+              -1
+            ],
+            "lean": 1
+          },
+          {
+            "mode": "run",
+            "frame": 1,
+            "near": {
+              "hip": [
+                34.0,
+                74.0
+              ],
+              "knee": [
+                43.45,
+                80.01
+              ],
+              "ankle": [
+                40.54,
+                90.0
+              ],
+              "sole": [
+                40.54,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                41.0,
+                74.0
+              ],
+              "knee": [
+                43.89,
+                84.82
+              ],
+              "ankle": [
+                34.88,
+                90.0
+              ],
+              "sole": [
+                34.88,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              0,
+              -2
+            ],
+            "lean": 2
+          },
+          {
+            "mode": "run",
+            "frame": 2,
+            "near": {
+              "hip": [
+                35.0,
+                74.0
+              ],
+              "knee": [
+                44.17,
+                80.44
+              ],
+              "ankle": [
+                40.08,
+                90.0
+              ],
+              "sole": [
+                40.08,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                42.0,
+                74.0
+              ],
+              "knee": [
+                44.71,
+                84.87
+              ],
+              "ankle": [
+                35.16,
+                88.99
+              ],
+              "sole": [
+                35.16,
+                91.99
+              ],
+              "planted": false
+            },
+            "torso_offset": [
+              1,
+              -2
+            ],
+            "lean": 2
+          },
+          {
+            "mode": "run",
+            "frame": 3,
+            "near": {
+              "hip": [
+                35.0,
+                74.0
+              ],
+              "knee": [
+                43.77,
+                80.96
+              ],
+              "ankle": [
+                38.62,
+                90.0
+              ],
+              "sole": [
+                38.62,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                42.0,
+                74.0
+              ],
+              "knee": [
+                46.79,
+                84.12
+              ],
+              "ankle": [
+                36.72,
+                86.7
+              ],
+              "sole": [
+                36.72,
+                89.7
+              ],
+              "planted": false
+            },
+            "torso_offset": [
+              1,
+              -2
+            ],
+            "lean": 2
+          },
+          {
+            "mode": "run",
+            "frame": 4,
+            "near": {
+              "hip": [
+                35.0,
+                75.0
+              ],
+              "knee": [
+                43.77,
+                81.97
+              ],
+              "ankle": [
+                37.17,
+                90.0
+              ],
+              "sole": [
+                37.17,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                42.0,
+                75.0
+              ],
+              "knee": [
+                49.64,
+                83.19
+              ],
+              "ankle": [
+                39.43,
+                85.2
+              ],
+              "sole": [
+                39.43,
+                88.2
+              ],
+              "planted": false
+            },
+            "torso_offset": [
+              1,
+              -1
+            ],
+            "lean": 2
+          },
+          {
+            "mode": "run",
+            "frame": 5,
+            "near": {
+              "hip": [
+                35.0,
+                74.0
+              ],
+              "knee": [
+                42.61,
+                82.22
+              ],
+              "ankle": [
+                35.71,
+                90.0
+              ],
+              "sole": [
+                35.71,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                42.0,
+                74.0
+              ],
+              "knee": [
+                51.67,
+                79.64
+              ],
+              "ankle": [
+                42.66,
+                84.83
+              ],
+              "sole": [
+                42.66,
+                87.83
+              ],
+              "planted": false
+            },
+            "torso_offset": [
+              1,
+              -2
+            ],
+            "lean": 1
+          },
+          {
+            "mode": "run",
+            "frame": 6,
+            "near": {
+              "hip": [
+                35.0,
+                74.0
+              ],
+              "knee": [
+                41.83,
+                82.88
+              ],
+              "ankle": [
+                34.25,
+                90.0
+              ],
+              "sole": [
+                34.25,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                42.0,
+                74.0
+              ],
+              "knee": [
+                52.54,
+                77.79
+              ],
+              "ankle": [
+                45.75,
+                85.68
+              ],
+              "sole": [
+                45.75,
+                88.68
+              ],
+              "planted": false
+            },
+            "torso_offset": [
+              1,
+              -2
+            ],
+            "lean": 1
+          },
+          {
+            "mode": "run",
+            "frame": 7,
+            "near": {
+              "hip": [
+                34.0,
+                74.0
+              ],
+              "knee": [
+                39.92,
+                83.51
+              ],
+              "ankle": [
+                31.79,
+                90.0
+              ],
+              "sole": [
+                31.79,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                41.0,
+                74.0
+              ],
+              "knee": [
+                51.42,
+                78.1
+              ],
+              "ankle": [
+                47.08,
+                87.55
+              ],
+              "sole": [
+                47.08,
+                90.55
+              ],
+              "planted": false
+            },
+            "torso_offset": [
+              0,
+              -2
+            ],
+            "lean": 0
+          },
+          {
+            "mode": "run",
+            "frame": 8,
+            "near": {
+              "hip": [
+                34.0,
+                75.0
+              ],
+              "knee": [
+                39.36,
+                84.83
+              ],
+              "ankle": [
+                30.33,
+                90.0
+              ],
+              "sole": [
+                30.33,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                41.0,
+                75.0
+              ],
+              "knee": [
+                51.0,
+                80.04
+              ],
+              "ankle": [
+                48.0,
+                90.0
+              ],
+              "sole": [
+                48.0,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              0,
+              -1
+            ],
+            "lean": -1
+          },
+          {
+            "mode": "run",
+            "frame": 9,
+            "near": {
+              "hip": [
+                34.0,
+                74.0
+              ],
+              "knee": [
+                37.74,
+                84.56
+              ],
+              "ankle": [
+                28.88,
+                90.0
+              ],
+              "sole": [
+                28.88,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                41.0,
+                74.0
+              ],
+              "knee": [
+                50.27,
+                80.29
+              ],
+              "ankle": [
+                46.54,
+                90.0
+              ],
+              "sole": [
+                46.54,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              0,
+              -2
+            ],
+            "lean": -2
+          },
+          {
+            "mode": "run",
+            "frame": 10,
+            "near": {
+              "hip": [
+                33.0,
+                74.0
+              ],
+              "knee": [
+                36.59,
+                84.61
+              ],
+              "ankle": [
+                27.16,
+                88.99
+              ],
+              "sole": [
+                27.16,
+                91.99
+              ],
+              "planted": false
+            },
+            "far": {
+              "hip": [
+                40.0,
+                74.0
+              ],
+              "knee": [
+                48.91,
+                80.79
+              ],
+              "ankle": [
+                44.08,
+                90.0
+              ],
+              "sole": [
+                44.08,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              -1,
+              -2
+            ],
+            "lean": -2
+          },
+          {
+            "mode": "run",
+            "frame": 11,
+            "near": {
+              "hip": [
+                33.0,
+                74.0
+              ],
+              "knee": [
+                38.66,
+                83.66
+              ],
+              "ankle": [
+                28.72,
+                86.7
+              ],
+              "sole": [
+                28.72,
+                89.7
+              ],
+              "planted": false
+            },
+            "far": {
+              "hip": [
+                40.0,
+                74.0
+              ],
+              "knee": [
+                48.43,
+                81.37
+              ],
+              "ankle": [
+                42.62,
+                90.0
+              ],
+              "sole": [
+                42.62,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              -1,
+              -2
+            ],
+            "lean": -2
+          },
+          {
+            "mode": "run",
+            "frame": 12,
+            "near": {
+              "hip": [
+                33.0,
+                75.0
+              ],
+              "knee": [
+                41.44,
+                82.37
+              ],
+              "ankle": [
+                31.43,
+                85.2
+              ],
+              "sole": [
+                31.43,
+                88.2
+              ],
+              "planted": false
+            },
+            "far": {
+              "hip": [
+                40.0,
+                75.0
+              ],
+              "knee": [
+                48.34,
+                82.47
+              ],
+              "ankle": [
+                41.17,
+                90.0
+              ],
+              "sole": [
+                41.17,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              -1,
+              -1
+            ],
+            "lean": -2
+          },
+          {
+            "mode": "run",
+            "frame": 13,
+            "near": {
+              "hip": [
+                33.0,
+                74.0
+              ],
+              "knee": [
+                43.12,
+                78.79
+              ],
+              "ankle": [
+                34.66,
+                84.83
+              ],
+              "sole": [
+                34.66,
+                87.83
+              ],
+              "planted": false
+            },
+            "far": {
+              "hip": [
+                40.0,
+                74.0
+              ],
+              "knee": [
+                47.09,
+                82.67
+              ],
+              "ankle": [
+                39.71,
+                90.0
+              ],
+              "sole": [
+                39.71,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              -1,
+              -2
+            ],
+            "lean": -1
+          },
+          {
+            "mode": "run",
+            "frame": 14,
+            "near": {
+              "hip": [
+                33.0,
+                74.0
+              ],
+              "knee": [
+                43.74,
+                77.17
+              ],
+              "ankle": [
+                37.75,
+                85.68
+              ],
+              "sole": [
+                37.75,
+                88.68
+              ],
+              "planted": false
+            },
+            "far": {
+              "hip": [
+                40.0,
+                74.0
+              ],
+              "knee": [
+                46.22,
+                83.32
+              ],
+              "ankle": [
+                38.25,
+                90.0
+              ],
+              "sole": [
+                38.25,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              -1,
+              -2
+            ],
+            "lean": -1
+          },
+          {
+            "mode": "run",
+            "frame": 15,
+            "near": {
+              "hip": [
+                34.0,
+                74.0
+              ],
+              "knee": [
+                44.55,
+                77.75
+              ],
+              "ankle": [
+                41.08,
+                87.55
+              ],
+              "sole": [
+                41.08,
+                90.55
+              ],
+              "planted": false
+            },
+            "far": {
+              "hip": [
+                41.0,
+                74.0
+              ],
+              "knee": [
+                46.22,
+                83.91
+              ],
+              "ankle": [
+                37.79,
+                90.0
+              ],
+              "sole": [
+                37.79,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              0,
+              -2
+            ],
+            "lean": 0
+          }
+        ]
       }
     },
     "bandit01": {
       "idle": {
-        "count": 8,
+        "frames": 8,
         "sha256": [
           "fc15179acd84cb9beea7f62ef2239014f6054b69be6f6b093b06417c20e1e05a",
-          "e81439dd92ff472a364bf4e56f65a501f578f939c504a8b8b21a183db4cf5a52",
+          "471e267571f82a8df5b743e9b94184167b20f48ccb12aebc0487d30c8f1100c6",
           "e81439dd92ff472a364bf4e56f65a501f578f939c504a8b8b21a183db4cf5a52",
           "e81439dd92ff472a364bf4e56f65a501f578f939c504a8b8b21a183db4cf5a52",
           "fc15179acd84cb9beea7f62ef2239014f6054b69be6f6b093b06417c20e1e05a",
           "fc15179acd84cb9beea7f62ef2239014f6054b69be6f6b093b06417c20e1e05a",
           "fc15179acd84cb9beea7f62ef2239014f6054b69be6f6b093b06417c20e1e05a",
-          "fc15179acd84cb9beea7f62ef2239014f6054b69be6f6b093b06417c20e1e05a"
+          "142b22b297ade8c57811f49a526ae15bb87fcb901ebf8ab2dd998f9150725585"
         ],
-        "unique_frames": 2
+        "poses": [
+          {
+            "mode": "idle",
+            "frame": 0
+          },
+          {
+            "mode": "idle",
+            "frame": 1,
+            "body_offset": [
+              1,
+              -1
+            ]
+          },
+          {
+            "mode": "idle",
+            "frame": 2,
+            "body_offset": [
+              0,
+              -1
+            ]
+          },
+          {
+            "mode": "idle",
+            "frame": 3,
+            "body_offset": [
+              0,
+              -1
+            ]
+          },
+          {
+            "mode": "idle",
+            "frame": 4,
+            "body_offset": [
+              0,
+              0
+            ]
+          },
+          {
+            "mode": "idle",
+            "frame": 5,
+            "body_offset": [
+              0,
+              0
+            ]
+          },
+          {
+            "mode": "idle",
+            "frame": 6,
+            "body_offset": [
+              0,
+              0
+            ]
+          },
+          {
+            "mode": "idle",
+            "frame": 7,
+            "body_offset": [
+              1,
+              0
+            ]
+          }
+        ]
       },
       "walk": {
-        "count": 16,
+        "frames": 16,
         "sha256": [
-          "81ba5ecd474bffb659115d553cc5fb6096fb38e58a8ef1982032033100120342",
-          "4001b4f92bbb92063515a7d07b79bd2a120cfc97ce50b38694ef4f2964854748",
-          "c8055688d582e6ae23c5272fc55970ca2314804882328cf10d99ff4463e73a68",
-          "f93f6a345d490a89d27e34c2d3498e12ccf9611e4fed9f09cd440d6f4dfd57c7",
-          "5a341114497a6b0777c02c497a1d6734b21dc14f69e6873e975c55af2f7d9003",
-          "f93f6a345d490a89d27e34c2d3498e12ccf9611e4fed9f09cd440d6f4dfd57c7",
-          "ebda379ddda33685a44cd0cb2e6e2f05cba0d19b2e8b8d2819cbdb4faaaf0a4e",
-          "f18ddab207e7d1a16cd15039053fc53a1e6ddd9cd5ced3954b6988b5631f3545",
-          "dc2e898421678b649e4b331d0e75638efeed7896e46c21472571a98c64f92b67",
-          "06f5a2093514224fb78e14c43b932e5bbf29c4e3f0d1671cfa7dff1f2e9024fa",
-          "467919690b7a0765fabd6bdffa54e9fc1d880f855f65392667ff83e321d4450d",
-          "4eb639d2858ded1a1b839d7a0899f92cc0301192a7b19e2177642e4ecc2bb44e",
-          "42d855f0c6287fe49587d214a75f984330a50bb0451e1c0aa8776af848b5ccd8",
-          "4eb639d2858ded1a1b839d7a0899f92cc0301192a7b19e2177642e4ecc2bb44e",
-          "6edc430315544ec5f8e2a19b00c6fe979bdfba43d606852fa1bd8e11fb48632c",
-          "3a224a21aee3e111d9f386677123ad1007df5108ab17ed3f91b5f7d98fd90e44"
+          "7e2d6858d02bbe3a993c98fe3f44638b19c59d0c066c4b0ddc6b50f96afebe5f",
+          "4342c387ee7272b40c65860ad4d319faa11d0029d0a9ff54caf5f36d6f1e050b",
+          "85c7295fa0eb7daced568ca5919166f8d16ecd3951993c54167cfd5efef7338d",
+          "2f2b665e233c486167f85434734cd20b06a1c97e3f91883a0bdc355c32f9f65d",
+          "ef1bfde050a3881a111b2a2240a136d47249d550b97eb4399c9ee8e8d2ec5d81",
+          "84f0075cfdd4f3f7dc15d6db2a5aa441ed369b8f1ea76fabee7fa89c98aea7ba",
+          "967361965bb954c48910c12e303b7a99a4cbcfc428742102facd0ec5ab442d16",
+          "3a31c32b044ef11e07e8f03f9d943987f3a312c68e61d84dd26bb97962a97bbd",
+          "fa17329c0eb7b57c50d81b595cd586c787db0d0669179cd7fb008cb0e1478f93",
+          "ad2b824fbd5a7ca111f080825c55726402d3151ff04f4a6ceecc41822ed4dd2c",
+          "453dcb261222f7745ddd97a1fd04998aab1e49b10c0049198d70bf439c8daec2",
+          "c4550a2ca7dab585e3fbd7153bbaf8c2590a975233d7bd076439afe2e4d8904d",
+          "08decdbaebd2b5c4aada060a204d52f3f69fa706675a5f7a7a4f65e98a34ded5",
+          "74105f6b104758a5f8f1585b3365d5a0a52dd0dcb832b07350120f379564d8e7",
+          "29bc205d4ba7f2730b226c1e48196020d7890ddfb352989b2391e9cc445d6507",
+          "8849781f01f97c3d201669d90d129283dd04199a6c2b52fc76c56c13ea1a485e"
         ],
-        "unique_frames": 14
+        "poses": [
+          {
+            "mode": "walk",
+            "frame": 0,
+            "near": {
+              "hip": [
+                34.0,
+                75.0
+              ],
+              "knee": [
+                43.97,
+                80.1
+              ],
+              "ankle": [
+                40.8,
+                90.0
+              ],
+              "sole": [
+                40.8,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                41.0,
+                75.0
+              ],
+              "knee": [
+                46.21,
+                84.92
+              ],
+              "ankle": [
+                37.13,
+                90.0
+              ],
+              "sole": [
+                37.13,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              0,
+              -1
+            ],
+            "lean": 1
+          },
+          {
+            "mode": "walk",
+            "frame": 1,
+            "near": {
+              "hip": [
+                34.0,
+                75.0
+              ],
+              "knee": [
+                43.77,
+                80.48
+              ],
+              "ankle": [
+                39.59,
+                90.0
+              ],
+              "sole": [
+                39.59,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                41.0,
+                75.0
+              ],
+              "knee": [
+                45.24,
+                85.37
+              ],
+              "ankle": [
+                35.92,
+                90.0
+              ],
+              "sole": [
+                35.92,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              0,
+              -1
+            ],
+            "lean": 1
+          },
+          {
+            "mode": "walk",
+            "frame": 2,
+            "near": {
+              "hip": [
+                35.0,
+                74.0
+              ],
+              "knee": [
+                43.99,
+                80.68
+              ],
+              "ankle": [
+                39.38,
+                90.0
+              ],
+              "sole": [
+                39.38,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                42.0,
+                74.0
+              ],
+              "knee": [
+                45.61,
+                84.6
+              ],
+              "ankle": [
+                36.33,
+                89.3
+              ],
+              "sole": [
+                36.33,
+                92.3
+              ],
+              "planted": false
+            },
+            "torso_offset": [
+              1,
+              -2
+            ],
+            "lean": 1
+          },
+          {
+            "mode": "walk",
+            "frame": 3,
+            "near": {
+              "hip": [
+                35.0,
+                75.0
+              ],
+              "knee": [
+                44.14,
+                81.48
+              ],
+              "ankle": [
+                38.17,
+                90.0
+              ],
+              "sole": [
+                38.17,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                42.0,
+                75.0
+              ],
+              "knee": [
+                47.58,
+                84.71
+              ],
+              "ankle": [
+                37.62,
+                87.72
+              ],
+              "sole": [
+                37.62,
+                90.72
+              ],
+              "planted": false
+            },
+            "torso_offset": [
+              1,
+              -1
+            ],
+            "lean": 1
+          },
+          {
+            "mode": "walk",
+            "frame": 4,
+            "near": {
+              "hip": [
+                35.0,
+                75.0
+              ],
+              "knee": [
+                43.69,
+                82.07
+              ],
+              "ankle": [
+                36.97,
+                90.0
+              ],
+              "sole": [
+                36.97,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                42.0,
+                75.0
+              ],
+              "knee": [
+                49.66,
+                83.17
+              ],
+              "ankle": [
+                39.87,
+                86.67
+              ],
+              "sole": [
+                39.87,
+                89.67
+              ],
+              "planted": false
+            },
+            "torso_offset": [
+              1,
+              -1
+            ],
+            "lean": 1
+          },
+          {
+            "mode": "walk",
+            "frame": 5,
+            "near": {
+              "hip": [
+                35.0,
+                75.0
+              ],
+              "knee": [
+                43.15,
+                82.68
+              ],
+              "ankle": [
+                35.76,
+                90.0
+              ],
+              "sole": [
+                35.76,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                42.0,
+                75.0
+              ],
+              "knee": [
+                51.44,
+                81.03
+              ],
+              "ankle": [
+                42.54,
+                86.42
+              ],
+              "sole": [
+                42.54,
+                89.42
+              ],
+              "planted": false
+            },
+            "torso_offset": [
+              1,
+              -1
+            ],
+            "lean": 1
+          },
+          {
+            "mode": "walk",
+            "frame": 6,
+            "near": {
+              "hip": [
+                35.0,
+                74.0
+              ],
+              "knee": [
+                42.0,
+                82.74
+              ],
+              "ankle": [
+                34.55,
+                90.0
+              ],
+              "sole": [
+                34.55,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                42.0,
+                74.0
+              ],
+              "knee": [
+                51.94,
+                79.16
+              ],
+              "ankle": [
+                45.11,
+                87.01
+              ],
+              "sole": [
+                45.11,
+                90.01
+              ],
+              "planted": false
+            },
+            "torso_offset": [
+              1,
+              -2
+            ],
+            "lean": 0
+          },
+          {
+            "mode": "walk",
+            "frame": 7,
+            "near": {
+              "hip": [
+                34.0,
+                75.0
+              ],
+              "knee": [
+                40.78,
+                83.92
+              ],
+              "ankle": [
+                32.34,
+                90.0
+              ],
+              "sole": [
+                32.34,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                41.0,
+                75.0
+              ],
+              "knee": [
+                51.32,
+                79.35
+              ],
+              "ankle": [
+                46.04,
+                88.3
+              ],
+              "sole": [
+                46.04,
+                91.3
+              ],
+              "planted": false
+            },
+            "torso_offset": [
+              0,
+              -1
+            ],
+            "lean": 0
+          },
+          {
+            "mode": "walk",
+            "frame": 8,
+            "near": {
+              "hip": [
+                34.0,
+                75.0
+              ],
+              "knee": [
+                39.95,
+                84.49
+              ],
+              "ankle": [
+                31.13,
+                90.0
+              ],
+              "sole": [
+                31.13,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                41.0,
+                75.0
+              ],
+              "knee": [
+                50.81,
+                80.4
+              ],
+              "ankle": [
+                46.8,
+                90.0
+              ],
+              "sole": [
+                46.8,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              0,
+              -1
+            ],
+            "lean": -1
+          },
+          {
+            "mode": "walk",
+            "frame": 9,
+            "near": {
+              "hip": [
+                34.0,
+                75.0
+              ],
+              "knee": [
+                39.04,
+                85.0
+              ],
+              "ankle": [
+                29.93,
+                90.0
+              ],
+              "sole": [
+                29.93,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                41.0,
+                75.0
+              ],
+              "knee": [
+                50.55,
+                80.86
+              ],
+              "ankle": [
+                45.59,
+                90.0
+              ],
+              "sole": [
+                45.59,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              0,
+              -1
+            ],
+            "lean": -1
+          },
+          {
+            "mode": "walk",
+            "frame": 10,
+            "near": {
+              "hip": [
+                33.0,
+                74.0
+              ],
+              "knee": [
+                37.44,
+                84.28
+              ],
+              "ankle": [
+                28.33,
+                89.3
+              ],
+              "sole": [
+                28.33,
+                92.3
+              ],
+              "planted": false
+            },
+            "far": {
+              "hip": [
+                40.0,
+                74.0
+              ],
+              "knee": [
+                48.7,
+                81.06
+              ],
+              "ankle": [
+                43.38,
+                90.0
+              ],
+              "sole": [
+                43.38,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              -1,
+              -2
+            ],
+            "lean": -1
+          },
+          {
+            "mode": "walk",
+            "frame": 11,
+            "near": {
+              "hip": [
+                33.0,
+                75.0
+              ],
+              "knee": [
+                39.41,
+                84.19
+              ],
+              "ankle": [
+                29.62,
+                87.72
+              ],
+              "sole": [
+                29.62,
+                90.72
+              ],
+              "planted": false
+            },
+            "far": {
+              "hip": [
+                40.0,
+                75.0
+              ],
+              "knee": [
+                48.77,
+                81.96
+              ],
+              "ankle": [
+                42.17,
+                90.0
+              ],
+              "sole": [
+                42.17,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              -1,
+              -1
+            ],
+            "lean": -1
+          },
+          {
+            "mode": "walk",
+            "frame": 12,
+            "near": {
+              "hip": [
+                33.0,
+                75.0
+              ],
+              "knee": [
+                41.37,
+                82.44
+              ],
+              "ankle": [
+                31.87,
+                86.67
+              ],
+              "sole": [
+                31.87,
+                89.67
+              ],
+              "planted": false
+            },
+            "far": {
+              "hip": [
+                40.0,
+                75.0
+              ],
+              "knee": [
+                48.25,
+                82.58
+              ],
+              "ankle": [
+                40.97,
+                90.0
+              ],
+              "sole": [
+                40.97,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              -1,
+              -1
+            ],
+            "lean": -1
+          },
+          {
+            "mode": "walk",
+            "frame": 13,
+            "near": {
+              "hip": [
+                33.0,
+                75.0
+              ],
+              "knee": [
+                42.9,
+                80.23
+              ],
+              "ankle": [
+                34.54,
+                86.42
+              ],
+              "sole": [
+                34.54,
+                89.42
+              ],
+              "planted": false
+            },
+            "far": {
+              "hip": [
+                40.0,
+                75.0
+              ],
+              "knee": [
+                47.63,
+                83.2
+              ],
+              "ankle": [
+                39.76,
+                90.0
+              ],
+              "sole": [
+                39.76,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              -1,
+              -1
+            ],
+            "lean": -1
+          },
+          {
+            "mode": "walk",
+            "frame": 14,
+            "near": {
+              "hip": [
+                33.0,
+                74.0
+              ],
+              "knee": [
+                43.22,
+                78.59
+              ],
+              "ankle": [
+                37.11,
+                87.01
+              ],
+              "sole": [
+                37.11,
+                90.01
+              ],
+              "planted": false
+            },
+            "far": {
+              "hip": [
+                40.0,
+                74.0
+              ],
+              "knee": [
+                46.41,
+                83.19
+              ],
+              "ankle": [
+                38.55,
+                90.0
+              ],
+              "sole": [
+                38.55,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              -1,
+              -2
+            ],
+            "lean": 0
+          },
+          {
+            "mode": "walk",
+            "frame": 15,
+            "near": {
+              "hip": [
+                34.0,
+                75.0
+              ],
+              "knee": [
+                44.5,
+                78.91
+              ],
+              "ankle": [
+                40.04,
+                88.3
+              ],
+              "sole": [
+                40.04,
+                91.3
+              ],
+              "planted": false
+            },
+            "far": {
+              "hip": [
+                41.0,
+                75.0
+              ],
+              "knee": [
+                47.1,
+                84.39
+              ],
+              "ankle": [
+                38.34,
+                90.0
+              ],
+              "sole": [
+                38.34,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              0,
+              -1
+            ],
+            "lean": 0
+          }
+        ]
       },
       "run": {
-        "count": 16,
+        "frames": 16,
         "sha256": [
-          "81ba5ecd474bffb659115d553cc5fb6096fb38e58a8ef1982032033100120342",
-          "818f10a1710bff64a89b36441be395a695434b5f87ee11348f6a7cb7792b28c6",
-          "72a5db6283e39ef8b5eaefee4799061a03061be5f2e665aac3f5df4c6dcd4a68",
-          "eefe47789da2df81b0d086aad1680ffafed53f65283179c9c64e8f5062a1f251",
-          "37c954764339c32e8623255370ff26d467ff0a491a4094972fb35120341ccf3c",
-          "f6e0170c4afadf5448e098b57a1a138057ba7e068691efcd42c3b1849f926a9f",
-          "43265ca62c87a8927da799500b89fbd54bbf508ec5ae02cce49e32d1cd2ea731",
-          "319ede080316e70364c763a691670aea030c0863b4359fc4e88a9c2e32924003",
-          "dc2e898421678b649e4b331d0e75638efeed7896e46c21472571a98c64f92b67",
-          "16541e34badded382d2710772aebb6ec13e365c3e0a106490139aa26674d85ea",
-          "7a7a7b78a8e2af76031e179a12b099f59dde6da931a2affff80b2e3f5cf73428",
-          "c966b50024465be955d442308575320f8cdf3ffd08b5b80c6eb69373177d06f1",
-          "a0e25ecf14cb36071a164309f89f693fd8ebc8c24c1885ded44ed9a0affa1021",
-          "094fab54e49cd77f9f29a59a232b9cec704cfb303f66f9fc4762c9904bef4490",
-          "dca2da471cc6ae6f1e3f22d33e15732274f6b0e1e22a94a688e45033e70515d1",
-          "caf36e3d5f792e9431c7191871c6133c01e9e28201f138cebd7e733a2b181ecb"
+          "e7fee1d9a1011eb7127d56bcbb9da69b1bb86a01501fb3ac5c857ef275be3d21",
+          "23f6e658b6c8ffaf4cd95c83326f1445513853c5d8344ecb5586379a80d8e2bf",
+          "1219c964144b69cd9fc846cc084013cfd699c80df0633e00c42c9d653bebdd7e",
+          "184bf71da165f171c2a5f502be6b0bab569aca997c0f9ac45de26f2a07244a04",
+          "a784770554e0cc634692fff249432395dff427bed74a1040df1272f5ca24d334",
+          "982ab7bb00afecedbbac59c91ce2e9da2eaa5b6a9d631181da94e901ff56b59f",
+          "037c257142791f2f5ec0c7b37212e76bdd458f1b8359732e260f88188bd7f520",
+          "826f0677cf12d835907eae0beab4870796e4ffb4fc888e5cda127c9fb97dff33",
+          "de3e9b11ba1776b23b444e9d6a6d1d551c874f666da395a177890114bd05ca13",
+          "4a6f38ccc14f1a556b6ddc1193eba666be0327d7c71d2b533bdf966181122009",
+          "bcbc8b83845e7c295566b9bb77295fd3e30ccbf5b63bed0684f4892d482082f1",
+          "def62bcae9aa0ee5fbf835082054bc53ea37db8dab9adec8826ef4af54d0325c",
+          "6d728af55735187ec3131097dac5849cb82a9120a73efbeae7810bc219ceb007",
+          "75115880333e43b3b0ae326173e4fe6760d028d5fdb1a827accaf37faf756c0c",
+          "69a423b61124f418767f8edb33df2e1ac65400d3882d60c71dd2f1dfa4923b52",
+          "ba8e17d6c18dcfc1405994399c7956bf0c9c770d3853d6834ba712902ffedc40"
         ],
-        "unique_frames": 16
+        "poses": [
+          {
+            "mode": "run",
+            "frame": 0,
+            "near": {
+              "hip": [
+                34.0,
+                75.0
+              ],
+              "knee": [
+                44.11,
+                79.82
+              ],
+              "ankle": [
+                42.0,
+                90.0
+              ],
+              "sole": [
+                42.0,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                41.0,
+                75.0
+              ],
+              "knee": [
+                45.57,
+                85.22
+              ],
+              "ankle": [
+                36.33,
+                90.0
+              ],
+              "sole": [
+                36.33,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              0,
+              -1
+            ],
+            "lean": 1
+          },
+          {
+            "mode": "run",
+            "frame": 1,
+            "near": {
+              "hip": [
+                34.0,
+                74.0
+              ],
+              "knee": [
+                43.45,
+                80.01
+              ],
+              "ankle": [
+                40.54,
+                90.0
+              ],
+              "sole": [
+                40.54,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                41.0,
+                74.0
+              ],
+              "knee": [
+                43.89,
+                84.82
+              ],
+              "ankle": [
+                34.88,
+                90.0
+              ],
+              "sole": [
+                34.88,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              0,
+              -2
+            ],
+            "lean": 2
+          },
+          {
+            "mode": "run",
+            "frame": 2,
+            "near": {
+              "hip": [
+                35.0,
+                74.0
+              ],
+              "knee": [
+                44.17,
+                80.44
+              ],
+              "ankle": [
+                40.08,
+                90.0
+              ],
+              "sole": [
+                40.08,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                42.0,
+                74.0
+              ],
+              "knee": [
+                44.71,
+                84.87
+              ],
+              "ankle": [
+                35.16,
+                88.99
+              ],
+              "sole": [
+                35.16,
+                91.99
+              ],
+              "planted": false
+            },
+            "torso_offset": [
+              1,
+              -2
+            ],
+            "lean": 2
+          },
+          {
+            "mode": "run",
+            "frame": 3,
+            "near": {
+              "hip": [
+                35.0,
+                74.0
+              ],
+              "knee": [
+                43.77,
+                80.96
+              ],
+              "ankle": [
+                38.62,
+                90.0
+              ],
+              "sole": [
+                38.62,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                42.0,
+                74.0
+              ],
+              "knee": [
+                46.79,
+                84.12
+              ],
+              "ankle": [
+                36.72,
+                86.7
+              ],
+              "sole": [
+                36.72,
+                89.7
+              ],
+              "planted": false
+            },
+            "torso_offset": [
+              1,
+              -2
+            ],
+            "lean": 2
+          },
+          {
+            "mode": "run",
+            "frame": 4,
+            "near": {
+              "hip": [
+                35.0,
+                75.0
+              ],
+              "knee": [
+                43.77,
+                81.97
+              ],
+              "ankle": [
+                37.17,
+                90.0
+              ],
+              "sole": [
+                37.17,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                42.0,
+                75.0
+              ],
+              "knee": [
+                49.64,
+                83.19
+              ],
+              "ankle": [
+                39.43,
+                85.2
+              ],
+              "sole": [
+                39.43,
+                88.2
+              ],
+              "planted": false
+            },
+            "torso_offset": [
+              1,
+              -1
+            ],
+            "lean": 2
+          },
+          {
+            "mode": "run",
+            "frame": 5,
+            "near": {
+              "hip": [
+                35.0,
+                74.0
+              ],
+              "knee": [
+                42.61,
+                82.22
+              ],
+              "ankle": [
+                35.71,
+                90.0
+              ],
+              "sole": [
+                35.71,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                42.0,
+                74.0
+              ],
+              "knee": [
+                51.67,
+                79.64
+              ],
+              "ankle": [
+                42.66,
+                84.83
+              ],
+              "sole": [
+                42.66,
+                87.83
+              ],
+              "planted": false
+            },
+            "torso_offset": [
+              1,
+              -2
+            ],
+            "lean": 1
+          },
+          {
+            "mode": "run",
+            "frame": 6,
+            "near": {
+              "hip": [
+                35.0,
+                74.0
+              ],
+              "knee": [
+                41.83,
+                82.88
+              ],
+              "ankle": [
+                34.25,
+                90.0
+              ],
+              "sole": [
+                34.25,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                42.0,
+                74.0
+              ],
+              "knee": [
+                52.54,
+                77.79
+              ],
+              "ankle": [
+                45.75,
+                85.68
+              ],
+              "sole": [
+                45.75,
+                88.68
+              ],
+              "planted": false
+            },
+            "torso_offset": [
+              1,
+              -2
+            ],
+            "lean": 1
+          },
+          {
+            "mode": "run",
+            "frame": 7,
+            "near": {
+              "hip": [
+                34.0,
+                74.0
+              ],
+              "knee": [
+                39.92,
+                83.51
+              ],
+              "ankle": [
+                31.79,
+                90.0
+              ],
+              "sole": [
+                31.79,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                41.0,
+                74.0
+              ],
+              "knee": [
+                51.42,
+                78.1
+              ],
+              "ankle": [
+                47.08,
+                87.55
+              ],
+              "sole": [
+                47.08,
+                90.55
+              ],
+              "planted": false
+            },
+            "torso_offset": [
+              0,
+              -2
+            ],
+            "lean": 0
+          },
+          {
+            "mode": "run",
+            "frame": 8,
+            "near": {
+              "hip": [
+                34.0,
+                75.0
+              ],
+              "knee": [
+                39.36,
+                84.83
+              ],
+              "ankle": [
+                30.33,
+                90.0
+              ],
+              "sole": [
+                30.33,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                41.0,
+                75.0
+              ],
+              "knee": [
+                51.0,
+                80.04
+              ],
+              "ankle": [
+                48.0,
+                90.0
+              ],
+              "sole": [
+                48.0,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              0,
+              -1
+            ],
+            "lean": -1
+          },
+          {
+            "mode": "run",
+            "frame": 9,
+            "near": {
+              "hip": [
+                34.0,
+                74.0
+              ],
+              "knee": [
+                37.74,
+                84.56
+              ],
+              "ankle": [
+                28.88,
+                90.0
+              ],
+              "sole": [
+                28.88,
+                93.0
+              ],
+              "planted": true
+            },
+            "far": {
+              "hip": [
+                41.0,
+                74.0
+              ],
+              "knee": [
+                50.27,
+                80.29
+              ],
+              "ankle": [
+                46.54,
+                90.0
+              ],
+              "sole": [
+                46.54,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              0,
+              -2
+            ],
+            "lean": -2
+          },
+          {
+            "mode": "run",
+            "frame": 10,
+            "near": {
+              "hip": [
+                33.0,
+                74.0
+              ],
+              "knee": [
+                36.59,
+                84.61
+              ],
+              "ankle": [
+                27.16,
+                88.99
+              ],
+              "sole": [
+                27.16,
+                91.99
+              ],
+              "planted": false
+            },
+            "far": {
+              "hip": [
+                40.0,
+                74.0
+              ],
+              "knee": [
+                48.91,
+                80.79
+              ],
+              "ankle": [
+                44.08,
+                90.0
+              ],
+              "sole": [
+                44.08,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              -1,
+              -2
+            ],
+            "lean": -2
+          },
+          {
+            "mode": "run",
+            "frame": 11,
+            "near": {
+              "hip": [
+                33.0,
+                74.0
+              ],
+              "knee": [
+                38.66,
+                83.66
+              ],
+              "ankle": [
+                28.72,
+                86.7
+              ],
+              "sole": [
+                28.72,
+                89.7
+              ],
+              "planted": false
+            },
+            "far": {
+              "hip": [
+                40.0,
+                74.0
+              ],
+              "knee": [
+                48.43,
+                81.37
+              ],
+              "ankle": [
+                42.62,
+                90.0
+              ],
+              "sole": [
+                42.62,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              -1,
+              -2
+            ],
+            "lean": -2
+          },
+          {
+            "mode": "run",
+            "frame": 12,
+            "near": {
+              "hip": [
+                33.0,
+                75.0
+              ],
+              "knee": [
+                41.44,
+                82.37
+              ],
+              "ankle": [
+                31.43,
+                85.2
+              ],
+              "sole": [
+                31.43,
+                88.2
+              ],
+              "planted": false
+            },
+            "far": {
+              "hip": [
+                40.0,
+                75.0
+              ],
+              "knee": [
+                48.34,
+                82.47
+              ],
+              "ankle": [
+                41.17,
+                90.0
+              ],
+              "sole": [
+                41.17,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              -1,
+              -1
+            ],
+            "lean": -2
+          },
+          {
+            "mode": "run",
+            "frame": 13,
+            "near": {
+              "hip": [
+                33.0,
+                74.0
+              ],
+              "knee": [
+                43.12,
+                78.79
+              ],
+              "ankle": [
+                34.66,
+                84.83
+              ],
+              "sole": [
+                34.66,
+                87.83
+              ],
+              "planted": false
+            },
+            "far": {
+              "hip": [
+                40.0,
+                74.0
+              ],
+              "knee": [
+                47.09,
+                82.67
+              ],
+              "ankle": [
+                39.71,
+                90.0
+              ],
+              "sole": [
+                39.71,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              -1,
+              -2
+            ],
+            "lean": -1
+          },
+          {
+            "mode": "run",
+            "frame": 14,
+            "near": {
+              "hip": [
+                33.0,
+                74.0
+              ],
+              "knee": [
+                43.74,
+                77.17
+              ],
+              "ankle": [
+                37.75,
+                85.68
+              ],
+              "sole": [
+                37.75,
+                88.68
+              ],
+              "planted": false
+            },
+            "far": {
+              "hip": [
+                40.0,
+                74.0
+              ],
+              "knee": [
+                46.22,
+                83.32
+              ],
+              "ankle": [
+                38.25,
+                90.0
+              ],
+              "sole": [
+                38.25,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              -1,
+              -2
+            ],
+            "lean": -1
+          },
+          {
+            "mode": "run",
+            "frame": 15,
+            "near": {
+              "hip": [
+                34.0,
+                74.0
+              ],
+              "knee": [
+                44.55,
+                77.75
+              ],
+              "ankle": [
+                41.08,
+                87.55
+              ],
+              "sole": [
+                41.08,
+                90.55
+              ],
+              "planted": false
+            },
+            "far": {
+              "hip": [
+                41.0,
+                74.0
+              ],
+              "knee": [
+                46.22,
+                83.91
+              ],
+              "ankle": [
+                37.79,
+                90.0
+              ],
+              "sole": [
+                37.79,
+                93.0
+              ],
+              "planted": true
+            },
+            "torso_offset": [
+              0,
+              -2
+            ],
+            "lean": 0
+          }
+        ]
       }
     }
   }
