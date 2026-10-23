@@ -39,15 +39,15 @@ func character(at: Vector2, facing_right: bool) -> Dictionary:
     root_node.scale = Vector2(1.0 if facing_right else -1.0,1)
     var body: Node2D = joint("Body",root_node,Vector2.ZERO)
     # Layered torso and attachment nodes are independently movable.
-    part("backpack",body,Vector2(-38,-26),Vector2(102,145),true).z_index=-8
-    var far_leg: Node2D = joint("FarHip",root_node,Vector2(19,72),-6)
+    part("backpack",body,Vector2(-66,-25),Vector2(102,137),true).z_index=-8
+    var far_leg: Node2D = joint("FarHip",root_node,Vector2(22,69),-6)
     var far_thigh: Node2D = joint("FarThigh",far_leg,Vector2.ZERO)
     part("far_thigh",far_thigh,Vector2(0,39),Vector2(52,95))
     var far_knee: Node2D = joint("FarKnee",far_thigh,Vector2(0,80))
     part("far_shin",far_knee,Vector2(0,34),Vector2(43,85))
     var far_ankle: Node2D = joint("FarAnkle",far_knee,Vector2(0,80))
     part("far_boot",far_ankle,Vector2(13,5),Vector2(65,47))
-    var near_leg: Node2D = joint("NearHip",root_node,Vector2(-16,72),3)
+    var near_leg: Node2D = joint("NearHip",root_node,Vector2(-22,72),3)
     var near_thigh: Node2D = joint("NearThigh",near_leg,Vector2.ZERO)
     part("near_thigh",near_thigh,Vector2(0,39),Vector2(55,98))
     var near_knee: Node2D = joint("NearKnee",near_thigh,Vector2(0,82))
@@ -55,19 +55,19 @@ func character(at: Vector2, facing_right: bool) -> Dictionary:
     var near_ankle: Node2D = joint("NearAnkle",near_knee,Vector2(0,81))
     part("near_boot",near_ankle,Vector2(14,5),Vector2(66,48))
     # Arms remain separate upper/forearm/hand sprites.
-    var far_arm: Node2D=joint("FarShoulder",body,Vector2(-22,-53),-4)
+    var far_arm: Node2D=joint("FarShoulder",body,Vector2(-53,-48),-4)
     part("far_upper_arm",far_arm,Vector2(29,1),Vector2(69,23))
     var far_elbow: Node2D=joint("FarElbow",far_arm,Vector2(62,0))
     part("far_forearm",far_elbow,Vector2(29,0),Vector2(65,21))
     part("far_hand",far_elbow,Vector2(67,0),Vector2(27,27))
     part("torso",body,Vector2(0,-18),Vector2(113,164))
-    var near_arm: Node2D=joint("NearShoulder",body,Vector2(-25,-52),5)
+    var near_arm: Node2D=joint("NearShoulder",body,Vector2(50,-54),5)
     part("near_upper_arm",near_arm,Vector2(30,0),Vector2(72,24))
     var near_elbow: Node2D=joint("NearElbow",near_arm,Vector2(65,0))
     part("near_forearm",near_elbow,Vector2(27,0),Vector2(64,20))
     part("near_hand",near_elbow,Vector2(67,0),Vector2(27,27))
     part("pelvis_belt",body,Vector2(5,74),Vector2(88,31))
-    part("waist_pouch",body,Vector2(52,75),Vector2(28,49),true).z_index=7
+    part("waist_pouch",body,Vector2(43,65),Vector2(22,30),true).z_index=7
     part("head_neck",body,Vector2(-6,-122),Vector2(89,94))
     part("scarf",body,Vector2(-2,-72),Vector2(75,43),true).z_index=7
     rigs.append({"root":root_node,"body":body,"near_hip":near_thigh,"far_hip":far_thigh,
@@ -89,8 +89,8 @@ func drive(rig: Dictionary,t: float) -> void:
     rig["far_knee"].rotation = deg_to_rad(14.0+17*maxf(0,a))
     rig["near_ankle"].rotation = -rig["near_knee"].rotation*0.5-rig["near_hip"].rotation*0.45
     rig["far_ankle"].rotation = -rig["far_knee"].rotation*0.5-rig["far_hip"].rotation*0.45
-    rig["near_arm"].rotation = deg_to_rad(74-11*a)
-    rig["far_arm"].rotation = deg_to_rad(74+11*a)
+    rig["near_arm"].rotation = deg_to_rad(93-12*a)
+    rig["far_arm"].rotation = deg_to_rad(93+12*a)
     rig["near_elbow"].rotation = deg_to_rad(10+4*a)
     rig["far_elbow"].rotation = deg_to_rad(10-4*a)
 
