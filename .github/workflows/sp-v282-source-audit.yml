@@ -1,0 +1,42 @@
+name: SP282 HUD and FPS visibility source audit
+on:
+  push:
+    branches: [sp-v282-hud-layout-perf-control-20261023]
+    paths: [.github/workflows/sp-v282-source-audit.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          repository: husam4448-rgb/wanderfall
+          run-id: 39906718905
+          name: SP-D2D14-Original-HUD-World-Code
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: backup
+      - run: |
+          set -euo pipefail
+          mkdir src
+          tar -xzf backup/SP_D2D14_Original_HUD_World_Source.tar.gz -C src
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("src")
+          patterns=("layout","restore","register_layout","apply_saved","profile","fps","performance","settings_button","save_layout","refresh_ui","_ready()","_layout_ui","hud_scale","anchor","snapshot")
+          for p in sorted((root/"scripts").rglob("*.gd")):
+              if any(k in str(p).lower() for k in ("ui_manager","game_settings","mobile_hud","settings_hud","performance_manager","main_menu","virtual_joystick","sp_v270_s8_isolation","hotbar","hud_layout","pause_hud")):
+                  lines=p.read_text(errors="replace").splitlines()
+                  print("INDEX",p.relative_to(root),len(lines))
+                  for i,l in enumerate(lines,1):
+                      if any(k in l.lower() for k in patterns) and (l.strip().startswith("func ") or "PERFORMANCE" in l or "FPS" in l or "register_layout" in l or "apply_saved" in l or "restore_layout" in l or "_sp281" in l):
+                          print("%04d | %s"%(i,l[:165]))
+          for name in ("scripts/ui/ui_manager.gd","scripts/settings/game_settings.gd","scripts/performance/sp_v270_s8_isolation.gd","scripts/performance/performance_manager.gd"):
+              f=root/name
+              if f.exists():
+                  print("BEGIN_FILE",name)
+                  for i,s in enumerate(f.read_text().splitlines(),1):print("%04d | %s"%(i,s))
+                  print("END_FILE",name)
+          PY
