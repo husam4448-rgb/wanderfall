@@ -38,14 +38,14 @@ def bake(src,phase,mode):
     if mode=="idle" and phase==0:return src.copy()
     # Micro-movement at 64x96. The whole upper body and bag sway with each step.
     phase=float(phase)
-    amplitude={"idle":0.0,"walk":3.0,"run":5.0}[mode]
+    amplitude={"idle":0.0,"walk":5.0,"run":7.0}[mode]
     s=math.sin(phase)
     c=math.cos(phase)
     # Head, backpack and torso are never left behind at original coordinates.
-    torso_sway=(int(round(1.0*s)) if mode!="idle" else 0)
-    bob=(int(round(1.0*(1.0-c*c))) if mode!="idle" else 0)
+    torso_sway=(int(round(2.0*s)) if mode!="idle" else 0)
+    bob=(int(round(1.6*(1.0-c*c))) if mode!="idle" else 0)
     # Running uses more upper-body momentum but stays within original 64px scale.
-    shoulder_shift=int(round((0.7 if mode=="walk" else 1.0)*math.sin(phase+0.5))) if mode!="idle" else 0
+    shoulder_shift=int(round((1.4 if mode=="walk" else 1.9)*math.sin(phase+0.5))) if mode!="idle" else 0
     # Resting breathing: entire torso/head gently moves a pixel every other
     # phase; no static second skeleton or leg overlay is rendered.
     idle_breath=(-1 if math.sin(phase)>0.70 else 0) if mode=="idle" else 0
