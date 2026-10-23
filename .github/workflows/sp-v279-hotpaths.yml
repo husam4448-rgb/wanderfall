@@ -1,0 +1,51 @@
+name: SP279 NPC and looting hot-path source trace
+on:
+  push:
+    branches: [sp-v279-npc-loot-cpu-20261023]
+    paths: [.github/workflows/sp-v279-hotpaths.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  trace:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: SP-D2D14-Original-HUD-World-Code
+          repository: husam4448-rgb/wanderfall
+          run-id: 39844425081
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: backup
+      - run: |
+          mkdir -p src
+          tar -xzf backup/SP_D2D14_Original_HUD_World_Source.tar.gz -C src
+          python3 - <<'PY'
+          from pathlib import Path
+          files={
+            "scripts/player.gd":[(450,640)],
+            "scripts/combat/bandit.gd":[(155,250)],
+            "scripts/social/friendly_npc.gd":[(190,275)],
+            "scripts/items/inventory.gd":[(1,133)],
+            "scripts/items/loot_container.gd":[(1,100)],
+            "scripts/mobile_hud.gd":[(1,70)],
+            "scripts/ui/inventory_hud.gd":[(1,200)],
+            "scripts/items/world_state.gd":[(1,100)],
+            "scripts/combat/encounter_manager.gd":[(1,60)],
+          }
+          for name,ranges in files.items():
+            f=Path("src")/name
+            if not f.exists(): print("FILE_NOT_FOUND",name); continue
+            a=f.read_text(errors="replace").splitlines()
+            print("FILE_BEGIN",name,"TOTAL",len(a))
+            for begin,end in ranges:
+              for i in range(begin-1,min(len(a),end)):
+                print("%d | %s"%(i+1,a[i]))
+            print("FILE_END",name)
+          print("HUD_LOOT_FUNCTIONS")
+          for p in Path("src/scripts").rglob("*.gd"):
+            for n,line in enumerate(p.read_text(errors="replace").splitlines(),1):
+              if ("loot" in line.lower() or "inventory" in line.lower()) and line.lstrip().startswith("func "):
+                print(str(p)+":"+str(n)+":"+line)
+          PY
