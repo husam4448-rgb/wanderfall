@@ -68,7 +68,7 @@ jobs:
           set -euo pipefail
           git config user.name "Survival Paradise NPC Asset Builder"
           git config user.email "actions@users.noreply.github.com"
-          git add assets/npc_modular/SP_NPC_Bandit_Male_01
+          git add --sparse assets/npc_modular/SP_NPC_Bandit_Male_01
           if git diff --cached --quiet; then
             echo "SP_BANDIT01_ASSETS_ALREADY_CURRENT"
             exit 0
