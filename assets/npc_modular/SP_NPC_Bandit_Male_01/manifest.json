@@ -439,23 +439,23 @@
   "rig_contract": {
     "weapon_socket": {
       "pivot_from_base": [
-        6.0,
-        -2.0
+        6,
+        -2
       ],
       "dominant_hand_from_pivot": [
-        3.0,
-        4.0
+        3,
+        4
       ],
       "support_hand_from_pivot": [
-        16.0,
-        2.0
+        16,
+        2
       ],
       "recoil_local_x": -1.45
     },
     "male_proportions": {
       "torso_center": [
-        0.0,
-        -4.0
+        0,
+        -4
       ],
       "torso_size": [
         26.2,
@@ -463,7 +463,7 @@
       ],
       "neck_socket": [
         1.6,
-        -16.0
+        -16
       ],
       "head_size": [
         16.9,
@@ -471,18 +471,18 @@
       ],
       "backpack_center": [
         -10.5,
-        -4.0
+        -4
       ],
       "backpack_size": [
-        25.0,
-        31.0
+        25,
+        31
       ],
       "hip_span": 3.8,
       "knee_span": 4.9,
       "ankle_span": 5.4,
-      "hip_y": 11.0,
-      "knee_y": 18.0,
-      "ankle_y": 25.0,
+      "hip_y": 11,
+      "knee_y": 18,
+      "ankle_y": 25,
       "leg_size": [
         16.5,
         26.5
@@ -492,7 +492,7 @@
         6.8
       ],
       "boot_size": [
-        17.0,
+        17,
         12.8
       ],
       "hand_size": [
@@ -505,12 +505,15 @@
   },
   "ready_for_game": false,
   "technical_qa": "PASS_RGBA_PARTS_AND_SOURCE_COMPATIBILITY_ONLY",
-  "visual_qa": "NOT_REVIEWED",
-  "animation_qa": "NOT_TESTED",
+  "visual_qa": "FAIL_GODOT_HUMAN_REVIEW",
+  "animation_qa": "ISOLATED_32_FRAME_TECHNICAL_PASS_NOT_PRODUCTION",
   "known_blockers": [
     "existing v286 NPC game renderer only replaces upper-body texture, not full modular part tree",
     "new knee segments need actual concealed cloth artwork and Godot Bone2D bend tests",
     "left direction, aiming and two-hand weapon contact not verified with new equipment"
   ],
-  "notes": "This is an actual collection of editable transparent individual PNGs, NOT a static whole-character sheet. Candidate only."
+  "notes": "This is an actual collection of editable transparent individual PNGs, NOT a static whole-character sheet. Candidate only.",
+  "visual_qa_evidence": "qa/visual_verdict.md",
+  "game_integration": "NOT_TESTED",
+  "status": "REJECTED_CANDIDATE_REQUIRES_ART_REBUILD"
 }
