@@ -20,13 +20,28 @@ one('var _last_screen: Vector2 = Vector2.ZERO',
 # Cosmetic screen anchoring and cached ray interpolation are render-only.
 var _sp284_render_rays: PackedFloat32Array = PackedFloat32Array()
 var _sp284_visual_frames: int = 0
+# Godot 4.7 Node2D has no get_global_transform_interpolated method.
+# Track adjacent real physics positions and lerp with Godot's actual fraction.
+var _sp284_prev_world: Vector2 = Vector2.ZERO
+var _sp284_current_world: Vector2 = Vector2.ZERO
+var _sp284_origin_valid: bool = false
 
 func _sp284_animate_fog_visual(delta: float) -> void:
     if overlay == null or not overlay.visible or player == null:
         return
     # Interpolated world transform follows the same smoothly rendered camera;
     # static buildings and scenery no longer have 110ms-delayed shadow edges.
-    var visual_world: Vector2 = player.get_global_transform_interpolated().origin
+    var physical_world: Vector2 = player.global_position
+    if not _sp284_origin_valid or _sp284_current_world.distance_squared_to(physical_world) > 90000.0:
+        # New region / save teleport: don't tween across the whole map.
+        _sp284_prev_world = physical_world
+        _sp284_current_world = physical_world
+        _sp284_origin_valid = true
+    elif not _sp284_current_world.is_equal_approx(physical_world):
+        _sp284_prev_world = _sp284_current_world
+        _sp284_current_world = physical_world
+    var interpolant: float = clampf(Engine.get_physics_interpolation_fraction(), 0.0, 1.0)
+    var visual_world: Vector2 = _sp284_prev_world.lerp(_sp284_current_world, interpolant)
     var visual_screen: Vector2 = get_viewport().get_canvas_transform() * visual_world
     overlay_shader.set_shader_parameter("player_px", visual_screen)
     var camera: Camera2D = player.get_node_or_null("Camera2D") as Camera2D
@@ -60,6 +75,7 @@ one('''    player.global_position=spawn
 '''    player.global_position=spawn
     player.reset_physics_interpolation()
     _sp284_render_rays.clear()
+    _sp284_origin_valid = false
     world.call("sp273_activate_region",next_region)''',"PORTAL_RESET")
 p.write_text(s)
 print("SP284_VISION_READABLE_PASS gentle neutral fog instead of near-black 69%")
