@@ -121,15 +121,18 @@ leg_segments(role/"pants_front.png","near")
 leg_segments(role/"pants_rear.png","far")
 
 # Belt/pelvis remain independent of animated trousers.
-def pelvis_detail(im):
-    x,y,w,h=bbox_ratio(im)
-    d=ImageDraw.Draw(im,"RGBA")
-    cy=y+int(h*.72)
-    d.rounded_rectangle((x+int(w*.23),cy,x+int(w*.73),cy+max(4,h//8)),
-       radius=max(1,w//22),fill=(72,52,37,245),outline=(31,24,22,255),width=2)
-    d.rectangle((x+int(w*.43),cy+1,x+int(w*.54),cy+max(3,h//8)-1),
-       fill=(162,127,78,235),outline=(43,35,28,255))
-with_detail(role/"torso.png","pelvis_belt",pelvis_detail)
+# Belt is an independent *transparent* equipment layer, not a duplicate torso.
+torso_ref=rgba(role/"torso.png")
+pelvis=Image.new("RGBA",torso_ref.size,(0,0,0,0))
+x,y,w,h=bbox_ratio(torso_ref)
+d=ImageDraw.Draw(pelvis,"RGBA")
+cy=y+int(h*.72)
+d.rounded_rectangle((x+int(w*.23),cy,x+int(w*.73),cy+max(4,h//8)),
+   radius=max(1,w//22),fill=(72,52,37,245),outline=(31,24,22,255),width=2)
+d.rectangle((x+int(w*.43),cy+1,x+int(w*.54),cy+max(3,h//8)-1),
+   fill=(162,127,78,235),outline=(43,35,28,255))
+save(pelvis,"pelvis_belt",origin=str((role/"torso.png").relative_to(ROOT)),
+     notes="independent pelvis-attached belt; no duplicated torso pixels")
 
 def upper_arm_detail(im):
     x,y,w,h=bbox_ratio(im)
