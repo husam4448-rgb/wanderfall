@@ -61,7 +61,7 @@ func _run() -> void:
         return
     var exit_portal: Node = null
     for candidate in get_nodes_in_group("settlement_interactable"):
-        if String(candidate.get("portal_label")).begins_with("Exit QA House"):
+        if candidate.get_script() == PortalScript and String(candidate.get("portal_label")).begins_with("Exit QA House"):
             exit_portal = candidate
             break
     if exit_portal == null or not (exit_portal is Node2D):
