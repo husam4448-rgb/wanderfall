@@ -1,0 +1,50 @@
+name: SP279 NPC, loot and inventory CPU source audit
+on:
+  push:
+    branches: [sp-v279-npc-loot-cpu-20261023]
+    paths: [.github/workflows/sp-v279-cpu-audit.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: SP-D2D14-Original-HUD-World-Code
+          repository: husam4448-rgb/wanderfall
+          run-id: 39844425081
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: backup
+      - run: |
+          set -euo pipefail
+          mkdir src
+          tar -xzf backup/SP_D2D14_Original_HUD_World_Source.tar.gz -C src
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path("src/scripts")
+          matches=[]
+          for f in p.rglob("*.gd"):
+              lines=f.read_text(errors="replace").splitlines()
+              probes=("loot", "bandit", "corpse", "inventory", "npc", "ai_", "encounter")
+              if any(v in f.name.lower() for v in probes):
+                  matches.append((str(f),len(lines)))
+          print("SP279_SELECTED_FILES")
+          for name,n in matches: print(name,n)
+          print("SP279_FUNCTION_INDEX")
+          for name,_ in matches:
+              f=Path(name)
+              ls=f.read_text(errors="replace").splitlines()
+              print("FILE:",name)
+              for i,line in enumerate(ls):
+                  if any(x in line for x in ("func _process","func _physics_process","func _ready","func _update","func _refresh","func open_loot","func _open_loot","func loot","func _loot","func _on_","func _rebuild","func _populate","func _draw")):
+                      print(str(i+1)+":"+line)
+          print("SP279_HOTSPOT_SEARCH")
+          for f in p.rglob("*.gd"):
+              txt=f.read_text(errors="replace")
+              for i,l in enumerate(txt.splitlines()):
+                  if any(x in l for x in ('open_loot', 'loot_container', 'loot_inventory', 'looting', 'bandit_bag', 'corpse_loot', 'remote_asleep', 'get_nodes_in_group("npc', "get_nodes_in_group('npc")):
+                      print(str(f)+":"+str(i+1)+":"+l[:200])
+          PY
