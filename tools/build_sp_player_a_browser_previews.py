@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Publish the exact 8 poses from the user's approved 10x12 Style A sprite strip.
-The 80x12 source image below came from the original 8-frame source PNG.
+The 80x12 source image below comes from the user-approved prototype A: grey short hair, no arms, body-width feet.
 No AI image approximation and no extra hands/feet.
 """
 import base64
@@ -8,7 +8,7 @@ from io import BytesIO
 from pathlib import Path
 from PIL import Image
 
-SOURCE_PNG_B64 = "iVBORw0KGgoAAAANSUhEUgAAAFAAAAAMCAYAAAD1XTohAAABw0lEQVR4nMWXMUvDQBiG3wtZnItCtXaw2USo7e5PEAQLLv0/buLUuXNd6iSEghQ0Sxtbi0uJQoK2UFChU53iYC7m7pL2CtfkW0JyT77n/ZKGpAT/5SO+CLcvy8mWam+q+UgUOq/VGOKm1eLlstxK8Ya8qefTKVSuVIVO5UoVA7vPyCQ4skLMMAq9meTT6AGjdCCARumAaSDJLRXzjEJvJvn06ILz+oaHqwsAwNR7R75YwNTbhVHvYx1umRgAvXvKvVnk0+MgAMgXC8x2XU52YNXetPNpdOHyTLwjtHG0ZDnZQVR7086nAeJPNgoZ9etwX5aTEW/Cm0W+8BF+1Apwxz/4mH1ibycXbLeFk2W4gd0HYgLGDaLSm0U+HcErezh+xnD8d9C8/+Z7h99ZEpwPAA3nCw3nDgAwmwhcyCr0ZpJPi8AAgHazA8u048LxHLFMG4vJHIvJnOdJu9kJWcoEfUmkD8PRskw7yjDcqnztZgdez4XXc5M4AiBkgn78jIQ7h84rXAv6CPtez8V+bitcjVwU+mHJcz4A8vTi8PODZwMm6a9UyFndEY4PDd7JcKcnR7jtjpLygcvkJ3B87iSOn1fw/gKc5h2JVPabcwAAAABJRU5ErkJggg=="
+SOURCE_PNG_B64 = "iVBORw0KGgoAAAANSUhEUgAAAFAAAAAMCAYAAAD1XTohAAAA/ElEQVR4nO2WvwrCMBCHfxHfQ1y7uDg7iWPp4lb3gs9gpX2HgoOjm4t0FFychfoAoiC6+BJxsU0uTf8gut23XfNdLzlKegIUacQCdtj70NGlOIpwzjKcswxxFNkS2TM8oUs6rusiTVOEyyV7NV5XX5w5LxVc1pg5QIgy7CmPNLA3GFvSk9IT9pRX3IGkyzWwRykaaO9yGfYo+m9b3rZzstifJqbDnuGRO3BxeKIN7ClIA+/XR6sXsqcoPtfRZCgB4Lg/5TE+sW06zwdJ4QeeBIDNave1p9Wu9Mz9+YGHBk/o9etqtvUazgoJOombcRW/8PS1Kq/t/v6571LOG493V/oya7HHAAAAAElFTkSuQmCC"
 strip = Image.open(BytesIO(base64.b64decode(SOURCE_PNG_B64))).convert("RGBA")
 assert strip.size == (80, 12)
 out = Path("assets/sp_player_a_preview")
@@ -37,5 +37,9 @@ with Image.open(out/"SP_Player_A_10x12_Walk_Animated.gif") as gif:
     for n,ref in enumerate(gif_frames):
         gif.seek(n)
         assert gif.convert("RGB").tobytes() == ref.tobytes()
+assert cells[0].getpixel((3,0)) == (0,0,0,255) # A's flat black upper outline
+assert cells[0].getpixel((3,3))[:3] == (223,171,107) # A's peach forehead shading
+for f in cells:
+    assert f.getbbox()[0] >= 1 and f.getbbox()[2] <= 9 # no forward-protruding feet
 print("SP_PLAYER_A_BROWSER_GIF_8_FRAMES_VERIFIED")
 print("SP_PLAYER_A_BROWSER_PNG_2400x360_VERIFIED")
