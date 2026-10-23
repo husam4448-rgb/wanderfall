@@ -46,10 +46,10 @@ def sample_pants_palette(src):
     colors.sort(key=lambda c:c[0]+c[1]+c[2])
     base=colors[len(colors)//2]
     return {
-       "front":tuple(clamp(int(c*1.03),5,180) for c in base)+(255,),
-       "back":tuple(clamp(int(c*.74),5,180) for c in base)+(255,),
-       "crease":tuple(clamp(int(c*.68),4,130) for c in base)+(255,),
-       "highlight":tuple(clamp(int(c*1.30+5),8,190) for c in base)+(255,),
+       "front":tuple(clamp(int(c*1.32+6),5,180) for c in base)+(255,),
+       "back":tuple(clamp(int(c*.98+2),5,180) for c in base)+(255,),
+       "crease":tuple(clamp(int(c*.81),4,130) for c in base)+(255,),
+       "highlight":tuple(clamp(int(c*1.55+9),8,190) for c in base)+(255,),
        "boot":(36,32,28,255),
        "sole":(17,16,15,255),
        "outline":(14,13,12,255),
@@ -69,18 +69,18 @@ def foot_trajectory(fraction, foot_home, stride, lift, ground=93.0):
     return (foot_home-stride+2*stride*ease,
             ground-lift*math.sin(math.pi*u),False)
 
-def knee_from_ik(hip,ankle,length_top,length_bottom,front_bend=True):
+def knee_from_pose(hip,ankle,planted):
+    """Very small stylized knee flex at 64px. A supporting leg remains nearly
+    straight under load; lifted swing knee flexes *forward*, never backwards.
+    Pixel poses take priority over artificially fixed two-bone lengths.
+    """
     dx=ankle[0]-hip[0]
     dy=ankle[1]-hip[1]
-    d=math.hypot(dx,dy)
-    d=max(.01,min(d,length_top+length_bottom-.025))
-    ax=(length_top*length_top-length_bottom*length_bottom+d*d)/(2*d)
-    hy=math.sqrt(max(0.0,length_top*length_top-ax*ax))
-    nx=dx/max(0.01,math.hypot(dx,dy))
-    ny=dy/max(0.01,math.hypot(dx,dy))
-    sign=1 if front_bend else -1
-    return (hip[0]+ax*nx+sign*hy*ny,
-            hip[1]+ax*ny-sign*hy*nx)
+    # Avoid exaggerated S-shaped shins seen in the previous visual FAIL.
+    forward=0.65 if planted else 2.15
+    bend_up=0.0 if planted else 0.8
+    return (hip[0]+dx*.50+forward,
+            hip[1]+dy*.50-bend_up)
 
 def pixels_on_line(im,a,b,outer,inner,highlight=None,fold=None):
     d=ImageDraw.Draw(im)
@@ -105,7 +105,7 @@ def draw_leg(canvas,hip,foot,stance,colors,front,phase):
     highlight=colors["highlight"] if front else None
     # Ankle is 3 px above sole; knee points forward and never flips backwards.
     ankle=(foot[0],foot[1]-3.0)
-    knee=knee_from_ik(hip,ankle,11.2,10.4)
+    knee=knee_from_pose(hip,ankle,stance)
     pixels_on_line(canvas,hip,knee,colors["outline"],fill,highlight,shadow)
     pixels_on_line(canvas,knee,ankle,colors["outline"],
                    fill if front else shadow,None,shadow)
@@ -183,8 +183,8 @@ def frame(source,number,total,mode,colors):
     bob=round(-1.1-(1.0 if isrun else .55)*math.sin(theta*2)**2)
     dx=round(1.0*math.sin(theta))
     lean=round((2.0 if isrun else 1.2)*math.sin(theta+.5))
-    stride=7.0 if isrun else 5.8
-    lift=5.2 if isrun else 3.6
+    stride=7.4 if isrun else 6.2
+    lift=4.3 if isrun else 3.1
     # Hip positions and foot travel retain two natural opposite walk phases.
     foot_near=foot_trajectory(t,35.0+dx,stride,lift)
     foot_far=foot_trajectory(t+.5,41.0+dx,stride,lift)
@@ -221,7 +221,7 @@ manifest={"schema":"SP_WHOLE_FRAME_GAIT_V2",
  "rendering":"one whole-character RGBA sprite per frame, no second skeleton",
  "body_acts_in_sync":True,
  "leg_cycle":"60 percent ground stance, 40 percent lifted swing; alternating by half cycle",
- "knee":"forward-folding 2-link IK baked offline, NOT displayed skeletal rig",
+ "knee":"weight-bearing straight knee, controlled forward swing flex, baked offline",
  "runtime_layers":1,
  "no_static_torso_layer":True,
  "no_procedural_or_skeletal_legs":True,
@@ -260,4 +260,4 @@ DEST.mkdir(parents=True,exist_ok=True)
 print("SP_UNIFIED_FULLBODY_80_FRAMES_PASS")
 print("SP_UNIFIED_ONE_SPRITE_NO_LEG_OVERLAY_PASS")
 print("SP_UNIFIED_IDLE_SOURCE_BYTE_IDENTICAL_PASS")
-print("SP_WALK_TRUE_FOOT_PLANT_SWING_KNEE_IK_PASS")
+print("SP_WALK_PLANTED_STRAIGHT_KNEE_SWING_POSE_PASS")
