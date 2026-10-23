@@ -37,12 +37,12 @@ for y in range(78):
         # Retint existing rugged jacket/vest fabric WITHIN original silhouette.
         if 34<=y<=69 and 29<=x<=55 and max(r,g,b)>35:
             shade=(r+g+b)/3.0
-            target=(89+int((shade-82)*.35),71+int((shade-82)*.30),60+int((shade-82)*.25))
-            t=.44 if y<54 else .34
+            target=(94+int((shade-82)*.35),63+int((shade-82)*.27),55+int((shade-82)*.25))
+            t=.79 if y<54 else .69
             out[x,y]=(mix(r,target[0],t),mix(g,target[1],t),mix(b,target[2],t),a)
         # Existing rucksack remains identical in size, dark dusty leather tone.
         elif 33<=y<=66 and 7<=x<27 and max(r,g,b)>32:
-            out[x,y]=(mix(r,71,.23),mix(g,57,.23),mix(b,46,.23),a)
+            out[x,y]=(mix(r,68,.44),mix(g,53,.44),mix(b,43,.44),a)
         # Existing brown hair is slightly darker; preserve hairstyle/edge.
         elif 8<=y<=21 and 23<=x<=43 and b<r*.9 and max(r,g,b)>31:
             out[x,y]=(mix(r,42,.20),mix(g,34,.20),mix(b,31,.20),a)
