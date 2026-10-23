@@ -36,8 +36,8 @@ func _run() -> void:
     if player == null or mobile == null:
         _fail("player or HUD missing")
         return
-    if not bool(ProjectSettings.get_setting("physics/common/physics_interpolation", false)):
-        _fail("physics visual interpolation setting not enabled")
+    if not bool(physics_interpolation):
+        _fail("SceneTree did not enable actual physics interpolation at runtime")
         return
     if player.physics_interpolation_mode != Node.PHYSICS_INTERPOLATION_MODE_ON:
         _fail("player visual interpolation override missing")
