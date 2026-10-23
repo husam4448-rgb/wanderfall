@@ -1,0 +1,45 @@
+name: SP286 visual evidence source audit
+on:
+  push:
+    branches: [sp-v286-npc-anatomy-visual-qa-20261023]
+    paths: [.github/workflows/sp-v286-art-audit.yml]
+permissions:
+  contents: read
+jobs:
+  render-source-art:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            melee-six-prototype/assets/approved_clean_torso_right.png
+            assets/authored2d/npc_specializations
+            assets/authored2d/npc_faces
+            patches/bake_sp_v285_npc_roles.py
+            tools/build_sp_melee_walk_layers.py
+      - run: |
+          python3 -m pip install --quiet Pillow
+          mkdir -p /tmp/sp286/game/assets/sp_melee
+          python3 tools/build_sp_melee_walk_layers.py melee-six-prototype/assets/approved_clean_torso_right.png /tmp/sp286/game/assets/sp_melee
+          python3 patches/bake_sp_v285_npc_roles.py /tmp/sp286/game .
+          python3 - <<'PY'
+          from PIL import Image,ImageDraw,ImageFont
+          from pathlib import Path
+          import base64
+          root=Path('/tmp/sp286/game/assets/sp_melee')
+          tiles=[('APPROVED PLAYER',root/'approved_upper.png')]
+          for role in ('trader','medic','guard','mechanic','bandit','civilian'):
+              tiles.append((f'v285 {role}',Path('/tmp/sp286/game/assets/sp_npc285')/f'sp285_{role}_male_0.png'))
+          canvas=Image.new('RGB',(7*188,390),(62,62,62))
+          pen=ImageDraw.Draw(canvas)
+          for i,(label,file) in enumerate(tiles):
+              im=Image.open(file).convert('RGBA')
+              canvas.paste(im.resize((192,288),Image.Resampling.NEAREST), (i*188,50), im.resize((192,288),Image.Resampling.NEAREST))
+              pen.text((i*188+3,10),label,fill=(240,240,240))
+          canvas.save('/tmp/sp286/v285_comparison.png',optimize=True)
+          encoded=base64.b64encode(Path('/tmp/sp286/v285_comparison.png').read_bytes()).decode('ascii')
+          print('SP286_PREVIEW_PNG_BASE64_BEGIN')
+          print(encoded)
+          print('SP286_PREVIEW_PNG_BASE64_END')
+          PY
