@@ -141,8 +141,8 @@ func _sp_v270_attach_test_panel''',
 func _sp_v270_attach_test_panel''',"FPS_LOAD")
 
 once(perf,
-'''    return main_text + "\nMain %.1fms | Physics %.1fms | Draw calls %d" % [''',
-'''    main_text += "\nFPS-only override: %s" % ("PRESET" if _sp281_fps_only_cap == 0 else str(_sp281_fps_only_cap))
+r'''    return main_text + "\nMain %.1fms | Physics %.1fms | Draw calls %d" % [''',
+r'''    main_text += "\nFPS-only override: %s" % ("PRESET" if _sp281_fps_only_cap == 0 else str(_sp281_fps_only_cap))
     return main_text + "\nMain %.1fms | Physics %.1fms | Draw calls %d" % [''',"FPS_METRICS_TEXT")
 
 once(perf,
