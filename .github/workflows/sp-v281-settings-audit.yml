@@ -1,0 +1,37 @@
+name: SP281 settings UI control audit
+on:
+  push:
+    branches: [sp-v281-camp-cpu-profile-fix-20261023]
+    paths: [.github/workflows/sp-v281-settings-audit.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          repository: husam4448-rgb/wanderfall
+          run-id: 39902086073
+          name: SP-D2D14-Original-HUD-World-Code
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: backup
+      - run: |
+          set -euo pipefail
+          mkdir src
+          tar -xzf backup/SP_D2D14_Original_HUD_World_Source.tar.gz -C src
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('src')
+          for path in ("scripts/settings/settings_hud.gd","scripts/ui/inventory_hud.gd","scripts/performance/performance_manager.gd"):
+              lines=(root/path).read_text().splitlines()
+              print("FILE",path,len(lines))
+              for i,line in enumerate(lines):
+                  if "preset" in line.lower() or "profile" in line.lower() or "fps cap" in line.lower() or "frame" in line.lower() or "perf" in line.lower():
+                      print("%04d | %s"%(i+1,line.strip()[:180]))
+              if path.endswith('settings_hud.gd'):
+                  for a,b in [(110,250),(500,675)]:
+                      for i in range(a-1,min(b,len(lines))):print("%04d | %s"%(i+1,lines[i]))
+          PY

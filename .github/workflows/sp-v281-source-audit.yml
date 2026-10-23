@@ -1,0 +1,48 @@
+name: SP281 source audit for camp AI and FPS presets
+on:
+  push:
+    branches: [sp-v281-camp-cpu-profile-fix-20261023]
+    paths: [.github/workflows/sp-v281-source-audit.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          repository: husam4448-rgb/wanderfall
+          run-id: 39902086073
+          name: SP-D2D14-Original-HUD-World-Code
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: backup
+      - run: |
+          set -euo pipefail
+          mkdir src
+          tar -xzf backup/SP_D2D14_Original_HUD_World_Source.tar.gz -C src
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("src")
+          files={
+          "scripts/performance/performance_manager.gd":[(1,500)],
+          "scripts/social/faction_camp.gd":[(1,400)],
+          "scripts/social/friendly_npc.gd":[(1,400)],
+          "scripts/social/faction_activity_manager.gd":[(1,200)],
+          "scripts/social/faction_mobile_group.gd":[(1,190)],
+          "scripts/combat/encounter_manager.gd":[(1,170)],
+          "scripts/ui/inventory_hud.gd":[(1,75)],
+          "scripts/world/world_manager.gd":[(35,120)],
+          "scripts/performance/sp_v272_remote_actor_physics_lod.gd":[(1,125)],
+          "scripts/settings/settings_hud.gd":[(1,95)],
+          }
+          for name,ranges in files.items():
+              f=root/name
+              if not f.exists():print("NOT_FOUND",name);continue
+              ls=f.read_text(errors="replace").splitlines()
+              print("BEGIN_FILE",name,len(ls))
+              for begin,end in ranges:
+                  for i in range(begin-1,min(end,len(ls))):print("%04d | %s"%(i+1,ls[i]))
+              print("END_FILE",name)
+          PY
