@@ -68,6 +68,13 @@ func _sp282_use_compact_hud''',
 
 func _sp282_use_compact_hud''',"MOBILE_STARTUP_MODE")
 
+once(mobile,
+'''    return (OS.get_name() == "Android" or bool(ProjectSettings.get_setting("sp282/force_compact_ui", false))) and viewport_size.x <= 1150.0 and viewport_size.y <= 580.0 and viewport_size.x > viewport_size.y''',
+'''    # Android's game canvas may be 922x518, 1088x612 or 1280x720
+    # depending on startup performance profile. All need the same compact UI.
+    return (OS.get_name() == "Android" or bool(ProjectSettings.get_setting("sp282/force_compact_ui", false))) and viewport_size.x <= 1700.0 and viewport_size.y <= 900.0 and viewport_size.x > viewport_size.y''',
+"COMPACT_ALL_S8_RENDER_SIZES")
+
 once(mobile,'''func _sp282_use_compact_hud(viewport_size: Vector2) -> bool:''',
 '''var _sp283_tools_button: Button = null
 var _sp283_tools_drawer: PanelContainer = null
