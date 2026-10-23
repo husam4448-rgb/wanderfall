@@ -1,0 +1,120 @@
+name: SP NPC — simple approved-silhouette Bandit01 QA
+
+on:
+  push:
+    branches: [sp-npc-simple-silhouette-bandit01-20261023]
+    paths:
+      - tools/build_sp_npc_simple_bandit01.py
+      - tools/qa_sp_npc_simple_bandit01.gd
+      - .github/workflows/sp-npc-simple-bandit01.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  real-player-silhouette:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            tools/build_sp_npc_simple_bandit01.py
+            tools/qa_sp_npc_simple_bandit01.gd
+            tools/build_sp_melee_walk_layers.py
+            melee-six-prototype/assets/approved_clean_torso_right.png
+            melee-six-prototype/SurvivorWalkSprite.gd
+            .github/workflows/sp-npc-simple-bandit01.yml
+      - name: Reuse exact player pixels and verify strict 64x96 silhouette
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pillow
+          python3 tools/build_sp_npc_simple_bandit01.py
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          from PIL import Image
+          p=Path("assets/sp_npc_simple")
+          d=json.loads((p/"manifest.json").read_text())
+          assert d["size"]==[64,96]
+          assert d["silhouette_alpha_identical"] is True
+          assert d["new_rig_bones"]==0 and d["new_leg_art"]==0
+          assert d["unchanged_source_legs"] and d["game_ready"] is False
+          im=Image.open(p/"sp_simple_bandit_male_01.png")
+          assert im.mode=="RGBA" and im.size==(64,96)
+          print("SP_SIMPLE_BANDIT01_UNMODIFIED_SILHOUETTE_STRUCTURE_PASS")
+          PY
+      - name: Prepare the actual approved SurvivorWalkSprite runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p game/assets/sp_melee game/assets/sp_npc_simple game/tools
+          python3 tools/build_sp_melee_walk_layers.py \
+            melee-six-prototype/assets/approved_clean_torso_right.png game/assets/sp_melee
+          cp melee-six-prototype/SurvivorWalkSprite.gd game/assets/sp_melee/SurvivorWalkSprite.gd
+          cp assets/sp_npc_simple/sp_simple_bandit_male_01.png game/assets/sp_npc_simple/
+          cp tools/qa_sp_npc_simple_bandit01.gd game/tools/
+          cat > game/project.godot <<'EOF'
+          config_version=5
+          [application]
+          config/name="Survival Paradise simple skin actual player rig QA"
+          [rendering]
+          renderer/rendering_method="gl_compatibility"
+          renderer/rendering_method.mobile="gl_compatibility"
+          EOF
+          curl -fL --retry 3 -o /tmp/godot.zip \
+            https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip" | sha256sum -c -
+          unzip -q /tmp/godot.zip -d /tmp
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --editor --path game --quit \
+              > godot_simple_import.log 2>&1 || { tail -90 godot_simple_import.log; exit 1; }
+      - name: Native Godot — existing player movement, side-by-side 32-frame QA
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 120s xvfb-run -a -s '-screen 0 1280x720x24' \
+            /tmp/Godot_v4.7.2-stable_linux.x86_64 \
+            --path game --resolution 1100x650 --script res://tools/qa_sp_npc_simple_bandit01.gd \
+            > godot_simple_qa.log 2>&1 || { tail -150 godot_simple_qa.log; exit 1; }
+          grep -q SP_SIMPLE_BANDIT01_ACTUAL_PLAYER_RIG_32_FRAMES_PASS godot_simple_qa.log
+          grep -q SP_SIMPLE_BANDIT01_RIGHT_LEFT_SAME_MOVEMENT_PASS godot_simple_qa.log
+          test "$(find game/simple_bandit01_frames -name 'frame_*.png' | wc -l)" -eq 32
+      - name: Create genuine animation visual evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import hashlib
+          p=Path("game/simple_bandit01_frames")
+          f=sorted(p.glob("frame_*.png"))
+          assert len(f)==32
+          ims=[Image.open(x).convert("RGB") for x in f]
+          assert len({hashlib.sha256(x.tobytes()).hexdigest() for x in ims})>=20
+          out=Path("assets/sp_npc_simple")
+          ims[0].save(out/"native_player_vs_bandit_32frames.gif",save_all=True,
+                      append_images=ims[1:],duration=80,loop=0,optimize=True)
+          ims[0].save(out/"native_player_vs_bandit_idle.png")
+          ims[8].save(out/"native_player_vs_bandit_stride.png")
+          print("SP_SIMPLE_BANDIT01_GODOT_GIF_EVIDENCE_PASS")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SP_NPC_Bandit_Male_01_SIMPLE_64x96_player_matched
+          path: |
+            assets/sp_npc_simple/
+            godot_simple_qa.log
+          retention-days: 30
+      - name: Commit tested source-silhouette candidate, not production acceptance
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "Survival Paradise NPC QA"
+          git config user.email "actions@users.noreply.github.com"
+          git add --sparse assets/sp_npc_simple
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Generate original-player-matched 64x96 Bandit01 skin with 32 native Godot gait frames"
+          git push origin HEAD:sp-npc-simple-silhouette-bandit01-20261023
