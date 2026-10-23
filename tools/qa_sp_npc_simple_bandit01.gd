@@ -18,7 +18,9 @@ func instance(x: float, skin: bool, right: bool) -> Node2D:
     actor.name=("Bandit01" if skin else "OriginalPlayer")+("_RIGHT" if right else "_LEFT")
     pivot.add_child(actor)
     if skin:
-        actor.get("upper").texture=load(NEW_UPPER)
+        var upper_sprite: Sprite2D=actor.get("upper") as Sprite2D
+        assert(upper_sprite!=null)
+        upper_sprite.texture=load(NEW_UPPER)
     return actor
 
 func _run() -> void:
