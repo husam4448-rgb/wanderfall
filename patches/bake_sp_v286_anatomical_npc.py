@@ -18,7 +18,7 @@ assert source.size==(64,96)
 roles=('trader','medic','mechanic','bandit','guard','scavenger','civilian','scientist')
 # Colors are role-defining hues, not arbitrary large boxes pasted on top.
 wardrobe={
- 'trader':((137,103,70),(100,78,53),(93,71,47)),
+ 'trader':((166,128,84),(114,104,75),(137,106,69)),
  'medic':((183,177,153),(106,122,109),(100,78,64)),
  'mechanic':((96,119,131),(75,86,94),(91,77,52)),
  'bandit':((112,67,65),(80,58,53),(93,64,54)),
@@ -158,7 +158,7 @@ for role in roles:
                 # Hair flowing behind the ear and onto the upper shoulder,
                 # clipped to the original body where it crosses clothing.
                 d.line([(27,18),(26,28),(28,37),(30,42)],fill=(*h,255),width=3)
-                d.line([(28,26),(31,33)],fill=(*h,255),width=2)
+                d.line([(28,26),(31,33),(33,43)],fill=(*h,255),width=2)
             elif variant==2 and role not in ('medic','scientist'):
                 d.line([(35,26),(44,27)],fill=(*h,255),width=2)
             if variant==1:
