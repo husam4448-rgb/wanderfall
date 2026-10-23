@@ -17,7 +17,7 @@ jobs:
           repository: husam4448-rgb/wanderfall
           run-id: 39940744654
           name: SP286-PreAPK-Human-Visual-Gate
-          github-token: \${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           path: screenshots
       - run: python3 -m pip install --quiet Pillow
       - name: Crop actual Godot bandits 4x nearest neighbour, preserving pixel art
