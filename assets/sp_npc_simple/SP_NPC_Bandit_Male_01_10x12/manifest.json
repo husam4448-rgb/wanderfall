@@ -1,0 +1,105 @@
+{
+  "character_id": "SP_NPC_Bandit_Male_01",
+  "variant_of": "SP_Player_A",
+  "sprite_resolution": [
+    10,
+    12
+  ],
+  "walk_frame_count": 8,
+  "same_silhouette_and_outline": true,
+  "identical_alpha_every_frame": true,
+  "idle_pose": "walk_00.png (same shape as approved Player A)",
+  "legs_and_feet": "exact pixel masks of approved player, including rear heel correction",
+  "arms_hands": "none",
+  "changes": "six interior color entries only",
+  "palette_rgba": [
+    {
+      "player": [
+        130,
+        129,
+        129,
+        255
+      ],
+      "bandit": [
+        73,
+        48,
+        43,
+        255
+      ]
+    },
+    {
+      "player": [
+        208,
+        207,
+        207,
+        255
+      ],
+      "bandit": [
+        131,
+        91,
+        75,
+        255
+      ]
+    },
+    {
+      "player": [
+        223,
+        171,
+        107,
+        255
+      ],
+      "bandit": [
+        163,
+        100,
+        73,
+        255
+      ]
+    },
+    {
+      "player": [
+        254,
+        218,
+        175,
+        255
+      ],
+      "bandit": [
+        211,
+        166,
+        125,
+        255
+      ]
+    },
+    {
+      "player": [
+        92,
+        104,
+        80,
+        255
+      ],
+      "bandit": [
+        111,
+        57,
+        53,
+        255
+      ]
+    },
+    {
+      "player": [
+        62,
+        70,
+        52,
+        255
+      ],
+      "bandit": [
+        69,
+        38,
+        38,
+        255
+      ]
+    }
+  ],
+  "source_sha256": "173a9e7b3750af1b6aac24c198eb8ad4315cccd63e42a783c9256e7253a36de9",
+  "sprite_strip_sha256": "64cfdb094d84daa62cb7eb3e2a6420fe864c63ab41858f4ace26d37fed95a9fa",
+  "animation_validation": "PASS eight frames equal mask, geometry and outline",
+  "game_integration": "NOT_YET_INTEGRATED"
+}
