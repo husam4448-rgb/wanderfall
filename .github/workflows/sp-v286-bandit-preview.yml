@@ -6,7 +6,7 @@ on:
     paths:
       - .github/workflows/sp-v286-bandit-preview.yml
 permissions:
-  contents: read
+  contents: write
   actions: read
 jobs:
   bandit-visual-evidence:
@@ -57,3 +57,9 @@ jobs:
           name: SP286-Authentic-Bandit-Preview
           path: sp286_original_godot_bandits.png
           retention-days: 21
+      - name: Publish screenshot as public image asset (no login required)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload sp-world-v286 sp286_original_godot_bandits.png --clobber --repo "$GITHUB_REPOSITORY"
+          echo "SP286_PUBLIC_IMAGE_URL=https://github.com/$GITHUB_REPOSITORY/releases/download/sp-world-v286/sp286_original_godot_bandits.png"
