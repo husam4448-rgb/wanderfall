@@ -26,6 +26,8 @@ func _run() -> void:
     if settings_singleton != null:
         settings_singleton.call("set_pause_reason", "main_menu", false)
     main.call("start_new_game_safe_camp")
+    root.content_scale_mode = Window.CONTENT_SCALE_MODE_VIEWPORT
+    root.content_scale_size = Vector2i(1064, 518)
     await create_timer(0.75).timeout
     var mobile: Node = null
     var options: Node = null
@@ -37,7 +39,7 @@ func _run() -> void:
     if mobile == null or options == null:
         _fail("HUD layers or scroll-settings FPS control missing")
         return
-    if not bool(mobile.call("_sp282_use_compact_hud", get_viewport().get_visible_rect().size)):
+    if not bool(mobile.call("_sp282_use_compact_hud", root.get_visible_rect().size)):
         _fail("1064x518 compact layout not selected")
         return
     var fps_button: Button = options.get("_sp281_fps_only_button") as Button
