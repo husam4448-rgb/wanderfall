@@ -1,0 +1,42 @@
+name: SP282 responsive mobile HUD deep audit
+on:
+  push:
+    branches: [sp-v282-hud-layout-perf-control-20261023]
+    paths: [.github/workflows/sp-v282-hud-audit.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          repository: husam4448-rgb/wanderfall
+          run-id: 39906718905
+          name: SP-D2D14-Original-HUD-World-Code
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: backup
+      - run: |
+          set -euo pipefail
+          mkdir src
+          tar -xzf backup/SP_D2D14_Original_HUD_World_Source.tar.gz -C src
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("src")
+          files={
+           "scripts/mobile_hud.gd":[(145,193),(398,554),(700,777),(1000,1205)],
+           "scripts/ui/ui_manager.gd":[(339,418),(440,487)],
+           "scripts/settings/settings_hud.gd":[(425,458),(475,524)],
+           "scripts/ui/main_menu.gd":[(128,157)]
+          }
+          for name,ranges in files.items():
+              f=root/name
+              print("BEGIN_FILE",name)
+              ls=f.read_text().splitlines()
+              for lo,hi in ranges:
+                  for i in range(lo-1,min(hi,len(ls))):
+                      print("%04d | %s"%(i+1,ls[i]))
+              print("END_FILE",name)
+          PY
