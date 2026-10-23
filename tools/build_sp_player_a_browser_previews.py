@@ -14,8 +14,27 @@ PREVIOUS_PNG_B64="iVBORw0KGgoAAAANSUhEUgAAAFAAAAAMCAYAAAD1XTohAAABHklEQVR4nO2XMU
 # and zero changes above the waist across all frames.
 strip=Image.open(BytesIO(base64.b64decode(SOURCE_PNG_B64))).convert("RGBA")
 assert strip.size==(80,12)
-assert strip.getpixel((10,10))==(0,0,0,255)
-assert strip.getpixel((10,11))==(0,0,0,255)
+# Remove the 1-pixel dangling rear-foot tip in both back-step poses.
+# These are the ONLY four pixel edits; preserve prototype A 10x12,
+# the accepted body size, and the remainder of its animation.
+before=strip.copy()
+clear=(0,0,0,0)
+black=(0,0,0,255)
+assert before.getpixel((10,10))==black
+assert before.getpixel((10,11))==black
+assert before.getpixel((20,10))==black
+strip.putpixel((10,10),clear)  # planted rear-foot stray tip
+strip.putpixel((10,11),clear)  # previous incorrect lower protrusion
+strip.putpixel((20,10),clear)  # raised rear-foot stray tip
+strip.putpixel((11,10),black)  # continue back edge into the actual foot
+deltas=[(x,y) for y in range(12) for x in range(80)
+        if strip.getpixel((x,y))!=before.getpixel((x,y))]
+assert set(deltas)=={(10,10),(10,11),(20,10),(11,10)},deltas
+assert all(strip.crop((10*i,0,10*i+10,9)).tobytes()==before.crop((10*i,0,10*i+10,9)).tobytes()
+           for i in range(8))
+
+assert strip.getpixel((10,10))==(0,0,0,0)
+assert strip.getpixel((10,11))==(0,0,0,0)
 out=Path("assets/sp_player_a_preview")
 out.mkdir(parents=True,exist_ok=True)
 def create(scale, bg=(236,236,234)):
@@ -31,9 +50,9 @@ frames=create(36)
 sheet=Image.new("RGB",(8*360,432),(236,236,234))
 for i,f in enumerate(frames):
     sheet.paste(f,(i*360,0))
-for name in ("SP_Player_A_10x12_Walk_8_Frames.png","SP_Style_A_BackFoot_Outlined_Walk_Frames.png"):
+for name in ("SP_Player_A_10x12_Walk_8_Frames.png","SP_Style_A_BackFoot_Outlined_Walk_Frames.png","SP_Style_A_RearFoot_Clean_10x12_Frames.png"):
     sheet.save(out/name,optimize=True)
-for name in ("SP_Player_A_10x12_Walk_Animated.gif","SP_Style_A_BackFoot_Outlined_Walk.gif"):
+for name in ("SP_Player_A_10x12_Walk_Animated.gif","SP_Style_A_BackFoot_Outlined_Walk.gif","SP_Style_A_RearFoot_Clean_10x12.gif"):
     frames[0].save(out/name,save_all=True,append_images=frames[1:],
        duration=145,loop=0,optimize=False,disposal=2)
     with Image.open(out/name) as img:
