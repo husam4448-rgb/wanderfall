@@ -1,0 +1,96 @@
+name: SP NPC Bandit Male 01 — Native Godot Isolated Rig QA
+
+on:
+  push:
+    branches:
+      - sp-npc-bandit01-modular-qa-20261023
+    paths:
+      - tools/qa_sp_npc_bandit01_native.gd
+      - .github/workflows/sp-npc-bandit01-godot-qa.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  native-godot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            assets/npc_modular/SP_NPC_Bandit_Male_01
+            tools/qa_sp_npc_bandit01_native.gd
+            .github/workflows/sp-npc-bandit01-godot-qa.yml
+      - name: Prepare native Godot standalone diagnostic scene
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > project.godot <<'EOF'
+          config_version=5
+          [application]
+          config/name="SP NPC Bandit 01 ISOLATED QA"
+          run/main_scene=""
+          [rendering]
+          renderer/rendering_method="gl_compatibility"
+          renderer/rendering_method.mobile="gl_compatibility"
+          EOF
+          python3 -m pip install --quiet pillow
+          curl -fL --retry 3 -o /tmp/godot.zip "https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip"
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip" | sha256sum -c -
+          unzip -q /tmp/godot.zip -d /tmp
+          ls -l /tmp/Godot_v4.7.2-stable_linux.x86_64
+      - name: Actual Godot 32-frame two-facing isolated skeleton render
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 90s xvfb-run -a -s '-screen 0 1280x720x24' /tmp/Godot_v4.7.2-stable_linux.x86_64 \
+              --path . --resolution 1100x650 --script res://tools/qa_sp_npc_bandit01_native.gd \
+              > bandit01-native-godot.log 2>&1 || { tail -100 bandit01-native-godot.log; exit 1; }
+          cat bandit01-native-godot.log
+          grep -q SP_BANDIT01_GODOT_ISOLATED_RIG_32_FRAMES_PASS bandit01-native-godot.log
+          test "$(find bandit01_native_frames -name 'frame_*.png' | wc -l)" -eq 32
+      - name: Motion frames sanity, animation GIF, and unchanged nonapproval gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from PIL import Image,ImageChops
+          from pathlib import Path
+          import hashlib,json
+          f=sorted(Path("bandit01_native_frames").glob("frame_*.png"))
+          assert len(f)==32
+          ims=[Image.open(x).convert("RGB") for x in f]
+          unique={hashlib.sha256(im.tobytes()).hexdigest() for im in ims}
+          assert len(unique)>=20,("insufficient visible movement",len(unique))
+          assert ims[0].size==(1100,650),ims[0].size
+          ims[0].save("bandit01_native_godot_32frames.gif",save_all=True,append_images=ims[1:],duration=85,loop=0,optimize=True)
+          m=json.loads(Path("assets/npc_modular/SP_NPC_Bandit_Male_01/manifest.json").read_text())
+          assert not m["ready_for_game"]
+          assert m["visual_qa"]=="NOT_REVIEWED"
+          print("SP_BANDIT01_ISOLATED_GODOT_32_UNIQUE_POSE_QA_PASS",len(unique))
+          print("SP_BANDIT01_PRODUCTION_RIG_UNVERIFIED_ANDROID_NOT_BUILT")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SP_NPC_Bandit_Male_01_Native_Godot_32Frame_UNAPPROVED
+          path: |
+            bandit01_native_frames/
+            bandit01_native_godot_32frames.gif
+            bandit01-native-godot.log
+          retention-days: 30
+      - name: Keep native preview evidence in isolated candidate branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p assets/npc_modular/SP_NPC_Bandit_Male_01/qa
+          cp bandit01_native_frames/frame_00.png assets/npc_modular/SP_NPC_Bandit_Male_01/qa/native_godot_idle_reference.png
+          cp bandit01_native_frames/frame_08.png assets/npc_modular/SP_NPC_Bandit_Male_01/qa/native_godot_stride_reference.png
+          cp bandit01_native_godot_32frames.gif assets/npc_modular/SP_NPC_Bandit_Male_01/qa/native_godot_32frames.gif
+          git config user.name "Survival Paradise NPC QA"
+          git config user.email "actions@users.noreply.github.com"
+          git add --sparse assets/npc_modular/SP_NPC_Bandit_Male_01/qa
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Record isolated native Godot gait evidence for Bandit Male 01; production visual QA pending"
+          git push origin HEAD:sp-npc-bandit01-modular-qa-20261023
