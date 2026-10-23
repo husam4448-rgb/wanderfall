@@ -97,6 +97,7 @@ jobs:
             patches/apply_sp_v284_fps_slider.py
             patches/apply_sp_v284_smooth_vision.py
             patches/apply_sp_v284_all_npc_pixel.py
+            patches/apply_sp_v284_test_bandit_pixel.py
             patches/adapt_sp_v262_visual_qa_for_v284.py
             tools/qa_sp_v284_fps_vision_npc.gd
             patches/adapt_sp_v262_visual_qa_for_v283.py
@@ -548,6 +549,7 @@ jobs:
           python3 v257_overlay/patches/apply_sp_v284_fps_slider.py "$PROJECT_DIR"
           python3 v257_overlay/patches/apply_sp_v284_smooth_vision.py "$PROJECT_DIR"
           python3 v257_overlay/patches/apply_sp_v284_all_npc_pixel.py "$PROJECT_DIR"
+          python3 v257_overlay/patches/apply_sp_v284_test_bandit_pixel.py "$PROJECT_DIR"
           grep -q '_sp284_render_rays' "$PROJECT_DIR/scripts/world/sp_v273_regions_and_sight.gd"
           grep -q 'sp284_set_render_cap' "$PROJECT_DIR/scripts/performance/performance_manager.gd"
           grep -q 'physics_interpolation=true' "$PROJECT_DIR/project.godot"
