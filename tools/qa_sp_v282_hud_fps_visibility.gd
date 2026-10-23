@@ -55,17 +55,17 @@ func _run() -> void:
     if fps_button.get_parent() != preset_button.get_parent() or fps_button.get_index() != preset_button.get_index()+1:
         _fail("FPS-only control remains buried in settings scroll")
         return
-    var before: float = perf.get_detail_density()
+    var before: float = float(perf.call("get_detail_density"))
     fps_button.emit_signal("pressed")
-    if perf.get_fps_cap() != 30 or absf(perf.get_detail_density()-before) > 0.0001:
+    if int(perf.call("get_fps_cap")) != 30 or absf(float(perf.call("get_detail_density"))-before) > 0.0001:
         _fail("quick settings FPS 30 incorrectly changed quality")
         return
     fps_button.emit_signal("pressed")
-    if perf.get_fps_cap() != 60:
+    if int(perf.call("get_fps_cap")) != 60:
         _fail("quick settings FPS 60 selection failed")
         return
     fps_button.emit_signal("pressed")
-    if perf.get_fps_only_cap() != 0:
+    if int(perf.call("get_fps_only_cap")) != 0:
         _fail("quick settings FPS preset restore failed")
         return
     var diag: Node = root.get_node_or_null("S8Diagnostic")
