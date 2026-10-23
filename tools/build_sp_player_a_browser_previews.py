@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-"""Survival Paradise Style A 10x12: browser-ready walking preview.
-Original eight-frame Style A strip retained exactly except ONE black pixel
-under the planted back foot in frame 2 (index 1, x0 y11).
-Never invent another silhouette. Uses the user's approved head and body.
+"""Survival Paradise Style A 10x12 browser-ready walking preview.
+Fix user-marked dangling rear heel by extending its black bottom border
+one pixel in grounded frames, without altering the approved A silhouette.
 """
 import base64
 from io import BytesIO
@@ -35,6 +34,22 @@ assert all(strip.crop((10*i,0,10*i+10,9)).tobytes()==before.crop((10*i,0,10*i+10
 
 assert strip.getpixel((10,10))==(0,0,0,0)
 assert strip.getpixel((10,11))==(0,0,0,0)
+# User-marked defect: solitary black trailing heel at x=1, y=10 without
+# a black pixel directly underneath, on grounded phases 5–8.
+# Add precisely ONE solid outline pixel below it in each affected frame.
+prior=strip.copy()
+for frame_idx in (4,5,6,7):
+    px=frame_idx*10+1
+    assert strip.getpixel((px,10))==black,(frame_idx, "heel")
+    assert strip.getpixel((px,11))==clear,(frame_idx, "missing outline")
+    assert strip.getpixel((px+1,11))==black,(frame_idx, "shoe neighbor")
+    strip.putpixel((px,11),black)
+actual={(x,y) for y in range(12) for x in range(80)
+        if strip.getpixel((x,y))!=prior.getpixel((x,y))}
+assert actual=={(41,11),(51,11),(61,11),(71,11)},actual
+# Preserve exact original A prototype head, torso/pelvis and 10x12 grid.
+assert strip.crop((0,0,80,9)).tobytes()==prior.crop((0,0,80,9)).tobytes()
+assert strip.crop((0,0,10,12)).tobytes()==prior.crop((0,0,10,12)).tobytes()
 out=Path("assets/sp_player_a_preview")
 out.mkdir(parents=True,exist_ok=True)
 def create(scale, bg=(236,236,234)):
@@ -50,9 +65,9 @@ frames=create(36)
 sheet=Image.new("RGB",(8*360,432),(236,236,234))
 for i,f in enumerate(frames):
     sheet.paste(f,(i*360,0))
-for name in ("SP_Player_A_10x12_Walk_8_Frames.png","SP_Style_A_BackFoot_Outlined_Walk_Frames.png","SP_Style_A_RearFoot_Clean_10x12_Frames.png"):
+for name in ("SP_Player_A_10x12_Walk_8_Frames.png","SP_Style_A_BackFoot_Outlined_Walk_Frames.png","SP_Style_A_RearFoot_Clean_10x12_Frames.png","SP_Style_A_RearFoot_HeelFullyOutlined_Frames.png"):
     sheet.save(out/name,optimize=True)
-for name in ("SP_Player_A_10x12_Walk_Animated.gif","SP_Style_A_BackFoot_Outlined_Walk.gif","SP_Style_A_RearFoot_Clean_10x12.gif"):
+for name in ("SP_Player_A_10x12_Walk_Animated.gif","SP_Style_A_BackFoot_Outlined_Walk.gif","SP_Style_A_RearFoot_Clean_10x12.gif","SP_Style_A_RearFoot_HeelFullyOutlined_Walk.gif"):
     frames[0].save(out/name,save_all=True,append_images=frames[1:],
        duration=145,loop=0,optimize=False,disposal=2)
     with Image.open(out/name) as img:
@@ -60,4 +75,4 @@ for name in ("SP_Player_A_10x12_Walk_Animated.gif","SP_Style_A_BackFoot_Outlined
         for n,fr in enumerate(frames):
             img.seek(n)
             assert img.convert("RGB").tobytes()==fr.tobytes()
-print("SP_STYLE_A_BACK_FOOT_BLACK_OUTLINE_BROWSER_LINKS_PASS")
+print("SP_STYLE_A_REAR_HEEL_BOTTOM_OUTLINE_ACTUAL_PIXEL_FIX_PASS")
