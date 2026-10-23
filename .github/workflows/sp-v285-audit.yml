@@ -26,6 +26,7 @@ jobs:
       - run: |
           mkdir src
           tar -xzf archive/SP_D2D14_Original_HUD_World_Source.tar.gz -C src
+          python3 -m pip install --quiet --break-system-packages Pillow
           python3 - <<'PY'
           from pathlib import Path
           from PIL import Image
