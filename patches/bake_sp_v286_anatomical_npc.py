@@ -69,7 +69,7 @@ for role in roles:
                         # Hair only above the face; leave facial silhouette
                         # and face shape untouched.
                         if max(r,g,b)<25: continue
-                        out[x,y]=shade((r,g,b,a),h,.42)
+                        out[x,y]=shade((r,g,b,a),h,.73)
                     elif 15<=y<=34 and x>=34 and r>g*1.18 and r>b*1.3:
                         out[x,y]=shade((r,g,b,a),skin,.19)
             # Mask every costume detail with SOURCE alpha.  This guarantees
@@ -136,6 +136,24 @@ for role in roles:
                 d.line([(27,9),(39,9)],fill=(*waistcoat,255),width=2)
                 if role=='trader': d.line([(30,7),(39,7)],fill=light,width=1)
                 if role=='mechanic': d.line([(32,15),(43,15)],fill=(84,114,122,255),width=2)
+            # Distinct facial identities and protective headgear remain
+            # constrained to the existing human skull/cheek outline.
+            if role=='bandit':
+                d.polygon([(41,24),(54,25),(54,31),(42,32)],fill=(102,63,58,255))
+                d.line([(42,25),(52,25)],fill=(155,89,79,255),width=1)
+            elif role=='medic':
+                d.line([(44,28),(54,28)],fill=(183,188,176,255),width=2)
+            elif role=='scientist':
+                d.line([(42,22),(52,22)],fill=(38,47,46,255),width=2)
+                d.line([(44,20),(44,25)],fill=(41,53,55,255),width=1)
+            elif role=='mechanic':
+                d.line([(42,16),(52,17)],fill=(83,99,102,255),width=2)
+            elif role=='trader':
+                d.line([(48,27),(54,27)],fill=(*h,255),width=1)
+            elif role=='guard':
+                d.line([(39,22),(53,22)],fill=(47,59,47,255),width=2)
+            elif role=='scavenger':
+                d.line([(26,14),(27,27)],fill=(*bag,255),width=2)
             if sex=='female':
                 # Different hairstyle/profile, not re-scaled anatomy.
                 d.line([(24,20),(22,27)],fill=(*h,255),width=2)
