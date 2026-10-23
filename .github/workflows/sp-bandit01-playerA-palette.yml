@@ -1,0 +1,66 @@
+name: Survival Paradise — Bandit 01 exact Player A palette skin
+on:
+  push:
+    branches: [sp-bandit01-playerA-palette-20261023]
+    paths:
+      - tools/build_sp_player_a_bandit01.py
+      - tools/build_sp_player_a_browser_previews.py
+      - .github/workflows/sp-bandit01-playerA-palette.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  palette-exact:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          sparse-checkout: |
+            tools/build_sp_player_a_bandit01.py
+            tools/build_sp_player_a_browser_previews.py
+            .github/workflows/sp-bandit01-playerA-palette.yml
+      - name: Install pixel-art image runtime
+        run: python3 -m pip install --quiet pillow
+      - name: Rebuild the exact accepted Player A and the palette-only bandit
+        run: |
+          set -euo pipefail
+          python3 tools/build_sp_player_a_browser_previews.py
+          python3 tools/build_sp_player_a_bandit01.py
+      - name: Validate black perimeter, alpha and identical 8-frame silhouettes
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          import json
+          a=Image.open("assets/sp_player_a_preview/SP_Player_A_10x12_Walk_Sprite_Strip.png").convert("RGBA")
+          root=Path("assets/sp_npc_simple/SP_NPC_Bandit_Male_01_10x12")
+          b=Image.open(root/"SP_Bandit_01_10x12_8Frames_Transparent_Strip.png").convert("RGBA")
+          assert a.size==b.size==(80,12)
+          assert len(list(root.glob("walk_*.png")))==8
+          for i in range(8):
+            p=a.crop((i*10,0,i*10+10,12))
+            q=b.crop((i*10,0,i*10+10,12))
+            assert p.getchannel("A").tobytes()==q.getchannel("A").tobytes(),i
+            assert all((pc==(0,0,0,255))==(qc==(0,0,0,255)) for pc,qc in zip(p.getdata(),q.getdata())),i
+          m=json.loads((root/"manifest.json").read_text())
+          assert m["game_integration"]=="NOT_YET_INTEGRATED"
+          print("PASS bandit 8 frames 10x12; black outline and all pixel positions exactly same as player")
+          PY
+      - name: Commit PNG and animated GIF for public browser preview
+        run: |
+          set -euo pipefail
+          git config user.name "Survival Paradise NPC QA"
+          git config user.email "actions@users.noreply.github.com"
+          git add --sparse assets/sp_npc_simple/SP_NPC_Bandit_Male_01_10x12
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish exact-silhouette palette Bandit 01 GIF, PNG strip and individual frames"
+            git push origin HEAD:sp-bandit01-playerA-palette-20261023
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SP_Bandit_Male_01_PlayerA_Exact_10x12
+          path: assets/sp_npc_simple/SP_NPC_Bandit_Male_01_10x12/
+          retention-days: 30
