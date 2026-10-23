@@ -19,6 +19,11 @@ func _run() -> void:
     current_scene = main
     await process_frame
     await process_frame
+    var perf: Node = root.get_node_or_null("PerformanceManager")
+    var ui: Node = root.get_node_or_null("UIManager")
+    if perf == null or ui == null:
+        _fail("required performance and UI singletons missing")
+        return
     var menu: Node = main.get_node_or_null("MainMenu")
     if menu != null:
         menu.root.visible = false
@@ -50,24 +55,24 @@ func _run() -> void:
     if fps_button.get_parent() != preset_button.get_parent() or fps_button.get_index() != preset_button.get_index()+1:
         _fail("FPS-only control remains buried in settings scroll")
         return
-    var before: float = PerformanceManager.get_detail_density()
+    var before: float = perf.get_detail_density()
     fps_button.emit_signal("pressed")
-    if PerformanceManager.get_fps_cap() != 30 or absf(PerformanceManager.get_detail_density()-before) > 0.0001:
+    if perf.get_fps_cap() != 30 or absf(perf.get_detail_density()-before) > 0.0001:
         _fail("quick settings FPS 30 incorrectly changed quality")
         return
     fps_button.emit_signal("pressed")
-    if PerformanceManager.get_fps_cap() != 60:
+    if perf.get_fps_cap() != 60:
         _fail("quick settings FPS 60 selection failed")
         return
     fps_button.emit_signal("pressed")
-    if PerformanceManager.get_fps_only_cap() != 0:
+    if perf.get_fps_only_cap() != 0:
         _fail("quick settings FPS preset restore failed")
         return
     var diag: Node = root.get_node_or_null("S8Diagnostic")
     if diag == null or diag.get("_sp282_fps_button") == null:
         _fail("S8 TEST panel FPS toggle unavailable")
         return
-    var cfg: ConfigFile = UIManager.get("_layout_cfg") as ConfigFile
+    var cfg: ConfigFile = ui.get("_layout_cfg") as ConfigFile
     if cfg == null:
         _fail("UI layout persistence store unavailable")
         return
@@ -82,7 +87,7 @@ func _run() -> void:
         _fail("automatic corrected HUD defaults were not persisted: " + str(written))
         return
     var saved: Vector2 = cfg.get_value("layout/run_v0185","pos_norm",Vector2.ZERO)
-    UIManager.call("apply_saved_layouts")
+    ui.call("apply_saved_layouts")
     var new_saved: Vector2 = cfg.get_value("layout/run_v0185","pos_norm",Vector2.ZERO)
     if saved.distance_squared_to(new_saved) > 0.00001:
         _fail("saved HUD position was overwritten by restore pass")
