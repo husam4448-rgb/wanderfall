@@ -58,7 +58,7 @@ once(mobile,'''func _layout_ui() -> void:
 func _sp282_use_compact_hud(viewport_size: Vector2) -> bool:
     # Calibrate against the actual low-resolution, landscape S8 game display.
     # Do not modify custom layouts for desktop/tablets.
-    return OS.get_name() == "Android" and viewport_size.x <= 1150.0 and viewport_size.y <= 580.0 and viewport_size.x > viewport_size.y
+    return (OS.get_name() == "Android" or bool(ProjectSettings.get_setting("sp282/force_compact_ui", false))) and viewport_size.x <= 1150.0 and viewport_size.y <= 580.0 and viewport_size.x > viewport_size.y
 
 func _sp282_compact_default(view: Vector2, margin: float) -> void:
     # Defaults only: UIManager.apply_saved_layouts() below restores custom
@@ -152,7 +152,7 @@ once(settings,'''    root.add_child(graphics_hint)
 once(settings,'''    UIManager.apply_saved_layouts()
 
 func _layout_ui()''',
-'''    if OS.get_name() == "Android" and size.x <= 1150.0 and size.y <= 580.0:
+'''    if (OS.get_name() == "Android" or bool(ProjectSettings.get_setting("sp282/force_compact_ui", false))) and size.x <= 1150.0 and size.y <= 580.0:
         status_panel.size = Vector2(224.0, 148.0)
         status_panel.position = Vector2(margin, 88.0)
         settings_button.size = Vector2(94.0, 41.0)
