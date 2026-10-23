@@ -1,0 +1,64 @@
+name: Publish Survival Paradise v279 S8 Rendering Diagnostic APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  public_release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Download APK from verified successful v279 native build
+        uses: actions/download-artifact@v4
+        with:
+          name: SP-PlayableWorld-v279
+          repository: husam4448-rgb/wanderfall
+          run-id: 39899024902
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: release
+
+      - name: Validate original verified package and signature metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="release/SurvivalParadise-WorldAssets-v279.apk"
+          test -s "$APK"
+          test "$(stat -c%s "$APK")" -gt 25000000
+          test "$(stat -c%s "$APK")" -lt 62914560
+          unzip -t "$APK" > /tmp/sp267_apk_zip_validation.log
+          test -s "release/apk-signature.txt"
+          test -s "release/apk-badging.txt"
+          grep -q "versionCode='287'" "release/apk-badging.txt"
+          grep -q "versionName='0.21.0D2D.14-v279'" "release/apk-badging.txt"
+          grep -Eq 'Verified using v2 scheme|Verified using v3 scheme' release/apk-signature.txt
+          # Original signed package has already passed its native CI checks;
+          # the archived checksum embeds the runner's absolute working path,
+          # so validate the downloaded copy's package metadata and generate
+          # a fresh portable digest rather than resolving a stale path.
+          sha256sum "$APK" | tee release/SP279_PUBLIC_RELEASE_SHA256.txt
+
+      - name: Publish public direct-download Android APK (no GitHub login)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: husam4448-rgb/wanderfall
+        run: |
+          set -euo pipefail
+          TAG=sp-world-v279
+          APK=release/SurvivalParadise-WorldAssets-v279.apk
+          if gh release view "$TAG" --repo "$GH_REPO" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" release/SP279_PUBLIC_RELEASE_SHA256.txt --repo "$GH_REPO" --clobber
+          else
+            gh release create "$TAG" "$APK" release/SP279_PUBLIC_RELEASE_SHA256.txt \
+              --repo "$GH_REPO" \
+              --target "3aedf99b534ace4b63987c8a507ddc4dec2d61e8" \
+              --title "Survival Paradise v279 — NPC LOS and Bandit Loot CPU Optimization" \
+              --notes "v279 addresses the new Galaxy S8 main-thread performance symptoms observed after v278 scenery caching, particularly severe bag-loot stutter and increased work near bandits/NPCs. Loot All now batches the inventory.changed signal so UI listeners redraw the inventory and storage views once after the complete transfer, while preserving per-item notifications and exact item quantities. The extra synchronous UI refresh following Loot All is eliminated. Bandit AI skips unnecessary LOS raycasts while the player is outside detection range; hearing alerts and close-range combat retain their behavior. All v278 static world caching, v277 viewport culling and v276 settings fixes remain. Native Godot tests verified atomic multistack loot, item conservation, nested batch correctness, ordinary inventory signals, unchanged collisions and existing world/gameplay QA. Signed Android APK versionCode 287 was built and validated by GitHub Actions run 39899024902. The real FPS, NPC crowding improvements and inventory interaction smoothness on Galaxy S8 are NOT yet verified. Compare at Balanced60, 1064x518 in populated areas and while looting a bandit bag. Significant remaining NPC simulation or HUD layout issues may require additional profiling."
+          fi
+          gh release view "$TAG" --repo "$GH_REPO" --json assets,url,tagName --jq '{tag: .tagName, release: .url, assets: [.assets[].name]}'
