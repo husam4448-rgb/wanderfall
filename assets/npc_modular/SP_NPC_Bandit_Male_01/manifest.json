@@ -1,0 +1,516 @@
+{
+  "schema": "SP_NPC_MODULAR_CANDIDATE_V1",
+  "character_id": "SP_NPC_Bandit_Male_01",
+  "rig_standard": "PlayerCharacters_v22",
+  "source_branch": "sp-v286-npc-anatomy-visual-qa-20261023",
+  "authored_facing": "RIGHT",
+  "other_facing": "LEFT_MIRROR_UNVERIFIED",
+  "gender": "male",
+  "role": "bandit",
+  "visual_design": "scarred messy hair, scavenged shoulder plate, dusty bandolier and dark red scarf",
+  "asset_parts": {
+    "head_neck": {
+      "path": "assets/npc_modular/SP_NPC_Bandit_Male_01/parts/head_neck.png",
+      "canvas": [
+        96,
+        96
+      ],
+      "alpha_bounds": [
+        2,
+        19,
+        94,
+        92
+      ],
+      "pivots": {},
+      "category": "parts",
+      "sha256": "0c6101e7eceedb52392e3e6eae493a7fae2f03248fc26c75e9ae4c7b96c21526",
+      "source": "assets/authored2d/unified_character/roles/bandit/male/head.png",
+      "notes": "additional authoring on existing canonical role artwork",
+      "approval": "CANDIDATE_NOT_VISUALLY_APPROVED"
+    },
+    "torso": {
+      "path": "assets/npc_modular/SP_NPC_Bandit_Male_01/parts/torso.png",
+      "canvas": [
+        112,
+        144
+      ],
+      "alpha_bounds": [
+        14,
+        4,
+        98,
+        140
+      ],
+      "pivots": {},
+      "category": "parts",
+      "sha256": "b473fbc16e0177be47098649bdc8f7995de31c6ef845c42db5b06f1d3c0de68e",
+      "source": "assets/authored2d/unified_character/roles/bandit/male/torso.png",
+      "notes": "additional authoring on existing canonical role artwork",
+      "approval": "CANDIDATE_NOT_VISUALLY_APPROVED"
+    },
+    "near_thigh": {
+      "path": "assets/npc_modular/SP_NPC_Bandit_Male_01/parts/near_thigh.png",
+      "canvas": [
+        80,
+        160
+      ],
+      "alpha_bounds": [
+        16,
+        4,
+        63,
+        108
+      ],
+      "pivots": {
+        "hip": [
+          39,
+          19
+        ],
+        "knee": [
+          39,
+          86
+        ]
+      },
+      "category": "parts",
+      "sha256": "9b4d7a49d38f9eb7c22d6fc071450a8f6e456393c835c3786abb6b67065a43f8",
+      "source": "assets/authored2d/unified_character/roles/bandit/male/pants_front.png",
+      "notes": "original leg upper region with overlap; hidden bending surfaces REQUIRE visual review",
+      "approval": "CANDIDATE_NOT_VISUALLY_APPROVED"
+    },
+    "near_shin": {
+      "path": "assets/npc_modular/SP_NPC_Bandit_Male_01/parts/near_shin.png",
+      "canvas": [
+        80,
+        160
+      ],
+      "alpha_bounds": [
+        16,
+        65,
+        60,
+        156
+      ],
+      "pivots": {
+        "knee": [
+          39,
+          86
+        ],
+        "ankle": [
+          40,
+          146
+        ]
+      },
+      "category": "parts",
+      "sha256": "8b9989d9a3aadd00d7f4afce8c1fbb549b146471226b43439e5e9cc41205f0aa",
+      "source": "assets/authored2d/unified_character/roles/bandit/male/pants_front.png",
+      "notes": "original leg lower region with overlap; not yet approved for independent knee rotation",
+      "approval": "CANDIDATE_NOT_VISUALLY_APPROVED"
+    },
+    "far_thigh": {
+      "path": "assets/npc_modular/SP_NPC_Bandit_Male_01/parts/far_thigh.png",
+      "canvas": [
+        80,
+        160
+      ],
+      "alpha_bounds": [
+        16,
+        4,
+        63,
+        108
+      ],
+      "pivots": {
+        "hip": [
+          39,
+          19
+        ],
+        "knee": [
+          39,
+          86
+        ]
+      },
+      "category": "parts",
+      "sha256": "158c0e1bc69500da4e98f44455c2980688d759f9ae4e94dd97290eedee3f2338",
+      "source": "assets/authored2d/unified_character/roles/bandit/male/pants_rear.png",
+      "notes": "original leg upper region with overlap; hidden bending surfaces REQUIRE visual review",
+      "approval": "CANDIDATE_NOT_VISUALLY_APPROVED"
+    },
+    "far_shin": {
+      "path": "assets/npc_modular/SP_NPC_Bandit_Male_01/parts/far_shin.png",
+      "canvas": [
+        80,
+        160
+      ],
+      "alpha_bounds": [
+        16,
+        65,
+        60,
+        156
+      ],
+      "pivots": {
+        "knee": [
+          39,
+          86
+        ],
+        "ankle": [
+          40,
+          146
+        ]
+      },
+      "category": "parts",
+      "sha256": "eff9d0c972b91d3e76c74e330679a20f574c96a5cf1589636fb2193e80abe5f3",
+      "source": "assets/authored2d/unified_character/roles/bandit/male/pants_rear.png",
+      "notes": "original leg lower region with overlap; not yet approved for independent knee rotation",
+      "approval": "CANDIDATE_NOT_VISUALLY_APPROVED"
+    },
+    "pelvis_belt": {
+      "path": "assets/npc_modular/SP_NPC_Bandit_Male_01/parts/pelvis_belt.png",
+      "canvas": [
+        112,
+        144
+      ],
+      "alpha_bounds": [
+        33,
+        101,
+        76,
+        119
+      ],
+      "pivots": {},
+      "category": "parts",
+      "sha256": "2f709d21cd318170999778364963356288448865988507ac05b63b5b400bd567",
+      "source": "assets/authored2d/unified_character/roles/bandit/male/torso.png",
+      "notes": "independent pelvis-attached belt; no duplicated torso pixels",
+      "approval": "CANDIDATE_NOT_VISUALLY_APPROVED"
+    },
+    "near_upper_arm": {
+      "path": "assets/npc_modular/SP_NPC_Bandit_Male_01/parts/near_upper_arm.png",
+      "canvas": [
+        128,
+        41
+      ],
+      "alpha_bounds": [
+        0,
+        0,
+        128,
+        41
+      ],
+      "pivots": {},
+      "category": "parts",
+      "sha256": "d27916cc367c87dec3943886031267e16833aac3ff2d8369907529aece00ae35",
+      "source": "assets/authored2d/unified_character/arms/sleeves/bandit/male/upper_arm.png",
+      "notes": "additional authoring on existing canonical role artwork",
+      "approval": "CANDIDATE_NOT_VISUALLY_APPROVED"
+    },
+    "near_forearm": {
+      "path": "assets/npc_modular/SP_NPC_Bandit_Male_01/parts/near_forearm.png",
+      "canvas": [
+        128,
+        32
+      ],
+      "alpha_bounds": [
+        0,
+        0,
+        128,
+        32
+      ],
+      "pivots": {},
+      "category": "parts",
+      "sha256": "3c2177d446de5c90298a1c27b3191264f55c0b13afd77a32cb03f9c002b26edf",
+      "source": "assets/authored2d/unified_character/arms/sleeves/bandit/male/forearm.png",
+      "notes": "",
+      "approval": "CANDIDATE_NOT_VISUALLY_APPROVED"
+    },
+    "near_hand": {
+      "path": "assets/npc_modular/SP_NPC_Bandit_Male_01/parts/near_hand.png",
+      "canvas": [
+        53,
+        55
+      ],
+      "alpha_bounds": [
+        0,
+        0,
+        53,
+        55
+      ],
+      "pivots": {},
+      "category": "parts",
+      "sha256": "08f41ef8e4b4a70869c650a5392482d6a649916e4362b49cc613af9c138e49c8",
+      "source": "assets/authored2d/unified_character/arms/hybrid_v3/male/SP_PC22_Male_Hand_Dominant_V3.png",
+      "notes": "",
+      "approval": "CANDIDATE_NOT_VISUALLY_APPROVED"
+    },
+    "far_upper_arm": {
+      "path": "assets/npc_modular/SP_NPC_Bandit_Male_01/parts/far_upper_arm.png",
+      "canvas": [
+        128,
+        41
+      ],
+      "alpha_bounds": [
+        0,
+        0,
+        128,
+        41
+      ],
+      "pivots": {},
+      "category": "parts",
+      "sha256": "d27916cc367c87dec3943886031267e16833aac3ff2d8369907529aece00ae35",
+      "source": "assets/authored2d/unified_character/arms/sleeves/bandit/male/upper_arm.png",
+      "notes": "additional authoring on existing canonical role artwork",
+      "approval": "CANDIDATE_NOT_VISUALLY_APPROVED"
+    },
+    "far_forearm": {
+      "path": "assets/npc_modular/SP_NPC_Bandit_Male_01/parts/far_forearm.png",
+      "canvas": [
+        128,
+        32
+      ],
+      "alpha_bounds": [
+        0,
+        0,
+        128,
+        32
+      ],
+      "pivots": {},
+      "category": "parts",
+      "sha256": "3c2177d446de5c90298a1c27b3191264f55c0b13afd77a32cb03f9c002b26edf",
+      "source": "assets/authored2d/unified_character/arms/sleeves/bandit/male/forearm.png",
+      "notes": "",
+      "approval": "CANDIDATE_NOT_VISUALLY_APPROVED"
+    },
+    "far_hand": {
+      "path": "assets/npc_modular/SP_NPC_Bandit_Male_01/parts/far_hand.png",
+      "canvas": [
+        52,
+        52
+      ],
+      "alpha_bounds": [
+        0,
+        0,
+        52,
+        52
+      ],
+      "pivots": {},
+      "category": "parts",
+      "sha256": "406396d144ba086f4c608a823638957fda45c83632f2fb69b8007cea9bd951cb",
+      "source": "assets/authored2d/unified_character/arms/hybrid_v3/male/SP_PC22_Male_Hand_Support_V3.png",
+      "notes": "",
+      "approval": "CANDIDATE_NOT_VISUALLY_APPROVED"
+    },
+    "near_boot": {
+      "path": "assets/npc_modular/SP_NPC_Bandit_Male_01/parts/near_boot.png",
+      "canvas": [
+        96,
+        96
+      ],
+      "alpha_bounds": [
+        4,
+        13,
+        92,
+        82
+      ],
+      "pivots": {},
+      "category": "parts",
+      "sha256": "c3cd1d7657b3608bd76d67d535b64711643dd604ec7cf34bb71e7415511a39e5",
+      "source": "assets/authored2d/unified_character/core/male/boot_base.png",
+      "notes": "additional authoring on existing canonical role artwork",
+      "approval": "CANDIDATE_NOT_VISUALLY_APPROVED"
+    },
+    "far_boot": {
+      "path": "assets/npc_modular/SP_NPC_Bandit_Male_01/parts/far_boot.png",
+      "canvas": [
+        96,
+        96
+      ],
+      "alpha_bounds": [
+        4,
+        13,
+        92,
+        82
+      ],
+      "pivots": {},
+      "category": "parts",
+      "sha256": "c3cd1d7657b3608bd76d67d535b64711643dd604ec7cf34bb71e7415511a39e5",
+      "source": "assets/authored2d/unified_character/core/male/boot_base.png",
+      "notes": "additional authoring on existing canonical role artwork",
+      "approval": "CANDIDATE_NOT_VISUALLY_APPROVED"
+    },
+    "backpack": {
+      "path": "assets/npc_modular/SP_NPC_Bandit_Male_01/equipment/backpack.png",
+      "canvas": [
+        112,
+        144
+      ],
+      "alpha_bounds": [
+        5,
+        4,
+        106,
+        140
+      ],
+      "pivots": {
+        "attach": "back"
+      },
+      "category": "equipment",
+      "sha256": "c22ae1ed71f9f44755ecc34164f377c978077eeac0082d543267ad0e31601f47",
+      "source": "assets/authored2d/unified_character/roles/bandit/male/backpack.png",
+      "notes": "",
+      "approval": "CANDIDATE_NOT_VISUALLY_APPROVED"
+    },
+    "utility": {
+      "path": "assets/npc_modular/SP_NPC_Bandit_Male_01/equipment/utility.png",
+      "canvas": [
+        128,
+        128
+      ],
+      "alpha_bounds": [
+        12,
+        51,
+        120,
+        87
+      ],
+      "pivots": {
+        "attach": "waist"
+      },
+      "category": "equipment",
+      "sha256": "f54e440e285cd078f9e001edf7c20e935771ebfaffe2442d6ffd5c8b160929d7",
+      "source": "assets/authored2d/unified_character/roles/bandit/male/utility.png",
+      "notes": "",
+      "approval": "CANDIDATE_NOT_VISUALLY_APPROVED"
+    },
+    "glove": {
+      "path": "assets/npc_modular/SP_NPC_Bandit_Male_01/equipment/glove.png",
+      "canvas": [
+        96,
+        96
+      ],
+      "alpha_bounds": [
+        4,
+        19,
+        92,
+        77
+      ],
+      "pivots": {
+        "attach": "hands"
+      },
+      "category": "equipment",
+      "sha256": "242c3d6aaff57dab5a3c51394d66a0ea1b51789c1955179bb9b4c0b4cf25b281",
+      "source": "assets/authored2d/unified_character/roles/bandit/male/glove.png",
+      "notes": "",
+      "approval": "CANDIDATE_NOT_VISUALLY_APPROVED"
+    },
+    "scarf": {
+      "path": "assets/npc_modular/SP_NPC_Bandit_Male_01/equipment/scarf.png",
+      "canvas": [
+        112,
+        144
+      ],
+      "alpha_bounds": [
+        32,
+        14,
+        79,
+        55
+      ],
+      "pivots": {
+        "neck": "torso_neck_socket"
+      },
+      "category": "equipment",
+      "sha256": "a3d1d5cb11d678c1a377b576abd45adefebf73dd38e88a57ce5935efb2f765a6",
+      "source": "",
+      "notes": "independent neck-worn equipment",
+      "approval": "CANDIDATE_NOT_VISUALLY_APPROVED"
+    },
+    "waist_pouch": {
+      "path": "assets/npc_modular/SP_NPC_Bandit_Male_01/equipment/waist_pouch.png",
+      "canvas": [
+        112,
+        144
+      ],
+      "alpha_bounds": [
+        72,
+        99,
+        89,
+        134
+      ],
+      "pivots": {
+        "attach": "pelvis_right"
+      },
+      "category": "equipment",
+      "sha256": "d07c9096fc76c931f07a5bb33f205697fc9fb2fd92e6ad85357a3a38c6baf243",
+      "source": "",
+      "notes": "independent bag with belt socket",
+      "approval": "CANDIDATE_NOT_VISUALLY_APPROVED"
+    }
+  },
+  "rig_contract": {
+    "weapon_socket": {
+      "pivot_from_base": [
+        6.0,
+        -2.0
+      ],
+      "dominant_hand_from_pivot": [
+        3.0,
+        4.0
+      ],
+      "support_hand_from_pivot": [
+        16.0,
+        2.0
+      ],
+      "recoil_local_x": -1.45
+    },
+    "male_proportions": {
+      "torso_center": [
+        0.0,
+        -4.0
+      ],
+      "torso_size": [
+        26.2,
+        29.6
+      ],
+      "neck_socket": [
+        1.6,
+        -16.0
+      ],
+      "head_size": [
+        16.9,
+        18.4
+      ],
+      "backpack_center": [
+        -10.5,
+        -4.0
+      ],
+      "backpack_size": [
+        25.0,
+        31.0
+      ],
+      "hip_span": 3.8,
+      "knee_span": 4.9,
+      "ankle_span": 5.4,
+      "hip_y": 11.0,
+      "knee_y": 18.0,
+      "ankle_y": 25.0,
+      "leg_size": [
+        16.5,
+        26.5
+      ],
+      "boot_offset": [
+        0.4,
+        6.8
+      ],
+      "boot_size": [
+        17.0,
+        12.8
+      ],
+      "hand_size": [
+        10.9,
+        10.5
+      ]
+    },
+    "arms": "canonical PlayerCharacters_v22 arms, direct part texture substitution",
+    "legs": "two segmented candidates cut with shared overlap from one-piece source; no independent knee animation approved"
+  },
+  "ready_for_game": false,
+  "technical_qa": "PASS_RGBA_PARTS_AND_SOURCE_COMPATIBILITY_ONLY",
+  "visual_qa": "NOT_REVIEWED",
+  "animation_qa": "NOT_TESTED",
+  "known_blockers": [
+    "existing v286 NPC game renderer only replaces upper-body texture, not full modular part tree",
+    "new knee segments need actual concealed cloth artwork and Godot Bone2D bend tests",
+    "left direction, aiming and two-hand weapon contact not verified with new equipment"
+  ],
+  "notes": "This is an actual collection of editable transparent individual PNGs, NOT a static whole-character sheet. Candidate only."
+}
