@@ -201,6 +201,9 @@ once(player,'''func _ready() -> void:
 '''func _ready() -> void:
     # Physics transform is updated by move_and_slide() in physics ticks.
     # Automatic 2D interpolation fills rendered frames between 20 Hz ticks.
+    # Project configuration is applied at boot; ensure running scene is also
+    # active when older Android export presets override project settings.
+    get_tree().physics_interpolation = true
     physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_ON
     add_to_group("player_actor")''',"PLAYER_INTERP")
 
