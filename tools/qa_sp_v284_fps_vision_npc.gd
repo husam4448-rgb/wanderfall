@@ -21,7 +21,12 @@ func _test() -> void:
     var menu: Node = main.get_node_or_null("MainMenu")
     if menu != null:
         menu.root.visible = false
-    GameSettings.set_pause_reason("main_menu", false)
+    var settings_autoload: Node = root.get_node_or_null("GameSettings")
+    var perf: Node = root.get_node_or_null("PerformanceManager")
+    if settings_autoload == null or perf == null:
+        fail("game settings or performance autoload unavailable")
+        return
+    settings_autoload.call("set_pause_reason", "main_menu", false)
     main.call("start_new_game_safe_camp")
     await create_timer(0.9).timeout
     var slider: HSlider = main.get_node("SettingsHUD").get("_sp284_fps_only_slider") as HSlider
@@ -30,30 +35,30 @@ func _test() -> void:
         return
     var sim_tps: int = Engine.physics_ticks_per_second
     var max_steps: int = Engine.max_physics_steps_per_frame
-    var detail_before: Dictionary = PerformanceManager.get_profile_data()
+    var detail_before: Dictionary = perf.call("get_profile_data")
     var selected: Array[int] = [30,35,40,45,50,55,60,65,70,75,80,85,90]
     for cap in selected:
         slider.value = cap
         await process_frame
-        if PerformanceManager.get_fps_only_cap() != cap or Engine.max_fps != cap:
+        if perf.call("get_fps_only_cap") != cap or Engine.max_fps != cap:
             fail("slider did not lock requested frame cap "+str(cap))
             return
         if Engine.physics_ticks_per_second != sim_tps or Engine.max_physics_steps_per_frame != max_steps:
             fail("FPS-only setting modified physics simulation")
             return
-        if PerformanceManager.get_profile_data() != detail_before:
+        if perf.call("get_profile_data") != detail_before:
             fail("FPS-only setting modified graphics or chunk profile")
             return
     var fps_conf: ConfigFile = ConfigFile.new()
     if fps_conf.load("user://sp284_render_fps.cfg") != OK or int(fps_conf.get_value("render_only","fps_cap",-1)) != 90:
         fail("FPS cap settings did not persist")
         return
-    PerformanceManager.set_profile("Battery Saver 30")
-    if PerformanceManager.get_fps_only_cap() != 90 or Engine.max_fps != 90:
+    perf.call("set_profile", "Battery Saver 30")
+    if perf.call("get_fps_only_cap") != 90 or Engine.max_fps != 90:
         fail("render cap not independent of graphic profile")
         return
-    PerformanceManager.set_profile("Balanced 60")
-    PerformanceManager.set_fps_only_cap(55)
+    perf.call("set_profile", "Balanced 60")
+    perf.call("set_fps_only_cap", 55)
     if Engine.max_fps != 55:
         fail("55 FPS lock failed")
         return
@@ -97,5 +102,5 @@ func _test() -> void:
         fail("physics sight ray fidelity was altered")
         return
     print("SP284_NATIVE_SOFT_FOG_PASS muted 39%-opacity neutral cone and render-frame shader updates with 96 bounded gameplay rays")
-    PerformanceManager.set_fps_only_cap(0)
+    perf.call("set_fps_only_cap", 0)
     quit(0)
