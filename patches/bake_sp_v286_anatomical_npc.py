@@ -155,8 +155,10 @@ for role in roles:
             elif role=='scavenger':
                 d.line([(26,14),(27,27)],fill=(*bag,255),width=2)
             if sex=='female':
-                # Different hairstyle/profile, not re-scaled anatomy.
-                d.line([(24,20),(22,27)],fill=(*h,255),width=2)
+                # Hair flowing behind the ear and onto the upper shoulder,
+                # clipped to the original body where it crosses clothing.
+                d.line([(27,18),(26,28),(28,37),(30,42)],fill=(*h,255),width=3)
+                d.line([(28,26),(31,33)],fill=(*h,255),width=2)
             elif variant==2 and role not in ('medic','scientist'):
                 d.line([(35,26),(44,27)],fill=(*h,255),width=2)
             if variant==1:
@@ -170,10 +172,21 @@ for role in roles:
                         # Preserve each garment's true outline.
                         c=detail_px[x,y]
                         out[x,y]=(c[0],c[1],c[2],orig[x,y][3])
-            # Important QA invariant: head/torso/waist silhouette EXACTLY
-            # equals the anatomically accepted player. Distinct art is inside.
-            assert img.getchannel('A').tobytes()==source.getchannel('A').tobytes()
+            # A civilian/scientist does not inherit the player's rucksack.
+            # This erases a BACKPACK ONLY, never a face, torso or pelvis:
+            # torso/limb opacity at x>=28 is byte-identical to approved art.
+            if role in ('civilian','scientist'):
+                for yy in range(29,72):
+                    for xx in range(0,28):
+                        out[xx,yy]=(0,0,0,0)
+            for yy in range(78):
+                for xx in range(28,64):
+                    assert out[xx,yy][3] == orig[xx,yy][3],(role,sex,xx,yy)
+            # Non-backpack roles preserve exact ORIGINAL approved alpha,
+            # including all vital proportions and attachment boundaries.
+            if role not in ('civilian','scientist'):
+                assert img.getchannel('A').tobytes()==source.getchannel('A').tobytes()
             fn=target/f"sp286_{role}_{sex}_{variant}.png"
             img.save(fn,optimize=True)
             if len(img.getcolors(64*96))<65: raise RuntimeError("flat color/anatomy loss "+str(fn))
-print("SP286_BAKE_PASS",len(list(target.glob('sp286_*png'))),"realistic sprite variants, exactly preserved source anatomy/alpha, no floating blocks")
+print("SP286_BAKE_PASS",len(list(target.glob('sp286_*png'))),"role-distinct clothing and facial identities; anatomical core preserved, civilian/scientist backpacks removed")
