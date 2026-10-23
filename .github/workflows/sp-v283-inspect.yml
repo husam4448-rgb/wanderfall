@@ -1,0 +1,46 @@
+name: SP283 inspect live player movement, NPC visual rig, HUD
+on:
+  push:
+    branches: [sp-v283-hud-smooth-rig-20261023]
+    paths: [.github/workflows/sp-v283-inspect.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+    - uses: actions/download-artifact@v4
+      with:
+        repository: husam4448-rgb/wanderfall
+        run-id: 39911405750
+        name: SP-D2D14-Original-HUD-World-Code
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        path: backup
+    - run: |
+        set -euo pipefail
+        mkdir src
+        tar -xzf backup/SP_D2D14_Original_HUD_World_Source.tar.gz -C src
+        python3 - <<'PY'
+        from pathlib import Path
+        root=Path('src')
+        wanted=[
+         ('scripts/player.gd',[(1,240),(280,510)]),
+         ('scripts/art/layered_actor_visual.gd',[(1,310)]),
+         ('scripts/social/friendly_npc.gd',[(1,210),(210,340)]),
+         ('scripts/combat/bandit.gd',[(1,215)]),
+         ('scripts/combat/zombie.gd',[(1,150)]),
+         ('scripts/settings/settings_hud.gd',[(1,110),(427,460)]),
+         ('scripts/mobile_hud.gd',[(1200,1265)]),
+         ('project.godot',[(1,200)]),
+        ]
+        for name,ranges in wanted:
+            p=root/name
+            if not p.exists():print('MISSING',name);continue
+            ls=p.read_text(errors='replace').splitlines()
+            print('BEGIN_FILE',name,len(ls))
+            for a,b in ranges:
+                for i in range(a-1,min(len(ls),b)):print('%04d | %s'%(i+1,ls[i]))
+            print('END_FILE',name)
+        PY

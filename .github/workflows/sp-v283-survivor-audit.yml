@@ -1,0 +1,42 @@
+name: SP283 inspect approved survivor source and NPC actors
+on:
+  push:
+    branches: [sp-v283-hud-smooth-rig-20261023]
+    paths: [.github/workflows/sp-v283-survivor-audit.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+    - uses: actions/download-artifact@v4
+      with:
+        repository: husam4448-rgb/wanderfall
+        run-id: 39911405750
+        name: SP-D2D14-Original-HUD-World-Code
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        path: backup
+    - run: |
+        set -euo pipefail
+        mkdir src
+        tar -xzf backup/SP_D2D14_Original_HUD_World_Source.tar.gz -C src
+        python3 - <<'PY'
+        from pathlib import Path
+        r=Path('src')
+        for name,ranges in [
+        ('scripts/player.gd',[(180,279),(510,1050)]),
+        ('scripts/art/baked_actor_visual.gd',[(1,280)]),
+        ('scripts/combat/bandit.gd',[(1,166)]),
+        ('scenes/main.tscn',[(1,140)]),
+        ('scripts/ui/ui_manager.gd',[(1,72)]),
+        ('scripts/settings/settings_hud.gd',[(38,92)])]:
+            p=r/name
+            if not p.exists():print('MISSING',name);continue
+            lines=p.read_text(errors='replace').splitlines()
+            print('BEGIN_FILE',name,len(lines))
+            for a,b in ranges:
+                for i in range(a-1,min(b,len(lines))):print('%04d | %s'%(i+1,lines[i]))
+            print('END_FILE',name)
+        PY
