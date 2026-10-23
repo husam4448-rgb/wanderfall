@@ -83,7 +83,8 @@ func _test() -> void:
         fail("vision overlay absent")
         return
     await create_timer(0.4).timeout
-    if float(fog.get("ALPHA")) > 0.40:
+    var vision_material: ShaderMaterial = fog.get("overlay_shader") as ShaderMaterial
+    if vision_material == null or float(vision_material.get_shader_parameter("shadow_strength")) > 0.40:
         fail("fog still near-black")
         return
     var updates: int = int(fog.get("_sp284_visual_frames"))
@@ -91,7 +92,8 @@ func _test() -> void:
     if int(fog.get("_sp284_visual_frames")) <= updates:
         fail("fog visual did not advance on render frames")
         return
-    if int(fog.get("RAY_COUNT")) != 96:
+    var sight_ranges: PackedFloat32Array = fog.get("_rays")
+    if sight_ranges.size() != 96:
         fail("physics sight ray fidelity was altered")
         return
     print("SP284_NATIVE_SOFT_FOG_PASS muted 39%-opacity neutral cone and render-frame shader updates with 96 bounded gameplay rays")
