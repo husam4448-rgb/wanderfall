@@ -56,7 +56,7 @@ func _run() -> void:
             if actual_upper.texture.get_width()!=64 or actual_upper.texture.get_height()!=96:
                 _fail("role sprite altered player's required rig attachment size")
                 return
-            var content: String = actual_upper.texture.get_image().get_data().md5_text()
+            var content: String = actual_upper.texture.get_image().save_png_to_buffer().hex_encode()
             if atlas.has(content):
                 _fail("identical approved NPC costume/face textures: "+role+"/"+sex+" & "+str(atlas[content]))
                 return
