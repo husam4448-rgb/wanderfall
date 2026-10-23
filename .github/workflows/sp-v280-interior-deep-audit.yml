@@ -1,0 +1,49 @@
+name: SP280 detailed portal and raster-cache audit
+on:
+  push:
+    branches: [sp-v280-interior-stream-cpu-20261023]
+    paths: [.github/workflows/sp-v280-interior-deep-audit.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: SP-D2D14-Original-HUD-World-Code
+          repository: husam4448-rgb/wanderfall
+          run-id: 39844425081
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: backup
+      - shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p src
+          tar -xzf backup/SP_D2D14_Original_HUD_World_Source.tar.gz -C src
+          python3 - <<'PY'
+          from pathlib import Path
+          paths=[
+          "scripts/building/building_level_manager.gd",
+          "scripts/building/interior_floor.gd",
+          "scripts/building/level_portal.gd",
+          "scripts/world/sp_v278_static_raster_cache.gd",
+          "scripts/world/sp_v273_regions_and_sight.gd",
+          "scripts/world/world_chunk.gd",
+          "scripts/player.gd"]
+          for name in paths:
+              f=Path('src')/name
+              if not f.exists():print("MISSING",name);continue
+              ls=f.read_text(errors='replace').splitlines()
+              ranges=[]
+              if "world_chunk" in name:ranges=[(105,166),(265,345)]
+              elif "player.gd" in name:ranges=[(475,560)]
+              elif "regions_and_sight" in name:ranges=[(1,170),(247,330)]
+              else:ranges=[(1,len(ls))]
+              print("BEGIN_FILE",name,len(ls))
+              for a,b in ranges:
+                  for i in range(a-1,min(b,len(ls))):print("%03d | %s"%(i+1,ls[i]))
+              print("END_FILE",name)
+          PY
