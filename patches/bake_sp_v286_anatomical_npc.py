@@ -57,7 +57,7 @@ for role in roles:
                         continue
                     # Never replace or enlarge any anatomy; all operations
                     # are limited to the source silhouette's solid pixels.
-                    if 28<=y<=72 and x>=29:
+                    if 35<=y<=72 and x>=29:
                         # Keep outlined boundaries as originally rasterized.
                         if max(r,g,b)<29: continue
                         use=jacket if y<50 else waistcoat
