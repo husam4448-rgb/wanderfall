@@ -24,7 +24,11 @@ def make_source(name):
     if name=="player":return orig.copy()
     assert name=="bandit01"
     v=orig.copy()
-    v.alpha_composite(bandit_upper)
+    # Replace corresponding source pixels, do NOT alpha-composite the same
+    # semi-transparent antialiased silhouette twice (that increases opacity).
+    for yy in range(78):
+        for xx in range(W):
+            v.putpixel((xx,yy),bandit_upper.getpixel((xx,yy)))
     assert v.getchannel("A").tobytes()==orig.getchannel("A").tobytes()
     return v
 
