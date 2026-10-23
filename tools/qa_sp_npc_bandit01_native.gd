@@ -26,7 +26,7 @@ func part(name: String, parent: Node2D, at: Vector2, target: Vector2, equipment:
     parent.add_child(sprite)
     return sprite
 
-func joint(name: String, parent: Node2D, at: Vector2, order: int = 0) -> Node2D:
+func joint(name: String, parent: Node, at: Vector2, order: int = 0) -> Node2D:
     var n: Node2D = Node2D.new()
     n.name=name
     n.position=at
