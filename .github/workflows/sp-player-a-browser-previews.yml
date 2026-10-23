@@ -1,0 +1,39 @@
+name: Publish approved Style A 10x12 animation browser previews
+on:
+  push:
+    branches: [sp-player-a-walk-browser-links-20261023]
+    paths:
+      - tools/build_sp_player_a_browser_previews.py
+      - .github/workflows/sp-player-a-browser-previews.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          sparse-checkout: |
+            tools/build_sp_player_a_browser_previews.py
+            .github/workflows/sp-player-a-browser-previews.yml
+      - name: Build exact 8 original pixel frames as browser files
+        run: |
+          python3 -m pip install --quiet pillow
+          python3 tools/build_sp_player_a_browser_previews.py
+      - name: Publish animated GIF and frame PNG on GitHub branch
+        run: |
+          set -euo pipefail
+          git config user.name "Survival Paradise Asset QA"
+          git config user.email "actions@users.noreply.github.com"
+          git add --sparse assets/sp_player_a_preview/
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Publish Style A 10x12 8-frame animated GIF and frame sheet"
+          git push origin HEAD:sp-player-a-walk-browser-links-20261023
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SP_Player_A_10x12_browser_preview
+          path: assets/sp_player_a_preview/
+          retention-days: 30
