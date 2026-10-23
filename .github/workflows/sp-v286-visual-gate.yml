@@ -693,7 +693,7 @@ jobs:
           timeout 130s xvfb-run -a -s '-screen 0 1920x1080x24' "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1064x518 --script res://sp286_qa.gd > sp286_visual.log 2>&1 || { tail -140 sp286_visual.log; exit 1; }
           cat sp286_visual.log | tail -35
           grep -q SP286_NATIVE_REAL_GODOT_RENDER_PASS sp286_visual.log
-          for kind in world idle walk aim; do test -s "$PROJECT_DIR/sp286_qa_${kind}.png"; done
+          for kind in world idle walk aim aim_left walk_left; do test -s "$PROJECT_DIR/sp286_qa_${kind}.png"; done
       - name: Print visual-review JPEG evidence and retain original PNG
         shell: bash
         run: |
@@ -701,7 +701,7 @@ jobs:
           from PIL import Image
           from pathlib import Path
           import base64,io
-          for label in ('idle','walk','aim','world'):
+          for label in ('idle','walk','aim','aim_left','walk_left','world'):
               p=Path('game')/('sp286_qa_'+label+'.png')
               im=Image.open(p).convert('RGB')
               # World image can be visually inspected at 1064x518.
