@@ -1,0 +1,77 @@
+name: SP NPC Bandit Male 01 — modular PNG production gate
+
+on:
+  push:
+    branches:
+      - sp-npc-bandit01-modular-qa-20261023
+    paths:
+      - tools/build_sp_npc_bandit01_modular.py
+      - .github/workflows/sp-npc-bandit01-modular.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  produce:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          sparse-checkout: |
+            tools/build_sp_npc_bandit01_modular.py
+            assets/authored2d/unified_character/canonical_pc22.json
+            assets/authored2d/unified_character/core/male
+            assets/authored2d/unified_character/roles/bandit/male
+            assets/authored2d/unified_character/arms/sleeves/bandit/male
+            assets/authored2d/unified_character/arms/hybrid_v3/male
+            .github/workflows/sp-npc-bandit01-modular.yml
+      - name: Install imaging dependencies
+        run: python3 -m pip install --quiet pillow
+      - name: Produce native individual RGBA assets
+        run: python3 tools/build_sp_npc_bandit01_modular.py
+      - name: Verify candidate files and explicit approval gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          from PIL import Image
+          root=Path("assets/npc_modular/SP_NPC_Bandit_Male_01")
+          m=json.loads((root/"manifest.json").read_text())
+          assert m["ready_for_game"] is False
+          assert m["animation_qa"]=="NOT_TESTED"
+          assert m["visual_qa"]=="NOT_REVIEWED"
+          assert m["rig_standard"]=="PlayerCharacters_v22"
+          assert len(m["asset_parts"])>=18
+          for name,spec in m["asset_parts"].items():
+              p=Path(spec["path"])
+              with Image.open(p) as image:
+                  assert image.mode=="RGBA",name
+                  assert image.getbbox(),name
+          print("PASS: transparent independently editable sprites:",len(m["asset_parts"]))
+          print("GATE: no rig/animation acceptance or playable APK claimed")
+          PY
+      - name: Upload separable candidate files
+        uses: actions/upload-artifact@v4
+        with:
+          name: SP_NPC_Bandit_Male_01_UNAPPROVED_modular_RGBA
+          path: assets/npc_modular/SP_NPC_Bandit_Male_01
+          if-no-files-found: error
+          retention-days: 30
+      - name: Commit genuine build outputs to the isolated feature branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "Survival Paradise NPC Asset Builder"
+          git config user.email "actions@users.noreply.github.com"
+          git add assets/npc_modular/SP_NPC_Bandit_Male_01
+          if git diff --cached --quiet; then
+            echo "SP_BANDIT01_ASSETS_ALREADY_CURRENT"
+            exit 0
+          fi
+          git commit -m "Generate transparent Bandit Male 01 modular candidate; visual rig approval pending"
+          git push origin HEAD:sp-npc-bandit01-modular-qa-20261023
