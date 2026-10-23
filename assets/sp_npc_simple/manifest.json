@@ -19,7 +19,9 @@
   "source_hash": "4b07ad09b86218a5b40fb5e1fdb609a869f44a16cf32028020901b6ecd6a046c",
   "image_hash": "ad5bc3c5a134d8e2fc6b0a395d49f0ce003e9ee09a41d1e31753fef4334f3f14",
   "game_ready": false,
-  "visual_review": "PENDING",
-  "native_qa": "PENDING",
-  "notes": "Use as the exact original player's upper texture on existing sprite. Keep all gait, gun, scale and facing code unchanged."
+  "visual_review": "PENDING_USER_APPROVAL",
+  "native_qa": "PASS_32_FRAMES_EXISTING_PLAYER_RIG_LEFT_AND_RIGHT",
+  "notes": "Use as the exact original player's upper texture on existing sprite. Keep all gait, gun, scale and facing code unchanged.",
+  "native_qa_url": "https://github.com/husam4448-rgb/wanderfall/actions/runs/39956019115",
+  "game_integration": "NOT_YET_INTEGRATED"
 }
