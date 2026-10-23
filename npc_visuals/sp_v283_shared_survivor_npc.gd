@@ -50,7 +50,7 @@ func setup_npc(gender: String, role: String, identity: String, outfit: Dictionar
     sprite.z_index = 0
     add_child(sprite)
     if body_type == "female":
-        sprite.setup_static(body_type, "bandit" if role == "bandit" else "friendly", outfit)
+        sprite.call("setup_static",body_type, "bandit" if role == "bandit" else "friendly", outfit)
         sprite.set_process(false)
     # Shared templates/resources; no duplicate bitmap per NPC.
     sprite.modulate = _palette_for_role(role, identity)
@@ -58,11 +58,11 @@ func setup_npc(gender: String, role: String, identity: String, outfit: Dictionar
     firearm.name = "SharedPlayerFirearmVisual"
     firearm.z_index = 4
     add_child(firearm)
-    firearm.configure_equipped(current_weapon, ItemDatabase.get_category(current_weapon))
+    firearm.call("configure_equipped",current_weapon, ItemDatabase.get_category(current_weapon))
     melee = LEGACY_WEAPON.new()
     melee.z_index = 3
     add_child(melee)
-    melee.setup_static(current_weapon, {"laser":"","light":"","optic":"","muzzle":""})
+    melee.call("setup_static",current_weapon, {"laser":"","light":"","optic":"","muzzle":""})
     _last_facing = Vector2.ZERO
     _last_moving = false
     set_state(Vector2.ZERO, Vector2.RIGHT, 0.05)
@@ -76,28 +76,28 @@ func set_state(motion: Vector2, aim: Vector2, delta: float) -> void:
     if body_type == "male":
         var recovery: bool = float(sprite.get("gait_weight")) > 0.01
         if moving or recovery or _last_moving or changed:
-            sprite.advance(motion, maxf(delta, 0.0), facing.x >= 0.0)
+            sprite.call("advance",motion, maxf(delta, 0.0), facing.x >= 0.0)
             _update_count += 1
         else:
             _idle_skips += 1
     else:
         if moving or changed or _last_moving:
-            sprite.set_motion_state(motion, false, false)
+            sprite.call("set_motion_state",motion, false, false)
             if changed:
-                sprite.set_facing(facing)
+                sprite.call("set_facing",facing)
             _update_count += 1
         else:
             _idle_skips += 1
         sprite.set_process(moving)
-    var gun_visible: bool = firearm != null and String(firearm.weapon_family) != ""
+    var gun_visible: bool = firearm != null and String(firearm.get("weapon_family")) != ""
     if firearm != null:
         firearm.visible = gun_visible
         if changed:
             firearm.position = Vector2(4 if facing.x >= 0.0 else -4, -6)
-            firearm.set_aim_vector(facing)
+            firearm.call("set_aim_vector",facing)
     if melee != null:
         melee.visible = not gun_visible and not current_weapon.is_empty()
         if changed:
-            melee.set_facing(facing)
+            melee.call("set_facing",facing)
     _last_facing = facing
     _last_moving = moving
