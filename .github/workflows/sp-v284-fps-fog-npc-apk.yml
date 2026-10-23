@@ -99,6 +99,7 @@ jobs:
             patches/apply_sp_v284_all_npc_pixel.py
             patches/apply_sp_v284_test_bandit_pixel.py
             patches/adapt_sp_v262_visual_qa_for_v284.py
+            patches/adapt_sp_v281_fps_qa_for_v284.py
             tools/qa_sp_v284_fps_vision_npc.gd
             patches/adapt_sp_v262_visual_qa_for_v283.py
             regions/sp_v278_static_raster_cache.gd
@@ -971,6 +972,7 @@ jobs:
         run: |
           set -euo pipefail
           cp v257_overlay/tools/qa_sp_v281_camp_fps_only.gd "$PROJECT_DIR/sp_v281_qa.gd"
+          python3 v257_overlay/patches/adapt_sp_v281_fps_qa_for_v284.py "$PROJECT_DIR/sp_v281_qa.gd"
           timeout 185s xvfb-run -a -s '-screen 0 1920x1080x24' "$GODOT_BIN" --path "$PROJECT_DIR" --resolution 1064x518 --script res://sp_v281_qa.gd > sp_v281_qa.log 2>&1 || { tail -180 sp_v281_qa.log; exit 1; }
           grep -q SP281_NATIVE_CAP_ONLY_PASS sp_v281_qa.log
           grep -q SP281_NATIVE_CAMP_ACTOR_PASS sp_v281_qa.log
