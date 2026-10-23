@@ -1,0 +1,51 @@
+name: SP280 interior, world-streaming and CPU triage
+on:
+  push:
+    branches: [sp-v280-interior-stream-cpu-20261023]
+    paths: [.github/workflows/sp-v280-interior-audit.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: SP-D2D14-Original-HUD-World-Code
+          repository: husam4448-rgb/wanderfall
+          run-id: 39844425081
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: backup
+      - shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p src
+          tar -xzf backup/SP_D2D14_Original_HUD_World_Source.tar.gz -C src
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("src")
+          patterns=("interior","enter_building","exit_building","enter_structure","exit_structure","building_enter","enter_door","door_enter","building_transition","load_interior","portal","_refresh_chunks","_load_chunk","_process","_physics_process")
+          files=sorted((root/"scripts").rglob("*.gd"))
+          for f in files:
+              ls=f.read_text(errors="replace").splitlines()
+              matches=[(i,l.strip()) for i,l in enumerate(ls,1) if any(p in l.lower() for p in patterns)]
+              if matches:
+                  print("INDEX",f.relative_to(root),len(ls))
+                  for i,l in matches[:48]:print(i, l[:180])
+          for name in ("scripts/world/world_manager.gd","scripts/world/world_chunk.gd","scripts/player.gd","scripts/combat/zombie.gd","scripts/combat/bandit.gd"):
+              f=root/name
+              if not f.exists():continue
+              ls=f.read_text(errors="replace").splitlines()
+              print("SECTION",name,len(ls))
+              if "world_manager" in name:
+                  ranges=[(1,240)]
+              elif "world_chunk" in name:
+                  ranges=[(1,160)]
+              elif "player.gd" in name:
+                  ranges=[(1,90)]
+              else:ranges=[(1,70)]
+              for lo,hi in ranges:
+                  for i in range(lo-1,min(len(ls),hi)):print(f"{i+1}: {ls[i]}")
+          PY
