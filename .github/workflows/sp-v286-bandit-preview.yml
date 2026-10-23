@@ -1,0 +1,59 @@
+name: SP286 original Godot screenshots - bandit crops
+on:
+  push:
+    branches:
+      - sp-v286-npc-anatomy-visual-qa-20261023
+    paths:
+      - .github/workflows/sp-v286-bandit-preview.yml
+permissions:
+  contents: read
+  actions: read
+jobs:
+  bandit-visual-evidence:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          repository: husam4448-rgb/wanderfall
+          run-id: 39940744654
+          name: SP286-PreAPK-Human-Visual-Gate
+          github-token: \${{ secrets.GITHUB_TOKEN }}
+          path: screenshots
+      - run: python3 -m pip install --quiet Pillow
+      - name: Crop actual Godot bandits 4x nearest neighbour, preserving pixel art
+        run: |
+          python3 - <<'PY'
+          from PIL import Image,ImageDraw
+          from pathlib import Path
+          import base64
+          poses=['idle','walk','aim','aim_left']
+          preview=Image.new('RGB',(1200,850),(32,39,38))
+          p=ImageDraw.Draw(preview)
+          p.text((20,12),'SURVIVAL PARADISE v286 - REAL GODOT BANDITS - NOT AI-GENERATED',fill=(240,240,224))
+          p.text((20,35),'Unedited game-rendered pixel art. Cropped and scaled by nearest-neighbour only.',fill=(177,186,182))
+          for col,pose in enumerate(poses):
+              matches=list(Path('screenshots').rglob('sp286_qa_'+pose+'.png'))
+              if len(matches)!=1:raise RuntimeError('Missing unique real render '+pose+': '+str(matches))
+              img=Image.open(matches[0]).convert('RGB')
+              print('SOURCE',pose, str(matches[0]), img.size)
+              assert img.size[0]>=1100 and img.size[1]>=550
+              for row,(gender,rect) in enumerate((('MALE',(684,75,791,196)),('FEMALE',(684,292,791,414)))):
+                  crop=img.crop(rect)
+                  crop=crop.resize((268,304),Image.Resampling.NEAREST)
+                  x=17+col*297
+                  y=95+row*374
+                  preview.paste(crop,(x,y))
+                  p.text((x+9,y-21),gender+' BANDIT | '+pose.upper(),fill=(238,232,210))
+          out=Path('sp286_original_godot_bandits.png')
+          preview.save(out,optimize=True)
+          assert out.stat().st_size>10000
+          print('SP286_AUTHENTIC_BANDIT_CROPS_BEGIN')
+          print(base64.b64encode(out.read_bytes()).decode('ascii'))
+          print('SP286_AUTHENTIC_BANDIT_CROPS_END')
+          print('SP286_CROPPED_SCREENSHOTS_PASS',out.stat().st_size)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SP286-Authentic-Bandit-Preview
+          path: sp286_original_godot_bandits.png
+          retention-days: 21
