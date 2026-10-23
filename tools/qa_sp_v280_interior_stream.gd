@@ -33,7 +33,7 @@ func _run() -> void:
     if player == null or world == null or region == null:
         _fail("live actor, region or world missing")
         return
-    if not bool(region.overlay.visible):
+    if not bool((region.get("overlay") as CanvasItem).visible):
         _fail("exterior directional sight unexpectedly hidden")
         return
     var outside: Vector2 = player.global_position
@@ -56,7 +56,7 @@ func _run() -> void:
     if player.global_position.distance_to(inside_pos) > 4.0:
         _fail("regional exterior gates clamped player out of room")
         return
-    if bool(region.overlay.visible):
+    if bool((region.get("overlay") as CanvasItem).visible):
         _fail("exterior visibility shader still hides indoor floor")
         return
     var exit_portal: Node = null
@@ -81,7 +81,7 @@ func _run() -> void:
     if player.global_position.distance_to(outside) > 8.0:
         _fail("return destination changed unexpectedly")
         return
-    if not bool(region.overlay.visible):
+    if not bool((region.get("overlay") as CanvasItem).visible):
         _fail("outdoor sight did not recover after leaving interior")
         return
     # Reproduce v279 stranded-position save: floor remains POI but player was
@@ -96,7 +96,7 @@ func _run() -> void:
     # Ordinary movement queues only newly revealed neighbor chunks.
     player.global_position = Vector2(800.0,-3070.0)
     world.call("_refresh_chunks",true)
-    if int(world.get_active_chunk_count()) < 1:
+    if int(world.call("get_active_chunk_count")) < 1:
         _fail("initial forced world contents missing")
         return
     player.global_position = Vector2(1050.0,-3070.0)
@@ -109,7 +109,7 @@ func _run() -> void:
     if not (world.get("_sp280_stream_queue") as Array).is_empty():
         _fail("paced neighbor streaming did not finish")
         return
-    if int(world.get_active_chunk_count()) > 9:
+    if int(world.call("get_active_chunk_count")) > 9:
         _fail("world expanded beyond 3x3 bounds")
         return
     print("SP280_NATIVE_INTERIOR_PASS room interior stays at "+str(inside_pos)+", exterior fog hidden, exit within reach, full return and v279 save recovery")
