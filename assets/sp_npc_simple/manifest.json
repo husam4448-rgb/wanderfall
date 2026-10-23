@@ -1,0 +1,25 @@
+{
+  "id": "SP_NPC_Bandit_Male_01",
+  "classification": "64x96 visual skin replacement, not new humanoid",
+  "reference": "melee-six-prototype/assets/approved_clean_torso_right.png",
+  "actual_godot_sprite": "res://assets/sp_melee/SurvivorWalkSprite.gd",
+  "npc_adapter": "npc_visuals/sp_v286_anatomical_roles.gd",
+  "upper_texture": "res://assets/sp_npc_simple/sp_simple_bandit_male_01.png",
+  "size": [
+    64,
+    96
+  ],
+  "silhouette_alpha_identical": true,
+  "left_facing": "existing negative x scale",
+  "new_rig_bones": 0,
+  "new_leg_art": 0,
+  "new_motion_code": false,
+  "unchanged_source_legs": true,
+  "pixel_changes": 1351,
+  "source_hash": "4b07ad09b86218a5b40fb5e1fdb609a869f44a16cf32028020901b6ecd6a046c",
+  "image_hash": "dd4dac41c6a6f0a812a4d43f07f46effc4102ab6d0ff0fe7ec9846f6033d8f8e",
+  "game_ready": false,
+  "visual_review": "PENDING",
+  "native_qa": "PENDING",
+  "notes": "Use as the exact original player's upper texture on existing sprite. Keep all gait, gun, scale and facing code unchanged."
+}
