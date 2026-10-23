@@ -96,9 +96,13 @@ func _run() -> void:
             else:
                 label = ROLES[col-1].to_upper()
                 specimen = human_script.new()
-            _layer.add_child(specimen)
-            specimen.position = Vector2(x,y)
-            specimen.scale = Vector2(2.18,2.18)
+            # SurvivorWalkSprite.advance() changes its own local y position,
+            # so a separate fixed anchor is required for fair player/NPC QA.
+            var anchor: Node2D = Node2D.new()
+            _layer.add_child(anchor)
+            anchor.position = Vector2(x,y)
+            anchor.scale = Vector2(2.18,2.18)
+            anchor.add_child(specimen)
             if col != 0:
                 specimen.call("setup_npc",sex,ROLES[col-1],("VisualQA_%s_%s" % [sex, ROLES[col-1]]),{}, "")
                 _actors.append(specimen)
@@ -123,5 +127,17 @@ func _run() -> void:
             gun.call("configure_equipped","assault_rifle","firearm")
         a.call("set_state",Vector2.ZERO,Vector2(0.96,-0.28),0.05)
     await _capture("aim")
+    # Complete reverse-facing check, not just instant mirror: hysteresis
+    # requires a sustained left intent; stand and walk left separately.
+    for i in range(12):
+        for a in _actors:
+            a.call("set_state", Vector2.ZERO, Vector2.LEFT, 0.05)
+        await process_frame
+    await _capture("aim_left")
+    for i in range(9):
+        for a in _actors:
+            a.call("set_state", Vector2(-115,0), Vector2.LEFT, 0.05)
+        await process_frame
+    await _capture("walk_left")
     print("SP286_NATIVE_REAL_GODOT_RENDER_PASS real camp frame + male/female idle/walk/aim contact sheets captured for human visual inspection")
     quit(0)
