@@ -38,3 +38,21 @@ static func target(foot_rest:Vector2,phase:float,stride:float=8.0,lift:float=4.0
         dx=stride*(eased-0.5)
         dy=-lift*sin(PI*u)
     return foot_rest+Vector2(dx,dy)
+
+# PC56 reference-inspired gait: compact, alternating planted/swing phases.
+# No new visual art or independent ankle sprites are claimed.
+static func reference_target(foot_rest:Vector2,phase:float,stride:float=13.0,lift:float=5.8)->Vector2:
+    var t:float=fposmod(phase,1.0)
+    var stance_fraction:float=0.56
+    var dx:float=0.0
+    var dy:float=0.0
+    if t < stance_fraction:
+        # Linear support travel compensates against actual world-root movement
+        # once the game integrates this gait at a matched movement speed.
+        dx = stride*(0.5-t/stance_fraction)
+    else:
+        var u:float=(t-stance_fraction)/(1.0-stance_fraction)
+        var smooth:float=u*u*(3.0-2.0*u)
+        dx = stride*(smooth-0.5)
+        dy = -lift*pow(maxf(0.0,sin(PI*u)),1.15)
+    return foot_rest+Vector2(dx,dy)
