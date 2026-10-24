@@ -407,8 +407,8 @@ func _pc53_walk_pose(frame:int) -> void:
         var knee:Vector2=result["knee"]
         print("PC53_IK_FRAME %02d %s knee_x=%.4f hip_deg=%.4f shin_deg=%.4f" % [frame,names[i],knee.x,rad_to_deg(thigh.rotation),rad_to_deg(shin.rotation)])
         print("PC54_FOOT_FRAME %02d %s target_x=%.3f target_y=%.3f residual=%.3f" % [frame,names[i],foot.x,foot.y,float(result["target_residual"])])
+        var step_state:String="STANCE" if stance else "SWING"
         if use_reference_gait:
-            var step_state:String="STANCE" if stance else "SWING"
             print("PC56_GAIT_FRAME %02d %s state=%s ankle_x=%.3f ankle_y=%.3f reach_residual=%.3f" % [frame,names[i],step_state,foot.x,foot.y,float(result["target_residual"])])
         if pc57_mode:
             var boot:Bone2D=pc42_bones[names[i]+"_boot"]
