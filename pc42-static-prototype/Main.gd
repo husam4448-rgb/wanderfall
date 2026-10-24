@@ -375,8 +375,8 @@ func _pc53_walk_pose(frame:int) -> void:
         # This is real advancing root motion, with the camera-like crop
         # following the actor in the visual QA GIF. The stance foot moves
         # backward by the same amount in local space, so its WORLD heel stays.
-        bob=0.36*(1.0-cos(2.0*TAU*phase))
-        root_x=(9.0/0.56)*phase
+        bob=0.42*(1.0-cos(2.0*TAU*phase))
+        root_x=(12.0/0.56)*phase
         pc42_skeleton.position=CENTER+SCALE*Vector2(root_x,bob)
     else:
         pc42_skeleton.position=CENTER
@@ -388,7 +388,7 @@ func _pc53_walk_pose(frame:int) -> void:
         var stance:bool=normalized<0.56
         var foot:Vector2
         if pc57_mode:
-            foot=PC53LegIK.reference_target(ankles[i],leg_phase,9.0,4.2)
+            foot=PC53LegIK.reference_target(ankles[i],leg_phase,12.0,7.5)
             if stance:
                 foot.y -= bob
         elif use_reference_gait:
@@ -524,7 +524,7 @@ func _pc42c_capture_full_test() -> void:
         get_tree().quit(57)
         return
     if pc57_test:
-        print("PC57_SOURCE_ANKLE_CONTACT_READY real_Skeleton2D boots_separate=2 walk_frames=32 gait_stride=9")
+        print("PC57_SOURCE_ANKLE_CONTACT_READY real_Skeleton2D boots_separate=2 walk_frames=32 gait_stride=12")
     if pc56_test and not (walk_test and pc53_test):
         push_error("PC56 requires both authentic-source walk and two-bone IK test modes")
         get_tree().quit(56)
