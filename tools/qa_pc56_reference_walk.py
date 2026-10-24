@@ -24,8 +24,15 @@ for leg in ("front","back"):
     assert all(math.hypot(xs[(i+1)%32]-xs[i],ys[(i+1)%32]-ys[i])<4.0 for i in range(32)), "Cycle boundary/jump discontinuity"
     assert {"STANCE","SWING"} == {r[0] for r in samples}
     report[leg]={"ankle_horizontal_range_px":round(stride,2),"swing_lift_px":round(lift,2),"max_reach_clamp_residual_px":round(max(row[3] for row in samples),3)}
+# Brief double-support contact is intentional (56% stance duty cycle).
+double_support = 0
 for i in range(32):
-    assert records[(i,"front")][0] != records[(i,"back")][0], f"Both feet share stance/swing phase at frame {i}"
+    states = {records[(i,"front")][0], records[(i,"back")][0]}
+    assert states != {"SWING"}, f"Both feet airborne at frame {i}"
+    if states == {"STANCE"}:
+        double_support += 1
+assert 2 <= double_support <= 6, f"Unexpected double-support frames: {double_support}"
+report["double_support_frames"] = double_support
 imgs=[Image.open(p/f"pc42c_motion_{i:02d}.png").convert("RGB") for i in range(32)]
 assert all(im.size==(1580,660) for im in imgs)
 frames=[im.crop((534,82,1006,590)) for im in imgs]
