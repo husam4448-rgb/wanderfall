@@ -1,0 +1,78 @@
+name: Survival Paradise — Player A equipment palette outfits
+
+on:
+  push:
+    branches: [sp-playerA-equipment-palette-skins-20261024]
+    paths:
+      - tools/build_sp_playerA_equipment_skins.py
+      - .github/workflows/sp-playerA-equipment-skins.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  eight-exact-outfits:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          sparse-checkout: |
+            tools/build_sp_playerA_equipment_skins.py
+            assets/sp_player_a_preview/SP_Player_A_10x12_Walk_Sprite_Strip.png
+            .github/workflows/sp-playerA-equipment-skins.yml
+      - name: Build 8 equipment skins (64 transparent frames), preview and GIF
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pillow
+          python3 tools/build_sp_playerA_equipment_skins.py
+      - name: Strict pixel mask and gear color QA
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import json
+          root=Path("assets/sp_player_a_equipment_skins")
+          m=json.loads((root/"manifest.json").read_text())
+          assert len(m["outfits"])==8
+          assert m["each_character_resolution"]==[10,12]
+          assert m["same_pose_silhouette_as_player"] and m["outline_unchanged"]
+          src=Image.open(m["source"]).convert("RGBA")
+          original_frames=[src.crop((i*10,0,i*10+10,12)) for i in range(8)]
+          for s in m["outfits"]:
+              name=s["id"]
+              assert all([s["opaque_pixels_exact"],s["black_outline_exact"],s["alpha_exact"]])
+              art=Image.open(root/name/"8_frames_RGBA.png").convert("RGBA")
+              assert art.size==(80,12)
+              for i in range(8):
+                  variant=art.crop((i*10,0,i*10+10,12))
+                  source=original_frames[i]
+                  assert variant.getchannel("A").tobytes()==source.getchannel("A").tobytes()
+                  assert all((a==(0,0,0,255))==(b==(0,0,0,255)) for a,b in zip(source.getdata(),variant.getdata()))
+                  assert (root/name/f"walk_{i:02d}.png").exists()
+              assert (root/name/"walk.gif").exists()
+          assert len(list(root.glob("*/walk_??.png")))==64
+          assert (root/"SP_Equipment_Skins_8_Outfits_RGBA_Pack.zip").exists()
+          print("PASS: 8 costumed roles x 8 frames, absolutely same A silhouette and black border")
+          PY
+      - name: Commit browser-viewable art pack
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "Survival Paradise Equipment Assets QA"
+          git config user.email "actions@users.noreply.github.com"
+          git add --sparse assets/sp_player_a_equipment_skins/
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish eight Player A equipment skins and identical silhouette previews"
+            git push origin HEAD:sp-playerA-equipment-palette-skins-20261024
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SP_Player_A_8_Equipment_Styles_10x12
+          path: assets/sp_player_a_equipment_skins/
+          retention-days: 30
