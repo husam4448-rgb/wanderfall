@@ -1,0 +1,97 @@
+name: PC57 Ankle Bones World Heel Contact Native Godot QA
+on:
+  push:
+    branches: [pc57-source-boot-ankle-contact]
+    paths:
+      - '.github/workflows/pc57-ankle-contact.yml'
+      - 'pc42-static-prototype/Main.gd'
+      - 'tools/qa_pc42s_walk.py'
+      - 'tools/qa_pc57_ankle_contact.py'
+      - 'pc42-static-prototype/pc53_leg_ik.gd'
+      - 'tools/pc57_split_source_boots.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+  actions: read
+env:
+  SP_PHASE: PC57_SOURCE_BOOT_ANKLE_WORLD_CONTACT
+  GODOT_BIN: /tmp/Godot_v4.7.2-stable_linux.x86_64
+jobs:
+  actual-character-idle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Report idle animation started
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 tools/sp_ci_monitor.py emit STARTED "PC57 source-pixel-exact boot separation, true ankle Bone2D and measurable planted heel movement." || true
+      - name: Reconstruct genuine source textures
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pillow numpy opencv-python-headless
+          python3 -m py_compile tools/qa_pc57_ankle_contact.py
+          python3 tools/pc42_reference_cutout.py
+          python3 tools/pc42h_articulated_arm_atlas.py
+          python3 tools/pc57_split_source_boots.py | tee pc57-assets.log
+          grep -q PC57_SOURCE_BOOT_SPLIT_EXACT pc57-assets.log
+          test -s pc42-static-prototype/assets/approved_reference_panel.png
+      - name: Report original art prepared
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 tools/sp_ci_monitor.py emit SOURCE_READY "Original character and weapon artwork prepared; no fake magazine or extra hand pixels generated." || true
+      - name: Download pinned Godot
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip" | sha256sum -c -
+          unzip -q /tmp/godot.zip -d /tmp
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb >/dev/null
+      - name: Compile real Godot skeleton
+        run: |
+          "$GODOT_BIN" --headless --editor --path pc42-static-prototype --quit >pc42s-import.log 2>&1
+          if grep -E 'SCRIPT ERROR|Parse Error|Compile Error' pc42s-import.log; then cat pc42s-import.log; exit 1; fi
+      - name: Report Godot compiled
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 tools/sp_ci_monitor.py emit GODOT_COMPILED "PC57 actual Godot parse passed. Capturing 32 frames with independent boots and world-space heel data." || true
+      - name: Real Godot 32-frame alternating gait
+        run: |
+          set -euo pipefail
+          mkdir -p pc42-static-prototype/evidence
+          PC57_ANKLE_CONTACT_TEST=1 PC56_REFERENCE_GAIT_TEST=1 PC53_IK_WALK_TEST=1 PC42N_SOURCE_FIRST_PREVIEW=1 PC42S_WALK_TEST=1 PC42C_CAPTURE=1 timeout 160s xvfb-run -a "$GODOT_BIN" --path pc42-static-prototype --resolution 1580x660 >pc57-native-walk.log 2>&1
+          grep -q 'PC42S_ORIGINAL_SOURCE_GAIT_READY' pc57-native-walk.log
+          grep -q 'PC42C_REAL_IK_CONTACT_SWEEP_OK' pc57-native-walk.log
+          grep -q 'PC53_ORIGINAL_SOURCE_TWO_BONE_IK_READY' pc57-native-walk.log
+          grep -q 'PC57_SOURCE_ANKLE_CONTACT_READY' pc57-native-walk.log
+          python3 tools/qa_pc57_ankle_contact.py
+      - name: Report animation evidence
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 tools/sp_ci_monitor.py emit VISUAL_QA_PENDING "PC57 real 32-frame Godot GIF and boot/heel contact report captured; independent visual review pending." || true
+      - name: Preserve real captures even when failed
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SP-PC57-Ankle-Heel-Contact-${{ github.sha }}
+          path: |
+            pc42-static-prototype/evidence/
+            pc42s-*.log
+            pc57-*.log
+          retention-days: 14
+      - name: Final verified status
+        if: always()
+        env:
+          GH_STATUS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            python3 tools/sp_ci_monitor.py emit COMPLETED "PC57 Godot 32-frame ankle split/heel test passed; visual approval and APK integration pending." || true
+          else
+            python3 tools/sp_ci_monitor.py emit FAILED "PC57 native gait test failed; original production assets and PC56 baseline untouched." || true
+          fi
