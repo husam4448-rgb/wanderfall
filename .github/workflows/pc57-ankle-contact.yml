@@ -1,7 +1,7 @@
 name: PC57 Ankle Bones World Heel Contact Native Godot QA
 on:
   push:
-    branches: [pc57-source-boot-ankle-contact]
+    branches: [pc57b-natural-stride-swing]
     paths:
       - '.github/workflows/pc57-ankle-contact.yml'
       - 'pc42-static-prototype/Main.gd'
