@@ -51,6 +51,6 @@ for n,frame_idx in enumerate(range(0,32,4)):
     drawer.text((px+9,py+4),f"PC57 native Godot frame {frame_idx:02d}",fill="#e4e4e4")
     sheet.paste(frames[frame_idx],(px,py+25))
 sheet.save(p/"PC57_MALE_RIGHT_EIGHT_POSES.png")
-report={"status":"EXPERIMENTAL","technical_verdict":"PASS","visual_verdict":"UNREVIEWED","source_art":"original RGB/alpha preserved exactly","male_right_frames":32,"tracked_root_distance_source_px":round(9/.56,3),"ankle_bones":2,"max_ik_reach_clamp_source_px":round(max(all_clamps),3),"heel_world_contact_ranges":drifts,"art_limitations":["boot cutouts have no concealed underpaint at cuffs", "male LEFT and both female directions not integrated", "game Android APK not built"]}
+report={"status":"EXPERIMENTAL","technical_verdict":"PASS","visual_verdict":"UNREVIEWED","source_art":"original RGB/alpha preserved exactly","male_right_frames":32,"tracked_root_distance_source_px":round(12/.56,3),"ankle_bones":2,"max_ik_reach_clamp_source_px":round(max(all_clamps),3),"heel_world_contact_ranges":drifts,"art_limitations":["boot cutouts have no concealed underpaint at cuffs", "male LEFT and both female directions not integrated", "game Android APK not built"]}
 (p/"PC57_NATIVE_GAIT_REPORT.json").write_text(json.dumps(report,indent=2)+"\n")
 print("PC57_REAL_GODOT_ANATOMIC_FOOT_TEST_PASS "+json.dumps(report))
