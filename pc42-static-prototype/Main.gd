@@ -358,13 +358,19 @@ func _pc53_walk_pose(frame:int) -> void:
     # True target-driven 2-bone IK on the approved male RIGHT source leg bones.
     # Rest pivots are measured from our original authored sprite segmentation.
     var phase:float=float(frame)/32.0
+    var use_reference_gait:bool=OS.get_environment("PC56_REFERENCE_GAIT_TEST") == "1"
     var hips:Array[Vector2]=[Vector2(88,160),Vector2(132,155)]
     var knees:Array[Vector2]=[Vector2(79,182),Vector2(131,184)]
     var ankles:Array[Vector2]=[Vector2(84,241),Vector2(138,224)]
     var names:Array[String]=["front","back"]
     pc42_skeleton.position=CENTER
+    if use_reference_gait:
+        # Small, double-frequency vertical transfer; weapon and hands move
+        # with the entire Skeleton2D to preserve the two-grip solver.
+        pc42_skeleton.position.y += 0.42*(1.0-cos(2.0*TAU*phase))
     for i in range(2):
-        var foot:Vector2=PC53LegIK.target(ankles[i],phase+0.5*float(i),22.0,11.0)
+        var leg_phase:float=phase+0.5*float(i)
+        var foot:Vector2=PC53LegIK.reference_target(ankles[i],leg_phase) if use_reference_gait else PC53LegIK.target(ankles[i],leg_phase,22.0,11.0)
         var result:Dictionary=PC53LegIK.solve(hips[i],knees[i],ankles[i],foot,1.0)
         if not bool(result["valid"]):
             push_error("PC53_UNREACHABLE frame=%d leg=%s" % [frame,names[i]])
@@ -377,6 +383,9 @@ func _pc53_walk_pose(frame:int) -> void:
         var knee:Vector2=result["knee"]
         print("PC53_IK_FRAME %02d %s knee_x=%.4f hip_deg=%.4f shin_deg=%.4f" % [frame,names[i],knee.x,rad_to_deg(thigh.rotation),rad_to_deg(shin.rotation)])
         print("PC54_FOOT_FRAME %02d %s target_x=%.3f target_y=%.3f residual=%.3f" % [frame,names[i],foot.x,foot.y,float(result["target_residual"])])
+        if use_reference_gait:
+            var step_state:String="STANCE" if fposmod(leg_phase,1.0)<0.56 else "SWING"
+            print("PC56_GAIT_FRAME %02d %s state=%s ankle_x=%.3f ankle_y=%.3f reach_residual=%.3f" % [frame,names[i],step_state,foot.x,foot.y,float(result["target_residual"])])
     # Boots are presently embedded in the shin artwork; do not falsely
     # claim planted heel/toe or release-ready ankle articulation.
 
@@ -471,6 +480,13 @@ func _pc42c_capture_full_test() -> void:
     var reload_setup: bool = OS.get_environment("PC42R_RELOAD_SETUP_TEST") == "1"
     var walk_test: bool = OS.get_environment("PC42S_WALK_TEST") == "1"
     var pc53_test:bool = OS.get_environment("PC53_IK_WALK_TEST") == "1"
+    var pc56_test:bool = OS.get_environment("PC56_REFERENCE_GAIT_TEST") == "1"
+    if pc56_test and not (walk_test and pc53_test):
+        push_error("PC56 requires both authentic-source walk and two-bone IK test modes")
+        get_tree().quit(56)
+        return
+    if pc56_test:
+        print("PC56_REFERENCE_GAIT_READY male_right true_Bone2D alternating_32_frames stride_13px lift_5_8px upper_body_stable")
     if walk_test and pc53_test:
         print("PC53_ORIGINAL_SOURCE_TWO_BONE_IK_READY")
     if walk_test:
