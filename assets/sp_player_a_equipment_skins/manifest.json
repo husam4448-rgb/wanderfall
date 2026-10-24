@@ -1,0 +1,155 @@
+{
+  "schema": "SP_PLAYER_A_EQUIPMENT_SKINS_V1",
+  "source": "assets/sp_player_a_preview/SP_Player_A_10x12_Walk_Sprite_Strip.png",
+  "source_sha256": "173a9e7b3750af1b6aac24c198eb8ad4315cccd63e42a783c9256e7253a36de9",
+  "each_character_resolution": [
+    10,
+    12
+  ],
+  "asset_role": "equipment-dependent palette texture swap",
+  "outfits": [
+    {
+      "id": "leather_jacket",
+      "label": "Leather jacket",
+      "category": "rugged coat",
+      "headgear": "none",
+      "visible_gear": "crossbody strap",
+      "frames": 8,
+      "dimensions": [
+        10,
+        12
+      ],
+      "colors": 11,
+      "opaque_pixels_exact": true,
+      "black_outline_exact": true,
+      "alpha_exact": true,
+      "sprite_sha256": "e6d1dcc2ba4f7f4a9a3b6859863ee4e342d43272b67a6b31b4958ac7895d505c"
+    },
+    {
+      "id": "scavenger_vest",
+      "label": "Scavenger vest",
+      "category": "multi-pocket field vest",
+      "headgear": "none",
+      "visible_gear": "side pouch and strap",
+      "frames": 8,
+      "dimensions": [
+        10,
+        12
+      ],
+      "colors": 11,
+      "opaque_pixels_exact": true,
+      "black_outline_exact": true,
+      "alpha_exact": true,
+      "sprite_sha256": "0ab10165d084be505dc86b70fb998b2992070bc68e6d27133d6786e325b8aa3e"
+    },
+    {
+      "id": "guard_armor",
+      "label": "Guard armor",
+      "category": "steel-grey vest and helmet",
+      "headgear": "helmet",
+      "visible_gear": "plated vest",
+      "frames": 8,
+      "dimensions": [
+        10,
+        12
+      ],
+      "colors": 10,
+      "opaque_pixels_exact": true,
+      "black_outline_exact": true,
+      "alpha_exact": true,
+      "sprite_sha256": "20606c60994f9bac7b5eb95cb5ea6b26638204dd72dceb991c6448fd7fbfdb8c"
+    },
+    {
+      "id": "medic_uniform",
+      "label": "Medic uniform",
+      "category": "medical tunic",
+      "headgear": "none",
+      "visible_gear": "red medical insignia",
+      "frames": 8,
+      "dimensions": [
+        10,
+        12
+      ],
+      "colors": 11,
+      "opaque_pixels_exact": true,
+      "black_outline_exact": true,
+      "alpha_exact": true,
+      "sprite_sha256": "c057841f4a4889060ffe16093409183efcfbbd6d7d51ca9e11a131778889efbd"
+    },
+    {
+      "id": "mechanic_coverall",
+      "label": "Mechanic suit",
+      "category": "tool-pocket coveralls",
+      "headgear": "none",
+      "visible_gear": "utility belt and buckle",
+      "frames": 8,
+      "dimensions": [
+        10,
+        12
+      ],
+      "colors": 11,
+      "opaque_pixels_exact": true,
+      "black_outline_exact": true,
+      "alpha_exact": true,
+      "sprite_sha256": "1a858b2737529cbcd3e08efcf8fda9d130ff3415399af41f8b775a9b6e7e3dc1"
+    },
+    {
+      "id": "hazmat_suit",
+      "label": "Hazmat suit",
+      "category": "sealed yellow protection",
+      "headgear": "hood",
+      "visible_gear": "face filter and sealed seam",
+      "frames": 8,
+      "dimensions": [
+        10,
+        12
+      ],
+      "colors": 11,
+      "opaque_pixels_exact": true,
+      "black_outline_exact": true,
+      "alpha_exact": true,
+      "sprite_sha256": "ab4da6221bfddfd3c0a39595a0129ab0942397173553ea815bc7dc52d7c87e67"
+    },
+    {
+      "id": "winter_coat",
+      "label": "Winter coat",
+      "category": "blue padded cold-weather outfit",
+      "headgear": "hood",
+      "visible_gear": "fur collar and zipped coat",
+      "frames": 8,
+      "dimensions": [
+        10,
+        12
+      ],
+      "colors": 11,
+      "opaque_pixels_exact": true,
+      "black_outline_exact": true,
+      "alpha_exact": true,
+      "sprite_sha256": "3edcca146899630fe62afd9c130f31f3c1ad4e74f8e526b981c49f8ce7e6743a"
+    },
+    {
+      "id": "desert_ranger",
+      "label": "Desert ranger",
+      "category": "sand-colored desert uniform",
+      "headgear": "helmet",
+      "visible_gear": "bandolier and belt buckle",
+      "frames": 8,
+      "dimensions": [
+        10,
+        12
+      ],
+      "colors": 11,
+      "opaque_pixels_exact": true,
+      "black_outline_exact": true,
+      "alpha_exact": true,
+      "sprite_sha256": "76eca595dd57a8e46d9e0a0828a1d95b57d3d0b86e31cfe5885040a48b7e8c56"
+    }
+  ],
+  "same_pose_silhouette_as_player": true,
+  "outline_unchanged": true,
+  "no_extra_pixels": true,
+  "no_added_hands": true,
+  "note": "10x12 pixels permits recognizable palettes, helmets and 1-pixel uniform insignia, not detailed backpacks or complex equipment. Heavy gear would need a larger approved sprite.",
+  "game_integration": "NOT_YET_INTEGRATED",
+  "visual_approval": "PREVIEW_PENDING_USER_REVIEW"
+}
