@@ -71,6 +71,90 @@
 .canvas-edit-help{font-size:11px;line-height:1.35;color:#b8d9cf;background:#162a2b;border:1px solid #32534f;padding:7px 9px;border-radius:6px}
 .canvas-edit-help.active{color:#c5f2dc;background:#1c3a32;border-color:#78b89f}
 @media(max-width:395px){.canvas-edit-line button{font-size:11px;min-height:40px}}
+
+/* Pixel Forge 0.4 — touch-oriented studio shell */
+html, body {height:100%;width:100%;overflow:hidden;overscroll-behavior:none}
+.shell {height:100dvh;min-height:0;max-width:none;width:100%;overflow:hidden}
+.header {height:49px;min-height:49px;padding:5px 10px;z-index:4;position:relative}
+.brandmark {font-size:21px;padding:3px 6px}
+.brand strong{font-size:14px}
+.brand small{font-size:8px;letter-spacing:.65px}
+.head-actions {align-items:center}
+.head-actions button{min-height:36px}
+#layoutReset{font-size:16px}
+.workspace {display:flex;flex:1;min-height:0;overflow:hidden}
+.editor {display:flex;flex-direction:column;flex:1;min-height:0;min-width:0;padding:4px 6px 6px;gap:4px;background:#0b1417}
+.info-bar {height:21px;min-height:21px;padding:0 4px;z-index:1}
+.stage-container,.stage-container.stage-container {position:relative;flex:1;min-height:0;height:auto;min-width:0;overflow:hidden;border:1px solid #607574;border-radius:10px;background:#d2d6d6;touch-action:none}
+.stage-footer{bottom:7px;font-size:9px;left:9px;right:9px}
+.studio-nav{height:57px;min-height:57px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;padding:5px 5px calc(5px + env(safe-area-inset-bottom));background:#122024;border-top:1px solid #31504e;z-index:15}
+.studio-nav button{min-width:0;min-height:41px;padding:3px 0;display:flex;flex-direction:column;align-items:center;justify-content:center;border-color:#365451;font-size:10px;gap:2px;color:#c9dcd5;background:#203139}
+.studio-nav button b{font-size:18px;font-weight:400}
+.studio-nav button.active {border-color:#84d7bf;color:#bafce0;background:#275249}
+.studio-sheet{position:fixed;left:7px;right:7px;bottom:calc(60px + env(safe-area-inset-bottom));height:min(45dvh,390px);min-height:180px;z-index:31;display:flex;flex-direction:column;overflow:hidden;border:1px solid #6fa697;border-radius:12px;background:#17262b;box-shadow:0 12px 40px #000b;touch-action:manipulation}
+.studio-sheet[hidden]{display:none!important}
+.sheet-head{height:37px;min-height:37px;display:flex;align-items:center;gap:7px;padding:3px 6px 3px 12px;background:#29423e;border-bottom:1px solid #4b8376;touch-action:none;user-select:none}
+.sheet-head strong{flex:1;font-size:11px;letter-spacing:1.1px;color:#e5fff4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sheet-head button{min-height:26px;height:26px;font-size:11px;padding:0 7px;color:#e0fff5;border-color:#5d9488;background:#294e46}
+.sheet-content{overflow:auto;overscroll-behavior:contain;min-height:0;flex:1;padding:7px;scrollbar-width:thin}
+.studio-sheet.floating{bottom:auto;right:auto;min-width:220px;min-height:148px;border-color:#9dbf96}
+.studio-sheet.floating .sheet-head{cursor:grab}
+.studio-sheet.floating .sheet-head:active{cursor:grabbing}
+.studio-sheet .pf-grip{position:absolute;bottom:0;right:0;width:26px;height:26px;z-index:2;touch-action:none;cursor:nwse-resize;display:none;align-items:end;justify-content:end;color:#a1eed1;background:linear-gradient(135deg,transparent 35%,#3b6d5b 38%,#2e554d);border-radius:5px 0 10px 0;font-size:18px;padding-right:2px}
+.studio-sheet.floating .pf-grip{display:flex}
+.studio-sheet.ui-locked .pf-grip{display:none}
+.studio-sheet.ui-locked .sheet-head{cursor:default}
+.studio-sheet .tool-bar{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));overflow:visible;gap:5px;padding:4px 0 9px}
+.studio-sheet .tool{width:auto;min-width:0;min-height:53px}
+.studio-sheet .selection-bar{flex-wrap:wrap;overflow:visible}
+.studio-sheet .selection-bar button{flex:1 0 73px}
+.studio-sheet .sidebar{display:flex;width:100%;border:0;min-height:0;height:auto;background:none}
+.studio-sheet .sidebar .asset-strip{max-height:165px;grid-template-columns:repeat(auto-fill,minmax(68px,1fr));overflow:auto}
+.studio-sheet .sidebar .layers{max-height:260px;min-height:118px;overflow-y:auto;flex:auto}
+.studio-sheet .properties{padding:9px}
+.studio-sheet .timeline{padding:7px;background:none;border:0}
+.studio-sheet .bottom{display:flex;flex-wrap:wrap;border:0;background:none;padding:5px 0;gap:5px}
+.studio-sheet .bottom span{display:none}
+.studio-sheet .bottom button{flex:1}
+.studio-sheet .pointer-bar{display:grid;grid-template-columns:1fr 1fr}
+.studio-sheet .editor-setting-line{gap:5px}
+.studio-sheet .canvas-edit-help{margin:5px 0}
+.studio-sheet .color-advanced{margin:8px 0}
+.studio-sheet .palette{grid-auto-columns:26px;grid-template-rows:repeat(3,26px);max-height:95px}
+.studio-sheet .palette .swatch{width:25px;height:25px;min-height:25px}
+.pf-section-title{color:#77cbb7;font-size:10px;font-weight:700;letter-spacing:1.3px;margin:10px 0 6px;display:block}
+.pf-section-title:first-child{margin-top:1px}
+.pf-settings-note{font-size:11px;line-height:1.5;color:#aac8bd;margin:8px 0}
+.pf-visibility-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin:7px 0}
+.pf-visibility-grid label{font-size:11px;display:flex;align-items:center;gap:7px;padding:8px;border:1px solid #355950;border-radius:7px;background:#21363a;color:#e0eee8}
+.pf-visibility-grid input{accent-color:#7de0c0;width:18px;height:18px}
+.pf-wide-button{padding:0 12px;min-height:36px;background:#2d574b;border-color:#76a591}
+.pf-widget{position:fixed;z-index:20;display:flex;flex-direction:column;min-width:58px;min-height:54px;overflow:hidden;background:#20333adf;border:1px solid #618b85;border-radius:11px;box-shadow:0 5px 17px #041013b8;touch-action:none}
+.pf-widget[hidden]{display:none!important}
+.pf-widget .pf-widget-head{height:23px;min-height:23px;display:flex;justify-content:space-between;align-items:center;gap:2px;padding:0 3px 0 7px;background:#29453c;color:#b9f2dc;touch-action:none;user-select:none;cursor:grab}
+.pf-widget .pf-widget-head span{font-size:9px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.4px}
+.pf-widget .pf-widget-head button{min-height:19px;height:19px;padding:0 4px;border-color:#427867;border-radius:4px;font-size:10px;color:#caffed;background:#376153}
+.pf-widget .pf-widget-body{display:flex;flex-direction:column;flex:1;min-height:0;min-width:0;overflow:hidden;padding:3px;gap:3px}
+.pf-widget.ui-locked .pf-widget-head{cursor:default;background:#33433f}
+.pf-widget .pf-grip{position:absolute;width:23px;height:23px;bottom:0;right:0;touch-action:none;display:flex;align-items:flex-end;justify-content:flex-end;color:#95decb;font-size:17px;cursor:nwse-resize;z-index:3;text-shadow:0 1px 2px #000;background:linear-gradient(135deg,transparent 58%,#30574c 61%);padding-right:1px;pointer-events:auto}
+.pf-widget.ui-locked .pf-grip{display:none}
+.pf-widget .pf-widget-body>button{width:100%;height:100%;flex:1;min-height:0;font-size:14px;padding:1px 4px;border-radius:7px}
+.pf-widget .pf-widget-body>.click-button{font-size:17px;white-space:normal}
+.pf-widget .pf-widget-body>.hold-button{font-size:12px;white-space:normal}
+.pf-widget .pf-widget-body button small{font-size:8px}
+.pf-widget .pf-widget-body .stage-top{position:static;display:flex;width:100%;height:100%;gap:3px;min-height:0}
+.pf-widget .pf-widget-body .stage-top button{width:auto;flex:1;min-width:0;min-height:0;padding:0;font-size:16px;border-color:#769991;background:#eef2e9;color:#192e32}
+.pf-widget .pf-widget-body .quick-rail{display:flex;flex-direction:column;gap:3px;width:100%;height:100%;overflow:auto;scrollbar-width:none;touch-action:pan-y}
+.pf-widget .pf-widget-body .quick-rail button{min-height:34px;flex:1;display:flex;align-items:center;justify-content:center;gap:4px;border:1px solid #486f6d;background:#253d40;color:#d8eee7;padding:0 2px;font-size:10px;white-space:nowrap}
+.pf-widget .pf-widget-body .quick-rail button.current{background:#317969;border-color:#7de1ba;color:white}
+.pf-widget-mag .pf-widget-body{padding:2px;overflow:hidden}
+.pf-widget-mag #magnifier{width:100%!important;height:100%!important;position:relative!important;left:auto!important;top:auto!important;border:0!important;border-radius:3px;pointer-events:none;object-fit:fill;box-shadow:none!important;background:#e5eded}
+.pf-widget-mag .pf-widget-head{height:24px;min-height:24px}
+.pf-widget-mag .pf-widget-body{min-height:32px}
+.pf-widget-mag .pf-grip{background:linear-gradient(135deg,transparent 50%,#397568 54%)}
+@media(min-width:840px){.studio-nav{height:59px;min-height:59px;max-width:100%}.studio-sheet:not(.floating){left:auto;right:10px;width:380px;bottom:68px;height:calc(100dvh - 132px)}.stage-container{border-radius:12px}.pf-widget{backdrop-filter:blur(3px)}}
+@media(max-width:390px){.brand strong{font-size:12px}.brand small{font-size:7px}.head-actions .icon-button{min-width:30px;font-size:17px}.studio-nav button{font-size:9px}.studio-nav button b{font-size:17px}}
+
 </style>
 </head>
 <body>
@@ -455,7 +539,7 @@ function handleImport(e){const f=e.target.files?.[0];if(!f)return;if(f.size>12_0
  const l={id:id(),name:f.name.replace(/\.[^.]+$/,'').slice(0,70),kind:'import',sprite:spr,x:Math.floor((W()-spr.width)/2),y:Math.floor((H()-spr.height)/2),rotation:0,scale:1,flip:false,visible:true,locked:false,opacity:1,poses:{}};layers().push(l);selected=l.id;updateSelection(null);focusLayer();refresh();toast('Imported '+f.name+' — grid aligned');URL.revokeObjectURL(im.src);};im.onerror=()=>toast('Could not open image');im.src=URL.createObjectURL(f);e.target.value='';}
 function bind(){
  $('undo').onclick=undo;$('redo').onclick=redo;
- $('minusZoom').onclick=()=>{zoom=clamp(zoom/1.25,.25,40);$('zoomLabel').textContent=Math.round(zoom*100)+'%';renderView();};$('plusZoom').onclick=()=>{zoom=clamp(zoom*1.25,.25,40);$('zoomLabel').textContent=Math.round(zoom*100)+'%';renderView();};$('resetView').onclick=()=>{fitView();$('zoomLabel').textContent=Math.round(zoom*100)+'%';renderView();};$('magToggle').onclick=()=>{mag.hidden=!mag.hidden;renderPointer();};$('focusArt').onclick=focusLayer;
+ $('minusZoom').onclick=()=>{zoom=clamp(zoom/1.25,.25,40);$('zoomLabel').textContent=Math.round(zoom*100)+'%';renderView();};$('plusZoom').onclick=()=>{zoom=clamp(zoom*1.25,.25,40);$('zoomLabel').textContent=Math.round(zoom*100)+'%';renderView();};$('resetView').onclick=()=>{fitView();$('zoomLabel').textContent=Math.round(zoom*100)+'%';renderView();};$('magToggle').onclick=()=>{mag.hidden=!mag.hidden;window.PixelForgeLayout?.syncMagnifier();renderPointer();};$('focusArt').onclick=focusLayer;
  $('snapToggle').onclick=()=>{snap=!snap;moveCursor(pointer.x,pointer.y);refresh();};$('artSnapToggle').onclick=()=>{artSnap=!artSnap;refresh();};$('pointerMode').onclick=()=>{if(holdLocked)lockHold();clickPress=false;trackpad=!trackpad;dragStart=null;preview=null;refresh();};$('clickMode').onclick=()=>{if(holdLocked)lockHold();clickPress=false;clickEnabled=!clickEnabled;dragStart=null;preview=null;refresh();};$('clickBtn').addEventListener('pointerdown',clickDown);$('clickBtn').addEventListener('pointerup',clickUp);$('clickBtn').addEventListener('pointercancel',clickUp);$('clickBtn').addEventListener('lostpointercapture',clickUp);$('clickBtn').addEventListener('click',e=>{if(e.detail===0)clickAtPointer();});$('holdBtn').addEventListener('click',lockHold);$('showGrid').onclick=()=>{showGrid=!showGrid;refresh();};$('gridStep').onchange=e=>{gridStep=Number(e.target.value);refresh();};
  $('canvasPreset').onchange=e=>{const val=e.target.value;if(val==='custom')return;const n=parseInt(val);changeCanvas(n,n);};$('canvasResizeBtn').onclick=()=>{const w=prompt('Canvas width in pixels (1–1024)',W());if(w===null)return;const h=prompt('Canvas height in pixels (1–1024)',H());if(h===null)return;changeCanvas(Number(w),Number(h));};
  document.querySelectorAll('[data-tool]').forEach(btn=>{btn.onclick=()=>{if(holdLocked)lockHold();tool=btn.dataset.tool;preview=null;dragStart=null;document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('selected',b===btn));$('clickHelp').textContent=toolsShapes.has(tool)||toolsSelect.has(tool)?'START / FINISH':tool==='move'?'PICK / PLACE':tool==='picker'?'PICK COLOR':tool==='wand'?'PICK AREA':'APPLY TOOL';$('toolHint').textContent=toolsShapes.has(tool)||toolsSelect.has(tool)?'Direct: drag • Pointer: CLICK twice or HOLD':tool==='move'?'Drag artwork; Art Lock governs alignment': 'Choose a layer, then draw';refresh();};});
@@ -479,7 +563,112 @@ function bind(){
  window.addEventListener('resize',resize);document.addEventListener('keydown',e=>{if(e.target.matches('input,select,textarea'))return;const key=e.key.toLowerCase(),cmd=e.ctrlKey||e.metaKey;if(cmd&&key==='z'){e.preventDefault();if(e.shiftKey)redo();else undo();}else if(cmd&&key==='s'){e.preventDefault();saveJSON();}else if(cmd&&key==='c'){e.preventDefault();copySelection();}else if(cmd&&key==='v'){e.preventDefault();pasteSelection();}else if(cmd&&key==='x'){e.preventDefault();cutSelection();}else if(key==='delete')deleteSelection();});
  if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
 }
-bind();refresh();requestAnimationFrame(()=>{resize();fitView();refresh();});
+/* Pixel Forge 0.4 Studio Layout: floating, lockable, resizable controls. */
+function setupStudioLayout(){
+  const shell=document.querySelector('.shell'),editor=document.querySelector('.editor'),workspace=document.querySelector('.workspace'),stageEl=document.querySelector('#stageContainer');
+  const snapSettings=()=>document.querySelector('#snapToggle');
+  document.querySelector('.brand small').textContent='SURVIVAL PARADISE · STUDIO 0.4';
+  const initialWidth=()=>window.innerWidth,initialHeight=()=>window.innerHeight;
+  let stored={};try{stored=JSON.parse(localStorage.getItem('pixelforge-layout-v04')||'{}')||{};}catch{}
+  const prefs={widgets:stored.widgets||{},panels:stored.panels||{},visible:stored.visible||{}};
+  const widgets={},panels={};let currentPanel=null,topZ=40;
+  const save=()=>{try{localStorage.setItem('pixelforge-layout-v04',JSON.stringify(prefs));}catch{}};
+  const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
+  function rect(widget){return {left:parseFloat(widget.style.left)||0,top:parseFloat(widget.style.top)||0,width:parseFloat(widget.style.width)||widget.offsetWidth,height:parseFloat(widget.style.height)||widget.offsetHeight};}
+  function place(el,x,y,w,h){w=clamp(w,58,Math.max(100,window.innerWidth-10));h=clamp(h,54,Math.max(100,window.innerHeight-70));el.style.width=w+'px';el.style.height=h+'px';el.style.left=clamp(x,0,Math.max(0,window.innerWidth-w))+'px';el.style.top=clamp(y,49,Math.max(49,window.innerHeight-h-54))+'px';}
+  function beginManipulation(el,handle,kind,minW,minH,cb){
+    handle.addEventListener('pointerdown',e=>{
+      if(e.button!==0||el.classList.contains('ui-locked')||!el.classList.contains('floating')&&el.classList.contains('studio-sheet'))return;
+      e.stopPropagation();e.preventDefault();handle.setPointerCapture(e.pointerId);el.style.zIndex=++topZ;
+      const origin={...rect(el)},first={x:e.clientX,y:e.clientY};
+      const dragging=ev=>{
+        if(ev.pointerId!==e.pointerId)return;
+        const dx=ev.clientX-first.x,dy=ev.clientY-first.y;
+        if(kind==='move')place(el,origin.left+dx,origin.top+dy,origin.width,origin.height);
+        else place(el,origin.left,origin.top,clamp(origin.width+dx,minW,window.innerWidth-10),clamp(origin.height+dy,minH,window.innerHeight-80));
+        if(cb)cb('change');
+      };
+      const done=ev=>{if(ev.pointerId!==e.pointerId)return;handle.removeEventListener('pointermove',dragging);handle.removeEventListener('pointerup',done);handle.removeEventListener('pointercancel',done);if(cb)cb('end');};
+      handle.addEventListener('pointermove',dragging);handle.addEventListener('pointerup',done);handle.addEventListener('pointercancel',done);
+    });
+  }
+  function addWidget(key,label,nodes,config){
+    const wrap=document.createElement('div');wrap.className='pf-widget floating'+(key==='magnifier'?' pf-widget-mag':'');wrap.id='widget-'+key;wrap.setAttribute('aria-label',label+' floating control');
+    wrap.innerHTML='<div class="pf-widget-head"><span>'+label+'</span><button class="pf-lock" title="Lock or unlock position" aria-label="Lock position">◇</button></div><div class="pf-widget-body"></div><div class="pf-grip" title="Resize control">◢</div>';
+    nodes.forEach(node=>wrap.querySelector('.pf-widget-body').appendChild(node));document.body.appendChild(wrap);
+    const saved=prefs.widgets[key]||{},def=config.defaultRect(),locked=saved.locked??false;
+    place(wrap,saved.left??def[0],saved.top??def[1],saved.width??def[2],saved.height??def[3]);
+    wrap.classList.toggle('ui-locked',locked);wrap.querySelector('.pf-lock').textContent=locked?'🔒':'⇲';
+    wrap.querySelector('.pf-lock').onclick=()=>{const lock=wrap.classList.toggle('ui-locked');wrap.querySelector('.pf-lock').textContent=lock?'🔒':'⇲';remember();};
+    const remember=()=>{prefs.widgets[key]={...rect(wrap),locked:wrap.classList.contains('ui-locked')};save();};
+    beginManipulation(wrap,wrap.querySelector('.pf-widget-head'), 'move',config.minW,config.minH,x=>{if(x==='end')remember();});
+    beginManipulation(wrap,wrap.querySelector('.pf-grip'),'resize',config.minW,config.minH,x=>{if(x==='end')remember();});
+    widgets[key]=wrap;wrap.hidden=prefs.visible[key]===false;
+    return wrap;
+  }
+  function makePanel(key,title,nodes){
+    const panel=document.createElement('section');panel.className='studio-sheet';panel.id='panel-'+key;panel.hidden=true;
+    panel.innerHTML='<div class="sheet-head"><strong>'+title+'</strong><button class="pf-panel-float">⇱ Float</button><button class="pf-panel-lock" title="Lock panel position">⇲</button><button class="pf-panel-close" title="Close">✕</button></div><div class="sheet-content"></div><div class="pf-grip" title="Resize panel">◢</div>';
+    nodes.forEach(node=>panel.querySelector('.sheet-content').appendChild(node));document.body.appendChild(panel);
+    const data=prefs.panels[key]||{};
+    const restore=()=>{if(data.floating){panel.classList.add('floating');const def=[Math.max(5,window.innerWidth-390),75,Math.min(365,window.innerWidth-15),Math.min(470,window.innerHeight-146)];place(panel,data.left??def[0],data.top??def[1],data.width??def[2],data.height??def[3]);}}
+    restore();
+    const remember=()=>{prefs.panels[key]={...rect(panel),floating:panel.classList.contains('floating'),locked:panel.classList.contains('ui-locked')};save();};
+    if(data.locked){panel.classList.add('ui-locked');panel.querySelector('.pf-panel-lock').textContent='🔒';}
+    panel.querySelector('.pf-panel-lock').onclick=()=>{const locked=panel.classList.toggle('ui-locked');panel.querySelector('.pf-panel-lock').textContent=locked?'🔒':'⇲';remember();};
+    const floatBtn=panel.querySelector('.pf-panel-float');
+    floatBtn.onclick=()=>{const isFloat=panel.classList.toggle('floating');floatBtn.textContent=isFloat?'⇱ Dock':'⇱ Float';if(isFloat){const def=[Math.max(5,window.innerWidth-400),70,Math.min(370,window.innerWidth-15),Math.min(480,window.innerHeight-160)];place(panel,def[0],def[1],def[2],def[3]);}else{panel.style.cssText='';}remember();};
+    if(data.floating)floatBtn.textContent='⇱ Dock';
+    panel.querySelector('.pf-panel-close').onclick=()=>hidePanel(key);
+    beginManipulation(panel,panel.querySelector('.sheet-head'),'move',235,170,x=>{if(x==='end')remember();});
+    beginManipulation(panel,panel.querySelector('.pf-grip'),'resize',230,155,x=>{if(x==='end')remember();});
+    panels[key]=panel;return panel;
+  }
+  function showPanel(key){for(const [id,p] of Object.entries(panels)){if(id!==key&&!p.classList.contains('floating'))p.hidden=true;}const panel=panels[key];panel.hidden=false;panel.style.zIndex=++topZ;currentPanel=key;updateNav();}
+  function hidePanel(key){panels[key].hidden=true;if(currentPanel===key)currentPanel=null;updateNav();}
+  function updateNav(){document.querySelectorAll('[data-studio-nav]').forEach(b=>b.classList.toggle('active',!panels[b.dataset.studioNav].hidden));}
+  const take=s=>{const n=document.querySelector(s);if(!n)throw Error('Missing Pixel Forge control '+s);return n;};
+  const bottom=document.createElement('nav');bottom.className='studio-nav';bottom.setAttribute('aria-label','Studio panels');bottom.innerHTML=[['tools','✎','Tools'],['colors','◕','Colors'],['layers','▥','Layers'],['animation','▣','Animate'],['settings','⚙','Setup']].map(([id,icon,txt])=>'<button data-studio-nav="'+id+'"><b>'+icon+'</b>'+txt+'</button>').join('');shell.appendChild(bottom);
+  const toolBar=take('.tool-bar');
+  makePanel('tools','DRAWING & SELECTION',[toolBar,take('.selection-bar'),take('.edit-nudge')]);
+  makePanel('colors','PALETTE & COLORS',[take('.color-main'),take('.tool-options'),take('.color-advanced')]);
+  makePanel('layers','CHARACTER / WEAPON LAYERS',[take('.sidebar')]);
+  makePanel('animation','ANIMATION TIMELINE',[take('.timeline')]);
+  const settingsPanel=makePanel('settings','STUDIO SETTINGS',[take('.pointer-bar'),take('.canvas-edit-line'),take('#fullCanvasInfo'),take('.editor-setting-line'),take('.pointer-status'),take('.bottom')]);
+  const settingsBody=settingsPanel.querySelector('.sheet-content');
+  settingsBody.insertAdjacentHTML('afterbegin','<div class="pf-section-title">LAYOUT & FLOATING CONTROLS</div><div class="pf-visibility-grid" id="pfVisGrid"></div><p class="pf-settings-note">Drag the narrow title bar to reposition a floating control. Drag its ◢ corner to resize. Tap ⇲ to lock or unlock. Each panel can be floated or docked.</p><button class="pf-wide-button" id="pfResetLayout">↺ Reset panel positions</button><div class="pf-section-title">EDITOR OPTIONS</div>');
+  document.querySelectorAll('[data-studio-nav]').forEach(b=>{b.onclick=()=>{const key=b.dataset.studioNav;panels[key].hidden?showPanel(key):hidePanel(key);};});
+  // Floating CLICK and HOLD are the actual original buttons, not imitations.
+  addWidget('click','CLICK',[take('#clickBtn')],{minW:72,minH:70,defaultRect:()=>[initialWidth()-126,initialHeight()-193,118,96]});
+  addWidget('hold','HOLD / DRAG',[take('#holdBtn')],{minW:72,minH:63,defaultRect:()=>[initialWidth()-126,initialHeight()-269,118,67]});
+  // Zoom controls remain functional because their original DOM nodes are moved.
+  addWidget('view','ZOOM · MAGNIFIER',[take('.stage-top')],{minW:118,minH:54,defaultRect:()=>[initialWidth()-196,80,187,60]});
+  addWidget('magnifier','MAGNIFIER',[take('#magnifier')],{minW:80,minH:84,defaultRect:()=>[10,104,136,157]});
+  const rail=document.createElement('div');rail.className='quick-rail';
+  const shortcuts=[['paint','✎','Draw'],['erase','⌫','Erase'],['move','✥','Move'],['pan','✋','Pan'],['picker','◉','Pick'],['selectRect','▤','Select']];
+  shortcuts.forEach(([key,icon,label])=>{const b=document.createElement('button');b.type='button';b.dataset.quick=key;b.textContent=icon+' '+label;b.onclick=()=>{const orig=document.querySelector('[data-tool="'+key+'"]');orig?.click();syncQuick();};rail.appendChild(b);});
+  addWidget('quick','TOOLS',[rail],{minW:65,minH:120,defaultRect:()=>[8,initialHeight()-361,76,248]});
+  function syncQuick(){document.querySelectorAll('[data-quick]').forEach(b=>b.classList.toggle('current',document.querySelector('[data-tool="'+b.dataset.quick+'"]').classList.contains('selected')));}
+  document.querySelectorAll('[data-tool]').forEach(b=>b.addEventListener('click',()=>{syncQuick();if(!panels.tools.classList.contains('floating'))hidePanel('tools');}));syncQuick();
+  // The existing mag toggle is preserved and doubles as the show/hide setting.
+  const actualMagnifier=take('#magnifier');
+  function syncMagnifier(){const vis=!actualMagnifier.hidden;widgets.magnifier.hidden=!vis;prefs.visible.magnifier=vis;take('#magToggle').setAttribute('aria-pressed',String(vis));save();}
+  window.PixelForgeLayout={syncMagnifier,widgets,panels,showPanel};
+  if(prefs.visible.magnifier===false)actualMagnifier.hidden=true;syncMagnifier();
+  const grid=take('#pfVisGrid');for(const [key,label] of [['click','Click'],['hold','Hold / Drag'],['view','Zoom buttons'],['magnifier','Magnifier'],['quick','Quick tools']]){
+    const item=document.createElement('label'),inp=document.createElement('input');inp.type='checkbox';inp.checked=!widgets[key].hidden;inp.onchange=()=>{prefs.visible[key]=inp.checked;if(key==='magnifier'){actualMagnifier.hidden=!inp.checked;syncMagnifier();renderPointer();}else widgets[key].hidden=!inp.checked;save();};item.append(inp,document.createTextNode(label));grid.appendChild(item);
+  }
+  take('#magToggle').addEventListener('click',()=>{const i=grid.querySelectorAll('input')[3];i.checked=!actualMagnifier.hidden;});
+  take('#pfResetLayout').onclick=()=>{prefs.widgets={};prefs.panels={};save();const defaults={click:[initialWidth()-126,initialHeight()-193,118,96],hold:[initialWidth()-126,initialHeight()-269,118,67],view:[initialWidth()-196,80,187,60],magnifier:[10,104,136,157],quick:[8,initialHeight()-361,76,248]};for(const [key,w] of Object.entries(widgets)){w.classList.remove('ui-locked');w.querySelector('.pf-lock').textContent='⇲';place(w,...defaults[key]);}for(const p of Object.values(panels)){p.classList.remove('floating','ui-locked');p.style.cssText='';p.querySelector('.pf-panel-float').textContent='⇱ Float';p.querySelector('.pf-panel-lock').textContent='⇲';p.hidden=true;}currentPanel=null;updateNav();save();resize();toast('Floating control positions reset');};
+  // Keep the canvas responsive when the phone rotates or system bars resize the viewport.
+  window.addEventListener('resize',()=>{for(const w of Object.values(widgets)){const r=rect(w);place(w,r.left,r.top,r.width,r.height);}for(const p of Object.values(panels))if(p.classList.contains('floating')){const r=rect(p);place(p,r.left,r.top,r.width,r.height);}});
+  // Existing shortcuts still bind to their original controls now hosted in panels.
+  document.querySelector('.click-bar')?.remove();
+  editor.querySelector('.info-bar').insertAdjacentHTML('beforeend','<span class="pf-hint">· Drag floating handles to arrange</span>');
+  return {panels,widgets};
+}
+
+bind();setupStudioLayout();refresh();requestAnimationFrame(()=>{resize();fitView();refresh();});
 })();
 
 </script>

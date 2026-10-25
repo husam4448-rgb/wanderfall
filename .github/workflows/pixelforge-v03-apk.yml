@@ -1,8 +1,8 @@
-name: Build Pixel Forge v0.3.2 Android APK
+name: Build Pixel Forge v0.4 Android APK
 on:
   push:
     branches:
-      - pixelforge-apk-v032-full-canvas-20261025
+      - pixelforge-apk-v040-floating-ui-20261025
   workflow_dispatch:
 jobs:
   build-android-apk:
@@ -44,6 +44,6 @@ jobs:
       - name: Upload installable debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: PixelForge-v0.3.2-FullCanvas-APK
+          name: PixelForge-v0.4-Floating-APK
           path: pixelforge-v03/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
