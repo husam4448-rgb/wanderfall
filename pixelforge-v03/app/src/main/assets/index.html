@@ -155,6 +155,41 @@ html, body {height:100%;width:100%;overflow:hidden;overscroll-behavior:none}
 @media(min-width:840px){.studio-nav{height:59px;min-height:59px;max-width:100%}.studio-sheet:not(.floating){left:auto;right:10px;width:380px;bottom:68px;height:calc(100dvh - 132px)}.stage-container{border-radius:12px}.pf-widget{backdrop-filter:blur(3px)}}
 @media(max-width:390px){.brand strong{font-size:12px}.brand small{font-size:7px}.head-actions .icon-button{min-width:30px;font-size:17px}.studio-nav button{font-size:9px}.studio-nav button b{font-size:17px}}
 
+.info-bar{flex-wrap:nowrap;white-space:nowrap;letter-spacing:.6px;font-size:10px;gap:5px}
+.info-bar #docLabel{white-space:nowrap;max-width:48%;overflow:hidden;text-overflow:ellipsis}
+.info-bar #coords{white-space:nowrap;flex:none}
+.info-bar #zoomLabel{white-space:nowrap;flex:none}
+.pf-widget .pf-widget-body>.hold-button{font-size:11px;line-height:1.04}
+
+
+
+/* Pixel Forge v0.5 -- entire color palette visible as a scrollable 2D grid. */
+.studio-sheet .palette,.palette{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(30px,1fr))!important;grid-template-rows:none!important;grid-auto-columns:auto!important;grid-auto-flow:row!important;gap:5px!important;overflow-y:auto!important;overflow-x:hidden!important;max-height:270px!important;min-height:90px;padding:5px!important;width:100%;border:1px solid #365a56;border-radius:8px;background:#111f25}
+.studio-sheet .palette .swatch,.palette .swatch{width:100%!important;height:30px!important;min-height:30px!important;min-width:0;border-radius:5px!important;margin:0;box-sizing:border-box}
+.studio-sheet .palette .swatch.chosen{outline:2px solid #fff;outline-offset:-3px;box-shadow:0 0 0 2px #0a1719}
+.palette .swatch{display:block!important}
+.palette .swatch.slot-active{box-shadow:0 0 0 2px #60d5bc;border-color:#ffffff}
+.palette .swatch-empty{background:repeating-linear-gradient(45deg,#283840 0 5px,#364e52 5px 10px)!important;color:#b4f5dd;font-weight:750;font-size:18px;line-height:21px;border-style:dashed}
+.palette-help{font-size:11px;color:#91b8b0;margin:5px 0;padding:0 4px;line-height:1.35}
+.studio-sheet .color-main{display:flex;flex-direction:column;align-items:stretch;max-height:none;overflow:visible;width:100%}
+.studio-sheet .color-main #palette{flex:none}
+.studio-sheet .palette-actions{display:flex;gap:5px;flex-wrap:wrap;margin:6px 0 10px}
+.palette-actions button{min-height:37px;flex:1 0 90px;padding:4px 7px;font-size:11px;background:#244740;border-color:#4b8276}
+.palette-actions button[hidden]{display:none!important}
+.palette-actions button:disabled{opacity:.45}
+.selection-primary{display:flex;align-items:center;gap:7px;margin:3px 0 10px;border-bottom:1px solid #365650;padding:2px 0 9px}
+#prominentDeselect{min-height:44px;flex:1 0 auto;background:#594036;color:#ffecdb;border:1px solid #bb886b;font-size:13px;font-weight:750;padding:4px 10px}
+#selectionStatus{color:#afc8c0;font-size:11px;max-width:48%;line-height:1.3}
+#quickDeselect{background:#593c37!important;border-color:#b2806a!important;color:#fff4de!important}
+.pf-info-modal[hidden]{display:none!important}.pf-info-modal{position:fixed;inset:0;z-index:999;background:#000b;display:flex;align-items:center;justify-content:center;padding:9px}
+.pf-info-dialog{height:min(92dvh,920px);width:min(100%,700px);display:flex;flex-direction:column;min-height:0;background:#13272a;border:1px solid #71bdab;border-radius:13px;box-shadow:0 14px 46px #000b;overflow:hidden}
+.pf-info-head{display:flex;align-items:center;gap:5px;justify-content:space-between;padding:10px 12px;background:#29534b;color:#e9fff6}
+.pf-info-head strong{font-size:12px;letter-spacing:.6px}.pf-info-head button{white-space:nowrap;min-height:36px;padding:0 10px;font-weight:700}
+.pf-info-search{display:flex;align-items:center;gap:8px;padding:9px;border-bottom:1px solid #365c58}.pf-info-search input{flex:1;min-width:0;padding:10px;border-radius:7px;color:#eafff4;background:#1c3438;border:1px solid #426f66;font-size:13px}.pf-info-search span{color:#bad4c9;white-space:nowrap;font-size:10px}
+.pf-info-scroll{overflow-y:auto;overscroll-behavior:contain;flex:1;min-height:0;padding:10px}
+.pf-guide-section{border:1px solid #416963;margin-bottom:8px;border-radius:7px;background:#1a3436;overflow:hidden}.pf-guide-section summary{cursor:pointer;padding:12px 10px;color:#acf0d4;font-size:12px;font-weight:800;letter-spacing:.4px}.pf-guide-section p{font-size:12px;line-height:1.65;margin:2px 10px 13px;color:#e1eee8;white-space:pre-line}
+@media(max-width:760px){.studio-sheet .palette,.palette{max-height:248px!important;grid-template-columns:repeat(7,minmax(0,1fr))!important}.studio-sheet .palette .swatch{height:34px!important;min-height:34px!important}.pf-info-dialog{height:94dvh}.pf-info-head strong{font-size:11px}}
+
 </style>
 </head>
 <body>
@@ -217,19 +252,21 @@ html, body {height:100%;width:100%;overflow:hidden;overscroll-behavior:none}
         <button data-tool="wand" class="tool" title="Color-based contiguous selection">✦ <span>Wand</span></button>
       </div>
       <div class="controls-line color-main">
-        <div class="palette" id="palette"></div>
+        <div class="palette" id="palette" aria-label="Color swatches"></div><p class="palette-help" id="paletteCount" aria-live="polite"></p>
       </div>
       <div class="controls-line tool-options">
-        <label>Palette <select id="palettePreset"><option value="expanded">Expanded (64)</option><option value="pico">PICO-8</option><option value="earth">Survival / earth</option></select></label>
+        <label>Palette <select id="palettePreset"><option value="studio256">Studio 256</option><option value="expanded">Expanded (64)</option><option value="pico">PICO-8</option><option value="earth" selected>Survival / earth (32)</option><option value="custom">My 128 color slots</option></select></label>
         <label class="color-wrap" title="Foreground color"><input type="color" id="colorPicker" value="#a8b5a1"></label>
         <label>Hex <input id="hexColor" type="text" maxlength="7" value="#a8b5a1" spellcheck="false"></label>
         <label>Brush <input type="range" id="brushSize" min="1" max="16" value="1"><span id="brushLabel">1</span></label>
         <label>Opacity <input type="range" id="opacityBrush" min="1" max="100" value="100"><span id="opacityLabel">100%</span></label>
         <button id="backgroundColor" title="Swap foreground and secondary color">⇄ Colors</button>
       </div>
+      <div class="palette-actions"><button id="saveCustomSwatch" title="Save the current color to your personal palette">＋ Save to My Slots</button><button id="replaceCustomSwatch" title="Replace a selected personal swatch with the current color">↻ Replace Slot</button><button id="removeCustomSwatch" title="Clear the selected personal swatch">✕ Clear Slot</button></div>
       <details class="color-advanced"><summary>Advanced Color Controls (HSV / RGB)</summary>
         <div class="color-sliders"><label>Hue <input type="range" id="hue" min="0" max="360" value="0"><span id="hueVal">0</span></label><label>Saturation <input type="range" id="sat" min="0" max="100" value="0"><span id="satVal">0</span></label><label>Value <input type="range" id="val" min="0" max="100" value="0"><span id="valVal">0</span></label></div>
       </details>
+      <div class="selection-primary"><button id="prominentDeselect" title="Remove the selection outline and cancel unfinished selection shapes">✕ Deselect / Cancel selection</button><span id="selectionStatus">No active selection</span></div>
       <div class="selection-bar" aria-label="Selection editing actions">
         <span class="selection-title" id="selectionLabel">No selection</span>
         <button id="selectAll">All</button><button id="selectOpaque">Opaque</button><button id="copySelection">Copy</button><button id="cutSelection">Cut</button><button id="pasteSelection">Paste</button><button id="extractSelection">Extract</button><button id="deleteSelection">Delete</button><button id="cropSelection" title="Crop selected layer to selected region">Crop layer</button><button id="cropCanvas" title="Crop entire canvas to selection">Crop canvas</button><button id="recolorSelection">Recolor</button><button id="rotateSelection">Rotate 90°</button><button id="flipSelection">Flip selection</button><button id="scaleDownSelection">½ Size</button><button id="scaleUpSelection">2× Size</button><button id="clearSelection">Deselect</button>
@@ -288,10 +325,15 @@ const charAssets=['head','torso','leftarm','rightarm','leftleg','rightleg','helm
 const weaponAssets=['receiver','barrel','stock','magazine','optic','grip','suppressor'];
 // Pixel Forge Studio v0.3.1 — canvas coordinates are logical, integer pixels.
 const palettes={
+ studio256:Array.from({length:256},(_,i)=>{const red=Math.round(((i>>5)&7)*255/7),green=Math.round(((i>>2)&7)*255/7),blue=Math.round((i&3)*255/3);return "#"+[red,green,blue].map(v=>v.toString(16).padStart(2,"0")).join("");}),
  expanded:['#000000','#181820','#252b35','#35404a','#495763','#62717a','#849196','#b3bdc2','#d5dbde','#ffffff','#4a1819','#752c30','#ad4445','#d56457','#f38a6a','#ffc7a3','#512c23','#7b472a','#a9713c','#d4a660','#f4d58a','#fff0bb','#444b24','#6e7b37','#a5a745','#d3cc69','#f0eb91','#193d31','#275d46','#39815b','#55a879','#90d5a2','#caebbd','#173b49','#245e71','#348da4','#5fb7c6','#99d9dc','#b7dcef','#223c66','#365ba2','#5a82cb','#8fb2eb','#c6d8fa','#402557','#643a82','#9365b3','#c39ddb','#e7cbf5','#592f4d','#91546c','#c67997','#eaa3bd','#f9d9e2','#3a342f','#5d5148','#806e5d','#a99680','#cfbca1','#e6dac7','#55605c','#7b8a80','#a8b5a1','#8b7ba5'],
  pico:['#000000','#1d2b53','#7e2553','#008751','#ab5236','#5f574f','#c2c3c7','#fff1e8','#ff004d','#ffa300','#ffec27','#00e436','#29adff','#83769c','#ff77a8','#ffccaa'],
  earth:['#101719','#1d2725','#2f3831','#475347','#6e7357','#9a9970','#c7bc99','#efdfb9','#332920','#554131','#806044','#ac8354','#d5ae73','#e9ce99','#2b382e','#435a3c','#607e58','#839f6d','#a7be8d','#394951','#536b70','#77959b','#abc1c0','#dbded8','#572e26','#8a4539','#b15d4b','#ce8066','#ead0ad','#f5ecdf','#ffffff','#000000']
 };
+const PERSONAL_PALETTE_KEY='pixelforge-personal-palette-v05';
+let personalSlots=Array(128).fill(null),activePersonalSlot=null;
+try{const old=JSON.parse(localStorage.getItem(PERSONAL_PALETTE_KEY)||'null');if(Array.isArray(old))personalSlots=Array.from({length:128},(_,i)=>/^#[0-9a-f]{6}$/i.test(old[i]||'')?old[i].toLowerCase():null);}catch{}
+function savePersonalSlots(){try{localStorage.setItem(PERSONAL_PALETTE_KEY,JSON.stringify(personalSlots));}catch{}}
 const MAX=1024, toolsShapes=new Set(['line','rect','rectFill','ellipse','ellipseFill','triangle','triangleFill','star','starFill']);
 const toolsSelect=new Set(['selectRect','selectEllipse','lasso']);
 const $=id=>document.getElementById(id), screen=$('stage'),stage=$('stageContainer'),mag=$('magnifier'),cursorCanvas=$('cursorCanvas');
@@ -364,8 +406,35 @@ function editTransform(field,v,absolute=true){const l=L();if(!l||l.locked)return
  else {l[field]=absolute?n:l[field]+n;if(field==='scale')l.scale=clamp(l.scale,.1,10);if(['x','y'].includes(field)&&artSnap)l[field]=Math.round(l[field]);}renderProps();render();}
 function renderProps(){const l=L();$('selectedName').textContent=l?l.name:'None';for(const [key,field] of [['X','x'],['Y','y'],['R','rotation'],['S','scale']]){$('prop'+key).value=l?Number(propValue(field).toFixed(2)):'';$('prop'+key).disabled=!l||l.locked;}}
 function renderFrames(){const row=$('frameTrack');row.innerHTML='';for(let i=0;i<8;i++){const b=document.createElement('button');b.className='frame'+(i===frame?' on':'');b.innerHTML='<strong>'+String(i+1).padStart(2,'0')+'</strong>FRAME';b.onclick=()=>{playing=false;updatePlay();frame=i;renderFrames();renderProps();render();};row.append(b);}}
-function paletteRender(){const root=$('palette');root.innerHTML='';for(const c of palettes[$('palettePreset').value]||palettes.expanded){const b=document.createElement('button');b.className='swatch'+(selectedColor.toLowerCase()===c?' chosen':'');b.dataset.color=c;b.style.background=c;b.title=c;b.onclick=()=>setColor(c);root.append(b);}}
-function hsvToHex(h,s,v){s/=100;v/=100;const f=n=>{let k=(n+h/60)%6;return Math.round((v-v*s*Math.max(Math.min(k,4-k,1),0))*255).toString(16).padStart(2,'0');};return '#'+f(5)+f(3)+f(1);}
+function paletteRender(){
+ const root=$('palette'),preset=$('palettePreset').value,personal=preset==='custom';
+ root.replaceChildren();
+ const colors=personal?personalSlots:(palettes[preset]||palettes.expanded);
+ // Direct DOM construction avoids HTML injection from palette values.
+ const frag=document.createDocumentFragment();
+ colors.forEach((c,i)=>{
+  const b=document.createElement('button');b.type='button';b.className='swatch'+(c&&selectedColor.toLowerCase()===c?' chosen':'')+(personal&&i===activePersonalSlot?' slot-active':'')+(!c?' swatch-empty':'');
+  b.dataset.color=c||'';b.dataset.slot=String(i);
+  if(c)b.style.background=c;
+  else b.textContent='+';
+  b.title=personal?`Personal color slot ${i+1}: ${c||'empty; tap to store current color'}`:`${c} — select color`;
+  b.setAttribute('aria-label',b.title);
+  b.onclick=()=>{
+    if(personal){activePersonalSlot=i;if(!c){personalSlots[i]=selectedColor;savePersonalSlots();paletteRender();return;}}
+    if(c)setColor(c);
+    if(personal)paletteRender();
+  };frag.appendChild(b);
+ });
+ root.append(frag);
+ $('paletteCount').textContent=personal?`${personalSlots.filter(Boolean).length}/128 saved colors · tap an empty slot to store the selected color`:`${colors.length} colors · scroll vertically to explore the complete palette`;
+ const customButtons=['saveCustomSwatch','replaceCustomSwatch','removeCustomSwatch'];
+ for(const id of customButtons)$(id).hidden=!personal&&id!=='saveCustomSwatch';
+ $('replaceCustomSwatch').disabled=!personal||activePersonalSlot===null;
+ $('removeCustomSwatch').disabled=!personal||activePersonalSlot===null||!personalSlots[activePersonalSlot];
+}
+function saveCustomSwatch(){const index=personalSlots.findIndex(c=>c===null);if(index<0){toast('All 128 slots are used. Choose a slot and tap Replace Slot.');return;}personalSlots[index]=selectedColor;activePersonalSlot=index;savePersonalSlots();$('palettePreset').value='custom';paletteRender();toast('Color saved to slot '+(index+1));}
+function replaceCustomSwatch(){if(activePersonalSlot===null){toast('Choose a personal color slot first');return;}personalSlots[activePersonalSlot]=selectedColor;savePersonalSlots();paletteRender();toast('Personal color replaced');}
+function removeCustomSwatch(){if(activePersonalSlot===null)return;personalSlots[activePersonalSlot]=null;savePersonalSlots();paletteRender();toast('Personal color slot cleared');}
 function hexToHSV(hex){let r=parseInt(hex.slice(1,3),16)/255,g=parseInt(hex.slice(3,5),16)/255,b=parseInt(hex.slice(5,7),16)/255,hi=Math.max(r,g,b),lo=Math.min(r,g,b),delta=hi-lo;let h=0;if(delta){if(hi===r)h=((g-b)/delta)%6;else if(hi===g)h=(b-r)/delta+2;else h=(r-g)/delta+4;h*=60;if(h<0)h+=360;}return [Math.round(h),hi===0?0:Math.round(delta/hi*100),Math.round(hi*100)];}
 function setColor(value){if(!/^#[0-9a-fA-F]{6}$/.test(value))return;selectedColor=value.toLowerCase();$('colorPicker').value=selectedColor;$('hexColor').value=selectedColor;const h=hexToHSV(selectedColor);['hue','sat','val'].forEach((k,i)=>{$(k).value=h[i];$(k+'Val').textContent=h[i];});document.querySelectorAll('.swatch').forEach(b=>b.classList.toggle('chosen',b.dataset.color===selectedColor));}
 function refresh(){renderAssets();renderLayers();renderProps();const whole=doc().wholeCanvas?.active&&layers().some(l=>l.id===doc().wholeCanvas.layerId);$('wholeCanvasEdit').textContent=whole?'↩ ORIGINAL PARTS':'▣ EDIT WHOLE IMAGE';$('wholeCanvasEdit').classList.toggle('selected',!!whole);$('fullCanvasInfo').classList.toggle('active',!!whole);$('fullCanvasInfo').textContent=whole?'FULL IMAGE MODE: Draw, erase, cut and select anywhere within '+W()+' × '+H()+' pixels. Tap ORIGINAL PARTS to return. Edits stay saved in the full-image layer.':'PART MODE: only the selected part is editable. Tap EDIT WHOLE IMAGE to edit all visible pixels, or EXPAND LAYER to enlarge one part.';$('snapToggle').textContent=snap?'▦ Pixel Snap ON':'▦ Pixel Snap OFF';$('snapToggle').classList.toggle('active',snap);$('artSnapToggle').textContent=artSnap?'⌗ Art Lock ON':'⌗ Art Free';$('artSnapToggle').classList.toggle('active',artSnap);$('pointerMode').textContent=trackpad?'◎ Pointer':'✎ Direct';$('clickMode').textContent=clickEnabled?'◉ Click mode ON':'◉ Click mode OFF';$('clickMode').classList.toggle('active',clickEnabled);$('clickBtn').disabled=!trackpad||!clickEnabled;$('holdBtn').disabled=!trackpad||!clickEnabled;$('holdBtn').classList.toggle('holding',holdLocked);$('holdBtn').setAttribute('aria-pressed',String(holdLocked));$('holdHelp').textContent=holdLocked?'TAP TO RELEASE':'TAP TO LOCK';$('pointerStatus').textContent=!trackpad?'DIRECT TOUCH: touch canvas to apply tool':!clickEnabled?'AUTO MODE: moving cursor applies selected tool':holdLocked?'HOLD ACTIVE: move finger to drag / draw. Tap HOLD to release':preview?'SHAPE / SELECTION: move cursor then tap CLICK to finish':'PRECISION: move finger on canvas, then tap CLICK to apply';$('cursorLabel').textContent=trackpad?'◎ PRECISION POINTER':'✎ DIRECT DRAW';$('zoomLabel').textContent=Math.round(zoom*100)+'%';$('directionBtn').textContent=face==='right'?'⇄ Right':'⇄ Left';$('docLabel').textContent=mode.toUpperCase()+' · '+face.toUpperCase();$('canvasLabel').textContent=W()+' × '+H()+' PX';$('canvasPreset').value=(W()===H()&&[16,32,64,128,256,512,1024].includes(W()))?`${W()} × ${W()}`:'custom';$('gridStep').value=gridStep;$('showGrid').classList.toggle('selected',showGrid);$('animationSelect').value=animation;$('keyframeEdit').checked=editPoses;document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));renderSelectionInfo();renderFrames();render();}
@@ -396,7 +465,9 @@ function maskFromPoly(points,w,h){const mask=new Uint8Array(w*h);if(points.lengt
 function maskWand(l,start){const w=l.sprite.width,h=l.sprite.height,mask=new Uint8Array(w*h),g=l.sprite.getContext('2d',{willReadFrequently:true}),arr=g.getImageData(0,0,w,h).data,x=Math.floor(start.x),y=Math.floor(start.y);if(x<0||y<0||x>=w||y>=h)return{mask,w,h};let idx=y*w+x,col=arr.slice(idx*4,idx*4+4),queue=new Uint32Array(w*h),head=0,tail=1;queue[0]=idx;mask[idx]=1;while(head<tail){const i=queue[head++],px=i%w,py=(i-px)/w;const v=[px>0?i-1:-1,px<w-1?i+1:-1,py>0?i-w:-1,py<h-1?i+w:-1];for(let j of v){if(j<0||mask[j])continue;const k=j*4;if(arr[k]===col[0]&&arr[k+1]===col[1]&&arr[k+2]===col[2]&&arr[k+3]===col[3]){mask[j]=1;queue[tail++]=j;}}}return{mask,w,h};}
 function selectionBounds(s=selection){if(!s)return null;let x0=s.w,y0=s.h,x1=-1,y1=-1;for(let y=0;y<s.h;y++)for(let x=0;x<s.w;x++)if(s.mask[y*s.w+x]){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y);}return x1<0?null:{x:x0,y:y0,w:x1-x0+1,h:y1-y0+1};}
 function updateSelection(obj){selection=obj;selOverlay=null;if(obj){let canvas=mk(obj.w,obj.h),g=canvas.getContext('2d'),data=g.createImageData(obj.w,obj.h);for(let y=0;y<obj.h;y++)for(let x=0;x<obj.w;x++){let i=y*obj.w+x;if(!obj.mask[i])continue;let p=i*4,border=x===0||y===0||x===obj.w-1||y===obj.h-1||!obj.mask[i-1]||!obj.mask[i+1]||!obj.mask[i-obj.w]||!obj.mask[i+obj.w];data.data[p]=border?4:29;data.data[p+1]=border?124:134;data.data[p+2]=border?187:197;data.data[p+3]=border?245:55;}g.putImageData(data,0,0);selOverlay=canvas;}renderSelectionInfo();render();}
-function renderSelectionInfo(){const b=selectionBounds(),t=b?`Selection ${b.w}×${b.h} at ${b.x},${b.y}`:'No selection';$('selectionLabel').textContent=t;document.querySelectorAll('.selection-bar button').forEach(e=>{const all=['selectAll','selectOpaque','pasteSelection'].includes(e.id);e.disabled=!all&&!b;});$('pasteSelection').disabled=!clipboard;}
+function renderSelectionInfo(){const b=selectionBounds(),t=b?`Selection ${b.w}×${b.h} at ${b.x},${b.y}`:'No selection';$('selectionLabel').textContent=t;const status=$('selectionStatus');if(status)status.textContent=b?t:'No active selection';document.querySelectorAll('.selection-bar button').forEach(e=>{const all=['selectAll','selectOpaque','pasteSelection','clearSelection'].includes(e.id);e.disabled=!all&&!b;});$('pasteSelection').disabled=!clipboard;}
+function deselectEverything(){if(holdLocked)lockHold();const had=!!selection||!!preview;preview=null;dragStart=null;clickPress=false;updateSelection(null);render();toast(had?'Selection cancelled — canvas ready':'No active selection');}
+
 function needSelection(){const l=L(),b=selectionBounds();if(!l||l.locked||!b){toast('Select pixels on an unlocked layer first');return null;}return {l,b};}
 function selectAll(){let l=L();if(!l)return;let mask=new Uint8Array(l.sprite.width*l.sprite.height);mask.fill(1);updateSelection({mask,w:l.sprite.width,h:l.sprite.height});}
 function selectOpaque(){let l=L();if(!l)return;const {width:w,height:h}=l.sprite,d=l.sprite.getContext('2d').getImageData(0,0,w,h).data,mask=new Uint8Array(w*h);for(let i=0;i<mask.length;i++)mask[i]=d[i*4+3]?1:0;updateSelection({mask,w,h});}
@@ -544,7 +615,7 @@ function bind(){
  $('canvasPreset').onchange=e=>{const val=e.target.value;if(val==='custom')return;const n=parseInt(val);changeCanvas(n,n);};$('canvasResizeBtn').onclick=()=>{const w=prompt('Canvas width in pixels (1–1024)',W());if(w===null)return;const h=prompt('Canvas height in pixels (1–1024)',H());if(h===null)return;changeCanvas(Number(w),Number(h));};
  document.querySelectorAll('[data-tool]').forEach(btn=>{btn.onclick=()=>{if(holdLocked)lockHold();tool=btn.dataset.tool;preview=null;dragStart=null;document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('selected',b===btn));$('clickHelp').textContent=toolsShapes.has(tool)||toolsSelect.has(tool)?'START / FINISH':tool==='move'?'PICK / PLACE':tool==='picker'?'PICK COLOR':tool==='wand'?'PICK AREA':'APPLY TOOL';$('toolHint').textContent=toolsShapes.has(tool)||toolsSelect.has(tool)?'Direct: drag • Pointer: CLICK twice or HOLD':tool==='move'?'Drag artwork; Art Lock governs alignment': 'Choose a layer, then draw';refresh();};});
  document.querySelectorAll('[data-mode]').forEach(b=>{b.onclick=()=>{mode=b.dataset.mode;selected=layers().at(-1)?.id||null;animation='idle';frame=0;playing=false;selection=null;preview=null;updatePlay();moveCursor(W()/2,H()/2);fitView();refresh();};});
- $('palettePreset').onchange=paletteRender;paletteRender();setColor(selectedColor);
+ $('palettePreset').onchange=()=>{activePersonalSlot=null;paletteRender();};$('saveCustomSwatch').onclick=saveCustomSwatch;$('replaceCustomSwatch').onclick=replaceCustomSwatch;$('removeCustomSwatch').onclick=removeCustomSwatch;paletteRender();setColor(selectedColor);
  $('colorPicker').oninput=e=>setColor(e.target.value);$('hexColor').onchange=e=>{setColor(e.target.value);$('hexColor').value=selectedColor;};$('backgroundColor').onclick=()=>{let c=selectedColor;setColor(secondColor);secondColor=c;};
  ['hue','sat','val'].forEach(id=>$(id).oninput=()=>setColor(hsvToHex(Number($('hue').value),Number($('sat').value),Number($('val').value))));
  $('brushSize').oninput=e=>{brushSize=Number(e.target.value);$('brushLabel').textContent=brushSize;};$('opacityBrush').oninput=e=>{colorAlpha=Number(e.target.value)/100;$('opacityLabel').textContent=e.target.value+'%';};
@@ -555,7 +626,7 @@ function bind(){
  $('rotateMinus').onclick=()=>{if(!L())return;record();editTransform('rotation',-5,false);refresh();};$('rotatePlus').onclick=()=>{if(!L())return;record();editTransform('rotation',5,false);refresh();};$('flipLayer').onclick=()=>{if(!L())return;record();L().flip=!L().flip;refresh();};
  const nudge=(axis,n)=>{moveCursor(pointer.x+(axis==='x'?n:0),pointer.y+(axis==='y'?n:0));if(holdLocked||clickPress||preview||dragStart)pointerDragAction();render();};
  $('oneLeft').onclick=()=>nudge('x',-1);$('oneRight').onclick=()=>nudge('x',1);$('oneUp').onclick=()=>nudge('y',-1);$('oneDown').onclick=()=>nudge('y',1);
- $('selectAll').onclick=selectAll;$('selectOpaque').onclick=selectOpaque;$('copySelection').onclick=copySelection;$('cutSelection').onclick=cutSelection;$('pasteSelection').onclick=pasteSelection;$('extractSelection').onclick=extractSelection;$('deleteSelection').onclick=deleteSelection;$('cropSelection').onclick=cropLayer;$('cropCanvas').onclick=cropCanvas;$('recolorSelection').onclick=recolorSelection;$('rotateSelection').onclick=()=>transformSelection('rot');$('flipSelection').onclick=()=>transformSelection('flip');$('scaleDownSelection').onclick=()=>transformSelection('down');$('scaleUpSelection').onclick=()=>transformSelection('up');$('clearSelection').onclick=()=>updateSelection(null);
+ $('selectAll').onclick=selectAll;$('selectOpaque').onclick=selectOpaque;$('copySelection').onclick=copySelection;$('cutSelection').onclick=cutSelection;$('pasteSelection').onclick=pasteSelection;$('extractSelection').onclick=extractSelection;$('deleteSelection').onclick=deleteSelection;$('cropSelection').onclick=cropLayer;$('cropCanvas').onclick=cropCanvas;$('recolorSelection').onclick=recolorSelection;$('rotateSelection').onclick=()=>transformSelection('rot');$('flipSelection').onclick=()=>transformSelection('flip');$('scaleDownSelection').onclick=()=>transformSelection('down');$('scaleUpSelection').onclick=()=>transformSelection('up');$('clearSelection').onclick=deselectEverything;$('prominentDeselect').onclick=deselectEverything;
  $('animationSelect').onchange=e=>{animation=e.target.value;frame=0;refresh();};$('playBtn').onclick=()=>{playing=!playing;updatePlay();};$('directionBtn').onclick=()=>{face=face==='right'?'left':'right';refresh();};$('keyframeEdit').onchange=e=>{editPoses=e.target.checked;refresh();};$('resetPose').onclick=()=>{let l=L();if(!l)return;record();if(l.poses[animation])delete l.poses[animation][frame];refresh();};$('sheetBtn').onclick=exportSheet;
  $('exportPng').onclick=exportPNG;$('saveBtn').onclick=saveJSON;$('modalSave').onclick=()=>{saveJSON();$('modal').hidden=true;};$('menuBtn').onclick=()=>$('modal').hidden=false;$('closeModal').onclick=()=>$('modal').hidden=true;$('modal').onclick=e=>{if(e.target===$('modal'))$('modal').hidden=true;};
  $('newProject').onclick=()=>{record();doc().layers=[];doc().wholeCanvas=null;selected=null;updateSelection(null);$('modal').hidden=true;refresh();toast('New empty '+mode+' canvas');};$('loadProject').onclick=()=>$('projectFile').click();$('projectFile').onchange=async e=>{const f=e.target.files?.[0];if(!f)return;try{if(f.size>35_000_000)throw Error('Project exceeds 35 MB');const data=JSON.parse(await f.text());record();await restore(data);$('modal').hidden=true;toast('Project loaded');}catch(err){toast('Could not load: '+err.message);}e.target.value='';};
@@ -567,7 +638,7 @@ function bind(){
 function setupStudioLayout(){
   const shell=document.querySelector('.shell'),editor=document.querySelector('.editor'),workspace=document.querySelector('.workspace'),stageEl=document.querySelector('#stageContainer');
   const snapSettings=()=>document.querySelector('#snapToggle');
-  document.querySelector('.brand small').textContent='SURVIVAL PARADISE · STUDIO 0.4';
+  document.querySelector('.brand small').textContent='SURVIVAL PARADISE · STUDIO 0.5';
   const initialWidth=()=>window.innerWidth,initialHeight=()=>window.innerHeight;
   let stored={};try{stored=JSON.parse(localStorage.getItem('pixelforge-layout-v04')||'{}')||{};}catch{}
   const prefs={widgets:stored.widgets||{},panels:stored.panels||{},visible:stored.visible||{}};
@@ -578,7 +649,7 @@ function setupStudioLayout(){
   function place(el,x,y,w,h){w=clamp(w,58,Math.max(100,window.innerWidth-10));h=clamp(h,54,Math.max(100,window.innerHeight-70));el.style.width=w+'px';el.style.height=h+'px';el.style.left=clamp(x,0,Math.max(0,window.innerWidth-w))+'px';el.style.top=clamp(y,49,Math.max(49,window.innerHeight-h-54))+'px';}
   function beginManipulation(el,handle,kind,minW,minH,cb){
     handle.addEventListener('pointerdown',e=>{
-      if(e.button!==0||el.classList.contains('ui-locked')||!el.classList.contains('floating')&&el.classList.contains('studio-sheet'))return;
+      if(e.button!==0||e.target.closest('button')||el.classList.contains('ui-locked')||!el.classList.contains('floating')&&el.classList.contains('studio-sheet'))return;
       e.stopPropagation();e.preventDefault();handle.setPointerCapture(e.pointerId);el.style.zIndex=++topZ;
       const origin={...rect(el)},first={x:e.clientX,y:e.clientY};
       const dragging=ev=>{
@@ -630,13 +701,46 @@ function setupStudioLayout(){
   const take=s=>{const n=document.querySelector(s);if(!n)throw Error('Missing Pixel Forge control '+s);return n;};
   const bottom=document.createElement('nav');bottom.className='studio-nav';bottom.setAttribute('aria-label','Studio panels');bottom.innerHTML=[['tools','✎','Tools'],['colors','◕','Colors'],['layers','▥','Layers'],['animation','▣','Animate'],['settings','⚙','Setup']].map(([id,icon,txt])=>'<button data-studio-nav="'+id+'"><b>'+icon+'</b>'+txt+'</button>').join('');shell.appendChild(bottom);
   const toolBar=take('.tool-bar');
-  makePanel('tools','DRAWING & SELECTION',[toolBar,take('.selection-bar'),take('.edit-nudge')]);
-  makePanel('colors','PALETTE & COLORS',[take('.color-main'),take('.tool-options'),take('.color-advanced')]);
+  makePanel('tools','DRAWING & SELECTION',[toolBar,take('.selection-primary'),take('.selection-bar'),take('.edit-nudge')]);
+  makePanel('colors','PALETTE & COLORS',[take('.color-main'),take('.tool-options'),take('.palette-actions'),take('.color-advanced')]);
   makePanel('layers','CHARACTER / WEAPON LAYERS',[take('.sidebar')]);
   makePanel('animation','ANIMATION TIMELINE',[take('.timeline')]);
   const settingsPanel=makePanel('settings','STUDIO SETTINGS',[take('.pointer-bar'),take('.canvas-edit-line'),take('#fullCanvasInfo'),take('.editor-setting-line'),take('.pointer-status'),take('.bottom')]);
   const settingsBody=settingsPanel.querySelector('.sheet-content');
-  settingsBody.insertAdjacentHTML('afterbegin','<div class="pf-section-title">LAYOUT & FLOATING CONTROLS</div><div class="pf-visibility-grid" id="pfVisGrid"></div><p class="pf-settings-note">Drag the narrow title bar to reposition a floating control. Drag its ◢ corner to resize. Tap ⇲ to lock or unlock. Each panel can be floated or docked.</p><button class="pf-wide-button" id="pfResetLayout">↺ Reset panel positions</button><div class="pf-section-title">EDITOR OPTIONS</div>');
+  settingsBody.insertAdjacentHTML('afterbegin','<div class="pf-section-title">HELP & TUTORIAL</div><button id="pfOpenHelp" class="pf-wide-button" style="width:100%;min-height:43px;font-weight:750">ⓘ Info — Complete Guide to Every Tool</button><div class="pf-section-title">LAYOUT & FLOATING CONTROLS</div><div class="pf-visibility-grid" id="pfVisGrid"></div><p class="pf-settings-note">Drag the narrow title bar to reposition a floating control. Drag its ◢ corner to resize. Tap ⇲ to lock or unlock. Each panel can be floated or docked.</p><button class="pf-wide-button" id="pfResetLayout">↺ Reset panel positions</button><div class="pf-section-title">EDITOR OPTIONS</div>');
+  // Offline, searchable reference. Each control from the five studio panels is documented.
+  const helpSections=[
+   ['GETTING STARTED','Start with Layers → select a body part or tap Blank. The dotted box is the boundary of the selected layer, not a hard canvas limit. Open Setup → EDIT WHOLE IMAGE to edit across the complete canvas; tap ORIGINAL PARTS to return to modular sprites. Full-image mode creates a separate flat layer and does not permanently merge the original parts. Import a PNG in Layers or draw directly with the Pencil.'],
+   ['TOUCH / POINTER / DRAWING','Pointer moves a crosshair without drawing when Click Mode is ON. Tap CLICK to apply the current tool at the crosshair. HOLD / DRAG locks the mouse button so movement creates a continuous stroke or drag; tap again to release. With Click Mode OFF, pointer movement draws automatically for compatible tools. Pointer/Direct changes between an indirect cursor and drawing directly beneath your finger. For straight lines, shapes, and selections in pointer mode: CLICK once at the start, move pointer, CLICK again to finish. Two fingers pinch to zoom/pan the art.'],
+   ['CANVAS VIEW','− / + decrease/increase zoom; ⌖ centers and fits the canvas; 🔎 shows/hides the floating magnifier. Move the magnifier using its title strip and resize with ◢. The magnifier displays pixels beneath the cursor but does not modify the image. Grid toggles overlay lines; Grid step changes spacing in logical pixels (1, 2, 4, 8, 16, 32, or 64). Pixel Snap ON locks the pointer to exact integer pixels, OFF gives free cursor positioning. Art Lock ON aligns moved layers to pixel coordinates; OFF permits fractional placement. Focus centers and zooms to the active layer. Canvas preset and Resize change canvas dimensions (maximum 1024×1024).'],
+   ['FLOATING WINDOWS / WORKSPACE','The bottom Tools, Colors, Layers, Animate, Setup buttons open panels. Tap ⇱ Float to undock a panel; tap ⇱ Dock to return it. Drag the colored panel title bar or each floating widget’s small title strip to move it. Drag ◢ at the lower-right to resize. ⇲ locks or unlocks position; 🔒 means locked. ✕ closes a panel. Setup includes checkboxes to show/hide Click, Hold, Zoom, Magnifier, or Quick Tools, and Reset panel positions. Click and Hold work even when other panels are closed.'],
+   ['DRAWING TOOLS','Pencil draws pixels with the chosen color and brush size. Erase makes pixels transparent. Move drags the active layer (not the whole document). Pick samples color at the cursor. Bucket flood-fills connected pixels of similar existing color on the selected layer. Pan drags the view instead of painting. Line draws straight strokes. Rect and Fill rect draw unfilled/filled rectangles. Ellipse and Fill oval draw unfilled/filled circles/ellipses. Triangle and Fill tri draw outlined/solid triangles. Star and Fill star draw outlined/filled stars. Tool selection is available in Tools; common tools are also in the floating Tools rail.'],
+   ['SELECTIONS / DESELECT','Sel rect and Sel oval select a rectangular or elliptical area. Lasso traces an irregular area; Wand selects connected pixels of matching color. All selects the entire active layer; Opaque selects nontransparent pixels. Deselect / Cancel selection clears the current selection and an unfinished shape, without erasing artwork. Deselect is on the floating Tools rail and at the top of the Tools panel. Selections belong to the currently selected layer, so use EDIT WHOLE IMAGE to select across all visible parts.'],
+   ['SELECTION ACTIONS','Copy copies selected pixels; Cut copies and erases; Paste inserts copied pixels; Extract removes selected pixels and creates a separate layer; Delete erases selected pixels. Crop layer cuts the selected layer to its selection; Crop canvas changes the document canvas to selected bounds. Recolor changes selected pixels to the foreground color. Rotate 90°, Flip selection, ½ Size and 2× Size transform selected pixels. The four arrow buttons move the precision cursor one pixel at a time. Undo and Redo reverse or reapply supported editing steps.'],
+   ['PALETTE / COLORS','Open Colors from the bottom bar. Choose Studio 256 (256 generated RGB colors), Expanded 64, PICO-8 16, Survival / earth 32, or My 128 color slots. Scroll vertically to see all swatches. Tap a swatch to select the foreground color. In My 128 color slots, tap an empty + tile to save the selected foreground color. Save to My Slots stores the current color in the first empty slot and switches to the personal palette. Select a personal swatch then Replace Slot to overwrite it or Clear Slot to empty it. The personal palette stays on this device between sessions. The color-square opens Android’s color picker; Hex accepts a #RRGGBB value; HSV sliders adjust hue, saturation and brightness; Brush changes pencil size; Opacity sets brush alpha; ⇄ Colors swaps foreground and secondary color.'],
+   ['CHARACTERS / WEAPONS / LAYERS','Character / Weapon switches between separate workspaces. Tap an asset in Asset Library to add a sprite part; + Import PNG adds your own image as a layer. The Layers list determines draw order: selected layer is highlighted; ◉/○ shows/hides it. ＋ Blank makes a full-canvas paint layer. ▧ Expand increases the selected part’s editable bounds without merging other parts. ⧉ duplicates a layer; ✕ deletes it; ↑ and ↓ reorder it. X / Y move a layer by numbers; Rotation and Scale transform it; ↶−5° and ↷+5° rotate in increments; ⇄ Flip mirrors a layer. Select the correct layer before painting or erasing.'],
+   ['ANIMATION / EXPORT','Animate panel: Idle, Walk, Run, Aim / Hold select a motion; ▶ Play previews motion; ⇄ Right/Left switches facing direction; eight numbered frames control the current time. Edit poses per frame lets transforms differ by frame; Reset frame pose removes the selected frame’s pose adjustment. Export 8-frame sheet writes a sprite sheet. ↓ PNG exports a transparent flattened image of the current view. ↓ Save project writes editable JSON with layers and poses. The top ☰ menu offers New project, Open project, Save project. Save the editable project before destructive crop or transform operations.'],
+   ['COMMON FIXES','Cannot paint outside a dotted rectangle? Setup → EDIT WHOLE IMAGE, or Layers → Blank/Expand. Cannot draw at all? Select Pencil, verify selected layer is visible and unlocked, move the crosshair, tap CLICK; try Direct mode. A blue selection outline remains? Tap ✕ Deselect in the floating Tools rail. Magnifier blocks the view? Tap 🔎 or uncheck Magnifier in Setup. Palette displays only a few swatches? Scroll the color panel; choose Studio 256 and expand/floated-resize the panel. Large canvases with many layers may redraw more slowly; hide the grid or reduce zoom while navigating.']
+  ];
+  const infoModal=document.createElement('div');infoModal.id='pfInfoModal';infoModal.className='pf-info-modal';infoModal.hidden=true;infoModal.setAttribute('role','dialog');infoModal.setAttribute('aria-modal','true');infoModal.setAttribute('aria-label','Pixel Forge complete tutorial');
+  infoModal.innerHTML='<section class="pf-info-dialog"><div class="pf-info-head"><strong>ⓘ PIXEL FORGE — COMPLETE GUIDE</strong><button id="pfInfoClose" aria-label="Close tutorial">✕ Close</button></div><div class="pf-info-search"><input id="pfInfoSearch" type="search" placeholder="Find a tool, button, or action…" aria-label="Search tutorial"><span id="pfInfoResult"></span></div><div class="pf-info-scroll" id="pfInfoContent"></div></section>';
+  document.body.appendChild(infoModal);
+  const helpContent=infoModal.querySelector('#pfInfoContent'),search=infoModal.querySelector('#pfInfoSearch');
+  function renderHelp(filter=''){
+    helpContent.replaceChildren();let count=0;
+    for(const [name,desc] of helpSections){if(filter&&!((name+' '+desc).toLowerCase().includes(filter.toLowerCase())))continue;count++;const details=document.createElement('details');details.className='pf-guide-section';details.open=count===1||!!filter;
+      const heading=document.createElement('summary');heading.textContent=name;const p=document.createElement('p');p.textContent=desc;details.append(heading,p);helpContent.append(details);}
+    infoModal.querySelector('#pfInfoResult').textContent=count?count+' topics':'No matches';
+  }
+  const closeInfo=()=>{infoModal.hidden=true;};
+  const openInfo=()=>{search.value='';renderHelp();infoModal.hidden=false;search.focus();};
+  settingsBody.querySelector('#pfOpenHelp').onclick=openInfo;
+  infoModal.querySelector('#pfInfoClose').onclick=closeInfo;
+  infoModal.addEventListener('pointerdown',e=>{if(e.target===infoModal)closeInfo();});
+  infoModal.querySelector('#pfInfoSearch').addEventListener('input',()=>renderHelp(search.value.trim()));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!infoModal.hidden)closeInfo();});
+  const helpHeader=document.createElement('button');helpHeader.id='pfHeaderHelp';helpHeader.className='icon-button';helpHeader.textContent='ⓘ';helpHeader.title='Full tutorial for every tool';helpHeader.setAttribute('aria-label','Open full help tutorial');helpHeader.onclick=openInfo;
+  document.querySelector('.head-actions').prepend(helpHeader);
   document.querySelectorAll('[data-studio-nav]').forEach(b=>{b.onclick=()=>{const key=b.dataset.studioNav;panels[key].hidden?showPanel(key):hidePanel(key);};});
   // Floating CLICK and HOLD are the actual original buttons, not imitations.
   addWidget('click','CLICK',[take('#clickBtn')],{minW:72,minH:70,defaultRect:()=>[initialWidth()-126,initialHeight()-193,118,96]});
@@ -646,8 +750,8 @@ function setupStudioLayout(){
   addWidget('magnifier','MAGNIFIER',[take('#magnifier')],{minW:80,minH:84,defaultRect:()=>[10,104,136,157]});
   const rail=document.createElement('div');rail.className='quick-rail';
   const shortcuts=[['paint','✎','Draw'],['erase','⌫','Erase'],['move','✥','Move'],['pan','✋','Pan'],['picker','◉','Pick'],['selectRect','▤','Select']];
-  shortcuts.forEach(([key,icon,label])=>{const b=document.createElement('button');b.type='button';b.dataset.quick=key;b.textContent=icon+' '+label;b.onclick=()=>{const orig=document.querySelector('[data-tool="'+key+'"]');orig?.click();syncQuick();};rail.appendChild(b);});
-  addWidget('quick','TOOLS',[rail],{minW:65,minH:120,defaultRect:()=>[8,initialHeight()-361,76,248]});
+  shortcuts.forEach(([key,icon,label])=>{const b=document.createElement('button');b.type='button';b.dataset.quick=key;b.textContent=icon+' '+label;b.onclick=()=>{const orig=document.querySelector('[data-tool="'+key+'"]');orig?.click();syncQuick();};rail.appendChild(b);});const dq=document.createElement('button');dq.id='quickDeselect';dq.textContent='✕ Deselect';dq.title='Clear active selection or cancel unfinished shape';dq.onclick=()=>$('prominentDeselect').click();rail.appendChild(dq);
+  addWidget('quick','TOOLS',[rail],{minW:75,minH:120,defaultRect:()=>[8,initialHeight()-361,91,280]});
   function syncQuick(){document.querySelectorAll('[data-quick]').forEach(b=>b.classList.toggle('current',document.querySelector('[data-tool="'+b.dataset.quick+'"]').classList.contains('selected')));}
   document.querySelectorAll('[data-tool]').forEach(b=>b.addEventListener('click',()=>{syncQuick();if(!panels.tools.classList.contains('floating'))hidePanel('tools');}));syncQuick();
   // The existing mag toggle is preserved and doubles as the show/hide setting.
@@ -664,7 +768,7 @@ function setupStudioLayout(){
   window.addEventListener('resize',()=>{for(const w of Object.values(widgets)){const r=rect(w);place(w,r.left,r.top,r.width,r.height);}for(const p of Object.values(panels))if(p.classList.contains('floating')){const r=rect(p);place(p,r.left,r.top,r.width,r.height);}});
   // Existing shortcuts still bind to their original controls now hosted in panels.
   document.querySelector('.click-bar')?.remove();
-  editor.querySelector('.info-bar').insertAdjacentHTML('beforeend','<span class="pf-hint">· Drag floating handles to arrange</span>');
+  // The status bar stays compact. Layout instructions live under Setup.
   return {panels,widgets};
 }
 
