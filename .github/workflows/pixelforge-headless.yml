@@ -1,0 +1,40 @@
+name: Pixel Forge headless asset pipeline
+on:
+  push:
+    branches:
+      - pixelforge-scriptable-asset-pipeline-20261025
+  workflow_dispatch:
+jobs:
+  validate-and-export:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: pixelforge_studio/headless
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            pixelforge_studio
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements.txt
+      - name: Run rig and renderer tests
+        run: python -m unittest discover -s tests -v
+      - name: Build demo editable project and export game files
+        run: python -m pixelforge_pipeline demo output/demo
+      - name: Validate export files
+        run: |
+          test -s output/demo/SP_Demo_Character.pixelforge
+          test -s output/demo/spritesheets/SP_walk_left.png
+          test -s output/demo/spritesheets/SP_walk_right.png
+          test -s output/demo/spritesheets/SP_Character_Rig.json
+          test -s output/demo/spritesheets/SP_Asset_Manifest.json
+      - name: Publish demo asset artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PixelForge-Headless-Example-Assets
+          path: pixelforge_studio/headless/output/demo
+          if-no-files-found: error
