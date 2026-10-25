@@ -3,7 +3,7 @@ android {
     namespace 'com.survivalparadise.pixelforge'
     compileSdk 35
     defaultConfig {
-        applicationId 'com.survivalparadise.pixelforge.fast'
+        applicationId 'com.survivalparadise.pixelforge.v032'
         minSdk 26
         targetSdk 34
         versionCode 5
