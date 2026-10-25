@@ -270,6 +270,58 @@ html,body,.shell,.workspace,.editor{background:var(--pf-theme-background)!import
 .pf-guide-section h4{font-size:12px;color:var(--pf-theme-accent,#74dec8);margin:9px 12px 4px}
 .pf-guide-section ol,.pf-guide-section ul{font-size:12px;color:#e1eee8;line-height:1.6;padding:0 14px 0 32px}
 .pf-guide-section code{background:#203739;padding:2px 4px}
+
+/* Pixel Forge 1.0.1 — Android touch/navigation hotfix */
+html,body,body *:not(input):not(textarea):not([contenteditable="true"]){
+ -webkit-user-select:none!important;user-select:none!important;
+ -webkit-touch-callout:none!important;
+}
+input,textarea,[contenteditable="true"]{
+ -webkit-user-select:text!important;user-select:text!important;
+ -webkit-touch-callout:default!important;
+}
+/* The canvas is gesture-only; every editing window has its OWN scroll container. */
+.studio-sheet .sheet-content,#pf08Rig .pf08-body,.pf-info-scroll,.pf07panel,
+.pf07toolsgrid,.pf-replace-form,.pf-widget .quick-rail,.studio-sheet .palette{
+ overflow-y:auto!important;overflow-x:hidden!important;
+ min-height:0!important;overscroll-behavior-y:contain!important;
+ -webkit-overflow-scrolling:touch!important;touch-action:pan-y!important;
+}
+.pf-widget:has(.quick-rail),.pf-widget:has(.quick-rail) .pf-widget-body{touch-action:pan-y!important}
+.pf-widget:has(.quick-rail) .pf-widget-head,.pf-widget:has(.quick-rail) .pf-grip{touch-action:none!important}
+.studio-sheet .sheet-head,#pf08Head {flex-shrink:0}
+.studio-sheet .sheet-content{display:block!important;flex:1 1 auto!important;height:0!important;position:relative}
+.studio-sheet.floating .sheet-content{height:0!important}
+.studio-sheet:not(.floating){height:min(58dvh,510px)!important;max-height:calc(100dvh - 146px)!important}
+.studio-sheet .sheet-head .pf101-scroll-btn,#pf08Head .pf101-scroll-btn{
+ min-width:31px;min-height:30px;height:30px;flex:none;font-size:18px;
+ background:var(--pf-theme-button,#24383c);color:var(--pf-theme-text,#eff);
+ border:1px solid var(--pf-theme-accent,#74dec8);
+}
+#pf08Head .pf101-scroll-btn{min-width:33px}
+.pf101-layout{min-width:32px!important;font-size:16px!important;padding:0 3px!important}
+#pf08Rig .pf08-panel{max-height:calc(100dvh - 120px)!important;min-height:220px}
+#pf08Rig .pf08-body{flex:1 1 0!important;height:0!important}
+#pf08Rig .pf08-group{min-width:0}
+.pf-widget .quick-rail button{flex:0 0 35px!important}
+.pf101-help-scroll{display:flex;gap:5px}
+@media(max-width:430px){
+ .header{padding-left:6px!important;padding-right:6px!important;gap:3px!important}
+ .brand{min-width:0;gap:6px!important}
+ .brand strong{font-size:12px!important;letter-spacing:1px!important;white-space:nowrap}
+ .brand small{font-size:7px!important;letter-spacing:0!important;white-space:nowrap}
+ .brandmark{font-size:17px!important;padding:2px 6px!important}
+ .head-actions{gap:3px!important;flex-shrink:0}
+ .head-actions .icon-button{min-width:29px!important;width:30px!important;height:35px!important;min-height:35px!important;font-size:17px!important;padding:0 2px!important}
+ .studio-sheet:not(.floating){left:4px!important;right:4px!important;bottom:calc(59px + env(safe-area-inset-bottom))!important}
+ .sheet-head{padding:3px 4px 3px 7px!important;gap:4px!important}
+ .sheet-head strong{font-size:10px!important;letter-spacing:.3px!important}
+ .sheet-head button{font-size:10px!important;padding:0 4px!important}
+ .studio-nav{grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);grid-template-columns:none!important;gap:2px!important;padding:4px 3px calc(4px + env(safe-area-inset-bottom))!important}
+ .studio-nav button{font-size:9px!important}
+ .pf08-panel{width:min(380px,calc(100vw - 12px))!important;right:6px!important}
+ .pf08-group label,.pf10-block label{grid-template-columns:minmax(72px,1fr) minmax(90px,1.4fr)!important}
+}
 </style>
 </head>
 <body>
@@ -777,7 +829,7 @@ function bind(){
 function setupStudioLayout(){
   const shell=document.querySelector('.shell'),editor=document.querySelector('.editor'),workspace=document.querySelector('.workspace'),stageEl=document.querySelector('#stageContainer');
   const snapSettings=()=>document.querySelector('#snapToggle');
-  document.querySelector('.brand small').textContent='SURVIVAL PARADISE · STUDIO 1.0';
+  document.querySelector('.brand small').textContent='SURVIVAL PARADISE · STUDIO 0.9';
   const initialWidth=()=>window.innerWidth,initialHeight=()=>window.innerHeight;
   let stored={};try{stored=JSON.parse(localStorage.getItem('pixelforge-layout-v04')||'{}')||{};}catch{}
   const prefs={widgets:stored.widgets||{},panels:stored.panels||{},visible:stored.visible||{}};
@@ -1266,7 +1318,7 @@ function setupRigV09(){
  window.PixelForgeRigV09={refresh:renderFields,worldPose,frameCount,cycleCheck,project:()=>snapshot(),restore,byRole:role=>{const l=layers().find(x=>x.rig?.role===role);return l?{layer:l,pose:worldPose(l)}:null;},export:()=>el('pf09Export').click()};
 }
 
-bind();setupStudioLayout();setupStudioEnhancements();setupPixelForgeV07();setupRigStudio();setupRigV09();setupRigV10();refresh();requestAnimationFrame(()=>{resize();fitView();refresh();});
+
 // Pixel Forge 1.0 extension. Scriptable operations are also exported on window.PixelForgeRigV10.
 function setupRigV10(){
  const panel=document.querySelector('#pf08Rig .pf08-body');if(!panel)return;
@@ -1449,6 +1501,110 @@ function setupRigV10(){
  window.PixelForgeRigV10={solveIK,startPhysics,stopPhysics,fitAsset,physics,manual:manual.map(([title,body])=>({title,body})),constraints:l=>l.rig?.jointLimits||null,layer:()=>L(),debugNodes:()=>[...physics.nodes.values()]};
 }
 
+
+function setupUIFixV101(){
+  const L=window.PixelForgeLayout;
+  if(!L)return;
+  const editable=t=>Boolean(t?.closest?.('input,textarea,[contenteditable="true"]'));
+  // Android WebView normally long-selects arbitrary words. Keep normal editing for input fields.
+  document.addEventListener('selectstart',e=>{if(!editable(e.target))e.preventDefault();},true);
+  document.addEventListener('contextmenu',e=>{if(!editable(e.target))e.preventDefault();},true);
+  document.querySelectorAll('img,canvas,button').forEach(n=>n.draggable=false);
+  const scroll=(element,sign)=>{
+    if(!element)return;
+    element.scrollBy({top:Math.max(150,Math.floor(element.clientHeight*.75))*sign,behavior:'smooth'});
+  };
+  for(const [key,panel] of Object.entries(L.panels)){
+    const h=panel.querySelector('.sheet-head');
+    const content=panel.querySelector('.sheet-content');
+    for(const [sign,label,icon] of [[-1,'Scroll up','▴'],[1,'Scroll down','▾']]){
+      const b=document.createElement('button');b.type='button';b.className='pf101-scroll-btn';b.textContent=icon;b.title=label;b.setAttribute('aria-label',label+' '+key+' panel');
+      b.onclick=e=>{e.stopPropagation();scroll(content,sign)};
+      h.insertBefore(b,h.querySelector('.pf-panel-float'));
+    }
+    // Wheel/trackpad and old Android scrollbars retain the same scrolling target.
+    content.style.overflowY='auto';content.style.touchAction='pan-y';
+  }
+  const rigHead=document.querySelector('#pf08Head');
+  const rigContent=document.querySelector('#pf08Rig .pf08-body');
+  if(rigHead&&rigContent){
+    for(const [sign,label,icon] of [[-1,'Rig scroll up','▴'],[1,'Rig scroll down','▾']]){
+      const b=document.createElement('button');b.type='button';b.className='pf101-scroll-btn';b.textContent=icon;b.setAttribute('aria-label',label);
+      b.onclick=e=>{e.stopPropagation();scroll(rigContent,sign)};
+      rigHead.insertBefore(b,document.querySelector('#pf08Close'));
+    }
+  }
+  // Predictable default geometry: controls line the edges, leaving the center canvas clear.
+  const W=()=>window.innerWidth,H=()=>window.innerHeight;
+  const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
+  function position(el,x,y,w,h){
+    w=Math.min(w,W()-8);h=Math.min(h,H()-116);
+    el.style.width=w+'px';el.style.height=h+'px';
+    el.style.left=clamp(x,3,Math.max(3,W()-w-3))+'px';
+    el.style.top=clamp(y,51,Math.max(51,H()-h-66))+'px';
+  }
+  function arrange(silent=false){
+    const small=W()<560;
+    const d=small?{
+      view:[W()-177,75,173,58],
+      magnifier:[5,141,95,111],
+      quick:[5,H()-282,79,201],
+      hold:[W()-115,H()-246,110,66],
+      click:[W()-115,H()-175,110,92]
+    }:{
+      view:[W()-235,77,222,64],
+      magnifier:[12,150,148,165],
+      quick:[12,H()-366,105,267],
+      hold:[W()-140,H()-257,129,68],
+      click:[W()-140,H()-181,129,99]
+    };
+    for(const [k,v] of Object.entries(d)){
+      const el=L.widgets[k];if(!el)continue;
+      position(el,...v);el.classList.remove('ui-locked');
+      const lock=el.querySelector('.pf-lock');if(lock)lock.textContent='⇲';
+    }
+    for(const panel of Object.values(L.panels)){
+      panel.classList.remove('floating','ui-locked');
+      panel.removeAttribute('style');panel.hidden=true;
+      panel.querySelector('.pf-panel-float').textContent='⇱ Float';
+      panel.querySelector('.pf-panel-lock').textContent='⇲';
+    }
+    document.querySelectorAll('[data-studio-nav]').forEach(b=>b.classList.remove('active'));
+    // Save the new widget positions to the original preference store (v0.4 compatibility).
+    try{
+      const saved=JSON.parse(localStorage.getItem('pixelforge-layout-v04')||'{}');
+      saved.widgets={};saved.panels={};
+      for(const [k,v] of Object.entries(d)){
+        const el=L.widgets[k];saved.widgets[k]={left:parseFloat(el.style.left),top:parseFloat(el.style.top),width:parseFloat(el.style.width),height:parseFloat(el.style.height),locked:false};
+      }
+      localStorage.setItem('pixelforge-layout-v04',JSON.stringify(saved));
+      localStorage.setItem('pixelforge-v101-layout-ready','1');
+    }catch{}
+    if(!silent)toast('Panels arranged. Use ⇱ Float to move a panel.');
+  }
+  const layoutBtn=document.createElement('button');layoutBtn.type='button';layoutBtn.id='pf101Arrange';layoutBtn.className='icon-button pf101-layout';layoutBtn.textContent='▦';
+  layoutBtn.title='Arrange panels and floating controls';layoutBtn.setAttribute('aria-label','Arrange interface');
+  layoutBtn.onclick=()=>arrange();document.querySelector('.head-actions').prepend(layoutBtn);
+  const settings=L.panels.settings?.querySelector('.sheet-content');
+  if(settings){
+    const b=document.createElement('button');b.type='button';b.className='pf-wide-button';b.textContent='▦ Arrange workspace — restore orderly layout';
+    b.style.cssText='width:100%;min-height:44px;margin:8px 0';
+    b.onclick=()=>arrange();settings.prepend(b);
+  }
+  try{if(localStorage.getItem('pixelforge-v101-layout-ready')!=='1')arrange(true);}catch{arrange(true)}
+  // Preserve positions on resize when possible; all components stay reachable on rotation.
+  window.addEventListener('orientationchange',()=>{setTimeout(()=>{
+    for(const el of Object.values(L.widgets)){
+      const x=parseFloat(el.style.left)||0,y=parseFloat(el.style.top)||51,w=el.offsetWidth,h=el.offsetHeight;
+      position(el,x,y,w,h);
+    }
+  },100);});
+  const brand=document.querySelector('.brand small');if(brand)brand.textContent='SURVIVAL PARADISE · STUDIO 1.0.1';
+  window.PixelForgeUIFixV101={arrange,scroll};
+}
+
+bind();setupStudioLayout();setupStudioEnhancements();setupPixelForgeV07();setupRigStudio();setupRigV09();setupRigV10();setupUIFixV101();refresh();requestAnimationFrame(()=>{resize();fitView();refresh();});
 })();
+
 </script>
 </body></html>

@@ -1,8 +1,8 @@
-name: Build Pixel Forge v1.0 Advanced Rigging Android APK
+name: Build Pixel Forge v1.0.1 UI Touch Fix Android APK
 on:
   push:
     branches:
-      - pixelforge-v100-advanced-rigging-20261025
+      - pixelforge-v101-ui-touch-fix-20261025
   workflow_dispatch:
 jobs:
   build-android-apk:
@@ -46,10 +46,10 @@ jobs:
           APK=pixelforge-v03/app/build/outputs/apk/debug/app-debug.apk
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK"
           "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | head -n 6
-          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | grep -F "name='com.survivalparadise.pixelforge.v100'"
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | grep -F "name='com.survivalparadise.pixelforge.v101'"
       - name: Upload installable debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: PixelForge-v1.0-Advanced-Rigging-APK
+          name: PixelForge-v1.0.1-UI-Touch-Fix-APK
           path: pixelforge-v03/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
