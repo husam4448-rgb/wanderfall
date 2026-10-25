@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="Pixel Forge"
+        android:label="Pixel Forge Fast"
         android:theme="@android:style/Theme.Material.NoActionBar"
         android:usesCleartextTraffic="false"
         android:allowBackup="false"
         android:supportsRtl="true">
-        <activity android:name=".MainActivity"
+        <activity android:name="com.survivalparadise.pixelforge.MainActivity"
             android:screenOrientation="unspecified"
             android:exported="true"
             android:configChanges="orientation|screenSize|keyboardHidden">
