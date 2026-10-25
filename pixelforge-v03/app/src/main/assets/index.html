@@ -257,6 +257,19 @@ html,body,.shell,.workspace,.editor{background:var(--pf-theme-background)!import
 .pf07status{font-size:11px;color:#83d4bf;line-height:1.4}
 .pf07files input{display:none}
 #pf07GuideLabel{font-size:11px;opacity:.85;margin-left:8px}
+/* v1.0: offline IK, joint physics, constraints, asset fit and searchable manual */
+.pf10-block{border:1px solid var(--pf-theme-accent,#74dec8);background:#10272555;border-radius:9px;padding:10px;margin:8px 0;display:grid;gap:9px}
+.pf10-block b{color:var(--pf-theme-accent,#74dec8);font-size:12px}
+.pf10-block label{display:grid!important;grid-template-columns:minmax(85px,1fr) minmax(90px,1.2fr)!important;gap:8px;align-items:center}
+.pf10-block select,.pf10-block input{min-width:0;max-width:100%;min-height:39px;background:var(--pf-theme-button,#293c41);color:var(--pf-theme-text,#fff);border:1px solid #5d8c80;padding:5px;border-radius:6px;font-size:12px}
+.pf10-block input[type=checkbox]{justify-self:end;width:22px;height:22px}
+.pf10-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.pf10-actions button{min-height:44px!important;min-width:0!important;white-space:normal;overflow-wrap:anywhere}
+.pf10-block small{font-size:11px;line-height:1.5;opacity:.87}
+.pf10-status{font-size:11px;padding:9px;border-radius:6px;background:#12413655;border:1px solid #456d5e;white-space:pre-line}
+.pf-guide-section h4{font-size:12px;color:var(--pf-theme-accent,#74dec8);margin:9px 12px 4px}
+.pf-guide-section ol,.pf-guide-section ul{font-size:12px;color:#e1eee8;line-height:1.6;padding:0 14px 0 32px}
+.pf-guide-section code{background:#203739;padding:2px 4px}
 </style>
 </head>
 <body>
@@ -445,6 +458,10 @@ function getPose(l,f=frame,anim=animation){let dx=0,dy=0,r=0,sc=1;const t=Math.P
  if(!l.rig?.skipDefaultMotion&&(anim==='walk'||anim==='run')){const a=anim==='run'?14:9,b=anim==='run'?2:1;dy=-bounce*b;if(l.kind==='legL')r=cycle*a;if(l.kind==='legR')r=-cycle*a;if(l.kind==='armL')r=-cycle*a*.7;if(l.kind==='armR')r=cycle*a*.7;if(['torso','head','belt','pack','torsoGear','headgear','weaponHand'].includes(l.kind))dy-=bounce*b;}
  if(!l.rig?.skipDefaultMotion&&anim==='aim'&&l.kind==='armR'){r=-22;dx=1;dy=-2;}if(!l.rig?.skipDefaultMotion&&anim==='aim'&&l.kind==='weaponHand')dy=-5;
  const p=l.poses?.[anim]?.[f];if(p){dx+=p.x||0;dy+=p.y||0;r+=p.rotation||0;sc=p.scale||1;}
+ // Respect optional relative joint angle limits for every animation and export.
+ const limit=l.rig?.jointLimits;
+ if(limit?.enabled){let lo=Number(limit.min),hi=Number(limit.max);if(!Number.isFinite(lo))lo=-180;if(!Number.isFinite(hi))hi=180;
+  if(lo>hi)[lo,hi]=[hi,lo];r=clamp(r,lo,hi);}
  return {x:l.x+dx,y:l.y+dy,rotation:l.rotation+r,scale:l.scale*sc};}
 // Parent-aware forward kinematics. Scene and exported frames share the same transform.
 function worldPose(l,f=frame,anim=animation,seen=new Set()){
@@ -466,6 +483,12 @@ function worldPose(l,f=frame,anim=animation,seen=new Set()){
    angle=pose.rotation+(p.rotation-parent.rotation)*contribution;
   }
  }
+ // Non-destructive physics preview overrides rendered joint positions only.
+ const physics=window.PF10?.physics;
+ if(physics?.active){const n=physics.nodes.get(l.id);if(n){x=n.x;y=n.y;
+   if(n.parentId){const p=physics.nodes.get(n.parentId);if(p){const initAngle=Math.atan2(n.restY,n.restX);
+   angle=pose.rotation+((Math.atan2(n.y-p.y,n.x-p.x)-initAngle)*180/Math.PI);}}
+ }}
  return {x,y,rotation:angle,scaleX:scX,scaleY:scY,pivot:pv};
 }
 function drawLayer(g,l,step=frame,anim=animation){if(!l.visible)return;const p=worldPose(l,step,anim);g.save();g.globalAlpha=l.opacity;g.translate(p.x,p.y);g.rotate(p.rotation*Math.PI/180);g.scale(p.scaleX*(l.flip?-1:1),p.scaleY);g.imageSmoothingEnabled=false;g.drawImage(l.sprite,-p.pivot.x,-p.pivot.y);g.restore();}
@@ -754,7 +777,7 @@ function bind(){
 function setupStudioLayout(){
   const shell=document.querySelector('.shell'),editor=document.querySelector('.editor'),workspace=document.querySelector('.workspace'),stageEl=document.querySelector('#stageContainer');
   const snapSettings=()=>document.querySelector('#snapToggle');
-  document.querySelector('.brand small').textContent='SURVIVAL PARADISE · STUDIO 0.9';
+  document.querySelector('.brand small').textContent='SURVIVAL PARADISE · STUDIO 1.0';
   const initialWidth=()=>window.innerWidth,initialHeight=()=>window.innerHeight;
   let stored={};try{stored=JSON.parse(localStorage.getItem('pixelforge-layout-v04')||'{}')||{};}catch{}
   const prefs={widgets:stored.widgets||{},panels:stored.panels||{},visible:stored.visible||{}};
@@ -846,6 +869,7 @@ function setupStudioLayout(){
     helpContent.replaceChildren();let count=0;
     for(const [name,desc] of helpSections){if(filter&&!((name+' '+desc).toLowerCase().includes(filter.toLowerCase())))continue;count++;const details=document.createElement('details');details.className='pf-guide-section';details.open=count===1||!!filter;
       const heading=document.createElement('summary');heading.textContent=name;const p=document.createElement('p');p.textContent=desc;details.append(heading,p);helpContent.append(details);}
+    count+=window.PF10?.renderManual?.(helpContent,filter)||0;
     infoModal.querySelector('#pfInfoResult').textContent=count?count+' topics':'No matches';
   }
   const closeInfo=()=>{infoModal.hidden=true;};
@@ -1242,8 +1266,189 @@ function setupRigV09(){
  window.PixelForgeRigV09={refresh:renderFields,worldPose,frameCount,cycleCheck,project:()=>snapshot(),restore,byRole:role=>{const l=layers().find(x=>x.rig?.role===role);return l?{layer:l,pose:worldPose(l)}:null;},export:()=>el('pf09Export').click()};
 }
 
-bind();setupStudioLayout();setupStudioEnhancements();setupPixelForgeV07();setupRigStudio();setupRigV09();refresh();requestAnimationFrame(()=>{resize();fitView();refresh();});
-})();
+bind();setupStudioLayout();setupStudioEnhancements();setupPixelForgeV07();setupRigStudio();setupRigV09();setupRigV10();refresh();requestAnimationFrame(()=>{resize();fitView();refresh();});
+// Pixel Forge 1.0 extension. Scriptable operations are also exported on window.PixelForgeRigV10.
+function setupRigV10(){
+ const panel=document.querySelector('#pf08Rig .pf08-body');if(!panel)return;
+ const el=(key)=>document.getElementById(key);
+ const view=()=>layers();
+ const float=(n,def=0)=>{const v=Number(el(n)?.value);return Number.isFinite(v)?v:def;};
+ const format=n=>Number.isFinite(n)?Math.round(n*100)/100:0;
+ const clampN=(n,min,max)=>Math.min(max,Math.max(min,n));
+ const status=msg=>{el('pf10Status').textContent=msg;toast(msg);};
+ const current=()=>{const l=L();if(!l){status('Select a sprite layer first.');return null;}if(l.locked){status('Unlock the layer to edit it.');return null;}return l;};
+ const rig=l=>(l.rig??={},l.rig.pivot??={x:l.sprite.width/2,y:l.sprite.height/2},l.rig);
+ const parent=l=>view().find(p=>p.id===l.rig?.parentId&&p!==l)||null;
+ const caps=(l)=>{const c=l.sprite,g=c.getContext('2d',{willReadFrequently:true});const img=g.getImageData(0,0,c.width,c.height).data;
+ let x0=c.width,y0=c.height,x1=-1,y1=-1;
+ for(let y=0;y<c.height;y++)for(let x=0;x<c.width;x++)if(img[(y*c.width+x)*4+3]>24){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y);}
+ return x1<0?{x:0,y:0,w:c.width,h:c.height}:{x:x0,y:y0,w:x1-x0+1,h:y1-y0+1};};
+ const section=document.createElement('section');section.className='pf09-container';section.id='pf10Section';
+ section.innerHTML=`
+ <div class="pf10-block"><b>IK · HAND AND FOOT TARGETING</b>
+ <small>Link upper/lower limbs to a parent first (Rig Studio → parent, Rigging 0.9 → Rigid). Select the hand/foot layer, put the precision pointer at its target, and solve. IK modifies editable rotation keys on the current frame. Joint limits below apply to the solution.</small>
+ <label>IK chain length <select id="pf10Chain"><option value="2">2 joints</option><option value="3" selected>3 joints</option><option value="4">4 joints</option><option value="6">6 joints</option></select></label>
+ <label>End-effector socket <select id="pf10TargetSocket"><option value="">Selected part pivot</option></select></label>
+ <label>Precision passes <input id="pf10Iterations" type="number" value="24" min="1" max="100" step="1"></label>
+ <div class="pf10-actions"><button id="pf10SolveIK">✣ Solve to pointer</button><button id="pf10ResetIK">↺ Clear IK pose keys</button></div>
+ <small>Tip: for a rifle hand, create a “grip” socket on the hand asset, choose it, and then solve to the grip location. Foot targets can be placed at ground contact.</small>
+ </div>
+ <div class="pf10-block"><b>JOINT ANGLE CONSTRAINTS</b>
+ <label>Enable limits <input id="pf10LimitOn" type="checkbox"></label>
+ <label>Min. bend (°) <input id="pf10Min" type="number" value="-90" step="1" min="-180" max="180"></label>
+ <label>Max. bend (°) <input id="pf10Max" type="number" value="90" step="1" min="-180" max="180"></label>
+ <div class="pf10-actions"><button id="pf10SaveLimits">Apply to part</button><button id="pf10LockAngle">Lock current bend</button></div>
+ <small>Limits are relative to the part’s base rotation. They affect manual animation, IK solving and exported frames, without detaching linked joints. Unlock by disabling the limit.</small>
+ </div>
+ <div class="pf10-block"><b>RAGDOLL · OFFLINE 2D PHYSICS PREVIEW</b>
+ <small>Verlet integration with gravity, damping and length/angle-constrained joints. Root pivots stay anchored; linked limbs swing freely. It is an optional preview, not an Android game-engine replacement. Stop preview to return to authored poses.</small>
+ <label>Gravity <input id="pf10Gravity" type="range" min="0" max="100" value="35"><output id="pf10GravityValue">35</output></label>
+ <label>Damping <input id="pf10Damping" type="range" min="0" max="99" value="90"><output id="pf10DampingValue">90</output></label>
+ <label>Joint stiffness <input id="pf10Stiffness" type="range" min="10" max="100" value="90"><output id="pf10StiffnessValue">90</output></label>
+ <div class="pf10-actions"><button id="pf10PlayPhysics">▶ Start ragdoll</button><button id="pf10StopPhysics">■ Stop ragdoll</button><button id="pf10Impulse">↗ Nudge selected limb</button><button id="pf10ResetPhysics">↺ Reset physics</button></div>
+ <small>Locked layers are not edited. To make a limb swing, set Link Mode = Rigid/Follow and choose a parent. Ragdoll never overwrites artwork or pose keys.</small>
+ </div>
+ <div class="pf10-block"><b>ONE-TOUCH EQUIPMENT AUTO-FIT</b>
+ <small>Select the gear layer, assign its parent body part, then choose the attachment type. Auto-fit uses nontransparent pixel bounds and adds a named socket to the parent if necessary; afterward refine width, height, X/Y offset, and pivot in Rig 0.9.</small>
+ <label>Equipment type <select id="pf10FitKind"><option value="helmet">Helmet / hat</option><option value="mask">Mask / glasses</option><option value="armor">Armor / vest</option><option value="belt">Belt / holster</option><option value="backpack">Backpack</option><option value="weapon">Weapon / hand grip</option><option value="custom">Fit exactly to parent</option></select></label>
+ <label>Fit width (%) <input id="pf10FitWidth" type="number" value="100" min="10" max="300"></label>
+ <label>Fit height (%) <input id="pf10FitHeight" type="number" value="100" min="10" max="300"></label>
+ <div class="pf10-actions"><button id="pf10AutoFit">▣ Fit & attach gear</button><button id="pf10FitOnly">□ Resize only</button></div>
+ <small>Gear is not permanently resampled; the sprite retains original pixels, and the renderer uses nearest-neighbor scaling. Check both left/right view ordering.</small>
+ </div>
+ <div class="pf10-block"><b>OFFLINE REFERENCE MANUAL</b>
+ <div class="pf10-actions"><button id="pf10Guide">ⓘ Read detailed manual</button><button id="pf10ExportGuide">↓ Export manual HTML</button></div>
+ <small>Searchable, self-contained documentation includes every major editor button, mode, rigging technique, animation action, import/export format and problem-solving workflow. Available without internet.</small>
+ </div>
+ <div id="pf10Status" class="pf10-status" role="status">v1.0 advanced rigging tools ready.</div>`;
+ panel.insertBefore(section,panel.firstElementChild?.nextSibling||null);
+ const physics={active:false,nodes:new Map(),timer:0,previous:0};
+ const api={physics};window.PF10=api;
+ function ref(){const l=L();if(!l)return;const lim=l.rig?.jointLimits||{};
+  el('pf10LimitOn').checked=!!lim.enabled;el('pf10Min').value=lim.min??-90;el('pf10Max').value=lim.max??90;
+  const current=el('pf10TargetSocket').value;el('pf10TargetSocket').innerHTML='<option value="">Selected part pivot</option>';
+  for(const s of l.rig?.sockets||[]){const op=document.createElement('option');op.value=s.name;op.textContent=s.name;el('pf10TargetSocket').append(op);}el('pf10TargetSocket').value= [...el('pf10TargetSocket').options].some(o=>o.value===current)?current:'';
+ }
+ function mutate(fn){const l=current();if(!l)return;record();fn(l,rig(l));refresh();ref();}
+ el('pf10SaveLimits').onclick=()=>mutate((l,r)=>{let a=clampN(float('pf10Min',-90),-180,180),b=clampN(float('pf10Max',90),-180,180);r.jointLimits={enabled:el('pf10LimitOn').checked,min:Math.min(a,b),max:Math.max(a,b)};status('Joint limits saved for '+l.name);});
+ el('pf10LockAngle').onclick=()=>mutate((l,r)=>{const v=(getPose(l).rotation-l.rotation);r.jointLimits={enabled:true,min:v,max:v};status('Bend angle locked at '+format(v)+'°');});
+ function effectorPos(l){const p=worldPose(l);const socket=l.rig?.sockets?.find(s=>s.name===el('pf10TargetSocket').value);if(!socket)return{x:p.x,y:p.y};
+  const dx=(socket.x-p.pivot.x)*p.scaleX*(l.flip?-1:1),dy=(socket.y-p.pivot.y)*p.scaleY,a=p.rotation*Math.PI/180;
+  return {x:p.x+dx*Math.cos(a)-dy*Math.sin(a),y:p.y+dx*Math.sin(a)+dy*Math.cos(a)};
+ }
+ function collectChain(end,maxN){const chain=[];let a=end;const ids=new Set([end.id]);
+  while(a&&chain.length<maxN){const child=a;a=parent(a);if(!a||ids.has(a.id)||child.rig?.linkMode==='none')break;ids.add(a.id);chain.push(a);}return chain;}
+ function solveIK(){if(physics.active){status('Stop ragdoll before editing IK keys.');return;}const end=current();if(!end)return;
+  const chain=collectChain(end,clampN(float('pf10Chain',3),1,6));if(!chain.length){status('No linked parent chain. Set Parent Joint and Link Mode in Rig Studio first.');return;}
+  const goal={x:pointer.x,y:pointer.y};const count=clampN(float('pf10Iterations',24),1,100);
+  record();for(const l of chain){l.poses[animation]??={};l.poses[animation][frame]??={x:0,y:0,rotation:0,scale:1};}
+  let error=Infinity;for(let i=0;i<count;i++){
+   for(const l of chain){if(l.locked)continue;
+    const joint=worldPose(l),endPos=effectorPos(end);
+    const av={x:endPos.x-joint.x,y:endPos.y-joint.y},bv={x:goal.x-joint.x,y:goal.y-joint.y};
+    if(Math.hypot(av.x,av.y)<.01||Math.hypot(bv.x,bv.y)<.01)continue;
+    const deg=Math.atan2(av.x*bv.y-av.y*bv.x,av.x*bv.x+av.y*bv.y)*180/Math.PI;
+    const key=l.poses[animation][frame];let next=(key.rotation||0)+deg*.86;const limits=l.rig?.jointLimits;
+    if(limits?.enabled)next=clampN(next,Math.min(limits.min,limits.max),Math.max(limits.min,limits.max));
+    key.rotation=clampN(next,-1080,1080);
+   }
+   const p=effectorPos(end);error=Math.hypot(p.x-goal.x,p.y-goal.y);if(error<.35)break;
+  }
+  refresh();status('IK '+chain.length+' linked joints; target error '+format(error)+' px. Use frame playback to check motion.');
+ }
+ el('pf10SolveIK').onclick=solveIK;
+ el('pf10ResetIK').onclick=()=>{const end=current();if(!end)return;const chain=collectChain(end,6);record();for(const l of chain){const k=l.poses?.[animation]?.[frame];if(k)k.rotation=0;}refresh();status('Cleared this frame’s IK rotation keys on '+chain.length+' parents.');};
+ const updateSliders=()=>{for(const t of ['Gravity','Damping','Stiffness'])el('pf10'+t+'Value').textContent=el('pf10'+t).value;};
+ for(const t of ['Gravity','Damping','Stiffness'])el('pf10'+t).oninput=updateSliders;
+ function initNodes(){physics.nodes.clear();physics.previous=0;
+  const poses=new Map(view().filter(x=>x.visible).map(l=>[l.id,worldPose(l)]));
+  for(const l of view()){if(!l.visible)continue;const v=poses.get(l.id);const p=parent(l),linked=p&&l.rig?.linkMode!=='none';const pv=linked?poses.get(p.id):null;
+   const n={id:l.id,parentId:linked?p.id:null,x:v.x,y:v.y,px:v.x,py:v.y,
+    restX:pv?v.x-pv.x:0,restY:pv?v.y-pv.y:0,restDistance:pv?Math.max(0.01,Math.hypot(v.x-pv.x,v.y-pv.y)):0,
+    pinned:!linked||l.locked};physics.nodes.set(l.id,n);
+  }
+ }
+ function physicsTick(now){if(!physics.active)return;
+  if(!physics.previous)physics.previous=now;const elapsed=Math.min(50,now-physics.previous);physics.previous=now;
+  const delta=clampN(elapsed/16.667,.3,2),gravity=float('pf10Gravity',35)/100*.1,
+       damping=clampN(float('pf10Damping',90)/100,.01,.995),stiffness=float('pf10Stiffness',90)/100;
+  for(const n of physics.nodes.values()){if(n.pinned)continue;
+   const vx=(n.x-n.px)*damping,vy=(n.y-n.py)*damping;n.px=n.x;n.py=n.y;
+   n.x+=vx;n.y+=vy+gravity*delta*delta;
+  }
+  for(let round=0;round<8;round++){
+   for(const n of physics.nodes.values()){
+    if(!n.parentId||n.pinned)continue;const p=physics.nodes.get(n.parentId);if(!p)continue;
+    let dx=n.x-p.x,dy=n.y-p.y,dist=Math.max(.00001,Math.hypot(dx,dy));
+    const diff=(dist-n.restDistance)/dist*stiffness;
+    if(p.pinned){n.x-=dx*diff;n.y-=dy*diff;}else{n.x-=dx*diff*.5;n.y-=dy*diff*.5;p.x+=dx*diff*.5;p.y+=dy*diff*.5;}
+    const layer=view().find(l=>l.id===n.id),lim=layer?.rig?.jointLimits;
+    if(lim?.enabled){const a0=Math.atan2(n.restY,n.restX),angle=Math.atan2(n.y-p.y,n.x-p.x),off=Math.atan2(Math.sin(angle-a0),Math.cos(angle-a0));
+      const desired=clampN(off,Math.min(lim.min,lim.max)*Math.PI/180,Math.max(lim.min,lim.max)*Math.PI/180);
+      if(Math.abs(off-desired)>.001){const v=a0+desired;n.x=p.x+Math.cos(v)*n.restDistance;n.y=p.y+Math.sin(v)*n.restDistance;}
+    }
+   }
+  }
+  render();physics.timer=requestAnimationFrame(physicsTick);
+ }
+ function startPhysics(){if(physics.active)return;playing=false;updatePlay();initNodes();physics.active=true;physics.timer=requestAnimationFrame(physicsTick);status('2D constrained ragdoll preview running; use Nudge to test motion.');}
+ function stopPhysics(){physics.active=false;if(physics.timer)cancelAnimationFrame(physics.timer);physics.timer=0;physics.nodes.clear();render();}
+ el('pf10PlayPhysics').onclick=startPhysics;
+ el('pf10StopPhysics').onclick=()=>{stopPhysics();status('Stopped. Authored artwork and keyframes unchanged.');};
+ el('pf10ResetPhysics').onclick=()=>{const was=physics.active;stopPhysics();if(was)startPhysics();else status('Simulation reset.');};
+ el('pf10Impulse').onclick=()=>{if(!physics.active){status('Start ragdoll first.');return;}const n=physics.nodes.get(L()?.id);if(!n||n.pinned){status('Select an attached/unlocked limb to nudge.');return;}n.px=n.x-3;n.py=n.y+4;status('Applied physics impulse to '+L().name);};
+ const fitParams={helmet:{width:1.12,height:.4,anchorX:.50,anchorY:0,slot:'head_top'},mask:{width:.88,height:.44,anchorX:.50,anchorY:.42,slot:'face'},armor:{width:1.08,height:.85,anchorX:.50,anchorY:.50,slot:'torso'},belt:{width:1.03,height:.26,anchorX:.50,anchorY:.78,slot:'waist'},backpack:{width:.88,height:.95,anchorX:.68,anchorY:.48,slot:'back'},weapon:{width:.8,height:.22,anchorX:.58,anchorY:.67,slot:'hand_grip'},custom:{width:1,height:1,anchorX:.5,anchorY:.5,slot:'custom'}};
+ function fitAsset(attach){const l=current();if(!l)return;const p=parent(l);if(!p){status('Set a parent in Rig Studio first (e.g. helmet → head, weapon → hand).');return;}
+  const spec=fitParams[el('pf10FitKind').value]||fitParams.custom;const pb=caps(p),cb=caps(l);
+  const sx=clampN(pb.w*spec.width*(float('pf10FitWidth',100)/100)/Math.max(1,cb.w),.1,10),
+        sy=clampN(pb.h*spec.height*(float('pf10FitHeight',100)/100)/Math.max(1,cb.h),.1,10);
+  record();const r=rig(l);r.scaleX=sx;r.scaleY=sy;
+  if(attach){const pr=rig(p),s={name:spec.slot,x:format(pb.x+pb.w*spec.anchorX),y:format(pb.y+pb.h*spec.anchorY)};
+   pr.sockets??=[];const idx=pr.sockets.findIndex(q=>q.name===s.name);if(idx>=0)pr.sockets[idx]=s;else pr.sockets.push(s);
+   r.linkMode='rigid';r.attachSocket=spec.slot;r.lockJoint=true;r.offsetX=0;r.offsetY=0;
+   // Center the child's pivot on its visible content to simplify socket offsets.
+   r.pivot={x:format(cb.x+cb.w/2),y:format(cb.y+cb.h/2)};
+  }
+  refresh();window.PixelForgeRigV09?.refresh?.();ref();status((attach?'Attached and fitted ':'Resized ')+l.name+' ('+format(sx)+' × '+format(sy)+'). Fine-adjust in Rig 0.9.');
+ }
+ el('pf10AutoFit').onclick=()=>fitAsset(true);el('pf10FitOnly').onclick=()=>fitAsset(false);
+ const manual=[
+  ['START HERE · FIRST PROJECT',`Pixel Forge is an offline Android pixel-art and character-rigging editor for Survival Paradise. Begin with Character or Weapon workspace. Open Setup → New Project if needed. Choose canvas size before making sprites. Add parts from the Asset Library or import PNG/JPEG/WebP files, each as independent layers. Select the target layer in Layers; only that layer receives paint/erase actions. Save frequently with menu → Save Project (.pixelforge JSON); PNG export is flattened and will not preserve separate editable layers.\nA 64×64 sprite is a 64-pixel square regardless of your screen zoom. To edit all visible artwork at once, use EDIT WHOLE IMAGE; to enlarge just one sprite's editable area, use EXPAND LAYER. Keep your editable original parts if you plan to rig the character.`],
+  ['ANDROID TOUCH · CURSOR, CLICK, HOLD',`Precision Pointer mode: move one finger over the canvas to place the offset cursor, then tap CLICK to apply the selected tool. Tap HOLD/DRAG to latch mouse-down; move the cursor to paint continuous strokes, move selected art, or create selections, then tap HOLD again to release. Direct Touch mode applies tools where your finger lands. Click Mode ON requires a separate click; OFF applies actions during pointer movement where supported.\nPixel Snap ON aligns the cursor to individual sprite pixels; OFF allows fractional pivots and positions. Art Lock keeps artwork positioned on the grid. The separate Canvas View Lock (padlock in Zoom/Setup) prevents zooming and panning while permitting drawing. This is not the same as locking a layer in Layers. Deselect clears the current active mask.\nTwo-finger pinch changes zoom when view lock is off; Pan tool lets a finger drag the viewport. The Move tool changes sprite/layer position rather than camera position. If a drag unexpectedly zooms, release other fingers and choose Pan or Move explicitly.`],
+  ['CANVAS · GRID · MAGNIFIER',`Zoom +/− change screen magnification, not sprite resolution. Focus centers the selected layer. Canvas Resize changes total document pixel dimensions. Grid ON/OFF controls visible grid lines; Grid Step changes major grid spacing. Light checkerboard represents transparency, not painted gray/white pixels.\nMagnifier is a detachable, lockable and resizable floating tool. Open/close with the magnifier button. Move a widget from its heading; resize from its corner and lock its position using the lock icon. Panel docking keeps Controls on the bottom bar; Float detaches them. Save a layout by leaving controls positioned where you need them.`],
+  ['PENCIL · BRUSH · ERASER · PICKER · BUCKET',`Pencil paints the currently selected color using the configured brush size, width and opacity. A live brush-footprint outline follows the pointer to show affected pixels. Eraser removes alpha on the active sprite layer. Picker samples an existing pixel color. Bucket floods a connected region of matching color; selection masks restrict changes. The color palette accepts a selected foreground color, custom HEX color, opacity and preset palette. Swap colors reverses foreground/background where available. Undo reverts previous operations; Redo reapplies the last undone action.`],
+  ['SHAPE TOOLS · LINE · RECTANGLE · ELLIPSE · TRIANGLE · STAR',`Line starts at the first press/tap and ends at the second or on release in Direct mode. Rectangle / Fill Rectangle, Ellipse / Fill Oval, Triangle / Fill Triangle, Star / Fill Star use the same start/end gesture. Filled shapes paint enclosed areas; outlines paint borders. Start with brush size 1 for precise pixel contours. Shapes write to the active layer only, so use Blank Layer or Whole Image for scenery that spans the entire canvas.`],
+  ['SELECT RECT · ELLIPSE · LASSO · MAGIC WAND',`Selection tools define a mask of editable pixels on the selected layer. Rectangle and Ellipse select a bounded region. Lasso traces a freehand polygon; Magic Wand selects matching connected pixels. Selections may remain active after another tool is chosen, so press Deselect in Quick Tools or Tools → Selection Actions before painting unrestricted. The cyan dashed rectangle around an active sprite may be its layer extent, which is different from a selection mask.`],
+  ['AFTER SELECTION · COPY · CUT · ERASE · FILL · RECOLOR',`Tools → Selection Actions contains Copy, Cut, Paste, Erase Selected, Fill Selected, Outline Selected, Recolor, Invert Selection, Flip, Transform and Crop. Copy keeps pixels while placing them in the clipboard; Cut removes them from the current layer; Paste creates or positions copied pixels. Copy To New Layer and Cut To New Layer permit extracting parts from a full-body image. To change only selected pixels, choose Recolor/Fill; to change every similarly colored pixel, use Replace Matching Colors with source/target HEX, tolerance and layer/selection/visible-layer scope.\nAlways check whether the active layer is locked or whether a selection mask remains active before assuming an editing tool is broken.`],
+  ['LAYERS · WHOLE IMAGE · Z-ORDER',`Add Blank Layer creates an independent transparent layer. Add Asset imports a library object. Select a layer to change its position, rotation, size, visibility, opacity, or locked state. Duplicate copies the selected layer; Delete removes it; Up/Down changes the draw order (front/back). Whole Image mode makes a full-canvas paintable copy of visible artwork while retaining individual original components separately. Original Parts returns to modular editing; edits to Whole Image do not automatically alter the individual original body parts. Export PNG combines visible layers.`],
+  ['CHARACTER AND WEAPON ASSEMBLY',`Character tab assembles a character from head, torso, pelvis, arms, legs, belts, helmets, packs, and other assets. Weapon tab assembles modular gun sprites from separate parts. Keep component sprites in independent layers with recognizable names. Avoid destructive flattening if you intend to swap clothing or modify a weapon later. Use Layer Properties for the initial size/position, and Rig Mode for pivots, sockets and follow relationships.`],
+  ['PALETTES · SWATCHES · IMAGE IMPORT',`Colors offers preset palettes, 256 color swatches, 128 custom slots, HEX selection, brush size and opacity. Import supported GIMP GPL, JASC-PAL, HEX/TXT/JSON or palette-image colors from Colors → Import Palette. PNG/JPEG/WebP import from Setup/Asset Library becomes an editable sprite layer; imported photographs are not automatically converted into deliberate pixel art. Check the source image dimensions and use nearest-neighbor scaling for crisp pixels. Save your custom palette locally and export the entire editable project as a backup.`],
+  ['MODS · DATA-ONLY PRESET PACKS',`Setup → Mods imports supported data-only preset packs to extend palettes and quick-toolbar layouts. The parser does NOT execute Lua, JavaScript, arbitrary extension binaries or Aseprite scripts. A downloaded .aseprite-extension ZIP may be imported only when it contains supported palette files; unsupported extension behavior does not run on Android. Keep backups before loading unfamiliar data. To configure floating quick tools, press + TOOLS and choose which tools appear in the rail.`],
+  ['INTERFACE · THEMES · TEXT SIZE',`Setup lets you choose Forest, Midnight, Desert, Slate Light or Violet themes, and save a custom background/panel/button/accent/text color set. Text Size controls the interface font scale. Dock or Float each panel; drag the title bar to move a floating panel, use its corner handle to resize, and lock it to stop accidental layout changes. The Click, Hold, magnifier, quick tools and Zoom widgets can also move and resize independently. Large floating panels may obscure your canvas; close or dock unused panels.`],
+  ['RIG MODE · SEGMENT CHARACTER BODY',`Open Rig in the bottom navigation. Select a sprite part layer, assign its semantic role (head, torso, upper arm, forearm, hand, pelvis, thigh, shin, foot, equipment). If a character is one flattened PNG, use Lasso → Cut/Copy To New Layer or Rig → Extract Selected Part for each separate limb. Name layers clearly and leave transparent room around joints. “Auto Rig” only suggests roles and pivots from conventional names; verify manually. “Repair Missing Pixels” fills transparent holes by neighboring colors or symmetry, and will not perfectly infer the artwork behind a removed part.`],
+  ['PIVOTS · MANUAL PLACEMENT · 360° ROTATION',`Choose Rig → Pivot at Pointer to place the selected part's rotation anchor. For greater accuracy use Rig Expansion → Pivot X/Y numeric fields (local sprite pixels, not world coordinates). The correct pivot for an upper arm is usually near the shoulder, and the forearm pivot near the elbow. Rotation permits free angles or optional 5°, 15°, 45°, 90° snapping and ±1° or ±15° buttons. Art pixels are redrawn using nearest-neighbor resampling at non-90° angles, so diagonal edges may show stair stepping. Test each angle in the sprite preview.`],
+  ['PARENTING · JOINT LOCK · RIGID/FOLLOW/LOOSE',`Assign a valid Parent Joint using the original Rig Studio parent selector. In Rig Expansion choose Rigid, Follow 75%, Loose 35%, or None; click Attach. A linked child inherits parent transforms. Rigid transmits full parent rotation; Follow transmits part of the rotation; Loose is a positional preview, not true physics. Lock Joint prevents accidental detaching. To detach, disable Prevent Detaching and press Detach Part. Joint hierarchy must have no loops; e.g., hand → forearm → upper arm → torso. Do not parent an ancestor to its own child.`],
+  ['SOCKETS · HELMETS · ARMOR · BACKPACKS · WEAPONS',`Select a parent body part, move pointer to the desired local attachment position, name a socket such as head_top, face, back, waist, grip or hand_grip, then press Socket at Pointer. Select the item layer, set that parent and matching socket, and attach. Attachment Offset X/Y permits manual alignment. X and Y Scale adjust gear independently; Reset Stretch restores 1×. Use layer Up/Down to ensure weapon renders in front of the torso and a backpack behind it. Secondary pivots and numeric offsets let mismatched imported assets fit without redrawing every pixel.`],
+  ['AUTO-FIT EQUIPMENT v1.0',`Select the equipment layer in Rig and assign a parent (helmet→head, armor→torso, belt→pelvis, gun→hand). Choose Equipment Type and optional width/height correction (%). Fit & Attach Gear examines nontransparent bounding pixels in both sprites, uses a preset size ratio, creates a named socket on the parent, and connects the child as Rigid. Resize Only applies width/height multipliers without changing the attachment. Fine tune Scale X/Y, Offset X/Y and Pivot manually afterward. Auto-fit is a starting estimate, not an anatomical guarantee.`],
+  ['JOINT ANGLE LIMITS v1.0',`With a part selected in Rig, enable Joint Limits and set minimum and maximum bend angles relative to the unanimated base part rotation. Example: elbow −15° to 145°, knee 0° to 130° (depending on direction of your layers). Apply to Part stores limits on the layer rig. Lock Current Bend sets both limits to the same current relative angle. IK solutions, authored animation poses and physics constraints respect enabled limits. Disable Enable Limits then apply to restore free rotation. For stability choose an upper/lower order that cannot invert unexpectedly.`],
+  ['INVERSE KINEMATICS (IK) v1.0 · AIM AND FOOT CONTACT',`Rig structure: torso → upper arm → forearm → hand (or pelvis → thigh → shin → foot). Set each child’s parent and choose Rigid linking. Set pivots accurately and use joint limits to avoid backwards elbows. Select the hand/foot layer as end-effector; optionally create and choose a grip/foot socket on it. Move the precision cursor to the desired target. Choose 2–6 ancestor joints and 1–100 solver passes, then press Solve to Pointer. The CCD solver rotates the ancestors and writes rotations to the CURRENT animation frame only, allowing you to solve multiple poses frame-by-frame. If the target is outside the limb reach, the solver approaches as close as it can; the displayed error tells you how far away it remains. Clear IK Pose Keys removes those ancestor frame rotations.`],
+  ['2D RAGDOLL PHYSICS PREVIEW v1.0',`Open Rig → Ragdoll. Only visible, linked non-root limbs participate in simulation; unlinked root parts stay pinned. Start Ragdoll begins a gravity/damping simulation with linked-pivot distance constraints, joint angle restrictions and a small solver loop. Select an unlocked linked limb and press Nudge Selected Limb to impart motion. Gravity controls downward acceleration; Damping gradually removes movement; Joint Stiffness adjusts connection strength. Stop exits preview and restores authored animation rendering, without changing project pixels or keyframes. Physics runs entirely offline and is a lightweight 2D editing aid, not a full collision/world-body simulator: it has no ground, rigid-volume or self-collision simulation.`],
+  ['ANIMATE MODE · TIMELINE · FRAMES',`Open Animate. Choose Idle, Walk, Run, Aim or generated pose cycle. Tap a timeline frame, enable Edit Poses Per Frame, and move/rotate/scale parts to set a key. Play previews the current animation. Rig Expansion → Frame Count supports 1–64 frames; use Insert, Duplicate or Delete Frame for edits. Onion Skin overlays adjacent poses semi-transparently. Pose Library saves an entire rig pose under a name and applies it to another frame (matching layer IDs). Mirroring exchanges matching left/right rigged-limb pose data; review weapon-hand alignment afterward. You may export transparent sprite sheets and rig JSON.`],
+  ['PREVIEW AND EXPORT · SURVIVAL PARADISE',`Save Project preserves sprite images, layers, rig roles, pivots, sockets, constraints, frame keys and stored pose templates. Export PNG flattens what is visible on the current pose. Sprite Sheet exports a sequence of transparent animation frames (verify facing left/right and frame count in the exported layout). Export Rig JSON includes parent IDs, pivots, transforms, frame poses, and timeline metadata; use alongside actual sprite PNGs, since a rig JSON alone does not contain all artwork textures. Validate spritesheet cell size, weapon sockets and alpha before importing into Survival Paradise. Keep an untouched project backup before large structural edits.`],
+  ['TROUBLESHOOTING AND LIMITATIONS',`CAN’T DRAW? Check active layer selection, Whole Image vs Part mode, layer locked state, selection mask, brush opacity, Click Mode and HOLD latch. CAN’T PAN? Turn off Canvas View Lock and select Pan. MYSTERY ZOOM? Lift extra fingers; Pan uses one finger; hold angle controls aren't for navigation. EDITOR BLOCKED? Close floating panels or reposition Click/Hold and magnifier. CANNOT DETACH? Untick Prevent Detaching. IK DOES NOT MOVE? Check parents + Rigid links, pivots, reachability, layer locks, and whether you selected the actual hand/foot layer. RAGDOLL NOT MOVING? Attach the limb to a parent, unlock the layer, Start, then Nudge. IMPORT FAILS? Confirm supported file type and image dimensions. ANDROID VERSION DIFFERENCES? Save .pixelforge projects and use import/export to transfer between separately installed test APKs. OFFLINE AI NOTE: Current part guessing and gap repair are procedural, NOT neural-network inference.`]
+ ];
+ function createManual(container){for(const [title,body] of manual){const dt=document.createElement('details');dt.className='pf-guide-section';const t=document.createElement('summary');t.textContent=title;dt.append(t);for(const part of body.split('\n')){const p=document.createElement('p');p.textContent=part;dt.append(p);}container.append(dt);}}
+ window.PF10.renderManual=(container,filter='')=>{const list=manual.filter(([title,body])=>!filter||(title+' '+body).toLowerCase().includes(filter.toLowerCase()));for(const [title,body] of list){const dt=document.createElement('details');dt.className='pf-guide-section';dt.open=!!filter;const t=document.createElement('summary');t.textContent=title;dt.append(t);for(const part of body.split('\n')){const p=document.createElement('p');p.textContent=part;dt.append(p);}container.append(dt);}return list.length;};
+ const existing=el('pfInfoContent');if(existing){const banner=document.createElement('p');banner.textContent='PIXEL FORGE v1.0 — COMPLETE OFFLINE USER MANUAL. Open a topic or search at the top. Rig Mode contains advanced 2D IK, joint limits, physics preview and auto-fit.';banner.style.cssText='padding:10px;line-height:1.5;background:#22544c;color:#eafff7;border-radius:7px;';existing.prepend(banner);const frag=document.createDocumentFragment();createManual(frag);existing.prepend(frag);}
+ el('pf10Guide').onclick=()=>el('pfHeaderHelp')?.click();
+ el('pf10ExportGuide').onclick=()=>{let body='<!doctype html><html lang="en"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pixel Forge v1.0 Complete Manual</title><style>body{font:16px/1.6 system-ui;max-width:760px;margin:20px auto;padding:0 16px;background:#142329;color:#e6f6f1}h1,h2{color:#76dac4}section{border-bottom:1px solid #426760;padding:10px 0}p{white-space:pre-line}</style><h1>Pixel Forge — Complete Offline Manual v1.0</h1>';
+  const escape=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');for(const [t,b] of manual)body+='<section><h2>'+escape(t)+'</h2><p>'+escape(b)+'</p></section>';body+='</html>';
+  const bytes=new TextEncoder().encode(body);let data='';for(let k=0;k<bytes.length;k+=8192)data+=String.fromCharCode(...bytes.subarray(k,k+8192));saveFile('PixelForge_v1.0_Complete_Manual.html','text/html','data:text/html;base64,'+btoa(data));status('Complete offline manual exported.');};
+ const rigShell=el('pf08Rig');new MutationObserver(()=>{if(!rigShell.hidden)ref();else if(physics.active)stopPhysics();}).observe(rigShell,{attributes:true,attributeFilter:['hidden']});
+ ref();
+ window.PixelForgeRigV10={solveIK,startPhysics,stopPhysics,fitAsset,physics,manual:manual.map(([title,body])=>({title,body})),constraints:l=>l.rig?.jointLimits||null,layer:()=>L(),debugNodes:()=>[...physics.nodes.values()]};
+}
 
+})();
 </script>
 </body></html>
