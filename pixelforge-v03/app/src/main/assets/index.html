@@ -190,6 +190,54 @@ html, body {height:100%;width:100%;overflow:hidden;overscroll-behavior:none}
 .pf-guide-section{border:1px solid #416963;margin-bottom:8px;border-radius:7px;background:#1a3436;overflow:hidden}.pf-guide-section summary{cursor:pointer;padding:12px 10px;color:#acf0d4;font-size:12px;font-weight:800;letter-spacing:.4px}.pf-guide-section p{font-size:12px;line-height:1.65;margin:2px 10px 13px;color:#e1eee8;white-space:pre-line}
 @media(max-width:760px){.studio-sheet .palette,.palette{max-height:248px!important;grid-template-columns:repeat(7,minmax(0,1fr))!important}.studio-sheet .palette .swatch{height:34px!important;min-height:34px!important}.pf-info-dialog{height:94dvh}.pf-info-head strong{font-size:11px}}
 
+
+/* Pixel Forge 0.6: touch scrolling inside docked panels + themeable editor UI */
+:root{--pf-type-scale:1;--pf-theme-background:#0e1519;--pf-theme-panel:#1b3030;--pf-theme-button:#26363e;--pf-theme-accent:#74dec8;--pf-theme-text:#e8efeb;--bg:var(--pf-theme-background);--panel:var(--pf-theme-panel);--button:var(--pf-theme-button);--cyan:var(--pf-theme-accent);--text:var(--pf-theme-text)}
+html,body,.shell,.workspace,.editor{background:var(--pf-theme-background)!important;color:var(--pf-theme-text)!important}
+.header,.studio-nav,.studio-sheet,.pf-widget,.pf-info-dialog,.pf-replace-dialog{background:var(--pf-theme-panel)!important;color:var(--pf-theme-text)!important}
+.studio-sheet .sheet-head,.pf-widget-head,.pf-info-head,.pf-replace-header{background:var(--pf-theme-panel)!important;color:var(--pf-theme-text)!important;border-bottom:1px solid var(--pf-theme-accent)!important}
+.studio-nav button,.studio-sheet button:not(.swatch),.pf-widget button,.pf-replace-dialog button,.pf-info-dialog button{background:var(--pf-theme-button);color:var(--pf-theme-text);border-color:var(--pf-theme-accent)}
+.studio-nav button.active,.studio-sheet .tool.selected,.pf-widget .quick-rail .current{border-color:var(--pf-theme-accent)!important;color:var(--pf-theme-accent)!important}
+.studio-sheet .sheet-content{touch-action:pan-y!important;overscroll-behavior-y:contain!important;-webkit-overflow-scrolling:touch;overflow-y:auto!important;overflow-x:hidden!important;min-height:0!important;flex:1 1 0!important;scrollbar-width:auto}
+.studio-sheet:not(.floating){touch-action:pan-y}.studio-sheet .sheet-head,.studio-sheet .pf-grip{touch-action:none!important}
+.studio-sheet .tool-bar,.studio-sheet .selection-bar,.studio-sheet .pf-select-workbench{touch-action:pan-y!important}
+.studio-sheet .sheet-content button{touch-action:manipulation}
+.studio-sheet .sheet-content,.studio-sheet .sheet-content button:not(.swatch),.studio-sheet .sheet-content label,.studio-sheet .sheet-content input,.studio-sheet .sheet-content select,.studio-sheet .sheet-content strong,.studio-sheet .sheet-content p{font-size:calc(11px * var(--pf-type-scale))!important}
+.studio-sheet .tool span{font-size:calc(9px * var(--pf-type-scale))!important}
+.pf-widget .pf-widget-head span,.pf-widget .pf-widget-body button small{font-size:calc(9px * var(--pf-type-scale))!important}
+.pf-widget .quick-rail button,.studio-nav button{font-size:calc(10px * var(--pf-type-scale))!important}
+.pf-setting-line{border:1px solid var(--pf-theme-accent);border-radius:8px;padding:10px;margin:10px 0;display:grid;gap:8px;background:var(--pf-theme-panel)}
+.pf-setting-line strong{font-size:12px!important;letter-spacing:.6px;color:var(--pf-theme-accent)}
+.pf-setting-line label{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.pf-setting-line label input[type=range]{flex:1;min-width:80px}
+.pf-setting-line p{margin:0;line-height:1.5;opacity:.85}
+.pf-setting-line select{padding:8px;color:var(--pf-theme-text);background:var(--pf-theme-button);border:1px solid var(--pf-theme-accent);border-radius:6px}
+.pf-setting-line button{padding:8px;min-height:38px}
+.pf-theme-colors{display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:5px}
+.pf-theme-colors label{display:flex;flex-direction:column;align-items:stretch;gap:4px}
+.pf-theme-colors input[type=color]{width:100%;height:36px;padding:2px}
+#pfCanvasLock{font-size:16px;min-width:30px}.pf-locked-view{box-shadow:0 0 0 2px #ecbc6b inset!important}
+.pf-select-workbench{background:var(--pf-theme-panel);border:1px solid var(--pf-theme-accent);border-radius:8px;margin:6px 0 10px;padding:6px}
+.pf-selection-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:8px}
+.pf-selection-grid button{min-width:0;min-height:38px;padding:5px 3px;line-height:1.2;overflow-wrap:anywhere}
+.pf-selection-grid button:disabled{opacity:.35}
+.pf-selection-grid button[data-selop=replace]{grid-column:span 2;background:#336357}
+.pf-select-workbench .pf-section-title{color:var(--pf-theme-accent);font-weight:700}
+.pf-selection-shortcuts[hidden]{display:none!important}
+.pf-selection-shortcuts{display:flex;align-items:center;gap:4px;margin:2px 0;padding:4px;border:1px solid var(--pf-theme-accent);background:var(--pf-theme-panel);border-radius:6px;flex-wrap:wrap}
+.pf-selection-shortcuts button{font-size:11px;min-height:30px;padding:2px 7px;flex:1;background:var(--pf-theme-button)}
+.pf-replace-dialog{border:1px solid var(--pf-theme-accent);border-radius:12px;width:min(390px,100%);overflow:hidden;box-shadow:0 12px 60px #0008}
+.pf-replace-header{display:flex;justify-content:space-between;align-items:center;padding:10px;font-size:12px}
+.pf-replace-header button{min-width:38px}
+.pf-replace-form{padding:13px;display:grid;gap:13px;overflow:auto;max-height:75dvh}
+.pf-replace-form label{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.pf-replace-form input[type=color]{width:52px;height:39px}
+.pf-replace-form input[type=range]{flex:1;min-width:90px}
+.pf-replace-form select{padding:7px;max-width:100%;background:var(--pf-theme-button);color:var(--pf-theme-text)}
+.pf-replace-form p{font-size:11px;margin:0;line-height:1.5}
+.pf-replace-form #pfReplaceApply{padding:10px;min-height:42px;background:var(--pf-theme-accent);color:var(--pf-theme-background);font-weight:bold}
+@media(max-width:760px){.studio-sheet:not(.floating){height:min(62dvh,620px)}.pf-selection-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
 </style>
 </head>
 <body>
@@ -353,7 +401,7 @@ const check=checker.getContext('2d');check.fillStyle='#f7f7f7';check.fillRect(0,
 let documents={character:{layers:[],w:64,h:64,wholeCanvas:null},weapon:{layers:[],w:64,h:64,wholeCanvas:null}};
 let mode='character',selected=null,tool='paint',face='right',animation='idle',frame=0,playing=false,editPoses=false;
 let snap=true,artSnap=true,showGrid=true,gridStep=4,trackpad=true,clickEnabled=true,holdLocked=false,dragStart=null,selectedColor='#a8b5a1',secondColor='#151b20',colorAlpha=1,brushSize=1;
-let zoom=7,pan={x:0,y:0},pointer={x:32.5,y:32.5},selection=null,selOverlay=null,clipboard=null,preview=null;
+let viewportLocked=localStorage.getItem('pixelforge-viewport-lock-v06')==='true';let zoom=7,pan={x:0,y:0},pointer={x:32.5,y:32.5},selection=null,selOverlay=null,clipboard=null,preview=null;
 let pointerDown=false,actionHeld=false,clickPress=false,clickPressOrigin=null,startPos=null,lastPaintLocal=null,pinch=null,raf=0,lastFrameTime=0;
 let toastTimeout=null,undoStack=[],redoStack=[];const activeTouches=new Map();
 const id=()=> 'L'+Math.random().toString(36).slice(2,11),mk=(w,h)=>{let c=document.createElement('canvas');c.width=w;c.height=h;return c;};
@@ -530,13 +578,25 @@ function lockHold(){if(!trackpad||!clickEnabled)return;
 }
 function clearGesture(){if(holdLocked){holdLocked=false;actionHeld=false;lastPaintLocal=null;dragStart=null;}preview=null;}
 
+
+// Pixel Forge 0.6 selection workbench operations; preserve alpha and the source layer.
+function fillSelectedPixels(){const info=needSelection();if(!info)return;record();const g=info.l.sprite.getContext('2d',{willReadFrequently:true}),im=g.getImageData(0,0,selection.w,selection.h),rgb=pixelRGBA(selectedColor,Math.round(colorAlpha*255));for(let i=0;i<selection.mask.length;i++)if(selection.mask[i])im.data.set(rgb,i*4);g.putImageData(im,0,0);refresh();toast('Filled selected pixels');}
+function outlineSelectedPixels(){const info=needSelection();if(!info)return;record();const {mask,w,h}=selection,g=info.l.sprite.getContext('2d',{willReadFrequently:true}),im=g.getImageData(0,0,w,h),rgb=pixelRGBA(selectedColor,Math.round(colorAlpha*255));for(let y=0;y<h;y++)for(let x=0;x<w;x++){let i=y*w+x;if(!mask[i])continue;if(x===0||y===0||x===w-1||y===h-1||!mask[i-1]||!mask[i+1]||!mask[i-w]||!mask[i+w])im.data.set(rgb,i*4);}g.putImageData(im,0,0);refresh();toast('Outlined selection');}
+function invertSelectedMask(){if(!L())return;const l=L(),w=l.sprite.width,h=l.sprite.height;const mask=new Uint8Array(w*h);if(selection?.w===w&&selection?.h===h){for(let i=0;i<mask.length;i++)mask[i]=selection.mask[i]?0:1;}else mask.fill(1);updateSelection({mask,w,h});toast('Selection inverted');}
+function copySelectionToLayer(){const info=needSelection();if(!info||!copySelection())return;record();pasteSelectionNoRecord(info.l,info.b,clipboard.sprite,'Selection copy');toast('Copied selection into new layer');}
+function flipSelectionVertical(){const info=needSelection();if(!info||!copySelection())return;const src=clipboard.sprite,c=mk(src.width,src.height),g=c.getContext('2d');g.translate(0,c.height);g.scale(1,-1);g.drawImage(src,0,0);record();eraseSelected();pasteSelectionNoRecord(info.l,info.b,c,'Flipped selection vertically');}
+function sourcePixelColor(){const image=composite(),ctx=image.getContext('2d',{willReadFrequently:true}),x=Math.floor(pointer.x),y=Math.floor(pointer.y);if(x<0||y<0||x>=W()||y>=H())return selectedColor;const data=ctx.getImageData(x,y,1,1).data;return '#'+[0,1,2].map(k=>data[k].toString(16).padStart(2,'0')).join('');}
+function replaceMatchingColor(source,target,tolerance,scope){const rgb=pixelRGBA(source),rep=pixelRGBA(target);let targets=scope==='all'?layers().filter(l=>l.visible&&!l.locked):scope==='selection'?[L()].filter(Boolean):[L()].filter(Boolean);if(scope==='selection'&&!selectionBounds()){toast('Make a selection first');return 0;}targets=targets.filter(l=>l&&!l.locked);if(!targets.length){toast('No editable visible layers');return 0;}
+ const changes=[];let total=0;for(const l of targets){let g=l.sprite.getContext('2d',{willReadFrequently:true}),w=l.sprite.width,h=l.sprite.height,img=g.getImageData(0,0,w,h),pixels=img.data,matched=0;for(let i=0;i<w*h;i++){if(scope==='selection'&&(!selection||i>=selection.mask.length||!selection.mask[i]))continue;const k=i*4;if(!pixels[k+3])continue;if(Math.max(Math.abs(pixels[k]-rgb[0]),Math.abs(pixels[k+1]-rgb[1]),Math.abs(pixels[k+2]-rgb[2]))>tolerance)continue;pixels[k]=rep[0];pixels[k+1]=rep[1];pixels[k+2]=rep[2];matched++;}if(matched){changes.push({g,img});total+=matched;}}
+ if(!total){toast('No matching pixels');return 0;}record();for(const a of changes)a.g.putImageData(a.img,0,0);refresh();toast('Recolored '+total+' pixels on '+changes.length+' layer(s)');return total;
+}
 function changeCanvas(w,h){w=Number(w);h=Number(h);if(!Number.isInteger(w)||!Number.isInteger(h)||w<1||h<1||w>MAX||h>MAX){toast('Canvas dimensions must be 1–1024 px');return;}record();doc().w=w;doc().h=h;const state=doc().wholeCanvas;if(state&&state.active){const full=layers().find(l=>l.id===state.layerId);if(full)ensureWholeSize(full);}selection=null;preview=null;moveCursor(w/2,h/2);fitView();refresh();toast('Canvas '+w+' × '+h+' pixels');}
 function pointerAt(e){const r=stage.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
 function down(e){if(e.button!==0)return;e.preventDefault();screen.setPointerCapture(e.pointerId);const p=pointerAt(e);activeTouches.set(e.pointerId,p);
- if(activeTouches.size===2){let a=[...activeTouches.values()];const center={x:(a[0].x+a[1].x)/2,y:(a[0].y+a[1].y)/2};pinch={distance:Math.max(1,Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)),zoom,world:fromDisplay(center.x,center.y)};pointerDown=false;return;}
+ if(activeTouches.size===2){let a=[...activeTouches.values()];const center={x:(a[0].x+a[1].x)/2,y:(a[0].y+a[1].y)/2};pinch={distance:Math.max(1,Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)),zoom,world:fromDisplay(center.x,center.y),zoomIntent:false};pointerDown=false;return;}
  pointerDown=true;if(!trackpad){const pos=fromDisplay(p.x,p.y);moveCursor(pos.x,pos.y);}
  const base=L()?{x:propValue('x'),y:propValue('y')}:null;startPos={p,world:{...pointer},pan:{...pan},base};lastPaintLocal=null;
- if(tool==='pan'){renderView();return;}
+ if(tool==='pan'){if(viewportLocked){toast('Canvas view locked — unlock in zoom or Setup');return;}renderView();return;}
  // In click mode the canvas is a trackpad ONLY; selected tools do not paint on finger contact.
  if(trackpad&&clickEnabled){renderPointer();return;}
  if(tool==='move'){let hit=hitTest(pointer.x,pointer.y);if(hit&&hit.id!==selected){selected=hit.id;selection=null;preview=null;startPos.base={x:propValue('x'),y:propValue('y')};renderLayers();renderProps();}if(L()&&!L().locked)record();}
@@ -546,19 +606,19 @@ function down(e){if(e.button!==0)return;e.preventDefault();screen.setPointerCapt
  else if(tool==='wand'){if(L())updateSelection(maskWand(L(),localCursor()));}
  else if(toolsShapes.has(tool)||toolsSelect.has(tool))startPreview();render();}
 function move(e){if(!activeTouches.has(e.pointerId))return;e.preventDefault();const p=pointerAt(e);activeTouches.set(e.pointerId,p);
- if(activeTouches.size===2&&pinch){let a=[...activeTouches.values()],distance=Math.max(1,Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)),mid={x:(a[0].x+a[1].x)/2,y:(a[0].y+a[1].y)/2};zoom=clamp(pinch.zoom*distance/pinch.distance,.25,40);const xx=face==='left'?W()-pinch.world.x:pinch.world.x;pan.x=mid.x-stage.clientWidth/2-(xx-W()/2)*zoom;pan.y=mid.y-stage.clientHeight/2-(pinch.world.y-H()/2)*zoom;$('zoomLabel').textContent=Math.round(zoom*100)+'%';renderView();return;}
- if(!pointerDown||!startPos)return;if(tool==='pan'){pan.x=startPos.pan.x+p.x-startPos.p.x;pan.y=startPos.pan.y+p.y-startPos.p.y;renderView();return;}
+ if(activeTouches.size===2&&pinch){if(viewportLocked)return;let a=[...activeTouches.values()],distance=Math.max(1,Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)),mid={x:(a[0].x+a[1].x)/2,y:(a[0].y+a[1].y)/2};if(tool!=='pan'&&(Math.abs(distance-pinch.distance)>11&&Math.abs(distance/pinch.distance-1)>.065))pinch.zoomIntent=true;zoom=(tool==='pan'||!pinch.zoomIntent)?pinch.zoom:clamp(pinch.zoom*distance/pinch.distance,.25,40);const xx=face==='left'?W()-pinch.world.x:pinch.world.x;pan.x=mid.x-stage.clientWidth/2-(xx-W()/2)*zoom;pan.y=mid.y-stage.clientHeight/2-(pinch.world.y-H()/2)*zoom;$('zoomLabel').textContent=Math.round(zoom*100)+'%';renderView();return;}
+ if(!pointerDown||!startPos)return;if(tool==='pan'){if(viewportLocked)return;pan.x=startPos.pan.x+p.x-startPos.p.x;pan.y=startPos.pan.y+p.y-startPos.p.y;renderView();return;}
  if(trackpad){let dx=(p.x-startPos.p.x)/zoom,dy=(p.y-startPos.p.y)/zoom;moveCursor(startPos.world.x+(face==='left'?-dx:dx),startPos.world.y+dy);}else{const world=fromDisplay(p.x,p.y);moveCursor(world.x,world.y);}
  if(trackpad&&clickEnabled){if(holdLocked||clickPress||preview||dragStart)pointerDragAction();}
  else{if(tool==='move'&&L()&&!L().locked&&startPos.base){const dx=pointer.x-startPos.world.x,dy=pointer.y-startPos.world.y;editTransform('x',startPos.base.x+dx);editTransform('y',startPos.base.y+dy);}
  if(['paint','erase'].includes(tool))paintStroke();if(preview)previewMove();}
  renderPointer();}
-function up(e){const wasPinch=!!pinch;activeTouches.delete(e.pointerId);if(activeTouches.size<2)pinch=null;if(!activeTouches.size){if(pointerDown&&(!trackpad||!clickEnabled)&&preview)finishPreview();const edited=pointerDown&&!(trackpad&&clickEnabled)&&tool!=='pan';pointerDown=false;startPos=null;if(!holdLocked)lastPaintLocal=null;if(edited){renderLayers();renderProps();render();}else renderPointer();}else if(wasPinch&&activeTouches.size===1){const p=[...activeTouches.values()][0];pointerDown=true;startPos={p,world:{...pointer},pan:{...pan},base:L()?{x:propValue('x'),y:propValue('y')}:null};renderView();}}
+function up(e){const wasPinch=!!pinch;activeTouches.delete(e.pointerId);if(activeTouches.size<2)pinch=null;if(!activeTouches.size){if(pointerDown&&(!trackpad||!clickEnabled)&&preview)finishPreview();const edited=pointerDown&&!(trackpad&&clickEnabled)&&tool!=='pan';pointerDown=false;startPos=null;if(!holdLocked)lastPaintLocal=null;if(edited){renderLayers();renderProps();render();}else renderPointer();}else if(wasPinch&&activeTouches.size===1){pointerDown=false;startPos=null;renderView();}}
 function saveFile(name,type,dataUri){if(window.PixelForgeAndroid?.saveBase64){window.PixelForgeAndroid.saveBase64(name,type,dataUri.split(',')[1]);toast('Choose destination');return;}const a=document.createElement('a');a.href=dataUri;a.download=name;document.body.append(a);a.click();a.remove();toast('Exported '+name);}
 function saveCanvas(c,name){saveFile(name,'image/png',c.toDataURL('image/png'));}
 function exportPNG(){saveCanvas(composite(),'SP_'+mode+'_'+face+'_'+W()+'x'+H()+'.png');}
 function exportSheet(){const c=mk(W()*8,H()),g=c.getContext('2d');if(c.width>16384){toast('Sprite sheet exceeds safe width; reduce canvas');return;}for(let i=0;i<8;i++)g.drawImage(composite(i),i*W(),0);saveCanvas(c,'SP_'+mode+'_'+animation+'_'+face+'_8frames.png');}
-function saveJSON(){let b=JSON.stringify(snapshot()),bytes=new TextEncoder().encode(b),str='';for(let i=0;i<bytes.length;i+=8192)str+=String.fromCharCode(...bytes.subarray(i,i+8192));saveFile('SurvivalParadise_PixelForge_v032.pixelforge','application/json','data:application/json;base64,'+btoa(str));}
+function saveJSON(){let b=JSON.stringify(snapshot()),bytes=new TextEncoder().encode(b),str='';for(let i=0;i<bytes.length;i+=8192)str+=String.fromCharCode(...bytes.subarray(i,i+8192));saveFile('SurvivalParadise_PixelForge_v06.pixelforge','application/json','data:application/json;base64,'+btoa(str));}
 function updatePlay(){$('playBtn').textContent=playing?'❚❚ Pause':'▶ Play';if(playing){lastFrameTime=performance.now();raf=requestAnimationFrame(animate);}else cancelAnimationFrame(raf);}
 function animate(now){if(!playing)return;if(now-lastFrameTime>=(animation==='run'?85:animation==='walk'?115:190)){frame=(frame+1)%8;lastFrameTime=now;renderFrames();renderProps();render();}raf=requestAnimationFrame(animate);}
 function alterLayerPos(d){let l=L();if(!l)return;let a=layers(),at=a.indexOf(l),to=at+d;if(to<0||to>=a.length)return;record();a.splice(at,1);a.splice(to,0,l);refresh();}
@@ -610,7 +670,7 @@ function handleImport(e){const f=e.target.files?.[0];if(!f)return;if(f.size>12_0
  const l={id:id(),name:f.name.replace(/\.[^.]+$/,'').slice(0,70),kind:'import',sprite:spr,x:Math.floor((W()-spr.width)/2),y:Math.floor((H()-spr.height)/2),rotation:0,scale:1,flip:false,visible:true,locked:false,opacity:1,poses:{}};layers().push(l);selected=l.id;updateSelection(null);focusLayer();refresh();toast('Imported '+f.name+' — grid aligned');URL.revokeObjectURL(im.src);};im.onerror=()=>toast('Could not open image');im.src=URL.createObjectURL(f);e.target.value='';}
 function bind(){
  $('undo').onclick=undo;$('redo').onclick=redo;
- $('minusZoom').onclick=()=>{zoom=clamp(zoom/1.25,.25,40);$('zoomLabel').textContent=Math.round(zoom*100)+'%';renderView();};$('plusZoom').onclick=()=>{zoom=clamp(zoom*1.25,.25,40);$('zoomLabel').textContent=Math.round(zoom*100)+'%';renderView();};$('resetView').onclick=()=>{fitView();$('zoomLabel').textContent=Math.round(zoom*100)+'%';renderView();};$('magToggle').onclick=()=>{mag.hidden=!mag.hidden;window.PixelForgeLayout?.syncMagnifier();renderPointer();};$('focusArt').onclick=focusLayer;
+ $('minusZoom').onclick=()=>{if(viewportLocked){toast('Unlock canvas view to zoom');return;}zoom=clamp(zoom/1.25,.25,40);$('zoomLabel').textContent=Math.round(zoom*100)+'%';renderView();};$('plusZoom').onclick=()=>{if(viewportLocked){toast('Unlock canvas view to zoom');return;}zoom=clamp(zoom*1.25,.25,40);$('zoomLabel').textContent=Math.round(zoom*100)+'%';renderView();};$('resetView').onclick=()=>{if(viewportLocked){toast('Unlock canvas view to recenter');return;}fitView();$('zoomLabel').textContent=Math.round(zoom*100)+'%';renderView();};$('magToggle').onclick=()=>{mag.hidden=!mag.hidden;window.PixelForgeLayout?.syncMagnifier();renderPointer();};$('focusArt').onclick=()=>{if(viewportLocked){toast('Unlock canvas view to focus');return;}focusLayer();};
  $('snapToggle').onclick=()=>{snap=!snap;moveCursor(pointer.x,pointer.y);refresh();};$('artSnapToggle').onclick=()=>{artSnap=!artSnap;refresh();};$('pointerMode').onclick=()=>{if(holdLocked)lockHold();clickPress=false;trackpad=!trackpad;dragStart=null;preview=null;refresh();};$('clickMode').onclick=()=>{if(holdLocked)lockHold();clickPress=false;clickEnabled=!clickEnabled;dragStart=null;preview=null;refresh();};$('clickBtn').addEventListener('pointerdown',clickDown);$('clickBtn').addEventListener('pointerup',clickUp);$('clickBtn').addEventListener('pointercancel',clickUp);$('clickBtn').addEventListener('lostpointercapture',clickUp);$('clickBtn').addEventListener('click',e=>{if(e.detail===0)clickAtPointer();});$('holdBtn').addEventListener('click',lockHold);$('showGrid').onclick=()=>{showGrid=!showGrid;refresh();};$('gridStep').onchange=e=>{gridStep=Number(e.target.value);refresh();};
  $('canvasPreset').onchange=e=>{const val=e.target.value;if(val==='custom')return;const n=parseInt(val);changeCanvas(n,n);};$('canvasResizeBtn').onclick=()=>{const w=prompt('Canvas width in pixels (1–1024)',W());if(w===null)return;const h=prompt('Canvas height in pixels (1–1024)',H());if(h===null)return;changeCanvas(Number(w),Number(h));};
  document.querySelectorAll('[data-tool]').forEach(btn=>{btn.onclick=()=>{if(holdLocked)lockHold();tool=btn.dataset.tool;preview=null;dragStart=null;document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('selected',b===btn));$('clickHelp').textContent=toolsShapes.has(tool)||toolsSelect.has(tool)?'START / FINISH':tool==='move'?'PICK / PLACE':tool==='picker'?'PICK COLOR':tool==='wand'?'PICK AREA':'APPLY TOOL';$('toolHint').textContent=toolsShapes.has(tool)||toolsSelect.has(tool)?'Direct: drag • Pointer: CLICK twice or HOLD':tool==='move'?'Drag artwork; Art Lock governs alignment': 'Choose a layer, then draw';refresh();};});
@@ -630,7 +690,7 @@ function bind(){
  $('animationSelect').onchange=e=>{animation=e.target.value;frame=0;refresh();};$('playBtn').onclick=()=>{playing=!playing;updatePlay();};$('directionBtn').onclick=()=>{face=face==='right'?'left':'right';refresh();};$('keyframeEdit').onchange=e=>{editPoses=e.target.checked;refresh();};$('resetPose').onclick=()=>{let l=L();if(!l)return;record();if(l.poses[animation])delete l.poses[animation][frame];refresh();};$('sheetBtn').onclick=exportSheet;
  $('exportPng').onclick=exportPNG;$('saveBtn').onclick=saveJSON;$('modalSave').onclick=()=>{saveJSON();$('modal').hidden=true;};$('menuBtn').onclick=()=>$('modal').hidden=false;$('closeModal').onclick=()=>$('modal').hidden=true;$('modal').onclick=e=>{if(e.target===$('modal'))$('modal').hidden=true;};
  $('newProject').onclick=()=>{record();doc().layers=[];doc().wholeCanvas=null;selected=null;updateSelection(null);$('modal').hidden=true;refresh();toast('New empty '+mode+' canvas');};$('loadProject').onclick=()=>$('projectFile').click();$('projectFile').onchange=async e=>{const f=e.target.files?.[0];if(!f)return;try{if(f.size>35_000_000)throw Error('Project exceeds 35 MB');const data=JSON.parse(await f.text());record();await restore(data);$('modal').hidden=true;toast('Project loaded');}catch(err){toast('Could not load: '+err.message);}e.target.value='';};
- screen.addEventListener('pointerdown',down);screen.addEventListener('pointermove',move);screen.addEventListener('pointerup',up);screen.addEventListener('pointercancel',up);screen.addEventListener('wheel',e=>{e.preventDefault();const p=pointerAt(e),anchor=fromDisplay(p.x,p.y);zoom=clamp(zoom*(e.deltaY<0?1.2:1/1.2),.25,40);const wx=face==='left'?W()-anchor.x:anchor.x;pan.x=p.x-stage.clientWidth/2-(wx-W()/2)*zoom;pan.y=p.y-stage.clientHeight/2-(anchor.y-H()/2)*zoom;$('zoomLabel').textContent=Math.round(zoom*100)+'%';renderView();},{passive:false});
+ screen.addEventListener('pointerdown',down);screen.addEventListener('pointermove',move);screen.addEventListener('pointerup',up);screen.addEventListener('pointercancel',up);screen.addEventListener('wheel',e=>{e.preventDefault();if(viewportLocked)return;const p=pointerAt(e),anchor=fromDisplay(p.x,p.y);zoom=clamp(zoom*(e.deltaY<0?1.2:1/1.2),.25,40);const wx=face==='left'?W()-anchor.x:anchor.x;pan.x=p.x-stage.clientWidth/2-(wx-W()/2)*zoom;pan.y=p.y-stage.clientHeight/2-(anchor.y-H()/2)*zoom;$('zoomLabel').textContent=Math.round(zoom*100)+'%';renderView();},{passive:false});
  window.addEventListener('resize',resize);document.addEventListener('keydown',e=>{if(e.target.matches('input,select,textarea'))return;const key=e.key.toLowerCase(),cmd=e.ctrlKey||e.metaKey;if(cmd&&key==='z'){e.preventDefault();if(e.shiftKey)redo();else undo();}else if(cmd&&key==='s'){e.preventDefault();saveJSON();}else if(cmd&&key==='c'){e.preventDefault();copySelection();}else if(cmd&&key==='v'){e.preventDefault();pasteSelection();}else if(cmd&&key==='x'){e.preventDefault();cutSelection();}else if(key==='delete')deleteSelection();});
  if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
 }
@@ -638,7 +698,7 @@ function bind(){
 function setupStudioLayout(){
   const shell=document.querySelector('.shell'),editor=document.querySelector('.editor'),workspace=document.querySelector('.workspace'),stageEl=document.querySelector('#stageContainer');
   const snapSettings=()=>document.querySelector('#snapToggle');
-  document.querySelector('.brand small').textContent='SURVIVAL PARADISE · STUDIO 0.5';
+  document.querySelector('.brand small').textContent='SURVIVAL PARADISE · STUDIO 0.6';
   const initialWidth=()=>window.innerWidth,initialHeight=()=>window.innerHeight;
   let stored={};try{stored=JSON.parse(localStorage.getItem('pixelforge-layout-v04')||'{}')||{};}catch{}
   const prefs={widgets:stored.widgets||{},panels:stored.panels||{},visible:stored.visible||{}};
@@ -772,7 +832,73 @@ function setupStudioLayout(){
   return {panels,widgets};
 }
 
-bind();setupStudioLayout();refresh();requestAnimationFrame(()=>{resize();fitView();refresh();});
+
+function setupStudioEnhancements(){
+ const panels=window.PixelForgeLayout.panels, settings=panels.settings.querySelector('.sheet-content'), tools=panels.tools.querySelector('.sheet-content');
+ // Dedicated canvas-lock controls; lock only the VIEW, not artwork editing.
+ const lock=document.createElement('button');lock.id='pfCanvasLock';lock.type='button';lock.title='Prevent accidental zoom and pan while still allowing drawing and selecting';lock.setAttribute('aria-pressed',String(viewportLocked));lock.onclick=()=>{viewportLocked=!viewportLocked;localStorage.setItem('pixelforge-viewport-lock-v06',String(viewportLocked));syncCanvasLock();toast(viewportLocked?'Canvas view locked; editing remains available':'Canvas unlocked');};
+ document.querySelector('.stage-top').append(lock);
+ const lockInfo=document.createElement('div');lockInfo.className='pf-setting-line';lockInfo.innerHTML='<strong>CANVAS NAVIGATION</strong><p>Lock blocks one- or two-finger pan/zoom and +/- buttons, but keeps drawing, selecting and moving artwork enabled.</p><button type="button" id="pfSettingsLock">Lock canvas view</button>';settings.prepend(lockInfo);
+ settings.querySelector('#pfSettingsLock').onclick=()=>lock.click();
+ function syncCanvasLock(){lock.textContent=viewportLocked?'🔒':'🔓';lock.classList.toggle('pf-locked-view',viewportLocked);lock.setAttribute('aria-pressed',String(viewportLocked));settings.querySelector('#pfSettingsLock').textContent=viewportLocked?'🔒 Canvas LOCKED — tap to unlock':'🔓 Lock canvas view';}
+ syncCanvasLock();
+ // Put selection operations first, not below the many drawing tools.
+ const wb=document.createElement('section');wb.className='pf-select-workbench';wb.id='pfSelectWorkbench';wb.innerHTML=`<div class="pf-section-title">SELECTION ACTIONS · <span id="pfSelInfo">Make a selection first</span></div><div class="pf-selection-grid">
+ <button data-selop="copy">Copy</button><button data-selop="cut">Cut</button><button data-selop="paste">Paste</button>
+ <button data-selop="erase">Erase</button><button data-selop="recolor">Recolor</button><button data-selop="fill">Fill</button>
+ <button data-selop="extract">Cut → new layer</button><button data-selop="copyLayer">Copy → new layer</button><button data-selop="outline">Outline</button>
+ <button data-selop="invert">Invert selection</button><button data-selop="selectAll">Select all</button><button data-selop="deselect">Deselect</button>
+ <button data-selop="flipH">Flip H</button><button data-selop="flipV">Flip V</button><button data-selop="rotate">Rotate 90°</button>
+ <button data-selop="scaleUp">2×</button><button data-selop="scaleDown">½×</button><button data-selop="crop">Crop layer</button>
+ <button data-selop="replace">Replace matching colors…</button><button data-selop="cropCanvas">Crop canvas</button>
+ </div>`;
+ tools.insertBefore(wb,tools.firstChild);
+ const actions={copy:copySelection,cut:cutSelection,paste:pasteSelection,erase:deleteSelection,recolor:recolorSelection,fill:fillSelectedPixels,extract:extractSelection,copyLayer:copySelectionToLayer,outline:outlineSelectedPixels,invert:invertSelectedMask,selectAll,deselect:deselectEverything,flipH:()=>transformSelection('flip'),flipV:flipSelectionVertical,rotate:()=>transformSelection('rot'),scaleUp:()=>transformSelection('up'),scaleDown:()=>transformSelection('down'),crop:cropLayer,cropCanvas,replace:openReplaceDialog};
+ wb.querySelectorAll('[data-selop]').forEach(b=>b.addEventListener('click',()=>{actions[b.dataset.selop]?.();updateWorkbench();}));
+ const info=wb.querySelector('#pfSelInfo');
+ function updateWorkbench(){const b=selectionBounds();info.textContent=b?`${b.w}×${b.h} px`:'No selection';wb.querySelectorAll('[data-selop]').forEach(btn=>{const a=btn.dataset.selop;btn.disabled=!b&&!['selectAll','paste','invert','replace','deselect'].includes(a);});}
+ const originalRenderSelectionInfo=renderSelectionInfo;renderSelectionInfo=function(){originalRenderSelectionInfo();updateWorkbench();};updateWorkbench();
+ // Visible context actions when a selection exists, without covering much of the canvas.
+ const fast=document.createElement('div');fast.className='pf-selection-shortcuts';fast.id='pfSelectionShortcuts';fast.hidden=true;fast.innerHTML='<button id="pfQuickCopy">Copy</button><button id="pfQuickCut">Cut</button><button id="pfQuickNewLayer">To layer</button><button id="pfQuickDeselect">✕</button>';
+ document.querySelector('.info-bar').after(fast);
+ fast.querySelector('#pfQuickCopy').onclick=copySelection;fast.querySelector('#pfQuickCut').onclick=cutSelection;fast.querySelector('#pfQuickNewLayer').onclick=extractSelection;fast.querySelector('#pfQuickDeselect').onclick=deselectEverything;
+ const originalUpdateSelection=updateSelection;updateSelection=function(obj){originalUpdateSelection(obj);fast.hidden=!selectionBounds();updateWorkbench();};
+ // Exact or tolerant RGB replacement, scope is explicit to avoid unexpected recolors.
+ const dialog=document.createElement('div');dialog.id='pfReplaceModal';dialog.className='pf-info-modal';dialog.hidden=true;dialog.innerHTML=`<section class="pf-replace-dialog" role="dialog" aria-modal="true" aria-label="Replace color"><div class="pf-replace-header"><strong>REPLACE MATCHING COLORS</strong><button id="pfReplaceClose">✕</button></div><div class="pf-replace-form"><label>From <input type="color" id="pfReplaceFrom"></label><label>To <input type="color" id="pfReplaceTo"></label><label>Similarity tolerance <input type="range" id="pfReplaceTolerance" min="0" max="128" value="0" step="1"> <span id="pfTolVal">0</span></label><label>Where <select id="pfReplaceScope"><option value="selection">Selected pixels only</option><option value="active">Current layer</option><option value="all">All visible unlocked layers (entire canvas)</option></select></label><p>Only opaque pixels are recolored. The original transparency is preserved. Undo reverses the operation.</p><button id="pfReplaceApply">Apply color replacement</button></div></section>`;
+ document.body.append(dialog);
+ dialog.querySelector('#pfReplaceClose').onclick=()=>dialog.hidden=true;dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.hidden=true;});
+ dialog.querySelector('#pfReplaceTolerance').oninput=e=>dialog.querySelector('#pfTolVal').textContent=e.target.value;
+ dialog.querySelector('#pfReplaceApply').onclick=()=>{const from=dialog.querySelector('#pfReplaceFrom').value,to=dialog.querySelector('#pfReplaceTo').value,t=Number(dialog.querySelector('#pfReplaceTolerance').value),scope=dialog.querySelector('#pfReplaceScope').value;if(replaceMatchingColor(from,to,t,scope))dialog.hidden=true;};
+ function openReplaceDialog(){dialog.querySelector('#pfReplaceFrom').value=sourcePixelColor();dialog.querySelector('#pfReplaceTo').value=selectedColor;dialog.querySelector('#pfReplaceScope').value=selectionBounds()?'selection':'all';dialog.hidden=false;}
+ const colorPane=panels.colors.querySelector('.sheet-content');const replaceFromColors=document.createElement('button');replaceFromColors.textContent='⇄ Replace matching colors across canvas…';replaceFromColors.className='pf-wide-button';replaceFromColors.style.width='100%';replaceFromColors.onclick=openReplaceDialog;colorPane.append(replaceFromColors);
+ // Readable text sizing applied to labels/controls, never changing pixel canvas scale.
+ const typography=document.createElement('section');typography.className='pf-setting-line';typography.innerHTML='<strong>TEXT SIZE</strong><label>Interface text <input id="pfTextScale" type="range" min="85" max="160" step="5" value="100"> <span id="pfTextScaleLabel">100%</span></label><button id="pfTextReset">Reset font size</button>';settings.append(typography);
+ const tx=typography.querySelector('#pfTextScale'),txVal=typography.querySelector('#pfTextScaleLabel');
+ const applyText=()=>{const v=Math.max(85,Math.min(160,Number(tx.value)||100));document.documentElement.style.setProperty('--pf-type-scale',String(v/100));txVal.textContent=v+'%';localStorage.setItem('pixelforge-text-scale-v06',String(v));};
+ tx.value=localStorage.getItem('pixelforge-text-scale-v06')||'100';tx.oninput=applyText;typography.querySelector('#pfTextReset').onclick=()=>{tx.value=100;applyText();};applyText();
+ // Preset themes and a persistent custom palette. Foreground text is manually selectable.
+ const colorKeys=['background','panel','button','accent','text'];
+ const themes={
+  'Forest':{background:'#0e1519',panel:'#1b3030',button:'#26363e',accent:'#74dec8',text:'#e8efeb'},
+  'Midnight':{background:'#0c1224',panel:'#192444',button:'#293955',accent:'#8bb5ff',text:'#eef3ff'},
+  'Desert':{background:'#241d16',panel:'#49392b',button:'#5a4935',accent:'#e8bd79',text:'#fff1dc'},
+  'Slate Light':{background:'#dce5e6',panel:'#eaf0f1',button:'#b8ccce',accent:'#117e82',text:'#152e32'},
+  'Violet':{background:'#191323',panel:'#30233a',button:'#47304c',accent:'#e2a9ff',text:'#fff3ff'}
+ };
+ let customTheme={...themes.Forest};try{customTheme={...customTheme,...JSON.parse(localStorage.getItem('pixelforge-custom-theme-v06')||'{}')};}catch{}
+ const themeUI=document.createElement('section');themeUI.className='pf-setting-line';themeUI.innerHTML='<strong>INTERFACE THEME</strong><label>Preset <select id="pfThemePreset"><option>Forest</option><option>Midnight</option><option>Desert</option><option>Slate Light</option><option>Violet</option><option>Custom</option></select></label><div class="pf-theme-colors" id="pfThemeControls"></div><button id="pfSaveTheme">Save as custom theme</button><p>Adjust colors independently of your drawing palette. Themes and text size are saved on this device.</p>';settings.append(themeUI);
+ const pickers={};for(const key of colorKeys){const label=document.createElement('label');label.textContent=key==='background'?'Background':key==='panel'?'Panels':key==='button'?'Buttons':key==='accent'?'Accent':'Text';const input=document.createElement('input');input.type='color';input.dataset.themeKey=key;label.append(input);themeUI.querySelector('#pfThemeControls').append(label);pickers[key]=input;input.addEventListener('input',()=>{customTheme=Object.fromEntries(colorKeys.map(k=>[k,pickers[k].value]));themeUI.querySelector('#pfThemePreset').value='Custom';applyTheme(customTheme);saveTheme();});}
+ const preset=themeUI.querySelector('#pfThemePreset');const saveTheme=()=>{localStorage.setItem('pixelforge-theme-choice-v06',preset.value);localStorage.setItem('pixelforge-custom-theme-v06',JSON.stringify(customTheme));};
+ function applyTheme(c){const root=document.documentElement;for(const key of colorKeys)root.style.setProperty('--pf-theme-'+key,c[key]);for(const key of colorKeys)pickers[key].value=c[key];root.dataset.pfTheme=preset.value;}
+ preset.onchange=()=>{applyTheme(preset.value==='Custom'?customTheme:themes[preset.value]);saveTheme();};
+ themeUI.querySelector('#pfSaveTheme').onclick=()=>{customTheme=Object.fromEntries(colorKeys.map(k=>[k,pickers[k].value]));preset.value='Custom';applyTheme(customTheme);saveTheme();toast('Custom theme saved');};
+ preset.value=localStorage.getItem('pixelforge-theme-choice-v06')||'Forest';if(!themes[preset.value]&&preset.value!=='Custom')preset.value='Forest';applyTheme(preset.value==='Custom'?customTheme:themes[preset.value]);
+ // Test hooks: no mutation to user project by merely querying state.
+ window.PixelForgeDebugV06={getState:()=>({viewportLocked,zoom,pan:{...pan},selection:selectionBounds(),theme:preset.value,text:tx.value,tool}),selectRect:(x0,y0,x1,y1)=>updateSelection(maskFromRect({x:x0,y:y0},{x:x1,y:y1},'selectRect',L().sprite.width,L().sprite.height)),replaceMatchingColor,fillSelectedPixels,outlineSelectedPixels,invertSelectedMask,copySelectionToLayer,openReplaceDialog,panels};
+ const helpBox=document.querySelector('#pfInfoContent');if(helpBox){const tip=document.createElement('details');tip.className='pf-guide-section';tip.innerHTML='<summary>NEW IN 0.6 — GESTURES, SELECTIONS, THEMES</summary><p>Pan: choose ✋ Pan then drag one finger; a two-finger pan translates the canvas without zooming. Other tools only pinch-zoom when finger spacing changes beyond a threshold. Lock Canvas View (🔓 / 🔒) in the floating Zoom bar or Setup to prevent both pan and zoom while keeping drawing enabled. Open Tools for the Selection Actions grid: copy, cut, paste, fill, outline, invert, cut or copy to new layer, flip, transform, crop, erase or recolor. Replace matching colors opens a dialog: choose source, target, RGB tolerance and whether to affect selection, layer, or all visible unlocked layers. Docked Tools panels scroll vertically. Setup also contains Text Size (85–160%) and Theme presets with saved custom colors.</p>';helpBox.prepend(tip);}
+}
+
+bind();setupStudioLayout();setupStudioEnhancements();refresh();requestAnimationFrame(()=>{resize();fitView();refresh();});
 })();
 
 </script>
