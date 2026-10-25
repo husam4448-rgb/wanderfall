@@ -1,0 +1,2 @@
+# Pixel Forge v0.3 - Android APK build
+Offline HTML-based pixel art editor packaged in an Android WebView. Full-screen, no browser address bar, direct Android document file import/export (Storage Access Framework). No internet permission. Android 8.0+ (API 26). Source editor is in app/src/main/assets/index.html. Debug APK is signed with Android debug key and is for personal testing, not Play Store publication.

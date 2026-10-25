@@ -1,0 +1,39 @@
+name: Build Pixel Forge Android APK
+on:
+  push:
+    branches:
+      - pixelforge-apk-v03-20261025
+  workflow_dispatch:
+jobs:
+  build-android-apk:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout only Pixel Forge
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            pixelforge-v03
+      - name: Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Gradle 8.10.2
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Install SDK
+        run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Build Android APK
+        working-directory: pixelforge-v03
+        run: gradle --no-daemon --stacktrace assembleDebug
+      - name: Upload installable debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: PixelForge-v0.3-Android-APK
+          path: pixelforge-v03/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
