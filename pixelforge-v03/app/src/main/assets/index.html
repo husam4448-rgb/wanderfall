@@ -238,12 +238,31 @@ html,body,.shell,.workspace,.editor{background:var(--pf-theme-background)!import
 .pf-replace-form #pfReplaceApply{padding:10px;min-height:42px;background:var(--pf-theme-accent);color:var(--pf-theme-background);font-weight:bold}
 @media(max-width:760px){.studio-sheet:not(.floating){height:min(62dvh,620px)}.pf-selection-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 
+
+/* v0.7 imports, custom tool rail, brush guide, data-only mod packs */
+#pf07ToolsPlus{position:sticky;bottom:0;z-index:2;background:#1b7064!important;color:#fff!important;border:1px solid #9ce7d3!important;font-weight:800;font-size:14px;min-height:39px;flex-shrink:0}
+#pf07Controls{display:grid;gap:7px;margin:9px 0;padding:8px;background:#142f32;border:1px solid #4b7671;border-radius:9px}
+#pf07Controls>button,.pf07bar button{min-height:39px;background:#2b514c;color:#e1fff1;border:1px solid #608c83;border-radius:6px}
+.pf07bar{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.pf07bar>button{font-size:12px;padding:7px 5px}
+.pf07panel{display:flex;flex-direction:column;gap:9px;padding:10px;max-width:700px;max-height:90dvh;min-height:0;overflow-y:auto;border:1px solid #71aa9f;border-radius:12px;background:#152d32;color:#eafff3}
+.pf07panel p{font-size:12px;line-height:1.5;color:#bfdbd1;margin:3px 0 7px}
+.pf07panel label{display:flex;align-items:center;gap:8px;min-height:34px;font-size:13px}
+.pf07panel button{min-height:38px;background:#244a46;color:#eefff7;border:1px solid #547d73;border-radius:6px}
+.pf07modal[hidden]{display:none!important}.pf07modal{position:fixed;inset:0;z-index:1200;display:flex;align-items:center;justify-content:center;padding:12px;background:#071218d9}
+.pf07modal .pf07panel{width:min(100%,560px)}
+.pf07toolsgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;overflow-y:auto;max-height:55dvh}
+.pf07toolsgrid label{border:1px solid #365854;border-radius:6px;padding:5px 7px;background:#21363c;white-space:normal}
+.pf07toolsgrid input{accent-color:#4bd7b2;flex:none;width:19px;height:19px}
+.pf07status{font-size:11px;color:#83d4bf;line-height:1.4}
+.pf07files input{display:none}
+#pf07GuideLabel{font-size:11px;opacity:.85;margin-left:8px}
 </style>
 </head>
 <body>
 <div class="shell">
   <header class="header">
-    <div class="brand"><span class="brandmark">▦</span><div><strong>PIXEL FORGE</strong><small>SURVIVAL PARADISE · STUDIO 0.3.2</small></div></div>
+    <div class="brand"><span class="brandmark">▦</span><div><strong>PIXEL FORGE</strong><small>SURVIVAL PARADISE · STUDIO 0.7.0</small></div></div>
     <div class="head-actions"><button class="icon-button" id="undo" title="Undo">↶</button><button class="icon-button" id="redo" title="Redo">↷</button><button class="icon-button" id="menuBtn" title="Project menu">☰</button></div>
   </header>
   <div class="workspace">
@@ -401,6 +420,7 @@ const check=checker.getContext('2d');check.fillStyle='#f7f7f7';check.fillRect(0,
 let documents={character:{layers:[],w:64,h:64,wholeCanvas:null},weapon:{layers:[],w:64,h:64,wholeCanvas:null}};
 let mode='character',selected=null,tool='paint',face='right',animation='idle',frame=0,playing=false,editPoses=false;
 let snap=true,artSnap=true,showGrid=true,gridStep=4,trackpad=true,clickEnabled=true,holdLocked=false,dragStart=null,selectedColor='#a8b5a1',secondColor='#151b20',colorAlpha=1,brushSize=1;
+let pfBrushGuide=localStorage.getItem('pixelforge-brush-guide-v07')!=='false';
 let viewportLocked=localStorage.getItem('pixelforge-viewport-lock-v06')==='true';let zoom=7,pan={x:0,y:0},pointer={x:32.5,y:32.5},selection=null,selOverlay=null,clipboard=null,preview=null;
 let pointerDown=false,actionHeld=false,clickPress=false,clickPressOrigin=null,startPos=null,lastPaintLocal=null,pinch=null,raf=0,lastFrameTime=0;
 let toastTimeout=null,undoStack=[],redoStack=[];const activeTouches=new Map();
@@ -442,7 +462,18 @@ function renderViewport(){if(!screen.width||!stage.clientWidth)return;const widt
  const l=L();if(l&&l.visible){const p=getPose(l),w=l.sprite.width,h=l.sprite.height;cx.save();if(face==='left'){cx.translate(W(),0);cx.scale(-1,1);}cx.translate(p.x+w/2,p.y+h/2);cx.rotate(p.rotation*Math.PI/180);cx.scale(p.scale,p.scale);cx.strokeStyle='#006f8c';cx.lineWidth=1/zoom;cx.setLineDash([2/zoom,2/zoom]);cx.strokeRect(-w/2,-h/2,w,h);cx.restore();}
  cx.strokeStyle='#799b9f';cx.lineWidth=1/zoom;cx.strokeRect(0,0,W(),H());cx.restore();}
 // Cursor belongs to its own transparent canvas so finger motion does not redraw sprites.
-function renderCrosshair(){if(!cursorCanvas.width)return;const dpr=cursorCanvas.width/stage.clientWidth;cursorCtx.setTransform(1,0,0,1,0,0);cursorCtx.clearRect(0,0,cursorCanvas.width,cursorCanvas.height);cursorCtx.setTransform(dpr,0,0,dpr,0,0);const p=toDisplay(pointer.x,pointer.y);cursorCtx.strokeStyle='#ef9f25';cursorCtx.lineWidth=1.5;cursorCtx.beginPath();cursorCtx.moveTo(p.x-10,p.y);cursorCtx.lineTo(p.x-4,p.y);cursorCtx.moveTo(p.x+4,p.y);cursorCtx.lineTo(p.x+10,p.y);cursorCtx.moveTo(p.x,p.y-10);cursorCtx.lineTo(p.x,p.y-4);cursorCtx.moveTo(p.x,p.y+4);cursorCtx.lineTo(p.x,p.y+10);cursorCtx.stroke();cursorCtx.strokeRect(p.x-2,p.y-2,4,4);}
+function renderCrosshair(){if(!cursorCanvas.width)return;const dpr=cursorCanvas.width/stage.clientWidth;cursorCtx.setTransform(1,0,0,1,0,0);cursorCtx.clearRect(0,0,cursorCanvas.width,cursorCanvas.height);cursorCtx.setTransform(dpr,0,0,dpr,0,0);const p=toDisplay(pointer.x,pointer.y);cursorCtx.strokeStyle='#ef9f25';cursorCtx.lineWidth=1.5;cursorCtx.beginPath();cursorCtx.moveTo(p.x-10,p.y);cursorCtx.lineTo(p.x-4,p.y);cursorCtx.moveTo(p.x+4,p.y);cursorCtx.lineTo(p.x+10,p.y);cursorCtx.moveTo(p.x,p.y-10);cursorCtx.lineTo(p.x,p.y-4);cursorCtx.moveTo(p.x,p.y+4);cursorCtx.lineTo(p.x,p.y+10);cursorCtx.stroke();cursorCtx.strokeRect(p.x-2,p.y-2,4,4);
+ if(pfBrushGuide && (tool==='paint'||tool==='erase') && L() && !L().locked){
+   const layer=L(),local=localCursor(layer),size=Math.max(1,Math.round(brushSize));
+   const px=Math.floor(local.x)-Math.floor(size/2),py=Math.floor(local.y)-Math.floor(size/2);
+   const corners=[[px,py],[px+size,py],[px+size,py+size],[px,py+size]].map(([x,y])=>{const w=localToWorld(layer,x,y);return toDisplay(w.x,w.y);});
+   cursorCtx.save();cursorCtx.lineWidth=1.7;cursorCtx.lineJoin='miter';
+   cursorCtx.beginPath();corners.forEach((pt,i)=>i?cursorCtx.lineTo(pt.x,pt.y):cursorCtx.moveTo(pt.x,pt.y));cursorCtx.closePath();
+   cursorCtx.fillStyle=tool==='erase'?'rgba(242,65,65,.13)':'rgba(255,202,88,.16)';cursorCtx.fill();
+   cursorCtx.strokeStyle=tool==='erase'?'#fa6b70':'#fbd67e';cursorCtx.stroke();
+   cursorCtx.setLineDash([3,3]);cursorCtx.strokeStyle='rgba(0,0,0,.78)';cursorCtx.stroke();cursorCtx.restore();
+ }
+}
 // A single nearest-neighbor magnified draw instead of 144 separate drawImage calls.
 function drawMagnifier(){if(mag.hidden)return;const m=mag.getContext('2d');m.setTransform(1,0,0,1,0,0);m.imageSmoothingEnabled=false;const image=ensureScene(),x=Math.floor(pointer.x),y=Math.floor(pointer.y);m.fillStyle=m.createPattern(checker,'repeat');m.fillRect(0,0,96,96);const srcX=x-6,srcY=y-6;const ix0=Math.max(0,srcX),iy0=Math.max(0,srcY),ix1=Math.min(image.width,srcX+12),iy1=Math.min(image.height,srcY+12);if(ix1>ix0&&iy1>iy0){if(face==='left'){m.save();m.translate(96,0);m.scale(-1,1);}m.drawImage(image,ix0,iy0,ix1-ix0,iy1-iy0,(ix0-srcX)*8,(iy0-srcY)*8,(ix1-ix0)*8,(iy1-iy0)*8);if(face==='left')m.restore();}m.strokeStyle='#e59017';m.lineWidth=1.5;m.strokeRect(48,48,8,8);}
 function renderAssets(){const box=$('assets');box.innerHTML='';for(const key of (mode==='character'?charAssets:weaponAssets)){const d=defs[key],b=document.createElement('button');b.className='asset';b.append(inkCanvas(key));const t=document.createElement('span');t.textContent='＋ '+d.label;b.append(t);b.title='Add '+d.label;b.onclick=()=>{record();addLayer(key,true);refresh();toast('Added '+d.label);};box.append(b);}}
@@ -678,7 +709,7 @@ function bind(){
  $('palettePreset').onchange=()=>{activePersonalSlot=null;paletteRender();};$('saveCustomSwatch').onclick=saveCustomSwatch;$('replaceCustomSwatch').onclick=replaceCustomSwatch;$('removeCustomSwatch').onclick=removeCustomSwatch;paletteRender();setColor(selectedColor);
  $('colorPicker').oninput=e=>setColor(e.target.value);$('hexColor').onchange=e=>{setColor(e.target.value);$('hexColor').value=selectedColor;};$('backgroundColor').onclick=()=>{let c=selectedColor;setColor(secondColor);secondColor=c;};
  ['hue','sat','val'].forEach(id=>$(id).oninput=()=>setColor(hsvToHex(Number($('hue').value),Number($('sat').value),Number($('val').value))));
- $('brushSize').oninput=e=>{brushSize=Number(e.target.value);$('brushLabel').textContent=brushSize;};$('opacityBrush').oninput=e=>{colorAlpha=Number(e.target.value)/100;$('opacityLabel').textContent=e.target.value+'%';};
+ $('brushSize').oninput=e=>{brushSize=Number(e.target.value);$('brushLabel').textContent=brushSize;renderPointer();};$('opacityBrush').oninput=e=>{colorAlpha=Number(e.target.value)/100;$('opacityLabel').textContent=e.target.value+'%';};
  $('importBtn').onclick=()=>$('importFile').click();$('importFile').onchange=handleImport;
  $('wholeCanvasEdit').onclick=toggleWholeCanvas;$('expandFromCanvas').onclick=expandLayer;$('blankLayer').onclick=addBlankLayer;$('expandLayer').onclick=expandLayer;$('duplicate').onclick=duplicateLayer;$('delete').onclick=()=>{if(!L())return;record();const index=layers().findIndex(l=>l.id===selected);if(doc().wholeCanvas?.layerId===selected)resetWholeSession();layers().splice(index,1);selected=layers().at(-1)?.id||null;updateSelection(null);refresh();};
  $('layerDown').onclick=()=>alterLayerPos(-1);$('layerUp').onclick=()=>alterLayerPos(1);
@@ -698,7 +729,7 @@ function bind(){
 function setupStudioLayout(){
   const shell=document.querySelector('.shell'),editor=document.querySelector('.editor'),workspace=document.querySelector('.workspace'),stageEl=document.querySelector('#stageContainer');
   const snapSettings=()=>document.querySelector('#snapToggle');
-  document.querySelector('.brand small').textContent='SURVIVAL PARADISE · STUDIO 0.6';
+  document.querySelector('.brand small').textContent='SURVIVAL PARADISE · STUDIO 0.7';
   const initialWidth=()=>window.innerWidth,initialHeight=()=>window.innerHeight;
   let stored={};try{stored=JSON.parse(localStorage.getItem('pixelforge-layout-v04')||'{}')||{};}catch{}
   const prefs={widgets:stored.widgets||{},panels:stored.panels||{},visible:stored.visible||{}};
@@ -898,7 +929,134 @@ function setupStudioEnhancements(){
  const helpBox=document.querySelector('#pfInfoContent');if(helpBox){const tip=document.createElement('details');tip.className='pf-guide-section';tip.innerHTML='<summary>NEW IN 0.6 — GESTURES, SELECTIONS, THEMES</summary><p>Pan: choose ✋ Pan then drag one finger; a two-finger pan translates the canvas without zooming. Other tools only pinch-zoom when finger spacing changes beyond a threshold. Lock Canvas View (🔓 / 🔒) in the floating Zoom bar or Setup to prevent both pan and zoom while keeping drawing enabled. Open Tools for the Selection Actions grid: copy, cut, paste, fill, outline, invert, cut or copy to new layer, flip, transform, crop, erase or recolor. Replace matching colors opens a dialog: choose source, target, RGB tolerance and whether to affect selection, layer, or all visible unlocked layers. Docked Tools panels scroll vertically. Setup also contains Text Size (85–160%) and Theme presets with saved custom colors.</p>';helpBox.prepend(tip);}
 }
 
-bind();setupStudioLayout();setupStudioEnhancements();refresh();requestAnimationFrame(()=>{resize();fitView();refresh();});
+
+function setupPixelForgeV07(){
+ const P=window.PixelForgeLayout.panels;
+ const settings=P.settings.querySelector('.sheet-content'),colors=P.colors.querySelector('.sheet-content');
+ const rail=window.PixelForgeLayout.widgets.quick.querySelector('.quick-rail');
+ const modKey='pixelforge-mods-v07',palKey='pixelforge-imported-palettes-v07',quickKey='pixelforge-quicktools-v07';
+ const toolEntries=[...document.querySelectorAll('.tool-bar [data-tool]')].map(n=>({id:n.dataset.tool,title:n.getAttribute('title')||n.textContent.trim(),label:n.querySelector('span')?.textContent||n.dataset.tool,icon:n.textContent.trim().split(' ')[0]}));
+ const ids=new Set(toolEntries.map(x=>x.id)),defaults=['paint','erase','move','pan','picker','selectRect'];
+ const checked=(v)=>Array.isArray(v)?[...new Set(v.filter(id=>ids.has(id)))]:null;
+ const readJSON=(key,fall)=>{try{return JSON.parse(localStorage.getItem(key)||'null')??fall;}catch{return fall;}};
+ let quickTools=checked(readJSON(quickKey,defaults))||defaults.slice();
+ let imported=readJSON(palKey,{});if(!imported||typeof imported!=='object'||Array.isArray(imported))imported={};
+ let installedMods=readJSON(modKey,[]);if(!Array.isArray(installedMods))installedMods=[];
+ const cleanName=v=>String(v||'Imported').replace(/[^a-z0-9 _().-]/gi,'').slice(0,50)||'Imported';
+ const colorsValid=x=>Array.isArray(x)?x.filter(v=>typeof v==='string'&&/^#[\da-f]{6}$/i.test(v)).slice(0,512).map(v=>v.toLowerCase()):[];
+ const savePal=()=>{localStorage.setItem(palKey,JSON.stringify(imported));};
+ const rgb=(r,g,b)=>'#'+[r,g,b].map(v=>clamp(Number(v)||0,0,255).toString(16).padStart(2,'0')).join('');
+ const safePaletteName=n=>cleanName(n).replace(/\.[a-z]{1,10}$/i,'');
+ function applyPalette(name,list){const colors=colorsValid(list);if(!colors.length)throw Error('No valid opaque HEX colors found');
+  if(Object.keys(imported).length>=24&&!imported[name])throw Error('24 imported palettes maximum');
+  const key='pfimp_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,6);
+  imported[key]={name:safePaletteName(name),colors};palettes[key]=colors;
+  const option=document.createElement('option');option.value=key;option.textContent='↓ '+imported[key].name+' ('+colors.length+')';$('palettePreset').append(option);
+  savePal();$('palettePreset').value=key;paletteRender();toast('Imported '+colors.length+' colors');return key;
+ }
+ for(const [key,item] of Object.entries(imported)){
+  const list=colorsValid(item?.colors);if(!/^pfimp_[a-z0-9_]+$/i.test(key)||!list.length){delete imported[key];continue;}
+  palettes[key]=list;const op=document.createElement('option');op.value=key;op.textContent='↓ '+cleanName(item.name)+' ('+list.length+')';$('palettePreset').append(op);
+ }
+ function parsePaletteText(text,filename){if(text.length>1_000_000)throw Error('Palette text too large');
+  if(/^\s*[\[{]/.test(text)){
+   const o=JSON.parse(text);const arr=Array.isArray(o)?o:(o.colors||o.palette?.colors||o.palette||o.swatches||[]);
+   return arr.map(v=>typeof v==='string'?v:v?.hex||v?.color||v?.value||'').map(v=>/^#[\da-f]{8}$/i.test(v)?v.slice(0,7):v);
+  }
+  const lines=text.replace(/\r/g,'').split('\n');const out=[];
+  for(let line of lines){line=line.trim();if(!line||/^(GIMP Palette|Name:|Columns:|JASC-PAL|Color Palette|\d{1,4}$)/i.test(line))continue;
+   let m=line.match(/^(\d{1,3})[\s,]+(\d{1,3})[\s,]+(\d{1,3})(?:\s|$)/);
+   if(m){out.push(rgb(+m[1],+m[2],+m[3]));continue;}
+   m=line.match(/^#?([\da-f]{6})(?:[\da-f]{2})?(?:\s|$)/i);if(m)out.push('#'+m[1].toLowerCase());
+  }return out;
+ }
+ async function parseImagePalette(file){const obj=URL.createObjectURL(file);try{
+  const img=new Image();img.src=obj;await img.decode();if(img.naturalWidth*img.naturalHeight>4000000)throw Error('Image too large for palette extraction');
+  const cv=mk(img.naturalWidth,img.naturalHeight),g=cv.getContext('2d',{willReadFrequently:true});g.drawImage(img,0,0);const px=g.getImageData(0,0,cv.width,cv.height).data;const list=[],seen=new Set();
+  for(let i=0;i<px.length;i+=4){if(px[i+3]<128)continue;const c=rgb(px[i],px[i+1],px[i+2]);if(!seen.has(c)){list.push(c);seen.add(c);if(list.length>=512)break;}}
+  return list;
+ }finally{URL.revokeObjectURL(obj);}}
+ async function zipEntries(buffer){
+  const b=new Uint8Array(buffer);const v=new DataView(buffer);let loc=-1;
+  for(let i=b.length-22;i>=Math.max(0,b.length-65558);i--)if(v.getUint32(i,true)===0x06054b50){loc=i;break;}
+  if(loc<0)throw Error('Not a ZIP extension');const n=v.getUint16(loc+10,true),dir=v.getUint32(loc+16,true);if(n>100||dir>=b.length)throw Error('Extension archive out of range');
+  const out=new Map();let p=dir;const dec=new TextDecoder();
+  for(let i=0;i<n;i++){
+   if(p+46>b.length||v.getUint32(p,true)!==0x02014b50)throw Error('Invalid extension directory');
+   const method=v.getUint16(p+10,true),comp=v.getUint32(p+20,true),uncomp=v.getUint32(p+24,true),len=v.getUint16(p+28,true),extra=v.getUint16(p+30,true),comment=v.getUint16(p+32,true),off=v.getUint32(p+42,true);
+   const name=dec.decode(b.subarray(p+46,p+46+len));p+=46+len+extra+comment;
+   if(name.includes('..')||name.startsWith('/')||name.includes('\\'))throw Error('Unsafe extension path');
+   if(uncomp>2_000_000||comp>2_000_000||!(/\.(gpl|hex|pal|txt|json)$/i.test(name)))continue;
+   if(off+30>b.length||v.getUint32(off,true)!==0x04034b50)throw Error('Invalid ZIP entry');
+   const start=off+30+v.getUint16(off+26,true)+v.getUint16(off+28,true);if(start+comp>b.length)throw Error('Invalid ZIP file offsets');
+   const data=b.slice(start,start+comp);
+   let raw;if(method===0)raw=data;else if(method===8&&typeof DecompressionStream==='function'){
+    const stream=new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'));raw=new Uint8Array(await new Response(stream).arrayBuffer());
+   }else throw Error('ZIP compression not supported by this Android WebView');
+   if(raw.byteLength>2_000_000)throw Error('Extension content too large');out.set(name,dec.decode(raw));
+  }return out;
+ }
+ const filePalette=document.createElement('input');filePalette.type='file';filePalette.accept='.gpl,.hex,.pal,.txt,.json,.png,.webp,.jpeg,.jpg,.aseprite-extension,.zip';filePalette.hidden=true;
+ document.body.append(filePalette);
+ const modFile=document.createElement('input');modFile.type='file';modFile.accept='.json,.pfmod,.pfmod.json';modFile.hidden=true;document.body.append(modFile);
+ async function loadPaletteFile(file){if(!file)return;try{
+  if(file.size>5_000_000)throw Error('Palette file exceeds 5 MB');
+  if(/\.(png|jpe?g|webp)$/i.test(file.name)){applyPalette(file.name,await parseImagePalette(file));}
+  else if(/\.(zip|aseprite-extension)$/i.test(file.name)){
+   const entries=await zipEntries(await file.arrayBuffer());let count=0;
+   for(const [name,text] of entries){if(!/\.(gpl|hex|pal|txt)$/i.test(name))continue;const arr=parsePaletteText(text,name);if(colorsValid(arr).length){applyPalette(name,arr);count++;}}
+   if(!count)throw Error('No palette found in extension (scripts are not executed)');
+  }else{applyPalette(file.name,parsePaletteText(await file.text(),file.name));}
+ }catch(err){toast('Palette import: '+err.message);}finally{filePalette.value='';}}
+ filePalette.onchange=e=>loadPaletteFile(e.target.files?.[0]);
+ function installMod(obj,name){
+  if(!obj||typeof obj!=='object'||Array.isArray(obj)||obj.scripts||obj.javascript||obj.lua)throw Error('Only non-executable preset packs are supported');
+  if(obj.format&&!['pixelforge-mod','pixelforge-preset'].includes(obj.format))throw Error('Unknown mod format');
+  const item={id:'pfmod_'+Date.now().toString(36),name:cleanName(obj.name||name),palette:null,toolbar:null};
+  const c=colorsValid(obj.palette||obj.colors||[]);
+  if(c.length)item.palette=applyPalette(item.name,c);
+  if(Array.isArray(obj.toolbar)){const allowed=checked(obj.toolbar);if(allowed?.length){item.toolbar=allowed;setQuickTools(allowed);}}
+  if(!item.palette&&!item.toolbar)throw Error('Pack needs a palette or toolbar list');
+  installedMods.push(item);installedMods=installedMods.slice(-30);localStorage.setItem(modKey,JSON.stringify(installedMods));modList();toast('Installed preset pack: '+item.name);
+ }
+ modFile.onchange=async e=>{const f=e.target.files?.[0];if(!f)return;try{if(f.size>300000)throw Error('Preset pack too large');installMod(JSON.parse(await f.text()),f.name);}catch(err){toast('Pack: '+err.message);}finally{modFile.value='';}};
+ function setQuickTools(list){quickTools=checked(list)||defaults.slice();localStorage.setItem(quickKey,JSON.stringify(quickTools));renderQuick();}
+ const plus=document.createElement('button');plus.id='pf07ToolsPlus';plus.textContent='＋ TOOLS';plus.title='Add or remove floating toolbar shortcuts';
+ const existing=[...rail.querySelectorAll('[data-quick]')];existing.forEach(n=>n.remove());rail.insertBefore(plus,rail.querySelector('#quickDeselect'));
+ function renderQuick(){rail.querySelectorAll('[data-quick]').forEach(b=>b.remove());
+  for(const key of quickTools){const spec=toolEntries.find(x=>x.id===key);if(!spec)continue;const b=document.createElement('button');b.type='button';b.dataset.quick=key;b.textContent=spec.icon+' '+spec.label;
+   b.onclick=()=>{document.querySelector('.tool-bar [data-tool="'+key+'"]').click();renderQuick();};rail.insertBefore(b,plus);}
+  const active=document.querySelector('.tool-bar [data-tool].selected')?.dataset.tool;
+  rail.querySelectorAll('[data-quick]').forEach(b=>b.classList.toggle('current',b.dataset.quick===active));
+ }
+ document.querySelectorAll('.tool-bar [data-tool]').forEach(b=>b.addEventListener('click',renderQuick));
+ const manage=document.createElement('div');manage.className='pf07modal';manage.hidden=true;manage.innerHTML='<section class="pf07panel" role="dialog" aria-modal="true"><h3>FLOATING TOOLBAR · CUSTOMIZE</h3><p>Select the shortcuts shown beside your canvas. The + button remains available. Saved for future sessions.</p><div class="pf07toolsgrid" id="pf07ToolChecks"></div><div class="pf07bar"><button id="pf07DefaultTools">Reset</button><button id="pf07ApplyTools">Apply and close</button></div></section>';document.body.append(manage);
+ const checks=manage.querySelector('#pf07ToolChecks');toolEntries.forEach(spec=>{const row=document.createElement('label'),inp=document.createElement('input');inp.type='checkbox';inp.value=spec.id;row.append(inp,document.createTextNode(spec.icon+' '+spec.title));checks.append(row);});
+ const openManage=()=>{checks.querySelectorAll('input').forEach(i=>i.checked=quickTools.includes(i.value));manage.hidden=false;};plus.onclick=openManage;
+ manage.querySelector('#pf07DefaultTools').onclick=()=>checks.querySelectorAll('input').forEach(i=>i.checked=defaults.includes(i.value));
+ manage.querySelector('#pf07ApplyTools').onclick=()=>{setQuickTools([...checks.querySelectorAll('input:checked')].map(i=>i.value));manage.hidden=true;};
+ manage.onclick=e=>{if(e.target===manage)manage.hidden=true;};
+ renderQuick();
+ // Paint footprint guide is drawn on the cursor overlay and thus keeps all art unchanged.
+ const brush=document.createElement('div');brush.id='pf07Controls';brush.innerHTML='<label><input type="checkbox" id="pf07BrushGuide" checked> Show exact brush footprint (Pencil / Eraser)</label><small class="pf07status">Outline shows the pixels the current brush size will affect, including on rotated or scaled layers.</small>';
+ settings.prepend(brush);const guide=brush.querySelector('#pf07BrushGuide');guide.checked=pfBrushGuide;
+ guide.onchange=()=>{pfBrushGuide=guide.checked;localStorage.setItem('pixelforge-brush-guide-v07',String(pfBrushGuide));renderPointer();};
+ const fileActions=document.createElement('section');fileActions.id='pf07Controls';fileActions.innerHTML='<strong>IMPORTS & PRESET MOD PACKS</strong><div class="pf07bar"><button id="pf07ImportPal">＋ Import palette</button><button id="pf07ImportImage">＋ Import image</button><button id="pf07ImportMod">＋ Install preset pack</button><button id="pf07ExportMod">↓ Export preset pack</button></div><div class="pf07status">Palette: GPL, HEX, JASC-PAL, JSON, or PNG palette extraction; compatible palette-only Aseprite extension ZIPs. PNG/JPEG/WebP images import as layers. Preset packs are data-only (colors and toolbar layout), never executable scripts.</div><div id="pf07ModList"></div>';
+ settings.append(fileActions);
+ const colorQuick=document.createElement('div');colorQuick.id='pf07Controls';colorQuick.innerHTML='<div class="pf07bar"><button id="pf07ColorsImport">＋ Import palette file</button><button id="pf07PaletteRemove">× Remove selected imported palette</button></div><div class="pf07status">Use a GIMP .gpl, JASC .pal, HEX/text, JSON, palette PNG, or palette-only Aseprite ZIP extension.</div>';colors.prepend(colorQuick);
+ const palImport=()=>filePalette.click();fileActions.querySelector('#pf07ImportPal').onclick=palImport;colorQuick.querySelector('#pf07ColorsImport').onclick=palImport;
+ fileActions.querySelector('#pf07ImportImage').onclick=()=>$('importFile').click();fileActions.querySelector('#pf07ImportMod').onclick=()=>modFile.click();
+ colorQuick.querySelector('#pf07PaletteRemove').onclick=()=>{const key=$('palettePreset').value;if(!imported[key]){toast('Choose an imported palette first');return;}delete imported[key];delete palettes[key];$('palettePreset').querySelector('option[value="'+key+'"]')?.remove();$('palettePreset').value='earth';savePal();paletteRender();toast('Imported palette removed');};
+ function modList(){const root=fileActions.querySelector('#pf07ModList');root.replaceChildren();for(const m of installedMods){const line=document.createElement('div');line.className='pf07bar';line.style.marginTop='6px';const label=document.createElement('small');label.textContent=m.name;const remove=document.createElement('button');remove.textContent='Remove';remove.onclick=()=>{installedMods=installedMods.filter(x=>x.id!==m.id);if(m.palette){delete imported[m.palette];delete palettes[m.palette];$('palettePreset').querySelector('option[value="'+m.palette+'"]')?.remove();$('palettePreset').value='earth';paletteRender();savePal();}localStorage.setItem(modKey,JSON.stringify(installedMods));modList();toast('Preset pack removed');};line.append(label,remove);root.append(line);}}
+ modList();
+ fileActions.querySelector('#pf07ExportMod').onclick=()=>{const key=$('palettePreset').value,pack={format:'pixelforge-mod',version:1,name:'Survival Paradise preset pack',palette:palettes[key]||[],toolbar:quickTools};
+  const bytes=new TextEncoder().encode(JSON.stringify(pack,null,2));const blob=new Blob([bytes],{type:'application/json'});const a=document.createElement('a');const url=URL.createObjectURL(blob);a.href=url;a.download='PixelForge_Preset.pfmod.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ };
+ const helpBox=document.querySelector('#pfInfoContent');if(helpBox){const info=document.createElement('details');info.className='pf-guide-section';info.innerHTML='<summary>NEW IN 0.7 — IMPORTS, MOD PACKS, BRUSH GUIDE, TOOLBAR</summary><p>Palette import: Colors → Import palette. Supported: GIMP GPL, JASC-PAL, HEX/TXT, JSON, image-color extraction, and palette-only Aseprite ZIP extensions. Image import: Setup → Import image, choose a PNG/JPEG/WebP; the image becomes a separate editable layer. Brush guide: Setup → Show brush footprint; yellow/red outline tracks the affected square pixels including rotation. Floating toolbar: tap + TOOLS to choose quick shortcuts; existing floating panel can be moved, resized or locked. Preset packs: Setup → Install preset pack (.json) containing format "pixelforge-mod", palette array (#RRGGBB), and toolbar array of tool IDs. Scripts, binary plugins, Lua, and unknown extension behaviors are intentionally not executed on Android. These features do not implement Aseprite tilemaps, .aseprite project files, scripting, or complete cel-based animation.</p>';helpBox.prepend(info);}
+ window.PixelForgeDebugV07={parsePaletteText,applyPalette,loadPaletteFile,installMod,toolEntries,getQuick:()=>[...quickTools],getPalettes:()=>Object.keys(imported),brushGuide:()=>pfBrushGuide,guideToggle:guide,controls:fileActions};
+}
+
+bind();setupStudioLayout();setupStudioEnhancements();setupPixelForgeV07();refresh();requestAnimationFrame(()=>{resize();fitView();refresh();});
 })();
 
 </script>
