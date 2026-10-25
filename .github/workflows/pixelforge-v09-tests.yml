@@ -1,0 +1,22 @@
+name: Pixel Forge 0.9 Headless Rig Tests
+on:
+  push:
+    branches:
+      - pixelforge-apk-v090-rigging-20261025
+  workflow_dispatch:
+jobs:
+  test-engine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            pixelforge_studio/headless
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install required dependency
+        run: python -m pip install Pillow
+      - name: Test headless asset engine
+        working-directory: pixelforge_studio/headless
+        run: python -m unittest discover -s tests -v

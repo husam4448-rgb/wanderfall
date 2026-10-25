@@ -1,0 +1,1127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#11191d"><meta name="mobile-web-app-capable" content="yes">
+<title>Pixel Forge | Survival Paradise</title>
+<style>
+:root{color-scheme:dark;--bg:#0e1519;--panel:#151f24;--panel2:#1c292e;--line:#2d4149;--text:#e8efeb;--muted:#84979e;--cyan:#74dec8;--gold:#dab780;--button:#26363e}*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;font-size:13px}button,input,select{font:inherit}button{color:inherit;cursor:pointer;border:1px solid var(--line);background:var(--button);border-radius:7px;min-height:33px}button:active{filter:brightness(1.3)}button:focus-visible,input:focus-visible{outline:2px solid var(--cyan)}.shell{max-width:1440px;min-height:100dvh;margin:auto;display:flex;flex-direction:column}.header{height:59px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:6px 13px;border-bottom:1px solid var(--line);background:#111b1f}.brand{display:flex;align-items:center;gap:10px}.brandmark{border:1px solid #4e837e;background:#243a3b;color:#88dccc;padding:5px 8px;font-size:24px;border-radius:6px}.brand strong{letter-spacing:2.1px;font-size:15px;color:#e2ede8}.brand small{display:block;color:#739189;letter-spacing:1.1px;font-size:9px;margin-top:2px}.head-actions,.head-inline{display:flex;gap:6px}.icon-button{font-size:21px;min-width:36px}.workspace{display:grid;grid-template-columns:minmax(0,1fr) 318px;flex:1;min-height:340px}.editor{min-width:0;display:flex;flex-direction:column;background:#0e171b;padding:10px;gap:8px}.info-bar{height:22px;display:flex;align-items:center;color:#b5c8c5;font-size:10px;letter-spacing:1.2px;gap:8px}.dot{background:#76d5b8;width:6px;height:6px;border-radius:50%}.grow{flex:1}.sep{color:#567}.stage-container{position:relative;flex:1;min-height:300px;overflow:hidden;background:#121b1f;border:1px solid #2a3a42;border-radius:8px;touch-action:none;overscroll-behavior:contain}#stage{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}#cursorCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;touch-action:none;z-index:1}.stage-top{position:absolute;right:10px;top:10px;display:flex;gap:5px}.stage-top button{background:#142128e8;font-size:18px;width:33px}.stage-footer{position:absolute;bottom:8px;left:10px;right:10px;display:flex;gap:8px;pointer-events:none;color:#8aaca7;font-size:10px;letter-spacing:1px}.pointer-bar{display:flex;gap:7px}.button{padding:0 12px;font-size:12px;flex:1}.button.accent{color:var(--cyan)}.button.active{background:#2b4b44;color:#a9f6da;border-color:#5a9d89}.button.action{background:#4e7964;border-color:#73b494;color:#f3fff8;font-weight:800;touch-action:none}.tool-bar{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}.tool{display:flex;align-items:center;justify-content:center;flex-direction:column;min-height:45px;font-size:18px}.tool span{font-size:10px;color:#9daeb1}.tool.selected{border-color:var(--cyan);background:#26433e;color:var(--cyan)}.controls-line{display:flex;align-items:center;gap:8px;min-height:35px}.palette{display:flex;flex-wrap:wrap;gap:5px}.swatch{width:24px;height:24px;min-height:24px;border-radius:5px;border:2px solid #586168;flex:none}.swatch.chosen{outline:2px solid white;outline-offset:1px}.color-wrap input{width:27px;height:27px;padding:0;border:1px solid var(--line);background:none;border-radius:5px}.stepper{display:flex;gap:3px}.stepper button{min-width:31px;min-height:31px}.sidebar{background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0}.main-nav{display:grid;grid-template-columns:1fr 1fr;padding:10px;gap:7px;border-bottom:1px solid var(--line)}.navbtn{font-weight:750;font-size:13px;background:#1b292e}.navbtn.active{color:var(--cyan);border-color:#619f91;background:#28443f}.section-head{display:flex;align-items:center;justify-content:space-between;padding:13px 12px 8px;font-size:10px;letter-spacing:1px}.muted{color:var(--muted)}.text-button{background:none;border:none;min-height:22px;color:var(--cyan);font-size:11px;letter-spacing:0}.head-inline button{width:28px;min-height:26px}.asset-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:0 10px 7px;max-height:197px;overflow:auto}.asset{border:1px solid var(--line);background:#1b2b31;display:flex;align-items:center;flex-direction:column;min-height:78px;padding:6px 3px;gap:5px;font-size:10px;white-space:nowrap}.asset canvas{height:38px;width:46px;object-fit:contain;image-rendering:pixelated}.asset .plus{color:var(--cyan);font-size:10px}.layers{overflow:auto;min-height:100px;max-height:180px;margin:0 10px;border:1px solid var(--line);border-radius:7px;flex:1}.layer{display:flex;align-items:center;gap:7px;padding:5px;border-bottom:1px solid #2b3c42;min-height:42px}.layer.selected{background:#2b4743;border-left:3px solid var(--cyan)}.layer-thumb{width:32px;height:29px;object-fit:contain;image-rendering:pixelated;background:repeating-conic-gradient(#445056 0 25%,#2c383f 0 50%) 50%/10px 10px;border:1px solid #566}.layer-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}.eye{min-width:27px;min-height:27px;font-size:13px;padding:0}.properties{padding:10px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:7px}.properties>strong{font-size:10px;letter-spacing:1px;color:#96b5af}.prop-row{display:flex;align-items:center;gap:6px}.prop-row button{min-height:28px;padding:0 10px}.prop-row.minor>*{flex:1}.prop-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.prop-grid label{font-size:10px;color:var(--muted);display:flex;align-items:center;gap:5px}.prop-grid input{min-width:0;max-width:100%;width:100%;background:#0d171a;border:1px solid #375059;border-radius:5px;padding:6px;color:var(--text)}.timeline{background:#19252a;border-top:1px solid var(--line);padding:9px 12px;flex:none}.timeline-head{display:flex;align-items:center;gap:9px}.timeline-head>strong{font-size:10px;letter-spacing:1px}.timeline select{padding:7px;background:#213138;border:1px solid var(--line);border-radius:5px;color:var(--text)}.timeline-head button{padding:0 11px}.play{color:#a4efd8}.timeline-track{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:5px;margin:9px 0}.frame{min-height:40px;text-align:center;background:#18262b;font-size:10px;color:#90a8a8}.frame strong{font-size:13px;display:block;color:#bdd4ce}.frame.on{background:#305348;border-color:#86d9af}.timeline-footer{display:flex;align-items:center;gap:8px}.check{display:flex;align-items:center;gap:4px;font-size:11px;color:#b2c5bb}.timeline-footer button{min-height:26px;font-size:10px}.bottom{background:#0d171a;border-top:1px solid var(--line);display:flex;align-items:center;gap:8px;padding:8px 12px 10px;padding-bottom:calc(9px + env(safe-area-inset-bottom));font-size:10px;color:#80a69c;letter-spacing:.7px}.bottom button{padding:0 13px;color:#c9f3e4}.bottom button:last-child{background:#376d58;border-color:#559d7b;color:#fff}.modal[hidden]{display:none}.modal{position:fixed;inset:0;z-index:20;background:#000b;display:flex;align-items:center;justify-content:center;padding:16px}.dialog{max-width:400px;width:100%;border-radius:12px;background:#1d2c32;border:1px solid #56796d;padding:20px;box-shadow:0 12px 50px #0008}.dialog-head{display:flex;align-items:center;justify-content:space-between;letter-spacing:1px}.dialog p{color:#c3cfcd;line-height:1.55}.dialog-actions{display:flex;flex-wrap:wrap;gap:7px}.dialog-actions button{padding:8px}.dialog-note{font-size:11px;margin-top:15px;color:#9eb0b1}.toast{position:fixed;bottom:78px;left:50%;transform:translate(-50%,20px);z-index:30;border:1px solid #5f9f8f;background:#214239;color:white;padding:10px 15px;border-radius:8px;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s}.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:760px){.header{height:54px}.brand strong{font-size:13px}.brand small{font-size:8px}.workspace{display:flex;flex-direction:column}.editor{padding:7px;gap:6px}.stage-container{flex:none;height:min(48dvh,420px);min-height:225px}.sidebar{border-left:0;border-top:1px solid var(--line)}.asset-strip{grid-template-columns:repeat(6,minmax(78px,1fr));overflow-x:auto;max-height:93px;padding-bottom:7px}.asset{min-height:73px}.layers{max-height:138px;min-height:90px;flex:auto}.section-head{padding:8px 10px 6px}.properties{padding:7px 10px}.properties .prop-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.timeline{padding:7px 8px}.timeline-footer{flex-wrap:wrap}.bottom span:first-child{display:none}.info-bar{height:18px}.palette{gap:4px}.swatch{width:21px;height:21px;min-height:21px}.stage-footer{font-size:9px}.tool{min-height:39px;font-size:16px}.tool span{font-size:9px}.button{padding:0 8px}}@media(max-width:395px){.asset-strip{grid-template-columns:repeat(6,75px)}.stepper button{min-width:26px}.palette .swatch:nth-child(n+7){display:none}.brand small{letter-spacing:.6px}.frame{min-height:34px}.button{font-size:10px}}
+
+#magnifier{position:absolute;top:10px;left:10px;width:96px;height:96px;border:2px solid #6daea0;background:#1e3036;image-rendering:pixelated;box-shadow:0 4px 15px #0008;pointer-events:none;border-radius:4px}#magnifier[hidden]{display:none}
+/* 0.2 touch-first pixel studio additions */
+.stage-container{background:#cdd1d2;border-color:#7c9b9a}
+.stage-top button{background:#f9fbf0ec;color:#283039;border-color:#9fa9ab}
+.stage-footer{color:#33474b;text-shadow:0 1px 2px #fff}
+#magnifier{border-color:#35989e;background:#eef2f1}
+.pointer-bar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+.pointer-bar button{min-width:0;padding:0 3px;font-size:11px}
+.editor-setting-line{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.editor-setting-line label,.tool-options label,.color-sliders label{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
+.editor-setting-line select,.tool-options select{height:32px;min-width:0;background:#233238;color:#e6f0ec;border:1px solid var(--line);border-radius:5px;padding:2px 4px}
+.editor-setting-line button{min-height:32px;padding:0 9px}
+.editor-setting-line button.selected{color:var(--cyan);border-color:var(--cyan);background:#24443d}
+.tool-bar{display:flex;gap:5px;overflow-x:auto;scrollbar-width:thin;padding:2px 0 6px;flex:none;touch-action:pan-x}
+.tool{min-width:60px;width:60px;flex:none}
+.controls-line.color-main{display:block;min-height:0}
+.palette{display:grid;grid-template-rows:repeat(2,23px);grid-auto-flow:column;grid-auto-columns:23px;overflow-x:auto;overflow-y:hidden;gap:4px;max-width:100%;padding:4px 3px 6px;scrollbar-width:thin}
+.palette .swatch{width:22px;height:22px;min-height:22px;border-color:#7b9090}
+.tool-options{flex-wrap:wrap;gap:7px;min-height:34px}
+.tool-options label{white-space:nowrap}
+.tool-options input[type=range]{width:75px;accent-color:#7ce0c4}
+#hexColor{background:#1f2d33;color:#e7f5eb;width:74px;border:1px solid var(--line);border-radius:5px;padding:5px;font-family:monospace}
+.color-wrap input{width:30px;height:30px}
+.color-advanced{border:1px solid #32484b;padding:5px 8px;border-radius:6px;background:#1c2b2f}
+.color-advanced summary{font-size:11px;color:#93d6bf;cursor:pointer}
+.color-sliders{display:grid;gap:4px;padding:8px 0 2px}
+.color-sliders label input{flex:1;accent-color:#7ce0c4}
+.color-sliders label span{min-width:25px;text-align:right}
+.selection-bar{display:flex;align-items:center;gap:5px;overflow-x:auto;padding:2px 0 5px;scrollbar-width:thin;flex:none}
+.selection-bar button{flex:none;min-height:30px;padding:0 9px;white-space:nowrap;font-size:11px}
+.selection-bar button:disabled{opacity:.36;cursor:default}
+.selection-title{flex:none;font-size:10px;color:#c0dad2;border:1px solid #344b50;border-radius:5px;padding:7px}
+.edit-nudge{justify-content:space-between;gap:9px}
+.edit-nudge #toolHint{font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}
+.layer-thumb{background:repeating-conic-gradient(#e9eeee 0 25%,#cbd1d1 0 50%) 50%/8px 8px}
+@media(max-width:760px){.stage-container{height:min(43dvh,420px);min-height:245px}.editor{gap:5px}.pointer-bar button{font-size:10px}.tool{min-width:53px;width:53px}.editor-setting-line{gap:4px}.editor-setting-line label,.tool-options label{font-size:10px}.editor-setting-line button{padding:0 6px}.palette{grid-template-rows:repeat(2,23px)}.brand small{letter-spacing:.5px}}
+@media(max-width:395px){.pointer-bar button{font-size:9px}.tool-options input[type=range]{width:62px}.editor-setting-line select{max-width:101px}}
+
+.head-inline button{padding:0 8px;width:auto;min-width:30px;white-space:nowrap}
+
+/* 0.3 precise pointer controls, designed for thumbs in portrait mode */
+.pointer-bar{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.pointer-bar button{min-height:41px;font-size:11px;padding:2px 5px}
+.click-bar{display:grid;grid-template-columns:1.2fr 1fr;gap:7px;user-select:none;-webkit-user-select:none}
+.click-button,.hold-button{min-height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;touch-action:none;-webkit-tap-highlight-color:transparent;font-size:17px;font-weight:800;letter-spacing:1px}
+.click-button{background:#298367;color:white;border:2px solid #8be2c4;box-shadow:0 2px 0 #123f36}
+.click-button:active,.click-button.pressing{background:#54a98c;transform:translateY(1px)}
+.hold-button{background:#293943;color:#c8dce0;border:2px solid #6b8387}
+.hold-button.holding{background:#98653a;color:#fff8df;border-color:#f8bd75;box-shadow:0 0 0 2px #f8bd752d}
+.click-button small,.hold-button small{font-size:10px;font-weight:600;letter-spacing:.2px;opacity:.9}
+.click-button:disabled,.hold-button:disabled{opacity:.42;cursor:default;transform:none}
+.pointer-status{font-size:11px;min-height:20px;padding:4px 8px;color:#beded5;background:#203137;border:1px solid #3b6159;border-radius:6px}
+@media(max-width:760px){.pointer-bar button{font-size:11px}.click-button,.hold-button{min-height:59px}}
+
+
+/* Touch-first full image editing controls. Both actions are visible above tool choices. */
+.canvas-edit-line{display:flex;gap:7px;width:100%}
+.canvas-edit-line button{min-height:43px;flex:1;padding:8px 6px;font-size:13px;font-weight:700;letter-spacing:.25px}
+.canvas-edit-line #wholeCanvasEdit{background:#315b4b;border:2px solid #7dd6b2;color:#fff}
+.canvas-edit-line #wholeCanvasEdit.selected{background:#1a634b;border-color:#98eecb}
+.canvas-edit-line #expandFromCanvas{background:#23383d;border:1px solid #6b8989;color:#e0ece9;flex:.72}
+.canvas-edit-help{font-size:11px;line-height:1.35;color:#b8d9cf;background:#162a2b;border:1px solid #32534f;padding:7px 9px;border-radius:6px}
+.canvas-edit-help.active{color:#c5f2dc;background:#1c3a32;border-color:#78b89f}
+@media(max-width:395px){.canvas-edit-line button{font-size:11px;min-height:40px}}
+
+/* Pixel Forge 0.4 — touch-oriented studio shell */
+html, body {height:100%;width:100%;overflow:hidden;overscroll-behavior:none}
+.shell {height:100dvh;min-height:0;max-width:none;width:100%;overflow:hidden}
+.header {height:49px;min-height:49px;padding:5px 10px;z-index:4;position:relative}
+.brandmark {font-size:21px;padding:3px 6px}
+.brand strong{font-size:14px}
+.brand small{font-size:8px;letter-spacing:.65px}
+.head-actions {align-items:center}
+.head-actions button{min-height:36px}
+#layoutReset{font-size:16px}
+.workspace {display:flex;flex:1;min-height:0;overflow:hidden}
+.editor {display:flex;flex-direction:column;flex:1;min-height:0;min-width:0;padding:4px 6px 6px;gap:4px;background:#0b1417}
+.info-bar {height:21px;min-height:21px;padding:0 4px;z-index:1}
+.stage-container,.stage-container.stage-container {position:relative;flex:1;min-height:0;height:auto;min-width:0;overflow:hidden;border:1px solid #607574;border-radius:10px;background:#d2d6d6;touch-action:none}
+.stage-footer{bottom:7px;font-size:9px;left:9px;right:9px}
+.studio-nav{height:57px;min-height:57px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;padding:5px 5px calc(5px + env(safe-area-inset-bottom));background:#122024;border-top:1px solid #31504e;z-index:15}
+.studio-nav button{min-width:0;min-height:41px;padding:3px 0;display:flex;flex-direction:column;align-items:center;justify-content:center;border-color:#365451;font-size:10px;gap:2px;color:#c9dcd5;background:#203139}
+.studio-nav button b{font-size:18px;font-weight:400}
+.studio-nav button.active {border-color:#84d7bf;color:#bafce0;background:#275249}
+.studio-sheet{position:fixed;left:7px;right:7px;bottom:calc(60px + env(safe-area-inset-bottom));height:min(45dvh,390px);min-height:180px;z-index:31;display:flex;flex-direction:column;overflow:hidden;border:1px solid #6fa697;border-radius:12px;background:#17262b;box-shadow:0 12px 40px #000b;touch-action:manipulation}
+.studio-sheet[hidden]{display:none!important}
+.sheet-head{height:37px;min-height:37px;display:flex;align-items:center;gap:7px;padding:3px 6px 3px 12px;background:#29423e;border-bottom:1px solid #4b8376;touch-action:none;user-select:none}
+.sheet-head strong{flex:1;font-size:11px;letter-spacing:1.1px;color:#e5fff4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sheet-head button{min-height:26px;height:26px;font-size:11px;padding:0 7px;color:#e0fff5;border-color:#5d9488;background:#294e46}
+.sheet-content{overflow:auto;overscroll-behavior:contain;min-height:0;flex:1;padding:7px;scrollbar-width:thin}
+.studio-sheet.floating{bottom:auto;right:auto;min-width:220px;min-height:148px;border-color:#9dbf96}
+.studio-sheet.floating .sheet-head{cursor:grab}
+.studio-sheet.floating .sheet-head:active{cursor:grabbing}
+.studio-sheet .pf-grip{position:absolute;bottom:0;right:0;width:26px;height:26px;z-index:2;touch-action:none;cursor:nwse-resize;display:none;align-items:end;justify-content:end;color:#a1eed1;background:linear-gradient(135deg,transparent 35%,#3b6d5b 38%,#2e554d);border-radius:5px 0 10px 0;font-size:18px;padding-right:2px}
+.studio-sheet.floating .pf-grip{display:flex}
+.studio-sheet.ui-locked .pf-grip{display:none}
+.studio-sheet.ui-locked .sheet-head{cursor:default}
+.studio-sheet .tool-bar{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));overflow:visible;gap:5px;padding:4px 0 9px}
+.studio-sheet .tool{width:auto;min-width:0;min-height:53px}
+.studio-sheet .selection-bar{flex-wrap:wrap;overflow:visible}
+.studio-sheet .selection-bar button{flex:1 0 73px}
+.studio-sheet .sidebar{display:flex;width:100%;border:0;min-height:0;height:auto;background:none}
+.studio-sheet .sidebar .asset-strip{max-height:165px;grid-template-columns:repeat(auto-fill,minmax(68px,1fr));overflow:auto}
+.studio-sheet .sidebar .layers{max-height:260px;min-height:118px;overflow-y:auto;flex:auto}
+.studio-sheet .properties{padding:9px}
+.studio-sheet .timeline{padding:7px;background:none;border:0}
+.studio-sheet .bottom{display:flex;flex-wrap:wrap;border:0;background:none;padding:5px 0;gap:5px}
+.studio-sheet .bottom span{display:none}
+.studio-sheet .bottom button{flex:1}
+.studio-sheet .pointer-bar{display:grid;grid-template-columns:1fr 1fr}
+.studio-sheet .editor-setting-line{gap:5px}
+.studio-sheet .canvas-edit-help{margin:5px 0}
+.studio-sheet .color-advanced{margin:8px 0}
+.studio-sheet .palette{grid-auto-columns:26px;grid-template-rows:repeat(3,26px);max-height:95px}
+.studio-sheet .palette .swatch{width:25px;height:25px;min-height:25px}
+.pf-section-title{color:#77cbb7;font-size:10px;font-weight:700;letter-spacing:1.3px;margin:10px 0 6px;display:block}
+.pf-section-title:first-child{margin-top:1px}
+.pf-settings-note{font-size:11px;line-height:1.5;color:#aac8bd;margin:8px 0}
+.pf-visibility-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin:7px 0}
+.pf-visibility-grid label{font-size:11px;display:flex;align-items:center;gap:7px;padding:8px;border:1px solid #355950;border-radius:7px;background:#21363a;color:#e0eee8}
+.pf-visibility-grid input{accent-color:#7de0c0;width:18px;height:18px}
+.pf-wide-button{padding:0 12px;min-height:36px;background:#2d574b;border-color:#76a591}
+.pf-widget{position:fixed;z-index:20;display:flex;flex-direction:column;min-width:58px;min-height:54px;overflow:hidden;background:#20333adf;border:1px solid #618b85;border-radius:11px;box-shadow:0 5px 17px #041013b8;touch-action:none}
+.pf-widget[hidden]{display:none!important}
+.pf-widget .pf-widget-head{height:23px;min-height:23px;display:flex;justify-content:space-between;align-items:center;gap:2px;padding:0 3px 0 7px;background:#29453c;color:#b9f2dc;touch-action:none;user-select:none;cursor:grab}
+.pf-widget .pf-widget-head span{font-size:9px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.4px}
+.pf-widget .pf-widget-head button{min-height:19px;height:19px;padding:0 4px;border-color:#427867;border-radius:4px;font-size:10px;color:#caffed;background:#376153}
+.pf-widget .pf-widget-body{display:flex;flex-direction:column;flex:1;min-height:0;min-width:0;overflow:hidden;padding:3px;gap:3px}
+.pf-widget.ui-locked .pf-widget-head{cursor:default;background:#33433f}
+.pf-widget .pf-grip{position:absolute;width:23px;height:23px;bottom:0;right:0;touch-action:none;display:flex;align-items:flex-end;justify-content:flex-end;color:#95decb;font-size:17px;cursor:nwse-resize;z-index:3;text-shadow:0 1px 2px #000;background:linear-gradient(135deg,transparent 58%,#30574c 61%);padding-right:1px;pointer-events:auto}
+.pf-widget.ui-locked .pf-grip{display:none}
+.pf-widget .pf-widget-body>button{width:100%;height:100%;flex:1;min-height:0;font-size:14px;padding:1px 4px;border-radius:7px}
+.pf-widget .pf-widget-body>.click-button{font-size:17px;white-space:normal}
+.pf-widget .pf-widget-body>.hold-button{font-size:12px;white-space:normal}
+.pf-widget .pf-widget-body button small{font-size:8px}
+.pf-widget .pf-widget-body .stage-top{position:static;display:flex;width:100%;height:100%;gap:3px;min-height:0}
+.pf-widget .pf-widget-body .stage-top button{width:auto;flex:1;min-width:0;min-height:0;padding:0;font-size:16px;border-color:#769991;background:#eef2e9;color:#192e32}
+.pf-widget .pf-widget-body .quick-rail{display:flex;flex-direction:column;gap:3px;width:100%;height:100%;overflow:auto;scrollbar-width:none;touch-action:pan-y}
+.pf-widget .pf-widget-body .quick-rail button{min-height:34px;flex:1;display:flex;align-items:center;justify-content:center;gap:4px;border:1px solid #486f6d;background:#253d40;color:#d8eee7;padding:0 2px;font-size:10px;white-space:nowrap}
+.pf-widget .pf-widget-body .quick-rail button.current{background:#317969;border-color:#7de1ba;color:white}
+.pf-widget-mag .pf-widget-body{padding:2px;overflow:hidden}
+.pf-widget-mag #magnifier{width:100%!important;height:100%!important;position:relative!important;left:auto!important;top:auto!important;border:0!important;border-radius:3px;pointer-events:none;object-fit:fill;box-shadow:none!important;background:#e5eded}
+.pf-widget-mag .pf-widget-head{height:24px;min-height:24px}
+.pf-widget-mag .pf-widget-body{min-height:32px}
+.pf-widget-mag .pf-grip{background:linear-gradient(135deg,transparent 50%,#397568 54%)}
+@media(min-width:840px){.studio-nav{height:59px;min-height:59px;max-width:100%}.studio-sheet:not(.floating){left:auto;right:10px;width:380px;bottom:68px;height:calc(100dvh - 132px)}.stage-container{border-radius:12px}.pf-widget{backdrop-filter:blur(3px)}}
+@media(max-width:390px){.brand strong{font-size:12px}.brand small{font-size:7px}.head-actions .icon-button{min-width:30px;font-size:17px}.studio-nav button{font-size:9px}.studio-nav button b{font-size:17px}}
+
+.info-bar{flex-wrap:nowrap;white-space:nowrap;letter-spacing:.6px;font-size:10px;gap:5px}
+.info-bar #docLabel{white-space:nowrap;max-width:48%;overflow:hidden;text-overflow:ellipsis}
+.info-bar #coords{white-space:nowrap;flex:none}
+.info-bar #zoomLabel{white-space:nowrap;flex:none}
+.pf-widget .pf-widget-body>.hold-button{font-size:11px;line-height:1.04}
+
+
+
+/* Pixel Forge v0.5 -- entire color palette visible as a scrollable 2D grid. */
+.studio-sheet .palette,.palette{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(30px,1fr))!important;grid-template-rows:none!important;grid-auto-columns:auto!important;grid-auto-flow:row!important;gap:5px!important;overflow-y:auto!important;overflow-x:hidden!important;max-height:270px!important;min-height:90px;padding:5px!important;width:100%;border:1px solid #365a56;border-radius:8px;background:#111f25}
+.studio-sheet .palette .swatch,.palette .swatch{width:100%!important;height:30px!important;min-height:30px!important;min-width:0;border-radius:5px!important;margin:0;box-sizing:border-box}
+.studio-sheet .palette .swatch.chosen{outline:2px solid #fff;outline-offset:-3px;box-shadow:0 0 0 2px #0a1719}
+.palette .swatch{display:block!important}
+.palette .swatch.slot-active{box-shadow:0 0 0 2px #60d5bc;border-color:#ffffff}
+.palette .swatch-empty{background:repeating-linear-gradient(45deg,#283840 0 5px,#364e52 5px 10px)!important;color:#b4f5dd;font-weight:750;font-size:18px;line-height:21px;border-style:dashed}
+.palette-help{font-size:11px;color:#91b8b0;margin:5px 0;padding:0 4px;line-height:1.35}
+.studio-sheet .color-main{display:flex;flex-direction:column;align-items:stretch;max-height:none;overflow:visible;width:100%}
+.studio-sheet .color-main #palette{flex:none}
+.studio-sheet .palette-actions{display:flex;gap:5px;flex-wrap:wrap;margin:6px 0 10px}
+.palette-actions button{min-height:37px;flex:1 0 90px;padding:4px 7px;font-size:11px;background:#244740;border-color:#4b8276}
+.palette-actions button[hidden]{display:none!important}
+.palette-actions button:disabled{opacity:.45}
+.selection-primary{display:flex;align-items:center;gap:7px;margin:3px 0 10px;border-bottom:1px solid #365650;padding:2px 0 9px}
+#prominentDeselect{min-height:44px;flex:1 0 auto;background:#594036;color:#ffecdb;border:1px solid #bb886b;font-size:13px;font-weight:750;padding:4px 10px}
+#selectionStatus{color:#afc8c0;font-size:11px;max-width:48%;line-height:1.3}
+#quickDeselect{background:#593c37!important;border-color:#b2806a!important;color:#fff4de!important}
+.pf-info-modal[hidden]{display:none!important}.pf-info-modal{position:fixed;inset:0;z-index:999;background:#000b;display:flex;align-items:center;justify-content:center;padding:9px}
+.pf-info-dialog{height:min(92dvh,920px);width:min(100%,700px);display:flex;flex-direction:column;min-height:0;background:#13272a;border:1px solid #71bdab;border-radius:13px;box-shadow:0 14px 46px #000b;overflow:hidden}
+.pf-info-head{display:flex;align-items:center;gap:5px;justify-content:space-between;padding:10px 12px;background:#29534b;color:#e9fff6}
+.pf-info-head strong{font-size:12px;letter-spacing:.6px}.pf-info-head button{white-space:nowrap;min-height:36px;padding:0 10px;font-weight:700}
+.pf-info-search{display:flex;align-items:center;gap:8px;padding:9px;border-bottom:1px solid #365c58}.pf-info-search input{flex:1;min-width:0;padding:10px;border-radius:7px;color:#eafff4;background:#1c3438;border:1px solid #426f66;font-size:13px}.pf-info-search span{color:#bad4c9;white-space:nowrap;font-size:10px}
+.pf-info-scroll{overflow-y:auto;overscroll-behavior:contain;flex:1;min-height:0;padding:10px}
+.pf-guide-section{border:1px solid #416963;margin-bottom:8px;border-radius:7px;background:#1a3436;overflow:hidden}.pf-guide-section summary{cursor:pointer;padding:12px 10px;color:#acf0d4;font-size:12px;font-weight:800;letter-spacing:.4px}.pf-guide-section p{font-size:12px;line-height:1.65;margin:2px 10px 13px;color:#e1eee8;white-space:pre-line}
+@media(max-width:760px){.studio-sheet .palette,.palette{max-height:248px!important;grid-template-columns:repeat(7,minmax(0,1fr))!important}.studio-sheet .palette .swatch{height:34px!important;min-height:34px!important}.pf-info-dialog{height:94dvh}.pf-info-head strong{font-size:11px}}
+
+
+/* Pixel Forge 0.6: touch scrolling inside docked panels + themeable editor UI */
+:root{--pf-type-scale:1;--pf-theme-background:#0e1519;--pf-theme-panel:#1b3030;--pf-theme-button:#26363e;--pf-theme-accent:#74dec8;--pf-theme-text:#e8efeb;--bg:var(--pf-theme-background);--panel:var(--pf-theme-panel);--button:var(--pf-theme-button);--cyan:var(--pf-theme-accent);--text:var(--pf-theme-text)}
+html,body,.shell,.workspace,.editor{background:var(--pf-theme-background)!important;color:var(--pf-theme-text)!important}
+.header,.studio-nav,.studio-sheet,.pf-widget,.pf-info-dialog,.pf-replace-dialog{background:var(--pf-theme-panel)!important;color:var(--pf-theme-text)!important}
+.studio-sheet .sheet-head,.pf-widget-head,.pf-info-head,.pf-replace-header{background:var(--pf-theme-panel)!important;color:var(--pf-theme-text)!important;border-bottom:1px solid var(--pf-theme-accent)!important}
+.studio-nav button,.studio-sheet button:not(.swatch),.pf-widget button,.pf-replace-dialog button,.pf-info-dialog button{background:var(--pf-theme-button);color:var(--pf-theme-text);border-color:var(--pf-theme-accent)}
+.studio-nav button.active,.studio-sheet .tool.selected,.pf-widget .quick-rail .current{border-color:var(--pf-theme-accent)!important;color:var(--pf-theme-accent)!important}
+.studio-sheet .sheet-content{touch-action:pan-y!important;overscroll-behavior-y:contain!important;-webkit-overflow-scrolling:touch;overflow-y:auto!important;overflow-x:hidden!important;min-height:0!important;flex:1 1 0!important;scrollbar-width:auto}
+.studio-sheet:not(.floating){touch-action:pan-y}.studio-sheet .sheet-head,.studio-sheet .pf-grip{touch-action:none!important}
+.studio-sheet .tool-bar,.studio-sheet .selection-bar,.studio-sheet .pf-select-workbench{touch-action:pan-y!important}
+.studio-sheet .sheet-content button{touch-action:manipulation}
+.studio-sheet .sheet-content,.studio-sheet .sheet-content button:not(.swatch),.studio-sheet .sheet-content label,.studio-sheet .sheet-content input,.studio-sheet .sheet-content select,.studio-sheet .sheet-content strong,.studio-sheet .sheet-content p{font-size:calc(11px * var(--pf-type-scale))!important}
+.studio-sheet .tool span{font-size:calc(9px * var(--pf-type-scale))!important}
+.pf-widget .pf-widget-head span,.pf-widget .pf-widget-body button small{font-size:calc(9px * var(--pf-type-scale))!important}
+.pf-widget .quick-rail button,.studio-nav button{font-size:calc(10px * var(--pf-type-scale))!important}
+.pf-setting-line{border:1px solid var(--pf-theme-accent);border-radius:8px;padding:10px;margin:10px 0;display:grid;gap:8px;background:var(--pf-theme-panel)}
+.pf-setting-line strong{font-size:12px!important;letter-spacing:.6px;color:var(--pf-theme-accent)}
+.pf-setting-line label{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.pf-setting-line label input[type=range]{flex:1;min-width:80px}
+.pf-setting-line p{margin:0;line-height:1.5;opacity:.85}
+.pf-setting-line select{padding:8px;color:var(--pf-theme-text);background:var(--pf-theme-button);border:1px solid var(--pf-theme-accent);border-radius:6px}
+.pf-setting-line button{padding:8px;min-height:38px}
+.pf-theme-colors{display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:5px}
+.pf-theme-colors label{display:flex;flex-direction:column;align-items:stretch;gap:4px}
+.pf-theme-colors input[type=color]{width:100%;height:36px;padding:2px}
+#pfCanvasLock{font-size:16px;min-width:30px}.pf-locked-view{box-shadow:0 0 0 2px #ecbc6b inset!important}
+.pf-select-workbench{background:var(--pf-theme-panel);border:1px solid var(--pf-theme-accent);border-radius:8px;margin:6px 0 10px;padding:6px}
+.pf-selection-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:8px}
+.pf-selection-grid button{min-width:0;min-height:38px;padding:5px 3px;line-height:1.2;overflow-wrap:anywhere}
+.pf-selection-grid button:disabled{opacity:.35}
+.pf-selection-grid button[data-selop=replace]{grid-column:span 2;background:#336357}
+.pf-select-workbench .pf-section-title{color:var(--pf-theme-accent);font-weight:700}
+.pf-selection-shortcuts[hidden]{display:none!important}
+.pf-selection-shortcuts{display:flex;align-items:center;gap:4px;margin:2px 0;padding:4px;border:1px solid var(--pf-theme-accent);background:var(--pf-theme-panel);border-radius:6px;flex-wrap:wrap}
+.pf-selection-shortcuts button{font-size:11px;min-height:30px;padding:2px 7px;flex:1;background:var(--pf-theme-button)}
+.pf-replace-dialog{border:1px solid var(--pf-theme-accent);border-radius:12px;width:min(390px,100%);overflow:hidden;box-shadow:0 12px 60px #0008}
+.pf-replace-header{display:flex;justify-content:space-between;align-items:center;padding:10px;font-size:12px}
+.pf-replace-header button{min-width:38px}
+.pf-replace-form{padding:13px;display:grid;gap:13px;overflow:auto;max-height:75dvh}
+.pf-replace-form label{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.pf-replace-form input[type=color]{width:52px;height:39px}
+.pf-replace-form input[type=range]{flex:1;min-width:90px}
+.pf-replace-form select{padding:7px;max-width:100%;background:var(--pf-theme-button);color:var(--pf-theme-text)}
+.pf-replace-form p{font-size:11px;margin:0;line-height:1.5}
+.pf-replace-form #pfReplaceApply{padding:10px;min-height:42px;background:var(--pf-theme-accent);color:var(--pf-theme-background);font-weight:bold}
+@media(max-width:760px){.studio-sheet:not(.floating){height:min(62dvh,620px)}.pf-selection-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+
+/* v0.7 imports, custom tool rail, brush guide, data-only mod packs */
+#pf07ToolsPlus{position:sticky;bottom:0;z-index:2;background:#1b7064!important;color:#fff!important;border:1px solid #9ce7d3!important;font-weight:800;font-size:14px;min-height:39px;flex-shrink:0}
+#pf07Controls{display:grid;gap:7px;margin:9px 0;padding:8px;background:#142f32;border:1px solid #4b7671;border-radius:9px}
+#pf07Controls>button,.pf07bar button{min-height:39px;background:#2b514c;color:#e1fff1;border:1px solid #608c83;border-radius:6px}
+.pf07bar{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.pf07bar>button{font-size:12px;padding:7px 5px}
+.pf07panel{display:flex;flex-direction:column;gap:9px;padding:10px;max-width:700px;max-height:90dvh;min-height:0;overflow-y:auto;border:1px solid #71aa9f;border-radius:12px;background:#152d32;color:#eafff3}
+.pf07panel p{font-size:12px;line-height:1.5;color:#bfdbd1;margin:3px 0 7px}
+.pf07panel label{display:flex;align-items:center;gap:8px;min-height:34px;font-size:13px}
+.pf07panel button{min-height:38px;background:#244a46;color:#eefff7;border:1px solid #547d73;border-radius:6px}
+.pf07modal[hidden]{display:none!important}.pf07modal{position:fixed;inset:0;z-index:1200;display:flex;align-items:center;justify-content:center;padding:12px;background:#071218d9}
+.pf07modal .pf07panel{width:min(100%,560px)}
+.pf07toolsgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;overflow-y:auto;max-height:55dvh}
+.pf07toolsgrid label{border:1px solid #365854;border-radius:6px;padding:5px 7px;background:#21363c;white-space:normal}
+.pf07toolsgrid input{accent-color:#4bd7b2;flex:none;width:19px;height:19px}
+.pf07status{font-size:11px;color:#83d4bf;line-height:1.4}
+.pf07files input{display:none}
+#pf07GuideLabel{font-size:11px;opacity:.85;margin-left:8px}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="header">
+    <div class="brand"><span class="brandmark">▦</span><div><strong>PIXEL FORGE</strong><small>SURVIVAL PARADISE · STUDIO 0.8.0</small></div></div>
+    <div class="head-actions"><button class="icon-button" id="undo" title="Undo">↶</button><button class="icon-button" id="redo" title="Redo">↷</button><button class="icon-button" id="menuBtn" title="Project menu">☰</button></div>
+  </header>
+  <div class="workspace">
+    <section class="editor">
+      <div class="info-bar"><div class="dot"></div><span id="docLabel">SURVIVOR · RIGHT</span><span class="grow"></span><span id="coords">X:32 Y:32</span><span class="sep">·</span><span id="zoomLabel">800%</span></div>
+      <div id="stageContainer" class="stage-container">
+        <canvas id="stage" aria-label="Pixel art canvas" tabindex="0"></canvas>
+        <canvas id="cursorCanvas" aria-hidden="true"></canvas>
+        <canvas id="magnifier" width="96" height="96" aria-label="Pixel magnifier"></canvas>
+        <div class="stage-top"><button id="minusZoom" title="Zoom out">−</button><button id="plusZoom" title="Zoom in">+</button><button id="resetView" title="Center">⌖</button><button id="magToggle" title="Toggle magnifier">🔎</button></div>
+        <div class="stage-footer"><span id="cursorLabel">◎ PRECISION POINTER</span><span class="grow"></span><span id="canvasLabel">64 × 64 PX</span></div>
+      </div>
+      <div class="pointer-bar">
+        <button id="pointerMode" class="button accent" title="Switch between indirect precision cursor and direct touch drawing">◎ Pointer</button>
+        <button id="clickMode" class="button active" title="ON: cursor moves without painting until Click/Hold. OFF: moving the cursor applies the tool automatically">◉ Click mode ON</button>
+        <button id="snapToggle" class="button active">▦ Pixel Snap ON</button><button id="artSnapToggle" class="button active">⌗ Art Lock ON</button>
+      </div>
+      <div class="click-bar" aria-label="Precision pointer mouse buttons">
+        <button id="clickBtn" class="click-button" title="Apply the selected tool at the pointer. For shapes: click at start and end." aria-label="Click at the pointer position">◉ CLICK <small id="clickHelp">APPLY TOOL</small></button>
+        <button id="holdBtn" class="hold-button" aria-pressed="false" title="Lock mouse button down for drawing, moving, and dragging; tap again to release">⬤ HOLD / DRAG <small id="holdHelp">TAP TO LOCK</small></button>
+      </div>
+      <div class="pointer-status" id="pointerStatus" aria-live="polite">Move pointer on canvas → tap CLICK to draw</div>
+      <div class="canvas-edit-line" aria-label="Full canvas editing controls">
+        <button id="wholeCanvasEdit" title="Edit every visible pixel across the complete canvas. Keeps original part layers safely hidden.">▣ EDIT WHOLE IMAGE</button>
+        <button id="expandFromCanvas" title="Increase only the selected layer to the entire canvas, without merging other layers">↗ EXPAND LAYER</button>
+      </div>
+      <div id="fullCanvasInfo" class="canvas-edit-help" aria-live="polite">Part editing: painting is limited to the selected part. Tap EDIT WHOLE IMAGE to edit the entire artwork.</div>
+      <div class="editor-setting-line">
+        <label>Canvas <select id="canvasPreset"><option>16 × 16</option><option>32 × 32</option><option selected>64 × 64</option><option>128 × 128</option><option>256 × 256</option><option>512 × 512</option><option>1024 × 1024</option><option value="custom">Custom…</option></select></label>
+        <button id="canvasResizeBtn" title="Resize the working canvas">Resize</button>
+        <label>Grid <select id="gridStep"><option value="1">1 px</option><option value="2">2 px</option><option value="4" selected>4 px</option><option value="8">8 px</option><option value="16">16 px</option><option value="32">32 px</option><option value="64">64 px</option></select></label>
+        <button id="showGrid" class="selected" title="Toggle aligned pixel grid">▦ Grid</button>
+        <button id="focusArt" title="Center and zoom to the selected artwork">⊙ Focus</button>
+      </div>
+      <div class="tool-bar" role="toolbar" aria-label="Pixel art editing tools">
+        <button data-tool="paint" class="tool selected" title="Pencil">✎ <span>Pencil</span></button>
+        <button data-tool="erase" class="tool" title="Eraser">⌫ <span>Erase</span></button>
+        <button data-tool="move" class="tool" title="Move layer">✥ <span>Move</span></button>
+        <button data-tool="picker" class="tool" title="Eyedropper">◉ <span>Pick</span></button>
+        <button data-tool="fill" class="tool" title="Bucket fill">▧ <span>Bucket</span></button>
+        <button data-tool="pan" class="tool" title="Pan canvas">✋ <span>Pan</span></button>
+        <button data-tool="line" class="tool" title="Straight line">╱ <span>Line</span></button>
+        <button data-tool="rect" class="tool" title="Outlined rectangle">□ <span>Rect</span></button>
+        <button data-tool="rectFill" class="tool" title="Filled rectangle">▣ <span>Fill rect</span></button>
+        <button data-tool="ellipse" class="tool" title="Outlined ellipse">◯ <span>Ellipse</span></button>
+        <button data-tool="ellipseFill" class="tool" title="Filled ellipse">● <span>Fill oval</span></button>
+        <button data-tool="triangle" class="tool" title="Outlined triangle">△ <span>Triangle</span></button>
+        <button data-tool="triangleFill" class="tool" title="Filled triangle">▲ <span>Fill tri</span></button>
+        <button data-tool="star" class="tool" title="Outlined star">☆ <span>Star</span></button>
+        <button data-tool="starFill" class="tool" title="Filled star">★ <span>Fill star</span></button>
+        <button data-tool="selectRect" class="tool" title="Rectangle selection">▤ <span>Sel rect</span></button>
+        <button data-tool="selectEllipse" class="tool" title="Ellipse selection">⬭ <span>Sel oval</span></button>
+        <button data-tool="lasso" class="tool" title="Freehand lasso selection">♧ <span>Lasso</span></button>
+        <button data-tool="wand" class="tool" title="Color-based contiguous selection">✦ <span>Wand</span></button>
+      </div>
+      <div class="controls-line color-main">
+        <div class="palette" id="palette" aria-label="Color swatches"></div><p class="palette-help" id="paletteCount" aria-live="polite"></p>
+      </div>
+      <div class="controls-line tool-options">
+        <label>Palette <select id="palettePreset"><option value="studio256">Studio 256</option><option value="expanded">Expanded (64)</option><option value="pico">PICO-8</option><option value="earth" selected>Survival / earth (32)</option><option value="custom">My 128 color slots</option></select></label>
+        <label class="color-wrap" title="Foreground color"><input type="color" id="colorPicker" value="#a8b5a1"></label>
+        <label>Hex <input id="hexColor" type="text" maxlength="7" value="#a8b5a1" spellcheck="false"></label>
+        <label>Brush <input type="range" id="brushSize" min="1" max="16" value="1"><span id="brushLabel">1</span></label>
+        <label>Opacity <input type="range" id="opacityBrush" min="1" max="100" value="100"><span id="opacityLabel">100%</span></label>
+        <button id="backgroundColor" title="Swap foreground and secondary color">⇄ Colors</button>
+      </div>
+      <div class="palette-actions"><button id="saveCustomSwatch" title="Save the current color to your personal palette">＋ Save to My Slots</button><button id="replaceCustomSwatch" title="Replace a selected personal swatch with the current color">↻ Replace Slot</button><button id="removeCustomSwatch" title="Clear the selected personal swatch">✕ Clear Slot</button></div>
+      <details class="color-advanced"><summary>Advanced Color Controls (HSV / RGB)</summary>
+        <div class="color-sliders"><label>Hue <input type="range" id="hue" min="0" max="360" value="0"><span id="hueVal">0</span></label><label>Saturation <input type="range" id="sat" min="0" max="100" value="0"><span id="satVal">0</span></label><label>Value <input type="range" id="val" min="0" max="100" value="0"><span id="valVal">0</span></label></div>
+      </details>
+      <div class="selection-primary"><button id="prominentDeselect" title="Remove the selection outline and cancel unfinished selection shapes">✕ Deselect / Cancel selection</button><span id="selectionStatus">No active selection</span></div>
+      <div class="selection-bar" aria-label="Selection editing actions">
+        <span class="selection-title" id="selectionLabel">No selection</span>
+        <button id="selectAll">All</button><button id="selectOpaque">Opaque</button><button id="copySelection">Copy</button><button id="cutSelection">Cut</button><button id="pasteSelection">Paste</button><button id="extractSelection">Extract</button><button id="deleteSelection">Delete</button><button id="cropSelection" title="Crop selected layer to selected region">Crop layer</button><button id="cropCanvas" title="Crop entire canvas to selection">Crop canvas</button><button id="recolorSelection">Recolor</button><button id="rotateSelection">Rotate 90°</button><button id="flipSelection">Flip selection</button><button id="scaleDownSelection">½ Size</button><button id="scaleUpSelection">2× Size</button><button id="clearSelection">Deselect</button>
+      </div>
+      <div class="controls-line edit-nudge"><div class="stepper"><button id="oneLeft" title="Left 1 px">←</button><button id="oneUp" title="Up 1 px">↑</button><button id="oneDown" title="Down 1 px">↓</button><button id="oneRight" title="Right 1 px">→</button></div><span id="toolHint" class="muted">Choose a layer, then draw.</span></div>
+    </section>
+    <aside class="sidebar">
+      <nav class="main-nav"><button data-mode="character" class="navbtn active">♟ Character</button><button data-mode="weapon" class="navbtn">⌁ Weapon</button></nav>
+      <div class="section-head"><strong>ASSET LIBRARY</strong><button id="importBtn" class="text-button">+ Import PNG</button><input id="importFile" accept="image/png,image/webp,image/jpeg" type="file" hidden></div>
+      <div id="assets" class="asset-strip"></div>
+      <div class="section-head"><strong>LAYERS <span id="layerCount" class="muted"></span></strong><div class="head-inline"><button id="blankLayer" title="Create blank paint layer covering the canvas">＋ Blank</button><button id="expandLayer" title="Expand selected sprite to whole canvas">▧ Expand</button><button id="duplicate" title="Duplicate selected layer">⧉</button><button id="delete" title="Delete selected layer">✕</button></div></div>
+      <div id="layers" class="layers"></div>
+      <div class="properties"><strong>SELECTED LAYER</strong><div class="prop-row"><span id="selectedName">None</span><span class="grow"></span><button id="layerDown" title="Send behind">↓</button><button id="layerUp" title="Bring forward">↑</button></div>
+        <div class="prop-grid"><label>X <input type="number" id="propX" step="0.25"></label><label>Y <input type="number" id="propY" step="0.25"></label><label>Rotation <input type="number" id="propR" step="1"></label><label>Scale <input type="number" id="propS" step="0.1" min="0.1" max="10"></label></div>
+        <div class="prop-row minor"><button id="rotateMinus">↶ −5°</button><button id="rotatePlus">↷ +5°</button><button id="flipLayer">⇄ Flip</button></div>
+      </div>
+    </aside>
+  </div>
+  <section class="timeline"><div class="timeline-head"><strong>ANIMATION</strong><select id="animationSelect" aria-label="Animation"><option value="idle">Idle</option><option value="walk">Walk</option><option value="run">Run</option><option value="aim">Aim / Hold</option></select><button id="playBtn" class="play">▶ Play</button><span class="grow"></span><button id="directionBtn">⇄ Right</button></div>
+    <div class="timeline-track" id="frameTrack"></div>
+    <div class="timeline-footer"><label class="check"><input type="checkbox" id="keyframeEdit"> Edit poses per frame</label><button id="resetPose">Reset frame pose</button><button id="sheetBtn" class="text-button">↓ Export 8-frame sheet</button></div>
+  </section>
+  <div class="bottom"><span>PIXEL-PERFECT · OFFLINE-READY</span><span class="grow"></span><button id="exportPng">↓ PNG</button><button id="saveBtn">↓ Save project</button></div>
+</div>
+<div id="modal" class="modal" hidden><div class="dialog"><div class="dialog-head"><strong>PROJECT FILES</strong><button id="closeModal">✕</button></div><p>Save an editable project or open a previously saved one. Each project includes all layers, pixel art and animation poses.</p><div class="dialog-actions"><button id="newProject">New project</button><button id="loadProject">Open project</button><button id="modalSave">Save project</button></div><input id="projectFile" type="file" accept=".json,.pixelforge,application/json" hidden><div class="dialog-note">Tip: Export PNG for your game; save the project file to continue editing.</div></div></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script>
+/* Survival Paradise — Pixel Forge. Offline, dependency-free editor. */
+(() => {
+'use strict';
+const defs = {
+  head:{label:'Head',kind:'head',w:12,h:13,draw(g){g.r(3,3,7,8,'#c6a181');g.r(2,5,1,4,'#a97c5b');g.r(10,5,1,4,'#a97c5b');g.r(2,2,9,4,'#403b32');g.r(3,1,7,2,'#272e2d');g.r(5,7,1,1,'#2d3331');g.r(9,7,1,1,'#2d3331');g.r(6,10,2,1,'#986e53');}},
+  torso:{label:'Torso',kind:'torso',w:18,h:18,draw(g){g.r(3,1,12,16,'#4f695e');g.r(2,4,14,10,'#3d574c');g.r(7,1,4,16,'#728979');g.r(8,1,2,13,'#344a42');g.r(2,11,14,3,'#6e5540');g.r(4,3,3,4,'#738477');g.r(11,3,3,4,'#738477');g.r(5,14,8,3,'#414745');g.r(9,6,1,2,'#b8b78c');}},
+  leftarm:{label:'L Arm',kind:'armL',w:6,h:15,draw(g){g.r(1,1,4,10,'#4a675b');g.r(0,4,2,7,'#395249');g.r(1,11,4,3,'#ba9773');g.r(2,7,3,3,'#667b6a');}},
+  rightarm:{label:'R Arm',kind:'armR',w:6,h:15,draw(g){g.r(1,1,4,10,'#4a675b');g.r(4,4,2,7,'#395249');g.r(1,11,4,3,'#ba9773');g.r(1,7,3,3,'#667b6a');}},
+  leftleg:{label:'L Leg',kind:'legL',w:7,h:17,draw(g){g.r(1,0,5,13,'#454b45');g.r(1,5,5,5,'#5b6457');g.r(1,12,5,4,'#272d2d');g.r(0,14,6,2,'#252e30');}},
+  rightleg:{label:'R Leg',kind:'legR',w:7,h:17,draw(g){g.r(1,0,5,13,'#454b45');g.r(1,5,5,5,'#5b6457');g.r(1,12,5,4,'#272d2d');g.r(1,14,6,2,'#252e30');}},
+  helmet:{label:'Helmet',kind:'headgear',w:14,h:8,draw(g){g.r(3,1,8,2,'#6e7a61');g.r(2,3,10,3,'#586d5a');g.r(0,6,14,2,'#354e43');g.r(5,2,4,1,'#869073');}},
+  hat:{label:'Cap',kind:'headgear',w:13,h:6,draw(g){g.r(3,1,8,3,'#7c7660');g.r(1,4,12,2,'#51584f');g.r(3,2,5,1,'#a49a75');}},
+  belt:{label:'Utility belt',kind:'belt',w:18,h:6,draw(g){g.r(1,2,16,3,'#564c36');g.r(7,1,4,4,'#baa774');g.r(8,2,2,2,'#3b3f34');g.r(2,0,4,5,'#857355');g.r(13,1,3,4,'#857355');}},
+  backpack:{label:'Backpack',kind:'pack',w:13,h:18,draw(g){g.r(1,2,11,14,'#685d44');g.r(2,0,9,4,'#837653');g.r(1,9,11,5,'#4b5b45');g.r(3,5,7,2,'#aaa07d');g.r(3,15,7,2,'#3c423b');g.r(0,4,2,9,'#353f36');}},
+  vest:{label:'Armor vest',kind:'torsoGear',w:18,h:16,draw(g){g.r(3,1,12,14,'#737c66');g.r(5,3,8,5,'#576a5f');g.r(3,9,12,5,'#455d55');g.r(4,10,3,3,'#a2a18a');g.r(8,10,3,3,'#a2a18a');g.r(12,10,2,3,'#a2a18a');}},
+  rifle:{label:'Rifle',kind:'weaponHand',w:26,h:13,draw(g){g.r(2,4,19,3,'#3e4543');g.r(16,3,9,2,'#727671');g.r(23,4,3,1,'#9f9d8d');g.r(6,2,7,2,'#5e6359');g.r(9,7,4,5,'#806e4b');g.r(4,6,5,2,'#93754e');g.r(0,3,5,5,'#424946');g.r(13,6,2,5,'#484d46');g.r(14,10,2,2,'#393f3a');}},
+  pistol:{label:'Pistol',kind:'weaponHand',w:14,h:12,draw(g){g.r(2,3,12,3,'#3a4648');g.r(6,1,6,2,'#6a746e');g.r(4,6,5,4,'#646354');g.r(4,9,3,2,'#3a3c37');g.r(0,4,3,2,'#909d9a');}},
+  knife:{label:'Knife',kind:'weaponHand',w:15,h:6,draw(g){g.r(1,2,5,3,'#5c4d39');g.r(6,1,2,4,'#2a3031');g.r(8,2,6,2,'#b9c6c2');g.r(14,3,1,1,'#d1dfda');}},
+  receiver:{label:'Receiver',kind:'receiver',w:24,h:10,draw(g){g.r(1,2,22,5,'#464c49');g.r(4,1,15,1,'#77807c');g.r(5,7,7,2,'#333c3a');g.r(17,5,5,3,'#6e726a');g.r(8,3,2,2,'#9ca89e');}},
+  barrel:{label:'Barrel',kind:'barrel',w:20,h:5,draw(g){g.r(0,2,19,2,'#777d77');g.r(2,1,14,1,'#474f4d');g.r(17,1,3,4,'#343d3c');}},
+  stock:{label:'Stock',kind:'stock',w:17,h:12,draw(g){g.r(10,2,7,4,'#4e534b');g.r(4,4,10,3,'#665f4e');g.r(0,3,5,8,'#826a4c');g.r(0,10,8,2,'#423d34');}},
+  magazine:{label:'Magazine',kind:'magazine',w:9,h:14,draw(g){g.r(1,0,7,13,'#4b514e');g.r(2,2,5,7,'#717b71');g.r(2,10,5,4,'#363f3d');}},
+  optic:{label:'Scope',kind:'optic',w:17,h:8,draw(g){g.r(2,1,12,4,'#343d3c');g.r(0,2,3,3,'#647a7a');g.r(13,2,4,3,'#52615f');g.r(7,5,3,3,'#82897d');g.r(5,0,7,1,'#7c8480');}},
+  grip:{label:'Grip',kind:'grip',w:8,h:10,draw(g){g.r(2,1,5,8,'#534f42');g.r(1,0,6,2,'#333b3b');g.r(3,4,3,2,'#868070');}},
+  suppressor:{label:'Suppressor',kind:'suppressor',w:15,h:6,draw(g){g.r(0,2,15,3,'#343a3a');g.r(2,1,11,1,'#6e7671');g.r(12,2,2,2,'#545c58');}}
+};
+const placement = {head:[27,11],torso:[23,23],leftarm:[19,24],rightarm:[39,24],leftleg:[25,39],rightleg:[33,39],helmet:[26,7],hat:[26,8],belt:[23,37],backpack:[17,23],vest:[23,23],rifle:[33,32],pistol:[40,35],knife:[41,36],receiver:[24,28],barrel:[45,29],stock:[9,28],magazine:[32,35],optic:[31,21],grip:[31,35],suppressor:[61,28]};
+const charAssets=['head','torso','leftarm','rightarm','leftleg','rightleg','helmet','hat','belt','backpack','vest','rifle','pistol','knife'];
+const weaponAssets=['receiver','barrel','stock','magazine','optic','grip','suppressor'];
+// Pixel Forge Studio v0.3.1 — canvas coordinates are logical, integer pixels.
+const palettes={
+ studio256:Array.from({length:256},(_,i)=>{const red=Math.round(((i>>5)&7)*255/7),green=Math.round(((i>>2)&7)*255/7),blue=Math.round((i&3)*255/3);return "#"+[red,green,blue].map(v=>v.toString(16).padStart(2,"0")).join("");}),
+ expanded:['#000000','#181820','#252b35','#35404a','#495763','#62717a','#849196','#b3bdc2','#d5dbde','#ffffff','#4a1819','#752c30','#ad4445','#d56457','#f38a6a','#ffc7a3','#512c23','#7b472a','#a9713c','#d4a660','#f4d58a','#fff0bb','#444b24','#6e7b37','#a5a745','#d3cc69','#f0eb91','#193d31','#275d46','#39815b','#55a879','#90d5a2','#caebbd','#173b49','#245e71','#348da4','#5fb7c6','#99d9dc','#b7dcef','#223c66','#365ba2','#5a82cb','#8fb2eb','#c6d8fa','#402557','#643a82','#9365b3','#c39ddb','#e7cbf5','#592f4d','#91546c','#c67997','#eaa3bd','#f9d9e2','#3a342f','#5d5148','#806e5d','#a99680','#cfbca1','#e6dac7','#55605c','#7b8a80','#a8b5a1','#8b7ba5'],
+ pico:['#000000','#1d2b53','#7e2553','#008751','#ab5236','#5f574f','#c2c3c7','#fff1e8','#ff004d','#ffa300','#ffec27','#00e436','#29adff','#83769c','#ff77a8','#ffccaa'],
+ earth:['#101719','#1d2725','#2f3831','#475347','#6e7357','#9a9970','#c7bc99','#efdfb9','#332920','#554131','#806044','#ac8354','#d5ae73','#e9ce99','#2b382e','#435a3c','#607e58','#839f6d','#a7be8d','#394951','#536b70','#77959b','#abc1c0','#dbded8','#572e26','#8a4539','#b15d4b','#ce8066','#ead0ad','#f5ecdf','#ffffff','#000000']
+};
+const PERSONAL_PALETTE_KEY='pixelforge-personal-palette-v05';
+let personalSlots=Array(128).fill(null),activePersonalSlot=null;
+try{const old=JSON.parse(localStorage.getItem(PERSONAL_PALETTE_KEY)||'null');if(Array.isArray(old))personalSlots=Array.from({length:128},(_,i)=>/^#[0-9a-f]{6}$/i.test(old[i]||'')?old[i].toLowerCase():null);}catch{}
+function savePersonalSlots(){try{localStorage.setItem(PERSONAL_PALETTE_KEY,JSON.stringify(personalSlots));}catch{}}
+const MAX=1024, toolsShapes=new Set(['line','rect','rectFill','ellipse','ellipseFill','triangle','triangleFill','star','starFill']);
+const toolsSelect=new Set(['selectRect','selectEllipse','lasso']);
+const $=id=>document.getElementById(id), screen=$('stage'),stage=$('stageContainer'),mag=$('magnifier'),cursorCanvas=$('cursorCanvas');
+const cx=screen.getContext('2d',{alpha:false}),cursorCtx=cursorCanvas.getContext('2d');
+// Cached sprite composite. Camera and cursor movements never rebuild this image.
+let sceneCache=null, sceneDirty=true, queuedFlags=0, displayQueued=false, sceneBuildCount=0;
+const VIEW=1, CURSOR=2, MAG=4;
+function queueFrame(flags){queuedFlags|=flags;if(displayQueued)return;displayQueued=true;requestAnimationFrame(()=>{displayQueued=false;let q=queuedFlags;queuedFlags=0;if(q&VIEW)renderViewport();if(q&CURSOR)renderCrosshair();if(q&MAG)drawMagnifier();});}
+function render(){sceneDirty=true;queueFrame(VIEW|CURSOR|MAG);}
+function renderView(){queueFrame(VIEW|CURSOR);}
+function renderPointer(){queueFrame(CURSOR|MAG);}
+function ensureScene(){if(!sceneDirty&&sceneCache&&sceneCache.width===W()&&sceneCache.height===H())return sceneCache;sceneCache=mk(W(),H());const g=sceneCache.getContext('2d',{alpha:true});g.imageSmoothingEnabled=false;drawContent(g);sceneDirty=false;sceneBuildCount++;return sceneCache;}
+window.PixelForgePerformance=()=>({sceneBuilds:sceneBuildCount,scenePixels:sceneCache?.width*sceneCache?.height||0,zoom,pan:{...pan}});
+
+const checker=document.createElement('canvas');checker.width=2;checker.height=2;
+const check=checker.getContext('2d');check.fillStyle='#f7f7f7';check.fillRect(0,0,2,2);check.fillStyle='#dedede';check.fillRect(0,0,1,1);check.fillRect(1,1,1,1);
+let documents={character:{layers:[],w:64,h:64,wholeCanvas:null},weapon:{layers:[],w:64,h:64,wholeCanvas:null}};
+let mode='character',selected=null,tool='paint',face='right',animation='idle',frame=0,playing=false,editPoses=false;
+let snap=true,artSnap=true,showGrid=true,gridStep=4,trackpad=true,clickEnabled=true,holdLocked=false,dragStart=null,selectedColor='#a8b5a1',secondColor='#151b20',colorAlpha=1,brushSize=1;
+let pfBrushGuide=localStorage.getItem('pixelforge-brush-guide-v07')!=='false';
+let viewportLocked=localStorage.getItem('pixelforge-viewport-lock-v06')==='true';let zoom=7,pan={x:0,y:0},pointer={x:32.5,y:32.5},selection=null,selOverlay=null,clipboard=null,preview=null;
+let pointerDown=false,actionHeld=false,clickPress=false,clickPressOrigin=null,startPos=null,lastPaintLocal=null,pinch=null,raf=0,lastFrameTime=0;
+let toastTimeout=null,undoStack=[],redoStack=[];const activeTouches=new Map();
+const id=()=> 'L'+Math.random().toString(36).slice(2,11),mk=(w,h)=>{let c=document.createElement('canvas');c.width=w;c.height=h;return c;};
+const doc=()=>documents[mode],W=()=>doc().w,H=()=>doc().h,layers=()=>doc().layers,L=()=>layers().find(l=>l.id===selected)||null;
+function inkCanvas(key){const d=defs[key],c=mk(d.w,d.h),ctx=c.getContext('2d');d.draw({r:(x,y,w,h,color)=>{ctx.fillStyle=color;ctx.fillRect(x,y,w,h);}});return c;}
+function seed(){mode='character';for(const k of ['leftleg','rightleg','backpack','torso','leftarm','rightarm','head','belt'])addLayer(k,true);mode='weapon';for(const k of ['stock','receiver','barrel','magazine','grip','optic'])addLayer(k,true);mode='character';selected=layers().find(l=>l.kind==='torso')?.id||null;}
+function addLayer(key,quiet=false){const d=defs[key],p=placement[key]||[24,24],l={id:id(),name:d.label,kind:d.kind,sprite:inkCanvas(key),x:p[0]+(W()-64)/2,y:p[1]+(H()-64)/2,rotation:0,scale:1,flip:false,visible:true,locked:false,opacity:1,poses:{}};layers().push(l);selected=l.id;selection=null;if(!quiet){record();refresh();toast('Added '+d.label);}return l;}
+seed();
+function snapshot(){const out={version:4,name:'Survival Paradise Pixel Forge',mode,selected,face,animation,snap,artSnap,showGrid,gridStep,trackpad,clickEnabled,brushSize,selectedColor,colorAlpha,documents:{}};for(const [name,d] of Object.entries(documents))out.documents[name]={w:d.w,h:d.h,wholeCanvas:d.wholeCanvas||null,layers:d.layers.map(l=>({...l,sprite:l.sprite.toDataURL('image/png')}))};return out;}
+function record(){undoStack.push(JSON.stringify(snapshot()));if(undoStack.length>25)undoStack.shift();redoStack=[];}
+async function restore(s){if(!s||![1,2,3,4].includes(s.version)||!s.documents)throw Error('Invalid Pixel Forge project');let next={character:{layers:[]},weapon:{layers:[]}},loads=[];
+ for(const m of ['character','weapon']){const d=s.documents[m];if(!d||!Array.isArray(d.layers)||d.layers.length>250)throw Error('Invalid layers');next[m].w=s.version===1?64:clamp(Math.round(d.w||64),1,MAX);next[m].h=s.version===1?64:clamp(Math.round(d.h||64),1,MAX);next[m].wholeCanvas=s.version>=4&&d.wholeCanvas?d.wholeCanvas:null;
+ for(const x of d.layers){if(typeof x.sprite!=='string'||!x.sprite.startsWith('data:image/png'))throw Error('Invalid sprite data');const l={id:String(x.id||id()),name:String(x.name||'Layer').slice(0,80),kind:String(x.kind||'import'),sprite:mk(1,1),x:Number(x.x)||0,y:Number(x.y)||0,rotation:Number(x.rotation)||0,scale:Number(x.scale)||1,flip:!!x.flip,visible:x.visible!==false,locked:!!x.locked,opacity:Number.isFinite(x.opacity)?clamp(x.opacity,0,1):1,poses:x.poses||{},rig:x.rig&&typeof x.rig==='object'?x.rig:null};next[m].layers.push(l);loads.push(new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>{if(im.naturalWidth>MAX||im.naturalHeight>MAX){reject(Error('Layer too large'));return;}l.sprite=mk(im.naturalWidth,im.naturalHeight);l.sprite.getContext('2d').drawImage(im,0,0);resolve();};im.onerror=()=>reject(Error('Corrupt sprite'));im.src=x.sprite;}));}}
+ await Promise.all(loads);documents=next;mode=s.mode==='weapon'?'weapon':'character';face=s.face==='left'?'left':'right';animation=['idle','walk','run','aim'].includes(s.animation)?s.animation:'idle';snap=s.snap!==false;artSnap=s.artSnap!==false;showGrid=s.showGrid!==false;gridStep=s.gridStep||4;trackpad=s.trackpad!==false;clickEnabled=s.clickEnabled!==false;holdLocked=false;dragStart=null;brushSize=s.brushSize||1;colorAlpha=s.colorAlpha??1;selectedColor=s.selectedColor||selectedColor;selected=layers().some(l=>l.id===s.selected)?s.selected:(layers().at(-1)?.id||null);selection=null;preview=null;moveCursor(W()/2,H()/2);fitView();refresh();}
+async function undo(){if(!undoStack.length)return;redoStack.push(JSON.stringify(snapshot()));try{await restore(JSON.parse(undoStack.pop()));toast('Undo');}catch(err){toast(err.message);}}
+async function redo(){if(!redoStack.length)return;undoStack.push(JSON.stringify(snapshot()));try{await restore(JSON.parse(redoStack.pop()));toast('Redo');}catch(err){toast(err.message);}}
+const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
+function getPose(l,f=frame,anim=animation){let dx=0,dy=0,r=0,sc=1;const t=Math.PI*2*f/8,cycle=Math.sin(t),bounce=(1-Math.cos(2*t))/2;
+ if(!l.rig?.skipDefaultMotion&&anim==='idle'&&['torso','head','armL','armR','belt','torsoGear','headgear','pack','weaponHand'].includes(l.kind))dy=-Math.round(bounce*.6);
+ if(!l.rig?.skipDefaultMotion&&(anim==='walk'||anim==='run')){const a=anim==='run'?14:9,b=anim==='run'?2:1;dy=-bounce*b;if(l.kind==='legL')r=cycle*a;if(l.kind==='legR')r=-cycle*a;if(l.kind==='armL')r=-cycle*a*.7;if(l.kind==='armR')r=cycle*a*.7;if(['torso','head','belt','pack','torsoGear','headgear','weaponHand'].includes(l.kind))dy-=bounce*b;}
+ if(!l.rig?.skipDefaultMotion&&anim==='aim'&&l.kind==='armR'){r=-22;dx=1;dy=-2;}if(!l.rig?.skipDefaultMotion&&anim==='aim'&&l.kind==='weaponHand')dy=-5;
+ const p=l.poses?.[anim]?.[f];if(p){dx+=p.x||0;dy+=p.y||0;r+=p.rotation||0;sc=p.scale||1;}
+ return {x:l.x+dx,y:l.y+dy,rotation:l.rotation+r,scale:l.scale*sc};}
+function drawLayer(g,l,step=frame,anim=animation){if(!l.visible)return;const p=getPose(l,step,anim),w=l.sprite.width,h=l.sprite.height;g.save();g.globalAlpha=l.opacity;const piv=l.rig?.pivot||{x:w/2,y:h/2};g.translate(p.x+piv.x,p.y+piv.y);g.rotate(p.rotation*Math.PI/180);g.scale(p.scale*(l.flip?-1:1),p.scale);g.imageSmoothingEnabled=false;g.drawImage(l.sprite,-piv.x,-piv.y);g.restore();}
+function drawContent(g,step=frame,anim=animation){g.save();if(face==='left'){g.translate(W(),0);g.scale(-1,1);}for(const l of layers())drawLayer(g,l,step,anim);if(preview&&L()){const l=L();if(preview.sprite)drawLayer(g,{...l,sprite:preview.sprite,opacity:.75},step,anim);}if(selection&&L()&&selOverlay){drawLayer(g,{...L(),sprite:selOverlay,opacity:1},step,anim);}g.restore();}
+function composite(step=frame,anim=animation){const c=mk(W(),H()),g=c.getContext('2d');g.imageSmoothingEnabled=false;g.save();if(face==='left'){g.translate(W(),0);g.scale(-1,1);}for(const l of layers())drawLayer(g,l,step,anim);g.restore();return c;}
+function toDisplay(x,y){const xx=face==='left'?W()-x:x;return {x:stage.clientWidth/2+pan.x+(xx-W()/2)*zoom,y:stage.clientHeight/2+pan.y+(y-H()/2)*zoom};}
+function fromDisplay(x,y){let xx=(x-stage.clientWidth/2-pan.x)/zoom+W()/2,yy=(y-stage.clientHeight/2-pan.y)/zoom+H()/2;if(face==='left')xx=W()-xx;return {x:xx,y:yy};}
+function moveCursor(x,y){pointer.x=clamp(snap?Math.floor(x)+.5:x,0,W()-.00001);pointer.y=clamp(snap?Math.floor(y)+.5:y,0,H()-.00001);$('coords').textContent=`X:${Math.floor(pointer.x)} Y:${Math.floor(pointer.y)}`;}
+function fitView(){const rw=stage.clientWidth||380,rh=stage.clientHeight||350;zoom=clamp(Math.min((rw-35)/W(),(rh-35)/H()),.25,40);pan={x:0,y:0};renderView();}
+function focusLayer(){const l=L();if(!l){fitView();return;}const p=getPose(l),s=p.scale;zoom=clamp(Math.min((stage.clientWidth-60)/(l.sprite.width*s),(stage.clientHeight-60)/(l.sprite.height*s)),.25,40);const center={x:p.x+l.sprite.width/2,y:p.y+l.sprite.height/2};pan={x:-( (face==='left'?W()-center.x:center.x)-W()/2)*zoom,y:-(center.y-H()/2)*zoom};$('zoomLabel').textContent=Math.round(zoom*100)+'%';renderView();}
+function resize(){const rect=stage.getBoundingClientRect(),dpr=Math.min(window.devicePixelRatio||1,2);let w=Math.max(1,Math.round(rect.width*dpr)),h=Math.max(1,Math.round(rect.height*dpr));if(screen.width!==w||screen.height!==h){screen.width=w;screen.height=h;cursorCanvas.width=w;cursorCanvas.height=h;}renderView();}
+// Render the world from cached art. Grid lines are generated ONLY for visible pixels.
+function renderViewport(){if(!screen.width||!stage.clientWidth)return;const width=stage.clientWidth,height=stage.clientHeight,dpr=screen.width/width;cx.setTransform(1,0,0,1,0,0);cx.fillStyle='#cad0d0';cx.fillRect(0,0,screen.width,screen.height);cx.setTransform(dpr,0,0,dpr,0,0);cx.save();cx.translate(width/2+pan.x,height/2+pan.y);cx.scale(zoom,zoom);cx.translate(-W()/2,-H()/2);cx.imageSmoothingEnabled=false;
+ cx.fillStyle=cx.createPattern(checker,'repeat');cx.fillRect(0,0,W(),H());cx.drawImage(ensureScene(),0,0);
+ if(showGrid&&zoom>=3){const w=W(),h=H(),start=fromDisplay(0,0),finish=fromDisplay(width,height);const x0=clamp(Math.floor(Math.min(start.x,finish.x))-1,0,w),x1=clamp(Math.ceil(Math.max(start.x,finish.x))+1,0,w),y0=clamp(Math.floor(Math.min(start.y,finish.y))-1,0,h),y1=clamp(Math.ceil(Math.max(start.y,finish.y))+1,0,h);
+ cx.save();cx.beginPath();cx.lineWidth=1/zoom;cx.strokeStyle='rgba(90,94,99,.27)';const step=zoom>=6?1:gridStep;for(let x=Math.ceil(x0/step)*step;x<=x1;x+=step){cx.moveTo(x,y0);cx.lineTo(x,y1);}for(let y=Math.ceil(y0/step)*step;y<=y1;y+=step){cx.moveTo(x0,y);cx.lineTo(x1,y);}cx.stroke();if(gridStep>1){cx.beginPath();cx.strokeStyle='rgba(75,81,84,.56)';for(let x=Math.ceil(x0/gridStep)*gridStep;x<=x1;x+=gridStep){cx.moveTo(x,y0);cx.lineTo(x,y1);}for(let y=Math.ceil(y0/gridStep)*gridStep;y<=y1;y+=gridStep){cx.moveTo(x0,y);cx.lineTo(x1,y);}cx.stroke();}cx.restore();}
+ const l=L();if(l&&l.visible){const p=getPose(l),w=l.sprite.width,h=l.sprite.height;cx.save();if(face==='left'){cx.translate(W(),0);cx.scale(-1,1);}cx.translate(p.x+w/2,p.y+h/2);cx.rotate(p.rotation*Math.PI/180);cx.scale(p.scale,p.scale);cx.strokeStyle='#006f8c';cx.lineWidth=1/zoom;cx.setLineDash([2/zoom,2/zoom]);cx.strokeRect(-w/2,-h/2,w,h);cx.restore();}
+ cx.strokeStyle='#799b9f';cx.lineWidth=1/zoom;cx.strokeRect(0,0,W(),H());cx.restore();}
+// Cursor belongs to its own transparent canvas so finger motion does not redraw sprites.
+function renderCrosshair(){if(!cursorCanvas.width)return;const dpr=cursorCanvas.width/stage.clientWidth;cursorCtx.setTransform(1,0,0,1,0,0);cursorCtx.clearRect(0,0,cursorCanvas.width,cursorCanvas.height);cursorCtx.setTransform(dpr,0,0,dpr,0,0);const p=toDisplay(pointer.x,pointer.y);cursorCtx.strokeStyle='#ef9f25';cursorCtx.lineWidth=1.5;cursorCtx.beginPath();cursorCtx.moveTo(p.x-10,p.y);cursorCtx.lineTo(p.x-4,p.y);cursorCtx.moveTo(p.x+4,p.y);cursorCtx.lineTo(p.x+10,p.y);cursorCtx.moveTo(p.x,p.y-10);cursorCtx.lineTo(p.x,p.y-4);cursorCtx.moveTo(p.x,p.y+4);cursorCtx.lineTo(p.x,p.y+10);cursorCtx.stroke();cursorCtx.strokeRect(p.x-2,p.y-2,4,4);
+ if(pfBrushGuide && (tool==='paint'||tool==='erase') && L() && !L().locked){
+   const layer=L(),local=localCursor(layer),size=Math.max(1,Math.round(brushSize));
+   const px=Math.floor(local.x)-Math.floor(size/2),py=Math.floor(local.y)-Math.floor(size/2);
+   const corners=[[px,py],[px+size,py],[px+size,py+size],[px,py+size]].map(([x,y])=>{const w=localToWorld(layer,x,y);return toDisplay(w.x,w.y);});
+   cursorCtx.save();cursorCtx.lineWidth=1.7;cursorCtx.lineJoin='miter';
+   cursorCtx.beginPath();corners.forEach((pt,i)=>i?cursorCtx.lineTo(pt.x,pt.y):cursorCtx.moveTo(pt.x,pt.y));cursorCtx.closePath();
+   cursorCtx.fillStyle=tool==='erase'?'rgba(242,65,65,.13)':'rgba(255,202,88,.16)';cursorCtx.fill();
+   cursorCtx.strokeStyle=tool==='erase'?'#fa6b70':'#fbd67e';cursorCtx.stroke();
+   cursorCtx.setLineDash([3,3]);cursorCtx.strokeStyle='rgba(0,0,0,.78)';cursorCtx.stroke();cursorCtx.restore();
+ }
+}
+// A single nearest-neighbor magnified draw instead of 144 separate drawImage calls.
+function drawMagnifier(){if(mag.hidden)return;const m=mag.getContext('2d');m.setTransform(1,0,0,1,0,0);m.imageSmoothingEnabled=false;const image=ensureScene(),x=Math.floor(pointer.x),y=Math.floor(pointer.y);m.fillStyle=m.createPattern(checker,'repeat');m.fillRect(0,0,96,96);const srcX=x-6,srcY=y-6;const ix0=Math.max(0,srcX),iy0=Math.max(0,srcY),ix1=Math.min(image.width,srcX+12),iy1=Math.min(image.height,srcY+12);if(ix1>ix0&&iy1>iy0){if(face==='left'){m.save();m.translate(96,0);m.scale(-1,1);}m.drawImage(image,ix0,iy0,ix1-ix0,iy1-iy0,(ix0-srcX)*8,(iy0-srcY)*8,(ix1-ix0)*8,(iy1-iy0)*8);if(face==='left')m.restore();}m.strokeStyle='#e59017';m.lineWidth=1.5;m.strokeRect(48,48,8,8);}
+function renderAssets(){const box=$('assets');box.innerHTML='';for(const key of (mode==='character'?charAssets:weaponAssets)){const d=defs[key],b=document.createElement('button');b.className='asset';b.append(inkCanvas(key));const t=document.createElement('span');t.textContent='＋ '+d.label;b.append(t);b.title='Add '+d.label;b.onclick=()=>{record();addLayer(key,true);refresh();toast('Added '+d.label);};box.append(b);}}
+function renderLayers(){const root=$('layers');root.innerHTML='';$('layerCount').textContent='('+layers().length+')';for(const l of [...layers()].reverse()){const row=document.createElement('div');row.className='layer'+(l.id===selected?' selected':'');const img=document.createElement('img');img.className='layer-thumb';img.src=l.sprite.toDataURL('image/png');const n=document.createElement('span');n.className='layer-name';n.textContent=l.name;n.onclick=()=>{selected=l.id;selection=null;preview=null;refresh();};n.ondblclick=()=>{let v=prompt('Layer name',l.name);if(v?.trim()){record();l.name=v.trim().slice(0,65);refresh();}};const eye=document.createElement('button');eye.className='eye';eye.textContent=l.visible?'◉':'○';eye.title='Visible';eye.onclick=()=>{record();l.visible=!l.visible;refresh();};const lock=document.createElement('button');lock.className='eye';lock.textContent=l.locked?'🔒':'◇';lock.title='Lock layer';lock.onclick=()=>{record();l.locked=!l.locked;refresh();};row.append(img,n,eye,lock);row.onclick=e=>{if(e.target===row||e.target===img){selected=l.id;selection=null;preview=null;refresh();}};root.append(row);}}
+function selectedPose(l){l.poses[animation]??={};l.poses[animation][frame]??={x:0,y:0,rotation:0,scale:1};return l.poses[animation][frame];}
+function getPoseWithoutManual(l){let saved=l.poses?.[animation]?.[frame];if(l.poses?.[animation])delete l.poses[animation][frame];const p=getPose(l);if(saved)l.poses[animation][frame]=saved;return p;}
+function propValue(field){const l=L();if(!l)return 0;return editPoses?getPose(l)[field]:l[field];}
+function editTransform(field,v,absolute=true){const l=L();if(!l||l.locked)return;const n=Number(v);if(!Number.isFinite(n))return;if(editPoses){const p=selectedPose(l),base=getPoseWithoutManual(l);if(field==='scale')p.scale=absolute?n/base.scale:Math.max(.1,(p.scale||1)*n);else p[field]=absolute?n-base[field]:(p[field]||0)+n;}
+ else {l[field]=absolute?n:l[field]+n;if(field==='scale')l.scale=clamp(l.scale,.1,10);if(['x','y'].includes(field)&&artSnap)l[field]=Math.round(l[field]);}renderProps();render();}
+function renderProps(){const l=L();$('selectedName').textContent=l?l.name:'None';for(const [key,field] of [['X','x'],['Y','y'],['R','rotation'],['S','scale']]){$('prop'+key).value=l?Number(propValue(field).toFixed(2)):'';$('prop'+key).disabled=!l||l.locked;}}
+function renderFrames(){const row=$('frameTrack');row.innerHTML='';for(let i=0;i<8;i++){const b=document.createElement('button');b.className='frame'+(i===frame?' on':'');b.innerHTML='<strong>'+String(i+1).padStart(2,'0')+'</strong>FRAME';b.onclick=()=>{playing=false;updatePlay();frame=i;renderFrames();renderProps();render();};row.append(b);}}
+function paletteRender(){
+ const root=$('palette'),preset=$('palettePreset').value,personal=preset==='custom';
+ root.replaceChildren();
+ const colors=personal?personalSlots:(palettes[preset]||palettes.expanded);
+ // Direct DOM construction avoids HTML injection from palette values.
+ const frag=document.createDocumentFragment();
+ colors.forEach((c,i)=>{
+  const b=document.createElement('button');b.type='button';b.className='swatch'+(c&&selectedColor.toLowerCase()===c?' chosen':'')+(personal&&i===activePersonalSlot?' slot-active':'')+(!c?' swatch-empty':'');
+  b.dataset.color=c||'';b.dataset.slot=String(i);
+  if(c)b.style.background=c;
+  else b.textContent='+';
+  b.title=personal?`Personal color slot ${i+1}: ${c||'empty; tap to store current color'}`:`${c} — select color`;
+  b.setAttribute('aria-label',b.title);
+  b.onclick=()=>{
+    if(personal){activePersonalSlot=i;if(!c){personalSlots[i]=selectedColor;savePersonalSlots();paletteRender();return;}}
+    if(c)setColor(c);
+    if(personal)paletteRender();
+  };frag.appendChild(b);
+ });
+ root.append(frag);
+ $('paletteCount').textContent=personal?`${personalSlots.filter(Boolean).length}/128 saved colors · tap an empty slot to store the selected color`:`${colors.length} colors · scroll vertically to explore the complete palette`;
+ const customButtons=['saveCustomSwatch','replaceCustomSwatch','removeCustomSwatch'];
+ for(const id of customButtons)$(id).hidden=!personal&&id!=='saveCustomSwatch';
+ $('replaceCustomSwatch').disabled=!personal||activePersonalSlot===null;
+ $('removeCustomSwatch').disabled=!personal||activePersonalSlot===null||!personalSlots[activePersonalSlot];
+}
+function saveCustomSwatch(){const index=personalSlots.findIndex(c=>c===null);if(index<0){toast('All 128 slots are used. Choose a slot and tap Replace Slot.');return;}personalSlots[index]=selectedColor;activePersonalSlot=index;savePersonalSlots();$('palettePreset').value='custom';paletteRender();toast('Color saved to slot '+(index+1));}
+function replaceCustomSwatch(){if(activePersonalSlot===null){toast('Choose a personal color slot first');return;}personalSlots[activePersonalSlot]=selectedColor;savePersonalSlots();paletteRender();toast('Personal color replaced');}
+function removeCustomSwatch(){if(activePersonalSlot===null)return;personalSlots[activePersonalSlot]=null;savePersonalSlots();paletteRender();toast('Personal color slot cleared');}
+function hexToHSV(hex){let r=parseInt(hex.slice(1,3),16)/255,g=parseInt(hex.slice(3,5),16)/255,b=parseInt(hex.slice(5,7),16)/255,hi=Math.max(r,g,b),lo=Math.min(r,g,b),delta=hi-lo;let h=0;if(delta){if(hi===r)h=((g-b)/delta)%6;else if(hi===g)h=(b-r)/delta+2;else h=(r-g)/delta+4;h*=60;if(h<0)h+=360;}return [Math.round(h),hi===0?0:Math.round(delta/hi*100),Math.round(hi*100)];}
+function setColor(value){if(!/^#[0-9a-fA-F]{6}$/.test(value))return;selectedColor=value.toLowerCase();$('colorPicker').value=selectedColor;$('hexColor').value=selectedColor;const h=hexToHSV(selectedColor);['hue','sat','val'].forEach((k,i)=>{$(k).value=h[i];$(k+'Val').textContent=h[i];});document.querySelectorAll('.swatch').forEach(b=>b.classList.toggle('chosen',b.dataset.color===selectedColor));}
+function refresh(){renderAssets();renderLayers();renderProps();const whole=doc().wholeCanvas?.active&&layers().some(l=>l.id===doc().wholeCanvas.layerId);$('wholeCanvasEdit').textContent=whole?'↩ ORIGINAL PARTS':'▣ EDIT WHOLE IMAGE';$('wholeCanvasEdit').classList.toggle('selected',!!whole);$('fullCanvasInfo').classList.toggle('active',!!whole);$('fullCanvasInfo').textContent=whole?'FULL IMAGE MODE: Draw, erase, cut and select anywhere within '+W()+' × '+H()+' pixels. Tap ORIGINAL PARTS to return. Edits stay saved in the full-image layer.':'PART MODE: only the selected part is editable. Tap EDIT WHOLE IMAGE to edit all visible pixels, or EXPAND LAYER to enlarge one part.';$('snapToggle').textContent=snap?'▦ Pixel Snap ON':'▦ Pixel Snap OFF';$('snapToggle').classList.toggle('active',snap);$('artSnapToggle').textContent=artSnap?'⌗ Art Lock ON':'⌗ Art Free';$('artSnapToggle').classList.toggle('active',artSnap);$('pointerMode').textContent=trackpad?'◎ Pointer':'✎ Direct';$('clickMode').textContent=clickEnabled?'◉ Click mode ON':'◉ Click mode OFF';$('clickMode').classList.toggle('active',clickEnabled);$('clickBtn').disabled=!trackpad||!clickEnabled;$('holdBtn').disabled=!trackpad||!clickEnabled;$('holdBtn').classList.toggle('holding',holdLocked);$('holdBtn').setAttribute('aria-pressed',String(holdLocked));$('holdHelp').textContent=holdLocked?'TAP TO RELEASE':'TAP TO LOCK';$('pointerStatus').textContent=!trackpad?'DIRECT TOUCH: touch canvas to apply tool':!clickEnabled?'AUTO MODE: moving cursor applies selected tool':holdLocked?'HOLD ACTIVE: move finger to drag / draw. Tap HOLD to release':preview?'SHAPE / SELECTION: move cursor then tap CLICK to finish':'PRECISION: move finger on canvas, then tap CLICK to apply';$('cursorLabel').textContent=trackpad?'◎ PRECISION POINTER':'✎ DIRECT DRAW';$('zoomLabel').textContent=Math.round(zoom*100)+'%';$('directionBtn').textContent=face==='right'?'⇄ Right':'⇄ Left';$('docLabel').textContent=mode.toUpperCase()+' · '+face.toUpperCase();$('canvasLabel').textContent=W()+' × '+H()+' PX';$('canvasPreset').value=(W()===H()&&[16,32,64,128,256,512,1024].includes(W()))?`${W()} × ${W()}`:'custom';$('gridStep').value=gridStep;$('showGrid').classList.toggle('selected',showGrid);$('animationSelect').value=animation;$('keyframeEdit').checked=editPoses;document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));renderSelectionInfo();renderFrames();render();}
+function toast(t){clearTimeout(toastTimeout);$('toast').textContent=t;$('toast').classList.add('show');toastTimeout=setTimeout(()=>$('toast').classList.remove('show'),2500);}
+function localFromWorld(l,x,y){const p=getPose(l),w=l.sprite.width,h=l.sprite.height;let dx=x-(p.x+w/2),dy=y-(p.y+h/2);const a=-p.rotation*Math.PI/180,rx=(dx*Math.cos(a)-dy*Math.sin(a))/p.scale,ry=(dx*Math.sin(a)+dy*Math.cos(a))/p.scale;return {x:(l.flip?-rx:rx)+w/2,y:ry+h/2};}
+function localCursor(l=L()){return l?localFromWorld(l,pointer.x,pointer.y):{x:0,y:0};}
+function hitTest(x,y){for(let i=layers().length-1;i>=0;i--){let l=layers()[i];if(!l.visible||l.locked)continue;let p=localFromWorld(l,x,y),ix=Math.floor(p.x),iy=Math.floor(p.y);if(ix<0||iy<0||ix>=l.sprite.width||iy>=l.sprite.height)continue;if(l.sprite.getContext('2d',{willReadFrequently:true}).getImageData(ix,iy,1,1).data[3]>40)return l;}return null;}
+function pixelRGBA(hex,alpha=255){return [parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16),alpha];}
+function plot(g,x,y,color=selectedColor,sz=brushSize,erase=false){const k=Math.max(1,Math.round(sz)),px=Math.round(x)-Math.floor(k/2),py=Math.round(y)-Math.floor(k/2);if(erase)g.clearRect(px,py,k,k);else{g.fillStyle=color;g.fillRect(px,py,k,k);}}
+function drawLine(g,x0,y0,x1,y1,sz=brushSize){x0=Math.round(x0);y0=Math.round(y0);x1=Math.round(x1);y1=Math.round(y1);let dx=Math.abs(x1-x0),dy=-Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1,err=dx+dy;let i=0;while(i++<5000){plot(g,x0,y0,selectedColor,sz);if(x0===x1&&y0===y1)break;let e=2*err;if(e>=dy){err+=dy;x0+=sx;}if(e<=dx){err+=dx;y0+=sy;}}}
+function inPoly(x,y,pts){let yes=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){let a=pts[i],b=pts[j];if((a.y>y)!==(b.y>y)&&x<(b.x-a.x)*(y-a.y)/(b.y-a.y)+a.x)yes=!yes;}return yes;}
+function vertices(kind,x0,y0,x1,y1){let x=Math.min(x0,x1),y=Math.min(y0,y1),w=Math.abs(x1-x0)+1,h=Math.abs(y1-y0)+1;if(kind.startsWith('triangle'))return[{x:x+w/2,y},{x:x+w-1,y:y+h-1},{x,y:y+h-1}];let pts=[];const cx=x+w/2,cy=y+h/2;for(let i=0;i<10;i++){let angle=(i*36-90)*Math.PI/180,rad=(i%2===0?1:.45),rx=w/2*rad,ry=h/2*rad;pts.push({x:cx+Math.cos(angle)*rx,y:cy+Math.sin(angle)*ry});}return pts;}
+function drawShape(g,kind,a,b){let x0=Math.round(a.x),y0=Math.round(a.y),x1=Math.round(b.x),y1=Math.round(b.y),xmin=Math.min(x0,x1),ymin=Math.min(y0,y1),xmax=Math.max(x0,x1),ymax=Math.max(y0,y1);g.save();g.globalAlpha=colorAlpha;
+ if(kind==='line')drawLine(g,x0,y0,x1,y1);
+ else if(kind==='rect'||kind==='rectFill'){if(kind==='rectFill'){g.fillStyle=selectedColor;g.fillRect(xmin,ymin,xmax-xmin+1,ymax-ymin+1);}else{drawLine(g,xmin,ymin,xmax,ymin);drawLine(g,xmax,ymin,xmax,ymax);drawLine(g,xmax,ymax,xmin,ymax);drawLine(g,xmin,ymax,xmin,ymin);}}
+ else if(kind.startsWith('ellipse')){let rx=Math.max(.5,(xmax-xmin+1)/2),ry=Math.max(.5,(ymax-ymin+1)/2),midx=(xmax+xmin)/2,midy=(ymax+ymin)/2;if(kind==='ellipseFill'){for(let y=ymin;y<=ymax;y++)for(let x=xmin;x<=xmax;x++)if(((x-midx)/rx)**2+((y-midy)/ry)**2<=1)plot(g,x,y,selectedColor,1);}else{let prev=null;for(let i=0;i<=Math.ceil(Math.max(rx,ry)*12)+6;i++){let t=i/(Math.ceil(Math.max(rx,ry)*12)+6)*2*Math.PI,p={x:Math.round(midx+rx*Math.cos(t)),y:Math.round(midy+ry*Math.sin(t))};if(prev)drawLine(g,prev.x,prev.y,p.x,p.y);prev=p;}}}
+ else {let pts=vertices(kind,xmin,ymin,xmax,ymax);if(kind.endsWith('Fill')){for(let y=ymin;y<=ymax;y++)for(let x=xmin;x<=xmax;x++)if(inPoly(x+.5,y+.5,pts))plot(g,x,y,selectedColor,1);}else for(let i=0;i<pts.length;i++){const a=pts[i],b=pts[(i+1)%pts.length];drawLine(g,a.x,a.y,b.x,b.y);}}
+ g.restore();}
+function selectionPermits(x,y){if(!selection)return true;return x>=0&&y>=0&&x<selection.w&&y<selection.h&&selection.mask[y*selection.w+x]===1;}
+function paintAt(){const l=L();if(!l||l.locked){toast('Select an unlocked layer');return;}const pos=localCursor(l),x=Math.floor(pos.x),y=Math.floor(pos.y);if(x<0||y<0||x>=l.sprite.width||y>=l.sprite.height)return;const g=l.sprite.getContext('2d',{willReadFrequently:true});if(tool==='picker'){const p=g.getImageData(x,y,1,1).data;if(p[3])setColor('#'+Array.from(p).slice(0,3).map(n=>n.toString(16).padStart(2,'0')).join(''));return;}
+ if(tool==='fill'){floodFill(g,x,y);render();return;}if(!selectionPermits(x,y))return;
+ g.save();g.globalAlpha=colorAlpha;if(tool==='erase')plot(g,x,y,selectedColor,brushSize,true);else plot(g,x,y);g.restore();render();}
+function paintStroke(){let now=localCursor();if(lastPaintLocal&&['paint','erase'].includes(tool)){let sx=lastPaintLocal.x,sy=lastPaintLocal.y,steps=Math.max(1,Math.ceil(Math.hypot(now.x-sx,now.y-sy)*3));for(let j=0;j<=steps;j++){const pp={x:sx+(now.x-sx)*j/steps,y:sy+(now.y-sy)*j/steps};const l=L();if(!l)return;const px=Math.floor(pp.x),py=Math.floor(pp.y);if(!selectionPermits(px,py))continue;const g=l.sprite.getContext('2d');g.save();g.globalAlpha=colorAlpha;plot(g,px,py,selectedColor,brushSize,tool==='erase');g.restore();}render();}else paintAt();lastPaintLocal=now;}
+function floodFill(g,x,y){let w=g.canvas.width,h=g.canvas.height,img=g.getImageData(0,0,w,h),a=img.data,start=(y*w+x)*4,original=Array.from(a.slice(start,start+4)),col=pixelRGBA(selectedColor,Math.round(colorAlpha*255));if(original.every((v,i)=>v===col[i]))return;const visited=new Uint8Array(w*h),q=new Uint32Array(w*h);let head=0,tail=1;q[0]=y*w+x;visited[y*w+x]=1;while(head<tail){let cell=q[head++],ix=cell%w,iy=Math.floor(cell/w),j=cell*4;if(!selectionPermits(ix,iy)||a[j]!==original[0]||a[j+1]!==original[1]||a[j+2]!==original[2]||a[j+3]!==original[3])continue;for(let k=0;k<4;k++)a[j+k]=col[k];if(ix>0&&!visited[cell-1]){visited[cell-1]=1;q[tail++]=cell-1;}if(ix<w-1&&!visited[cell+1]){visited[cell+1]=1;q[tail++]=cell+1;}if(iy>0&&!visited[cell-w]){visited[cell-w]=1;q[tail++]=cell-w;}if(iy<h-1&&!visited[cell+w]){visited[cell+w]=1;q[tail++]=cell+w;}}
+ g.putImageData(img,0,0);}
+function maskFromRect(a,b,kind,w,h){const mask=new Uint8Array(w*h),x0=Math.floor(Math.min(a.x,b.x)),x1=Math.floor(Math.max(a.x,b.x)),y0=Math.floor(Math.min(a.y,b.y)),y1=Math.floor(Math.max(a.y,b.y));for(let y=Math.max(0,y0);y<=Math.min(h-1,y1);y++)for(let x=Math.max(0,x0);x<=Math.min(w-1,x1);x++){if(kind==='selectEllipse'){let rx=(x1-x0+1)/2,ry=(y1-y0+1)/2,cx=(x1+x0)/2,cy=(y1+y0)/2;if(((x-cx)/rx)**2+((y-cy)/ry)**2>1)continue;}mask[y*w+x]=1;}return {mask,w,h};}
+function maskFromPoly(points,w,h){const mask=new Uint8Array(w*h);if(points.length<3)return{mask,w,h};const xs=points.map(p=>p.x),ys=points.map(p=>p.y);for(let y=clamp(Math.floor(Math.min(...ys)),0,h-1);y<=clamp(Math.ceil(Math.max(...ys)),0,h-1);y++)for(let x=clamp(Math.floor(Math.min(...xs)),0,w-1);x<=clamp(Math.ceil(Math.max(...xs)),0,w-1);x++)if(inPoly(x+.5,y+.5,points))mask[y*w+x]=1;return{mask,w,h};}
+function maskWand(l,start){const w=l.sprite.width,h=l.sprite.height,mask=new Uint8Array(w*h),g=l.sprite.getContext('2d',{willReadFrequently:true}),arr=g.getImageData(0,0,w,h).data,x=Math.floor(start.x),y=Math.floor(start.y);if(x<0||y<0||x>=w||y>=h)return{mask,w,h};let idx=y*w+x,col=arr.slice(idx*4,idx*4+4),queue=new Uint32Array(w*h),head=0,tail=1;queue[0]=idx;mask[idx]=1;while(head<tail){const i=queue[head++],px=i%w,py=(i-px)/w;const v=[px>0?i-1:-1,px<w-1?i+1:-1,py>0?i-w:-1,py<h-1?i+w:-1];for(let j of v){if(j<0||mask[j])continue;const k=j*4;if(arr[k]===col[0]&&arr[k+1]===col[1]&&arr[k+2]===col[2]&&arr[k+3]===col[3]){mask[j]=1;queue[tail++]=j;}}}return{mask,w,h};}
+function selectionBounds(s=selection){if(!s)return null;let x0=s.w,y0=s.h,x1=-1,y1=-1;for(let y=0;y<s.h;y++)for(let x=0;x<s.w;x++)if(s.mask[y*s.w+x]){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y);}return x1<0?null:{x:x0,y:y0,w:x1-x0+1,h:y1-y0+1};}
+function updateSelection(obj){selection=obj;selOverlay=null;if(obj){let canvas=mk(obj.w,obj.h),g=canvas.getContext('2d'),data=g.createImageData(obj.w,obj.h);for(let y=0;y<obj.h;y++)for(let x=0;x<obj.w;x++){let i=y*obj.w+x;if(!obj.mask[i])continue;let p=i*4,border=x===0||y===0||x===obj.w-1||y===obj.h-1||!obj.mask[i-1]||!obj.mask[i+1]||!obj.mask[i-obj.w]||!obj.mask[i+obj.w];data.data[p]=border?4:29;data.data[p+1]=border?124:134;data.data[p+2]=border?187:197;data.data[p+3]=border?245:55;}g.putImageData(data,0,0);selOverlay=canvas;}renderSelectionInfo();render();}
+function renderSelectionInfo(){const b=selectionBounds(),t=b?`Selection ${b.w}×${b.h} at ${b.x},${b.y}`:'No selection';$('selectionLabel').textContent=t;const status=$('selectionStatus');if(status)status.textContent=b?t:'No active selection';document.querySelectorAll('.selection-bar button').forEach(e=>{const all=['selectAll','selectOpaque','pasteSelection','clearSelection'].includes(e.id);e.disabled=!all&&!b;});$('pasteSelection').disabled=!clipboard;}
+function deselectEverything(){if(holdLocked)lockHold();const had=!!selection||!!preview;preview=null;dragStart=null;clickPress=false;updateSelection(null);render();toast(had?'Selection cancelled — canvas ready':'No active selection');}
+
+function needSelection(){const l=L(),b=selectionBounds();if(!l||l.locked||!b){toast('Select pixels on an unlocked layer first');return null;}return {l,b};}
+function selectAll(){let l=L();if(!l)return;let mask=new Uint8Array(l.sprite.width*l.sprite.height);mask.fill(1);updateSelection({mask,w:l.sprite.width,h:l.sprite.height});}
+function selectOpaque(){let l=L();if(!l)return;const {width:w,height:h}=l.sprite,d=l.sprite.getContext('2d').getImageData(0,0,w,h).data,mask=new Uint8Array(w*h);for(let i=0;i<mask.length;i++)mask[i]=d[i*4+3]?1:0;updateSelection({mask,w,h});}
+function copySelection(){const info=needSelection();if(!info)return false;const {l,b}=info,c=mk(b.w,b.h),g=c.getContext('2d'),src=l.sprite.getContext('2d').getImageData(0,0,l.sprite.width,l.sprite.height),part=g.createImageData(b.w,b.h);for(let y=0;y<b.h;y++)for(let x=0;x<b.w;x++){const sx=x+b.x,sy=y+b.y;if(!selection.mask[sy*selection.w+sx])continue;const i=(sy*l.sprite.width+sx)*4,j=(y*b.w+x)*4;for(let k=0;k<4;k++)part.data[j+k]=src.data[i+k];}g.putImageData(part,0,0);clipboard={sprite:c,origin:b,source:l.id};renderSelectionInfo();toast('Copied '+b.w+' × '+b.h+' pixels');return true;}
+function eraseSelected(){const l=L();if(!l||!selection)return;const {w,h,mask}=selection,g=l.sprite.getContext('2d');const src=g.getImageData(0,0,w,h);for(let i=0;i<w*h;i++)if(mask[i])src.data[i*4+3]=0;g.putImageData(src,0,0);}
+function cutSelection(){if(!copySelection())return;record();eraseSelected();refresh();}
+function deleteSelection(){if(!needSelection())return;record();eraseSelected();refresh();}
+function pasteSelection(){if(!clipboard){toast('Copy pixels first');return;}record();const c=mk(clipboard.sprite.width,clipboard.sprite.height);c.getContext('2d').drawImage(clipboard.sprite,0,0);let base=layers().find(l=>l.id===clipboard.source);if(base){pasteSelectionNoRecord(base,clipboard.origin,c,'Pasted selection');return;}let l={id:id(),name:'Pasted selection',kind:'import',sprite:c,x:Math.round(pointer.x-c.width/2),y:Math.round(pointer.y-c.height/2),rotation:0,scale:1,flip:false,visible:true,locked:false,opacity:1,poses:{}};layers().push(l);selected=l.id;updateSelection(null);refresh();}
+function extractSelection(){const info=needSelection();if(!info||!copySelection())return;record();eraseSelected();pasteSelectionNoRecord(info.l,info.b,clipboard.sprite,'Extracted pixels');toast('Extracted selection to separate layer');}
+function pasteSelectionNoRecord(base,b,c,name){const p=getPose(base),a=p.rotation*Math.PI/180,scale=p.scale,ox=(b.x+b.w/2-base.sprite.width/2)*(base.flip?-1:1)*scale,oy=(b.y+b.h/2-base.sprite.height/2)*scale;const x=p.x+base.sprite.width/2+Math.cos(a)*ox-Math.sin(a)*oy-b.w/2,y=p.y+base.sprite.height/2+Math.sin(a)*ox+Math.cos(a)*oy-b.h/2;let l={id:id(),name,kind:'import',sprite:c,x,y,rotation:base.rotation,scale:base.scale,flip:base.flip,visible:true,locked:false,opacity:1,poses:{}};layers().push(l);selected=l.id;updateSelection(null);refresh();return l;}
+function cropLayer(){const info=needSelection();if(!info)return;const {l,b}=info;record();const c=mk(b.w,b.h),g=c.getContext('2d'),src=l.sprite.getContext('2d').getImageData(0,0,l.sprite.width,l.sprite.height),data=g.createImageData(b.w,b.h),ow=l.sprite.width,oh=l.sprite.height;for(let y=0;y<b.h;y++)for(let x=0;x<b.w;x++){const sx=b.x+x,sy=b.y+y;if(!selection.mask[sy*selection.w+sx])continue;const from=(sy*ow+sx)*4,to=(y*b.w+x)*4;for(let i=0;i<4;i++)data.data[to+i]=src.data[from+i];}g.putImageData(data,0,0);
+ const angle=l.rotation*Math.PI/180,dx=(b.x+b.w/2-ow/2)*(l.flip?-1:1)*l.scale,dy=(b.y+b.h/2-oh/2)*l.scale;l.x+=ow/2+Math.cos(angle)*dx-Math.sin(angle)*dy-b.w/2;l.y+=oh/2+Math.sin(angle)*dx+Math.cos(angle)*dy-b.h/2;l.sprite=c;if(artSnap){l.x=Math.round(l.x);l.y=Math.round(l.y);}updateSelection(null);refresh();toast('Cropped layer to '+b.w+' × '+b.h);}
+function localToWorld(l,x,y){const p=getPose(l),cx=l.sprite.width/2,cy=l.sprite.height/2,dx=(x-cx)*(l.flip?-1:1)*p.scale,dy=(y-cy)*p.scale,a=p.rotation*Math.PI/180;return {x:p.x+cx+dx*Math.cos(a)-dy*Math.sin(a),y:p.y+cy+dx*Math.sin(a)+dy*Math.cos(a)};}
+function cropCanvas(){const info=needSelection();if(!info)return;const {l,b}=info,corners=[localToWorld(l,b.x,b.y),localToWorld(l,b.x+b.w,b.y+b.h),localToWorld(l,b.x+b.w,b.y),localToWorld(l,b.x,b.y+b.h)],x0=clamp(Math.floor(Math.min(...corners.map(p=>p.x))),0,W()-1),x1=clamp(Math.ceil(Math.max(...corners.map(p=>p.x))),1,W()),y0=clamp(Math.floor(Math.min(...corners.map(p=>p.y))),0,H()-1),y1=clamp(Math.ceil(Math.max(...corners.map(p=>p.y))),1,H());if(x1<=x0||y1<=y0)return;record();for(const item of layers()){item.x-=x0;item.y-=y0;}doc().w=x1-x0;doc().h=y1-y0;updateSelection(null);moveCursor(W()/2,H()/2);fitView();refresh();toast('Cropped canvas to '+W()+' × '+H());}
+function recolorSelection(){if(!needSelection())return;record();const l=L(),g=l.sprite.getContext('2d'),img=g.getImageData(0,0,selection.w,selection.h),color=pixelRGBA(selectedColor);for(let i=0;i<selection.mask.length;i++){if(!selection.mask[i]||!img.data[i*4+3])continue;for(let k=0;k<3;k++)img.data[i*4+k]=color[k];}g.putImageData(img,0,0);refresh();}
+function transformSelection(kind){const info=needSelection();if(!info||!copySelection())return;const src=clipboard.sprite,sw=src.width,sh=src.height;let nw=sw,nh=sh;if(kind==='rot'){nw=sh;nh=sw;}if(kind==='up'){nw=Math.min(MAX,sw*2);nh=Math.min(MAX,sh*2);}if(kind==='down'){nw=Math.max(1,Math.round(sw/2));nh=Math.max(1,Math.round(sh/2));}const dest=mk(nw,nh),g=dest.getContext('2d');g.imageSmoothingEnabled=false;if(kind==='rot'){g.translate(nw,0);g.rotate(Math.PI/2);g.drawImage(src,0,0);}else if(kind==='flip'){g.translate(nw,0);g.scale(-1,1);g.drawImage(src,0,0);}else g.drawImage(src,0,0,nw,nh);record();eraseSelected();const b={...info.b,x:info.b.x+(sw-nw)/2,y:info.b.y+(sh-nh)/2,w:nw,h:nh};pasteSelectionNoRecord(info.l,b,dest,({rot:'Rotated selection',flip:'Flipped selection',up:'Scaled selection 2x',down:'Scaled selection ½'})[kind]);}
+function applySelectionPreview(){const l=L();if(!l||!preview)return;const {start,end,kind,points}=preview;if(kind==='lasso'){if(points?.length>2)updateSelection(maskFromPoly(points,l.sprite.width,l.sprite.height));}
+ else updateSelection(maskFromRect(start,end,kind,l.sprite.width,l.sprite.height));preview=null;refresh();}
+function applyShapePreview(){const l=L();if(!l||!preview||!toolsShapes.has(preview.kind))return;record();if(selection){const tmp=mk(l.sprite.width,l.sprite.height),ctx=tmp.getContext('2d');drawShape(ctx,preview.kind,preview.start,preview.end);const image=ctx.getImageData(0,0,tmp.width,tmp.height);for(let i=0;i<selection.mask.length;i++)if(!selection.mask[i])image.data[i*4+3]=0;ctx.putImageData(image,0,0);l.sprite.getContext('2d').drawImage(tmp,0,0);}else drawShape(l.sprite.getContext('2d'),preview.kind,preview.start,preview.end);preview=null;refresh();}
+function previewMove(){if(!preview||!L())return;preview.end=localCursor();const l=L();if(toolsShapes.has(preview.kind)){preview.sprite=mk(l.sprite.width,l.sprite.height);drawShape(preview.sprite.getContext('2d'),preview.kind,preview.start,preview.end);}else if(preview.kind==='lasso'){preview.points??=[];const p=preview.end;if(!preview.points.length||Math.hypot(p.x-preview.points.at(-1).x,p.y-preview.points.at(-1).y)>.8)preview.points.push({x:p.x,y:p.y});}render();}
+function applySimpleTool(){const l=L();if(!l||l.locked){toast('Select an unlocked layer');return;}if(['paint','erase','fill'].includes(tool)){record();paintAt();}else if(tool==='picker')paintAt();else if(tool==='wand'){updateSelection(maskWand(l,localCursor()));}}
+function startPreview(){const l=L();if(!l||l.locked){toast('Select an unlocked layer');return false;}const pt=localCursor();preview={kind:tool,start:{...pt},end:{...pt},points:tool==='lasso'?[{...pt}]:null,sprite:null};previewMove();return true;}
+function finishPreview(){if(!preview)return;if(toolsShapes.has(tool))applyShapePreview();else if(toolsSelect.has(tool))applySelectionPreview();}
+function armMove(){let l=hitTest(pointer.x,pointer.y)||L();if(!l||l.locked){toast('Select an unlocked visible layer');return false;}if(l.id!==selected){selected=l.id;selection=null;preview=null;renderLayers();renderProps();}record();dragStart={world:{...pointer},base:{x:propValue('x'),y:propValue('y')}};return true;}
+function pointerDragAction(){if(tool==='move'&&dragStart&&L()&&!L().locked){const dx=pointer.x-dragStart.world.x,dy=pointer.y-dragStart.world.y;editTransform('x',dragStart.base.x+dx);editTransform('y',dragStart.base.y+dy);renderProps();render();}
+ else if(['paint','erase'].includes(tool))paintStroke();else if(preview)previewMove();}
+function applyActionTap(){
+ if(tool==='pan'){toast('Pan: drag the canvas');return;}
+ if(tool==='move'){if(dragStart){dragStart=null;toast('Layer position set');}else if(armMove()){toast('Move pointer, then CLICK to place layer');}refresh();return;}
+ if(toolsShapes.has(tool)||toolsSelect.has(tool)){if(preview)finishPreview();else if(startPreview())toast('Start point set — move pointer then CLICK again');refresh();return;}
+ applySimpleTool();refresh();
+}
+function clickAtPointer(){if(!trackpad||!clickEnabled)return;if(holdLocked){toast('Release HOLD to use CLICK');return;}applyActionTap();}
+// Click acts as a REAL mouse button: tap stamps, keep pressed + move pointer for a continuous stroke.
+function clickDown(e){if(!trackpad||!clickEnabled||holdLocked||clickPress)return;
+ e.preventDefault();e.stopPropagation();
+ if(e.button!==undefined&&e.button!==0)return;
+ try{$('clickBtn').setPointerCapture(e.pointerId);}catch(_){}
+ clickPress=true;clickPressOrigin={...pointer};$('clickBtn').classList.add('pressing');
+ if(tool==='paint'||tool==='erase'){
+  if(!L()||L().locked){toast('Choose an unlocked layer');return;}
+  record();paintAt();lastPaintLocal=localCursor();
+ }else applyActionTap();
+}
+function clickUp(e){if(!clickPress)return;clickPress=false;$('clickBtn').classList.remove('pressing');
+ if((toolsShapes.has(tool)||toolsSelect.has(tool))&&preview&&clickPressOrigin&&Math.hypot(pointer.x-clickPressOrigin.x,pointer.y-clickPressOrigin.y)>.75)finishPreview();
+ if(tool==='move'&&dragStart&&clickPressOrigin&&Math.hypot(pointer.x-clickPressOrigin.x,pointer.y-clickPressOrigin.y)>.75)dragStart=null;
+ clickPressOrigin=null;lastPaintLocal=null;refresh();
+}
+
+function lockHold(){if(!trackpad||!clickEnabled)return;
+ if(holdLocked){holdLocked=false;actionHeld=false;lastPaintLocal=null;if(preview)finishPreview();dragStart=null;toast('Released');refresh();return;}
+ if(tool==='pan'){toast('Pan: drag on canvas');return;}
+ if(['paint','erase','fill','picker','wand'].includes(tool)){
+  if(!L()||L().locked){toast('Choose an unlocked layer');return;}
+  if(['paint','erase','fill'].includes(tool))record();paintAt();lastPaintLocal=localCursor();
+ }else if(tool==='move'){if(!armMove())return;}
+ else if(toolsShapes.has(tool)||toolsSelect.has(tool)){if(preview){toast('Finish current shape using CLICK');return;}if(!startPreview())return;}
+ holdLocked=true;actionHeld=true;toast('HOLD locked — move pointer then release');refresh();
+}
+function clearGesture(){if(holdLocked){holdLocked=false;actionHeld=false;lastPaintLocal=null;dragStart=null;}preview=null;}
+
+
+// Pixel Forge 0.6 selection workbench operations; preserve alpha and the source layer.
+function fillSelectedPixels(){const info=needSelection();if(!info)return;record();const g=info.l.sprite.getContext('2d',{willReadFrequently:true}),im=g.getImageData(0,0,selection.w,selection.h),rgb=pixelRGBA(selectedColor,Math.round(colorAlpha*255));for(let i=0;i<selection.mask.length;i++)if(selection.mask[i])im.data.set(rgb,i*4);g.putImageData(im,0,0);refresh();toast('Filled selected pixels');}
+function outlineSelectedPixels(){const info=needSelection();if(!info)return;record();const {mask,w,h}=selection,g=info.l.sprite.getContext('2d',{willReadFrequently:true}),im=g.getImageData(0,0,w,h),rgb=pixelRGBA(selectedColor,Math.round(colorAlpha*255));for(let y=0;y<h;y++)for(let x=0;x<w;x++){let i=y*w+x;if(!mask[i])continue;if(x===0||y===0||x===w-1||y===h-1||!mask[i-1]||!mask[i+1]||!mask[i-w]||!mask[i+w])im.data.set(rgb,i*4);}g.putImageData(im,0,0);refresh();toast('Outlined selection');}
+function invertSelectedMask(){if(!L())return;const l=L(),w=l.sprite.width,h=l.sprite.height;const mask=new Uint8Array(w*h);if(selection?.w===w&&selection?.h===h){for(let i=0;i<mask.length;i++)mask[i]=selection.mask[i]?0:1;}else mask.fill(1);updateSelection({mask,w,h});toast('Selection inverted');}
+function copySelectionToLayer(){const info=needSelection();if(!info||!copySelection())return;record();pasteSelectionNoRecord(info.l,info.b,clipboard.sprite,'Selection copy');toast('Copied selection into new layer');}
+function flipSelectionVertical(){const info=needSelection();if(!info||!copySelection())return;const src=clipboard.sprite,c=mk(src.width,src.height),g=c.getContext('2d');g.translate(0,c.height);g.scale(1,-1);g.drawImage(src,0,0);record();eraseSelected();pasteSelectionNoRecord(info.l,info.b,c,'Flipped selection vertically');}
+function sourcePixelColor(){const image=composite(),ctx=image.getContext('2d',{willReadFrequently:true}),x=Math.floor(pointer.x),y=Math.floor(pointer.y);if(x<0||y<0||x>=W()||y>=H())return selectedColor;const data=ctx.getImageData(x,y,1,1).data;return '#'+[0,1,2].map(k=>data[k].toString(16).padStart(2,'0')).join('');}
+function replaceMatchingColor(source,target,tolerance,scope){const rgb=pixelRGBA(source),rep=pixelRGBA(target);let targets=scope==='all'?layers().filter(l=>l.visible&&!l.locked):scope==='selection'?[L()].filter(Boolean):[L()].filter(Boolean);if(scope==='selection'&&!selectionBounds()){toast('Make a selection first');return 0;}targets=targets.filter(l=>l&&!l.locked);if(!targets.length){toast('No editable visible layers');return 0;}
+ const changes=[];let total=0;for(const l of targets){let g=l.sprite.getContext('2d',{willReadFrequently:true}),w=l.sprite.width,h=l.sprite.height,img=g.getImageData(0,0,w,h),pixels=img.data,matched=0;for(let i=0;i<w*h;i++){if(scope==='selection'&&(!selection||i>=selection.mask.length||!selection.mask[i]))continue;const k=i*4;if(!pixels[k+3])continue;if(Math.max(Math.abs(pixels[k]-rgb[0]),Math.abs(pixels[k+1]-rgb[1]),Math.abs(pixels[k+2]-rgb[2]))>tolerance)continue;pixels[k]=rep[0];pixels[k+1]=rep[1];pixels[k+2]=rep[2];matched++;}if(matched){changes.push({g,img});total+=matched;}}
+ if(!total){toast('No matching pixels');return 0;}record();for(const a of changes)a.g.putImageData(a.img,0,0);refresh();toast('Recolored '+total+' pixels on '+changes.length+' layer(s)');return total;
+}
+function changeCanvas(w,h){w=Number(w);h=Number(h);if(!Number.isInteger(w)||!Number.isInteger(h)||w<1||h<1||w>MAX||h>MAX){toast('Canvas dimensions must be 1–1024 px');return;}record();doc().w=w;doc().h=h;const state=doc().wholeCanvas;if(state&&state.active){const full=layers().find(l=>l.id===state.layerId);if(full)ensureWholeSize(full);}selection=null;preview=null;moveCursor(w/2,h/2);fitView();refresh();toast('Canvas '+w+' × '+h+' pixels');}
+function pointerAt(e){const r=stage.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
+function down(e){if(e.button!==0)return;e.preventDefault();screen.setPointerCapture(e.pointerId);const p=pointerAt(e);activeTouches.set(e.pointerId,p);
+ if(activeTouches.size===2){let a=[...activeTouches.values()];const center={x:(a[0].x+a[1].x)/2,y:(a[0].y+a[1].y)/2};pinch={distance:Math.max(1,Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)),zoom,world:fromDisplay(center.x,center.y),zoomIntent:false};pointerDown=false;return;}
+ pointerDown=true;if(!trackpad){const pos=fromDisplay(p.x,p.y);moveCursor(pos.x,pos.y);}
+ const base=L()?{x:propValue('x'),y:propValue('y')}:null;startPos={p,world:{...pointer},pan:{...pan},base};lastPaintLocal=null;
+ if(tool==='pan'){if(viewportLocked){toast('Canvas view locked — unlock in zoom or Setup');return;}renderView();return;}
+ // In click mode the canvas is a trackpad ONLY; selected tools do not paint on finger contact.
+ if(trackpad&&clickEnabled){renderPointer();return;}
+ if(tool==='move'){let hit=hitTest(pointer.x,pointer.y);if(hit&&hit.id!==selected){selected=hit.id;selection=null;preview=null;startPos.base={x:propValue('x'),y:propValue('y')};renderLayers();renderProps();}if(L()&&!L().locked)record();}
+ if(['paint','erase'].includes(tool)){record();paintStroke();}
+ else if(tool==='fill'){record();paintAt();}
+ else if(tool==='picker')paintAt();
+ else if(tool==='wand'){if(L())updateSelection(maskWand(L(),localCursor()));}
+ else if(toolsShapes.has(tool)||toolsSelect.has(tool))startPreview();render();}
+function move(e){if(!activeTouches.has(e.pointerId))return;e.preventDefault();const p=pointerAt(e);activeTouches.set(e.pointerId,p);
+ if(activeTouches.size===2&&pinch){if(viewportLocked)return;let a=[...activeTouches.values()],distance=Math.max(1,Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)),mid={x:(a[0].x+a[1].x)/2,y:(a[0].y+a[1].y)/2};if(tool!=='pan'&&(Math.abs(distance-pinch.distance)>11&&Math.abs(distance/pinch.distance-1)>.065))pinch.zoomIntent=true;zoom=(tool==='pan'||!pinch.zoomIntent)?pinch.zoom:clamp(pinch.zoom*distance/pinch.distance,.25,40);const xx=face==='left'?W()-pinch.world.x:pinch.world.x;pan.x=mid.x-stage.clientWidth/2-(xx-W()/2)*zoom;pan.y=mid.y-stage.clientHeight/2-(pinch.world.y-H()/2)*zoom;$('zoomLabel').textContent=Math.round(zoom*100)+'%';renderView();return;}
+ if(!pointerDown||!startPos)return;if(tool==='pan'){if(viewportLocked)return;pan.x=startPos.pan.x+p.x-startPos.p.x;pan.y=startPos.pan.y+p.y-startPos.p.y;renderView();return;}
+ if(trackpad){let dx=(p.x-startPos.p.x)/zoom,dy=(p.y-startPos.p.y)/zoom;moveCursor(startPos.world.x+(face==='left'?-dx:dx),startPos.world.y+dy);}else{const world=fromDisplay(p.x,p.y);moveCursor(world.x,world.y);}
+ if(trackpad&&clickEnabled){if(holdLocked||clickPress||preview||dragStart)pointerDragAction();}
+ else{if(tool==='move'&&L()&&!L().locked&&startPos.base){const dx=pointer.x-startPos.world.x,dy=pointer.y-startPos.world.y;editTransform('x',startPos.base.x+dx);editTransform('y',startPos.base.y+dy);}
+ if(['paint','erase'].includes(tool))paintStroke();if(preview)previewMove();}
+ renderPointer();}
+function up(e){const wasPinch=!!pinch;activeTouches.delete(e.pointerId);if(activeTouches.size<2)pinch=null;if(!activeTouches.size){if(pointerDown&&(!trackpad||!clickEnabled)&&preview)finishPreview();const edited=pointerDown&&!(trackpad&&clickEnabled)&&tool!=='pan';pointerDown=false;startPos=null;if(!holdLocked)lastPaintLocal=null;if(edited){renderLayers();renderProps();render();}else renderPointer();}else if(wasPinch&&activeTouches.size===1){pointerDown=false;startPos=null;renderView();}}
+function saveFile(name,type,dataUri){if(window.PixelForgeAndroid?.saveBase64){window.PixelForgeAndroid.saveBase64(name,type,dataUri.split(',')[1]);toast('Choose destination');return;}const a=document.createElement('a');a.href=dataUri;a.download=name;document.body.append(a);a.click();a.remove();toast('Exported '+name);}
+function saveCanvas(c,name){saveFile(name,'image/png',c.toDataURL('image/png'));}
+function exportPNG(){saveCanvas(composite(),'SP_'+mode+'_'+face+'_'+W()+'x'+H()+'.png');}
+function exportSheet(){const c=mk(W()*8,H()),g=c.getContext('2d');if(c.width>16384){toast('Sprite sheet exceeds safe width; reduce canvas');return;}for(let i=0;i<8;i++)g.drawImage(composite(i),i*W(),0);saveCanvas(c,'SP_'+mode+'_'+animation+'_'+face+'_8frames.png');}
+function saveJSON(){let b=JSON.stringify(snapshot()),bytes=new TextEncoder().encode(b),str='';for(let i=0;i<bytes.length;i+=8192)str+=String.fromCharCode(...bytes.subarray(i,i+8192));saveFile('SurvivalParadise_PixelForge_v06.pixelforge','application/json','data:application/json;base64,'+btoa(str));}
+function updatePlay(){$('playBtn').textContent=playing?'❚❚ Pause':'▶ Play';if(playing){lastFrameTime=performance.now();raf=requestAnimationFrame(animate);}else cancelAnimationFrame(raf);}
+function animate(now){if(!playing)return;if(now-lastFrameTime>=(animation==='run'?85:animation==='walk'?115:190)){frame=(frame+1)%8;lastFrameTime=now;renderFrames();renderProps();render();}raf=requestAnimationFrame(animate);}
+function alterLayerPos(d){let l=L();if(!l)return;let a=layers(),at=a.indexOf(l),to=at+d;if(to<0||to>=a.length)return;record();a.splice(at,1);a.splice(to,0,l);refresh();}
+// Whole-image editing: a canvas-sized copy of the visible composition is stored as an independent
+// editable sprite. Original part layers remain in the project but are hidden (never deleted).
+function ensureWholeSize(l){if(!l||l.sprite.width===W()&&l.sprite.height===H())return;
+ const canvas=mk(W(),H());canvas.getContext('2d').drawImage(l.sprite,0,0);
+ l.sprite=canvas;l.x=0;l.y=0;l.rotation=0;l.scale=1;l.flip=false;l.poses={};}
+function toggleWholeCanvas(){
+ const d=doc(),state=d.wholeCanvas;
+ let full=state?d.layers.find(x=>x.id===state.layerId):null;
+ if(state&&full){
+  record();updateSelection(null);preview=null;dragStart=null;lastPaintLocal=null;
+  if(state.active){
+   full.visible=false;
+   const visibleIds=new Map((state.originalVisibility||[]).map(x=>[x.id,x.visible]));
+   for(const l of layers())if(l!==full&&visibleIds.has(l.id))l.visible=visibleIds.get(l.id);
+   state.active=false;
+   selected=layers().find(x=>x.id===state.selectedBefore)?.id||layers().find(x=>x!==full&&x.visible)?.id||null;
+   toast('Original layers restored — full image edits remain saved in hidden layer');
+  }else{
+   state.originalVisibility=layers().filter(x=>x!==full).map(x=>({id:x.id,visible:x.visible}));
+   state.selectedBefore=selected;
+   for(const l of layers())if(l!==full)l.visible=false;
+   ensureWholeSize(full);full.visible=true;full.locked=false;state.active=true;selected=full.id;
+   toast('Full image editing ON — whole canvas unlocked');
+  }
+  refresh();return;
+ }
+ // Fresh editing copy: capture the underlying visible composition WITHOUT flipping left/right
+ // because the viewport's left/right transform will be reapplied when displaying the new layer.
+ record();const selectedBefore=selected,originalVisibility=layers().map(l=>({id:l.id,visible:l.visible}));
+ const sprite=mk(W(),H()),g=sprite.getContext('2d');g.imageSmoothingEnabled=false;
+ for(const l of layers())if(l.visible)drawLayer(g,l);
+ for(const l of layers())l.visible=false;
+ full={id:id(),name:'FULL IMAGE — editable',kind:'paint',sprite,x:0,y:0,rotation:0,scale:1,flip:false,visible:true,locked:false,opacity:1,poses:{}};
+ layers().push(full);d.wholeCanvas={layerId:full.id,originalVisibility,selectedBefore,active:true};
+ selected=full.id;updateSelection(null);preview=null;dragStart=null;lastPaintLocal=null;
+ toast('Edit anywhere on canvas — original layers are safely preserved');refresh();
+}
+function resetWholeSession(){const d=doc(),s=d.wholeCanvas;if(!s)return;
+ if(s.active){const vis=new Map((s.originalVisibility||[]).map(x=>[x.id,x.visible]));
+  for(const l of layers())if(l.id!==s.layerId&&vis.has(l.id))l.visible=vis.get(l.id);}
+ d.wholeCanvas=null;}
+function addBlankLayer(){record();const l={id:id(),name:'Blank paint layer',kind:'paint',sprite:mk(W(),H()),x:0,y:0,rotation:0,scale:1,flip:false,visible:true,locked:false,opacity:1,poses:{}};layers().push(l);selected=l.id;updateSelection(null);refresh();toast('Blank '+W()+' × '+H()+' layer added');}
+function expandLayer(){let l=L();if(!l||l.locked){toast('Select an unlocked layer');return;}if(l.rotation!==0||l.scale!==1||l.flip){toast('Reset layer rotation/scale/flip before expanding');return;}record();const newW=Math.max(W(),Math.ceil(l.x+l.sprite.width)),newH=Math.max(H(),Math.ceil(l.y+l.sprite.height)),left=Math.min(0,Math.floor(l.x)),top=Math.min(0,Math.floor(l.y));if(newW-left>MAX||newH-top>MAX){toast('Layer would exceed 1024 px');return;}const c=mk(newW-left,newH-top),g=c.getContext('2d');g.drawImage(l.sprite,l.x-left,l.y-top);l.x=left;l.y=top;l.sprite=c;updateSelection(null);refresh();toast('Layer expanded for drawing');}
+function duplicateLayer(){let l=L();if(!l)return;record();let c=mk(l.sprite.width,l.sprite.height);c.getContext('2d').drawImage(l.sprite,0,0);let copy={...l,id:id(),name:l.name+' copy',sprite:c,x:l.x+2,y:l.y+2,poses:structuredClone(l.poses)};layers().push(copy);selected=copy.id;updateSelection(null);refresh();}
+function handleImport(e){const f=e.target.files?.[0];if(!f)return;if(f.size>12_000_000){toast('Image exceeds 12 MB');return;}let im=new Image();im.onload=()=>{if(im.naturalWidth>MAX||im.naturalHeight>MAX){toast('Max image size is 1024×1024; crop externally first');URL.revokeObjectURL(im.src);return;}record();const spr=mk(im.naturalWidth,im.naturalHeight);spr.getContext('2d').drawImage(im,0,0);if(im.naturalWidth>W()||im.naturalHeight>H()){doc().w=Math.max(W(),im.naturalWidth);doc().h=Math.max(H(),im.naturalHeight);fitView();}
+ const l={id:id(),name:f.name.replace(/\.[^.]+$/,'').slice(0,70),kind:'import',sprite:spr,x:Math.floor((W()-spr.width)/2),y:Math.floor((H()-spr.height)/2),rotation:0,scale:1,flip:false,visible:true,locked:false,opacity:1,poses:{}};layers().push(l);selected=l.id;updateSelection(null);focusLayer();refresh();toast('Imported '+f.name+' — grid aligned');URL.revokeObjectURL(im.src);};im.onerror=()=>toast('Could not open image');im.src=URL.createObjectURL(f);e.target.value='';}
+function bind(){
+ $('undo').onclick=undo;$('redo').onclick=redo;
+ $('minusZoom').onclick=()=>{if(viewportLocked){toast('Unlock canvas view to zoom');return;}zoom=clamp(zoom/1.25,.25,40);$('zoomLabel').textContent=Math.round(zoom*100)+'%';renderView();};$('plusZoom').onclick=()=>{if(viewportLocked){toast('Unlock canvas view to zoom');return;}zoom=clamp(zoom*1.25,.25,40);$('zoomLabel').textContent=Math.round(zoom*100)+'%';renderView();};$('resetView').onclick=()=>{if(viewportLocked){toast('Unlock canvas view to recenter');return;}fitView();$('zoomLabel').textContent=Math.round(zoom*100)+'%';renderView();};$('magToggle').onclick=()=>{mag.hidden=!mag.hidden;window.PixelForgeLayout?.syncMagnifier();renderPointer();};$('focusArt').onclick=()=>{if(viewportLocked){toast('Unlock canvas view to focus');return;}focusLayer();};
+ $('snapToggle').onclick=()=>{snap=!snap;moveCursor(pointer.x,pointer.y);refresh();};$('artSnapToggle').onclick=()=>{artSnap=!artSnap;refresh();};$('pointerMode').onclick=()=>{if(holdLocked)lockHold();clickPress=false;trackpad=!trackpad;dragStart=null;preview=null;refresh();};$('clickMode').onclick=()=>{if(holdLocked)lockHold();clickPress=false;clickEnabled=!clickEnabled;dragStart=null;preview=null;refresh();};$('clickBtn').addEventListener('pointerdown',clickDown);$('clickBtn').addEventListener('pointerup',clickUp);$('clickBtn').addEventListener('pointercancel',clickUp);$('clickBtn').addEventListener('lostpointercapture',clickUp);$('clickBtn').addEventListener('click',e=>{if(e.detail===0)clickAtPointer();});$('holdBtn').addEventListener('click',lockHold);$('showGrid').onclick=()=>{showGrid=!showGrid;refresh();};$('gridStep').onchange=e=>{gridStep=Number(e.target.value);refresh();};
+ $('canvasPreset').onchange=e=>{const val=e.target.value;if(val==='custom')return;const n=parseInt(val);changeCanvas(n,n);};$('canvasResizeBtn').onclick=()=>{const w=prompt('Canvas width in pixels (1–1024)',W());if(w===null)return;const h=prompt('Canvas height in pixels (1–1024)',H());if(h===null)return;changeCanvas(Number(w),Number(h));};
+ document.querySelectorAll('[data-tool]').forEach(btn=>{btn.onclick=()=>{if(holdLocked)lockHold();tool=btn.dataset.tool;preview=null;dragStart=null;document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('selected',b===btn));$('clickHelp').textContent=toolsShapes.has(tool)||toolsSelect.has(tool)?'START / FINISH':tool==='move'?'PICK / PLACE':tool==='picker'?'PICK COLOR':tool==='wand'?'PICK AREA':'APPLY TOOL';$('toolHint').textContent=toolsShapes.has(tool)||toolsSelect.has(tool)?'Direct: drag • Pointer: CLICK twice or HOLD':tool==='move'?'Drag artwork; Art Lock governs alignment': 'Choose a layer, then draw';refresh();};});
+ document.querySelectorAll('[data-mode]').forEach(b=>{b.onclick=()=>{mode=b.dataset.mode;selected=layers().at(-1)?.id||null;animation='idle';frame=0;playing=false;selection=null;preview=null;updatePlay();moveCursor(W()/2,H()/2);fitView();refresh();};});
+ $('palettePreset').onchange=()=>{activePersonalSlot=null;paletteRender();};$('saveCustomSwatch').onclick=saveCustomSwatch;$('replaceCustomSwatch').onclick=replaceCustomSwatch;$('removeCustomSwatch').onclick=removeCustomSwatch;paletteRender();setColor(selectedColor);
+ $('colorPicker').oninput=e=>setColor(e.target.value);$('hexColor').onchange=e=>{setColor(e.target.value);$('hexColor').value=selectedColor;};$('backgroundColor').onclick=()=>{let c=selectedColor;setColor(secondColor);secondColor=c;};
+ ['hue','sat','val'].forEach(id=>$(id).oninput=()=>setColor(hsvToHex(Number($('hue').value),Number($('sat').value),Number($('val').value))));
+ $('brushSize').oninput=e=>{brushSize=Number(e.target.value);$('brushLabel').textContent=brushSize;renderPointer();};$('opacityBrush').oninput=e=>{colorAlpha=Number(e.target.value)/100;$('opacityLabel').textContent=e.target.value+'%';};
+ $('importBtn').onclick=()=>$('importFile').click();$('importFile').onchange=handleImport;
+ $('wholeCanvasEdit').onclick=toggleWholeCanvas;$('expandFromCanvas').onclick=expandLayer;$('blankLayer').onclick=addBlankLayer;$('expandLayer').onclick=expandLayer;$('duplicate').onclick=duplicateLayer;$('delete').onclick=()=>{if(!L())return;record();const index=layers().findIndex(l=>l.id===selected);if(doc().wholeCanvas?.layerId===selected)resetWholeSession();layers().splice(index,1);selected=layers().at(-1)?.id||null;updateSelection(null);refresh();};
+ $('layerDown').onclick=()=>alterLayerPos(-1);$('layerUp').onclick=()=>alterLayerPos(1);
+ for(const [a,f] of [['X','x'],['Y','y'],['R','rotation'],['S','scale']])$('prop'+a).addEventListener('change',e=>{if(!L())return;record();editTransform(f,e.target.value);refresh();});
+ $('rotateMinus').onclick=()=>{if(!L())return;record();editTransform('rotation',-5,false);refresh();};$('rotatePlus').onclick=()=>{if(!L())return;record();editTransform('rotation',5,false);refresh();};$('flipLayer').onclick=()=>{if(!L())return;record();L().flip=!L().flip;refresh();};
+ const nudge=(axis,n)=>{moveCursor(pointer.x+(axis==='x'?n:0),pointer.y+(axis==='y'?n:0));if(holdLocked||clickPress||preview||dragStart)pointerDragAction();render();};
+ $('oneLeft').onclick=()=>nudge('x',-1);$('oneRight').onclick=()=>nudge('x',1);$('oneUp').onclick=()=>nudge('y',-1);$('oneDown').onclick=()=>nudge('y',1);
+ $('selectAll').onclick=selectAll;$('selectOpaque').onclick=selectOpaque;$('copySelection').onclick=copySelection;$('cutSelection').onclick=cutSelection;$('pasteSelection').onclick=pasteSelection;$('extractSelection').onclick=extractSelection;$('deleteSelection').onclick=deleteSelection;$('cropSelection').onclick=cropLayer;$('cropCanvas').onclick=cropCanvas;$('recolorSelection').onclick=recolorSelection;$('rotateSelection').onclick=()=>transformSelection('rot');$('flipSelection').onclick=()=>transformSelection('flip');$('scaleDownSelection').onclick=()=>transformSelection('down');$('scaleUpSelection').onclick=()=>transformSelection('up');$('clearSelection').onclick=deselectEverything;$('prominentDeselect').onclick=deselectEverything;
+ $('animationSelect').onchange=e=>{animation=e.target.value;frame=0;refresh();};$('playBtn').onclick=()=>{playing=!playing;updatePlay();};$('directionBtn').onclick=()=>{face=face==='right'?'left':'right';refresh();};$('keyframeEdit').onchange=e=>{editPoses=e.target.checked;refresh();};$('resetPose').onclick=()=>{let l=L();if(!l)return;record();if(l.poses[animation])delete l.poses[animation][frame];refresh();};$('sheetBtn').onclick=exportSheet;
+ $('exportPng').onclick=exportPNG;$('saveBtn').onclick=saveJSON;$('modalSave').onclick=()=>{saveJSON();$('modal').hidden=true;};$('menuBtn').onclick=()=>$('modal').hidden=false;$('closeModal').onclick=()=>$('modal').hidden=true;$('modal').onclick=e=>{if(e.target===$('modal'))$('modal').hidden=true;};
+ $('newProject').onclick=()=>{record();doc().layers=[];doc().wholeCanvas=null;selected=null;updateSelection(null);$('modal').hidden=true;refresh();toast('New empty '+mode+' canvas');};$('loadProject').onclick=()=>$('projectFile').click();$('projectFile').onchange=async e=>{const f=e.target.files?.[0];if(!f)return;try{if(f.size>35_000_000)throw Error('Project exceeds 35 MB');const data=JSON.parse(await f.text());record();await restore(data);$('modal').hidden=true;toast('Project loaded');}catch(err){toast('Could not load: '+err.message);}e.target.value='';};
+ screen.addEventListener('pointerdown',down);screen.addEventListener('pointermove',move);screen.addEventListener('pointerup',up);screen.addEventListener('pointercancel',up);screen.addEventListener('wheel',e=>{e.preventDefault();if(viewportLocked)return;const p=pointerAt(e),anchor=fromDisplay(p.x,p.y);zoom=clamp(zoom*(e.deltaY<0?1.2:1/1.2),.25,40);const wx=face==='left'?W()-anchor.x:anchor.x;pan.x=p.x-stage.clientWidth/2-(wx-W()/2)*zoom;pan.y=p.y-stage.clientHeight/2-(anchor.y-H()/2)*zoom;$('zoomLabel').textContent=Math.round(zoom*100)+'%';renderView();},{passive:false});
+ window.addEventListener('resize',resize);document.addEventListener('keydown',e=>{if(e.target.matches('input,select,textarea'))return;const key=e.key.toLowerCase(),cmd=e.ctrlKey||e.metaKey;if(cmd&&key==='z'){e.preventDefault();if(e.shiftKey)redo();else undo();}else if(cmd&&key==='s'){e.preventDefault();saveJSON();}else if(cmd&&key==='c'){e.preventDefault();copySelection();}else if(cmd&&key==='v'){e.preventDefault();pasteSelection();}else if(cmd&&key==='x'){e.preventDefault();cutSelection();}else if(key==='delete')deleteSelection();});
+ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
+/* Pixel Forge 0.4 Studio Layout: floating, lockable, resizable controls. */
+function setupStudioLayout(){
+  const shell=document.querySelector('.shell'),editor=document.querySelector('.editor'),workspace=document.querySelector('.workspace'),stageEl=document.querySelector('#stageContainer');
+  const snapSettings=()=>document.querySelector('#snapToggle');
+  document.querySelector('.brand small').textContent='SURVIVAL PARADISE · STUDIO 0.8';
+  const initialWidth=()=>window.innerWidth,initialHeight=()=>window.innerHeight;
+  let stored={};try{stored=JSON.parse(localStorage.getItem('pixelforge-layout-v04')||'{}')||{};}catch{}
+  const prefs={widgets:stored.widgets||{},panels:stored.panels||{},visible:stored.visible||{}};
+  const widgets={},panels={};let currentPanel=null,topZ=40;
+  const save=()=>{try{localStorage.setItem('pixelforge-layout-v04',JSON.stringify(prefs));}catch{}};
+  const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
+  function rect(widget){return {left:parseFloat(widget.style.left)||0,top:parseFloat(widget.style.top)||0,width:parseFloat(widget.style.width)||widget.offsetWidth,height:parseFloat(widget.style.height)||widget.offsetHeight};}
+  function place(el,x,y,w,h){w=clamp(w,58,Math.max(100,window.innerWidth-10));h=clamp(h,54,Math.max(100,window.innerHeight-70));el.style.width=w+'px';el.style.height=h+'px';el.style.left=clamp(x,0,Math.max(0,window.innerWidth-w))+'px';el.style.top=clamp(y,49,Math.max(49,window.innerHeight-h-54))+'px';}
+  function beginManipulation(el,handle,kind,minW,minH,cb){
+    handle.addEventListener('pointerdown',e=>{
+      if(e.button!==0||e.target.closest('button')||el.classList.contains('ui-locked')||!el.classList.contains('floating')&&el.classList.contains('studio-sheet'))return;
+      e.stopPropagation();e.preventDefault();handle.setPointerCapture(e.pointerId);el.style.zIndex=++topZ;
+      const origin={...rect(el)},first={x:e.clientX,y:e.clientY};
+      const dragging=ev=>{
+        if(ev.pointerId!==e.pointerId)return;
+        const dx=ev.clientX-first.x,dy=ev.clientY-first.y;
+        if(kind==='move')place(el,origin.left+dx,origin.top+dy,origin.width,origin.height);
+        else place(el,origin.left,origin.top,clamp(origin.width+dx,minW,window.innerWidth-10),clamp(origin.height+dy,minH,window.innerHeight-80));
+        if(cb)cb('change');
+      };
+      const done=ev=>{if(ev.pointerId!==e.pointerId)return;handle.removeEventListener('pointermove',dragging);handle.removeEventListener('pointerup',done);handle.removeEventListener('pointercancel',done);if(cb)cb('end');};
+      handle.addEventListener('pointermove',dragging);handle.addEventListener('pointerup',done);handle.addEventListener('pointercancel',done);
+    });
+  }
+  function addWidget(key,label,nodes,config){
+    const wrap=document.createElement('div');wrap.className='pf-widget floating'+(key==='magnifier'?' pf-widget-mag':'');wrap.id='widget-'+key;wrap.setAttribute('aria-label',label+' floating control');
+    wrap.innerHTML='<div class="pf-widget-head"><span>'+label+'</span><button class="pf-lock" title="Lock or unlock position" aria-label="Lock position">◇</button></div><div class="pf-widget-body"></div><div class="pf-grip" title="Resize control">◢</div>';
+    nodes.forEach(node=>wrap.querySelector('.pf-widget-body').appendChild(node));document.body.appendChild(wrap);
+    const saved=prefs.widgets[key]||{},def=config.defaultRect(),locked=saved.locked??false;
+    place(wrap,saved.left??def[0],saved.top??def[1],saved.width??def[2],saved.height??def[3]);
+    wrap.classList.toggle('ui-locked',locked);wrap.querySelector('.pf-lock').textContent=locked?'🔒':'⇲';
+    wrap.querySelector('.pf-lock').onclick=()=>{const lock=wrap.classList.toggle('ui-locked');wrap.querySelector('.pf-lock').textContent=lock?'🔒':'⇲';remember();};
+    const remember=()=>{prefs.widgets[key]={...rect(wrap),locked:wrap.classList.contains('ui-locked')};save();};
+    beginManipulation(wrap,wrap.querySelector('.pf-widget-head'), 'move',config.minW,config.minH,x=>{if(x==='end')remember();});
+    beginManipulation(wrap,wrap.querySelector('.pf-grip'),'resize',config.minW,config.minH,x=>{if(x==='end')remember();});
+    widgets[key]=wrap;wrap.hidden=prefs.visible[key]===false;
+    return wrap;
+  }
+  function makePanel(key,title,nodes){
+    const panel=document.createElement('section');panel.className='studio-sheet';panel.id='panel-'+key;panel.hidden=true;
+    panel.innerHTML='<div class="sheet-head"><strong>'+title+'</strong><button class="pf-panel-float">⇱ Float</button><button class="pf-panel-lock" title="Lock panel position">⇲</button><button class="pf-panel-close" title="Close">✕</button></div><div class="sheet-content"></div><div class="pf-grip" title="Resize panel">◢</div>';
+    nodes.forEach(node=>panel.querySelector('.sheet-content').appendChild(node));document.body.appendChild(panel);
+    const data=prefs.panels[key]||{};
+    const restore=()=>{if(data.floating){panel.classList.add('floating');const def=[Math.max(5,window.innerWidth-390),75,Math.min(365,window.innerWidth-15),Math.min(470,window.innerHeight-146)];place(panel,data.left??def[0],data.top??def[1],data.width??def[2],data.height??def[3]);}}
+    restore();
+    const remember=()=>{prefs.panels[key]={...rect(panel),floating:panel.classList.contains('floating'),locked:panel.classList.contains('ui-locked')};save();};
+    if(data.locked){panel.classList.add('ui-locked');panel.querySelector('.pf-panel-lock').textContent='🔒';}
+    panel.querySelector('.pf-panel-lock').onclick=()=>{const locked=panel.classList.toggle('ui-locked');panel.querySelector('.pf-panel-lock').textContent=locked?'🔒':'⇲';remember();};
+    const floatBtn=panel.querySelector('.pf-panel-float');
+    floatBtn.onclick=()=>{const isFloat=panel.classList.toggle('floating');floatBtn.textContent=isFloat?'⇱ Dock':'⇱ Float';if(isFloat){const def=[Math.max(5,window.innerWidth-400),70,Math.min(370,window.innerWidth-15),Math.min(480,window.innerHeight-160)];place(panel,def[0],def[1],def[2],def[3]);}else{panel.style.cssText='';}remember();};
+    if(data.floating)floatBtn.textContent='⇱ Dock';
+    panel.querySelector('.pf-panel-close').onclick=()=>hidePanel(key);
+    beginManipulation(panel,panel.querySelector('.sheet-head'),'move',235,170,x=>{if(x==='end')remember();});
+    beginManipulation(panel,panel.querySelector('.pf-grip'),'resize',230,155,x=>{if(x==='end')remember();});
+    panels[key]=panel;return panel;
+  }
+  function showPanel(key){for(const [id,p] of Object.entries(panels)){if(id!==key&&!p.classList.contains('floating'))p.hidden=true;}const panel=panels[key];panel.hidden=false;panel.style.zIndex=++topZ;currentPanel=key;updateNav();}
+  function hidePanel(key){panels[key].hidden=true;if(currentPanel===key)currentPanel=null;updateNav();}
+  function updateNav(){document.querySelectorAll('[data-studio-nav]').forEach(b=>b.classList.toggle('active',!panels[b.dataset.studioNav].hidden));}
+  const take=s=>{const n=document.querySelector(s);if(!n)throw Error('Missing Pixel Forge control '+s);return n;};
+  const bottom=document.createElement('nav');bottom.className='studio-nav';bottom.setAttribute('aria-label','Studio panels');bottom.innerHTML=[['tools','✎','Tools'],['colors','◕','Colors'],['layers','▥','Layers'],['animation','▣','Animate'],['settings','⚙','Setup']].map(([id,icon,txt])=>'<button data-studio-nav="'+id+'"><b>'+icon+'</b>'+txt+'</button>').join('');shell.appendChild(bottom);
+  const toolBar=take('.tool-bar');
+  makePanel('tools','DRAWING & SELECTION',[toolBar,take('.selection-primary'),take('.selection-bar'),take('.edit-nudge')]);
+  makePanel('colors','PALETTE & COLORS',[take('.color-main'),take('.tool-options'),take('.palette-actions'),take('.color-advanced')]);
+  makePanel('layers','CHARACTER / WEAPON LAYERS',[take('.sidebar')]);
+  makePanel('animation','ANIMATION TIMELINE',[take('.timeline')]);
+  const settingsPanel=makePanel('settings','STUDIO SETTINGS',[take('.pointer-bar'),take('.canvas-edit-line'),take('#fullCanvasInfo'),take('.editor-setting-line'),take('.pointer-status'),take('.bottom')]);
+  const settingsBody=settingsPanel.querySelector('.sheet-content');
+  settingsBody.insertAdjacentHTML('afterbegin','<div class="pf-section-title">HELP & TUTORIAL</div><button id="pfOpenHelp" class="pf-wide-button" style="width:100%;min-height:43px;font-weight:750">ⓘ Info — Complete Guide to Every Tool</button><div class="pf-section-title">LAYOUT & FLOATING CONTROLS</div><div class="pf-visibility-grid" id="pfVisGrid"></div><p class="pf-settings-note">Drag the narrow title bar to reposition a floating control. Drag its ◢ corner to resize. Tap ⇲ to lock or unlock. Each panel can be floated or docked.</p><button class="pf-wide-button" id="pfResetLayout">↺ Reset panel positions</button><div class="pf-section-title">EDITOR OPTIONS</div>');
+  // Offline, searchable reference. Each control from the five studio panels is documented.
+  const helpSections=[
+   ['GETTING STARTED','Start with Layers → select a body part or tap Blank. The dotted box is the boundary of the selected layer, not a hard canvas limit. Open Setup → EDIT WHOLE IMAGE to edit across the complete canvas; tap ORIGINAL PARTS to return to modular sprites. Full-image mode creates a separate flat layer and does not permanently merge the original parts. Import a PNG in Layers or draw directly with the Pencil.'],
+   ['TOUCH / POINTER / DRAWING','Pointer moves a crosshair without drawing when Click Mode is ON. Tap CLICK to apply the current tool at the crosshair. HOLD / DRAG locks the mouse button so movement creates a continuous stroke or drag; tap again to release. With Click Mode OFF, pointer movement draws automatically for compatible tools. Pointer/Direct changes between an indirect cursor and drawing directly beneath your finger. For straight lines, shapes, and selections in pointer mode: CLICK once at the start, move pointer, CLICK again to finish. Two fingers pinch to zoom/pan the art.'],
+   ['CANVAS VIEW','− / + decrease/increase zoom; ⌖ centers and fits the canvas; 🔎 shows/hides the floating magnifier. Move the magnifier using its title strip and resize with ◢. The magnifier displays pixels beneath the cursor but does not modify the image. Grid toggles overlay lines; Grid step changes spacing in logical pixels (1, 2, 4, 8, 16, 32, or 64). Pixel Snap ON locks the pointer to exact integer pixels, OFF gives free cursor positioning. Art Lock ON aligns moved layers to pixel coordinates; OFF permits fractional placement. Focus centers and zooms to the active layer. Canvas preset and Resize change canvas dimensions (maximum 1024×1024).'],
+   ['FLOATING WINDOWS / WORKSPACE','The bottom Tools, Colors, Layers, Animate, Setup buttons open panels. Tap ⇱ Float to undock a panel; tap ⇱ Dock to return it. Drag the colored panel title bar or each floating widget’s small title strip to move it. Drag ◢ at the lower-right to resize. ⇲ locks or unlocks position; 🔒 means locked. ✕ closes a panel. Setup includes checkboxes to show/hide Click, Hold, Zoom, Magnifier, or Quick Tools, and Reset panel positions. Click and Hold work even when other panels are closed.'],
+   ['DRAWING TOOLS','Pencil draws pixels with the chosen color and brush size. Erase makes pixels transparent. Move drags the active layer (not the whole document). Pick samples color at the cursor. Bucket flood-fills connected pixels of similar existing color on the selected layer. Pan drags the view instead of painting. Line draws straight strokes. Rect and Fill rect draw unfilled/filled rectangles. Ellipse and Fill oval draw unfilled/filled circles/ellipses. Triangle and Fill tri draw outlined/solid triangles. Star and Fill star draw outlined/filled stars. Tool selection is available in Tools; common tools are also in the floating Tools rail.'],
+   ['SELECTIONS / DESELECT','Sel rect and Sel oval select a rectangular or elliptical area. Lasso traces an irregular area; Wand selects connected pixels of matching color. All selects the entire active layer; Opaque selects nontransparent pixels. Deselect / Cancel selection clears the current selection and an unfinished shape, without erasing artwork. Deselect is on the floating Tools rail and at the top of the Tools panel. Selections belong to the currently selected layer, so use EDIT WHOLE IMAGE to select across all visible parts.'],
+   ['SELECTION ACTIONS','Copy copies selected pixels; Cut copies and erases; Paste inserts copied pixels; Extract removes selected pixels and creates a separate layer; Delete erases selected pixels. Crop layer cuts the selected layer to its selection; Crop canvas changes the document canvas to selected bounds. Recolor changes selected pixels to the foreground color. Rotate 90°, Flip selection, ½ Size and 2× Size transform selected pixels. The four arrow buttons move the precision cursor one pixel at a time. Undo and Redo reverse or reapply supported editing steps.'],
+   ['PALETTE / COLORS','Open Colors from the bottom bar. Choose Studio 256 (256 generated RGB colors), Expanded 64, PICO-8 16, Survival / earth 32, or My 128 color slots. Scroll vertically to see all swatches. Tap a swatch to select the foreground color. In My 128 color slots, tap an empty + tile to save the selected foreground color. Save to My Slots stores the current color in the first empty slot and switches to the personal palette. Select a personal swatch then Replace Slot to overwrite it or Clear Slot to empty it. The personal palette stays on this device between sessions. The color-square opens Android’s color picker; Hex accepts a #RRGGBB value; HSV sliders adjust hue, saturation and brightness; Brush changes pencil size; Opacity sets brush alpha; ⇄ Colors swaps foreground and secondary color.'],
+   ['CHARACTERS / WEAPONS / LAYERS','Character / Weapon switches between separate workspaces. Tap an asset in Asset Library to add a sprite part; + Import PNG adds your own image as a layer. The Layers list determines draw order: selected layer is highlighted; ◉/○ shows/hides it. ＋ Blank makes a full-canvas paint layer. ▧ Expand increases the selected part’s editable bounds without merging other parts. ⧉ duplicates a layer; ✕ deletes it; ↑ and ↓ reorder it. X / Y move a layer by numbers; Rotation and Scale transform it; ↶−5° and ↷+5° rotate in increments; ⇄ Flip mirrors a layer. Select the correct layer before painting or erasing.'],
+   ['ANIMATION / EXPORT','Animate panel: Idle, Walk, Run, Aim / Hold select a motion; ▶ Play previews motion; ⇄ Right/Left switches facing direction; eight numbered frames control the current time. Edit poses per frame lets transforms differ by frame; Reset frame pose removes the selected frame’s pose adjustment. Export 8-frame sheet writes a sprite sheet. ↓ PNG exports a transparent flattened image of the current view. ↓ Save project writes editable JSON with layers and poses. The top ☰ menu offers New project, Open project, Save project. Save the editable project before destructive crop or transform operations.'],
+   ['COMMON FIXES','Cannot paint outside a dotted rectangle? Setup → EDIT WHOLE IMAGE, or Layers → Blank/Expand. Cannot draw at all? Select Pencil, verify selected layer is visible and unlocked, move the crosshair, tap CLICK; try Direct mode. A blue selection outline remains? Tap ✕ Deselect in the floating Tools rail. Magnifier blocks the view? Tap 🔎 or uncheck Magnifier in Setup. Palette displays only a few swatches? Scroll the color panel; choose Studio 256 and expand/floated-resize the panel. Large canvases with many layers may redraw more slowly; hide the grid or reduce zoom while navigating.']
+  ];
+  const infoModal=document.createElement('div');infoModal.id='pfInfoModal';infoModal.className='pf-info-modal';infoModal.hidden=true;infoModal.setAttribute('role','dialog');infoModal.setAttribute('aria-modal','true');infoModal.setAttribute('aria-label','Pixel Forge complete tutorial');
+  infoModal.innerHTML='<section class="pf-info-dialog"><div class="pf-info-head"><strong>ⓘ PIXEL FORGE — COMPLETE GUIDE</strong><button id="pfInfoClose" aria-label="Close tutorial">✕ Close</button></div><div class="pf-info-search"><input id="pfInfoSearch" type="search" placeholder="Find a tool, button, or action…" aria-label="Search tutorial"><span id="pfInfoResult"></span></div><div class="pf-info-scroll" id="pfInfoContent"></div></section>';
+  document.body.appendChild(infoModal);
+  const helpContent=infoModal.querySelector('#pfInfoContent'),search=infoModal.querySelector('#pfInfoSearch');
+  function renderHelp(filter=''){
+    helpContent.replaceChildren();let count=0;
+    for(const [name,desc] of helpSections){if(filter&&!((name+' '+desc).toLowerCase().includes(filter.toLowerCase())))continue;count++;const details=document.createElement('details');details.className='pf-guide-section';details.open=count===1||!!filter;
+      const heading=document.createElement('summary');heading.textContent=name;const p=document.createElement('p');p.textContent=desc;details.append(heading,p);helpContent.append(details);}
+    infoModal.querySelector('#pfInfoResult').textContent=count?count+' topics':'No matches';
+  }
+  const closeInfo=()=>{infoModal.hidden=true;};
+  const openInfo=()=>{search.value='';renderHelp();infoModal.hidden=false;search.focus();};
+  settingsBody.querySelector('#pfOpenHelp').onclick=openInfo;
+  infoModal.querySelector('#pfInfoClose').onclick=closeInfo;
+  infoModal.addEventListener('pointerdown',e=>{if(e.target===infoModal)closeInfo();});
+  infoModal.querySelector('#pfInfoSearch').addEventListener('input',()=>renderHelp(search.value.trim()));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!infoModal.hidden)closeInfo();});
+  const helpHeader=document.createElement('button');helpHeader.id='pfHeaderHelp';helpHeader.className='icon-button';helpHeader.textContent='ⓘ';helpHeader.title='Full tutorial for every tool';helpHeader.setAttribute('aria-label','Open full help tutorial');helpHeader.onclick=openInfo;
+  document.querySelector('.head-actions').prepend(helpHeader);
+  document.querySelectorAll('[data-studio-nav]').forEach(b=>{b.onclick=()=>{const key=b.dataset.studioNav;panels[key].hidden?showPanel(key):hidePanel(key);};});
+  // Floating CLICK and HOLD are the actual original buttons, not imitations.
+  addWidget('click','CLICK',[take('#clickBtn')],{minW:72,minH:70,defaultRect:()=>[initialWidth()-126,initialHeight()-193,118,96]});
+  addWidget('hold','HOLD / DRAG',[take('#holdBtn')],{minW:72,minH:63,defaultRect:()=>[initialWidth()-126,initialHeight()-269,118,67]});
+  // Zoom controls remain functional because their original DOM nodes are moved.
+  addWidget('view','ZOOM · MAGNIFIER',[take('.stage-top')],{minW:118,minH:54,defaultRect:()=>[initialWidth()-196,80,187,60]});
+  addWidget('magnifier','MAGNIFIER',[take('#magnifier')],{minW:80,minH:84,defaultRect:()=>[10,104,136,157]});
+  const rail=document.createElement('div');rail.className='quick-rail';
+  const shortcuts=[['paint','✎','Draw'],['erase','⌫','Erase'],['move','✥','Move'],['pan','✋','Pan'],['picker','◉','Pick'],['selectRect','▤','Select']];
+  shortcuts.forEach(([key,icon,label])=>{const b=document.createElement('button');b.type='button';b.dataset.quick=key;b.textContent=icon+' '+label;b.onclick=()=>{const orig=document.querySelector('[data-tool="'+key+'"]');orig?.click();syncQuick();};rail.appendChild(b);});const dq=document.createElement('button');dq.id='quickDeselect';dq.textContent='✕ Deselect';dq.title='Clear active selection or cancel unfinished shape';dq.onclick=()=>$('prominentDeselect').click();rail.appendChild(dq);
+  addWidget('quick','TOOLS',[rail],{minW:75,minH:120,defaultRect:()=>[8,initialHeight()-361,91,280]});
+  function syncQuick(){document.querySelectorAll('[data-quick]').forEach(b=>b.classList.toggle('current',document.querySelector('[data-tool="'+b.dataset.quick+'"]').classList.contains('selected')));}
+  document.querySelectorAll('[data-tool]').forEach(b=>b.addEventListener('click',()=>{syncQuick();if(!panels.tools.classList.contains('floating'))hidePanel('tools');}));syncQuick();
+  // The existing mag toggle is preserved and doubles as the show/hide setting.
+  const actualMagnifier=take('#magnifier');
+  function syncMagnifier(){const vis=!actualMagnifier.hidden;widgets.magnifier.hidden=!vis;prefs.visible.magnifier=vis;take('#magToggle').setAttribute('aria-pressed',String(vis));save();}
+  window.PixelForgeLayout={syncMagnifier,widgets,panels,showPanel};
+  if(prefs.visible.magnifier===false)actualMagnifier.hidden=true;syncMagnifier();
+  const grid=take('#pfVisGrid');for(const [key,label] of [['click','Click'],['hold','Hold / Drag'],['view','Zoom buttons'],['magnifier','Magnifier'],['quick','Quick tools']]){
+    const item=document.createElement('label'),inp=document.createElement('input');inp.type='checkbox';inp.checked=!widgets[key].hidden;inp.onchange=()=>{prefs.visible[key]=inp.checked;if(key==='magnifier'){actualMagnifier.hidden=!inp.checked;syncMagnifier();renderPointer();}else widgets[key].hidden=!inp.checked;save();};item.append(inp,document.createTextNode(label));grid.appendChild(item);
+  }
+  take('#magToggle').addEventListener('click',()=>{const i=grid.querySelectorAll('input')[3];i.checked=!actualMagnifier.hidden;});
+  take('#pfResetLayout').onclick=()=>{prefs.widgets={};prefs.panels={};save();const defaults={click:[initialWidth()-126,initialHeight()-193,118,96],hold:[initialWidth()-126,initialHeight()-269,118,67],view:[initialWidth()-196,80,187,60],magnifier:[10,104,136,157],quick:[8,initialHeight()-361,76,248]};for(const [key,w] of Object.entries(widgets)){w.classList.remove('ui-locked');w.querySelector('.pf-lock').textContent='⇲';place(w,...defaults[key]);}for(const p of Object.values(panels)){p.classList.remove('floating','ui-locked');p.style.cssText='';p.querySelector('.pf-panel-float').textContent='⇱ Float';p.querySelector('.pf-panel-lock').textContent='⇲';p.hidden=true;}currentPanel=null;updateNav();save();resize();toast('Floating control positions reset');};
+  // Keep the canvas responsive when the phone rotates or system bars resize the viewport.
+  window.addEventListener('resize',()=>{for(const w of Object.values(widgets)){const r=rect(w);place(w,r.left,r.top,r.width,r.height);}for(const p of Object.values(panels))if(p.classList.contains('floating')){const r=rect(p);place(p,r.left,r.top,r.width,r.height);}});
+  // Existing shortcuts still bind to their original controls now hosted in panels.
+  document.querySelector('.click-bar')?.remove();
+  // The status bar stays compact. Layout instructions live under Setup.
+  return {panels,widgets};
+}
+
+
+function setupStudioEnhancements(){
+ const panels=window.PixelForgeLayout.panels, settings=panels.settings.querySelector('.sheet-content'), tools=panels.tools.querySelector('.sheet-content');
+ // Dedicated canvas-lock controls; lock only the VIEW, not artwork editing.
+ const lock=document.createElement('button');lock.id='pfCanvasLock';lock.type='button';lock.title='Prevent accidental zoom and pan while still allowing drawing and selecting';lock.setAttribute('aria-pressed',String(viewportLocked));lock.onclick=()=>{viewportLocked=!viewportLocked;localStorage.setItem('pixelforge-viewport-lock-v06',String(viewportLocked));syncCanvasLock();toast(viewportLocked?'Canvas view locked; editing remains available':'Canvas unlocked');};
+ document.querySelector('.stage-top').append(lock);
+ const lockInfo=document.createElement('div');lockInfo.className='pf-setting-line';lockInfo.innerHTML='<strong>CANVAS NAVIGATION</strong><p>Lock blocks one- or two-finger pan/zoom and +/- buttons, but keeps drawing, selecting and moving artwork enabled.</p><button type="button" id="pfSettingsLock">Lock canvas view</button>';settings.prepend(lockInfo);
+ settings.querySelector('#pfSettingsLock').onclick=()=>lock.click();
+ function syncCanvasLock(){lock.textContent=viewportLocked?'🔒':'🔓';lock.classList.toggle('pf-locked-view',viewportLocked);lock.setAttribute('aria-pressed',String(viewportLocked));settings.querySelector('#pfSettingsLock').textContent=viewportLocked?'🔒 Canvas LOCKED — tap to unlock':'🔓 Lock canvas view';}
+ syncCanvasLock();
+ // Put selection operations first, not below the many drawing tools.
+ const wb=document.createElement('section');wb.className='pf-select-workbench';wb.id='pfSelectWorkbench';wb.innerHTML=`<div class="pf-section-title">SELECTION ACTIONS · <span id="pfSelInfo">Make a selection first</span></div><div class="pf-selection-grid">
+ <button data-selop="copy">Copy</button><button data-selop="cut">Cut</button><button data-selop="paste">Paste</button>
+ <button data-selop="erase">Erase</button><button data-selop="recolor">Recolor</button><button data-selop="fill">Fill</button>
+ <button data-selop="extract">Cut → new layer</button><button data-selop="copyLayer">Copy → new layer</button><button data-selop="outline">Outline</button>
+ <button data-selop="invert">Invert selection</button><button data-selop="selectAll">Select all</button><button data-selop="deselect">Deselect</button>
+ <button data-selop="flipH">Flip H</button><button data-selop="flipV">Flip V</button><button data-selop="rotate">Rotate 90°</button>
+ <button data-selop="scaleUp">2×</button><button data-selop="scaleDown">½×</button><button data-selop="crop">Crop layer</button>
+ <button data-selop="replace">Replace matching colors…</button><button data-selop="cropCanvas">Crop canvas</button>
+ </div>`;
+ tools.insertBefore(wb,tools.firstChild);
+ const actions={copy:copySelection,cut:cutSelection,paste:pasteSelection,erase:deleteSelection,recolor:recolorSelection,fill:fillSelectedPixels,extract:extractSelection,copyLayer:copySelectionToLayer,outline:outlineSelectedPixels,invert:invertSelectedMask,selectAll,deselect:deselectEverything,flipH:()=>transformSelection('flip'),flipV:flipSelectionVertical,rotate:()=>transformSelection('rot'),scaleUp:()=>transformSelection('up'),scaleDown:()=>transformSelection('down'),crop:cropLayer,cropCanvas,replace:openReplaceDialog};
+ wb.querySelectorAll('[data-selop]').forEach(b=>b.addEventListener('click',()=>{actions[b.dataset.selop]?.();updateWorkbench();}));
+ const info=wb.querySelector('#pfSelInfo');
+ function updateWorkbench(){const b=selectionBounds();info.textContent=b?`${b.w}×${b.h} px`:'No selection';wb.querySelectorAll('[data-selop]').forEach(btn=>{const a=btn.dataset.selop;btn.disabled=!b&&!['selectAll','paste','invert','replace','deselect'].includes(a);});}
+ const originalRenderSelectionInfo=renderSelectionInfo;renderSelectionInfo=function(){originalRenderSelectionInfo();updateWorkbench();};updateWorkbench();
+ // Visible context actions when a selection exists, without covering much of the canvas.
+ const fast=document.createElement('div');fast.className='pf-selection-shortcuts';fast.id='pfSelectionShortcuts';fast.hidden=true;fast.innerHTML='<button id="pfQuickCopy">Copy</button><button id="pfQuickCut">Cut</button><button id="pfQuickNewLayer">To layer</button><button id="pfQuickDeselect">✕</button>';
+ document.querySelector('.info-bar').after(fast);
+ fast.querySelector('#pfQuickCopy').onclick=copySelection;fast.querySelector('#pfQuickCut').onclick=cutSelection;fast.querySelector('#pfQuickNewLayer').onclick=extractSelection;fast.querySelector('#pfQuickDeselect').onclick=deselectEverything;
+ const originalUpdateSelection=updateSelection;updateSelection=function(obj){originalUpdateSelection(obj);fast.hidden=!selectionBounds();updateWorkbench();};
+ // Exact or tolerant RGB replacement, scope is explicit to avoid unexpected recolors.
+ const dialog=document.createElement('div');dialog.id='pfReplaceModal';dialog.className='pf-info-modal';dialog.hidden=true;dialog.innerHTML=`<section class="pf-replace-dialog" role="dialog" aria-modal="true" aria-label="Replace color"><div class="pf-replace-header"><strong>REPLACE MATCHING COLORS</strong><button id="pfReplaceClose">✕</button></div><div class="pf-replace-form"><label>From <input type="color" id="pfReplaceFrom"></label><label>To <input type="color" id="pfReplaceTo"></label><label>Similarity tolerance <input type="range" id="pfReplaceTolerance" min="0" max="128" value="0" step="1"> <span id="pfTolVal">0</span></label><label>Where <select id="pfReplaceScope"><option value="selection">Selected pixels only</option><option value="active">Current layer</option><option value="all">All visible unlocked layers (entire canvas)</option></select></label><p>Only opaque pixels are recolored. The original transparency is preserved. Undo reverses the operation.</p><button id="pfReplaceApply">Apply color replacement</button></div></section>`;
+ document.body.append(dialog);
+ dialog.querySelector('#pfReplaceClose').onclick=()=>dialog.hidden=true;dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.hidden=true;});
+ dialog.querySelector('#pfReplaceTolerance').oninput=e=>dialog.querySelector('#pfTolVal').textContent=e.target.value;
+ dialog.querySelector('#pfReplaceApply').onclick=()=>{const from=dialog.querySelector('#pfReplaceFrom').value,to=dialog.querySelector('#pfReplaceTo').value,t=Number(dialog.querySelector('#pfReplaceTolerance').value),scope=dialog.querySelector('#pfReplaceScope').value;if(replaceMatchingColor(from,to,t,scope))dialog.hidden=true;};
+ function openReplaceDialog(){dialog.querySelector('#pfReplaceFrom').value=sourcePixelColor();dialog.querySelector('#pfReplaceTo').value=selectedColor;dialog.querySelector('#pfReplaceScope').value=selectionBounds()?'selection':'all';dialog.hidden=false;}
+ const colorPane=panels.colors.querySelector('.sheet-content');const replaceFromColors=document.createElement('button');replaceFromColors.textContent='⇄ Replace matching colors across canvas…';replaceFromColors.className='pf-wide-button';replaceFromColors.style.width='100%';replaceFromColors.onclick=openReplaceDialog;colorPane.append(replaceFromColors);
+ // Readable text sizing applied to labels/controls, never changing pixel canvas scale.
+ const typography=document.createElement('section');typography.className='pf-setting-line';typography.innerHTML='<strong>TEXT SIZE</strong><label>Interface text <input id="pfTextScale" type="range" min="85" max="160" step="5" value="100"> <span id="pfTextScaleLabel">100%</span></label><button id="pfTextReset">Reset font size</button>';settings.append(typography);
+ const tx=typography.querySelector('#pfTextScale'),txVal=typography.querySelector('#pfTextScaleLabel');
+ const applyText=()=>{const v=Math.max(85,Math.min(160,Number(tx.value)||100));document.documentElement.style.setProperty('--pf-type-scale',String(v/100));txVal.textContent=v+'%';localStorage.setItem('pixelforge-text-scale-v06',String(v));};
+ tx.value=localStorage.getItem('pixelforge-text-scale-v06')||'100';tx.oninput=applyText;typography.querySelector('#pfTextReset').onclick=()=>{tx.value=100;applyText();};applyText();
+ // Preset themes and a persistent custom palette. Foreground text is manually selectable.
+ const colorKeys=['background','panel','button','accent','text'];
+ const themes={
+  'Forest':{background:'#0e1519',panel:'#1b3030',button:'#26363e',accent:'#74dec8',text:'#e8efeb'},
+  'Midnight':{background:'#0c1224',panel:'#192444',button:'#293955',accent:'#8bb5ff',text:'#eef3ff'},
+  'Desert':{background:'#241d16',panel:'#49392b',button:'#5a4935',accent:'#e8bd79',text:'#fff1dc'},
+  'Slate Light':{background:'#dce5e6',panel:'#eaf0f1',button:'#b8ccce',accent:'#117e82',text:'#152e32'},
+  'Violet':{background:'#191323',panel:'#30233a',button:'#47304c',accent:'#e2a9ff',text:'#fff3ff'}
+ };
+ let customTheme={...themes.Forest};try{customTheme={...customTheme,...JSON.parse(localStorage.getItem('pixelforge-custom-theme-v06')||'{}')};}catch{}
+ const themeUI=document.createElement('section');themeUI.className='pf-setting-line';themeUI.innerHTML='<strong>INTERFACE THEME</strong><label>Preset <select id="pfThemePreset"><option>Forest</option><option>Midnight</option><option>Desert</option><option>Slate Light</option><option>Violet</option><option>Custom</option></select></label><div class="pf-theme-colors" id="pfThemeControls"></div><button id="pfSaveTheme">Save as custom theme</button><p>Adjust colors independently of your drawing palette. Themes and text size are saved on this device.</p>';settings.append(themeUI);
+ const pickers={};for(const key of colorKeys){const label=document.createElement('label');label.textContent=key==='background'?'Background':key==='panel'?'Panels':key==='button'?'Buttons':key==='accent'?'Accent':'Text';const input=document.createElement('input');input.type='color';input.dataset.themeKey=key;label.append(input);themeUI.querySelector('#pfThemeControls').append(label);pickers[key]=input;input.addEventListener('input',()=>{customTheme=Object.fromEntries(colorKeys.map(k=>[k,pickers[k].value]));themeUI.querySelector('#pfThemePreset').value='Custom';applyTheme(customTheme);saveTheme();});}
+ const preset=themeUI.querySelector('#pfThemePreset');const saveTheme=()=>{localStorage.setItem('pixelforge-theme-choice-v06',preset.value);localStorage.setItem('pixelforge-custom-theme-v06',JSON.stringify(customTheme));};
+ function applyTheme(c){const root=document.documentElement;for(const key of colorKeys)root.style.setProperty('--pf-theme-'+key,c[key]);for(const key of colorKeys)pickers[key].value=c[key];root.dataset.pfTheme=preset.value;}
+ preset.onchange=()=>{applyTheme(preset.value==='Custom'?customTheme:themes[preset.value]);saveTheme();};
+ themeUI.querySelector('#pfSaveTheme').onclick=()=>{customTheme=Object.fromEntries(colorKeys.map(k=>[k,pickers[k].value]));preset.value='Custom';applyTheme(customTheme);saveTheme();toast('Custom theme saved');};
+ preset.value=localStorage.getItem('pixelforge-theme-choice-v06')||'Forest';if(!themes[preset.value]&&preset.value!=='Custom')preset.value='Forest';applyTheme(preset.value==='Custom'?customTheme:themes[preset.value]);
+ // Test hooks: no mutation to user project by merely querying state.
+ window.PixelForgeDebugV06={getState:()=>({viewportLocked,zoom,pan:{...pan},selection:selectionBounds(),theme:preset.value,text:tx.value,tool}),selectRect:(x0,y0,x1,y1)=>updateSelection(maskFromRect({x:x0,y:y0},{x:x1,y:y1},'selectRect',L().sprite.width,L().sprite.height)),replaceMatchingColor,fillSelectedPixels,outlineSelectedPixels,invertSelectedMask,copySelectionToLayer,openReplaceDialog,panels};
+ const helpBox=document.querySelector('#pfInfoContent');if(helpBox){const tip=document.createElement('details');tip.className='pf-guide-section';tip.innerHTML='<summary>NEW IN 0.6 — GESTURES, SELECTIONS, THEMES</summary><p>Pan: choose ✋ Pan then drag one finger; a two-finger pan translates the canvas without zooming. Other tools only pinch-zoom when finger spacing changes beyond a threshold. Lock Canvas View (🔓 / 🔒) in the floating Zoom bar or Setup to prevent both pan and zoom while keeping drawing enabled. Open Tools for the Selection Actions grid: copy, cut, paste, fill, outline, invert, cut or copy to new layer, flip, transform, crop, erase or recolor. Replace matching colors opens a dialog: choose source, target, RGB tolerance and whether to affect selection, layer, or all visible unlocked layers. Docked Tools panels scroll vertically. Setup also contains Text Size (85–160%) and Theme presets with saved custom colors.</p>';helpBox.prepend(tip);}
+}
+
+
+function setupPixelForgeV07(){
+ const P=window.PixelForgeLayout.panels;
+ const settings=P.settings.querySelector('.sheet-content'),colors=P.colors.querySelector('.sheet-content');
+ const rail=window.PixelForgeLayout.widgets.quick.querySelector('.quick-rail');
+ const modKey='pixelforge-mods-v07',palKey='pixelforge-imported-palettes-v07',quickKey='pixelforge-quicktools-v07';
+ const toolEntries=[...document.querySelectorAll('.tool-bar [data-tool]')].map(n=>({id:n.dataset.tool,title:n.getAttribute('title')||n.textContent.trim(),label:n.querySelector('span')?.textContent||n.dataset.tool,icon:n.textContent.trim().split(' ')[0]}));
+ const ids=new Set(toolEntries.map(x=>x.id)),defaults=['paint','erase','move','pan','picker','selectRect'];
+ const checked=(v)=>Array.isArray(v)?[...new Set(v.filter(id=>ids.has(id)))]:null;
+ const readJSON=(key,fall)=>{try{return JSON.parse(localStorage.getItem(key)||'null')??fall;}catch{return fall;}};
+ let quickTools=checked(readJSON(quickKey,defaults))||defaults.slice();
+ let imported=readJSON(palKey,{});if(!imported||typeof imported!=='object'||Array.isArray(imported))imported={};
+ let installedMods=readJSON(modKey,[]);if(!Array.isArray(installedMods))installedMods=[];
+ const cleanName=v=>String(v||'Imported').replace(/[^a-z0-9 _().-]/gi,'').slice(0,50)||'Imported';
+ const colorsValid=x=>Array.isArray(x)?x.filter(v=>typeof v==='string'&&/^#[\da-f]{6}$/i.test(v)).slice(0,512).map(v=>v.toLowerCase()):[];
+ const savePal=()=>{localStorage.setItem(palKey,JSON.stringify(imported));};
+ const rgb=(r,g,b)=>'#'+[r,g,b].map(v=>clamp(Number(v)||0,0,255).toString(16).padStart(2,'0')).join('');
+ const safePaletteName=n=>cleanName(n).replace(/\.[a-z]{1,10}$/i,'');
+ function applyPalette(name,list){const colors=colorsValid(list);if(!colors.length)throw Error('No valid opaque HEX colors found');
+  if(Object.keys(imported).length>=24&&!imported[name])throw Error('24 imported palettes maximum');
+  const key='pfimp_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,6);
+  imported[key]={name:safePaletteName(name),colors};palettes[key]=colors;
+  const option=document.createElement('option');option.value=key;option.textContent='↓ '+imported[key].name+' ('+colors.length+')';$('palettePreset').append(option);
+  savePal();$('palettePreset').value=key;paletteRender();toast('Imported '+colors.length+' colors');return key;
+ }
+ for(const [key,item] of Object.entries(imported)){
+  const list=colorsValid(item?.colors);if(!/^pfimp_[a-z0-9_]+$/i.test(key)||!list.length){delete imported[key];continue;}
+  palettes[key]=list;const op=document.createElement('option');op.value=key;op.textContent='↓ '+cleanName(item.name)+' ('+list.length+')';$('palettePreset').append(op);
+ }
+ function parsePaletteText(text,filename){if(text.length>1_000_000)throw Error('Palette text too large');
+  if(/^\s*[\[{]/.test(text)){
+   const o=JSON.parse(text);const arr=Array.isArray(o)?o:(o.colors||o.palette?.colors||o.palette||o.swatches||[]);
+   return arr.map(v=>typeof v==='string'?v:v?.hex||v?.color||v?.value||'').map(v=>/^#[\da-f]{8}$/i.test(v)?v.slice(0,7):v);
+  }
+  const lines=text.replace(/\r/g,'').split('\n');const out=[];
+  for(let line of lines){line=line.trim();if(!line||/^(GIMP Palette|Name:|Columns:|JASC-PAL|Color Palette|\d{1,4}$)/i.test(line))continue;
+   let m=line.match(/^(\d{1,3})[\s,]+(\d{1,3})[\s,]+(\d{1,3})(?:\s|$)/);
+   if(m){out.push(rgb(+m[1],+m[2],+m[3]));continue;}
+   m=line.match(/^#?([\da-f]{6})(?:[\da-f]{2})?(?:\s|$)/i);if(m)out.push('#'+m[1].toLowerCase());
+  }return out;
+ }
+ async function parseImagePalette(file){const obj=URL.createObjectURL(file);try{
+  const img=new Image();img.src=obj;await img.decode();if(img.naturalWidth*img.naturalHeight>4000000)throw Error('Image too large for palette extraction');
+  const cv=mk(img.naturalWidth,img.naturalHeight),g=cv.getContext('2d',{willReadFrequently:true});g.drawImage(img,0,0);const px=g.getImageData(0,0,cv.width,cv.height).data;const list=[],seen=new Set();
+  for(let i=0;i<px.length;i+=4){if(px[i+3]<128)continue;const c=rgb(px[i],px[i+1],px[i+2]);if(!seen.has(c)){list.push(c);seen.add(c);if(list.length>=512)break;}}
+  return list;
+ }finally{URL.revokeObjectURL(obj);}}
+ async function zipEntries(buffer){
+  const b=new Uint8Array(buffer);const v=new DataView(buffer);let loc=-1;
+  for(let i=b.length-22;i>=Math.max(0,b.length-65558);i--)if(v.getUint32(i,true)===0x06054b50){loc=i;break;}
+  if(loc<0)throw Error('Not a ZIP extension');const n=v.getUint16(loc+10,true),dir=v.getUint32(loc+16,true);if(n>100||dir>=b.length)throw Error('Extension archive out of range');
+  const out=new Map();let p=dir;const dec=new TextDecoder();
+  for(let i=0;i<n;i++){
+   if(p+46>b.length||v.getUint32(p,true)!==0x02014b50)throw Error('Invalid extension directory');
+   const method=v.getUint16(p+10,true),comp=v.getUint32(p+20,true),uncomp=v.getUint32(p+24,true),len=v.getUint16(p+28,true),extra=v.getUint16(p+30,true),comment=v.getUint16(p+32,true),off=v.getUint32(p+42,true);
+   const name=dec.decode(b.subarray(p+46,p+46+len));p+=46+len+extra+comment;
+   if(name.includes('..')||name.startsWith('/')||name.includes('\\'))throw Error('Unsafe extension path');
+   if(uncomp>2_000_000||comp>2_000_000||!(/\.(gpl|hex|pal|txt|json)$/i.test(name)))continue;
+   if(off+30>b.length||v.getUint32(off,true)!==0x04034b50)throw Error('Invalid ZIP entry');
+   const start=off+30+v.getUint16(off+26,true)+v.getUint16(off+28,true);if(start+comp>b.length)throw Error('Invalid ZIP file offsets');
+   const data=b.slice(start,start+comp);
+   let raw;if(method===0)raw=data;else if(method===8&&typeof DecompressionStream==='function'){
+    const stream=new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'));raw=new Uint8Array(await new Response(stream).arrayBuffer());
+   }else throw Error('ZIP compression not supported by this Android WebView');
+   if(raw.byteLength>2_000_000)throw Error('Extension content too large');out.set(name,dec.decode(raw));
+  }return out;
+ }
+ const filePalette=document.createElement('input');filePalette.type='file';filePalette.accept='.gpl,.hex,.pal,.txt,.json,.png,.webp,.jpeg,.jpg,.aseprite-extension,.zip';filePalette.hidden=true;
+ document.body.append(filePalette);
+ const modFile=document.createElement('input');modFile.type='file';modFile.accept='.json,.pfmod,.pfmod.json';modFile.hidden=true;document.body.append(modFile);
+ async function loadPaletteFile(file){if(!file)return;try{
+  if(file.size>5_000_000)throw Error('Palette file exceeds 5 MB');
+  if(/\.(png|jpe?g|webp)$/i.test(file.name)){applyPalette(file.name,await parseImagePalette(file));}
+  else if(/\.(zip|aseprite-extension)$/i.test(file.name)){
+   const entries=await zipEntries(await file.arrayBuffer());let count=0;
+   for(const [name,text] of entries){if(!/\.(gpl|hex|pal|txt)$/i.test(name))continue;const arr=parsePaletteText(text,name);if(colorsValid(arr).length){applyPalette(name,arr);count++;}}
+   if(!count)throw Error('No palette found in extension (scripts are not executed)');
+  }else{applyPalette(file.name,parsePaletteText(await file.text(),file.name));}
+ }catch(err){toast('Palette import: '+err.message);}finally{filePalette.value='';}}
+ filePalette.onchange=e=>loadPaletteFile(e.target.files?.[0]);
+ function installMod(obj,name){
+  if(!obj||typeof obj!=='object'||Array.isArray(obj)||obj.scripts||obj.javascript||obj.lua)throw Error('Only non-executable preset packs are supported');
+  if(obj.format&&!['pixelforge-mod','pixelforge-preset'].includes(obj.format))throw Error('Unknown mod format');
+  const item={id:'pfmod_'+Date.now().toString(36),name:cleanName(obj.name||name),palette:null,toolbar:null};
+  const c=colorsValid(obj.palette||obj.colors||[]);
+  if(c.length)item.palette=applyPalette(item.name,c);
+  if(Array.isArray(obj.toolbar)){const allowed=checked(obj.toolbar);if(allowed?.length){item.toolbar=allowed;setQuickTools(allowed);}}
+  if(!item.palette&&!item.toolbar)throw Error('Pack needs a palette or toolbar list');
+  installedMods.push(item);installedMods=installedMods.slice(-30);localStorage.setItem(modKey,JSON.stringify(installedMods));modList();toast('Installed preset pack: '+item.name);
+ }
+ modFile.onchange=async e=>{const f=e.target.files?.[0];if(!f)return;try{if(f.size>300000)throw Error('Preset pack too large');installMod(JSON.parse(await f.text()),f.name);}catch(err){toast('Pack: '+err.message);}finally{modFile.value='';}};
+ function setQuickTools(list){quickTools=checked(list)||defaults.slice();localStorage.setItem(quickKey,JSON.stringify(quickTools));renderQuick();}
+ const plus=document.createElement('button');plus.id='pf07ToolsPlus';plus.textContent='＋ TOOLS';plus.title='Add or remove floating toolbar shortcuts';
+ const existing=[...rail.querySelectorAll('[data-quick]')];existing.forEach(n=>n.remove());rail.insertBefore(plus,rail.querySelector('#quickDeselect'));
+ function renderQuick(){rail.querySelectorAll('[data-quick]').forEach(b=>b.remove());
+  for(const key of quickTools){const spec=toolEntries.find(x=>x.id===key);if(!spec)continue;const b=document.createElement('button');b.type='button';b.dataset.quick=key;b.textContent=spec.icon+' '+spec.label;
+   b.onclick=()=>{document.querySelector('.tool-bar [data-tool="'+key+'"]').click();renderQuick();};rail.insertBefore(b,plus);}
+  const active=document.querySelector('.tool-bar [data-tool].selected')?.dataset.tool;
+  rail.querySelectorAll('[data-quick]').forEach(b=>b.classList.toggle('current',b.dataset.quick===active));
+ }
+ document.querySelectorAll('.tool-bar [data-tool]').forEach(b=>b.addEventListener('click',renderQuick));
+ const manage=document.createElement('div');manage.className='pf07modal';manage.hidden=true;manage.innerHTML='<section class="pf07panel" role="dialog" aria-modal="true"><h3>FLOATING TOOLBAR · CUSTOMIZE</h3><p>Select the shortcuts shown beside your canvas. The + button remains available. Saved for future sessions.</p><div class="pf07toolsgrid" id="pf07ToolChecks"></div><div class="pf07bar"><button id="pf07DefaultTools">Reset</button><button id="pf07ApplyTools">Apply and close</button></div></section>';document.body.append(manage);
+ const checks=manage.querySelector('#pf07ToolChecks');toolEntries.forEach(spec=>{const row=document.createElement('label'),inp=document.createElement('input');inp.type='checkbox';inp.value=spec.id;row.append(inp,document.createTextNode(spec.icon+' '+spec.title));checks.append(row);});
+ const openManage=()=>{checks.querySelectorAll('input').forEach(i=>i.checked=quickTools.includes(i.value));manage.hidden=false;};plus.onclick=openManage;
+ manage.querySelector('#pf07DefaultTools').onclick=()=>checks.querySelectorAll('input').forEach(i=>i.checked=defaults.includes(i.value));
+ manage.querySelector('#pf07ApplyTools').onclick=()=>{setQuickTools([...checks.querySelectorAll('input:checked')].map(i=>i.value));manage.hidden=true;};
+ manage.onclick=e=>{if(e.target===manage)manage.hidden=true;};
+ renderQuick();
+ // Paint footprint guide is drawn on the cursor overlay and thus keeps all art unchanged.
+ const brush=document.createElement('div');brush.id='pf07Controls';brush.innerHTML='<label><input type="checkbox" id="pf07BrushGuide" checked> Show exact brush footprint (Pencil / Eraser)</label><small class="pf07status">Outline shows the pixels the current brush size will affect, including on rotated or scaled layers.</small>';
+ settings.prepend(brush);const guide=brush.querySelector('#pf07BrushGuide');guide.checked=pfBrushGuide;
+ guide.onchange=()=>{pfBrushGuide=guide.checked;localStorage.setItem('pixelforge-brush-guide-v07',String(pfBrushGuide));renderPointer();};
+ const fileActions=document.createElement('section');fileActions.id='pf07Controls';fileActions.innerHTML='<strong>IMPORTS & PRESET MOD PACKS</strong><div class="pf07bar"><button id="pf07ImportPal">＋ Import palette</button><button id="pf07ImportImage">＋ Import image</button><button id="pf07ImportMod">＋ Install preset pack</button><button id="pf07ExportMod">↓ Export preset pack</button></div><div class="pf07status">Palette: GPL, HEX, JASC-PAL, JSON, or PNG palette extraction; compatible palette-only Aseprite extension ZIPs. PNG/JPEG/WebP images import as layers. Preset packs are data-only (colors and toolbar layout), never executable scripts.</div><div id="pf07ModList"></div>';
+ settings.append(fileActions);
+ const colorQuick=document.createElement('div');colorQuick.id='pf07Controls';colorQuick.innerHTML='<div class="pf07bar"><button id="pf07ColorsImport">＋ Import palette file</button><button id="pf07PaletteRemove">× Remove selected imported palette</button></div><div class="pf07status">Use a GIMP .gpl, JASC .pal, HEX/text, JSON, palette PNG, or palette-only Aseprite ZIP extension.</div>';colors.prepend(colorQuick);
+ const palImport=()=>filePalette.click();fileActions.querySelector('#pf07ImportPal').onclick=palImport;colorQuick.querySelector('#pf07ColorsImport').onclick=palImport;
+ fileActions.querySelector('#pf07ImportImage').onclick=()=>$('importFile').click();fileActions.querySelector('#pf07ImportMod').onclick=()=>modFile.click();
+ colorQuick.querySelector('#pf07PaletteRemove').onclick=()=>{const key=$('palettePreset').value;if(!imported[key]){toast('Choose an imported palette first');return;}delete imported[key];delete palettes[key];$('palettePreset').querySelector('option[value="'+key+'"]')?.remove();$('palettePreset').value='earth';savePal();paletteRender();toast('Imported palette removed');};
+ function modList(){const root=fileActions.querySelector('#pf07ModList');root.replaceChildren();for(const m of installedMods){const line=document.createElement('div');line.className='pf07bar';line.style.marginTop='6px';const label=document.createElement('small');label.textContent=m.name;const remove=document.createElement('button');remove.textContent='Remove';remove.onclick=()=>{installedMods=installedMods.filter(x=>x.id!==m.id);if(m.palette){delete imported[m.palette];delete palettes[m.palette];$('palettePreset').querySelector('option[value="'+m.palette+'"]')?.remove();$('palettePreset').value='earth';paletteRender();savePal();}localStorage.setItem(modKey,JSON.stringify(installedMods));modList();toast('Preset pack removed');};line.append(label,remove);root.append(line);}}
+ modList();
+ fileActions.querySelector('#pf07ExportMod').onclick=()=>{const key=$('palettePreset').value,pack={format:'pixelforge-mod',version:1,name:'Survival Paradise preset pack',palette:palettes[key]||[],toolbar:quickTools};
+  const bytes=new TextEncoder().encode(JSON.stringify(pack,null,2));const blob=new Blob([bytes],{type:'application/json'});const a=document.createElement('a');const url=URL.createObjectURL(blob);a.href=url;a.download='PixelForge_Preset.pfmod.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ };
+ const helpBox=document.querySelector('#pfInfoContent');if(helpBox){const info=document.createElement('details');info.className='pf-guide-section';info.innerHTML='<summary>NEW IN 0.7 — IMPORTS, MOD PACKS, BRUSH GUIDE, TOOLBAR</summary><p>Palette import: Colors → Import palette. Supported: GIMP GPL, JASC-PAL, HEX/TXT, JSON, image-color extraction, and palette-only Aseprite ZIP extensions. Image import: Setup → Import image, choose a PNG/JPEG/WebP; the image becomes a separate editable layer. Brush guide: Setup → Show brush footprint; yellow/red outline tracks the affected square pixels including rotation. Floating toolbar: tap + TOOLS to choose quick shortcuts; existing floating panel can be moved, resized or locked. Preset packs: Setup → Install preset pack (.json) containing format "pixelforge-mod", palette array (#RRGGBB), and toolbar array of tool IDs. Scripts, binary plugins, Lua, and unknown extension behaviors are intentionally not executed on Android. These features do not implement Aseprite tilemaps, .aseprite project files, scripting, or complete cel-based animation.</p>';helpBox.prepend(info);}
+ window.PixelForgeDebugV07={parsePaletteText,applyPalette,loadPaletteFile,installMod,toolEntries,getQuick:()=>[...quickTools],getPalettes:()=>Object.keys(imported),brushGuide:()=>pfBrushGuide,guideToggle:guide,controls:fileActions};
+}
+
+/* Pixel Forge v0.8 — local procedural assistance for modular character rigs.
+   This is OFFLINE deterministic image processing, not a trained neural AI model. */
+function setupRigStudio(){
+ const roles=['unassigned','head','hair','hat','helmet','torso','pelvis','left_upper_arm','left_forearm','left_hand','right_upper_arm','right_forearm','right_hand','left_thigh','left_shin','left_foot','right_thigh','right_shin','right_foot','belt','backpack','weapon','other'];
+ const parents={head:'torso',hair:'head',hat:'head',helmet:'head',torso:null,pelvis:'torso',left_upper_arm:'torso',left_forearm:'left_upper_arm',left_hand:'left_forearm',right_upper_arm:'torso',right_forearm:'right_upper_arm',right_hand:'right_forearm',left_thigh:'pelvis',left_shin:'left_thigh',left_foot:'left_shin',right_thigh:'pelvis',right_shin:'right_thigh',right_foot:'right_shin',belt:'pelvis',backpack:'torso',weapon:'right_hand'};
+ const roleFriendly={left_upper_arm:'Left upper arm',left_forearm:'Left forearm',left_hand:'Left hand',right_upper_arm:'Right upper arm',right_forearm:'Right forearm',right_hand:'Right hand',left_thigh:'Left thigh',left_shin:'Left shin',left_foot:'Left foot',right_thigh:'Right thigh',right_shin:'Right shin',right_foot:'Right foot'};
+ const label=r=>roleFriendly[r]||r.replaceAll('_',' ').replace(/\b\w/g,x=>x.toUpperCase());
+ const shell=document.createElement('div');shell.id='pf08Rig';shell.hidden=true;shell.innerHTML=`<section class="pf08-panel" aria-label="Character rigging studio"><header id="pf08Head"><b>✣ CHARACTER RIGGING · OFFLINE</b><button id="pf08Close" title="Close">✕</button></header><div class="pf08-body"><p class="pf08-note">Local-assisted rigging and sprite repair. Automatic tools are procedural (no neural model). No network required.</p><div class="pf08-group"><b>BODY PARTS & JOINTS</b><label>Active part <select id="pf08Layer"></select></label><label>Assign body part <select id="pf08Role"></select></label><label>Parent joint <select id="pf08Parent"></select></label><div class="pf08-actions"><button id="pf08Guess">Suggest roles</button><button id="pf08Pivot">Set pivot at pointer</button><button id="pf08AutoPivot">Auto pivot</button><button id="pf08Extract">Extract selected part</button></div><div id="pf08State" class="pf08-status"></div><small>Tip: Select a limb with Lasso, then tap Extract selected part. Repeat for the other parts. If a part is already a layer, assign its role directly.</small></div><div class="pf08-group"><b>ANIMATION ASSISTANT</b><label>Animation <select id="pf08Anim"><option value="walk">Walk</option><option value="run">Run</option><option value="idle">Idle breathing</option><option value="aim">Aim / Hold</option></select></label><label>Movement intensity <input id="pf08Amount" type="range" min="20" max="150" value="90"><output id="pf08AmountVal">90%</output></label><div class="pf08-actions"><button id="pf08AutoRig">Auto-assign & rig</button><button id="pf08Generate">Generate 8 poses</button><button id="pf08Preview">▶ Preview animation</button><button id="pf08ExportRig">Export rig JSON</button></div><small>Editable keyframes are generated for identified parts. Some poses may need manual correction, especially for imported characters.</small></div><div class="pf08-group"><b>PIXEL REGENERATION / REPAIR</b><label>Fill method <select id="pf08RepairMethod"><option value="edge">Context-aware pixel fill</option><option value="mirror">Mirror + neighborhood fill</option></select></label><label>Repair radius <input id="pf08Radius" type="range" min="1" max="8" value="3"><output id="pf08RadiusVal">3 px</output></label><div class="pf08-actions"><button id="pf08Repair">Repair transparent selection</button><button id="pf08Heal">Heal enclosed gaps</button><button id="pf08Islands">Split disconnected parts</button></div><small>For a cutout: select the missing region on the original image layer, then Repair. This estimates colors from remaining pixels, not the exact original details. Save before large repairs; Undo can restore.</small></div><div id="pf08Message" class="pf08-status">Ready.</div></div></section>`;
+ document.body.append(shell);
+ const css=document.createElement('style');css.textContent=`#pf08Rig[hidden]{display:none!important}#pf08Rig{position:fixed;inset:0;z-index:2000;pointer-events:none}#pf08Rig .pf08-panel{pointer-events:auto;position:absolute;top:60px;right:8px;width:min(380px,calc(100vw - 16px));height:min(76dvh,690px);min-height:260px;min-width:245px;background:var(--pf-theme-panel,#1b3030);border:1px solid var(--pf-theme-accent,#74dec8);border-radius:12px;box-shadow:0 10px 35px #0009;display:flex;flex-direction:column;resize:both;overflow:hidden;color:var(--pf-theme-text,#eff);font-size:12px}#pf08Head{touch-action:none;cursor:move;display:flex;align-items:center;justify-content:space-between;background:var(--pf-theme-button,#284048);padding:9px 12px;border-bottom:1px solid var(--pf-theme-accent,#74dec8);font-size:12px;letter-spacing:.5px}#pf08Close{width:35px;min-height:35px}#pf08Rig .pf08-body{overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;padding:9px;flex:1;min-height:0}#pf08Rig .pf08-note{margin:0 0 8px;color:var(--pf-theme-accent,#74dec8)}#pf08Rig .pf08-group{display:grid;gap:8px;padding:9px;border:1px solid #587875;border-radius:8px;margin-bottom:10px}#pf08Rig .pf08-group>b{letter-spacing:.4px;color:var(--pf-theme-accent,#74dec8)}#pf08Rig label{display:grid;grid-template-columns:minmax(80px,1fr) minmax(110px,1.6fr);gap:7px;align-items:center}#pf08Rig label output{grid-column:2}#pf08Rig select,#pf08Rig input{max-width:100%;min-height:32px;min-width:0;color:var(--pf-theme-text,#fff);background:var(--pf-theme-button,#243c44);border:1px solid #647e7a;border-radius:5px}#pf08Rig .pf08-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}#pf08Rig button{font-size:12px;line-height:1.2;min-height:40px;border:1px solid #608982;border-radius:6px;background:var(--pf-theme-button,#2c4c4c);color:var(--pf-theme-text,#fff);padding:5px;touch-action:manipulation}#pf08Rig button:active{filter:brightness(1.3)}#pf08Rig small{line-height:1.4;opacity:.8}#pf08Rig .pf08-status{font-size:11px;color:var(--pf-theme-accent,#74dec8);white-space:pre-wrap;line-height:1.5}#pf08Rig .pf08-panel{max-width:96vw;max-height:91dvh} .pf08-nav{min-width:54px!important} .pf08-nav b{font-size:17px}`;document.head.append(css);
+ const nav=document.querySelector('.studio-nav');const navBtn=document.createElement('button');navBtn.className='pf08-nav';navBtn.innerHTML='<b>✣</b>Rig';navBtn.title='Body-part rigging, animation, sprite repair';nav?.append(navBtn);navBtn.onclick=()=>{shell.hidden=!shell.hidden;if(!shell.hidden)updateRigUi();};
+ const $8=id=>shell.querySelector('#'+id);
+ $8('pf08Close').onclick=()=>shell.hidden=true;
+ let last= {x:0,y:0};const head=$8('pf08Head'),panel=shell.querySelector('.pf08-panel');
+ head.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;e.preventDefault();head.setPointerCapture(e.pointerId);last={x:e.clientX,y:e.clientY};});
+ head.addEventListener('pointermove',e=>{if(!head.hasPointerCapture(e.pointerId))return;const dx=e.clientX-last.x,dy=e.clientY-last.y;panel.style.left=clamp((parseFloat(panel.style.left)||panel.offsetLeft)+dx,0,innerWidth-60)+'px';panel.style.top=clamp((parseFloat(panel.style.top)||panel.offsetTop)+dy,45,innerHeight-60)+'px';panel.style.right='auto';last={x:e.clientX,y:e.clientY};});
+ function message(s){$8('pf08Message').textContent=s;toast(s.slice(0,85));}
+ function mapRole(l){if(l.kind==='legL')return 'left_thigh';if(l.kind==='legR')return 'right_thigh';if(l.kind==='armL')return 'left_upper_arm';if(l.kind==='armR')return 'right_upper_arm';let s=(l.name+' '+l.kind).toLowerCase().replace(/[^a-z0-9]+/g,' ');
+  if(s.includes('right forearm'))return 'right_forearm';if(s.includes('left forearm'))return 'left_forearm';if(s.includes('left upper arm'))return 'left_upper_arm';if(s.includes('right upper arm'))return 'right_upper_arm';
+  if(s.includes('left hand'))return 'left_hand';if(s.includes('right hand'))return 'right_hand';if(s.includes('left thigh'))return 'left_thigh';if(s.includes('right thigh'))return 'right_thigh';if(s.includes('left shin'))return 'left_shin';if(s.includes('right shin'))return 'right_shin';
+  if(s.includes('left foot'))return 'left_foot';if(s.includes('right foot'))return 'right_foot';if(s.includes('l arm'))return 'left_upper_arm';if(s.includes('r arm'))return 'right_upper_arm';if(s.includes('l leg'))return 'left_thigh';if(s.includes('r leg'))return 'right_thigh';if(s.includes('head'))return 'head';if(s.includes('torso')||s.includes('body')||s.includes('vest'))return 'torso';if(s.includes('pelvis'))return 'pelvis';if(s.includes('arm l')||s.includes('left arm'))return 'left_upper_arm';if(s.includes('arm r')||s.includes('right arm'))return 'right_upper_arm';if(s.includes('leg l')||s.includes('left leg'))return 'left_thigh';if(s.includes('leg r')||s.includes('right leg'))return 'right_thigh';
+  if(s.includes('helmet'))return 'helmet';if(s.includes('backpack'))return 'backpack';if(s.includes('hat'))return 'hat';if(s.includes('belt'))return 'belt';if(s.includes('knife')||s.includes('rifle')||s.includes('pistol')||s.includes('weapon'))return 'weapon';return 'unassigned';}
+ function autoPivot(role,w,h){let x=w/2,y=h/2; if(role==='head')y=h*.83;else if(role==='torso')y=h*.3;else if(role==='pelvis')y=h*.3;else if(/upper_arm|thigh|shin|forearm/.test(role))y=h*.13;else if(/hand|foot/.test(role))y=h*.35;else if(role==='backpack')y=h*.2;else if(role==='helmet'||role==='hat')y=h*.72;return {x:Math.round(x),y:Math.round(y)};}
+ function roleOptions(value){return roles.map(v=>`<option value="${v}" ${v===value?'selected':''}>${label(v)}</option>`).join('');}
+ function updateRigUi(){const current=L();const role=current?.rig?.role||mapRole(current||{name:'',kind:''});$8('pf08Layer').innerHTML=layers().map(l=>`<option value="${l.id}" ${l.id===selected?'selected':''}>${l.name.replace(/[<>&"']/g,'')}</option>`).join('');$8('pf08Role').innerHTML=roleOptions(role);$8('pf08Parent').innerHTML='<option value="">None</option>'+layers().filter(l=>l.id!==selected).map(l=>`<option value="${l.id}" ${l.id===current?.rig?.parentId?'selected':''}>${l.name.replace(/[<>&"']/g,'')}</option>`).join('');$8('pf08State').textContent=current?`Role: ${label(role)} · Pivot: ${current.rig?.pivot?`${current.rig.pivot.x},${current.rig.pivot.y}`:'not assigned'} · Parent: ${layers().find(l=>l.id===current.rig?.parentId)?.name||'None'}`:'Select a body-part layer first';}
+ $8('pf08Layer').onchange=e=>{selected=e.target.value;selection=null;preview=null;refresh();updateRigUi();};
+ $8('pf08Role').onchange=e=>{const l=L();if(!l)return;record();l.rig={...(l.rig||{}),role:e.target.value,pivot:l.rig?.pivot||autoPivot(e.target.value,l.sprite.width,l.sprite.height),parentId:l.rig?.parentId||''};updateRigUi();refresh();};
+ $8('pf08Parent').onchange=e=>{const l=L();if(!l)return;record();l.rig={...(l.rig||{}),role:l.rig?.role||mapRole(l),pivot:l.rig?.pivot||autoPivot(mapRole(l),l.sprite.width,l.sprite.height),parentId:e.target.value};updateRigUi();};
+ $8('pf08Guess').onclick=()=>{record();let count=0;for(const l of layers()){const role=mapRole(l);if(role==='unassigned')continue;if(l.rig?.role&&l.rig.role!=='unassigned')continue;l.rig={...(l.rig||{}),role,pivot:autoPivot(role,l.sprite.width,l.sprite.height)};count++;}updateRigUi();refresh();message('Suggested roles for '+count+' layers. Inspect and correct each assignment.');};
+ $8('pf08AutoPivot').onclick=()=>{const l=L();if(!l)return;record();const role=l.rig?.role||mapRole(l);l.rig={...(l.rig||{}),role,pivot:autoPivot(role,l.sprite.width,l.sprite.height)};updateRigUi();render();};
+ $8('pf08Pivot').onclick=()=>{const l=L();if(!l)return;const p=localCursor(l);record();const role=l.rig?.role||mapRole(l);l.rig={...(l.rig||{}),role,pivot:{x:clamp(Math.round(p.x),0,l.sprite.width),y:clamp(Math.round(p.y),0,l.sprite.height)}};updateRigUi();render();message('Pivot saved at selected cursor position.');};
+ $8('pf08Extract').onclick=()=>{const l=L(),b=selectionBounds();if(!l||!b){message('Select a body part with Lasso or Selection first.');return;}const role=$8('pf08Role').value;const baseId=l.id;extractSelection();const cut=L();if(cut?.id===baseId){message('Extraction failed.');return;}cut.name=label(role||'other');cut.kind='rigPart';cut.rig={role,pivot:autoPivot(role,cut.sprite.width,cut.sprite.height),parentId:'',skipDefaultMotion:false};refresh();updateRigUi();message('Extracted '+cut.name+' into an independent layer.');};
+ function parentAuto(){const byRole=new Map(layers().filter(l=>l.rig?.role&&l.rig.role!=='unassigned').map(l=>[l.rig.role,l]));let count=0;for(const l of layers()){if(!l.rig?.role||l.rig.role==='unassigned')continue;const par=byRole.get(parents[l.rig.role]);if(par&&par.id!==l.id&&!l.rig.parentId){l.rig.parentId=par.id;count++;}}return count;}
+ $8('pf08AutoRig').onclick=()=>{record();let rolesCount=0;for(const l of layers()){const role=l.rig?.role||mapRole(l);if(role==='unassigned')continue;if(!l.rig?.role)rolesCount++;l.rig={...(l.rig||{}),role,pivot:l.rig?.pivot||autoPivot(role,l.sprite.width,l.sprite.height)};}const parentsCount=parentAuto();updateRigUi();refresh();message(`Rig suggestions: ${rolesCount} roles, ${parentsCount} parent links. Check pivot locations before animating.`);};
+ $8('pf08Amount').oninput=e=>$8('pf08AmountVal').value=e.target.value+'%';$8('pf08Radius').oninput=e=>$8('pf08RadiusVal').value=e.target.value+' px';
+ function keyMotion(role,anim,f,mag){const t=2*Math.PI*f/8,s=Math.sin(t),c=Math.cos(t),dbl=Math.cos(2*t),bounce=(1-dbl)*.5,fast=anim==='run';const a=(fast?20:12)*mag,travel=fast?3:2,leg=/^(left|right)_(thigh|shin|foot)$/.test(role),arm=/^(left|right)_(upper_arm|forearm|hand)$/.test(role),left=role.startsWith('left'),sign=left?1:-1;
+  let x=0,y=0,rotation=0; if(anim==='walk'||fast){if(leg){rotation=sign*s*a*(role.includes('shin')?.6:1); x=sign*c*mag*.5;y=-Math.max(0,sign*s)*mag*(fast?1.3:.5);}else if(arm){rotation=-sign*s*a*(role.includes('forearm')?.65:0.8);y=-bounce*mag*.6;}else if(['head','torso','pelvis','backpack','belt'].includes(role))y=-Math.round(bounce*travel*mag);}else if(anim==='idle'){if(['head','torso','pelvis','backpack','belt'].includes(role))y=-Math.round(bounce*mag);else if(arm)rotation=sign*s*1.3*mag;}else if(anim==='aim'){if(role==='right_upper_arm')rotation=-25*mag;if(role==='right_forearm')rotation=-40*mag;if(role==='left_upper_arm')rotation=-13*mag;if(role==='left_forearm')rotation=-22*mag;if(role==='weapon')y=-3*mag;}
+  return {x:Math.round(x*100)/100,y:Math.round(y*100)/100,rotation:Math.round(rotation*10)/10,scale:1}; }
+ $8('pf08Generate').onclick=()=>{const anim=$8('pf08Anim').value,mag=Number($8('pf08Amount').value)/100;let count=0;record();for(const l of layers()){const role=l.rig?.role||mapRole(l);if(role==='unassigned'||l.locked)continue;l.rig={...(l.rig||{}),role,pivot:l.rig?.pivot||autoPivot(role,l.sprite.width,l.sprite.height),skipDefaultMotion:true};l.poses[anim]={};for(let i=0;i<8;i++)l.poses[anim][i]=keyMotion(role,anim,i,mag);count++;}animation=anim;frame=0;refresh();message(`Created ${anim} animation (8 frames) for ${count} rigged layers. Adjust pivots and poses as needed.`);};
+ $8('pf08Preview').onclick=()=>{const anim=$8('pf08Anim').value;animation=anim;frame=0;playing=!playing;updatePlay();refresh();$8('pf08Preview').textContent=playing?'❚❚ Stop preview':'▶ Preview animation';};
+ $8('pf08ExportRig').onclick=()=>{const data={format:'survival-paradise-rig',version:1,canvas:{width:W(),height:H()},facing:face,layers:layers().map(l=>({id:l.id,name:l.name,role:l.rig?.role||mapRole(l),parentId:l.rig?.parentId||null,pivot:l.rig?.pivot||null,rect:{x:l.x,y:l.y,w:l.sprite.width,h:l.sprite.height},poses:l.poses}))};const b64=btoa(unescape(encodeURIComponent(JSON.stringify(data,null,2))));saveFile('SP_Character_Rig.json','application/json','data:application/json;base64,'+b64);message('Rig JSON exported.');};
+ /* Repair is constrained to selected transparency or enclosed one-pixel gaps.
+    Filling all transparent background would corrupt sprite silhouettes. */
+ function repair(onlyEnclosed){const l=L();if(!l||l.locked){message('Select an unlocked layer.');return;}const w=l.sprite.width,h=l.sprite.height;if(w*h>1024*1024){message('Layer exceeds repair limit');return;}const bounds=selectionBounds();if(!onlyEnclosed&&(!selection||!bounds)){message('Make a selection around missing pixels first.');return;}
+ const context=l.sprite.getContext('2d',{willReadFrequently:true}),im=context.getImageData(0,0,w,h),d=im.data,buff=new Uint8ClampedArray(d),radius=Number($8('pf08Radius').value),mirror=$8('pf08RepairMethod').value==='mirror';const candidate=new Uint8Array(w*h);
+ for(let y=0;y<h;y++)for(let x=0;x<w;x++){let i=y*w+x;if(d[i*4+3]!==0)continue;
+ if(onlyEnclosed){let surround=true;for(const [dx,dy] of [[0,-1],[0,1],[1,0],[-1,0]]){let tx=x+dx,ty=y+dy;if(tx<0||ty<0||tx>=w||ty>=h||d[(ty*w+tx)*4+3]<128){surround=false;break;}}if(surround)candidate[i]=1;}
+ else if(selection.mask[i])candidate[i]=1;}
+ let remaining=candidate.reduce((a,b)=>a+b,0);if(!remaining){message('No selected transparent pixels eligible for repair.');return;}if(remaining>180000){message('Select a smaller repair area (under 180,000 pixels).');return;}
+ const changed=new Uint8Array(w*h);let fixed=0;
+ // Place context color from mirrored equivalent, if filled, then progressively inpaint neighbors.
+ if(mirror){for(let i=0;i<candidate.length;i++){if(!candidate[i])continue;const x=i%w,y=(i-x)/w,xx=w-1-x,j=y*w+xx;if(j<0||j>=w*h||d[j*4+3]<200||candidate[j])continue;buff.set(d.subarray(j*4,j*4+4),i*4);changed[i]=1;fixed++;}}
+ for(let pass=0;pass<Math.min(40,Math.max(radius*5,8));pass++){let changedPass=0;const fresh=new Uint8ClampedArray(buff);for(let y=0;y<h;y++)for(let x=0;x<w;x++){let i=y*w+x;if(!candidate[i]||changed[i])continue;const stats=new Map();for(let dy=-radius;dy<=radius;dy++)for(let dx=-radius;dx<=radius;dx++){if(!dx&&!dy)continue;const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=w||yy>=h)continue;const dist=Math.hypot(dx,dy);if(dist>radius+.01)continue;const j=yy*w+xx;if(buff[j*4+3]<128||candidate[j]&&!changed[j])continue;const code=[buff[j*4],buff[j*4+1],buff[j*4+2],buff[j*4+3]].join(',');const item=stats.get(code)||{score:0,color:[buff[j*4],buff[j*4+1],buff[j*4+2],buff[j*4+3]]};item.score+=1/(dist+0.25);stats.set(code,item);}if(!stats.size)continue;const choice=[...stats.values()].sort((a,b)=>b.score-a.score)[0];fresh.set(choice.color,i*4);changed[i]=2;changedPass++;}
+ if(!changedPass)break;buff.set(fresh);for(let i=0;i<changed.length;i++)if(changed[i]===2){changed[i]=1;fixed++;}if(fixed===remaining)break;}
+ if(!fixed){message('No bordering colors available. Select a region closer to existing pixels.');return;}record();im.data.set(buff);context.putImageData(im,0,0);render();refresh();message(`Regenerated ${fixed}/${remaining} pixels with local color synthesis. Review contours; Undo to revert.`);}
+ $8('pf08Repair').onclick=()=>repair(false);$8('pf08Heal').onclick=()=>repair(true);
+ $8('pf08Islands').onclick=()=>{const l=L();if(!l||l.locked){message('Select an unlocked layer.');return;}const w=l.sprite.width,h=l.sprite.height,img=l.sprite.getContext('2d',{willReadFrequently:true}).getImageData(0,0,w,h),a=img.data,visited=new Uint8Array(w*h),segments=[];
+ const maxCells=w*h;for(let start=0;start<maxCells;start++){if(visited[start]||a[start*4+3]<128)continue;const queue=[start];visited[start]=1;let xmin=w,xmax=-1,ymin=h,ymax=-1;for(let at=0;at<queue.length;at++){const i=queue[at],x=i%w,y=(i-x)/w;xmin=Math.min(xmin,x);xmax=Math.max(xmax,x);ymin=Math.min(ymin,y);ymax=Math.max(ymax,y);for(const j of [x>0?i-1:-1,x<w-1?i+1:-1,y>0?i-w:-1,y<h-1?i+w:-1])if(j>=0&&!visited[j]&&a[j*4+3]>=128){visited[j]=1;queue.push(j);}}if(queue.length>1)segments.push({queue,xmin,xmax,ymin,ymax});if(segments.length>150){message('Too many disconnected regions. Clean the image first.');return;}}
+ if(segments.length<2){message('Only one connected opaque component found. Use Lasso for connected limbs.');return;}record();for(const s of segments){const c=mk(s.xmax-s.xmin+1,s.ymax-s.ymin+1),g=c.getContext('2d'),out=g.createImageData(c.width,c.height);for(const i of s.queue){const x=i%w,y=(i-x)/w,from=i*4,to=((y-s.ymin)*c.width+x-s.xmin)*4;for(let k=0;k<4;k++)out.data[to+k]=a[from+k];}g.putImageData(out,0,0);const copy={id:id(),name:`Part ${layers().length+1}`,kind:'rigPart',sprite:c,x:l.x+s.xmin,y:l.y+s.ymin,rotation:0,scale:1,flip:false,visible:true,locked:false,opacity:1,poses:{},rig:{role:'unassigned',pivot:autoPivot('unassigned',c.width,c.height)}};layers().push(copy);}l.visible=false;selected=layers().at(-1).id;updateSelection(null);refresh();updateRigUi();message(`Split ${segments.length} disconnected sprite islands into layers; original hidden, not deleted.`);};
+ const help=document.querySelector('#pfInfoContent');if(help){const dt=document.createElement('details');dt.className='pf-guide-section';dt.innerHTML='<summary>CHARACTER RIGGING & OFFLINE PIXEL REPAIR (0.8)</summary><p>Tap Rig in the bottom bar. Assign the selected layer a body-part role and optionally a parent joint. Auto Rig suggests known roles and links from the layer names. Set Pivot at Pointer places the rotation pivot on the chosen pixel; Auto Pivot places an estimated pivot. To split a character, select a limb using Lasso, then Extract Selected Part (it becomes a separate named layer). Generate 8 Poses produces frame-by-frame procedural walk, run, idle or aim keys. Export Rig JSON produces layer roles, pivots, parenting links and poses for Survival Paradise. Repair Transparent Selection predicts colors using surrounding intact pixels; Mirror Repair tries the opposite side. Enclosed Gap Repair fills isolated 1-pixel holes. Select first and preserve the original project; results are approximate and reversible with Undo. All operations work offline. These algorithms are deterministic, NOT a trained AI neural network; full neural-based automatic segmentation/inpainting remains in development.</p>';help.prepend(dt);}
+ window.PixelForgeRigV08={roles,updateRigUi,autoPivot,keyMotion,repair,testingSelect:(x,y,w,h)=>{let l=L();if(!l)return;let mask=new Uint8Array(l.sprite.width*l.sprite.height);for(let yy=y;yy<y+h;yy++)for(let xx=x;xx<x+w;xx++)if(xx>=0&&yy>=0&&xx<l.sprite.width&&yy<l.sprite.height)mask[yy*l.sprite.width+xx]=1;updateSelection({mask,w:l.sprite.width,h:l.sprite.height});},testingPixel:(x,y,color)=>{const l=L();if(!l)return;const c=l.sprite.getContext('2d');if(color){c.fillStyle=color;c.fillRect(x,y,1,1);}else c.clearRect(x,y,1,1);render();},open:()=>{shell.hidden=false;updateRigUi();},data:()=>layers().map(l=>({name:l.name,rig:l.rig,poses:l.poses}))};
+}
+
+
+bind();setupStudioLayout();setupStudioEnhancements();setupPixelForgeV07();setupRigStudio();refresh();requestAnimationFrame(()=>{resize();fitView();refresh();});
+})();
+
+</script>
+</body></html>
