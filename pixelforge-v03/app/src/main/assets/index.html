@@ -440,12 +440,29 @@ async function restore(s){if(!s||![1,2,3,4].includes(s.version)||!s.documents)th
 async function undo(){if(!undoStack.length)return;redoStack.push(JSON.stringify(snapshot()));try{await restore(JSON.parse(undoStack.pop()));toast('Undo');}catch(err){toast(err.message);}}
 async function redo(){if(!redoStack.length)return;undoStack.push(JSON.stringify(snapshot()));try{await restore(JSON.parse(redoStack.pop()));toast('Redo');}catch(err){toast(err.message);}}
 const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
-function getPose(l,f=frame,anim=animation){let dx=0,dy=0,r=0,sc=1;const t=Math.PI*2*f/8,cycle=Math.sin(t),bounce=(1-Math.cos(2*t))/2;
+function getPoseLocal(l,f=frame,anim=animation){let dx=0,dy=0,r=0,sc=1;const t=Math.PI*2*f/8,cycle=Math.sin(t),bounce=(1-Math.cos(2*t))/2;
  if(!l.rig?.skipDefaultMotion&&anim==='idle'&&['torso','head','armL','armR','belt','torsoGear','headgear','pack','weaponHand'].includes(l.kind))dy=-Math.round(bounce*.6);
  if(!l.rig?.skipDefaultMotion&&(anim==='walk'||anim==='run')){const a=anim==='run'?14:9,b=anim==='run'?2:1;dy=-bounce*b;if(l.kind==='legL')r=cycle*a;if(l.kind==='legR')r=-cycle*a;if(l.kind==='armL')r=-cycle*a*.7;if(l.kind==='armR')r=cycle*a*.7;if(['torso','head','belt','pack','torsoGear','headgear','weaponHand'].includes(l.kind))dy-=bounce*b;}
  if(!l.rig?.skipDefaultMotion&&anim==='aim'&&l.kind==='armR'){r=-22;dx=1;dy=-2;}if(!l.rig?.skipDefaultMotion&&anim==='aim'&&l.kind==='weaponHand')dy=-5;
  const p=l.poses?.[anim]?.[f];if(p){dx+=p.x||0;dy+=p.y||0;r+=p.rotation||0;sc=p.scale||1;}
  return {x:l.x+dx,y:l.y+dy,rotation:l.rotation+r,scale:l.scale*sc};}
+function getPose(l,f=frame,anim=animation,visited){
+ const pose=getPoseLocal(l,f,anim);
+ if(!l.rig?.parentId)return pose;
+ const seen=visited||new Set();if(seen.has(l.id)||seen.size>24)return pose;
+ seen.add(l.id);
+ const par=layers().find(q=>q.id===l.rig.parentId);
+ if(!par||par===l)return pose;
+ const parentPose=getPose(par,f,anim,seen);
+ const parPivot=par.rig?.pivot||{x:par.sprite.width/2,y:par.sprite.height/2};
+ const childPivot=l.rig?.pivot||{x:l.sprite.width/2,y:l.sprite.height/2};
+ const basePX=par.x+parPivot.x,basePY=par.y+parPivot.y;
+ const childPX=l.x+childPivot.x,childPY=l.y+childPivot.y;
+ const angle=(parentPose.rotation-par.rotation)*Math.PI/180,dx=childPX-basePX,dy=childPY-basePY;
+ const changedX=(parentPose.x+parPivot.x)+Math.cos(angle)*dx-Math.sin(angle)*dy;
+ const changedY=(parentPose.y+parPivot.y)+Math.sin(angle)*dx+Math.cos(angle)*dy;
+ return {...pose,x:pose.x+changedX-childPX,y:pose.y+changedY-childPY,rotation:pose.rotation+parentPose.rotation-par.rotation};
+}
 function drawLayer(g,l,step=frame,anim=animation){if(!l.visible)return;const p=getPose(l,step,anim),w=l.sprite.width,h=l.sprite.height;g.save();g.globalAlpha=l.opacity;const piv=l.rig?.pivot||{x:w/2,y:h/2};g.translate(p.x+piv.x,p.y+piv.y);g.rotate(p.rotation*Math.PI/180);g.scale(p.scale*(l.flip?-1:1),p.scale);g.imageSmoothingEnabled=false;g.drawImage(l.sprite,-piv.x,-piv.y);g.restore();}
 function drawContent(g,step=frame,anim=animation){g.save();if(face==='left'){g.translate(W(),0);g.scale(-1,1);}for(const l of layers())drawLayer(g,l,step,anim);if(preview&&L()){const l=L();if(preview.sprite)drawLayer(g,{...l,sprite:preview.sprite,opacity:.75},step,anim);}if(selection&&L()&&selOverlay){drawLayer(g,{...L(),sprite:selOverlay,opacity:1},step,anim);}g.restore();}
 function composite(step=frame,anim=animation){const c=mk(W(),H()),g=c.getContext('2d');g.imageSmoothingEnabled=false;g.save();if(face==='left'){g.translate(W(),0);g.scale(-1,1);}for(const l of layers())drawLayer(g,l,step,anim);g.restore();return c;}
@@ -1101,7 +1118,7 @@ function setupRigStudio(){
  $8('pf08AutoPivot').onclick=()=>{const l=L();if(!l)return;record();const role=l.rig?.role||mapRole(l);l.rig={...(l.rig||{}),role,pivot:autoPivot(role,l.sprite.width,l.sprite.height)};updateRigUi();render();};
  $8('pf08Pivot').onclick=()=>{const l=L();if(!l)return;const p=localCursor(l);record();const role=l.rig?.role||mapRole(l);l.rig={...(l.rig||{}),role,pivot:{x:clamp(Math.round(p.x),0,l.sprite.width),y:clamp(Math.round(p.y),0,l.sprite.height)}};updateRigUi();render();message('Pivot saved at selected cursor position.');};
  $8('pf08Extract').onclick=()=>{const l=L(),b=selectionBounds();if(!l||!b){message('Select a body part with Lasso or Selection first.');return;}const role=$8('pf08Role').value;const baseId=l.id;extractSelection();const cut=L();if(cut?.id===baseId){message('Extraction failed.');return;}cut.name=label(role||'other');cut.kind='rigPart';cut.rig={role,pivot:autoPivot(role,cut.sprite.width,cut.sprite.height),parentId:'',skipDefaultMotion:false};refresh();updateRigUi();message('Extracted '+cut.name+' into an independent layer.');};
- function parentAuto(){const byRole=new Map(layers().filter(l=>l.rig?.role&&l.rig.role!=='unassigned').map(l=>[l.rig.role,l]));let count=0;for(const l of layers()){if(!l.rig?.role||l.rig.role==='unassigned')continue;const par=byRole.get(parents[l.rig.role]);if(par&&par.id!==l.id&&!l.rig.parentId){l.rig.parentId=par.id;count++;}}return count;}
+ function parentAuto(){const byRole=new Map(layers().filter(l=>l.rig?.role&&l.rig.role!=='unassigned').map(l=>[l.rig.role,l]));let count=0;for(const l of layers()){if(!l.rig?.role||l.rig.role==='unassigned')continue;const par=byRole.get(parents[l.rig.role])||(['left_thigh','right_thigh','belt'].includes(l.rig.role)?byRole.get('torso'):null);if(par&&par.id!==l.id&&!l.rig.parentId){l.rig.parentId=par.id;count++;}}return count;}
  $8('pf08AutoRig').onclick=()=>{record();let rolesCount=0;for(const l of layers()){const role=l.rig?.role||mapRole(l);if(role==='unassigned')continue;if(!l.rig?.role)rolesCount++;l.rig={...(l.rig||{}),role,pivot:l.rig?.pivot||autoPivot(role,l.sprite.width,l.sprite.height)};}const parentsCount=parentAuto();updateRigUi();refresh();message(`Rig suggestions: ${rolesCount} roles, ${parentsCount} parent links. Check pivot locations before animating.`);};
  $8('pf08Amount').oninput=e=>$8('pf08AmountVal').value=e.target.value+'%';$8('pf08Radius').oninput=e=>$8('pf08RadiusVal').value=e.target.value+' px';
  function keyMotion(role,anim,f,mag){const t=2*Math.PI*f/8,s=Math.sin(t),c=Math.cos(t),dbl=Math.cos(2*t),bounce=(1-dbl)*.5,fast=anim==='run';const a=(fast?20:12)*mag,travel=fast?3:2,leg=/^(left|right)_(thigh|shin|foot)$/.test(role),arm=/^(left|right)_(upper_arm|forearm|hand)$/.test(role),left=role.startsWith('left'),sign=left?1:-1;
