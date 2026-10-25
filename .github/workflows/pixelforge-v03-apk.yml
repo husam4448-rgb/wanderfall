@@ -27,7 +27,17 @@ jobs:
       - name: Install SDK
         run: |
           echo "ANDROID_HOME=$ANDROID_HOME"
-          sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+          SDKM=$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)
+          if [ -z "$SDKM" ]; then
+            echo "Missing sdkmanager. Installing command-line tools."
+            curl -fsSL https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -o /tmp/android-tools.zip
+            mkdir -p "$ANDROID_HOME/cmdline-tools/latest"
+            unzip -q /tmp/android-tools.zip -d /tmp/android-setup
+            mv /tmp/android-setup/cmdline-tools/* "$ANDROID_HOME/cmdline-tools/latest/"
+            SDKM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          fi
+          yes | "$SDKM" --sdk_root="$ANDROID_HOME" --licenses >/dev/null || true
+          "$SDKM" --sdk_root="$ANDROID_HOME" 'platforms;android-35' 'build-tools;35.0.0'
       - name: Build Android APK
         working-directory: pixelforge-v03
         run: gradle --no-daemon --stacktrace assembleDebug
