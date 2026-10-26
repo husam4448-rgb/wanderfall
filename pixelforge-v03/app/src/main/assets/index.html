@@ -519,10 +519,10 @@ function inkCanvas(key){const d=defs[key],c=mk(d.w,d.h),ctx=c.getContext('2d');d
 function seed(){mode='character';for(const k of ['leftleg','rightleg','backpack','torso','leftarm','rightarm','head','belt'])addLayer(k,true);mode='weapon';for(const k of ['stock','receiver','barrel','magazine','grip','optic'])addLayer(k,true);mode='character';selected=layers().find(l=>l.kind==='torso')?.id||null;}
 function addLayer(key,quiet=false){const d=defs[key],p=placement[key]||[24,24],l={id:id(),name:d.label,kind:d.kind,sprite:inkCanvas(key),x:p[0]+(W()-64)/2,y:p[1]+(H()-64)/2,rotation:0,scale:1,flip:false,visible:true,locked:false,opacity:1,poses:{}};layers().push(l);selected=l.id;selection=null;if(!quiet){record();refresh();toast('Added '+d.label);}return l;}
 seed();
-function snapshot(){const out={version:4,name:'Survival Paradise Pixel Forge',mode,selected,face,animation,snap,artSnap,showGrid,gridStep,trackpad,clickEnabled,brushSize,selectedColor,colorAlpha,documents:{}};for(const [name,d] of Object.entries(documents))out.documents[name]={w:d.w,h:d.h,wholeCanvas:d.wholeCanvas||null,timelines:d.timelines||null,poseLibrary:d.poseLibrary||{},layers:d.layers.map(l=>({...l,sprite:l.sprite.toDataURL('image/png')}))};return out;}
+function snapshot(){const out={version:4,name:'Survival Paradise Pixel Forge',mode,selected,face,animation,snap,artSnap,showGrid,gridStep,trackpad,clickEnabled,brushSize,selectedColor,colorAlpha,documents:{}};for(const [name,d] of Object.entries(documents))out.documents[name]={w:d.w,h:d.h,wholeCanvas:d.wholeCanvas||null,timelines:d.timelines||null,poseLibrary:d.poseLibrary||{},skeleton:d.skeleton||null,layers:d.layers.map(l=>({...l,sprite:l.sprite.toDataURL('image/png')}))};return out;}
 function record(){undoStack.push(JSON.stringify(snapshot()));if(undoStack.length>25)undoStack.shift();redoStack=[];}
 async function restore(s){if(!s||![1,2,3,4].includes(s.version)||!s.documents)throw Error('Invalid Pixel Forge project');let next={character:{layers:[]},weapon:{layers:[]}},loads=[];
- for(const m of ['character','weapon']){const d=s.documents[m];if(!d||!Array.isArray(d.layers)||d.layers.length>250)throw Error('Invalid layers');next[m].w=s.version===1?64:clamp(Math.round(d.w||64),1,MAX);next[m].h=s.version===1?64:clamp(Math.round(d.h||64),1,MAX);next[m].wholeCanvas=s.version>=4&&d.wholeCanvas?d.wholeCanvas:null;next[m].timelines=d.timelines&&typeof d.timelines==='object'?d.timelines:null;next[m].poseLibrary=d.poseLibrary&&typeof d.poseLibrary==='object'?d.poseLibrary:{};
+ for(const m of ['character','weapon']){const d=s.documents[m];if(!d||!Array.isArray(d.layers)||d.layers.length>250)throw Error('Invalid layers');next[m].w=s.version===1?64:clamp(Math.round(d.w||64),1,MAX);next[m].h=s.version===1?64:clamp(Math.round(d.h||64),1,MAX);next[m].wholeCanvas=s.version>=4&&d.wholeCanvas?d.wholeCanvas:null;next[m].timelines=d.timelines&&typeof d.timelines==='object'?d.timelines:null;next[m].poseLibrary=d.poseLibrary&&typeof d.poseLibrary==='object'?d.poseLibrary:{};next[m].skeleton=d.skeleton&&Array.isArray(d.skeleton.points)?d.skeleton:null;
  for(const x of d.layers){if(typeof x.sprite!=='string'||!x.sprite.startsWith('data:image/png'))throw Error('Invalid sprite data');const l={id:String(x.id||id()),name:String(x.name||'Layer').slice(0,80),kind:String(x.kind||'import'),sprite:mk(1,1),x:Number(x.x)||0,y:Number(x.y)||0,rotation:Number(x.rotation)||0,scale:Number(x.scale)||1,flip:!!x.flip,visible:x.visible!==false,locked:!!x.locked,opacity:Number.isFinite(x.opacity)?clamp(x.opacity,0,1):1,poses:x.poses||{},rig:x.rig&&typeof x.rig==='object'?x.rig:null};next[m].layers.push(l);loads.push(new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>{if(im.naturalWidth>MAX||im.naturalHeight>MAX){reject(Error('Layer too large'));return;}l.sprite=mk(im.naturalWidth,im.naturalHeight);l.sprite.getContext('2d').drawImage(im,0,0);resolve();};im.onerror=()=>reject(Error('Corrupt sprite'));im.src=x.sprite;}));}}
  await Promise.all(loads);documents=next;mode=s.mode==='weapon'?'weapon':'character';face=s.face==='left'?'left':'right';animation=['idle','walk','run','aim'].includes(s.animation)?s.animation:'idle';snap=s.snap!==false;artSnap=s.artSnap!==false;showGrid=s.showGrid!==false;gridStep=s.gridStep||4;trackpad=s.trackpad!==false;clickEnabled=s.clickEnabled!==false;holdLocked=false;dragStart=null;brushSize=s.brushSize||1;colorAlpha=s.colorAlpha??1;selectedColor=s.selectedColor||selectedColor;selected=layers().some(l=>l.id===s.selected)?s.selected:(layers().at(-1)?.id||null);selection=null;preview=null;moveCursor(W()/2,H()/2);fitView();refresh();}
 async function undo(){if(!undoStack.length)return;redoStack.push(JSON.stringify(snapshot()));try{await restore(JSON.parse(undoStack.pop()));toast('Undo');}catch(err){toast(err.message);}}
@@ -1703,7 +1703,250 @@ function setupUIFixV102(){
   window.PixelForgeUIFixV102={setDragHeight,fitViewport,desiredPanelHeight};
 }
 
-bind();setupStudioLayout();setupStudioEnhancements();setupPixelForgeV07();setupRigStudio();setupRigV09();setupRigV10();setupUIFixV101();setupUIFixV102();refresh();requestAnimationFrame(()=>{resize();fitView();refresh();});
+
+/* Pixel Forge 1.0.3 — full-canvas-first editing, direct selection rotation,
+   simplified illustrated skeleton, sampled-color laboratory. All offline. */
+function hsvToHex(h,s,v){
+ h=((Number(h)%360)+360)%360; s=clamp(Number(s)||0,0,100)/100;v=clamp(Number(v)||0,0,100)/100;
+ const c=v*s,x=c*(1-Math.abs((h/60)%2-1)),m=v-c;
+ let [r,g,b]=h<60?[c,x,0]:h<120?[x,c,0]:h<180?[0,c,x]:h<240?[0,x,c]:h<300?[x,0,c]:[c,0,x];
+ return '#'+[r+m,g+m,b+m].map(z=>Math.round(z*255).toString(16).padStart(2,'0')).join('');
+}
+function setupPixelForgeV103(){
+ const panel=window.PixelForgeLayout.panels;
+ const setting=panel.settings.querySelector('.sheet-content');
+ const tools=panel.tools.querySelector('.sheet-content');
+ const colors=panel.colors.querySelector('.sheet-content');
+ const rigHome=document.querySelector('#pf08Rig .pf08-body')||panel.settings.querySelector('.sheet-content');
+ const newStyle=document.createElement('style');
+ newStyle.textContent=`
+ .pf103-block{display:grid;gap:8px;border:1px solid var(--pf-theme-accent,#579e89);background:var(--pf-theme-panel,#18302d);color:var(--pf-theme-text,#ebf4ec);border-radius:10px;padding:10px;margin:8px 0}
+ .pf103-block b{color:var(--pf-theme-accent,#9ae3c5);font-size:13px}
+ .pf103-block p{margin:1px 0;line-height:1.45;font-size:11px;opacity:.83}
+ .pf103-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+ .pf103-actions button{min-height:39px!important;padding:3px 4px!important;font-size:11px!important}
+ .pf103-block input,.pf103-block select{width:100%;min-width:0;min-height:36px;background:var(--pf-theme-button,#253d3c);color:var(--pf-theme-text,#fff);border:1px solid #648c83;border-radius:6px;padding:4px 6px}
+ .pf103-label{font-size:11px;display:grid;gap:5px}
+ .pf103-wheelbox{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px}
+ #pf103Wheel{width:min(235px,100%);aspect-ratio:1;height:auto;touch-action:none;border-radius:50%;cursor:crosshair;max-width:235px}
+ .pf103-current{width:48px;height:48px;border:2px solid #afc9c0;border-radius:8px;flex-shrink:0}
+ #pf103Shades{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+ #pf103Shades button{height:34px;min-height:34px;border:1px solid #c3c3c3;border-radius:5px}
+ .pf103-rgb{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+ .pf103-window[hidden]{display:none!important}
+ .pf103-window{position:fixed;z-index:420;inset:0;background:#050d0ecb;display:flex;justify-content:center;align-items:center;padding:8px}
+ .pf103-dialog{display:flex;flex-direction:column;width:min(640px,100%);height:min(78dvh,730px);min-height:300px;overflow:hidden;background:var(--pf-theme-panel,#18302d);border:1px solid #70a99c;border-radius:12px;color:var(--pf-theme-text,#fff)}
+ .pf103-header{display:flex;gap:8px;align-items:center;min-height:52px;padding:7px 10px;background:#214841;flex-shrink:0}
+ .pf103-header strong{flex:1}.pf103-header button{min-width:38px;min-height:39px}
+ .pf103-windowbody{padding:9px;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch;flex:1;min-height:0}
+ .pf103-rig-stage{position:relative;width:100%;aspect-ratio:1;max-height:39dvh;touch-action:none;display:flex;justify-content:center;background:#c9cece;border:1px solid #719b99;border-radius:7px;overflow:hidden}
+ #pf103RigCanvas{width:100%;height:100%;object-fit:contain;touch-action:none}
+ .pf103-node-list{display:grid;gap:5px;grid-template-columns:repeat(2,minmax(0,1fr))}
+ .pf103-node-list button{font-size:11px;text-align:left;padding:7px;min-height:39px}
+ .pf103-node-list button.selected{border:2px solid #91e9c4;background:#23594d}
+ .pf103-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .pf103-fields label{display:grid;gap:4px;min-width:0;font-size:11px}
+ .pf103-fields .wide{grid-column:1/-1}
+ #pf103EditState{position:relative;z-index:2;font-size:12px;font-weight:700;white-space:normal}
+ .pf103-btn-on{background:#1b5b49!important;border:2px solid #77dcae!important}
+ @media(max-width:420px){.pf103-node-list{grid-template-columns:repeat(2,minmax(0,1fr))}.pf103-wheelbox{gap:6px}.pf103-dialog{height:84dvh}}
+ `;
+ document.head.append(newStyle);
+ const el=id=>document.getElementById(id);
+ // Full-image-first: users only enter restricted part editing intentionally.
+ const banner=document.createElement('div'); banner.className='pf103-block'; banner.innerHTML='<b>EDITING SCOPE</b><button type="button" id="pf103Scope">🔓 WHOLE IMAGE — default</button><p id="pf103EditState">Every visible pixel is selectable and editable. Switch to protected individual layers only if needed.</p><button type="button" id="pf103SyncFull">↻ Rebuild flat painting from visible parts</button>';
+ setting.prepend(banner);
+ function isWhole(){const s=doc().wholeCanvas;return Boolean(s?.active&&layers().some(x=>x.id===s.layerId));}
+ function ensureWhole(){if(!isWhole() && localStorage.getItem('pf103-prefer-layers')!=='true'){
+   // A valid cached flat layer remains available if the user switches modes.
+   if(doc().wholeCanvas && layers().find(x=>x.id===doc().wholeCanvas.layerId)){toggleWholeCanvas();return;}
+   toggleWholeCanvas();
+ }}
+ function syncScope(){banner.querySelector('#pf103Scope').textContent=isWhole()?'🔓 WHOLE IMAGE — tap for part editing':'🔒 EDIT INDIVIDUAL LAYERS — tap for full canvas';banner.querySelector('#pf103Scope').classList.toggle('pf103-btn-on',isWhole());banner.querySelector('#pf103EditState').textContent=isWhole()?'The full painting is editable. Original separated parts are retained, hidden for safety.':'Only the selected part is editable. Tap above to return to the complete picture.';}
+ banner.querySelector('#pf103Scope').onclick=()=>{const wantsLayers=isWhole();localStorage.setItem('pf103-prefer-layers',String(wantsLayers));toggleWholeCanvas();syncScope();};
+ // Existing Full Image/Original Parts button remains a valid alternate toggle.
+ el('wholeCanvasEdit').addEventListener('click',()=>{localStorage.setItem('pf103-prefer-layers',String(!isWhole()));syncScope();});
+ banner.querySelector('#pf103SyncFull').onclick=()=>{
+   const s=doc().wholeCanvas;if(!s){toast('No separated parts to rebuild');return;}
+   const full=layers().find(l=>l.id===s.layerId);if(!full)return;
+   // Requires part-editing mode, because the visible flat painting deliberately hides parts.
+   if(s.active){toast('Switch to Parts mode, edit the skeleton, then rebuild');return;}
+   record(); const c=mk(W(),H()),g=c.getContext('2d');for(const l of layers())if(l!==full&&l.visible)drawLayer(g,l);
+   full.sprite=c;full.x=0;full.y=0;full.rotation=0;full.scale=1;full.flip=false;
+   toast('Flat painting refreshed from original parts');render();
+ };
+ // Start in whole-image mode and apply to each newly opened workspace.
+ document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{ensureWhole();syncScope();}));
+ el('newProject').addEventListener('click',()=>{ensureWhole();syncScope();});
+ // Let an imported sprite become part of the full painting without forcing the user to reselect its layer.
+ const originalImport=el('importFile').onchange;
+ if(originalImport)el('importFile').onchange=e=>originalImport(e); // onload handled at the image layer after import
+ const originalPaintAt=paintAt;
+ paintAt=function(){
+  if(tool==='picker'){
+   const x=Math.floor(pointer.x),y=Math.floor(pointer.y);if(x<0||x>=W()||y<0||y>=H())return;
+   const image=composite(),v=image.getContext('2d',{willReadFrequently:true}).getImageData(x,y,1,1).data;
+   if(v[3])setColor('#'+[v[0],v[1],v[2]].map(v=>v.toString(16).padStart(2,'0')).join(''));
+   else toast('Transparent pixel — no color to sample');return;
+  }
+  return originalPaintAt();
+ };
+ // Keep the editor in full mode after restoring a user-supplied project, not undo/redo.
+ const projectInput=el('projectFile');projectInput.addEventListener('change',()=>setTimeout(()=>{ensureWhole();syncScope();},160));
+ // Direct selection operations and arbitrary-angle nearest-neighbor rotation in-place.
+ const rotate=document.createElement('section');rotate.className='pf103-block';
+ rotate.innerHTML=`<b>SELECTION TRANSFORM — 360°</b><p>Draw a selection anywhere on the image, then rotate it without switching layers.</p>
+ <div class="pf103-actions"><button id="pf103RotM15">↶ −15°</button><button id="pf103RotM1">↶ −1°</button><button id="pf103RotP1">↷ +1°</button><button id="pf103RotP15">↷ +15°</button><button id="pf103Rot90">↷ 90°</button><button id="pf103Duplicate">⧉ Copy to layer</button></div>
+ <label class="pf103-label">Exact rotation (degrees) <input id="pf103Angle" type="number" step="1" value="45"></label><button id="pf103RotateExact">⟳ Rotate selection by entered angle</button>
+ <div class="pf103-actions"><button id="pf103Copy">Copy</button><button id="pf103Cut">Cut</button><button id="pf103Paste">Paste</button><button id="pf103Extract">Separate layer</button><button id="pf103Erase">Erase</button><button id="pf103Clear">Deselect</button></div>`;
+ tools.insertBefore(rotate,tools.firstElementChild);
+ function rotatePixels(degrees){const info=needSelection();if(!info||!copySelection())return;
+  const {l,b}=info,src=clipboard.sprite,w=src.width,h=src.height,a=degrees*Math.PI/180;
+  const nw=Math.min(MAX,Math.max(1,Math.ceil(Math.abs(w*Math.cos(a))+Math.abs(h*Math.sin(a))))),nh=Math.min(MAX,Math.max(1,Math.ceil(Math.abs(w*Math.sin(a))+Math.abs(h*Math.cos(a)))));
+  const c=mk(nw,nh),g=c.getContext('2d');g.imageSmoothingEnabled=false;g.translate(nw/2,nh/2);g.rotate(a);g.drawImage(src,-w/2,-h/2);
+  const xx=Math.round(b.x+b.w/2-nw/2),yy=Math.round(b.y+b.h/2-nh/2);
+  record();eraseSelected();l.sprite.getContext('2d').drawImage(c,xx,yy);
+  updateSelection(maskFromRect({x:xx,y:yy},{x:xx+nw-1,y:yy+nh-1},'selectRect',l.sprite.width,l.sprite.height));
+  refresh();toast('Selection rotated '+degrees+'°');
+ }
+ for(const [id,angle] of [['pf103RotM15',-15],['pf103RotM1',-1],['pf103RotP1',1],['pf103RotP15',15],['pf103Rot90',90]])el(id).onclick=()=>rotatePixels(angle);
+ el('pf103RotateExact').onclick=()=>rotatePixels(clamp(Number(el('pf103Angle').value)||0,-360,360));
+ [['pf103Copy',copySelection],['pf103Cut',cutSelection],['pf103Paste',pasteSelection],['pf103Extract',extractSelection],['pf103Erase',deleteSelection],['pf103Clear',deselectEverything],['pf103Duplicate',copySelectionToLayer]].forEach(([id,fn])=>el(id).onclick=fn);
+ // Eyedropper, tonal shades, RGB input, color-wheel ring + saturation/value square.
+ const lab=document.createElement('section');lab.id='pf103ColorLab';lab.className='pf103-block';
+ lab.innerHTML=`<b>SAMPLED COLOR LAB</b><p>Use Pick ◉ on the canvas, or Sample at pointer. Tap a shade to paint with it; save it to your personal colors.</p>
+ <div class="pf103-actions"><button id="pf103Sample">◉ Sample image</button><button id="pf103SaveShade">＋ Save color</button><button id="pf103Previous">↶ Sampled base</button></div>
+ <div class="pf103-wheelbox"><canvas id="pf103Wheel" width="244" height="244" aria-label="Hue wheel with saturation and brightness center"></canvas><div class="pf103-current" id="pf103ColorPreview"></div></div>
+ <b>LIGHTER · BASE COLOR · DARKER</b><div id="pf103Shades" aria-label="Available shades of sampled color"></div>
+ <div class="pf103-rgb"><label class="pf103-label">Red<input id="pf103Red" type="number" min="0" max="255" value="168"></label><label class="pf103-label">Green<input id="pf103Green" type="number" min="0" max="255" value="181"></label><label class="pf103-label">Blue<input id="pf103Blue" type="number" min="0" max="255" value="161"></label></div>
+ <p>Outer ring chooses hue. Inside square changes saturation (horizontal) and value (vertical). Existing HEX, HSV and opacity controls are still available below.</p>`;
+ colors.prepend(lab);
+ const colorCanvas=el('pf103Wheel'),cc=colorCanvas.getContext('2d'),N=244,mid=N/2;
+ let sampledBase=selectedColor,oldPick=selectedColor,redrawColor=false;
+ const rgbOf=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+ const clamp255=x=>Math.max(0,Math.min(255,Math.round(x)));
+ const asHex=(r,g,b)=>'#'+[r,g,b].map(v=>clamp255(v).toString(16).padStart(2,'0')).join('');
+ function drawWheel(){const [h,s,v]=hexToHSV(selectedColor),img=cc.createImageData(N,N);
+   for(let y=0;y<N;y++)for(let x=0;x<N;x++){const dx=x-mid,dy=y-mid,rr=Math.hypot(dx,dy),k=(y*N+x)*4;let hex=null;
+     if(rr>82&&rr<114)hex=hsvToHex((Math.atan2(dy,dx)*180/Math.PI+450)%360,100,100);
+     else if(Math.abs(dx)<=57&&Math.abs(dy)<=57)hex=hsvToHex(h,clamp((dx+57)/114*100,0,100),clamp((57-dy)/114*100,0,100));
+     if(hex){const rgb=rgbOf(hex);img.data.set([rgb[0],rgb[1],rgb[2],255],k);}
+   }
+   cc.putImageData(img,0,0);cc.strokeStyle='#fff';cc.lineWidth=2;const a=(h-90)*Math.PI/180;
+   cc.beginPath();cc.arc(mid+98*Math.cos(a),mid+98*Math.sin(a),5,0,Math.PI*2);cc.stroke();
+   cc.strokeRect(mid-57,mid-57,114,114);cc.strokeRect(mid-57+s/100*114-3,mid+57-v/100*114-3,6,6);
+ }
+ function updateColorLab(){if(redrawColor)return;redrawColor=true;try{drawWheel();el('pf103ColorPreview').style.background=selectedColor;const [r,g,b]=rgbOf(selectedColor);el('pf103Red').value=r;el('pf103Green').value=g;el('pf103Blue').value=b;
+    const target=el('pf103Shades');target.replaceChildren();const [h,s,v]=hexToHSV(sampledBase);
+    for(let i=-7;i<=6;i++){let hex=hsvToHex(h,s,clamp(v+i*7,4,100));if(i===0)hex=sampledBase;
+       const b=document.createElement('button');b.style.background=hex;b.title=(i<0?`${Math.abs(i)*7}% darker`:i>0?`${i*7}% lighter`:'Sampled color')+' · '+hex;b.setAttribute('aria-label',b.title);b.onclick=()=>setColor(hex);target.append(b);}
+   }finally{redrawColor=false;}}
+ const oldSetColor=setColor;setColor=function(hex){const before=selectedColor;oldSetColor(hex);if(before!==selectedColor)updateColorLab();};
+ el('pf103Sample').onclick=()=>{const old=tool;tool='picker';paintAt();tool=old;sampledBase=selectedColor;oldPick=selectedColor;updateColorLab();};
+ el('pf103Previous').onclick=()=>setColor(sampledBase);
+ el('pf103SaveShade').onclick=saveCustomSwatch;
+ for(const c of ['Red','Green','Blue'])el('pf103'+c).addEventListener('change',()=>{setColor(asHex(...['Red','Green','Blue'].map(k=>el('pf103'+k).value)));});
+ function handleWheel(e){const r=colorCanvas.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*N-mid,y=(e.clientY-r.top)/r.height*N-mid,dist=Math.hypot(x,y),[h,s,v]=hexToHSV(selectedColor);
+  if(dist>=82&&dist<=119)setColor(hsvToHex((Math.atan2(y,x)*180/Math.PI+450)%360,s,v));
+  else if(Math.abs(x)<=60&&Math.abs(y)<=60)setColor(hsvToHex(h,clamp((x+57)/114*100,0,100),clamp((57-y)/114*100,0,100)));
+ }
+ colorCanvas.addEventListener('pointerdown',e=>{e.preventDefault();colorCanvas.setPointerCapture(e.pointerId);handleWheel(e);});
+ colorCanvas.addEventListener('pointermove',e=>{if(e.buttons)handleWheel(e);});
+ // Pick color anywhere on full composited painting; switch sampled-base for shade generation.
+ const savedPick=paintAt;paintAt=function(){if(tool==='picker'){
+  savedPick();sampledBase=selectedColor;oldPick=selectedColor;updateColorLab();return;}savedPick();};
+ updateColorLab();
+ // Simplified interactive skeleton editor in a dedicated window, with named optional nodes.
+ const launch=document.createElement('section');launch.className='pf103-block';launch.innerHTML='<b>VISUAL SKELETON EDITOR</b><p>Make a 3-part rig or a detailed articulated rig. Each point can be moved, linked, assigned, or deleted.</p><button type="button" id="pf103OpenRig" class="pf103-btn-on">✥ Open Visual Skeleton Window</button>';
+ rigHome.prepend(launch);
+ const overlay=document.createElement('div');overlay.className='pf103-window';overlay.id='pf103SkeletonWindow';overlay.hidden=true;
+ overlay.innerHTML=`<div class="pf103-dialog" role="dialog" aria-modal="true" aria-label="Visual skeleton editor">
+ <div class="pf103-header"><strong>✥ SKELETON · EDITABLE POINTS</strong><button id="pf103CloseRig">✕</button></div>
+ <div class="pf103-windowbody"><div class="pf103-block"><p>Drag a named point to reposition its associated sprite. Lines show parent links. Choose a preset or add/delete nodes individually. Save the project to preserve all connections.</p>
+ <div class="pf103-actions"><button id="pf103Minimal">3-Part Rig</button><button id="pf103Standard">Basic Rig</button><button id="pf103Detail">Detailed Rig</button></div>
+ <div class="pf103-rig-stage"><canvas id="pf103RigCanvas" width="384" height="384" aria-label="Draggable visual skeleton with linked body parts"></canvas></div>
+ <div class="pf103-node-list" id="pf103Points"></div>
+ <div class="pf103-fields"><label>Point name<input id="pf103NodeName" maxlength="35"></label><label>Assign sprite layer<select id="pf103NodeLayer"></select></label>
+ <label>Parent point<select id="pf103NodeParent"></select></label><label>Movement lock<select id="pf103NodeLock"><option value="yes">Locked</option><option value="no">Movable</option></select></label>
+ <label>X (canvas pixel)<input id="pf103NodeX" type="number" step="0.5"></label><label>Y (canvas pixel)<input id="pf103NodeY" type="number" step="0.5"></label></div>
+ <div class="pf103-actions"><button id="pf103UpdateNode">Apply changes</button><button id="pf103AddNode">＋ Add point</button><button id="pf103DeleteNode">✕ Delete point</button></div>
+ <div class="pf103-actions"><button id="pf103LinkNode">Attach / Link</button><button id="pf103DetachNode">Detach</button><button id="pf103PivotNode">Pivot ← Point</button></div>
+ <label class="pf103-label">Detach permission <select id="pf103AllowDetach"><option value="no">Lock attachments</option><option value="yes">Allow detaching</option></select></label>
+ <p id="pf103RigStatus">Select a point; then assign a layer and optional parent.</p>
+ </div></div></div>`;document.body.append(overlay);
+ const rigCanvas=el('pf103RigCanvas'),rc=rigCanvas.getContext('2d');
+ let pointId=null,gesture=null; const makeId=()=> 'P'+Math.random().toString(36).slice(2,10);
+ const presets={
+  minimal:[['head',.5,.22,'torso'],['torso',.5,.48,null],['legs',.5,.75,'torso']],
+  basic:[['head',.5,.17,'torso'],['torso',.5,.43,null],['left_arm',.33,.44,'torso'],['right_arm',.67,.44,'torso'],['legs',.5,.77,'torso'],['backpack',.39,.43,'torso']],
+  detailed:[['head',.5,.17,'neck'],['neck',.5,.29,'torso'],['torso',.5,.43,null],['pelvis',.5,.59,'torso'],['left_arm',.33,.44,'torso'],['right_arm',.67,.44,'torso'],['left_hand',.26,.58,'left_arm'],['right_hand',.74,.58,'right_arm'],['left_leg',.43,.81,'pelvis'],['right_leg',.57,.81,'pelvis'],['backpack',.36,.44,'torso'],['belt',.5,.59,'pelvis'],['helmet',.5,.105,'head'],['weapon',.78,.55,'right_hand']]
+ };
+ function skeleton(){if(!doc().skeleton||!Array.isArray(doc().skeleton.points))doc().skeleton={points:[],allowDetach:false};return doc().skeleton;}
+ function getNode(){return skeleton().points.find(x=>x.id===pointId)||null;}
+ function selectedNode(){return getNode()||skeleton().points[0]||null;}
+ function status(msg){el('pf103RigStatus').textContent=msg;}
+ function guessLayer(name){const terms={head:['head'],torso:['torso','body'],neck:['neck'],left_arm:['left arm','leftarm','left upper','leftarm'],right_arm:['right arm','rightarm','right upper'],left_leg:['left leg','leftleg'],right_leg:['right leg','rightleg'],legs:['leg'],pelvis:['pelvis'],backpack:['backpack','pack'],belt:['belt'],helmet:['helmet','hat'],weapon:['gun','rifle','pistol','weapon'],left_hand:['left hand'],right_hand:['right hand']};return layers().find(l=>(terms[name]||[name.replace('_',' ')]).some(v=>(l.name+' '+l.kind).toLowerCase().includes(v)))?.id||'';}
+ function applyPreset(name){record();const old=skeleton().points,newNodes=presets[name].map(([n,x,y])=>({id:makeId(),name:n,x:Math.round(x*W()),y:Math.round(y*H()),parentId:'',layerId:old.find(o=>o.name===n)?.layerId||guessLayer(n),locked:false}));
+  for(let i=0;i<newNodes.length;i++){const parentName=presets[name][i][3],parent=newNodes.find(x=>x.name===parentName);newNodes[i].parentId=parent?.id||'';}
+  doc().skeleton={points:newNodes,allowDetach:false};pointId=newNodes[0]?.id;applyAllLinks();refreshRig();toast(name+' skeleton loaded');}
+ function layerFor(n){return layers().find(l=>l.id===n?.layerId);}
+ function applyLink(n){const child=layerFor(n);if(!child)return;child.rig??={};child.rig.role=n.name;
+  const parent=layerFor(skeleton().points.find(x=>x.id===n.parentId));
+  if(parent&&parent!==child){child.rig.parentId=parent.id;child.rig.linkMode='rigid';child.rig.lockJoint=!skeleton().allowDetach;}
+  else {child.rig.parentId='';child.rig.linkMode='none';}
+ }
+ function applyAllLinks(){for(const n of skeleton().points)applyLink(n);}
+ function drawRig(){const sw=rigCanvas.width,sh=rigCanvas.height;rc.clearRect(0,0,sw,sh);rc.fillStyle='#d7dddd';rc.fillRect(0,0,sw,sh);
+  const ox=10,oy=10,size=Math.min(sw-20,sh-20),sx=size/W(),sy=size/H();
+  const art=composite();rc.imageSmoothingEnabled=false;rc.drawImage(art,ox,oy,size,size);
+  const nodes=skeleton().points,byId=new Map(nodes.map(x=>[x.id,x]));
+  for(const n of nodes){const p=byId.get(n.parentId);if(!p)continue;rc.strokeStyle='#ffd966';rc.lineWidth=3;rc.beginPath();rc.moveTo(ox+p.x*sx,oy+p.y*sy);rc.lineTo(ox+n.x*sx,oy+n.y*sy);rc.stroke();}
+  for(const n of nodes){const x=ox+n.x*sx,y=oy+n.y*sy;rc.fillStyle=n.id===pointId?'#ffdd34':'#31b99e';rc.strokeStyle='#15262d';rc.lineWidth=2;rc.beginPath();rc.arc(x,y,7,0,Math.PI*2);rc.fill();rc.stroke();rc.font='12px sans-serif';rc.fillStyle='#12262a';rc.fillText(n.name.replaceAll('_',' '),x+9,y-8);}
+ }
+ function refreshRig(){const d=skeleton(),selected=selectedNode();if(selected)pointId=selected.id;
+  const list=el('pf103Points');list.replaceChildren();for(const n of d.points){const b=document.createElement('button');b.textContent=(n.parentId?'↳ ':'● ')+n.name.replaceAll('_',' ');b.classList.toggle('selected',n.id===pointId);b.onclick=()=>{pointId=n.id;refreshRig();};list.append(b);}
+  el('pf103NodeLayer').replaceChildren();for(const [id,name] of [['','None (guide point)'],...layers().map(l=>[l.id,l.name])]){const o=document.createElement('option');o.value=id;o.textContent=name;el('pf103NodeLayer').append(o);}
+  el('pf103NodeParent').replaceChildren();for(const [id,name] of [['','Root / independent'],...d.points.filter(n=>n.id!==pointId).map(n=>[n.id,n.name])]){const o=document.createElement('option');o.value=id;o.textContent=name;el('pf103NodeParent').append(o);}
+  if(selected){el('pf103NodeName').value=selected.name;el('pf103NodeLayer').value=selected.layerId||'';el('pf103NodeParent').value=selected.parentId||'';el('pf103NodeX').value=Number(selected.x).toFixed(1);el('pf103NodeY').value=Number(selected.y).toFixed(1);el('pf103NodeLock').value=selected.locked?'yes':'no';}
+  el('pf103AllowDetach').value=d.allowDetach?'yes':'no';drawRig();
+ }
+ function openRig(){// Visual rig editing acts on modular parts; do not destructively alter the full flat painting.
+  if(isWhole()){toggleWholeCanvas();syncScope();status('Original sprite parts restored for skeleton manipulation. Return to Whole Image to resume painting.');}
+  if(!skeleton().points.length)applyPreset('minimal');overlay.hidden=false;refreshRig();}
+ el('pf103OpenRig').onclick=openRig;
+ el('pf103CloseRig').onclick=()=>overlay.hidden=true;
+ overlay.addEventListener('pointerdown',e=>{if(e.target===overlay)overlay.hidden=true;});
+ for(const [id,k] of [['pf103Minimal','minimal'],['pf103Standard','basic'],['pf103Detail','detailed']])el(id).onclick=()=>applyPreset(k);
+ el('pf103AddNode').onclick=()=>{record();const n={id:makeId(),name:'new_point',x:W()/2,y:H()/2,parentId:'',layerId:'',locked:false};skeleton().points.push(n);pointId=n.id;refreshRig();};
+ el('pf103DeleteNode').onclick=()=>{const n=selectedNode();if(!n)return;record();for(const p of skeleton().points)if(p.parentId===n.id){p.parentId='';applyLink(p);}skeleton().points=skeleton().points.filter(x=>x!==n);pointId=skeleton().points[0]?.id||null;refreshRig();};
+ el('pf103AllowDetach').onchange=e=>{skeleton().allowDetach=e.target.value==='yes';};
+ function changeNode(){const n=selectedNode();if(!n)return;record();let parent=el('pf103NodeParent').value;
+  // Reject parent cycles.
+  let pp=parent;const seen=new Set([n.id]);while(pp){if(seen.has(pp)){status('Cannot link a point to its descendant');return;}seen.add(pp);pp=skeleton().points.find(x=>x.id===pp)?.parentId;}
+  n.name=el('pf103NodeName').value.trim().slice(0,35)||n.name;n.layerId=el('pf103NodeLayer').value;n.parentId=parent;
+  n.x=clamp(Number(el('pf103NodeX').value)||0,0,W());n.y=clamp(Number(el('pf103NodeY').value)||0,0,H());n.locked=el('pf103NodeLock').value==='yes';
+  applyAllLinks();refreshRig();render();}
+ el('pf103UpdateNode').onclick=changeNode;
+ el('pf103LinkNode').onclick=()=>{if(!selectedNode())return;changeNode();status('Link applied: moving parent rig sprite also affects children');};
+ el('pf103DetachNode').onclick=()=>{const n=selectedNode();if(!n)return;if(!skeleton().allowDetach){status('Unlock detaching below first');return;}record();n.parentId='';applyLink(n);refreshRig();};
+ el('pf103PivotNode').onclick=()=>{const n=selectedNode(),l=layerFor(n);if(!l){status('Assign a sprite layer first');return;}record();l.rig??={};const p=localFromWorld(l,n.x,n.y);l.rig.pivot={x:clamp(p.x,0,l.sprite.width),y:clamp(p.y,0,l.sprite.height)};refreshRig();render();status('Pivot anchored to '+n.name);};
+ function evPoint(e){const rect=rigCanvas.getBoundingClientRect();const x=(e.clientX-rect.left)/rect.width*rigCanvas.width,y=(e.clientY-rect.top)/rect.height*rigCanvas.height;const scale=(rigCanvas.width-20);return{x:(x-10)/scale*W(),y:(y-10)/scale*H()};}
+ rigCanvas.addEventListener('pointerdown',e=>{e.preventDefault();const p=evPoint(e),near=skeleton().points.map(n=>({n,d:Math.hypot(n.x-p.x,n.y-p.y)})).sort((a,b)=>a.d-b.d)[0];if(!near||near.d>Math.max(W(),H())*.045){return;}
+  pointId=near.n.id;if(near.n.locked){status('Unlock this point before dragging');refreshRig();return;}
+  gesture={pointerId:e.pointerId,start:p,pointX:near.n.x,pointY:near.n.y,baseLayer:layerFor(near.n),oldX:layerFor(near.n)?.x,oldY:layerFor(near.n)?.y};
+  record();rigCanvas.setPointerCapture(e.pointerId);refreshRig();});
+ rigCanvas.addEventListener('pointermove',e=>{if(!gesture||gesture.pointerId!==e.pointerId)return;e.preventDefault();const p=evPoint(e),n=selectedNode();if(!n)return;const dx=p.x-gesture.start.x,dy=p.y-gesture.start.y;
+  n.x=clamp(gesture.pointX+dx,0,W());n.y=clamp(gesture.pointY+dy,0,H());
+  if(gesture.baseLayer&&!gesture.baseLayer.locked){gesture.baseLayer.x=gesture.oldX+dx;gesture.baseLayer.y=gesture.oldY+dy;render();}
+  drawRig();});
+ for(const t of ['pointerup','pointercancel'])rigCanvas.addEventListener(t,e=>{if(!gesture||gesture.pointerId!==e.pointerId)return;gesture=null;refreshRig();render();});
+ const help=el('pfInfoContent');if(help){const section=document.createElement('details');section.className='pf-guide-section';section.innerHTML='<summary>NEW 1.0.3 — WHOLE IMAGE, ROTATION, SKELETON & COLORS</summary><p>Painting now opens in Whole Image mode, allowing all visible pixels to be selected and edited anywhere. Setup → EDITING SCOPE toggles protected part-layer editing. Original parts stay separately preserved. In Tools → Selection Transform, first make a rectangular/lasso selection then use the ±1°, ±15°, 90° or exact-angle button; rotation is nearest-neighbor and undoable. Rig → Visual Skeleton Window shows draggable named guide points. Use 3-Part, Basic or Detailed presets; name and assign nodes to the appropriate sprite layers, assign parents, then press Attach/Link. A linked parent moves its child sprite automatically. Use Pivot ← Point to place local pivots, and Detach permission to unlock separation. The graph is saved in the .pixelforge project. Rig work uses original modular layers; to update a flattened painting afterward choose Setup → Rebuild flat painting from visible parts while in Parts mode. Colors → Sampled Color Lab: use ◉ Pick or Sample image, select lighter/darker shades, enter RGB, and use the hue wheel outer ring plus inner square to adjust saturation and brightness; save shades to My Slots. Advanced HSV/HEX tools remain available. NOTE: The three-point guide cannot automatically split a flattened body into layers; use Extract and assign each resulting part. Rotated sprite pixels are rasterized and may show pixel-step aliasing.</p>';help.prepend(section);}
+ window.PixelForgeV103={ensureWhole,isWhole,rotatePixels,openRig,refreshRig,applyPreset,drawRig,skeleton,syncScope,lab:{updateColorLab,getBase:()=>sampledBase},getState:()=>({scope:isWhole()?'whole':'layers',selection:selectionBounds(),skeleton:skeleton().points.map(n=>({...n})),color:selectedColor})};
+ ensureWhole();syncScope();
+ const label=document.querySelector('.brand small');if(label)label.textContent='SURVIVAL PARADISE · STUDIO 1.0.3';
+}
+
+bind();setupStudioLayout();setupStudioEnhancements();setupPixelForgeV07();setupRigStudio();setupRigV09();setupRigV10();setupUIFixV101();setupUIFixV102();setupPixelForgeV103();refresh();requestAnimationFrame(()=>{resize();fitView();refresh();});
 })();
 
 </script>
