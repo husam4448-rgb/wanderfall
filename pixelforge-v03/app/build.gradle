@@ -3,11 +3,11 @@ android {
     namespace 'com.survivalparadise.pixelforge'
     compileSdk 35
     defaultConfig {
-        applicationId 'com.survivalparadise.pixelforge.v101'
+        applicationId 'com.survivalparadise.pixelforge.v102'
         minSdk 26
         targetSdk 34
-        versionCode 14
-        versionName '1.0.1'
+        versionCode 15
+        versionName '1.0.2'
     }
     buildTypes { release { minifyEnabled false } }
     compileOptions {

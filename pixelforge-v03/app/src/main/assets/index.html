@@ -322,6 +322,30 @@ input,textarea,[contenteditable="true"]{
  .pf08-panel{width:min(380px,calc(100vw - 12px))!important;right:6px!important}
  .pf08-group label,.pf10-block label{grid-template-columns:minmax(72px,1fr) minmax(90px,1.4fr)!important}
 }
+
+/* Pixel Forge 1.0.2 — fixed bottom dock, accessible floating chrome */
+:root{--pf-drag-height:48px;--pf-dock-height:64px}
+html,body{width:100%!important;height:100%!important;overflow:hidden!important}
+.shell{height:100vh!important;height:100dvh!important;min-height:0!important;overflow:hidden!important}
+.workspace{flex:1 1 0!important;min-height:0!important;height:auto!important;overflow:hidden!important;padding-bottom:calc(var(--pf-dock-height) + env(safe-area-inset-bottom))!important}
+.editor{flex:1 1 auto!important;min-height:0!important;overflow:hidden!important}
+.stage-container{min-height:0!important;flex:1 1 auto!important;touch-action:none!important}
+.studio-nav{position:fixed!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;width:100%!important;height:calc(var(--pf-dock-height) + env(safe-area-inset-bottom))!important;min-height:0!important;z-index:300!important;box-sizing:border-box!important;padding-bottom:calc(5px + env(safe-area-inset-bottom))!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;grid-auto-flow:row!important;grid-auto-columns:auto!important}
+.studio-nav button{min-height:44px!important;min-width:0!important;touch-action:manipulation}
+.studio-sheet:not(.floating){position:fixed!important;left:6px!important;right:6px!important;bottom:calc(var(--pf-dock-height) + env(safe-area-inset-bottom) + 5px)!important;top:auto!important;width:auto!important;height:40dvh!important;min-height:min(250px,40dvh)!important;max-height:calc(100dvh - var(--pf-dock-height) - 54px)!important;z-index:301!important}
+.studio-sheet .sheet-head{height:var(--pf-drag-height)!important;min-height:var(--pf-drag-height)!important;flex-shrink:0!important;touch-action:none!important;align-items:center!important;cursor:grab}
+.studio-sheet .sheet-head button{height:clamp(33px,calc(var(--pf-drag-height) - 9px),58px)!important;min-height:33px!important;touch-action:manipulation!important}
+.studio-sheet .sheet-head strong{flex:1!important;min-width:0!important;line-height:1.1!important}
+.studio-sheet .sheet-content{overflow-y:auto!important;overflow-x:hidden!important;touch-action:pan-y!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior-y:contain!important;flex:1 1 0!important;height:0!important;min-height:0!important}
+.pf-widget .pf-widget-head{height:calc(var(--pf-drag-height) - 6px)!important;min-height:calc(var(--pf-drag-height) - 6px)!important;flex-shrink:0!important;touch-action:none!important;cursor:grab!important;padding-left:8px!important}
+.pf-widget .pf-widget-head span{font-size:11px!important}
+.pf-widget .pf-widget-head button{height:31px!important;min-height:31px!important;min-width:32px!important;font-size:15px!important;touch-action:manipulation!important}
+#pf08Head{min-height:var(--pf-drag-height)!important;height:var(--pf-drag-height)!important;flex-shrink:0!important;touch-action:none!important;cursor:grab!important}
+#pf08Rig .pf08-panel{max-height:calc(100dvh - var(--pf-dock-height) - 56px)!important}
+.pf-grip{width:34px!important;height:34px!important;touch-action:none!important}
+.pf-widget.ui-locked .pf-widget-head,.studio-sheet.ui-locked .sheet-head{cursor:default!important}
+@media(max-width:430px){.studio-nav{padding-left:3px!important;padding-right:3px!important;gap:3px!important}.studio-nav button{font-size:9px!important}.studio-sheet:not(.floating){left:4px!important;right:4px!important}.studio-sheet .sheet-head{padding:3px 5px!important;gap:4px!important}}
+
 </style>
 </head>
 <body>
@@ -839,20 +863,38 @@ function setupStudioLayout(){
   function rect(widget){return {left:parseFloat(widget.style.left)||0,top:parseFloat(widget.style.top)||0,width:parseFloat(widget.style.width)||widget.offsetWidth,height:parseFloat(widget.style.height)||widget.offsetHeight};}
   function place(el,x,y,w,h){w=clamp(w,58,Math.max(100,window.innerWidth-10));h=clamp(h,54,Math.max(100,window.innerHeight-70));el.style.width=w+'px';el.style.height=h+'px';el.style.left=clamp(x,0,Math.max(0,window.innerWidth-w))+'px';el.style.top=clamp(y,49,Math.max(49,window.innerHeight-h-54))+'px';}
   function beginManipulation(el,handle,kind,minW,minH,cb){
+    // Move and resize gestures are attached to the whole window while active.
+    // Capturing only the tiny title strip caused intermittent lost drags on Android.
     handle.addEventListener('pointerdown',e=>{
-      if(e.button!==0||e.target.closest('button')||el.classList.contains('ui-locked')||!el.classList.contains('floating')&&el.classList.contains('studio-sheet'))return;
-      e.stopPropagation();e.preventDefault();handle.setPointerCapture(e.pointerId);el.style.zIndex=++topZ;
-      const origin={...rect(el)},first={x:e.clientX,y:e.clientY};
-      const dragging=ev=>{
-        if(ev.pointerId!==e.pointerId)return;
+      if(e.button!==0||e.target.closest('button')||el.classList.contains('ui-locked')||(!el.classList.contains('floating')&&el.classList.contains('studio-sheet')))return;
+      e.preventDefault();e.stopPropagation();
+      const id=e.pointerId,first={x:e.clientX,y:e.clientY},origin=rect(el);
+      el.style.zIndex=++topZ;
+      try{handle.setPointerCapture(id);}catch{}
+      let doneOnce=false;
+      function dragging(ev){
+        if(ev.pointerId!==id||doneOnce)return;
+        ev.preventDefault();ev.stopPropagation();
         const dx=ev.clientX-first.x,dy=ev.clientY-first.y;
         if(kind==='move')place(el,origin.left+dx,origin.top+dy,origin.width,origin.height);
-        else place(el,origin.left,origin.top,clamp(origin.width+dx,minW,window.innerWidth-10),clamp(origin.height+dy,minH,window.innerHeight-80));
+        else place(el,origin.left,origin.top,clamp(origin.width+dx,minW,window.innerWidth-10),clamp(origin.height+dy,minH,window.innerHeight-90));
         if(cb)cb('change');
-      };
-      const done=ev=>{if(ev.pointerId!==e.pointerId)return;handle.removeEventListener('pointermove',dragging);handle.removeEventListener('pointerup',done);handle.removeEventListener('pointercancel',done);if(cb)cb('end');};
-      handle.addEventListener('pointermove',dragging);handle.addEventListener('pointerup',done);handle.addEventListener('pointercancel',done);
-    });
+      }
+      function done(ev){
+        if(ev.pointerId!==id||doneOnce)return;
+        doneOnce=true;
+        window.removeEventListener('pointermove',dragging,true);
+        window.removeEventListener('pointerup',done,true);
+        window.removeEventListener('pointercancel',done,true);
+        handle.removeEventListener('lostpointercapture',done);
+        try{if(handle.hasPointerCapture(id))handle.releasePointerCapture(id);}catch{}
+        if(cb)cb('end');
+      }
+      window.addEventListener('pointermove',dragging,{capture:true,passive:false});
+      window.addEventListener('pointerup',done,true);
+      window.addEventListener('pointercancel',done,true);
+      handle.addEventListener('lostpointercapture',done);
+    },{passive:false});
   }
   function addWidget(key,label,nodes,config){
     const wrap=document.createElement('div');wrap.className='pf-widget floating'+(key==='magnifier'?' pf-widget-mag':'');wrap.id='widget-'+key;wrap.setAttribute('aria-label',label+' floating control');
@@ -873,13 +915,13 @@ function setupStudioLayout(){
     panel.innerHTML='<div class="sheet-head"><strong>'+title+'</strong><button class="pf-panel-float">⇱ Float</button><button class="pf-panel-lock" title="Lock panel position">⇲</button><button class="pf-panel-close" title="Close">✕</button></div><div class="sheet-content"></div><div class="pf-grip" title="Resize panel">◢</div>';
     nodes.forEach(node=>panel.querySelector('.sheet-content').appendChild(node));document.body.appendChild(panel);
     const data=prefs.panels[key]||{};
-    const restore=()=>{if(data.floating){panel.classList.add('floating');const def=[Math.max(5,window.innerWidth-390),75,Math.min(365,window.innerWidth-15),Math.min(470,window.innerHeight-146)];place(panel,data.left??def[0],data.top??def[1],data.width??def[2],data.height??def[3]);}}
+    const restore=()=>{if(data.floating){panel.classList.add('floating');const def=[Math.max(5,window.innerWidth-390),75,Math.min(365,window.innerWidth-15),Math.round(window.innerHeight*.4)];place(panel,data.left??def[0],data.top??def[1],data.width??def[2],data.height??def[3]);}}
     restore();
     const remember=()=>{prefs.panels[key]={...rect(panel),floating:panel.classList.contains('floating'),locked:panel.classList.contains('ui-locked')};save();};
     if(data.locked){panel.classList.add('ui-locked');panel.querySelector('.pf-panel-lock').textContent='🔒';}
     panel.querySelector('.pf-panel-lock').onclick=()=>{const locked=panel.classList.toggle('ui-locked');panel.querySelector('.pf-panel-lock').textContent=locked?'🔒':'⇲';remember();};
     const floatBtn=panel.querySelector('.pf-panel-float');
-    floatBtn.onclick=()=>{const isFloat=panel.classList.toggle('floating');floatBtn.textContent=isFloat?'⇱ Dock':'⇱ Float';if(isFloat){const def=[Math.max(5,window.innerWidth-400),70,Math.min(370,window.innerWidth-15),Math.min(480,window.innerHeight-160)];place(panel,def[0],def[1],def[2],def[3]);}else{panel.style.cssText='';}remember();};
+    floatBtn.onclick=()=>{const isFloat=panel.classList.toggle('floating');floatBtn.textContent=isFloat?'⇱ Dock':'⇱ Float';if(isFloat){const def=[Math.max(5,window.innerWidth-400),70,Math.min(370,window.innerWidth-15),Math.round(window.innerHeight*.4)];place(panel,def[0],def[1],def[2],def[3]);}else{panel.style.cssText='';}remember();};
     if(data.floating)floatBtn.textContent='⇱ Dock';
     panel.querySelector('.pf-panel-close').onclick=()=>hidePanel(key);
     beginManipulation(panel,panel.querySelector('.sheet-head'),'move',235,170,x=>{if(x==='end')remember();});
@@ -1603,7 +1645,65 @@ function setupUIFixV101(){
   window.PixelForgeUIFixV101={arrange,scroll};
 }
 
-bind();setupStudioLayout();setupStudioEnhancements();setupPixelForgeV07();setupRigStudio();setupRigV09();setupRigV10();setupUIFixV101();refresh();requestAnimationFrame(()=>{resize();fitView();refresh();});
+
+/* Pixel Forge 1.0.2 — more reliable Android workspace sizing and grab zones. */
+function setupUIFixV102(){
+  const layout=window.PixelForgeLayout;
+  const settings=layout.panels.settings.querySelector('.sheet-content');
+  const dock=document.querySelector('.studio-nav');
+  // Floating panels are never allowed to re-open at a tiny saved height.
+  const desiredPanelHeight=()=>Math.round(window.innerHeight*.4);
+  const previousShow=layout.showPanel;
+  layout.showPanel=function(key){
+    const p=layout.panels[key];
+    if(p?.classList.contains('floating')&&p.offsetHeight<Math.min(230,desiredPanelHeight())){
+      p.style.height=desiredPanelHeight()+'px';
+    }
+    previousShow(key);
+  };
+  // Original nav bindings reference the private showPanel, so use capture before them
+  // only for undersized floating sheets; keep existing handlers for open/close.
+  dock.addEventListener('pointerdown',e=>{
+    const btn=e.target.closest('[data-studio-nav]');if(!btn)return;
+    const p=layout.panels[btn.dataset.studioNav];
+    if(p?.classList.contains('floating')&&p.offsetHeight<Math.min(230,desiredPanelHeight()))p.style.height=desiredPanelHeight()+'px';
+  },true);
+  const root=document.documentElement;
+  const savedSize=Number(localStorage.getItem('pf-drag-height-v102'))||48;
+  const setDragHeight=v=>{
+    const value=Math.max(38,Math.min(72,Math.round(v)));
+    root.style.setProperty('--pf-drag-height',value+'px');
+    return value;
+  };
+  const size=setDragHeight(savedSize);
+  const pref=document.createElement('div');pref.className='pf-setting-line';
+  pref.innerHTML='<strong>WINDOW DRAG HANDLE SIZE</strong><label style="display:flex;align-items:center;gap:10px;margin:8px 0">Title bar height <input id="pf102GrabSize" type="range" min="38" max="72" step="2" value="'+size+'" style="flex:1;min-width:0"><output id="pf102GrabValue">'+size+' px</output></label><p>Drag anywhere on the title bar except its buttons. Use the ◢ corner to resize a floating panel. Locked panels cannot be moved.</p><button id="pf102Reset" type="button" class="pf-wide-button">↺ Restore phone workspace</button>';
+  settings.prepend(pref);
+  const slider=pref.querySelector('#pf102GrabSize');
+  slider.addEventListener('input',()=>pref.querySelector('#pf102GrabValue').textContent=setDragHeight(slider.value)+' px');
+  slider.addEventListener('change',()=>localStorage.setItem('pf-drag-height-v102',String(setDragHeight(slider.value))));
+  const arrange=window.PixelForgeUIFixV101?.arrange;
+  pref.querySelector('#pf102Reset').onclick=()=>{arrange?.();localStorage.setItem('pf-layout-migrated-v102','1');};
+  // Migrate old tiny saved sheet geometries and provide a spacious default canvas.
+  if(localStorage.getItem('pf-layout-migrated-v102')!=='1'){
+    arrange?.(true);
+    localStorage.setItem('pf-layout-migrated-v102','1');
+  }
+  function fitViewport(){
+    const screen=window.visualViewport?.height||window.innerHeight;
+    root.style.setProperty('--pf-dock-height',Math.max(58,Math.min(72,Math.round(screen*.085)))+'px');
+    // Position is fixed in CSS even on Android WebViews with an unusual flex viewport.
+    if(window.visualViewport){root.style.setProperty('--pf-visual-height',screen+'px');}
+    requestAnimationFrame(()=>{resize();renderView();});
+  }
+  window.addEventListener('resize',fitViewport,{passive:true});
+  window.visualViewport?.addEventListener('resize',fitViewport,{passive:true});
+  fitViewport();
+  const brand=document.querySelector('.brand small');if(brand)brand.textContent='SURVIVAL PARADISE · STUDIO 1.0.2';
+  window.PixelForgeUIFixV102={setDragHeight,fitViewport,desiredPanelHeight};
+}
+
+bind();setupStudioLayout();setupStudioEnhancements();setupPixelForgeV07();setupRigStudio();setupRigV09();setupRigV10();setupUIFixV101();setupUIFixV102();refresh();requestAnimationFrame(()=>{resize();fitView();refresh();});
 })();
 
 </script>
