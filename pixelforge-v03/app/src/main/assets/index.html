@@ -510,6 +510,48 @@ let documents={character:{layers:[],w:64,h:64,wholeCanvas:null},weapon:{layers:[
 let mode='character',selected=null,tool='paint',face='right',animation='idle',frame=0,playing=false,editPoses=false;
 let snap=true,artSnap=true,showGrid=true,gridStep=4,trackpad=true,clickEnabled=true,holdLocked=false,dragStart=null,selectedColor='#a8b5a1',secondColor='#151b20',colorAlpha=1,brushSize=1;
 let pfBrushGuide=localStorage.getItem('pixelforge-brush-guide-v07')!=='false';
+// Pixel Forge 1.0.4: brush and workspace are independent of the interface theme.
+const PF104_BRUSH_SHAPES=['square','circle','horizontal','vertical','slash','backslash','plus','x','diamond','outline'];
+let pfBrushShape=PF104_BRUSH_SHAPES.includes(localStorage.getItem('pf104-brush'))?localStorage.getItem('pf104-brush'):'square';
+const PF104_CANVAS_PRESETS={
+ 'Obsidian':'#080b0e', 'Charcoal':'#151b22', 'Graphite':'#272e36', 'Slate':'#3b4550',
+ 'Neutral Gray':'#666e75','Soft Light':'#b8bec2','White':'#eceff1','Custom':null
+};
+const pf104Canvas={preset:'Charcoal',outside:'#151b22',checkerLight:37,checkerDiff:13,
+ gridColor:'#718a96',gridOpacity:25,majorOpacity:50,major:true,
+ border:'#889da4',uiDark:true};
+function pf104Mask(k,shape=pfBrushShape){
+ k=Math.max(1,Math.min(64,Math.round(k)));const a=new Uint8Array(k*k),c=(k-1)/2;
+ for(let y=0;y<k;y++)for(let x=0;x<k;x++){
+  const dx=x-c,dy=y-c,ad=Math.abs(dx),bd=Math.abs(dy);
+  const cross=Math.abs(dx)<=.5||Math.abs(dy)<=.5;
+  let on=false;
+  switch(shape){
+   case 'circle':on=dx*dx+dy*dy<=((k/2)-.15)**2;break;
+   case 'horizontal':on=Math.abs(dy)<=.5;break;
+   case 'vertical':on=Math.abs(dx)<=.5;break;
+   case 'slash':on=Math.abs(x+y-(k-1))<1;break;
+   case 'backslash':on=Math.abs(x-y)<1;break;
+   case 'plus':on=cross;break;
+   case 'x':on=Math.abs(x-y)<1||Math.abs(x+y-(k-1))<1;break;
+   case 'diamond':on=ad+bd<=k/2-.1;break;
+   case 'outline':on=x===0||x===k-1||y===0||y===k-1;break;
+   default:on=true;
+  }
+  if(on)a[y*k+x]=1;
+ }
+ // Degenerate shapes always stamp at least one pixel.
+ if(!a.some(Boolean))a[Math.floor(c)*k+Math.floor(c)]=1;
+ return a;
+}
+function pf104RGBA(color,opacity){const r=parseInt(color.slice(1,3),16),g=parseInt(color.slice(3,5),16),b=parseInt(color.slice(5,7),16);return `rgba(${r},${g},${b},${Math.max(0,Math.min(1,opacity))})`;}
+function pf104UpdateChecker(){
+ const b=Math.max(0,Math.min(230,pf104Canvas.checkerLight)),diff=Math.max(0,Math.min(70,pf104Canvas.checkerDiff));
+ const pale=Math.max(0,Math.min(255,b+diff));
+ check.clearRect(0,0,2,2);check.fillStyle=`rgb(${pale},${pale},${pale})`;check.fillRect(0,0,2,2);
+ check.fillStyle=`rgb(${b},${b},${b})`;check.fillRect(0,0,1,1);check.fillRect(1,1,1,1);
+}
+
 let viewportLocked=localStorage.getItem('pixelforge-viewport-lock-v06')==='true';let zoom=7,pan={x:0,y:0},pointer={x:32.5,y:32.5},selection=null,selOverlay=null,clipboard=null,preview=null;
 let pointerDown=false,actionHeld=false,clickPress=false,clickPressOrigin=null,startPos=null,lastPaintLocal=null,pinch=null,raf=0,lastFrameTime=0;
 let toastTimeout=null,undoStack=[],redoStack=[];const activeTouches=new Map();
@@ -519,12 +561,12 @@ function inkCanvas(key){const d=defs[key],c=mk(d.w,d.h),ctx=c.getContext('2d');d
 function seed(){mode='character';for(const k of ['leftleg','rightleg','backpack','torso','leftarm','rightarm','head','belt'])addLayer(k,true);mode='weapon';for(const k of ['stock','receiver','barrel','magazine','grip','optic'])addLayer(k,true);mode='character';selected=layers().find(l=>l.kind==='torso')?.id||null;}
 function addLayer(key,quiet=false){const d=defs[key],p=placement[key]||[24,24],l={id:id(),name:d.label,kind:d.kind,sprite:inkCanvas(key),x:p[0]+(W()-64)/2,y:p[1]+(H()-64)/2,rotation:0,scale:1,flip:false,visible:true,locked:false,opacity:1,poses:{}};layers().push(l);selected=l.id;selection=null;if(!quiet){record();refresh();toast('Added '+d.label);}return l;}
 seed();
-function snapshot(){const out={version:4,name:'Survival Paradise Pixel Forge',mode,selected,face,animation,snap,artSnap,showGrid,gridStep,trackpad,clickEnabled,brushSize,selectedColor,colorAlpha,documents:{}};for(const [name,d] of Object.entries(documents))out.documents[name]={w:d.w,h:d.h,wholeCanvas:d.wholeCanvas||null,timelines:d.timelines||null,poseLibrary:d.poseLibrary||{},skeleton:d.skeleton||null,layers:d.layers.map(l=>({...l,sprite:l.sprite.toDataURL('image/png')}))};return out;}
+function snapshot(){const out={version:4,name:'Survival Paradise Pixel Forge',mode,selected,face,animation,snap,artSnap,showGrid,gridStep,trackpad,clickEnabled,brushSize,brushShape:pfBrushShape,selectedColor,colorAlpha,documents:{}};for(const [name,d] of Object.entries(documents))out.documents[name]={w:d.w,h:d.h,wholeCanvas:d.wholeCanvas||null,timelines:d.timelines||null,poseLibrary:d.poseLibrary||{},skeleton:d.skeleton||null,layers:d.layers.map(l=>({...l,sprite:l.sprite.toDataURL('image/png')}))};return out;}
 function record(){undoStack.push(JSON.stringify(snapshot()));if(undoStack.length>25)undoStack.shift();redoStack=[];}
 async function restore(s){if(!s||![1,2,3,4].includes(s.version)||!s.documents)throw Error('Invalid Pixel Forge project');let next={character:{layers:[]},weapon:{layers:[]}},loads=[];
  for(const m of ['character','weapon']){const d=s.documents[m];if(!d||!Array.isArray(d.layers)||d.layers.length>250)throw Error('Invalid layers');next[m].w=s.version===1?64:clamp(Math.round(d.w||64),1,MAX);next[m].h=s.version===1?64:clamp(Math.round(d.h||64),1,MAX);next[m].wholeCanvas=s.version>=4&&d.wholeCanvas?d.wholeCanvas:null;next[m].timelines=d.timelines&&typeof d.timelines==='object'?d.timelines:null;next[m].poseLibrary=d.poseLibrary&&typeof d.poseLibrary==='object'?d.poseLibrary:{};next[m].skeleton=d.skeleton&&Array.isArray(d.skeleton.points)?d.skeleton:null;
  for(const x of d.layers){if(typeof x.sprite!=='string'||!x.sprite.startsWith('data:image/png'))throw Error('Invalid sprite data');const l={id:String(x.id||id()),name:String(x.name||'Layer').slice(0,80),kind:String(x.kind||'import'),sprite:mk(1,1),x:Number(x.x)||0,y:Number(x.y)||0,rotation:Number(x.rotation)||0,scale:Number(x.scale)||1,flip:!!x.flip,visible:x.visible!==false,locked:!!x.locked,opacity:Number.isFinite(x.opacity)?clamp(x.opacity,0,1):1,poses:x.poses||{},rig:x.rig&&typeof x.rig==='object'?x.rig:null};next[m].layers.push(l);loads.push(new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>{if(im.naturalWidth>MAX||im.naturalHeight>MAX){reject(Error('Layer too large'));return;}l.sprite=mk(im.naturalWidth,im.naturalHeight);l.sprite.getContext('2d').drawImage(im,0,0);resolve();};im.onerror=()=>reject(Error('Corrupt sprite'));im.src=x.sprite;}));}}
- await Promise.all(loads);documents=next;mode=s.mode==='weapon'?'weapon':'character';face=s.face==='left'?'left':'right';animation=['idle','walk','run','aim'].includes(s.animation)?s.animation:'idle';snap=s.snap!==false;artSnap=s.artSnap!==false;showGrid=s.showGrid!==false;gridStep=s.gridStep||4;trackpad=s.trackpad!==false;clickEnabled=s.clickEnabled!==false;holdLocked=false;dragStart=null;brushSize=s.brushSize||1;colorAlpha=s.colorAlpha??1;selectedColor=s.selectedColor||selectedColor;selected=layers().some(l=>l.id===s.selected)?s.selected:(layers().at(-1)?.id||null);selection=null;preview=null;moveCursor(W()/2,H()/2);fitView();refresh();}
+ await Promise.all(loads);documents=next;mode=s.mode==='weapon'?'weapon':'character';face=s.face==='left'?'left':'right';animation=['idle','walk','run','aim'].includes(s.animation)?s.animation:'idle';snap=s.snap!==false;artSnap=s.artSnap!==false;showGrid=s.showGrid!==false;gridStep=s.gridStep||4;trackpad=s.trackpad!==false;clickEnabled=s.clickEnabled!==false;holdLocked=false;dragStart=null;brushSize=s.brushSize||1;pfBrushShape=PF104_BRUSH_SHAPES.includes(s.brushShape)?s.brushShape:pfBrushShape;try{document.getElementById('pf104Shape').value=pfBrushShape;}catch(e){}colorAlpha=s.colorAlpha??1;selectedColor=s.selectedColor||selectedColor;selected=layers().some(l=>l.id===s.selected)?s.selected:(layers().at(-1)?.id||null);selection=null;preview=null;moveCursor(W()/2,H()/2);fitView();refresh();}
 async function undo(){if(!undoStack.length)return;redoStack.push(JSON.stringify(snapshot()));try{await restore(JSON.parse(undoStack.pop()));toast('Undo');}catch(err){toast(err.message);}}
 async function redo(){if(!redoStack.length)return;undoStack.push(JSON.stringify(snapshot()));try{await restore(JSON.parse(redoStack.pop()));toast('Redo');}catch(err){toast(err.message);}}
 const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
@@ -578,23 +620,27 @@ function fitView(){const rw=stage.clientWidth||380,rh=stage.clientHeight||350;zo
 function focusLayer(){const l=L();if(!l){fitView();return;}const p=getPose(l),s=p.scale;zoom=clamp(Math.min((stage.clientWidth-60)/(l.sprite.width*s),(stage.clientHeight-60)/(l.sprite.height*s)),.25,40);const center={x:p.x+l.sprite.width/2,y:p.y+l.sprite.height/2};pan={x:-( (face==='left'?W()-center.x:center.x)-W()/2)*zoom,y:-(center.y-H()/2)*zoom};$('zoomLabel').textContent=Math.round(zoom*100)+'%';renderView();}
 function resize(){const rect=stage.getBoundingClientRect(),dpr=Math.min(window.devicePixelRatio||1,2);let w=Math.max(1,Math.round(rect.width*dpr)),h=Math.max(1,Math.round(rect.height*dpr));if(screen.width!==w||screen.height!==h){screen.width=w;screen.height=h;cursorCanvas.width=w;cursorCanvas.height=h;}renderView();}
 // Render the world from cached art. Grid lines are generated ONLY for visible pixels.
-function renderViewport(){if(!screen.width||!stage.clientWidth)return;const width=stage.clientWidth,height=stage.clientHeight,dpr=screen.width/width;cx.setTransform(1,0,0,1,0,0);cx.fillStyle='#cad0d0';cx.fillRect(0,0,screen.width,screen.height);cx.setTransform(dpr,0,0,dpr,0,0);cx.save();cx.translate(width/2+pan.x,height/2+pan.y);cx.scale(zoom,zoom);cx.translate(-W()/2,-H()/2);cx.imageSmoothingEnabled=false;
+function renderViewport(){if(!screen.width||!stage.clientWidth)return;const width=stage.clientWidth,height=stage.clientHeight,dpr=screen.width/width;cx.setTransform(1,0,0,1,0,0);cx.fillStyle=pf104Canvas.outside;cx.fillRect(0,0,screen.width,screen.height);cx.setTransform(dpr,0,0,dpr,0,0);cx.save();cx.translate(width/2+pan.x,height/2+pan.y);cx.scale(zoom,zoom);cx.translate(-W()/2,-H()/2);cx.imageSmoothingEnabled=false;
  cx.fillStyle=cx.createPattern(checker,'repeat');cx.fillRect(0,0,W(),H());cx.drawImage(ensureScene(),0,0);if(window.PF09?.onion&&frameCount()>1){cx.save();cx.globalAlpha=.20;cx.drawImage(composite((frame-1+frameCount())%frameCount()),0,0);cx.globalAlpha=.13;cx.drawImage(composite((frame+1)%frameCount()),0,0);cx.restore();}
  if(showGrid&&zoom>=3){const w=W(),h=H(),start=fromDisplay(0,0),finish=fromDisplay(width,height);const x0=clamp(Math.floor(Math.min(start.x,finish.x))-1,0,w),x1=clamp(Math.ceil(Math.max(start.x,finish.x))+1,0,w),y0=clamp(Math.floor(Math.min(start.y,finish.y))-1,0,h),y1=clamp(Math.ceil(Math.max(start.y,finish.y))+1,0,h);
- cx.save();cx.beginPath();cx.lineWidth=1/zoom;cx.strokeStyle='rgba(90,94,99,.27)';const step=zoom>=6?1:gridStep;for(let x=Math.ceil(x0/step)*step;x<=x1;x+=step){cx.moveTo(x,y0);cx.lineTo(x,y1);}for(let y=Math.ceil(y0/step)*step;y<=y1;y+=step){cx.moveTo(x0,y);cx.lineTo(x1,y);}cx.stroke();if(gridStep>1){cx.beginPath();cx.strokeStyle='rgba(75,81,84,.56)';for(let x=Math.ceil(x0/gridStep)*gridStep;x<=x1;x+=gridStep){cx.moveTo(x,y0);cx.lineTo(x,y1);}for(let y=Math.ceil(y0/gridStep)*gridStep;y<=y1;y+=gridStep){cx.moveTo(x0,y);cx.lineTo(x1,y);}cx.stroke();}cx.restore();}
+ cx.save();cx.beginPath();cx.lineWidth=1/zoom;cx.strokeStyle=pf104RGBA(pf104Canvas.gridColor,pf104Canvas.gridOpacity/100);const step=zoom>=6?1:gridStep;for(let x=Math.ceil(x0/step)*step;x<=x1;x+=step){cx.moveTo(x,y0);cx.lineTo(x,y1);}for(let y=Math.ceil(y0/step)*step;y<=y1;y+=step){cx.moveTo(x0,y);cx.lineTo(x1,y);}cx.stroke();if(pf104Canvas.major&&gridStep>1){cx.beginPath();cx.strokeStyle=pf104RGBA(pf104Canvas.gridColor,pf104Canvas.majorOpacity/100);for(let x=Math.ceil(x0/gridStep)*gridStep;x<=x1;x+=gridStep){cx.moveTo(x,y0);cx.lineTo(x,y1);}for(let y=Math.ceil(y0/gridStep)*gridStep;y<=y1;y+=gridStep){cx.moveTo(x0,y);cx.lineTo(x1,y);}cx.stroke();}cx.restore();}
  const l=L();if(l&&l.visible){const p=getPose(l),w=l.sprite.width,h=l.sprite.height;cx.save();if(face==='left'){cx.translate(W(),0);cx.scale(-1,1);}cx.translate(p.x+w/2,p.y+h/2);cx.rotate(p.rotation*Math.PI/180);cx.scale(p.scale,p.scale);cx.strokeStyle='#006f8c';cx.lineWidth=1/zoom;cx.setLineDash([2/zoom,2/zoom]);cx.strokeRect(-w/2,-h/2,w,h);cx.restore();}
- cx.strokeStyle='#799b9f';cx.lineWidth=1/zoom;cx.strokeRect(0,0,W(),H());cx.restore();}
+ cx.strokeStyle=pf104Canvas.border;cx.lineWidth=1/zoom;cx.strokeRect(0,0,W(),H());cx.restore();}
 // Cursor belongs to its own transparent canvas so finger motion does not redraw sprites.
 function renderCrosshair(){if(!cursorCanvas.width)return;const dpr=cursorCanvas.width/stage.clientWidth;cursorCtx.setTransform(1,0,0,1,0,0);cursorCtx.clearRect(0,0,cursorCanvas.width,cursorCanvas.height);cursorCtx.setTransform(dpr,0,0,dpr,0,0);const p=toDisplay(pointer.x,pointer.y);cursorCtx.strokeStyle='#ef9f25';cursorCtx.lineWidth=1.5;cursorCtx.beginPath();cursorCtx.moveTo(p.x-10,p.y);cursorCtx.lineTo(p.x-4,p.y);cursorCtx.moveTo(p.x+4,p.y);cursorCtx.lineTo(p.x+10,p.y);cursorCtx.moveTo(p.x,p.y-10);cursorCtx.lineTo(p.x,p.y-4);cursorCtx.moveTo(p.x,p.y+4);cursorCtx.lineTo(p.x,p.y+10);cursorCtx.stroke();cursorCtx.strokeRect(p.x-2,p.y-2,4,4);
  if(pfBrushGuide && (tool==='paint'||tool==='erase') && L() && !L().locked){
-   const layer=L(),local=localCursor(layer),size=Math.max(1,Math.round(brushSize));
-   const px=Math.floor(local.x)-Math.floor(size/2),py=Math.floor(local.y)-Math.floor(size/2);
-   const corners=[[px,py],[px+size,py],[px+size,py+size],[px,py+size]].map(([x,y])=>{const w=localToWorld(layer,x,y);return toDisplay(w.x,w.y);});
-   cursorCtx.save();cursorCtx.lineWidth=1.7;cursorCtx.lineJoin='miter';
-   cursorCtx.beginPath();corners.forEach((pt,i)=>i?cursorCtx.lineTo(pt.x,pt.y):cursorCtx.moveTo(pt.x,pt.y));cursorCtx.closePath();
-   cursorCtx.fillStyle=tool==='erase'?'rgba(242,65,65,.13)':'rgba(255,202,88,.16)';cursorCtx.fill();
-   cursorCtx.strokeStyle=tool==='erase'?'#fa6b70':'#fbd67e';cursorCtx.stroke();
-   cursorCtx.setLineDash([3,3]);cursorCtx.strokeStyle='rgba(0,0,0,.78)';cursorCtx.stroke();cursorCtx.restore();
+  const layer=L(),local=localCursor(layer),size=Math.max(1,Math.round(brushSize)),mask=pf104Mask(size);
+  const px=Math.floor(local.x)-Math.floor(size/2),py=Math.floor(local.y)-Math.floor(size/2);
+  cursorCtx.save();cursorCtx.lineWidth=Math.max(1,Math.min(2,zoom/5));cursorCtx.lineJoin='miter';
+  for(let y=0;y<size;y++)for(let x=0;x<size;x++)if(mask[y*size+x]){
+   const pts=[[px+x,py+y],[px+x+1,py+y],[px+x+1,py+y+1],[px+x,py+y+1]]
+      .map(([u,v])=>{const q=localToWorld(layer,u,v);return toDisplay(q.x,q.y);});
+   cursorCtx.beginPath();pts.forEach((pt,i)=>i?cursorCtx.lineTo(pt.x,pt.y):cursorCtx.moveTo(pt.x,pt.y));cursorCtx.closePath();
+   cursorCtx.fillStyle=tool==='erase'?'rgba(250,70,75,.24)':'rgba(254,201,67,.24)';cursorCtx.fill();
+   const border=x===0||y===0||x===size-1||y===size-1||!mask[y*size+x-1]||!mask[y*size+x+1]||!mask[(y-1)*size+x]||!mask[(y+1)*size+x];
+   if(border){cursorCtx.strokeStyle=tool==='erase'?'#ff747b':'#ffdd6c';cursorCtx.stroke();}
+  }
+  cursorCtx.restore();
  }
 }
 // A single nearest-neighbor magnified draw instead of 144 separate drawImage calls.
@@ -645,7 +691,13 @@ function localFromWorld(l,x,y){const p=worldPose(l),dx=x-p.x,dy=y-p.y,a=-p.rotat
 function localCursor(l=L()){return l?localFromWorld(l,pointer.x,pointer.y):{x:0,y:0};}
 function hitTest(x,y){for(let i=layers().length-1;i>=0;i--){let l=layers()[i];if(!l.visible||l.locked)continue;let p=localFromWorld(l,x,y),ix=Math.floor(p.x),iy=Math.floor(p.y);if(ix<0||iy<0||ix>=l.sprite.width||iy>=l.sprite.height)continue;if(l.sprite.getContext('2d',{willReadFrequently:true}).getImageData(ix,iy,1,1).data[3]>40)return l;}return null;}
 function pixelRGBA(hex,alpha=255){return [parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16),alpha];}
-function plot(g,x,y,color=selectedColor,sz=brushSize,erase=false){const k=Math.max(1,Math.round(sz)),px=Math.round(x)-Math.floor(k/2),py=Math.round(y)-Math.floor(k/2);if(erase)g.clearRect(px,py,k,k);else{g.fillStyle=color;g.fillRect(px,py,k,k);}}
+function plot(g,x,y,color=selectedColor,sz=brushSize,erase=false){
+ const k=Math.max(1,Math.round(sz)),px=Math.round(x)-Math.floor(k/2),py=Math.round(y)-Math.floor(k/2),mask=pf104Mask(k);
+ if(!erase)g.fillStyle=color;
+ for(let yy=0;yy<k;yy++)for(let xx=0;xx<k;xx++)if(mask[yy*k+xx]){
+   if(erase)g.clearRect(px+xx,py+yy,1,1);else g.fillRect(px+xx,py+yy,1,1);
+ }
+}
 function drawLine(g,x0,y0,x1,y1,sz=brushSize){x0=Math.round(x0);y0=Math.round(y0);x1=Math.round(x1);y1=Math.round(y1);let dx=Math.abs(x1-x0),dy=-Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1,err=dx+dy;let i=0;while(i++<5000){plot(g,x0,y0,selectedColor,sz);if(x0===x1&&y0===y1)break;let e=2*err;if(e>=dy){err+=dy;x0+=sx;}if(e<=dx){err+=dx;y0+=sy;}}}
 function inPoly(x,y,pts){let yes=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){let a=pts[i],b=pts[j];if((a.y>y)!==(b.y>y)&&x<(b.x-a.x)*(y-a.y)/(b.y-a.y)+a.x)yes=!yes;}return yes;}
 function vertices(kind,x0,y0,x1,y1){let x=Math.min(x0,x1),y=Math.min(y0,y1),w=Math.abs(x1-x0)+1,h=Math.abs(y1-y0)+1;if(kind.startsWith('triangle'))return[{x:x+w/2,y},{x:x+w-1,y:y+h-1},{x,y:y+h-1}];let pts=[];const cx=x+w/2,cy=y+h/2;for(let i=0;i<10;i++){let angle=(i*36-90)*Math.PI/180,rad=(i%2===0?1:.45),rx=w/2*rad,ry=h/2*rad;pts.push({x:cx+Math.cos(angle)*rx,y:cy+Math.sin(angle)*ry});}return pts;}
@@ -822,7 +874,11 @@ function addBlankLayer(){record();const l={id:id(),name:'Blank paint layer',kind
 function expandLayer(){let l=L();if(!l||l.locked){toast('Select an unlocked layer');return;}if(l.rotation!==0||l.scale!==1||l.flip){toast('Reset layer rotation/scale/flip before expanding');return;}record();const newW=Math.max(W(),Math.ceil(l.x+l.sprite.width)),newH=Math.max(H(),Math.ceil(l.y+l.sprite.height)),left=Math.min(0,Math.floor(l.x)),top=Math.min(0,Math.floor(l.y));if(newW-left>MAX||newH-top>MAX){toast('Layer would exceed 1024 px');return;}const c=mk(newW-left,newH-top),g=c.getContext('2d');g.drawImage(l.sprite,l.x-left,l.y-top);l.x=left;l.y=top;l.sprite=c;updateSelection(null);refresh();toast('Layer expanded for drawing');}
 function duplicateLayer(){let l=L();if(!l)return;record();let c=mk(l.sprite.width,l.sprite.height);c.getContext('2d').drawImage(l.sprite,0,0);let copy={...l,id:id(),name:l.name+' copy',sprite:c,x:l.x+2,y:l.y+2,poses:structuredClone(l.poses)};layers().push(copy);selected=copy.id;updateSelection(null);refresh();}
 function handleImport(e){const f=e.target.files?.[0];if(!f)return;if(f.size>12_000_000){toast('Image exceeds 12 MB');return;}let im=new Image();im.onload=()=>{if(im.naturalWidth>MAX||im.naturalHeight>MAX){toast('Max image size is 1024×1024; crop externally first');URL.revokeObjectURL(im.src);return;}record();const spr=mk(im.naturalWidth,im.naturalHeight);spr.getContext('2d').drawImage(im,0,0);if(im.naturalWidth>W()||im.naturalHeight>H()){doc().w=Math.max(W(),im.naturalWidth);doc().h=Math.max(H(),im.naturalHeight);fitView();}
- const l={id:id(),name:f.name.replace(/\.[^.]+$/,'').slice(0,70),kind:'import',sprite:spr,x:Math.floor((W()-spr.width)/2),y:Math.floor((H()-spr.height)/2),rotation:0,scale:1,flip:false,visible:true,locked:false,opacity:1,poses:{}};layers().push(l);selected=l.id;updateSelection(null);focusLayer();refresh();toast('Imported '+f.name+' — grid aligned');URL.revokeObjectURL(im.src);};im.onerror=()=>toast('Could not open image');im.src=URL.createObjectURL(f);e.target.value='';}
+ const l={id:id(),name:f.name.replace(/\.[^.]+$/,'').slice(0,70),kind:'import',sprite:spr,x:Math.floor((W()-spr.width)/2),y:Math.floor((H()-spr.height)/2),rotation:0,scale:1,flip:false,visible:true,locked:false,opacity:1,poses:{}};layers().push(l);selected=l.id;
+ const flatState=doc().wholeCanvas,flat=layers().find(x=>x.id===flatState?.layerId);
+ if(flatState?.active&&flat){flat.sprite.getContext('2d').drawImage(spr,l.x,l.y);l.visible=false;
+   flatState.originalVisibility??=[];flatState.originalVisibility.push({id:l.id,visible:true});selected=flat.id;}
+ updateSelection(null);focusLayer();refresh();toast('Imported '+f.name+' — grid aligned');URL.revokeObjectURL(im.src);};im.onerror=()=>toast('Could not open image');im.src=URL.createObjectURL(f);e.target.value='';}
 function bind(){
  $('undo').onclick=undo;$('redo').onclick=redo;
  $('minusZoom').onclick=()=>{if(viewportLocked){toast('Unlock canvas view to zoom');return;}zoom=clamp(zoom/1.25,.25,40);$('zoomLabel').textContent=Math.round(zoom*100)+'%';renderView();};$('plusZoom').onclick=()=>{if(viewportLocked){toast('Unlock canvas view to zoom');return;}zoom=clamp(zoom*1.25,.25,40);$('zoomLabel').textContent=Math.round(zoom*100)+'%';renderView();};$('resetView').onclick=()=>{if(viewportLocked){toast('Unlock canvas view to recenter');return;}fitView();$('zoomLabel').textContent=Math.round(zoom*100)+'%';renderView();};$('magToggle').onclick=()=>{mag.hidden=!mag.hidden;window.PixelForgeLayout?.syncMagnifier();renderPointer();};$('focusArt').onclick=()=>{if(viewportLocked){toast('Unlock canvas view to focus');return;}focusLayer();};
@@ -1943,10 +1999,102 @@ function setupPixelForgeV103(){
  const help=el('pfInfoContent');if(help){const section=document.createElement('details');section.className='pf-guide-section';section.innerHTML='<summary>NEW 1.0.3 — WHOLE IMAGE, ROTATION, SKELETON & COLORS</summary><p>Painting now opens in Whole Image mode, allowing all visible pixels to be selected and edited anywhere. Setup → EDITING SCOPE toggles protected part-layer editing. Original parts stay separately preserved. In Tools → Selection Transform, first make a rectangular/lasso selection then use the ±1°, ±15°, 90° or exact-angle button; rotation is nearest-neighbor and undoable. Rig → Visual Skeleton Window shows draggable named guide points. Use 3-Part, Basic or Detailed presets; name and assign nodes to the appropriate sprite layers, assign parents, then press Attach/Link. A linked parent moves its child sprite automatically. Use Pivot ← Point to place local pivots, and Detach permission to unlock separation. The graph is saved in the .pixelforge project. Rig work uses original modular layers; to update a flattened painting afterward choose Setup → Rebuild flat painting from visible parts while in Parts mode. Colors → Sampled Color Lab: use ◉ Pick or Sample image, select lighter/darker shades, enter RGB, and use the hue wheel outer ring plus inner square to adjust saturation and brightness; save shades to My Slots. Advanced HSV/HEX tools remain available. NOTE: The three-point guide cannot automatically split a flattened body into layers; use Extract and assign each resulting part. Rotated sprite pixels are rasterized and may show pixel-step aliasing.</p>';help.prepend(section);}
  window.PixelForgeV103={ensureWhole,isWhole,rotatePixels,openRig,refreshRig,applyPreset,drawRig,skeleton,syncScope,lab:{updateColorLab,getBase:()=>sampledBase},getState:()=>({scope:isWhole()?'whole':'layers',selection:selectionBounds(),skeleton:skeleton().points.map(n=>({...n})),color:selectedColor})};
  ensureWhole();syncScope();
- const label=document.querySelector('.brand small');if(label)label.textContent='SURVIVAL PARADISE · STUDIO 1.0.3';
+ const label=document.querySelector('.brand small');if(label)label.textContent='SURVIVAL PARADISE · STUDIO 1.0.4';
 }
 
-bind();setupStudioLayout();setupStudioEnhancements();setupPixelForgeV07();setupRigStudio();setupRigV09();setupRigV10();setupUIFixV101();setupUIFixV102();setupPixelForgeV103();refresh();requestAnimationFrame(()=>{resize();fitView();refresh();});
+function setupPixelForgeV104(){
+ const panel=window.PixelForgeLayout?.panels?.settings?.querySelector('.sheet-content');
+ if(!panel)throw Error('Pixel Forge workspace settings panel unavailable');
+ // Read appearance preferences once; settings are visual-only and never enter sprite exports.
+ try{const saved=JSON.parse(localStorage.getItem('pf104-workspace')||'{}');
+  for(const k of Object.keys(pf104Canvas))if(Object.hasOwn(saved,k)&&typeof saved[k]===typeof pf104Canvas[k])pf104Canvas[k]=saved[k];
+ }catch(e){}
+ if(!/^#[0-9a-fA-F]{6}$/.test(pf104Canvas.outside))pf104Canvas.outside='#151b22';
+ if(!/^#[0-9a-fA-F]{6}$/.test(pf104Canvas.gridColor))pf104Canvas.gridColor='#718a96';
+ const css=document.createElement('style');css.id='pf104DarkStyle';css.textContent=`
+ /* A neutral dark workspace independent of Forest/Midnight/Desert accent colors. */
+ html.pf104-dark-ui,html.pf104-dark-ui body,html.pf104-dark-ui .shell,html.pf104-dark-ui .workspace,
+ html.pf104-dark-ui .editor{background:#0b1016!important;color:#dfebed!important}
+ html.pf104-dark-ui .header,html.pf104-dark-ui .studio-nav,html.pf104-dark-ui .studio-sheet,
+ html.pf104-dark-ui .pf-widget,html.pf104-dark-ui .pf-info-dialog,html.pf104-dark-ui .pf-replace-dialog,
+ html.pf104-dark-ui .pf103-dialog,html.pf104-dark-ui .pf08-panel{background:#142029!important;color:#e5f2f2!important;border-color:#526774!important}
+ html.pf104-dark-ui .studio-sheet .sheet-head,html.pf104-dark-ui .pf-widget-head,
+ html.pf104-dark-ui .pf-info-head,html.pf104-dark-ui .pf-replace-header,
+ html.pf104-dark-ui .pf103-dialog header{background:#20313b!important;color:#e6f5f7!important}
+ html.pf104-dark-ui .studio-sheet button:not(.swatch),html.pf104-dark-ui .pf-widget button,
+ html.pf104-dark-ui .studio-nav button,html.pf104-dark-ui .pf-setting-line button{background:#263943;color:#e5f2f2;border-color:#567b83}
+ html.pf104-dark-ui .studio-sheet button.active,html.pf104-dark-ui .studio-nav button.active{border-color:var(--pf-theme-accent)!important;color:var(--pf-theme-accent)!important}
+ html.pf104-dark-ui .pf-setting-line,html.pf104-dark-ui .pf104-settings{background:#192b34!important;color:#e4eef1!important;border-color:#536b75!important}
+ html.pf104-dark-ui .studio-sheet input:not([type=color]),html.pf104-dark-ui .studio-sheet select,
+ html.pf104-dark-ui .pf103-dialog input,html.pf104-dark-ui .pf103-dialog select{background:#101c24!important;color:#ebf4f4!important;border-color:#5b7982!important}
+ html.pf104-dark-ui .pf-info-dialog .pf-guide-section{background:#1c3039!important;color:#e4ecee!important}
+ html.pf104-dark-ui .stage-container{background:#11181e!important;border-color:#66808a!important}
+ .pf104-settings{margin:7px 0 12px;border:1px solid var(--pf-theme-accent,#688);border-radius:9px;padding:10px;display:grid;gap:10px;background:#15252c}
+ .pf104-settings strong{font-size:12px;color:var(--pf-theme-accent,#7dc)}
+ .pf104-settings p{font-size:11px;line-height:1.5;margin:0}
+ .pf104-settings label{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:12px}
+ .pf104-settings input[type=range]{min-width:85px;flex:1;accent-color:var(--pf-theme-accent,#7dc)}
+ .pf104-settings select{min-height:37px;max-width:100%;background:#182b33;color:#e9f3f4;border-radius:6px;padding:6px}
+ .pf104-settings input[type=color]{min-height:37px;width:53px;border:0;background:transparent}
+ .pf104-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .pf104-grid label{display:flex;flex-direction:column;align-items:stretch}
+ .pf104-grid input[type=color]{width:100%}
+ .pf104-shape-tools{display:flex;align-items:center;gap:7px;margin:10px 0;padding:9px;border:1px solid var(--pf-theme-accent,#7dc);border-radius:9px;background:var(--pf-theme-panel,#233)}
+ .pf104-shape-tools select{flex:1;min-width:0;min-height:39px;color:var(--pf-theme-text,#fff);background:var(--pf-theme-button,#233);border:1px solid #65877c;border-radius:6px}
+ .pf104-shape-tools b{font-size:11px;color:var(--pf-theme-accent,#9ec)}
+ `;document.head.append(css);
+ const add=document.createElement('section');add.className='pf104-settings';add.id='pf104Appearance';
+ add.innerHTML=`<strong>WORKSPACE APPEARANCE · Independent from accent themes</strong>
+ <label>Whole app dark mode <input id="pf104UiDark" type="checkbox" checked></label>
+ <label>Canvas shade <select id="pf104Preset"><option>Obsidian</option><option selected>Charcoal</option><option>Graphite</option><option>Slate</option><option>Neutral Gray</option><option>Soft Light</option><option>White</option><option>Custom</option></select></label>
+ <div class="pf104-grid"><label>Custom canvas backdrop<input type="color" id="pf104Backdrop"></label><label>Canvas border<input type="color" id="pf104Border"></label></div>
+ <label>Transparency checker brightness <input type="range" id="pf104Checker" min="8" max="218" step="1"><output id="pf104CheckerValue"></output></label>
+ <label>Checker contrast <input type="range" id="pf104CheckDiff" min="0" max="65" step="1"><output id="pf104CheckDiffValue"></output></label>
+ <div class="pf104-grid"><label>Pixel grid color<input type="color" id="pf104GridColor"></label><label>Major grid lines<input type="checkbox" id="pf104Major"></label></div>
+ <label>Pixel grid opacity <input type="range" id="pf104GridAlpha" min="0" max="100"><output id="pf104GridAlphaValue"></output></label>
+ <label>Major grid opacity <input type="range" id="pf104MajorAlpha" min="0" max="100"><output id="pf104MajorAlphaValue"></output></label>
+ <button type="button" id="pf104Reset" style="min-height:39px">Restore dark workspace defaults</button>
+ <p>These settings change only the editor's appearance. Transparency remains transparent in saved PNGs and sprite sheets. App dark mode does not override your accent color theme.</p>`;
+ panel.prepend(add);
+ const q=id=>document.getElementById(id);
+ function sync104(){
+  pf104UpdateChecker();document.documentElement.classList.toggle('pf104-dark-ui',pf104Canvas.uiDark);
+  q('pf104UiDark').checked=pf104Canvas.uiDark;
+  q('pf104Preset').value=PF104_CANVAS_PRESETS[pf104Canvas.preset]||pf104Canvas.preset==='Obsidian'?pf104Canvas.preset:'Custom';
+  q('pf104Backdrop').value=pf104Canvas.outside;q('pf104Border').value=pf104Canvas.border;
+  for(const [id,val] of [['pf104Checker',pf104Canvas.checkerLight],['pf104CheckDiff',pf104Canvas.checkerDiff],['pf104GridAlpha',pf104Canvas.gridOpacity],['pf104MajorAlpha',pf104Canvas.majorOpacity]])q(id).value=val;
+  q('pf104CheckerValue').textContent=pf104Canvas.checkerLight;
+  q('pf104CheckDiffValue').textContent=pf104Canvas.checkerDiff;
+  q('pf104GridAlphaValue').textContent=pf104Canvas.gridOpacity+'%';
+  q('pf104MajorAlphaValue').textContent=pf104Canvas.majorOpacity+'%';
+  q('pf104GridColor').value=pf104Canvas.gridColor;q('pf104Major').checked=pf104Canvas.major;
+  const shape=q('pf104Shape');if(shape)shape.value=pfBrushShape;
+  renderView();queueFrame(MAG);
+ }
+ function save104(){localStorage.setItem('pf104-workspace',JSON.stringify(pf104Canvas));sync104();}
+ q('pf104UiDark').onchange=e=>{pf104Canvas.uiDark=e.target.checked;save104();};
+ q('pf104Preset').onchange=e=>{pf104Canvas.preset=e.target.value;if(PF104_CANVAS_PRESETS[e.target.value])pf104Canvas.outside=PF104_CANVAS_PRESETS[e.target.value];save104();};
+ q('pf104Backdrop').oninput=e=>{pf104Canvas.preset='Custom';pf104Canvas.outside=e.target.value;save104();};
+ q('pf104Border').oninput=e=>{pf104Canvas.border=e.target.value;save104();};
+ for(const [id,key] of [['pf104Checker','checkerLight'],['pf104CheckDiff','checkerDiff'],['pf104GridAlpha','gridOpacity'],['pf104MajorAlpha','majorOpacity']])q(id).oninput=e=>{pf104Canvas[key]=Number(e.target.value);save104();};
+ q('pf104GridColor').oninput=e=>{pf104Canvas.gridColor=e.target.value;save104();};
+ q('pf104Major').onchange=e=>{pf104Canvas.major=e.target.checked;save104();};
+ q('pf104Reset').onclick=()=>{Object.assign(pf104Canvas,{preset:'Charcoal',outside:'#151b22',checkerLight:37,checkerDiff:13,gridColor:'#718a96',gridOpacity:25,majorOpacity:50,major:true,border:'#889da4',uiDark:true});save104();toast('Dark workspace reset');};
+ // The drawing panel owns the brush shape toolbar, not the app theme or canvas settings.
+ const toolPanel=window.PixelForgeLayout?.panels?.tools?.querySelector('.sheet-content');
+ const shapeRow=document.createElement('div');shapeRow.className='pf104-shape-tools';
+ shapeRow.innerHTML='<b>BRUSH SHAPE</b><select id="pf104Shape" aria-label="Brush shape"><option value="square">■ Square</option><option value="circle">● Circle</option><option value="horizontal">━ Horizontal line</option><option value="vertical">┃ Vertical line</option><option value="slash">╱ Diagonal /</option><option value="backslash">╲ Diagonal \\</option><option value="plus">✚ Plus</option><option value="x">✕ X</option><option value="diamond">◆ Diamond</option><option value="outline">□ Hollow square</option></select>';
+ const brushContainer=toolPanel.querySelector('.tool-options')||toolPanel;
+ brushContainer.prepend(shapeRow);
+ q('pf104Shape').value=pfBrushShape;
+ q('pf104Shape').onchange=e=>{pfBrushShape=PF104_BRUSH_SHAPES.includes(e.target.value)?e.target.value:'square';localStorage.setItem('pf104-brush',pfBrushShape);renderPointer();toast('Brush: '+pfBrushShape);};
+ const help=document.getElementById('pfInfoContent');
+ if(help){const d=document.createElement('details');d.className='pf-guide-section';d.innerHTML='<summary>1.0.4 · DARK CANVAS, GRID AND BRUSH SHAPES</summary><p>Setup → Workspace Appearance controls the canvas backdrop separately from the interface theme. Choose Obsidian, Charcoal, Graphite, Slate, Neutral Gray, Soft Light, White or Custom. The transparency checker has separate brightness and contrast sliders. Grid color, pixel-grid opacity, stronger major lines and canvas border color are adjustable. These are view-only settings: PNG alpha and sprite colors stay unchanged. App Dark Mode forces dark backgrounds and panels while preserving your selected accent color. Tools → Brush Shape selects square, round, line, diagonals, plus, X, diamond or hollow square. Brush Size sets the shape footprint in logical image pixels. The live outline marks EXACTLY which image pixels Pencil or Eraser will change, including irregular shapes. Use Pointer mode and Click/Hold or Direct Draw normally. The brush setting is saved and remembered after restart. Draw/Erase/Line use the brush shape, while fill tools act on whole regions.</p>';help.prepend(d);}
+ sync104();
+ window.PixelForgeV104={getWorkspace:()=>({...pf104Canvas}),getBrush:()=>({shape:pfBrushShape,size:brushSize,mask:[...pf104Mask(brushSize)]}),setBrush:shape=>{q('pf104Shape').value=shape;q('pf104Shape').dispatchEvent(new Event('change'));}};
+}
+
+bind();setupStudioLayout();setupStudioEnhancements();setupPixelForgeV07();setupRigStudio();setupRigV09();setupRigV10();setupUIFixV101();setupUIFixV102();setupPixelForgeV103();setupPixelForgeV104();refresh();requestAnimationFrame(()=>{resize();fitView();refresh();});
 })();
 
 </script>
