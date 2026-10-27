@@ -25,7 +25,14 @@ def main():
     attach.add_argument('output',type=Path);attach.add_argument('--name',required=True)
     attach.add_argument('--role',default='other');attach.add_argument('--x',type=float,default=0)
     attach.add_argument('--y',type=float,default=0);attach.add_argument('--parent',default=None)
+    batch=subs.add_parser('batch',help='Apply a JSON list of deterministic editing and rig operations')
+    batch.add_argument('project',type=Path);batch.add_argument('commands',type=Path);batch.add_argument('output',type=Path)
     args=p.parse_args()
+    if args.command=='batch':
+        from .batch import run_batch
+        result=run_batch(args.project,args.commands,args.output)
+        print('Applied',len(result),'operations; saved',args.output)
+        return
     if args.command=='demo':
         args.output.mkdir(parents=True,exist_ok=True)
         project=demo_project();save(project,args.output/'SP_Demo_Character.pixelforge')

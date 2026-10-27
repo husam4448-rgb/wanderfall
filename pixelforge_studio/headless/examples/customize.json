@@ -1,0 +1,9 @@
+{
+  "commands": [
+    {"op": "edit_whole_image"},
+    {"op": "stamp", "args": {"x": 45, "y": 49, "size": 3, "shape": "plus", "color": "#bc9468"}},
+    {"op": "workspace", "args": {"preset": "Obsidian", "grid_opacity": 20}},
+    {"op": "timeline", "args": {"animation": "walk", "frames": 12, "fps": 10}},
+    {"op": "skeleton_preset", "args": {"preset": "minimal"}}
+  ]
+}

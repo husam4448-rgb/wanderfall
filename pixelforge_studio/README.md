@@ -1,31 +1,21 @@
-# Pixel Forge Studio — unified Android 1.0.4 and automated asset pipeline
+# Pixel Forge Studio — unified Android + scriptable asset workflow
 
-**For Survival Paradise:** one dedicated repository workspace containing both the most recent Android editor and the scriptable offline asset-production pipeline.
+This repository folder combines the **Pixel Forge Android editor v1.0.4** and a tested **offline headless Python asset-production engine**. This is intended for producing modular pixel characters, gear and animations for *Survival Paradise* without needing manual touches on the phone.
 
-## Directories
+- `android/v1.0.4/` — complete Android project: v1.0.4 browser-based offline editor packaged as a full-screen Android WebView, including dark canvases, all 10 brush shape masks, user interface themes, color editing, selection transforms, rigging and animation tools, and in-app Help.
+- `headless/` — Python offline asset tools and data-only batch automation for `.pixelforge` projects, plus unit tests and sample commands.
 
-- `android/v1.0.4` — complete **Pixel Forge 1.0.4** offline Android project, including every editor UI implemented through v1.0.4: whole-canvas-first painting, selection transforms, floating panels, magnifier/precision pointer, color wheel and shade adjustments, dark canvas presets independent of accent themes, checker/grid controls, 10 brush shape masks and preview, palette and image import, modular limb rigs, simplified named skeleton editor, attachments, manual pivots, pose timeline, procedural IK/ragdoll previews and searchable in-app manual.
-- `android/v0.8` — archived earlier rigging baseline for comparison.
-- `headless` — Python tools for the same `.pixelforge` project format, with rig generation, parent-follow rendering, imported PNG equipment, variable-frame walk/run/idle/aim exports, GIFs and rig JSON.
+**Parity boundary:** the latest GUI source is preserved intact; Python supports the documented deterministic asset operations, not an automated reimplementation of every GUI action. Neither side provides a neural offline AI model. The app has not been re-tested on a physical device by this repository consolidation.
 
-## Agent workflow
-
-The automation engine runs independently of the Android phone:
+## Quick start
 
 ```bash
 cd pixelforge_studio/headless
-python -m pip install -r requirements.txt
+pip install -r requirements.txt
 python -m unittest discover -s tests -v
 python -m pixelforge_pipeline demo ./output/demo
-python -m pixelforge_pipeline inspect ./output/demo/SP_Demo_Character.pixelforge
-python -m pixelforge_pipeline generate ./output/demo/SP_Demo_Character.pixelforge ./output/walk.pixelforge --animation walk --frames 12
-python -m pixelforge_pipeline export ./output/walk.pixelforge ./output/game-assets --frames 12 --scale 2
+python -m pixelforge_pipeline batch ./output/demo/SP_Demo_Character.pixelforge examples/customize.json ./output/edited.pixelforge
+python -m pixelforge_pipeline export ./output/edited.pixelforge ./output/game-assets --frames 12
 ```
 
-The full Android **editor features are source-controlled**, so future development and automation can target the actual implementation rather than guessing at sprites.
-
-**Honest capability boundary:** the Android GUI and headless Python engine do not yet have one-to-one API parity. The headless renderer handles basic rigging, poses, stretching, parent links and exports, while direct Python equivalents for every GUI brush/selection/color control are a separate integration task. The offline 'AI' tools in the GUI are deterministic procedural helpers, not a downloadable trained neural model. A source commit does not itself prove all Android gestures work on-device.
-
-## Build / CI
-
-The `.github/workflows/pixelforge-studio-v104.yml` workflow tests the Python renderer and builds/signature-checks Android 1.0.4 in isolation. Nothing in the `main` game branch is modified.
+The Android project builds with Gradle from its own directory; GitHub Actions also checks its APK signature on the dedicated Pixel Forge consolidation branch. It does not alter the main Survival Paradise game build.

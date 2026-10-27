@@ -141,7 +141,9 @@ def auto_rig(project, document="character"):
         parentrole = PARENTS.get(role)
         if parentrole and not rig.get("parentId") and parentrole in byrole:
             parent = byrole[parentrole]
-            if parent["id"] != l["id"]: rig["parentId"] = parent["id"]
+            if parent["id"] != l["id"]:
+                rig["parentId"] = parent["id"]
+                rig.setdefault("linkMode", "rigid")
     return sum(1 for l in layers if l.get("rig", {}).get("role") not in (None, "unassigned"))
 
 
@@ -192,6 +194,7 @@ def generate(project, anim="walk", frames=8, strength=.9, document="character"):
         count += 1
     project["animation"] = anim
     project.setdefault("pipeline", {})["frameCount"] = frames
+    project["documents"][document].setdefault("timelines", {})[anim] = {"count": frames}
     return count
 
 
@@ -204,37 +207,56 @@ def _local_pose(l, frame, anim):
 
 
 def poses_for(layers, frame, anim):
-    """Resolve FK parent transforms with the same pivot algorithm as Android v0.8."""
+    """Resolve world-space parent pivots and equipment sockets as in Pixel Forge v0.9."""
     ids={l["id"]:l for l in layers}
     memo={}
-    def calc(lid, seen):
-        if lid in memo: return memo[lid]
-        if lid in seen: raise ValueError("Joint parent cycle detected")
-        l=ids[lid]
-        pose=_local_pose(l,frame,anim)
-        parentid=(l.get("rig") or {}).get("parentId")
-        if parentid in ids and parentid != lid:
-            par=ids[parentid]
-            parentpose=calc(parentid,seen|{lid})
-            ip=image_of_cached(par)
-            il=image_of_cached(l)
-            pp=(par.get("rig") or {}).get("pivot") or {"x":ip.width/2,"y":ip.height/2}
-            cp=(l.get("rig") or {}).get("pivot") or {"x":il.width/2,"y":il.height/2}
-            px=float(par.get("x",0))+pp["x"];py=float(par.get("y",0))+pp["y"]
-            cx=float(l.get("x",0))+cp["x"];cy=float(l.get("y",0))+cp["y"]
-            a=math.radians(parentpose["rotation"]-float(par.get("rotation",0)))
-            dx=cx-px;dy=cy-py
-            rx=parentpose["x"]+pp["x"]+math.cos(a)*dx-math.sin(a)*dy
-            ry=parentpose["y"]+pp["y"]+math.sin(a)*dx+math.cos(a)*dy
-            pose["x"] += rx-cx;pose["y"] += ry-cy
-            pose["rotation"] += parentpose["rotation"]-float(par.get("rotation",0))
-        memo[lid]=pose
-        return pose
     _imagecache={}
     def image_of_cached(layer):
         key=layer["id"]
         if key not in _imagecache: _imagecache[key]=image_of(layer)
         return _imagecache[key]
+    def pivot(layer):
+        im=image_of_cached(layer)
+        return (layer.get("rig") or {}).get("pivot") or {"x":im.width/2,"y":im.height/2}
+    def calc(lid, seen):
+        if lid in memo: return memo[lid]
+        if lid in seen: raise ValueError("Joint parent cycle detected")
+        l=ids[lid];pose=_local_pose(l,frame,anim)
+        rig=l.get("rig") or {}
+        parid=rig.get("parentId")
+        mode=rig.get("linkMode", "none")
+        if parid in ids and parid!=lid and mode!="none":
+            par=ids[parid]
+            parent=calc(parid,seen|{lid})
+            pp=pivot(par);cp=pivot(l)
+            parentrig=par.get("rig") or {}
+            anchor=next((x for x in parentrig.get("sockets", []) if x.get("name")==rig.get("attachSocket")),None)
+            if anchor:
+                dx=float(anchor["x"])-float(pp["x"])+float(rig.get("offsetX",0))
+                dy=float(anchor["y"])-float(pp["y"])+float(rig.get("offsetY",0))
+            else:
+                dx=float(l.get("x",0))+float(cp["x"])-(float(par.get("x",0))+float(pp["x"]))
+                dy=float(l.get("y",0))+float(cp["y"])-(float(par.get("y",0))+float(pp["y"]))
+            weight={"rigid":1.0,"follow":.75,"loose":.35}.get(mode,0)
+            a=math.radians((parent["rotation"]-float(par.get("rotation",0)))*weight)
+            parent_scale=float(par.get("scale",1)) or 1
+            sx=parent["scale"]*float(parentrig.get("scaleX",1))/parent_scale
+            sy=parent["scale"]*float(parentrig.get("scaleY",1))/parent_scale
+            ox=dx*sx*math.cos(a)-dy*sy*math.sin(a)
+            oy=dx*sx*math.sin(a)+dy*sy*math.cos(a)
+            cx=float(l.get("x",0))+float(cp["x"])
+            cy=float(l.get("y",0))+float(cp["y"])
+            pose["x"] += (parent["x"]+float(pp["x"])+ox-cx)
+            pose["y"] += (parent["y"]+float(pp["y"])+oy-cy)
+            pose["rotation"] += (parent["rotation"]-float(par.get("rotation",0)))*weight
+        memo[lid]=pose
+        return pose
+    # Reject malformed parent graphs even for currently disabled links.
+    def check_parents(lid,seen):
+        if lid in seen: raise ValueError("Joint parent cycle detected")
+        pid=(ids[lid].get("rig") or {}).get("parentId")
+        if pid in ids:check_parents(pid,seen|{lid})
+    for lid in ids: check_parents(lid,set())
     for lid in ids: calc(lid,set())
     return memo, _imagecache
 
@@ -247,13 +269,14 @@ def render(project, anim="idle", frame=0, face="right", document="character", sc
     output=Image.new("RGBA",(w,h))
     for l in layers:
         if not l.get("visible",True): continue
-        sprite=images[l["id"]];p=pmap[l["id"]]
+        sprite=images.get(l["id"]) or image_of(l);p=pmap[l["id"]]
         pivot=(l.get("rig") or {}).get("pivot") or {"x":sprite.width/2,"y":sprite.height/2}
         px=float(pivot["x"]);py=float(pivot["y"])
         ang=math.radians(p["rotation"]);cs=math.cos(ang);sn=math.sin(ang)
         s=p["scale"]
         if abs(s)<.0001: continue
-        sx=s*(-1 if l.get("flip") else 1);sy=s
+        rig=l.get("rig") or {}
+        sx=s*float(rig.get("scaleX",1))*(-1 if l.get("flip") else 1);sy=s*float(rig.get("scaleY",1))
         A=cs*sx;B=-sn*sy;C=sn*sx;D=cs*sy
         det=A*D-B*C
         aa=D/det;bb=-B/det;dd=-C/det;ee=A/det
@@ -310,11 +333,12 @@ def export(project, output, animations=("idle","walk","run","aim"), faces=("left
                 imgs[0].save(out/(title+".gif"),save_all=True,append_images=imgs[1:],duration=max(20,round(1000/fps)),loop=0,disposal=2,optimize=False)
             manifest["animations"][anim][face]={"sheet":title+".png","gif":title+".gif" if gif else None,
                                                   "frameWidth":w,"frameHeight":h,"frames":frames}
-    rig={"format":"survival-paradise-rig","version":1,"canvas":{"width":d["w"],"height":d["h"]},
+    rig={"format":"survival-paradise-rig","version":2,"canvas":{"width":d["w"],"height":d["h"]},
+         "timelines":d.get("timelines",{}),"poseLibrary":d.get("poseLibrary",{}),
          "layers":[{"id":l["id"],"name":l.get("name"),"role":role_of(l),
                     "parentId":(l.get("rig") or {}).get("parentId"),"pivot":(l.get("rig") or {}).get("pivot"),
                     "rect":{"x":l.get("x",0),"y":l.get("y",0),"w":image_of(l).width,"h":image_of(l).height},
-                    "poses":l.get("poses",{})} for l in d["layers"]]}
+                    "poses":l.get("poses",{}),"rig":l.get("rig",{})} for l in d["layers"]]}
     (out/"SP_Character_Rig.json").write_text(json.dumps(rig,indent=2),encoding="utf-8")
     (out/"SP_Asset_Manifest.json").write_text(json.dumps(manifest,indent=2),encoding="utf-8")
     return manifest
