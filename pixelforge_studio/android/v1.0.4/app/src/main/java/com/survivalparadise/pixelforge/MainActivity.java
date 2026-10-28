@@ -49,10 +49,11 @@ public final class MainActivity extends Activity {
                 if (chooser != null) chooser.onReceiveValue(null);
                 chooser = cb;
                 try {
-                    Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                    // Use Chromium's MIME-aware picker so Gallery, Files and providers work.
+                    Intent i = p.createIntent();
                     i.addCategory(Intent.CATEGORY_OPENABLE);
-                    i.setType("*/*");
-                    startActivityForResult(i, OPEN);
+                    i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    startActivityForResult(Intent.createChooser(i, "Select image or Pixel Forge file"), OPEN);
                     return true;
                 } catch (Exception e) {
                     chooser = null;
@@ -94,8 +95,7 @@ public final class MainActivity extends Activity {
         super.onActivityResult(request, result, data);
         if (request == OPEN) {
             if (chooser != null) {
-                Uri[] urls = (result == RESULT_OK && data != null && data.getData() != null)
-                    ? new Uri[]{data.getData()} : null;
+                Uri[] urls = WebChromeClient.FileChooserParams.parseResult(result, data);
                 chooser.onReceiveValue(urls);
                 chooser = null;
             }
