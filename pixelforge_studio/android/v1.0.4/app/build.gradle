@@ -6,8 +6,8 @@ android {
         applicationId 'com.survivalparadise.pixelforge.v104'
         minSdk 26
         targetSdk 34
-        versionCode 17
-        versionName '1.0.4'
+        versionCode 18
+        versionName '1.0.5'
     }
     buildTypes { release { minifyEnabled false } }
     compileOptions {
