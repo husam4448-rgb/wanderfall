@@ -42,7 +42,7 @@ jobs:
           from pathlib import Path
           import re
           html = Path('pixelforge_studio/android/v1.0.4/app/src/main/assets/index.html').read_text()
-          scripts = re.findall(r'<script\\b[^>]*>(.*?)</script\\s*>', html, re.S | re.I)
+          scripts = re.findall(r'<script\b[^>]*>(.*?)</script\s*>', html, re.S | re.I)
           assert scripts, 'Missing editor JavaScript'
           assert "FileReader handles Android's content://" in html
           assert 'g.imageSmoothingEnabled=ratio<1' in html
