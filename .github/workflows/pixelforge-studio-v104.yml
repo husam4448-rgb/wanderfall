@@ -1,4 +1,4 @@
-name: Pixel Forge Studio v1.0.4 — Python + Android
+name: Pixel Forge Studio v1.0.5 — Android image import fix
 on:
   push:
     branches:
@@ -36,6 +36,20 @@ jobs:
         with:
           sparse-checkout: |
             pixelforge_studio/android/v1.0.4
+      - name: Validate HTML JavaScript and image import patch
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          html = Path('pixelforge_studio/android/v1.0.4/app/src/main/assets/index.html').read_text()
+          scripts = re.findall(r'<script\\b[^>]*>(.*?)</script\\s*>', html, re.S | re.I)
+          assert scripts, 'Missing editor JavaScript'
+          assert "FileReader handles Android's content://" in html
+          assert 'g.imageSmoothingEnabled=ratio<1' in html
+          assert 'PF104_BRUSH_SHAPES' in html
+          Path('/tmp/pixelforge-inline.js').write_text('\n;\n'.join(scripts))
+          PY
+          node --check /tmp/pixelforge-inline.js
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -65,8 +79,9 @@ jobs:
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose "$APK"
           "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | grep -F "name='com.survivalparadise.pixelforge.v104'"
           unzip -p "$APK" assets/index.html | grep -q "PF104_BRUSH_SHAPES"
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | grep -F "versionName='1.0.5'"
       - uses: actions/upload-artifact@v4
         with:
-          name: PixelForge-v1.0.4-Unified-APK
+          name: PixelForge-v1.0.5-Image-Import-Fixed-APK
           path: pixelforge_studio/android/v1.0.4/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
