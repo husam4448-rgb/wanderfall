@@ -873,12 +873,44 @@ function resetWholeSession(){const d=doc(),s=d.wholeCanvas;if(!s)return;
 function addBlankLayer(){record();const l={id:id(),name:'Blank paint layer',kind:'paint',sprite:mk(W(),H()),x:0,y:0,rotation:0,scale:1,flip:false,visible:true,locked:false,opacity:1,poses:{}};layers().push(l);selected=l.id;updateSelection(null);refresh();toast('Blank '+W()+' × '+H()+' layer added');}
 function expandLayer(){let l=L();if(!l||l.locked){toast('Select an unlocked layer');return;}if(l.rotation!==0||l.scale!==1||l.flip){toast('Reset layer rotation/scale/flip before expanding');return;}record();const newW=Math.max(W(),Math.ceil(l.x+l.sprite.width)),newH=Math.max(H(),Math.ceil(l.y+l.sprite.height)),left=Math.min(0,Math.floor(l.x)),top=Math.min(0,Math.floor(l.y));if(newW-left>MAX||newH-top>MAX){toast('Layer would exceed 1024 px');return;}const c=mk(newW-left,newH-top),g=c.getContext('2d');g.drawImage(l.sprite,l.x-left,l.y-top);l.x=left;l.y=top;l.sprite=c;updateSelection(null);refresh();toast('Layer expanded for drawing');}
 function duplicateLayer(){let l=L();if(!l)return;record();let c=mk(l.sprite.width,l.sprite.height);c.getContext('2d').drawImage(l.sprite,0,0);let copy={...l,id:id(),name:l.name+' copy',sprite:c,x:l.x+2,y:l.y+2,poses:structuredClone(l.poses)};layers().push(copy);selected=copy.id;updateSelection(null);refresh();}
-function handleImport(e){const f=e.target.files?.[0];if(!f)return;if(f.size>12_000_000){toast('Image exceeds 12 MB');return;}let im=new Image();im.onload=()=>{if(im.naturalWidth>MAX||im.naturalHeight>MAX){toast('Max image size is 1024×1024; crop externally first');URL.revokeObjectURL(im.src);return;}record();const spr=mk(im.naturalWidth,im.naturalHeight);spr.getContext('2d').drawImage(im,0,0);if(im.naturalWidth>W()||im.naturalHeight>H()){doc().w=Math.max(W(),im.naturalWidth);doc().h=Math.max(H(),im.naturalHeight);fitView();}
- const l={id:id(),name:f.name.replace(/\.[^.]+$/,'').slice(0,70),kind:'import',sprite:spr,x:Math.floor((W()-spr.width)/2),y:Math.floor((H()-spr.height)/2),rotation:0,scale:1,flip:false,visible:true,locked:false,opacity:1,poses:{}};layers().push(l);selected=l.id;
- const flatState=doc().wholeCanvas,flat=layers().find(x=>x.id===flatState?.layerId);
- if(flatState?.active&&flat){flat.sprite.getContext('2d').drawImage(spr,l.x,l.y);l.visible=false;
-   flatState.originalVisibility??=[];flatState.originalVisibility.push({id:l.id,visible:true});selected=flat.id;}
- updateSelection(null);focusLayer();refresh();toast('Imported '+f.name+' — grid aligned');URL.revokeObjectURL(im.src);};im.onerror=()=>toast('Could not open image');im.src=URL.createObjectURL(f);e.target.value='';}
+async function handleImport(e){
+ const f=e.target.files?.[0];if(!f)return;
+ e.target.value='';
+ if(f.size>48_000_000){toast('Image exceeds 48 MB; use a smaller image');return;}
+ if(!/^image\//i.test(f.type)&&!/\.(png|jpe?g|webp|gif|bmp)$/i.test(f.name)){toast('Choose a PNG, JPEG, WebP, GIF, or BMP image');return;}
+ // FileReader handles Android's content:// document picker reliably in a local WebView.
+ let url;
+ try{url=await new Promise((resolve,reject)=>{const reader=new FileReader();
+  reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(reader.error||Error('File read failed'));
+  reader.readAsDataURL(f);});}
+ catch(err){toast('Cannot read selected image: '+(err?.message||'file unavailable'));return;}
+ const im=new Image();
+ im.onload=()=>{try{
+  if(!im.naturalWidth||!im.naturalHeight)throw Error('Empty image');
+  const ratio=Math.min(1,MAX/im.naturalWidth,MAX/im.naturalHeight);
+  const w=Math.max(1,Math.round(im.naturalWidth*ratio)),h=Math.max(1,Math.round(im.naturalHeight*ratio));
+  const spr=mk(w,h),g=spr.getContext('2d');
+  g.imageSmoothingEnabled=ratio<1;g.imageSmoothingQuality='high';g.drawImage(im,0,0,w,h);
+  record();
+  if(w>W()||h>H()){doc().w=Math.max(W(),w);doc().h=Math.max(H(),h);fitView();}
+  const l={id:id(),name:f.name.replace(/\.[^.]+$/,'').slice(0,70),kind:'import',
+   sprite:spr,x:Math.floor((W()-spr.width)/2),y:Math.floor((H()-spr.height)/2),
+   rotation:0,scale:1,flip:false,visible:true,locked:false,opacity:1,poses:{}};
+  layers().push(l);selected=l.id;
+  const flatState=doc().wholeCanvas,flat=layers().find(x=>x.id===flatState?.layerId);
+  if(flatState?.active&&flat){
+   if(flat.sprite.width<W()||flat.sprite.height<H()){
+    const enlarged=mk(W(),H());enlarged.getContext('2d').drawImage(flat.sprite,0,0);flat.sprite=enlarged;
+   }
+   flat.sprite.getContext('2d').drawImage(spr,l.x,l.y);l.visible=false;
+   flatState.originalVisibility??=[];flatState.originalVisibility.push({id:l.id,visible:true});selected=flat.id;
+  }
+  updateSelection(null);focusLayer();refresh();
+  toast('Imported '+f.name+(ratio<1?' — fitted to '+w+'×'+h+' px':' — grid aligned'));
+ }catch(err){toast('Image import failed: '+(err?.message||'decode error'));}};
+ im.onerror=()=>toast('Could not decode image. Convert HEIC/HEIF to JPEG or PNG.');
+ im.src=url;
+}
 function bind(){
  $('undo').onclick=undo;$('redo').onclick=redo;
  $('minusZoom').onclick=()=>{if(viewportLocked){toast('Unlock canvas view to zoom');return;}zoom=clamp(zoom/1.25,.25,40);$('zoomLabel').textContent=Math.round(zoom*100)+'%';renderView();};$('plusZoom').onclick=()=>{if(viewportLocked){toast('Unlock canvas view to zoom');return;}zoom=clamp(zoom*1.25,.25,40);$('zoomLabel').textContent=Math.round(zoom*100)+'%';renderView();};$('resetView').onclick=()=>{if(viewportLocked){toast('Unlock canvas view to recenter');return;}fitView();$('zoomLabel').textContent=Math.round(zoom*100)+'%';renderView();};$('magToggle').onclick=()=>{mag.hidden=!mag.hidden;window.PixelForgeLayout?.syncMagnifier();renderPointer();};$('focusArt').onclick=()=>{if(viewportLocked){toast('Unlock canvas view to focus');return;}focusLayer();};
