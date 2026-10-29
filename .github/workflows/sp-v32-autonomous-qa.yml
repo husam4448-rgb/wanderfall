@@ -31,6 +31,9 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Run V32 visual and interaction smoke tests
         run: node survival-paradise/tests/v32-smoke.cjs
+      - name: Install GIF encoder
+        if: success()
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
       - name: Encode 12-weapon gameplay preview GIF
         if: success()
         run: |
