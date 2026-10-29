@@ -37,6 +37,20 @@ const hash=s=>crypto.createHash('sha256').update(s).digest('hex');
   assert.equal(state.sourceAtlasesUnmodified,true);
   assert.equal(state.obstacleCount,3);
   assert.equal(state.playerHealth.length,state.count);
+  const gameSystems=await desktop.evaluate(()=>{
+    const p=SCENE.players[0],t=SCENE.dummies[0];
+    const original={x:p.x,y:p.y};
+    t.x=p.x+8;t.y=p.y;t.health=1;t.alive=true;
+    hitTarget(t,10,p); // produces a genuine loot drop via the V32 death hook
+    update(.04);       // auto-pickup runs in the normal V32 update
+    const picked=V32.picked;
+    v32DamagePlayer(p,12);
+    const hp=p.health;
+    p.x=original.x;p.y=original.y;
+    return {picked,hp,enemyHits:V32.enemyHits};
+  });
+  assert(gameSystems.picked>=1,'defeated enemy must produce collectible loot');
+  assert(gameSystems.hp<100&&gameSystems.enemyHits>=1,'hostile damage must affect survivors');
   const mobile=await make({width:393,height:852},true);
   await mobile.screenshot({path:'artifacts/Survival_Paradise_V32_Android_Viewport.png',fullPage:true});
   await mobile.locator('#v32Aim').uncheck();
