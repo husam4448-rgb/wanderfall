@@ -128,7 +128,7 @@ function updateFPS(dt){let fps=1/Math.max(0.001,dt);SCENE.fps=lerp(SCENE.fps,fps
 let last=performance.now(),hudTimer=0;function loop(t){let dt=Math.min((t-last)/1000,.05);last=t;updateFPS(dt);if(body.complete&&body.naturalWidth&&gear.complete&&gear.naturalWidth){update(dt);render();}else{rect(ctx,0,0,W,H,'#162b32');ctx.fillStyle='#e5e9e9';ctx.font='25px sans-serif';ctx.fillText('Loading embedded offline assets…',60,H/2)}hudTimer+=dt;if(hudTimer>.2){ui();hudTimer=0}requestAnimationFrame(loop)}
 function bindUI(){ $('fullscreen').onclick=()=>{let el=$('game');if(document.fullscreenElement){document.exitFullscreen?.()}else{el.requestFullscreen?.();}};$('focus').onclick=()=>{let v=SCENE.scale>=1.14?100:115;SCENE.scale=v/100;$('scale').value=v;$('scaleOut').textContent=v+'%';$('focus').textContent=v===115?'⌕ Zoom 100%':'⌕ Zoom 115%';};$('pause').onclick=()=>{SCENE.paused=!SCENE.paused; $('pause').textContent=SCENE.paused?'▶ Resume':'Ⅱ Pause'; $('pause').classList.toggle('paused',SCENE.paused);$('runBadge').textContent=SCENE.paused?'● SIMULATION PAUSED':'● AUTONOMOUS · RUNNING';$('stateLabel').textContent=SCENE.paused?'PAUSED':'AUTO AI ACTIVE';$('liveDot').style.background=SCENE.paused?'#e0b779':'#8fd3b4';};
  $('reset').onclick=reset; $('night').onclick=()=>{SCENE.night=!SCENE.night;$('night').textContent=SCENE.night?'☀ Day':'☾ Night';};
- $('capture').onclick=()=>{let link=document.createElement('a');link.download='Survival_Paradise_V30_Simulation.png';link.href=canvas.toDataURL('image/png');link.click();};
+ $('capture').onclick=()=>{let link=document.createElement('a');link.download='Survival_Paradise_V32_Simulation.png';link.href=canvas.toDataURL('image/png');link.click();};
  $('loadout').onchange=e=>{SCENE.loadout=e.target.value;reset()};
  $('population').oninput=e=>{$('populationOut').textContent=e.target.value;SCENE.count=Number(e.target.value);reset();};
  $('speed').oninput=e=>{SCENE.speed=+e.target.value;$('speedOut').textContent=SCENE.speed.toFixed(2).replace(/0$/,'')+'×';};
@@ -250,5 +250,115 @@ renderPlayer=function(p){
  if(p.reload>0){rect(ctx,p.x-20,p.y-96,40,3,'#22383a');
  rect(ctx,p.x-19,p.y-95,38*clamp(1-p.reload/1.3,0,1),2,'#e9c785');}
 };
+
+
+/* === V32 enemy behavior, collision, drops, pickups and inventory === */
+function v32InitActors(){
+ for(const p of SCENE.players){p.health=100;p.immunity=0;p.down=0;}
+ for(const d of SCENE.dummies){d.attackCd=.7+rnd();d.aggression=.45+rnd()*.55;}
+}
+function v32DamagePlayer(p,damage){
+ if((p.immunity||0)>0||(p.down||0)>0)return;
+ p.health=Math.max(0,p.health-damage);p.immunity=.55;V32.enemyHits++;
+ spark(p.x,p.y-44,'#cc826c',5);
+ if(p.health===0){p.down=1.9;p.target=null;V32.revives++;}
+}
+const v31HitTargetC=hitTarget;
+hitTarget=function(t,damage,p){
+ const alive=t.alive;v31HitTargetC(t,damage,p);
+ if(alive&&!t.alive&&V32.loot){
+  const kind=SCENE.kills%6===0?'medkit':SCENE.kills%3===0?'scrap':'ammunition';
+  V32.drops.push({x:t.x,y:t.y-4,kind,life:25,seed:rnd()*7});
+ }
+};
+const v32ShootC=shoot;
+shoot=function(p,t){if((p.down||0)>0)return;v32ShootC(p,t);};
+function v32Tick(dt,previous){
+ if(SCENE.paused)return;
+ const dd=Math.min(.045,dt)*SCENE.speed;
+ for(const [i,p] of SCENE.players.entries()){
+  p.immunity=Math.max(0,(p.immunity||0)-dd);
+  p.down=Math.max(0,(p.down||0)-dd);
+  if(p.health===0&&p.down===0){
+   p.health=100;p.immunity=1.5;p.x=90+rnd()*160;p.y=190+rnd()*320;
+  }
+  if(V32.supplies.medkit>0&&p.health<55){p.health=Math.min(100,p.health+45);V32.supplies.medkit--;}
+  if(v32Blocked(p.x,p.y)){p.x=previous[i].x;p.y=previous[i].y;}
+ }
+ if(V32.enemyAI)for(const d of SCENE.dummies){
+  if(!d.alive)continue;
+  d.attackCd=(d.attackCd||0)-dd;
+  let nearest=null,dist=Infinity;
+  for(const p of SCENE.players){
+   if((p.down||0)>0||p.health===0)continue;
+   const z=Math.hypot(p.x-d.x,p.y-d.y);
+   if(z<dist){dist=z;nearest=p;}
+  }
+  if(!nearest||dist>340)continue;
+  const dx=(nearest.x-d.x)/Math.max(1,dist),dy=(nearest.y-d.y)/Math.max(1,dist);
+  if(dist>35){
+   const step=(24+(d.aggression||.5)*21)*dd;
+   const nx=clamp(d.x+dx*step,370,1053),ny=clamp(d.y+dy*step,175,565);
+   if(!v32Blocked(nx,ny,14)){d.x=nx;d.y=ny;}
+   else if(!v32Blocked(d.x,ny,14))d.y=ny;
+   else if(!v32Blocked(nx,d.y,14))d.x=nx;
+   d.dir=dx>=0?1:-1;
+  }else if(d.attackCd<=0){v32DamagePlayer(nearest,8+Math.round(rnd()*7));d.attackCd=.8+rnd()*.6;}
+ }
+ for(const item of V32.drops){
+  item.life-=dd;
+  if(V32.loot)for(const p of SCENE.players){
+   if((p.down||0)>0)continue;
+   if(Math.hypot(p.x-item.x,p.y-item.y)<29){
+    item.collected=true;V32.supplies[item.kind]++;V32.picked++;
+    spark(item.x,item.y,'#a9d6ae',3);break;
+   }
+  }
+ }
+ V32.drops=V32.drops.filter(x=>!x.collected&&x.life>0).slice(-60);
+ for(const f of V32.flash)f.age+=dd;
+ V32.flash=V32.flash.filter(f=>f.age<f.life);
+}
+const v31UpdateC=update;
+update=function(dt){
+ const previous=SCENE.players.map(p=>({x:p.x,y:p.y}));
+ v31UpdateC(dt);v32Tick(dt,previous);
+};
+const v31ResetC=reset;
+reset=function(){
+ v31ResetC();V32.drops=[];V32.flash=[];V32.picked=0;V32.enemyHits=0;V32.revives=0;
+ V32.supplies={ammunition:0,scrap:0,medkit:0};v32InitActors();v32UI();
+};
+const v31UiC=ui;
+ui=function(){v31UiC();v32UI();};
+function v32UI(){
+ const slot=$('v32Status');if(!slot)return;
+ slot.textContent='DROPS '+V32.drops.length+'  •  PICKUPS '+V32.picked+
+  '  •  AMMO '+V32.supplies.ammunition+'  •  SCRAP '+V32.supplies.scrap+
+  '  •  MED '+V32.supplies.medkit+'  •  ENEMY HITS '+V32.enemyHits;
+}
+function v32Bind(){
+ const panel=document.querySelector('aside.panel');
+ const extra=document.createElement('div');extra.className='v32module';
+ extra.innerHTML='<h2>V32 · Combat and world</h2><div class="toggles"><label><input type="checkbox" id="v32Aim" checked>Aim rotation</label><label><input type="checkbox" id="v32AI" checked>Hostile AI</label><label><input type="checkbox" id="v32FX" checked>Recoil + muzzle</label><label><input type="checkbox" id="v32Loot" checked>Loot + inventory</label></div><div id="v32Status" class="v32status">Inventory initializing…</div>';
+ panel.appendChild(extra);
+ for(const [id,key] of [['v32Aim','aim'],['v32AI','enemyAI'],['v32FX','effects'],['v32Loot','loot']]){
+  $(id).onchange=e=>{V32[key]=e.target.checked;v32UI();};
+ }
+ document.querySelector('.sub').textContent='Original V31 body / gear atlases · V32 hostile AI, recoil, loot and roadside environment · offline';
+ document.querySelector('.eyebrow').textContent='SURVIVAL PARADISE · PIXEL FORGE / V32 FIELD TEST';
+ const footer=document.querySelector('.footer');
+ footer.insertAdjacentHTML('beforeend','<p><strong>Frame limitation:</strong> V13 screenshot-derived poses remain, pending verification of the canonical 3 idle / 4 walk sheets. Sprite atlases untouched.</p>');
+ document.title='Survival Paradise · Autonomous Yard V32';
+}
+const v31GetState=window.SP_TEST_API.getState;
+window.SP_TEST_API.getState=()=>({...v31GetState(),
+ assetVersion:'V32-nondestructive',aim:V32.aim,enemyAI:V32.enemyAI,loot:V32.loot,
+ sourceAtlasesUnmodified:true,inventory:{...V32.supplies},pickups:V32.picked,
+ enemyHits:V32.enemyHits,revives:V32.revives,obstacleCount:V32.blocks.length,
+ lootCount:V32.drops.length,playerHealth:SCENE.players.map(p=>p.health)});
+window.SP_TEST_API.inspect=()=>({meta:ASSET_META,players:SCENE.players.map(p=>({gun:p.gun,aimAngle:v32AimAngle(p),muzzle:v32Muzzle(p)})),drops:V32.drops.length});
+v32Environment();v32InitActors();v32Bind();v32UI();
+/* === end V32 extension === */
 
 </script></body></html>
