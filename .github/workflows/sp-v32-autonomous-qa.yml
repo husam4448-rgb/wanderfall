@@ -5,6 +5,11 @@ on:
     paths:
       - 'survival-paradise/**'
       - '.github/workflows/sp-v32-autonomous-qa.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'survival-paradise/**'
+      - '.github/workflows/sp-v32-autonomous-qa.yml'
   workflow_dispatch:
 
 jobs:
