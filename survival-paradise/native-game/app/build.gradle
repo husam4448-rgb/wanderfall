@@ -6,8 +6,8 @@ android {
   applicationId 'com.survivalparadise.nativegame'
   minSdk 24
   targetSdk 34
-  versionCode 37
-  versionName '0.37-native-idle-reset'
+  versionCode 38
+  versionName '0.38-native-breathing-idle'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
