@@ -37,6 +37,13 @@ public final class LightingV47 {
     private Bitmap bitmap;
     private int[] pixels;
     private int width,height;
+    private float resolutionFactor=1f;
+    private final RectF screenDst=new RectF();
+    /** A larger factor saves per-pixel occlusion work on low-end Android devices. */
+    public void setPixelScale(float factor){
+        resolutionFactor=Math.max(.85f,Math.min(2.5f,factor));
+    }
+    public int pixelCount(){return width*height;}
     private float left,top,screenWidth,screenHeight,stepX,stepY;
     private int darkness;
 
@@ -79,8 +86,12 @@ public final class LightingV47 {
     public int sourceCount(){return points.size()+beams.size();}
 
     private void ensure(float w,float h){
-        int newWidth=Math.max(180,Math.min(440,Math.round(w/3.3f)));
-        int newHeight=Math.max(110,Math.min(280,Math.round(h*newWidth/Math.max(1,w))));
+        int minWidth=Math.max(96,Math.round(180f/resolutionFactor));
+        int maxWidth=Math.max(minWidth,Math.round(440f/resolutionFactor));
+        int minHeight=Math.max(66,Math.round(110f/resolutionFactor));
+        int maxHeight=Math.max(minHeight,Math.round(280f/resolutionFactor));
+        int newWidth=Math.max(minWidth,Math.min(maxWidth,Math.round(w/(3.3f*resolutionFactor))));
+        int newHeight=Math.max(minHeight,Math.min(maxHeight,Math.round(h*newWidth/Math.max(1f,w))));
         if(bitmap!=null&&width==newWidth&&height==newHeight)return;
         if(bitmap!=null)bitmap.recycle();
         if(tintBitmap!=null)tintBitmap.recycle();
@@ -118,7 +129,7 @@ public final class LightingV47 {
                 float d2=dx*dx+dy*dy;
                 if(d2>=r2)continue;
                 float px=left+(x+.5f)*stepX,py=top+(y+.5f)*stepY;
-                if(shadowed(light.x,light.y,px,py))continue;
+                if(activeCount>0&&shadowed(light.x,light.y,px,py))continue;
                 float strength=LightMathV46.pointStrength(dx,dy,light.radius,light.power);
                 int index=y*width+x;
                 uncover(index,strength);
@@ -148,7 +159,7 @@ public final class LightingV47 {
                 if(forward<cosHalf)continue;
                 float side=(beam.dx*dy-beam.dy*dx)/d;
                 float px=left+(x+.5f)*stepX,py=top+(y+.5f)*stepY;
-                if(shadowed(beam.x,beam.y,px,py))continue;
+                if(activeCount>0&&shadowed(beam.x,beam.y,px,py))continue;
                 float strength=LightMathV46.flashlightStrength(dx,dy,beam.dx,beam.dy,beam.reach);
                 uncover(y*width+x,strength);
             }
@@ -168,11 +179,12 @@ public final class LightingV47 {
         for(Beam beam:beams)coneMask(beam,covers);
         bitmap.setPixels(pixels,0,width,0,0,width,height);
         mapPaint.setAlpha(255);
-        scene.drawBitmap(bitmap,null,new RectF(left,top,left+w,top+h),mapPaint);
+        screenDst.set(left,top,left+w,top+h);
+        scene.drawBitmap(bitmap,null,screenDst,mapPaint);
         // Shadows also occlude colored reflections; a radial overlay drawn
         // without ray tests would otherwise brighten actors and walls in shade.
         tintBitmap.setPixels(tintPixels,0,width,0,0,width,height);
-        scene.drawBitmap(tintBitmap,null,new RectF(left,top,left+w,top+h),tintMapPaint);
+        scene.drawBitmap(tintBitmap,null,screenDst,tintMapPaint);
     }
     public void release(){
         if(bitmap!=null){bitmap.recycle();bitmap=null;}
