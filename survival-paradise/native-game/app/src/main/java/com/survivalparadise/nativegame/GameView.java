@@ -773,6 +773,32 @@ public final class GameView extends View {
                 rect(c,x+8,y-4,8,7,0xff647f58);
             }
         }
+        // Unbounded, deterministic foliage outside the original authored hub.
+        // Work is proportional to the visible camera grid, not distance travelled.
+        final int cell=288;
+        int cx0=(int)Math.floor(camX/cell)-1, cx1=(int)Math.ceil((camX+viewW)/cell)+1;
+        int cy0=(int)Math.floor(camY/cell)-1, cy1=(int)Math.ceil((camY+viewH)/cell)+1;
+        for(int cy=cy0;cy<=cy1;cy++)for(int cx=cx0;cx<=cx1;cx++){
+            for(int k=0;k<3;k++){
+                int h=hash(cx*7+k,cy*11-k);
+                float x=cx*cell+20+Math.floorMod(h,cell-40);
+                float y=cy*cell+20+Math.floorMod(h>>>8,cell-40);
+                if(x>=0&&x<=WORLD_W&&y>=0&&y<=WORLD_H)continue;
+                if(y>912&&y<1160)continue;
+                if(x>1480&&x<1740)continue;
+                if(Math.hypot(x-CAMP_X,y-CAMP_Y)<325)continue;
+                if((h&7)==0){
+                    rect(c,x+7,y+19,8,24,0xff243c30);
+                    rect(c,x-8,y,37,28,0xff172b25);
+                    rect(c,x-4,y-6,30,27,0xff4e7351);
+                    rect(c,x+2,y-9,19,13,0xff65845d);
+                }else{
+                    rect(c,x,y+7,19,8,0xff233c30);
+                    rect(c,x+3,y,17,11,0xff557253);
+                    rect(c,x+8,y-4,8,7,0xff647f58);
+                }
+            }
+        }
         for(Cover box:covers)drawCover(c,box);
         drawSpawnCamp(c);
     }
