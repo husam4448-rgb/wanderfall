@@ -1,3 +1,12 @@
+# V42 — Approved Complete Four-Frame Walking Cycle
+
+- The V31 screenshot-derived atlas contained a duplicate: walking frames 2 and 4 were pixel-identical. Timing adjustments alone could not restore the missing rear-leg pose.
+- Using the user-approved four-frame walking reference, V42 restores the third-frame raised trailing foot and distinct fourth-frame extended rear leg using source-approved V31 pixel cells, with no new palette colors.
+- The original V31 body PNG remains byte-identical. A separate derived walking asset (walk_corrected_v42.png) is bundled for walking only. The V40 breathing idle still uses the original planted-feet frame.
+- Player, NPC and enemy renderers display each of the four distinct walking poses. V41 projectile collisions use matching walk-alpha silhouettes.
+- Walking is regression-tested at 15/30/60 FPS and 0.5x/1x/2x speeds, together with full source-alpha and source-palette checks.
+- All weapons, hands, aiming, projectiles, axe and existing game systems remain unchanged. Physical device QA pending.
+
 # V41 — Mirrored Facing and Accurate Hitboxes
 
 - Rifle pitch is side-independent: when a character turns left/right, the full weapon-hand assembly mirrors horizontally at its original elevation, never jumping to 90° vertical.
