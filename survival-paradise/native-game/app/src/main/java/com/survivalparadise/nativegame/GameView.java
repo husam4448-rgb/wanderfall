@@ -27,7 +27,7 @@ public final class GameView extends View {
     final MainActivity host;
     final Paint p=new Paint();
     final Paint pixel=new Paint(Paint.ANTI_ALIAS_FLAG==0?0:0);
-    Bitmap body,gear,approvedAxe;
+    Bitmap body,approvedWalk,gear,approvedAxe;
     final Random rng=new Random(14901);
     static final float H=660, WORLD_W=3200, WORLD_H=2200;
     static final int[] RANGES={250,265,220,0,430,415,395,325,650,435,330,74};
@@ -60,6 +60,18 @@ public final class GameView extends View {
     final CharacterCollision.PixelMask bodyMask=(x,y)->body!=null &&
             x>=0&&y>=0&&x<body.getWidth()&&y<body.getHeight() &&
             (body.getPixel(x,y)>>>24)!=0;
+    // Exact user-uploaded 800x260 four-frame PNG. The preview's 200x260 source
+    // slices are mapped to the old rendering coordinates for silhouette hits,
+    // never repainted or substituted by fabricated walking frames.
+    final CharacterCollision.PixelMask walkMask=(x,y)->{
+        if(approvedWalk==null||x<0||y<0||x>=1040||y>=160)return false;
+        int frame=x/260;
+        int xx=x-frame*260;
+        int srcX=(int)Math.floor((xx-16f)/.45f);
+        int srcY=(int)Math.floor((y-20f)/.45f);
+        if(srcX<0||srcX>=200||srcY<0||srcY>=260)return false;
+        return (approvedWalk.getPixel(frame*200+srcX,srcY)>>>24)!=0;
+    };
     final ArrayList<Bandit> enemies=new ArrayList<>();
     final ArrayList<Survivor> friends=new ArrayList<>();
     final ArrayList<Shot> shots=new ArrayList<>();
@@ -98,6 +110,12 @@ public final class GameView extends View {
         try(InputStream bs=getResources().getAssets().open("body.png");
             InputStream gs=getResources().getAssets().open("gear.png")){
             body=BitmapFactory.decodeStream(bs);gear=BitmapFactory.decodeStream(gs);
+            // V43 reads the upload byte-for-byte as its walking PNG.
+            try(InputStream walk=getResources().getAssets().open("approved_v43_walk.png")){
+                approvedWalk=BitmapFactory.decodeStream(walk);
+                if(approvedWalk==null||approvedWalk.getWidth()!=800||approvedWalk.getHeight()!=260)
+                    throw new IllegalStateException("Approved V43 walking strip must be 800 x 260");
+            }
             try(InputStream axe=getResources().getAssets().open("approved_v29_axe.png")){
                 approvedAxe=BitmapFactory.decodeStream(axe);
             }
@@ -370,13 +388,15 @@ public final class GameView extends View {
             if(bullet.hostile){
                 float t=CharacterCollision.firstHit(bullet.x,bullet.y,nx,ny,
                         playerX,playerY,face,playerAnimation.frame(),
-                        playerAnimation.isWalking(),playerAnimation.breathOffset(),scale,bodyMask);
+                        playerAnimation.isWalking(),playerAnimation.breathOffset(),scale,
+                        playerAnimation.isWalking()?walkMask:bodyMask);
                 if(t<first){first=t;victim=null;hitPlayer=true;hitCover=false;}
             }else{
                 for(Bandit e:enemies)if(e.active){
                     float t=CharacterCollision.firstHit(bullet.x,bullet.y,nx,ny,
                             e.x,e.y,e.face,e.animation.frame(),
-                            e.animation.isWalking(),e.animation.breathOffset(),scale,bodyMask);
+                            e.animation.isWalking(),e.animation.breathOffset(),scale,
+                            e.animation.isWalking()?walkMask:bodyMask);
                     if(t<first){first=t;victim=e;hitPlayer=false;hitCover=false;}
                 }
             }
@@ -512,6 +532,17 @@ public final class GameView extends View {
                 (IDLE_HEAD_OVERLAP-136)*s+headBob);
         c.drawBitmap(body,src,dest,pixel);
     }
+    // Render the FOUR exact 200x260 crops of the user's original 800x260 PNG.
+    // Coordinates match the previous V41 torso and feet anchors:
+    // 90x117 native virtual units, offset to x=16,y=20 of the V31 atlas.
+    // No cropping of limbs, resampling of source bytes, or reconstruction.
+    void approvedWalkingBody(Canvas c,int frame,float s){
+        if(approvedWalk==null)return;
+        int f=Math.max(0,Math.min(3,frame));
+        src.set(f*200,0,(f+1)*200,260);
+        dest.set(-54f*s,-116f*s,36f*s,1f*s);
+        c.drawBitmap(approvedWalk,src,dest,pixel);
+    }
     void handAtlas(Canvas c,int weapon,int row,float x,float y,float s,float size,float reach){
         float px=row==2?MAIN_X[weapon]:OFF_X[weapon];
         float py=row==2?MAIN_Y[weapon]:OFF_Y[weapon];
@@ -536,12 +567,12 @@ public final class GameView extends View {
     void character(Canvas c,float x,float y,int weapon,int facing,int frame,float breath,float aimAng,float kick,
                    boolean player,boolean bandit){
         float s=.76f*scale;
-        // Walking frames are untouched. Idle receives a separate three-phase
-        // breathing offset. It never advances through walking frames.
+        // Walking comes only from the exact user-approved original V43 PNG.
+        // The stationary V40 breathing pose still uses the unchanged V31 body.
         c.save();c.translate(x,y);if(facing<0)c.scale(-1,1);
         color(0x670b1a18);c.drawOval(-26*s,-7*s,26*s,7*s,p);
         if(body!=null){
-            if(breath==Float.POSITIVE_INFINITY)atlas(c,body,frame*260,0,0,0,s);
+            if(breath==Float.POSITIVE_INFINITY)approvedWalkingBody(c,frame,s);
             else idleBody(c,frame,s,breath);
         }
         if(!bandit){
@@ -679,7 +710,7 @@ public final class GameView extends View {
     void menu(Canvas c){
         rounded(c,viewW/2-300,viewH/2-200,600,398,20,0xef14272b);
         label(c,"SURVIVAL PARADISE",viewW/2-254,viewH/2-115,34,WHITE,true);
-        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 41",
+        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 43",
                 viewW/2-254,viewH/2-80,15,OLIVE,true);
         label(c,"Move with the left stick. Aim & fire with the right.",viewW/2-254,viewH/2-40,15,WHITE,false);
         label(c,"Explore the world, fight bandits, and collect supplies.",viewW/2-254,viewH/2-15,15,WHITE,false);
