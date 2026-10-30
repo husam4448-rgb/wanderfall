@@ -1,0 +1,166 @@
+name: Survival Paradise V41 Mirrored Aiming and Alpha Hitboxes
+on:
+  push:
+    branches: [sp-native-v41-mirror-hitboxes-20261030]
+    paths:
+      - 'survival-paradise/native-game/**'
+      - '.github/workflows/sp-v41-native-mirror-hitboxes.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'survival-paradise/native-game/**'
+      - '.github/workflows/sp-v41-native-mirror-hitboxes.yml'
+  workflow_dispatch:
+jobs:
+  native-android-game:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            survival-paradise
+          sparse-checkout-cone-mode: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Prepare Android SDK 35
+        run: |
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -path '*/bin/sdkmanager' | sort -V | tail -1)"
+          test -x "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Extract unchanged approved PNGs from V31 source
+        run: |
+          python3 survival-paradise/native-game/tools/extract_locked_atlases.py
+          test -s survival-paradise/native-game/app/src/main/assets/body.png
+          test -s survival-paradise/native-game/app/src/main/assets/gear.png
+      - name: Decode approved V29 reference axe into transparent asset
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64,hashlib
+          root=Path('survival-paradise/native-game')
+          encoded=(root/'tools/approved_v29_axe.png.b64').read_text().strip()
+          payload=base64.b64decode(encoded,validate=True)
+          assert payload[:8] == b'\x89PNG\r\n\x1a\n'
+          assert hashlib.sha256(payload).hexdigest() == 'f0d146757318e620024cae0c2a34243bdd9339a939a7f51e5428ae8250620dee'
+          asset=root/'app/src/main/assets/approved_v29_axe.png'
+          asset.write_bytes(payload)
+          print('Approved red axe overlay restored; transparent image hash verified')
+          PY
+      - name: Verify torso-centered grip and left/right barrel alignment at all angles
+        run: |
+          mkdir -p /tmp/sp-v35-classes
+          javac -d /tmp/sp-v35-classes \
+            survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/Ballistics.java \
+            survival-paradise/native-game/tools/BallisticsTest.java
+          java -cp /tmp/sp-v35-classes com.survivalparadise.nativegame.BallisticsTest
+      - name: Verify exact two-pose head breathing and walk restart
+        run: |
+          mkdir -p /tmp/sp-v37-classes
+          javac -d /tmp/sp-v37-classes \
+            survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/AnimationCycle.java \
+            survival-paradise/native-game/tools/AnimationCycleTest.java
+          java -cp /tmp/sp-v37-classes com.survivalparadise.nativegame.AnimationCycleTest
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame')
+          game=(root/'GameView.java').read_text()
+          assert 'walkClock' not in game and 'friend.walk' not in game and 'e.walk' not in game
+          assert 'playerAnimation.step(moving,dt,7f)' in game
+          assert 'playerAnimation.frame()' in game
+          assert 'friend.animation.step(' in game and 'e.animation.step(' in game
+          assert 'void releaseControls(){stopWalking();' in game
+          assert 'frame=move>0?' not in game
+          assert 'character(c,playerX,playerY,gun,face,playerAnimation.frame()' in game
+          assert 'idleBody(c,frame,s,breath)' in game
+          assert 'Float.POSITIVE_INFINITY:playerAnimation.breathOffset()' in game
+          assert 'Float.POSITIVE_INFINITY:f.animation.breathOffset()' in game
+          assert 'Float.POSITIVE_INFINITY:e.animation.breathOffset()' in game
+          assert 'if(breath!=Float.POSITIVE_INFINITY)c.translate(0,breath*s)' not in game
+          assert 'APPROVED_PLANTED_IDLE_FRAME=2' in game # V3-style planted boots from unchanged V31
+          assert 'src.set(sx,IDLE_HEAD_BODY_SPLIT,sx+260,160)' in game # original feet fixed
+          assert 'src.set(sx,0,sx+260,IDLE_HEAD_OVERLAP)' in game # breathing head only
+          assert 'IDLE_HEAD_BODY_SPLIT=92' in game
+          assert 'IDLE_HEAD_OVERLAP=101' in game
+          anim=(root/'AnimationCycle.java').read_text()
+          assert 'IDLE_PHASES=2' in anim and 'BREATH_OFFSETS={0f,-4f}' in anim
+          assert 'BREATH_OFFSETS={0f,-4f,-2f}' not in anim
+          print('PASS: source frame 2 planted feet static; only head moves in idle')
+          PY
+      - name: Validate original 10x13 approved planted-foot stance
+        run: |
+          mkdir -p /tmp/sp-v39-classes
+          javac -d /tmp/sp-v39-classes survival-paradise/native-game/tools/IdleFeetTest.java
+          java -cp /tmp/sp-v39-classes com.survivalparadise.nativegame.IdleFeetTest \
+            survival-paradise/native-game/app/src/main/assets/body.png
+      - name: Verify mirrored rifles and precise swept sprite silhouette hits
+        run: |
+          mkdir -p /tmp/sp-v41-classes
+          javac -d /tmp/sp-v41-classes \
+            survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/Ballistics.java \
+            survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/CharacterCollision.java \
+            survival-paradise/native-game/tools/CharacterCollisionTest.java
+          java -cp /tmp/sp-v41-classes com.survivalparadise.nativegame.CharacterCollisionTest \
+            survival-paradise/native-game/app/src/main/assets/body.png
+          python3 - <<'PY'
+          from pathlib import Path
+          r=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame')
+          game=(r/'GameView.java').read_text()
+          b=(r/'Ballistics.java').read_text()
+          assert 'CharacterCollision.firstHit' in game
+          assert 'Ballistics.segmentCircle(bullet.x,bullet.y' not in game
+          assert 'Math.abs(dx)' in b and 'Math.max(0f,facing*dx)' not in b
+          assert 'aimX=face*Math.abs(aimX)' in game
+          print('V41 source guards PASS: no circular head hitbox or 90-degree mirrored aiming clamp')
+          PY
+      - name: Verify this is a REAL native game, not the previous WebView simulation
+        run: |
+          set -eu
+          ! grep -R 'import android.webkit.WebView;' survival-paradise/native-game/app/src/main/java/
+          python3 - <<'PY'
+          from pathlib import Path
+          s=(Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/GameView.java')).read_text()
+          assert 'extends View' in s and 'onDraw(Canvas' in s
+          assert 'onTouchEvent(MotionEvent' in s and 'void shoot(' in s
+          assert 'void spawnWave(' in s and 'void saveProgress(' in s
+          assert 'import android.webkit' not in s and 'new WebView(' not in s, 'Native game must not embed WebView'
+          print('NATIVE 2D GAME SYSTEMS PRESENT')
+          PY
+      - name: Compile real Android game APK
+        working-directory: survival-paradise/native-game
+        run: gradle --no-daemon :app:assembleDebug
+      - name: Verify approved art bytes and Android APK
+        run: |
+          set -euo pipefail
+          APK="survival-paradise/native-game/app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$APK"
+          unzip -l "$APK" | grep 'assets/body.png'
+          unzip -l "$APK" | grep 'assets/gear.png'
+          unzip -l "$APK" | grep 'assets/approved_v29_axe.png'
+          test "$(unzip -p "$APK" assets/approved_v29_axe.png | sha256sum | cut -d' ' -f1)" = "f0d146757318e620024cae0c2a34243bdd9339a939a7f51e5428ae8250620dee"
+          unzip -p "$APK" assets/body.png | sha256sum > /tmp/apk-body.sha
+          sha256sum survival-paradise/native-game/app/src/main/assets/body.png > /tmp/orig-body.sha
+          diff -u <(cut -d' ' -f1 /tmp/apk-body.sha) <(cut -d' ' -f1 /tmp/orig-body.sha)
+          unzip -p "$APK" assets/gear.png | sha256sum > /tmp/apk-gear.sha
+          sha256sum survival-paradise/native-game/app/src/main/assets/gear.png > /tmp/orig-gear.sha
+          diff -u <(cut -d' ' -f1 /tmp/apk-gear.sha) <(cut -d' ' -f1 /tmp/orig-gear.sha)
+          echo 'LOCKED ASSETS VALIDATED BYTE-FOR-BYTE IN APK'
+      - name: Assemble downloadable native-game release
+        run: |
+          mkdir -p artifacts
+          cp survival-paradise/native-game/app/build/outputs/apk/debug/app-debug.apk artifacts/Survival_Paradise_V41_Native_Game.apk
+          cp survival-paradise/native-game/app/src/main/assets/atlas_provenance.json artifacts/
+          cd survival-paradise && zip -qr ../artifacts/Survival_Paradise_V41_Native_Source.zip native-game -x 'native-game/.gradle/*' 'native-game/app/build/*'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: SP_V41_Native_Game_APK_and_Source
+          path: artifacts/
+          retention-days: 30
+          if-no-files-found: warn

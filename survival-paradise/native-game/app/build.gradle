@@ -1,0 +1,17 @@
+plugins { id 'com.android.application' }
+android {
+ namespace 'com.survivalparadise.nativegame'
+ compileSdk 35
+ defaultConfig {
+  applicationId 'com.survivalparadise.nativegame'
+  minSdk 24
+  targetSdk 34
+  versionCode 44
+  versionName '0.44-walk-outline-only'
+ }
+ compileOptions {
+  sourceCompatibility JavaVersion.VERSION_17
+  targetCompatibility JavaVersion.VERSION_17
+ }
+ buildTypes { release { minifyEnabled false } }
+}
