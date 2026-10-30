@@ -433,7 +433,8 @@ public final class GameView extends View {
     }
     void character(Canvas c,float x,float y,int weapon,int facing,float move,float aimAng,float kick,
                    boolean player,boolean bandit){
-        float s=.76f*scale,frame=move>0?(int)(move*1.25f)%4:0;
+        float s=.76f*scale;
+        int frame=move>0?(int)(move*1.25f)%4:0;
         c.save();c.translate(x,y);if(facing<0)c.scale(-1,1);
         color(0x670b1a18);c.drawOval(-26*s,-7*s,26*s,7*s,p);
         if(body!=null)atlas(c,body,frame*260,0,0,0,s);
