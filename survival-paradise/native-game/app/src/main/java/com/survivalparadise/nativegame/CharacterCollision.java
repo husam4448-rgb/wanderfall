@@ -35,11 +35,11 @@ public final class CharacterCollision {
         final float s=BASE_SCALE*characterScale;
         final int f=walking?Math.max(0,Math.min(3,walkingFrame)):STANDING_FRAME;
         final int face=facing<0?-1:1;
-        float l=actorX+face*(SOURCE_LEFT-ANCHOR_X)*s-HIT_RADIUS;
-        float r=actorX+face*(SOURCE_RIGHT-ANCHOR_X)*s+HIT_RADIUS;
+        float l=actorX+face*(SOURCE_LEFT-ANCHOR_X)*s;
+        float r=actorX+face*(SOURCE_RIGHT-ANCHOR_X)*s;
         float top=actorY+(SOURCE_TOP-ANCHOR_Y+Math.min(0,breath))*s-HIT_RADIUS;
         float bottom=actorY+(SOURCE_BOTTOM-ANCHOR_Y)*s+HIT_RADIUS;
-        float minX=Math.min(l,r),maxX=Math.max(l,r);
+        float minX=Math.min(l,r)-HIT_RADIUS,maxX=Math.max(l,r)+HIT_RADIUS;
 
         final float enter=Ballistics.segmentBox(x0,y0,x1,y1,minX,top,maxX,bottom);
         if(Float.isInfinite(enter))return Float.POSITIVE_INFINITY;
