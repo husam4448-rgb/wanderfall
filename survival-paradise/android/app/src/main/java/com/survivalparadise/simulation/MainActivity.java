@@ -48,7 +48,7 @@ public class MainActivity extends Activity {
         game.loadUrl("file:///android_asset/index.html");
     }
 
-    private void setImmersive(boolean enabled) {
+    private void applyGameImmersive(boolean enabled) {
         immersive = enabled;
         if (enabled) {
             getWindow().getDecorView().setSystemUiVisibility(
@@ -65,7 +65,7 @@ public class MainActivity extends Activity {
 
     public final class AndroidGameControls {
         @JavascriptInterface public void toggleFullscreen() {
-            runOnUiThread(() -> setImmersive(!immersive));
+            runOnUiThread(() -> applyGameImmersive(!immersive));
         }
 
         @JavascriptInterface public void saveScreenshot(String pngData) {
