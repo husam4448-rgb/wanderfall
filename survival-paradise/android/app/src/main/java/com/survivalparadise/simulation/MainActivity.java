@@ -69,10 +69,10 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface public void saveScreenshot(String pngData) {
-            if (pngData == null || !pngData.startsWith("data:image/png;base64:")) return;
+            if (pngData == null || !pngData.startsWith("data:image/png;base64,")) return;
             // Treat JS input as untrusted; limit payload to a few MB.
             if (pngData.length() > 9000000) return;
-            String bytesString = pngData.substring("data:image/png;base64:".length());
+            String bytesString = pngData.substring("data:image/png;base64,".length());
             try {
                 byte[] bytes = Base64.decode(bytesString, Base64.DEFAULT);
                 if (bytes.length < 20 || bytes.length > 7000000) return;
