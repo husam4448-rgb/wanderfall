@@ -42,7 +42,7 @@ public final class GameView extends View {
     static final float[] OFF_Y={0,0,0,0,77,75,72,75,73,71,74,0};
     static final int DK=0xff101b1a,WHITE=0xffedf2e6,OLIVE=0xff8ab397,ORANGE=0xffe8bc72,RED=0xffce766b;
 
-    float scale=1,handScale=1,support=0,timeSpeed=1,zoom=1;
+    float scale=1,handScale=1,support=0,supportVertical=0,timeSpeed=1,zoom=1;
     boolean showHands=true,showWeapons=true,anchors=false,hitboxes=false,enemyAI=true,
             aimRotation=true,recoilFX=true,lootEnabled=true,night=true;
     boolean playing=false,paused=false,settingsPause=false,wasPaused=false,hasSave=false,gameOver=false;
@@ -145,6 +145,7 @@ public final class GameView extends View {
         scale=host.setting("scale",100)/100f;
         handScale=host.setting("hand",100)/100f;
         support=host.setting("support",0);
+        supportVertical=host.setting("supportY",0);
         timeSpeed=host.setting("speed",100)/100f;
         showHands=host.option("hands",true);
         showWeapons=host.option("weapons",true);
@@ -514,8 +515,8 @@ public final class GameView extends View {
     int hash(int a,int b){int k=a*73856093^b*19349663;k^=k>>>13;k*=0x5bd1e995;return k^(k>>>15);}
     void drawFixtures(Canvas c,boolean emissive){
         // Environmental props are separate from every approved body/weapon asset.
-        for(float[] f:FIXED_CAMPFIRES)drawCampfire(c,f[0],f[1],emissive);
-        for(float[] f:builtCampfires)drawCampfire(c,f[0],f[1],emissive);
+        // Campfires are sorted with characters below; never draw flames
+        // in the final emissive pass above every actor again.
         // Road lights are rendered as fixtures, not unexplained ground glows.
         for(float lampX:new float[]{490,1790,2840}){
             if(!emissive){
@@ -538,58 +539,62 @@ public final class GameView extends View {
             }
         }
     }
+    // The fire's entire visual (hearth AND flame) is depth-sorted with
+    // actors, so a character IN FRONT occludes fire pixels automatically.
+    // Wider V50 fire: 142-world-unit hearth, 124-unit flame front (~3x V49).
     void drawCampfire(Canvas c,float x,float y,boolean emissive){
-        // Pixel-art campfire: stone hearth, crossed firewood, glowing coals,
-        // asynchronous layered flame tongues, small embers, subtle smoke.
-        // No sprite assets are edited; all layers use world-space coordinates.
         float a=(float)Math.sin(worldTimer*7.2f+x*.013f);
         float b=(float)Math.sin(worldTimer*11.8f+y*.037f);
         if(!emissive){
-            rect(c,x-23,y+6,47,8,0xff192323); // ash shadow under stones
-            rect(c,x-22,y+4,9,7,0xff66645b);
-            rect(c,x-18,y+2,6,3,0xff9b9884);
-            rect(c,x-11,y+9,10,6,0xff777366);
-            rect(c,x+3,y+9,11,6,0xff625f57);
-            rect(c,x+15,y+3,9,8,0xff6c6962);
-            rect(c,x+17,y+4,5,2,0xffada996);
-            rect(c,x-11,y+2,22,9,0xff342922); // embers inside the hearth
-            if(campfiresLit){
-                rect(c,x-10,y+5,20,4,0xff973e1e);
-                rect(c,x-7,y+5,5,3,0xffd55e28);
-                rect(c,x+2,y+6,6,2,0xffc9652b);
-                // Two diagonal bundles of logs on an 8-bit grid.
-                for(int i=0;i<5;i++){
-                    rect(c,x-20+i*8,y+7-i*2,9,5,0xff603c29);
-                    rect(c,x-18+i*8,y+8-i*2,5,2,0xffa07443);
-                    rect(c,x+12-i*7,y-1+i*2,9,5,0xff6d4126);
-                    rect(c,x+14-i*7,y+i*2,4,2,0xffa47c4d);
-                }
-            }else{
-                rect(c,x-17,y+5,34,5,0xff54473c);
+            // Dark ash bed and several offset edge stones, with highlight faces.
+            rect(c,x-73,y+8,146,13,0xff192323);
+            rect(c,x-70,y+5,140,10,0xff322d29);
+            for(int i=0;i<9;i++){
+                float xx=x-68+i*16f;
+                rect(c,xx,y+5+(i%3),13,7,(i&1)==0?0xff66645b:0xff736f63);
+                rect(c,xx+2,y+5+(i%3),6,2,0xff9b9788);
             }
-            // Semi-transparent smoke belongs to the world: it darkens naturally
-            // with the rest of the scene at night, never glows in isolation.
+            rect(c,x-62,y+3,124,8,0xff443126);
             if(campfiresLit){
-                float drift=(float)Math.sin(worldTimer*1.6f+x*.02f)*4f;
-                rect(c,x-5+drift,y-34,8,5,0x445c6461);
-                rect(c,x-9-drift*.5f,y-48,6,4,0x2d7b8179);
+                // Wide hot coal bed, staggered embers.
+                rect(c,x-57,y+6,114,5,0xffa44424);
+                for(int i=0;i<13;i++){
+                    rect(c,x-56+i*9,y+5+(i%3),5,3,
+                        i%3==0?0xffffbd57:0xffd9702b);
+                }
+                // Wide crisscrossing logs. All logs remain in the same
+                // occlusion depth as the flames, not pasted across actors.
+                for(int i=0;i<7;i++){
+                    rect(c,x-66+i*18,y+3-(i%3)*3,24,7,0xff68412b);
+                    rect(c,x-63+i*18,y+4-(i%3)*3,17,2,0xffad8050);
+                    rect(c,x-58+i*16,y-1+(i%3)*3,20,6,0xff593824);
+                }
+                float drift=(float)Math.sin(worldTimer*1.4f+x*.017f)*5f;
+                rect(c,x-19+drift,y-47,19,5,0x445f6663);
+                rect(c,x+21-drift*.8f,y-56,15,4,0x35696f6b);
+                rect(c,x-2+drift*.5f,y-69,12,4,0x22777b75);
+            }else{
+                rect(c,x-54,y+3,108,5,0xff51443b);
             }
         }else if(campfiresLit){
-            float h1=18f+a*4f,h2=15f+b*3f;
-            // Dark orange edge, amber body, lively yellow center.
-            rect(c,x-13,y-9,25,13,0xffa9431d);
-            rect(c,x-11,y-14-h1*.25f,8,20+h1*.25f,0xffed6d24);
-            rect(c,x+4,y-13-h2*.33f,8,17+h2*.33f,0xffd95a1b);
-            rect(c,x-8,y-11-h1*.70f,11,16+h1*.70f,0xffff9b31);
-            rect(c,x-2,y-13-h2*.72f,9,16+h2*.72f,0xffffc34f);
-            rect(c,x-4,y-12-h1*.47f,6,12+h1*.47f,0xffffe588);
-            rect(c,x-1,y-9,3,13,0xfffff0b1);
-            // Small independent rising fire sparks, never an enormous torch.
-            for(int i=0;i<3;i++){
-                float drift=(float)Math.sin(worldTimer*2.7f+i*2.8f+x*.05f)*5f;
-                float phase=(worldTimer*(12f+i*2f)+i*17f+x*.11f)%48f;
-                rect(c,x-8+i*8+drift,y-8-phase,2.5f,3f,
-                    i==1?0xffffdd77:0xfff79a3d);
+            // Five independently moving tongues span the full hearth width.
+            // Each tongue has deep-red edge, amber body and a bright core.
+            for(int i=0;i<5;i++){
+                float xx=x-49+i*25f;
+                float wa=(float)Math.sin(worldTimer*(6.7f+i*.93f)+i*1.47f+x*.012f);
+                float hb=19f+6f*wa+5f*a;
+                rect(c,xx-9,y-12-hb*.65f,21,22+hb*.65f,0xff9d3718);
+                rect(c,xx-7,y-10-hb*.82f,17,20+hb*.82f,0xffe56521);
+                rect(c,xx-4,y-12-hb*.64f,11,17+hb*.64f,0xffffa53b);
+                rect(c,xx-1,y-8-hb*.57f,6,13+hb*.57f,0xffffd471);
+                if(i%2==0)rect(c,xx+1,y-5,3,10,0xffffedaa);
+            }
+            // A few glowing independent sparks above the flames.
+            for(int i=0;i<7;i++){
+                float drift=(float)Math.sin(worldTimer*2.7f+i*2.8f+x*.05f)*6f;
+                float phase=(worldTimer*(10f+i*1.5f)+i*13f+x*.11f)%58f;
+                rect(c,x-60+i*20+drift,y-8-phase,3,3,
+                    i%2==0?0xffffdd77:0xfff79a3d);
             }
         }
     }
@@ -666,7 +671,8 @@ public final class GameView extends View {
             illuminatedBullets++;
         }
         lighting.render(c,camX,camY,viewW,viewH,lightAlpha,covers);
-        // Only lamps and flames emit after darkness; people do NOT self-illuminate.
+        // Lamps/neon signage are static architecture; campfire flames were
+        // already depth-sorted with characters and are NOT painted over them.
         drawFixtures(c,true);
     }
     void fireLight(float x,float y){
@@ -762,12 +768,28 @@ public final class GameView extends View {
                 (IDLE_HEAD_OVERLAP-136)*s+headBob);
         c.drawBitmap(body,src,dest,pixel);
     }
-    void handAtlas(Canvas c,int weapon,int row,float x,float y,float s,float size,float reach){
+    // Enforce 9-source-pixel front head outline in ALL frames, while keeping
+    // the approved pixel geometry/face, color palette and identity immutable.
+    // Frame black front widths are 9/7/5/7 source pixels respectively;
+    // only the missing 0/2/4/2 inner pixels are covered by a black inset.
+    // Source y=29..91 is the face edge; y>=92 already has a 9px border.
+    void drawUniformHeadFrontOutline(Canvas c,int frame,boolean walking,float s,float breath){
+        final int f=walking?Math.max(0,Math.min(3,frame)):APPROVED_PLANTED_IDLE_FRAME;
+        final int[] insets={0,2,4,2};
+        final int[] faceStart={96,100,104,100};
+        int missing=insets[f];
+        if(missing==0)return;
+        float frameShift=walking?WalkAlignmentV48.sourceOffsetX(f):0f;
+        float headShift=walking?0f:breath*s;
+        rect(c,(faceStart[f]-missing+1f-70f+frameShift)*s,
+            (29f-136f)*s+headShift,missing*s,63f*s,0xff000000);
+    }
+    void handAtlas(Canvas c,int weapon,int row,float x,float y,float s,float size,float reach,float vertical){
         float px=row==2?MAIN_X[weapon]:OFF_X[weapon];
         float py=row==2?MAIN_Y[weapon]:OFF_Y[weapon];
         if(px==0)return;
         c.save();
-        c.translate((px-70+reach)*s,(py-136)*s);
+        c.translate((px-70+reach)*s,(py-136+(row==1?vertical:0f))*s);
         c.scale(size,size);
         c.translate(-(px-70)*s,-(py-136)*s);
         atlas(c,gear,weapon*260,row*160,x,y,s);
@@ -801,6 +823,7 @@ public final class GameView extends View {
                 atlas(c,approvedWalkColors!=null?approvedWalkColors:body,frame*260,0,0,0,s);
                 c.restore();
             }else idleBody(c,frame,s,breath);
+            drawUniformHeadFrontOutline(c,frame,breath==Float.POSITIVE_INFINITY,s,breath);
         }
         if(!bandit){
             c.save();
@@ -823,15 +846,15 @@ public final class GameView extends View {
                 if(weapon==3)drawFlashlightLens(c,s);
             }
             if(showHands){
-                handAtlas(c,weapon,2,0,0,s,handScale,0);
-                handAtlas(c,weapon,1,0,0,s,handScale,support);
+                handAtlas(c,weapon,2,0,0,s,handScale,0,0);
+                handAtlas(c,weapon,1,0,0,s,handScale,support,supportVertical);
             }
             if(anchors){
                 // Debug the torso parent + the attached contact points separately.
                 rect(c,pivotX-offsetX-3,pivotY-offsetY-3,6,6,0xff6ccde1);
                 rect(c,(MAIN_X[weapon]-70f)*s-3,(MAIN_Y[weapon]-136f)*s-3,6,6,0xffb9e9cf);
                 if(OFF_X[weapon]>0)rect(c,(OFF_X[weapon]-70f+support)*s-3,
-                    (OFF_Y[weapon]-136f)*s-3,6,6,0xffe9cc8c);
+                    (OFF_Y[weapon]-136f+supportVertical)*s-3,6,6,0xffe9cc8c);
             }
             c.restore();
         }else{
@@ -863,6 +886,20 @@ public final class GameView extends View {
             if(d.type==2){rect(c,d.x-1,d.y-9+bob,3,9,RED);rect(c,d.x-5,d.y-6+bob,11,3,RED);}
         }
         ArrayList<DrawEntity> order=new ArrayList<>();
+        for(float[] fire:FIXED_CAMPFIRES){
+            final float fx=fire[0],fy=fire[1];
+            order.add(new DrawEntity(fy,()->{
+                drawCampfire(c,fx,fy,false);
+                drawCampfire(c,fx,fy,true);
+            }));
+        }
+        for(float[] fire:builtCampfires){
+            final float fx=fire[0],fy=fire[1];
+            order.add(new DrawEntity(fy,()->{
+                drawCampfire(c,fx,fy,false);
+                drawCampfire(c,fx,fy,true);
+            }));
+        }
         for(Bandit e:enemies)if(e.active)order.add(new DrawEntity(e.y,()->{
             character(c,e.x,e.y,0,e.face,e.animation.frame(),
                     e.animation.isWalking()?Float.POSITIVE_INFINITY:e.animation.breathOffset(),
@@ -942,7 +979,7 @@ public final class GameView extends View {
     void menu(Canvas c){
         rounded(c,viewW/2-300,viewH/2-200,600,398,20,0xef14272b);
         label(c,"SURVIVAL PARADISE",viewW/2-254,viewH/2-115,34,WHITE,true);
-        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 49",
+        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 50",
                 viewW/2-254,viewH/2-80,15,OLIVE,true);
         label(c,"Move with the left stick. Aim & fire with the right.",viewW/2-254,viewH/2-40,15,WHITE,false);
         label(c,"Explore the world, fight bandits, and collect supplies.",viewW/2-254,viewH/2-15,15,WHITE,false);
