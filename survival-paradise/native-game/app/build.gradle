@@ -6,8 +6,8 @@ android {
   applicationId 'com.survivalparadise.nativegame'
   minSdk 24
   targetSdk 34
-  versionCode 35
-  versionName '0.35-native-ballistics'
+  versionCode 36
+  versionName '0.36-native-torso-rig'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
