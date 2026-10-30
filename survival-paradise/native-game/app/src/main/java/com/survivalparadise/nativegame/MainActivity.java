@@ -147,11 +147,17 @@ public final class MainActivity extends Activity {
         Button b=new Button(this);b.setText(title);b.setAllCaps(false);
         root.addView(b,new LinearLayout.LayoutParams(-1,-2));b.setOnClickListener(v->run.run());return b;
     }
+    private void testTravel(float dx,float dy,String message){
+        if(game!=null&&game.debugTeleport(dx,dy))
+            Toast.makeText(this,message,Toast.LENGTH_SHORT).show();
+        else
+            Toast.makeText(this,"Start or continue a game before traveling",Toast.LENGTH_SHORT).show();
+    }
     void settings(){
         game.menuPause(true);
         ScrollView scroll=new ScrollView(this);
         LinearLayout root=column();scroll.addView(root);
-        section(root,"SURVIVAL PARADISE  •  GAME SETTINGS");
+        section(root,"SURVIVAL PARADISE  •  ORIGINAL + TEST SETTINGS");
         root.addView(text("Controls apply to the playable game, and save automatically.",13,false));
         section(root,"PLAYER AND COMBAT");
         slider(root,"Character display size","scale",65,135,100,"%");
@@ -191,6 +197,38 @@ public final class MainActivity extends Activity {
         check(root,"Warm campfires and flames","campfiresLit",true);
         check(root,"Neon building signs","neonLights",true);
         check(root,"Full-screen immersive gameplay","fullscreen",true);
+        section(root,"WORLD TEST LAB  •  V54.1");
+        root.addView(text("All original settings and touch controls remain available. " +
+            "The options below modify the live V54 chunk-streaming test.",13,false));
+        check(root,"Show FPS, player coordinates, NPC and chunk diagnostics","testPerf",true);
+        check(root,"Show loaded chunk grid and coordinates","testChunkGrid",false);
+        section(root,"CAMERA AND TOUCH CONTROLS");
+        slider(root,"Camera zoom","cameraZoom",70,180,100,"%");
+        slider(root,"Movement joystick size","movePadSize",70,150,100,"%");
+        slider(root,"Aiming joystick size","aimPadSize",70,150,100,"%");
+        slider(root,"Movement joystick sensitivity","moveSensitivity",50,160,100,"%");
+        slider(root,"Aiming joystick sensitivity","aimSensitivity",50,160,100,"%");
+        slider(root,"Joystick transparency / opacity","controlOpacity",25,100,100,"%");
+        section(root,"CHUNK ENGINE  •  LIVE SETTINGS");
+        slider(root,"Maximum resident terrain chunks","testCacheMax",12,64,36,"");
+        slider(root,"Chunk preloading radius","testPreloadRadius",1,3,2," chunks");
+        action(root,"View current FPS and chunk statistics",()->{
+            Toast.makeText(this,game.testStats(),Toast.LENGTH_LONG).show();
+        });
+        section(root,"TRAVEL / CONTINUITY TESTS");
+        root.addView(text("Teleporting changes only player coordinates. The original camp, " +
+            "seed, save file, characters, and inventory remain intact.",13,false));
+        action(root,"Travel 8 chunks east",()->testTravel(8f*WorldChunkModel.CHUNK_SIZE,0,
+            "Moved 8 chunks east"));
+        action(root,"Travel 8 chunks west",()->testTravel(-8f*WorldChunkModel.CHUNK_SIZE,0,
+            "Moved 8 chunks west"));
+        action(root,"Travel 8 chunks north",()->testTravel(0,-8f*WorldChunkModel.CHUNK_SIZE,
+            "Moved 8 chunks north"));
+        action(root,"Travel 8 chunks south",()->testTravel(0,8f*WorldChunkModel.CHUNK_SIZE,
+            "Moved 8 chunks south"));
+        action(root,"Return to original survivor camp",()->testTravel(
+            GameView.CAMP_X-game.playerX,GameView.CAMP_Y-game.playerY,
+            "Returned to survivor camp"));
         section(root,"GAME ACTIONS");
         action(root,"Save game now",()->{game.saveProgress();Toast.makeText(this,"Game saved",Toast.LENGTH_SHORT).show();});
         action(root,"Take screenshot",()->captureGame());
@@ -204,7 +242,12 @@ public final class MainActivity extends Activity {
               .putInt("darkness",83).putInt("beamReach",490)
               .putBoolean("lampOn",true).putBoolean("campfiresLit",true)
               .putBoolean("neonLights",true)
-              .putBoolean("fullscreen",true).apply();
+              .putBoolean("fullscreen",true)
+              .putBoolean("testPerf",true).putBoolean("testChunkGrid",false)
+              .putInt("cameraZoom",100).putInt("movePadSize",100)
+              .putInt("aimPadSize",100).putInt("moveSensitivity",100)
+              .putInt("aimSensitivity",100).putInt("controlOpacity",100)
+              .putInt("testCacheMax",36).putInt("testPreloadRadius",2).apply();
             game.reloadSettings();applyImmersive();
             Toast.makeText(this,"Defaults restored. Reopen settings to see the values.",Toast.LENGTH_LONG).show();
         });
