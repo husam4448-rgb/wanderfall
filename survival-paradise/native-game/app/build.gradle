@@ -6,8 +6,8 @@ android {
   applicationId 'com.survivalparadise.nativegame'
   minSdk 24
   targetSdk 34
-  versionCode 41
-  versionName '0.41-native-mirror-hitboxes'
+  versionCode 42
+  versionName '0.42-native-full-four-frame-walk'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
