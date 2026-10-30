@@ -485,6 +485,16 @@ public final class GameView extends View {
         // Environmental props are separate from every approved body/weapon asset.
         for(float[] f:FIXED_CAMPFIRES)drawCampfire(c,f[0],f[1],emissive);
         for(float[] f:builtCampfires)drawCampfire(c,f[0],f[1],emissive);
+        // Road lights are rendered as fixtures, not unexplained ground glows.
+        for(float lampX:new float[]{490,1790,2840}){
+            if(!emissive){
+                rect(c,lampX-3,870,6,52,0xff293a3d);
+                rect(c,lampX-11,867,22,10,0xff6d7160);
+                rect(c,lampX-7,869,14,4,0xffacae90);
+            }else if(night){
+                rect(c,lampX-8,866,16,7,0xffffe5a1);
+            }
+        }
         if(neonEnabled)for(int i=0;i<NEONS.length;i++){
             float[] n=NEONS[i];float x=n[0],y=n[1];int hue=(int)n[2];
             if(!emissive){
@@ -522,7 +532,7 @@ public final class GameView extends View {
         }
         // Street lamps offer modest navigation light, not character glow.
         for(float x:new float[]{490,1790,2840})
-            lighting.point(x,920,160,.60f,0xffdbd5a0);
+            lighting.point(x,872,175,.61f,0xffdbd5a0);
         if(lampOn){
             if(gun==3){
                 float[] tip=Ballistics.rigMuzzle(playerX,playerY,face,aimX,aimY,
