@@ -11,6 +11,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.view.WindowInsets;
+import android.view.WindowInsetsController;
 import android.provider.MediaStore;
 import android.view.Gravity;
 import android.view.View;
@@ -41,16 +43,64 @@ public final class MainActivity extends Activity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         prefs=getSharedPreferences("survival_paradise_native_v34",MODE_PRIVATE);
+        // V46 migration: default to NIGHT once, so light sources are visible
+        // on existing V45 installations too. DAY is always one tap away.
+        if(!prefs.getBoolean("v46_lighting_migrated",false)){
+            prefs.edit().putBoolean("night",true)
+                .putBoolean("lampOn",true)
+                .putBoolean("v46_lighting_migrated",true).apply();
+        }
         applyImmersive();
         game=new GameView(this);
         setContentView(game);
     }
     void applyImmersive(){
         immersive=prefs==null||prefs.getBoolean("fullscreen",true);
-        getWindow().getDecorView().setSystemUiVisibility(immersive?(
-             View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY|View.SYSTEM_UI_FLAG_FULLSCREEN|
-             View.SYSTEM_UI_FLAG_HIDE_NAVIGATION|View.SYSTEM_UI_FLAG_LAYOUT_STABLE|
-             View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN|View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION):0);
+        View decor=getWindow().getDecorView();
+        if(Build.VERSION.SDK_INT>=30){
+            // Samsung / Android 11+: bars can stay visible after pulling down
+            // the notification shade unless insets are hidden on focus regain.
+            getWindow().setDecorFitsSystemWindows(!immersive);
+            WindowInsetsController controller=getWindow().getInsetsController();
+            if(controller!=null){
+                if(immersive){
+                    controller.setSystemBarsBehavior(
+                        WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+                    controller.hide(WindowInsets.Type.statusBars()|
+                                    WindowInsets.Type.navigationBars());
+                }else{
+                    controller.show(WindowInsets.Type.statusBars()|
+                                    WindowInsets.Type.navigationBars());
+                }
+            }
+        }
+        int flags=View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
+        if(immersive){
+            flags|=View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY|
+                   View.SYSTEM_UI_FLAG_FULLSCREEN|
+                   View.SYSTEM_UI_FLAG_HIDE_NAVIGATION|
+                   View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN|
+                   View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
+        }
+        decor.setSystemUiVisibility(flags);
+        if(immersive)getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+    }
+    private void restoreFullscreenAfterShade(){
+        if(!immersive)return;
+        View decor=getWindow().getDecorView();
+        decor.postDelayed(()->{
+            if(!isFinishing()&&hasWindowFocus()&&immersive)applyImmersive();
+        },180);
+    }
+    @Override public void onWindowFocusChanged(boolean hasFocus){
+        super.onWindowFocusChanged(hasFocus);
+        if(!hasFocus){if(game!=null)game.releaseControls();}
+        else restoreFullscreenAfterShade();
+    }
+    @Override protected void onResume(){
+        super.onResume();
+        restoreFullscreenAfterShade();
     }
     int setting(String key,int def){return prefs.getInt(key,def);}
     boolean option(String key,boolean def){return prefs.getBoolean(key,def);}
@@ -131,7 +181,7 @@ public final class MainActivity extends Activity {
         check(root,"Aiming rotation","aimRotation",true);
         check(root,"Firing recoil + muzzle flashes","recoil",true);
         check(root,"Item drops + inventory","loot",true);
-        check(root,"Night lighting","night",false);
+        check(root,"Night lighting","night",true);
         slider(root,"Night darkness","darkness",45,96,83,"%");
         slider(root,"Flashlight beam distance","beamReach",260,690,490," px");
         check(root,"Hand flashlight switched on","lampOn",true);
@@ -146,7 +196,7 @@ public final class MainActivity extends Activity {
               .putInt("speed",100).putInt("survivors",1).putInt("gun",0)
               .putBoolean("hands",true).putBoolean("weapons",true).putBoolean("anchors",false)
               .putBoolean("hitboxes",false).putBoolean("enemyAI",true).putBoolean("aimRotation",true)
-               .putBoolean("recoil",true).putBoolean("loot",true).putBoolean("night",false)
+               .putBoolean("recoil",true).putBoolean("loot",true).putBoolean("night",true)
               .putInt("darkness",83).putInt("beamReach",490)
               .putBoolean("lampOn",true).putBoolean("campfiresLit",true)
               .putBoolean("neonLights",true)
@@ -157,7 +207,7 @@ public final class MainActivity extends Activity {
         AlertDialog dialog=new AlertDialog.Builder(this).setView(scroll)
           .setPositiveButton("RETURN TO GAME",(d,w)->game.menuPause(false))
           .setOnCancelListener(d->game.menuPause(false)).create();
-        dialog.setOnDismissListener(d->game.menuPause(false));
+        dialog.setOnDismissListener(d->{game.menuPause(false);restoreFullscreenAfterShade();});
         dialog.show();
         if(dialog.getWindow()!=null)dialog.getWindow().setLayout(
                 (int)(getResources().getDisplayMetrics().widthPixels*.70f),-1);
