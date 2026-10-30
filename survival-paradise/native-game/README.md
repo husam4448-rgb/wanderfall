@@ -1,3 +1,11 @@
+# V40 — Two-Pose Head Breathing Polish
+
+- Idle head moves directly between two existing poses: neutral (0 px) and raised (-4 px), immediately returning to neutral without the intermediate -2 px step.
+- Applies to the player, allies and enemies through their shared AnimationCycle class.
+- The V39 approved planted feet, head-only sprite compositing, original four walking frames, torso-mounted weapon/hand rig, fast projectiles and accepted axe are untouched.
+- Animation tests verify exact two-pose cycling, no intermediate position, and clean walk/idle transitions.
+- No character sprite pixels are redrawn or re-encoded; real-device playtesting is still pending.
+
 # V39 — Approved Template Idle Feet Correction
 
 - Replaces V38's incorrect idle mid-stride feet with the **two planted feet** from the approved V31 artwork, matching the shape of the project-approved V3 10×13 master idle template.
