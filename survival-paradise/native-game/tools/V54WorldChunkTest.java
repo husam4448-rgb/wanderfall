@@ -29,14 +29,17 @@ public final class V54WorldChunkTest {
                     int gx=cx*16+tx,gy=cy*16+ty;
                     require(WorldChunkModel.tileDetail(gx,gy)==legacyHash(gx,gy),
                             "legacy V53 tile art preserved");
-                    int patch=legacyHash(Math.floorDiv(gx,5),Math.floorDiv(gy,5));
-                    int tint=Math.floorMod(patch,4);
-                    int expected=tint==0?0xff375347:tint==1?0xff414d39:
-                                 tint==2?0xff40544b:0xff4b503d;
-                    float dx=gx*72f-1080,dy=gy*72f-710;
-                    if(dx*dx+dy*dy<320f*320f)expected=0xff53624c;
-                    require(WorldChunkModel.groundColor(gx,gy,1080,710)==expected,
-                            "regression: terrain changes after regeneration");
+                    int expected=WorldChunkModel.groundColor(gx,gy,1080,710);
+                    require(expected==WorldChunkModel.groundColor(gx,gy,1080,710),
+                            "terrain changes on revisiting");
+                    require((expected>>>24)==255,"opaque continuous terrain");
+                    float edge=gx*72f;
+                    int a=WorldChunkModel.groundColorAt(edge-.05f,gy*72f,1080,710);
+                    int b=WorldChunkModel.groundColorAt(edge+.05f,gy*72f,1080,710);
+                    int diff=Math.abs(((a>>>16)&255)-((b>>>16)&255))+
+                             Math.abs(((a>>>8)&255)-((b>>>8)&255))+
+                             Math.abs((a&255)-(b&255));
+                    require(diff<=4,"hard visual tile seam");
                     verified++;
                 }
             }
@@ -45,6 +48,6 @@ public final class V54WorldChunkTest {
                 "negative chunk enters camera");
         require(!WorldChunkModel.intersects(-20,20,-120,20,400,400),
                 "offscreen chunks culled");
-        System.out.println("V54 PASS: "+verified+" deterministic sample cells, signed chunks, original V53 biome palette");
+        System.out.println("V54 PASS: "+verified+" deterministic sample cells, signed chunks, continuous V57 organic biome field");
     }
 }
