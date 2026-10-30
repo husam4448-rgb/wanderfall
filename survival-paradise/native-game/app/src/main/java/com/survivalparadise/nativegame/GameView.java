@@ -27,7 +27,7 @@ public final class GameView extends View {
     final MainActivity host;
     final Paint p=new Paint();
     final Paint pixel=new Paint(Paint.ANTI_ALIAS_FLAG==0?0:0);
-    Bitmap body,gear,approvedAxe;
+    Bitmap body,walkBody,gear,approvedAxe;
     final Random rng=new Random(14901);
     static final float H=660, WORLD_W=3200, WORLD_H=2200;
     static final int[] RANGES={250,265,220,0,430,415,395,325,650,435,330,74};
@@ -60,6 +60,14 @@ public final class GameView extends View {
     final CharacterCollision.PixelMask bodyMask=(x,y)->body!=null &&
             x>=0&&y>=0&&x<body.getWidth()&&y<body.getHeight() &&
             (body.getPixel(x,y)>>>24)!=0;
+    // The corrected walking atlas is separate: the V41/V31 source and V40
+    // breathing idle are untouched. Collision must match the actually
+    // displayed corrected leg silhouette during the four-frame walk.
+    final CharacterCollision.PixelMask walkMask=(x,y)->{
+        Bitmap visible=walkBody!=null?walkBody:body;
+        return visible!=null&&x>=0&&y>=0&&x<visible.getWidth()&&y<visible.getHeight() &&
+            (visible.getPixel(x,y)>>>24)!=0;
+    };
     final ArrayList<Bandit> enemies=new ArrayList<>();
     final ArrayList<Survivor> friends=new ArrayList<>();
     final ArrayList<Shot> shots=new ArrayList<>();
@@ -98,6 +106,11 @@ public final class GameView extends View {
         try(InputStream bs=getResources().getAssets().open("body.png");
             InputStream gs=getResources().getAssets().open("gear.png")){
             body=BitmapFactory.decodeStream(bs);gear=BitmapFactory.decodeStream(gs);
+            try(InputStream walking=getResources().getAssets().open("walk_corrected_v42.png")){
+                walkBody=BitmapFactory.decodeStream(walking);
+                if(walkBody==null||walkBody.getWidth()!=1040||walkBody.getHeight()!=160)
+                    throw new IllegalStateException("V42 approved walking asset invalid");
+            }
             try(InputStream axe=getResources().getAssets().open("approved_v29_axe.png")){
                 approvedAxe=BitmapFactory.decodeStream(axe);
             }
@@ -370,13 +383,15 @@ public final class GameView extends View {
             if(bullet.hostile){
                 float t=CharacterCollision.firstHit(bullet.x,bullet.y,nx,ny,
                         playerX,playerY,face,playerAnimation.frame(),
-                        playerAnimation.isWalking(),playerAnimation.breathOffset(),scale,bodyMask);
+                        playerAnimation.isWalking(),playerAnimation.breathOffset(),scale,
+                        playerAnimation.isWalking()?walkMask:bodyMask);
                 if(t<first){first=t;victim=null;hitPlayer=true;hitCover=false;}
             }else{
                 for(Bandit e:enemies)if(e.active){
                     float t=CharacterCollision.firstHit(bullet.x,bullet.y,nx,ny,
                             e.x,e.y,e.face,e.animation.frame(),
-                            e.animation.isWalking(),e.animation.breathOffset(),scale,bodyMask);
+                            e.animation.isWalking(),e.animation.breathOffset(),scale,
+                            e.animation.isWalking()?walkMask:bodyMask);
                     if(t<first){first=t;victim=e;hitPlayer=false;hitCover=false;}
                 }
             }
@@ -536,12 +551,14 @@ public final class GameView extends View {
     void character(Canvas c,float x,float y,int weapon,int facing,int frame,float breath,float aimAng,float kick,
                    boolean player,boolean bandit){
         float s=.76f*scale;
-        // Walking frames are untouched. Idle receives a separate three-phase
-        // breathing offset. It never advances through walking frames.
+        // V42 uses the four uniquely corrected walking poses; source V31 original
+        // remains completely unchanged for the approved planted-feet idle.
+        // The weapon and hand layers retain their V36 torso pivot.
         c.save();c.translate(x,y);if(facing<0)c.scale(-1,1);
         color(0x670b1a18);c.drawOval(-26*s,-7*s,26*s,7*s,p);
         if(body!=null){
-            if(breath==Float.POSITIVE_INFINITY)atlas(c,body,frame*260,0,0,0,s);
+            if(breath==Float.POSITIVE_INFINITY)
+                atlas(c,walkBody!=null?walkBody:body,frame*260,0,0,0,s);
             else idleBody(c,frame,s,breath);
         }
         if(!bandit){
@@ -679,7 +696,7 @@ public final class GameView extends View {
     void menu(Canvas c){
         rounded(c,viewW/2-300,viewH/2-200,600,398,20,0xef14272b);
         label(c,"SURVIVAL PARADISE",viewW/2-254,viewH/2-115,34,WHITE,true);
-        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 41",
+        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 42",
                 viewW/2-254,viewH/2-80,15,OLIVE,true);
         label(c,"Move with the left stick. Aim & fire with the right.",viewW/2-254,viewH/2-40,15,WHITE,false);
         label(c,"Explore the world, fight bandits, and collect supplies.",viewW/2-254,viewH/2-15,15,WHITE,false);
