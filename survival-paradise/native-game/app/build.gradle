@@ -6,8 +6,8 @@ android {
   applicationId 'com.survivalparadise.nativegame'
   minSdk 24
   targetSdk 34
-  versionCode 52
-  versionName '0.52-approved-idle-restored'
+  versionCode 53
+  versionName '0.53-unbounded-world-palette'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
