@@ -575,12 +575,12 @@ public final class GameView extends View {
     byte[] capturePNG(){
         Bitmap image=Bitmap.createBitmap(Math.max(1,getWidth()),Math.max(1,getHeight()),Bitmap.Config.ARGB_8888);
         Canvas canvas=new Canvas(image);
-        long save=lastFrame;lastFrame=System.nanoTime();draw(canvas);lastFrame=save;
+        long save=lastFrame;lastFrame=System.nanoTime();drawSnapshot(canvas);lastFrame=save;
         ByteArrayOutputStream buf=new ByteArrayOutputStream();image.compress(Bitmap.CompressFormat.PNG,100,buf);
         image.recycle();return buf.toByteArray();
     }
     // Snapshot renderer without the infinite game invalidation loop.
-    private void draw(Canvas canvas){
+    private void drawSnapshot(Canvas canvas){
         float s=Math.max(.1f,getHeight()/H);
         viewW=getWidth()/s;viewH=H;drawScale=s;
         camX=clamp(playerX-viewW/2,0,Math.max(0,WORLD_W-viewW));
