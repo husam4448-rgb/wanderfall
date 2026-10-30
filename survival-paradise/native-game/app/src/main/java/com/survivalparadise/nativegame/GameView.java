@@ -46,7 +46,7 @@ public final class GameView extends View {
     boolean showHands=true,showWeapons=true,anchors=false,hitboxes=false,enemyAI=true,
             aimRotation=true,recoilFX=true,lootEnabled=true,night=false;
     boolean playing=false,paused=false,settingsPause=false,wasPaused=false,hasSave=false,gameOver=false;
-    float playerX=1000,playerY=1060,health=100,stamina=100,walkClock=0,shotClock=0,reloadClock=0,recoil=0;
+    float playerX=1000,playerY=1060,health=100,stamina=100,shotClock=0,reloadClock=0,recoil=0;
     float aimX=1,aimY=0,stickX=0,stickY=0;
     int face=1,gun=0,ammo=12,kills=0,wave=1,scrap=0,medkits=0,ammoPacks=0,enemyCount=0;
     float worldTimer=0,autSaveClock=0,shake=0;
@@ -54,6 +54,7 @@ public final class GameView extends View {
     float viewW=1200,viewH=660,drawScale=1,camX=0,camY=0;
     int leftPointer=-1,rightPointer=-1;
     boolean firing=false,moving=false;
+    final AnimationCycle playerAnimation=new AnimationCycle();
     final ArrayList<Bandit> enemies=new ArrayList<>();
     final ArrayList<Survivor> friends=new ArrayList<>();
     final ArrayList<Shot> shots=new ArrayList<>();
@@ -65,9 +66,11 @@ public final class GameView extends View {
     final Rect src=new Rect();
     final RectF dest=new RectF();
     final float PAD=46;
-    static class Bandit {float x,y,hp=78,cd,walk,hit;int face=1;boolean active=true;
+    static class Bandit {float x,y,hp=78,cd,hit;int face=1;boolean active=true;
+        final AnimationCycle animation=new AnimationCycle();
         Bandit(float a,float b){x=a;y=b;cd=.7f;}}
-    static class Survivor {float x,y,cd,walk,aimX=1,aimY=0;int gun,face=1;
+    static class Survivor {float x,y,cd,aimX=1,aimY=0;int gun,face=1;
+        final AnimationCycle animation=new AnimationCycle();
         Survivor(float a,float b,int g){x=a;y=b;gun=g;}}
     static class Shot {float x,y,vx,vy,life,damage;boolean hostile;int color;
         Shot(float x,float y,float vx,float vy,float damage,boolean enemy){
@@ -138,7 +141,7 @@ public final class GameView extends View {
         allyCurrent=1+friends.size();
     }
     void newGame(){
-        playerX=1000;playerY=1060;health=100;stamina=100;walkClock=0;shotClock=0;
+        playerX=1000;playerY=1060;health=100;stamina=100;playerAnimation.reset();moving=false;stickX=0;stickY=0;shotClock=0;
         gun=Math.max(0,Math.min(11,host.setting("gun",0)));ammo=MAG[gun];
         kills=0;wave=1;scrap=0;medkits=1;ammoPacks=2;worldTimer=0;autSaveClock=0;
         enemies.clear();friends.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();
@@ -148,6 +151,7 @@ public final class GameView extends View {
     }
     void continueGame(){
         if(!hasSave){newGame();return;}
+        playerAnimation.reset();moving=false;stickX=0;stickY=0;
         playerX=host.prefs.getFloat("px",1000);playerY=host.prefs.getFloat("py",1060);
         health=host.prefs.getFloat("hp",100);kills=host.setting("kills",0);
         wave=Math.max(1,host.setting("wave",1));
@@ -178,11 +182,14 @@ public final class GameView extends View {
         hasSave=true;
     }
     void menuPause(boolean b){
-        if(b){wasPaused=paused;settingsPause=true;paused=true;}
+        if(b){wasPaused=paused;settingsPause=true;paused=true;
+            stopWalking();}
         else{settingsPause=false;paused=wasPaused;}
         invalidate();
     }
-    void togglePause(){if(!playing)return;paused=!paused;saveProgress();invalidate();}
+    void togglePause(){if(!playing)return;paused=!paused;
+        if(paused)stopWalking();saveProgress();invalidate();}
+    void stopWalking(){stickX=0;stickY=0;moving=false;playerAnimation.reset();}
     void switchWeapon(){
         gun=(gun+1)%12;ammo=MAG[gun];reloadClock=0;
         host.prefs.edit().putInt("gun",gun).apply();
@@ -265,6 +272,7 @@ public final class GameView extends View {
         if(reloadClock>0){
             reloadClock-=dt;if(reloadClock<=0){ammo=MAG[gun];reloadClock=0;}
         }
+        float wasX=playerX,wasY=playerY;
         float vx=stickX,vy=stickY;
         float length=(float)Math.hypot(vx,vy);
         if(length>.06f){
@@ -274,10 +282,12 @@ public final class GameView extends View {
             float ny=clamp(playerY+vy*speed*dt,50,WORLD_H-40);
             if(!blocked(nx,playerY,20))playerX=nx;
             if(!blocked(playerX,ny,20))playerY=ny;
-            walkClock+=dt*7;
             if(!firing)face=vx>=0?1:-1;
-            moving=true;
-        }else moving=false;
+        }
+        // Animate actual displacement only: releasing the stick or hitting a wall
+        // always restores the original neutral idle frame immediately.
+        moving=distance(playerX,playerY,wasX,wasY)>.001f;
+        playerAnimation.step(moving,dt,7f);
         if(firing){
             if(aimX>.1f)face=1;else if(aimX<-.1f)face=-1;
             if(shotClock<=0&&reloadClock==0){
@@ -288,6 +298,7 @@ public final class GameView extends View {
             }
         }
         for(Survivor friend:friends){
+            float beforeFriendX=friend.x,beforeFriendY=friend.y;
             friend.cd=Math.max(0,friend.cd-dt);
             float d=distance(friend.x,friend.y,playerX,playerY);
             if(d>80){
@@ -295,8 +306,9 @@ public final class GameView extends View {
                 float nx=friend.x+ux*170*dt,ny=friend.y+uy*170*dt;
                 if(!blocked(nx,friend.y,18))friend.x=nx;
                 if(!blocked(friend.x,ny,18))friend.y=ny;
-                friend.walk+=dt*7;friend.face=ux>=0?1:-1;
+                friend.face=ux>=0?1:-1;
             }
+            friend.animation.step(distance(friend.x,friend.y,beforeFriendX,beforeFriendY)>.001f,dt,7f);
             Bandit target=nearest(friend.x,friend.y,460);
             if(target!=null&&friend.cd<=0){
                 float dx=target.x-friend.x,dy=target.y-friend.y;
@@ -309,6 +321,7 @@ public final class GameView extends View {
         }
         if(enemyAI)for(Bandit e:enemies){
             if(!e.active)continue;
+            float beforeEnemyX=e.x,beforeEnemyY=e.y;
             e.cd-=dt;e.hit=Math.max(0,e.hit-dt);
             float d=distance(e.x,e.y,playerX,playerY);
             if(d<520){
@@ -318,13 +331,15 @@ public final class GameView extends View {
                     float nx=e.x+dx*105*dt,ny=e.y+dy*105*dt;
                     if(!blocked(nx,e.y,18))e.x=nx;
                     if(!blocked(e.x,ny,18))e.y=ny;
-                    e.walk+=dt*6;
+                    // Animation is driven by displacement, not historical walking time.
                 }else if(e.cd<=0){
                     shoot(e.x,e.y,dx,dy,0,true,e.face);
                     e.cd=1.1f+rng.nextFloat()*.7f;
                 }
             }
+            e.animation.step(distance(e.x,e.y,beforeEnemyX,beforeEnemyY)>.001f,dt,6f);
         }
+        if(!enemyAI)for(Bandit e:enemies)e.animation.reset();
         // Continuous collision detection: no tunneling through actors or cover at 4000 px/s.
         for(Iterator<Shot> iter=shots.iterator();iter.hasNext();){
             Shot bullet=iter.next();
@@ -474,10 +489,11 @@ public final class GameView extends View {
                 pivotY+(approvedAxe.getHeight()-138)*k);
         c.drawBitmap(approvedAxe,null,dest,pixel);
     }
-    void character(Canvas c,float x,float y,int weapon,int facing,float move,float aimAng,float kick,
+    void character(Canvas c,float x,float y,int weapon,int facing,int frame,float aimAng,float kick,
                    boolean player,boolean bandit){
         float s=.76f*scale;
-        int frame=move>0?(int)(move*1.25f)%4:0;
+        // Frame 0 is the approved V31 neutral idle. Never derive pose from a
+        // stale walking timer or an independently animated equipment layer.
         c.save();c.translate(x,y);if(facing<0)c.scale(-1,1);
         color(0x670b1a18);c.drawOval(-26*s,-7*s,26*s,7*s,p);
         if(body!=null)atlas(c,body,frame*260,0,0,0,s);
@@ -531,16 +547,16 @@ public final class GameView extends View {
         }
         ArrayList<DrawEntity> order=new ArrayList<>();
         for(Bandit e:enemies)if(e.active)order.add(new DrawEntity(e.y,()->{
-            character(c,e.x,e.y,0,e.face,e.walk,0,0,false,true);
+            character(c,e.x,e.y,0,e.face,e.animation.frame(),0,0,false,true);
             rect(c,e.x-23,e.y-114,46,5,DK);rect(c,e.x-22,e.y-113,44*clamp(e.hp/78,0,1),3,RED);
         }));
         for(Survivor f:friends)order.add(new DrawEntity(f.y,()->{
-            character(c,f.x,f.y,f.gun,f.face,f.walk,Ballistics.angle(f.aimX,f.aimY,f.face),0,false,false);
+            character(c,f.x,f.y,f.gun,f.face,f.animation.frame(),Ballistics.angle(f.aimX,f.aimY,f.face),0,false,false);
             rect(c,f.x-5,f.y-117,10,4,OLIVE);
         }));
         order.add(new DrawEntity(playerY,()->{
             float angle=Ballistics.angle(aimX,aimY,face);
-            character(c,playerX,playerY,gun,face,walkClock,angle,recoil*2.7f,true,false);
+            character(c,playerX,playerY,gun,face,playerAnimation.frame(),angle,recoil*2.7f,true,false);
         }));
         order.sort((a,b)->Float.compare(a.y,b.y));
         for(DrawEntity e:order)e.draw.run();
@@ -733,7 +749,7 @@ public final class GameView extends View {
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
                 if(id==leftPointer||action==MotionEvent.ACTION_CANCEL){
-                    leftPointer=-1;stickX=0;stickY=0;
+                    leftPointer=-1;stopWalking();
                 }
                 if(id==rightPointer||action==MotionEvent.ACTION_CANCEL){
                     rightPointer=-1;firing=false;
