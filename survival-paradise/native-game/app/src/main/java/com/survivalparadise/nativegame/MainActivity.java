@@ -185,5 +185,5 @@ public final class MainActivity extends Activity {
     @Override public void onBackPressed(){
         if(game!=null&&game.isPlaying()){game.togglePause();return;}super.onBackPressed();
     }
-    @Override protected void onPause(){if(game!=null)game.saveProgress();super.onPause();}
+    @Override protected void onPause(){if(game!=null){game.releaseControls();game.saveProgress();}super.onPause();}
 }
