@@ -1,3 +1,11 @@
+# V39 — Approved Template Idle Feet Correction
+
+- Replaces V38's incorrect idle mid-stride feet with the **two planted feet** from the approved V31 artwork, matching the shape of the project-approved V3 10×13 master idle template.
+- Reads the existing, unmodified V31 body atlas frame 2 for idle only. V31 frame 0 was a walking pose, never the approved idle stance.
+- Keeps feet, pants and chest stationary and pixel-identical across all three idle phases. Only the existing head region moves slightly for breathing.
+- Preserves the V36 weapon/hand rig, approved V29 axe, fast bullets, game controls, enemy AI, inventory and original four walking poses.
+- Physical-device gameplay review pending.
+
 # V37 — Idle / Walk Animation Reset
 
 - Explicit native animation state for player, allied survivors and bandits.
