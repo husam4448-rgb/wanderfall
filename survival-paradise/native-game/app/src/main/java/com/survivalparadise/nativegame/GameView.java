@@ -48,11 +48,15 @@ public final class GameView extends View {
     boolean playing=false,paused=false,settingsPause=false,wasPaused=false,hasSave=false,gameOver=false;
     boolean lampOn=true,neonEnabled=true,campfiresLit=true;
     int nightDarkness=211,flashlightReach=490;
-    final LightingV46 lighting=new LightingV46();
+    final LightingV47 lighting=new LightingV47();
+    // V47: solar clock advances during gameplay, including smooth dawn/dusk.
+    final GameClockV47 clock=new GameClockV47(21*60f);
+    boolean automaticDayNight=true;
+    int lightAlpha=210;
     static final float[][] FIXED_CAMPFIRES={{1170,805},{2140,1550},{300,780}};
     static final float[][] NEONS={
-       {465,321,LightingV46.NEON_BLUE},{1775,343,LightingV46.NEON_PINK},
-       {2455,1170,LightingV45.NEON_BLUE},{857,1710,LightingV46.NEON_PINK}};
+       {465,321,LightingV47.NEON_BLUE},{1775,343,LightingV47.NEON_PINK},
+       {2455,1170,LightingV47.NEON_BLUE},{857,1710,LightingV47.NEON_PINK}};
     final ArrayList<float[]> builtCampfires=new ArrayList<>();
     float playerX=1000,playerY=1060,health=100,stamina=100,shotClock=0,reloadClock=0,recoil=0;
     float aimX=1,aimY=0,stickX=0,stickY=0;
@@ -150,7 +154,9 @@ public final class GameView extends View {
         aimRotation=host.option("aimRotation",true);
         recoilFX=host.option("recoil",true);
         lootEnabled=host.option("loot",true);
+        automaticDayNight=host.option("autoDayNight",true);
         night=host.option("night",true);
+        clock.configure(host.setting("dayLength",36));
         lampOn=host.option("lampOn",true);
         neonEnabled=host.option("neonLights",true);
         campfiresLit=host.option("campfiresLit",true);
@@ -158,9 +164,13 @@ public final class GameView extends View {
         flashlightReach=host.setting("beamReach",490);
         int next=host.setting("gun",0);
         if(next!=gun){gun=Math.max(0,Math.min(11,next));ammo=MAG[gun];reloadClock=0;}
+        refreshDaylight();
         allySetting=host.setting("survivors",1);
         if(playing)adjustFriends();
         invalidate();
+    }
+    void refreshDaylight(){
+        lightAlpha=automaticDayNight?clock.darkness(nightDarkness):(night?nightDarkness:0);
     }
     void adjustFriends(){
         while(friends.size()<allySetting-1){
@@ -174,6 +184,8 @@ public final class GameView extends View {
         playerX=1000;playerY=1060;health=100;stamina=100;playerAnimation.reset();moving=false;stickX=0;stickY=0;shotClock=0;
         gun=Math.max(0,Math.min(11,host.setting("gun",0)));ammo=MAG[gun];
         kills=0;wave=1;scrap=0;medkits=1;ammoPacks=2;worldTimer=0;autSaveClock=0;
+        clock.setClock(night?21*60f:12*60f,1);
+        face=1;aimX=1;aimY=0;refreshDaylight();
         enemies.clear();friends.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();builtCampfires.clear();
         playing=true;paused=false;settingsPause=false;gameOver=false;
         adjustFriends();spawnWave();
@@ -182,6 +194,13 @@ public final class GameView extends View {
     void continueGame(){
         if(!hasSave){newGame();return;}
         playerAnimation.reset();moving=false;stickX=0;stickY=0;
+        clock.setClock(host.prefs.getFloat("clockMinutes",night?21*60f:12*60f),
+            host.setting("clockDay",1));
+        aimX=host.prefs.getFloat("aimX",1f);aimY=host.prefs.getFloat("aimY",0f);
+        float lengthAim=(float)Math.hypot(aimX,aimY);
+        if(lengthAim<.01f){aimX=1;aimY=0;}else{aimX/=lengthAim;aimY/=lengthAim;}
+        face=aimX<-.025f?-1:1;
+        refreshDaylight();
         playerX=host.prefs.getFloat("px",1000);playerY=host.prefs.getFloat("py",1060);
         health=host.prefs.getFloat("hp",100);kills=host.setting("kills",0);
         wave=Math.max(1,host.setting("wave",1));
@@ -219,9 +238,15 @@ public final class GameView extends View {
         scrap-=3;builtCampfires.add(new float[]{x,y});saveProgress();
     }
     void toggleNight(){
-        night=!night;
-        host.prefs.edit().putBoolean("night",night).apply();
-        invalidate();
+        if(automaticDayNight){
+            // Testing convenience: jump to a fixed phase, but the cycle
+            // immediately continues progressing automatically afterward.
+            clock.jumpToHour(clock.nightFraction()>.5f?12f:22f);
+        }else{
+            night=!night;
+            host.prefs.edit().putBoolean("night",night).apply();
+        }
+        refreshDaylight();saveProgress();invalidate();
     }
     void toggleLamp(){
         lampOn=!lampOn;
@@ -244,7 +269,9 @@ public final class GameView extends View {
                 .putFloat("hp",health).putInt("kills",kills).putInt("wave",wave)
                 .putInt("scrap",scrap).putInt("medkits",medkits)
                 .putInt("ammoPacks",ammoPacks).putInt("ammo",ammo)
-                .putString("campfire_locations",encodeCampfires()).apply();
+                .putString("campfire_locations",encodeCampfires())
+                .putFloat("clockMinutes",clock.minute()).putInt("clockDay",clock.day())
+                .putFloat("aimX",aimX).putFloat("aimY",aimY).apply();
         hasSave=true;
     }
     void menuPause(boolean b){
@@ -331,6 +358,9 @@ public final class GameView extends View {
     }
     void update(float dt){
         if(!playing||paused)return;
+        // Clock is real-world-time based and independent of enemy simulation speed.
+        clock.advance(Math.min(.04f,dt));
+        refreshDaylight();
         dt=Math.min(.04f,dt)*timeSpeed;
         worldTimer+=dt;autSaveClock+=dt;
         if(autSaveClock>9){saveProgress();autSaveClock=0;}
@@ -349,15 +379,7 @@ public final class GameView extends View {
             float ny=clamp(playerY+vy*speed*dt,50,WORLD_H-40);
             if(!blocked(nx,playerY,20))playerX=nx;
             if(!blocked(playerX,ny,20))playerY=ny;
-            if(!firing){
-                int nextFacing=vx>=0?1:-1;
-                if(face!=nextFacing){
-                    face=nextFacing;
-                    // Preserve the same elevation when simply turning around.
-                    // The rifle must mirror rather than jump toward vertical.
-                    aimX=face*Math.abs(aimX);
-                }
-            }
+            // Movement joystick is locomotion ONLY. No facing or aim updates.
         }
         // Animate actual displacement only: releasing the stick or hitting a wall
         // always restores the original neutral idle frame immediately.
@@ -525,9 +547,31 @@ public final class GameView extends View {
             rect(c,x-2,y-13-flicker,4,10,0xfffff0b5);
         }
     }
+    void addCharacterShadow(float x,float y){
+        float s=scale;
+        // Cast from the original on-screen pixel silhouette (three small
+        // rectangles, not a large circular aura). Source-facing side remains lit.
+        lighting.occludeRect(x-29*s,y-90*s,x+29*s,y-48*s); // head
+        lighting.occludeRect(x-21*s,y-48*s,x+21*s,y-16*s); // chest
+        lighting.occludeRect(x-22*s,y-17*s,x+22*s,y-2*s); // boots
+    }
+    void populateLightBlockers(){
+        for(Cover b:covers)lighting.occludeRect(b.x,b.y,b.x+b.w,b.y+b.h);
+        for(int i=0;i<140;i++){
+            if(i%7!=0)continue; // tree trunks/crowns, not tiny grass flecks
+            int x=(137*i+27*i*i)%3180,y=(211*i+47*i*i)%2170;
+            if(y>912&&y<1160)continue;
+            if(x>1480&&x<1740)continue;
+            lighting.occludeRect(x-8,y-9,x+29,y+31);
+        }
+        addCharacterShadow(playerX,playerY);
+        for(Survivor f:friends)addCharacterShadow(f.x,f.y);
+        for(Bandit e:enemies)if(e.active)addCharacterShadow(e.x,e.y);
+    }
     void applyWorldLighting(Canvas c){
-        if(!night)return;
+        if(lightAlpha<=0)return;
         lighting.clear();
+        populateLightBlockers();
         if(campfiresLit){
             for(float[] f:FIXED_CAMPFIRES)fireLight(f[0],f[1]);
             for(float[] f:builtCampfires)fireLight(f[0],f[1]);
@@ -552,13 +596,13 @@ public final class GameView extends View {
         }
         for(Flash f:flashes)if(f.ttl>0)
             lighting.point(f.x,f.y,90,Math.min(1f,f.ttl/.065f),0xffffedb3);
-        lighting.render(c,camX,camY,viewW,viewH,nightDarkness,covers);
+        lighting.render(c,camX,camY,viewW,viewH,lightAlpha,covers);
         // Only lamps and flames emit after darkness; people do NOT self-illuminate.
         drawFixtures(c,true);
     }
     void fireLight(float x,float y){
         float flicker=(float)Math.sin(worldTimer*11f+x*.33f);
-        lighting.point(x,y-9,205+flicker*9,.89f+flicker*.07f,LightingV46.WARM);
+        lighting.point(x,y-9,205+flicker*9,.89f+flicker*.07f,LightingV47.WARM);
     }
     void terrain(Canvas c){
         // Deterministic, streaming visible world: foliage, asphalt, debris, and vegetation.
@@ -782,7 +826,7 @@ public final class GameView extends View {
         for(Spark s:sparks)rect(c,s.x,s.y,4,4,s.color);
         // Last pass darkens the *entire* world, including all characters,
         // equipment, projectiles and props; real lights punch through this mask.
-        if(night)applyWorldLighting(c);else drawFixtures(c,true);
+        if(lightAlpha>0)applyWorldLighting(c);else drawFixtures(c,true);
         c.restore();
     }
     static class DrawEntity {float y;Runnable draw;DrawEntity(float y,Runnable r){this.y=y;draw=r;}}
@@ -800,10 +844,11 @@ public final class GameView extends View {
         btn(c,viewW-244,7,68,42,"BAG",0xff293f46);
         btn(c,viewW-324,7,75,42,lampOn?"LAMP ON":"LAMP OFF",0xff364d48);
         btn(c,viewW-410,7,79,42,"CAMP",0xff5b463a);
-        btn(c,viewW-498,7,81,42,night?"DAY":"NIGHT",0xff34414c);
+        btn(c,viewW-498,7,81,42,lightAlpha>nightDarkness*.5f?"NOON":"NIGHT",0xff34414c);
         rect(c,0,viewH-42,viewW,42,0xca122529);
         label(c,"SCRAP "+scrap+"   MED "+medkits+"   AMMO BOX "+ammoPacks+
-                "   "+MainActivity.LOADOUTS[gun]+(night?"  [NIGHT]":"  [DAY]"),
+                "   "+MainActivity.LOADOUTS[gun]+"  "+clock.display()+
+                (automaticDayNight?" [AUTO]":" [MANUAL]"),
                 14,viewH-16,14,ORANGE,true);
         // Independent touch controls, never an autonomous-only simulation.
         float jy=viewH-140,rx=viewW-118,ry=viewH-145;
@@ -811,6 +856,7 @@ public final class GameView extends View {
         color(0x9b96b8a5);c.drawCircle(120+stickX*46,jy+stickY*46,31,p);
         color(0x665b6f61);c.drawCircle(rx,ry,82,p);
         color(0xaaaa9d71);c.drawCircle(rx,ry,52,p);
+        color(0xfff2deb0);c.drawCircle(rx+aimX*39,ry+aimY*39,11,p);
         label(c,gun==3?"AIM":"FIRE",rx-20,ry+6,19,WHITE,true);
         btn(c,viewW-348,viewH-105,103,44,"RELOAD",0xff344e51);
         btn(c,viewW-348,viewH-160,103,44,"SWAP",0xff344e51);
@@ -820,7 +866,7 @@ public final class GameView extends View {
     void menu(Canvas c){
         rounded(c,viewW/2-300,viewH/2-200,600,398,20,0xef14272b);
         label(c,"SURVIVAL PARADISE",viewW/2-254,viewH/2-115,34,WHITE,true);
-        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 46",
+        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 47",
                 viewW/2-254,viewH/2-80,15,OLIVE,true);
         label(c,"Move with the left stick. Aim & fire with the right.",viewW/2-254,viewH/2-40,15,WHITE,false);
         label(c,"Explore the world, fight bandits, and collect supplies.",viewW/2-254,viewH/2-15,15,WHITE,false);
@@ -888,13 +934,9 @@ public final class GameView extends View {
             if(length>.14){aimX=dx;aimY=dy;
                 if(dx>.025f)face=1;else if(dx<-.025f)face=-1;
             }
-            else{
-                Bandit closest=nearest(playerX,playerY,680);
-                if(closest!=null){float ax=closest.x-playerX,ay=closest.y-playerY;
-                    float d=(float)Math.hypot(ax,ay);aimX=ax/Math.max(1,d);aimY=ay/Math.max(1,d);
-                    if(aimX>.025f)face=1;else if(aimX<-.025f)face=-1;
-                } else {aimX=face;aimY=0;}
-            }
+            // Right-stick aim persists when released/centered. Never auto-target
+            // enemies or reset the direction just because the joystick returned.
+
         }else {stickX=dx;stickY=dy;}
     }
     boolean within(float x,float y,float left,float top,float width,float height){
@@ -956,16 +998,3 @@ public final class GameView extends View {
                     if(pointer==rightPointer)updateStick(px,py,true);
                 }return true;
             case MotionEvent.ACTION_POINTER_UP:
-            case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_CANCEL:
-                if(id==leftPointer||action==MotionEvent.ACTION_CANCEL){
-                    leftPointer=-1;stopWalking();
-                }
-                if(id==rightPointer||action==MotionEvent.ACTION_CANCEL){
-                    rightPointer=-1;firing=false;
-                }
-                return true;
-        }
-        return true;
-    }
-}
