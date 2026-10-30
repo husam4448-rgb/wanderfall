@@ -452,14 +452,18 @@ public final class GameView extends View {
             }
             if(bullet.hostile){
                 float t=CharacterCollision.firstHit(bullet.x,bullet.y,nx,ny,
-                        playerX,playerY,face,playerAnimation.frame(),
+                        playerX+(playerAnimation.isWalking()?
+                            WalkAlignmentV48.worldOffsetX(playerAnimation.frame(),face,scale):0f),
+                        playerY,face,playerAnimation.frame(),
                         playerAnimation.isWalking(),playerAnimation.breathOffset(),scale,
                         playerAnimation.isWalking()?walkMask:bodyMask);
                 if(t<first){first=t;victim=null;hitPlayer=true;hitCover=false;}
             }else{
                 for(Bandit e:enemies)if(e.active){
                     float t=CharacterCollision.firstHit(bullet.x,bullet.y,nx,ny,
-                            e.x,e.y,e.face,e.animation.frame(),
+                            e.x+(e.animation.isWalking()?
+                                WalkAlignmentV48.worldOffsetX(e.animation.frame(),e.face,scale):0f),
+                            e.y,e.face,e.animation.frame(),
                             e.animation.isWalking(),e.animation.breathOffset(),scale,
                             e.animation.isWalking()?walkMask:bodyMask);
                     if(t<first){first=t;victim=e;hitPlayer=false;hitCover=false;}
@@ -723,9 +727,15 @@ public final class GameView extends View {
         c.save();c.translate(x,y);if(facing<0)c.scale(-1,1);
         color(0x670b1a18);c.drawOval(-26*s,-7*s,26*s,7*s,p);
         if(body!=null){
-            if(breath==Float.POSITIVE_INFINITY)
+            if(breath==Float.POSITIVE_INFINITY){
+                // Compensate the approved 4-frame atlas source x-origin drift.
+                // This affects ONLY the body. Weapons/hands and their aim pivot
+                // stay fixed in world space; NO approved sprite bytes change.
+                c.save();
+                c.translate(WalkAlignmentV48.sourceOffsetX(frame)*s,0f);
                 atlas(c,approvedWalkColors!=null?approvedWalkColors:body,frame*260,0,0,0,s);
-            else idleBody(c,frame,s,breath);
+                c.restore();
+            }else idleBody(c,frame,s,breath);
         }
         if(!bandit){
             c.save();
@@ -866,7 +876,7 @@ public final class GameView extends View {
     void menu(Canvas c){
         rounded(c,viewW/2-300,viewH/2-200,600,398,20,0xef14272b);
         label(c,"SURVIVAL PARADISE",viewW/2-254,viewH/2-115,34,WHITE,true);
-        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 47",
+        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 48",
                 viewW/2-254,viewH/2-80,15,OLIVE,true);
         label(c,"Move with the left stick. Aim & fire with the right.",viewW/2-254,viewH/2-40,15,WHITE,false);
         label(c,"Explore the world, fight bandits, and collect supplies.",viewW/2-254,viewH/2-15,15,WHITE,false);
