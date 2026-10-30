@@ -46,6 +46,14 @@ public final class GameView extends View {
     boolean showHands=true,showWeapons=true,anchors=false,hitboxes=false,enemyAI=true,
             aimRotation=true,recoilFX=true,lootEnabled=true,night=false;
     boolean playing=false,paused=false,settingsPause=false,wasPaused=false,hasSave=false,gameOver=false;
+    boolean lampOn=true,neonEnabled=true,campfiresLit=true;
+    int nightDarkness=211,flashlightReach=490;
+    final LightingV45 lighting=new LightingV45();
+    static final float[][] FIXED_CAMPFIRES={{1170,805},{2140,1550},{300,780}};
+    static final float[][] NEONS={
+       {465,321,LightingV45.NEON_BLUE},{1775,343,LightingV45.NEON_PINK},
+       {2455,1170,LightingV45.NEON_BLUE},{857,1710,LightingV45.NEON_PINK}};
+    final ArrayList<float[]> builtCampfires=new ArrayList<>();
     float playerX=1000,playerY=1060,health=100,stamina=100,shotClock=0,reloadClock=0,recoil=0;
     float aimX=1,aimY=0,stickX=0,stickY=0;
     int face=1,gun=0,ammo=12,kills=0,wave=1,scrap=0,medkits=0,ammoPacks=0,enemyCount=0;
@@ -143,6 +151,11 @@ public final class GameView extends View {
         recoilFX=host.option("recoil",true);
         lootEnabled=host.option("loot",true);
         night=host.option("night",false);
+        lampOn=host.option("lampOn",true);
+        neonEnabled=host.option("neonLights",true);
+        campfiresLit=host.option("campfiresLit",true);
+        nightDarkness=Math.round(255f*host.setting("darkness",83)/100f);
+        flashlightReach=host.setting("beamReach",490);
         int next=host.setting("gun",0);
         if(next!=gun){gun=Math.max(0,Math.min(11,next));ammo=MAG[gun];reloadClock=0;}
         allySetting=host.setting("survivors",1);
@@ -161,7 +174,7 @@ public final class GameView extends View {
         playerX=1000;playerY=1060;health=100;stamina=100;playerAnimation.reset();moving=false;stickX=0;stickY=0;shotClock=0;
         gun=Math.max(0,Math.min(11,host.setting("gun",0)));ammo=MAG[gun];
         kills=0;wave=1;scrap=0;medkits=1;ammoPacks=2;worldTimer=0;autSaveClock=0;
-        enemies.clear();friends.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();
+        enemies.clear();friends.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();builtCampfires.clear();
         playing=true;paused=false;settingsPause=false;gameOver=false;
         adjustFriends();spawnWave();
         saveProgress();invalidate();
@@ -176,8 +189,38 @@ public final class GameView extends View {
         gun=Math.max(0,Math.min(11,host.setting("gun",0)));
         ammo=Math.max(0,Math.min(MAG[gun],host.setting("ammo",MAG[gun])));
         enemies.clear();friends.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();
+        restoreCampfires();
         playing=true;paused=false;gameOver=false;
         adjustFriends();spawnWave();invalidate();
+    }
+    String encodeCampfires(){
+        StringBuilder sb=new StringBuilder();
+        for(float[] f:builtCampfires){if(sb.length()>0)sb.append(';');sb.append((int)f[0]).append(',').append((int)f[1]);}
+        return sb.toString();
+    }
+    void restoreCampfires(){
+        builtCampfires.clear();
+        String raw=host.prefs.getString("campfire_locations","");
+        for(String pair:raw.split(";")){
+            String[] coords=pair.split(",");
+            if(coords.length!=2)continue;
+            try{
+                float x=Float.parseFloat(coords[0]),y=Float.parseFloat(coords[1]);
+                if(x>=30&&x<=WORLD_W-30&&y>=30&&y<=WORLD_H-30&&builtCampfires.size()<16)
+                    builtCampfires.add(new float[]{x,y});
+            }catch(NumberFormatException ignored){}
+        }
+    }
+    void placeCampfire(){
+        if(scrap<3){android.widget.Toast.makeText(host,"Campfire needs 3 scrap",android.widget.Toast.LENGTH_SHORT).show();return;}
+        if(builtCampfires.size()>=16){android.widget.Toast.makeText(host,"Campfire limit reached",android.widget.Toast.LENGTH_SHORT).show();return;}
+        float x=playerX+face*65,y=playerY+35;
+        if(blocked(x,y,15)){android.widget.Toast.makeText(host,"Clear ground needed",android.widget.Toast.LENGTH_SHORT).show();return;}
+        scrap-=3;builtCampfires.add(new float[]{x,y});saveProgress();
+    }
+    void toggleLamp(){
+        lampOn=!lampOn;
+        host.prefs.edit().putBoolean("lampOn",lampOn).apply();
     }
     void spawnWave(){
         enemies.clear();enemyCount=5+Math.min(17,wave*2);
@@ -195,7 +238,8 @@ public final class GameView extends View {
         host.prefs.edit().putBoolean("hasSave",true).putFloat("px",playerX).putFloat("py",playerY)
                 .putFloat("hp",health).putInt("kills",kills).putInt("wave",wave)
                 .putInt("scrap",scrap).putInt("medkits",medkits)
-                .putInt("ammoPacks",ammoPacks).putInt("ammo",ammo).apply();
+                .putInt("ammoPacks",ammoPacks).putInt("ammo",ammo)
+                .putString("campfire_locations",encodeCampfires()).apply();
         hasSave=true;
     }
     void menuPause(boolean b){
@@ -437,6 +481,70 @@ public final class GameView extends View {
         p.setTextSize(size);c.drawText(t,x,y,p);
     }
     int hash(int a,int b){int k=a*73856093^b*19349663;k^=k>>>13;k*=0x5bd1e995;return k^(k>>>15);}
+    void drawFixtures(Canvas c,boolean emissive){
+        // Environmental props are separate from every approved body/weapon asset.
+        for(float[] f:FIXED_CAMPFIRES)drawCampfire(c,f[0],f[1],emissive);
+        for(float[] f:builtCampfires)drawCampfire(c,f[0],f[1],emissive);
+        if(neonEnabled)for(int i=0;i<NEONS.length;i++){
+            float[] n=NEONS[i];float x=n[0],y=n[1];int hue=(int)n[2];
+            if(!emissive){
+                rect(c,x-41,y-7,82,19,0xff18262a);
+                rect(c,x-38,y-4,76,12,hue);
+                label(c,i%2==0?"MARKET":"MOTEL",x-32,y+6,12,0xff101e28,true);
+            }else if(night){
+                rect(c,x-39,y-5,78,14,hue);
+                label(c,i%2==0?"MARKET":"MOTEL",x-32,y+6,12,0xff0a1b24,true);
+            }
+        }
+    }
+    void drawCampfire(Canvas c,float x,float y,boolean emissive){
+        if(!emissive){
+            rect(c,x-18,y+3,39,9,0xff1b2625);
+            rect(c,x-15,y+1,30,6,0xff6e5542);
+            rect(c,x-13,y+3,27,3,0xff3e3025);
+            rect(c,x-5,y-4,12,7,0xffb06537);
+        }else if(campfiresLit){
+            float flicker=(float)Math.sin(worldTimer*9f+x)*2;
+            rect(c,x-7,y-15-flicker,14,15,0xffff9a3a);
+            rect(c,x-3,y-19-flicker,7,17,0xffffd269);
+            rect(c,x-2,y-13-flicker,4,10,0xfffff0b5);
+        }
+    }
+    void applyWorldLighting(Canvas c){
+        if(!night)return;
+        lighting.clear();
+        if(campfiresLit){
+            for(float[] f:FIXED_CAMPFIRES)fireLight(f[0],f[1]);
+            for(float[] f:builtCampfires)fireLight(f[0],f[1]);
+        }
+        if(neonEnabled)for(float[] n:NEONS){
+            lighting.point(n[0],n[1],202,.77f,(int)n[2]);
+        }
+        // Street lamps offer modest navigation light, not character glow.
+        for(float x:new float[]{490,1790,2840})
+            lighting.point(x,920,160,.60f,0xffdbd5a0);
+        if(lampOn){
+            if(gun==3){
+                float[] tip=Ballistics.rigMuzzle(playerX,playerY,face,aimX,aimY,
+                    .76f*scale,MX[3],MY[3],MAIN_X[3],MAIN_Y[3],0f);
+                lighting.flashlight(tip[0],tip[1],aimX,aimY,flashlightReach);
+            }
+            for(Survivor f:friends)if(f.gun==3){
+                float[] tip=Ballistics.rigMuzzle(f.x,f.y,f.face,f.aimX,f.aimY,
+                    .76f*scale,MX[3],MY[3],MAIN_X[3],MAIN_Y[3],0f);
+                lighting.flashlight(tip[0],tip[1],f.aimX,f.aimY,flashlightReach);
+            }
+        }
+        for(Flash f:flashes)if(f.ttl>0)
+            lighting.point(f.x,f.y,90,Math.min(1f,f.ttl/.065f),0xffffedb3);
+        lighting.render(c,camX,camY,viewW,viewH,nightDarkness,covers);
+        // Only lamps and flames emit after darkness; people do NOT self-illuminate.
+        drawFixtures(c,true);
+    }
+    void fireLight(float x,float y){
+        float flicker=(float)Math.sin(worldTimer*11f+x*.33f);
+        lighting.point(x,y-9,205+flicker*9,.89f+flicker*.07f,LightingV45.WARM);
+    }
     void terrain(Canvas c){
         // Deterministic, streaming visible world: foliage, asphalt, debris, and vegetation.
         rect(c,camX-4,camY-4,viewW+8,viewH+8,0xff354c40);
@@ -612,6 +720,7 @@ public final class GameView extends View {
     void drawWorld(Canvas c){
         c.save();c.translate(-camX,-camY);
         terrain(c);
+        drawFixtures(c,false);
         for(Drop d:drops){
             float bob=(float)Math.sin(worldTimer*5+d.x)*2;
             rect(c,d.x-9,d.y-13+bob,18,16,DK);
@@ -656,12 +765,9 @@ public final class GameView extends View {
             rect(c,flash.x-2,flash.y-2,4,4,0xfffff7cf);
         }
         for(Spark s:sparks)rect(c,s.x,s.y,4,4,s.color);
-        if(night){
-            // Accessible night mode: dark tint + fixed-radius illumination around player.
-            color(0x95031015);c.drawRect(camX,camY,camX+viewW,camY+viewH,p);
-            color(0xffb9bca2);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(2);
-            c.drawCircle(playerX,playerY-52,68,p);p.setStyle(Paint.Style.FILL);
-        }
+        // Last pass darkens the *entire* world, including all characters,
+        // equipment, projectiles and props; real lights punch through this mask.
+        if(night)applyWorldLighting(c);else drawFixtures(c,true);
         c.restore();
     }
     static class DrawEntity {float y;Runnable draw;DrawEntity(float y,Runnable r){this.y=y;draw=r;}}
@@ -677,6 +783,8 @@ public final class GameView extends View {
         btn(c,viewW-84,7,77,42,"⚙ SET",0xff30554d);
         btn(c,viewW-170,7,78,42,paused?"RESUME":"PAUSE",0xff293f46);
         btn(c,viewW-244,7,68,42,"BAG",0xff293f46);
+        btn(c,viewW-324,7,75,42,lampOn?"LAMP ON":"LAMP OFF",0xff364d48);
+        btn(c,viewW-410,7,79,42,"CAMP",0xff5b463a);
         rect(c,0,viewH-42,viewW,42,0xca122529);
         label(c,"SCRAP "+scrap+"   MED "+medkits+"   AMMO BOX "+ammoPacks+
                 "   "+MainActivity.LOADOUTS[gun],14,viewH-16,14,ORANGE,true);
@@ -686,7 +794,7 @@ public final class GameView extends View {
         color(0x9b96b8a5);c.drawCircle(120+stickX*46,jy+stickY*46,31,p);
         color(0x665b6f61);c.drawCircle(rx,ry,82,p);
         color(0xaaaa9d71);c.drawCircle(rx,ry,52,p);
-        label(c,"FIRE",rx-20,ry+6,19,WHITE,true);
+        label(c,gun==3?"AIM":"FIRE",rx-20,ry+6,19,WHITE,true);
         btn(c,viewW-348,viewH-105,103,44,"RELOAD",0xff344e51);
         btn(c,viewW-348,viewH-160,103,44,"SWAP",0xff344e51);
         label(c,"MOVE",81,viewH-30,12,0xffb8d4c5,true);
@@ -695,7 +803,7 @@ public final class GameView extends View {
     void menu(Canvas c){
         rounded(c,viewW/2-300,viewH/2-200,600,398,20,0xef14272b);
         label(c,"SURVIVAL PARADISE",viewW/2-254,viewH/2-115,34,WHITE,true);
-        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 44",
+        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 45",
                 viewW/2-254,viewH/2-80,15,OLIVE,true);
         label(c,"Move with the left stick. Aim & fire with the right.",viewW/2-254,viewH/2-40,15,WHITE,false);
         label(c,"Explore the world, fight bandits, and collect supplies.",viewW/2-254,viewH/2-15,15,WHITE,false);
@@ -788,6 +896,8 @@ public final class GameView extends View {
         }
         if(within(x,y,viewW-84,7,77,42)){host.settings();return;}
         if(within(x,y,viewW-170,7,78,42)){togglePause();return;}
+        if(within(x,y,viewW-324,7,75,42)){toggleLamp();return;}
+        if(within(x,y,viewW-410,7,79,42)){placeCampfire();return;}
         if(within(x,y,viewW-244,7,68,42)){
             if(medkits>0&&health<100){medkits--;health=Math.min(100,health+40);}
             host.runOnUiThread(()->android.widget.Toast.makeText(host,
@@ -814,7 +924,9 @@ public final class GameView extends View {
                     leftPointer=id;updateStick(x,y,false);return true;
                 }
                 if(x>viewW*.56f&&y>viewH*.45f&&rightPointer<0){
-                    rightPointer=id;firing=true;updateStick(x,y,true);return true;
+                    rightPointer=id;
+                    firing=gun!=3;
+                    updateStick(x,y,true);return true;
                 }
                 tap(x,y);return true;
             case MotionEvent.ACTION_MOVE:
