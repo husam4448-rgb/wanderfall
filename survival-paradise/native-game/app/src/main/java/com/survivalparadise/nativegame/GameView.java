@@ -473,15 +473,26 @@ public final class GameView extends View {
     // Bottom/feet are drawn first at the original position; upper body shifts very
     // slightly relative to fixed boots. The overlap hides gaps around the waist.
     // No source pixel geometry is redrawn, recolored, regenerated or re-encoded.
-    void idleBody(Canvas c,int sourceFrame,float s,float breath){
+    // Frame 2 of the unchanged V31 atlas has the two planted boots found in the
+    // approved 10x13 master idle template. Frame 0 is a one-foot stride pose.
+    // Do not change BODY_PNG or walking-frame order. The idle body is a
+    // pixel-exact split of the planted stance; only the head region breathes.
+    static final int APPROVED_PLANTED_IDLE_FRAME=2;
+    static final int IDLE_HEAD_BODY_SPLIT=92;
+    static final int IDLE_HEAD_OVERLAP=101;
+    void idleBody(Canvas c,int unusedWalkFrame,float s,float breath){
         if(body==null)return;
-        final int sx=sourceFrame*260;
-        src.set(sx,104,sx+260,160);
-        dest.set(-70*s,(104-136)*s,190*s,24*s);
+        final int sx=APPROVED_PLANTED_IDLE_FRAME*260;
+        // The exact approved feet, pants and torso remain fixed at every phase.
+        src.set(sx,IDLE_HEAD_BODY_SPLIT,sx+260,160);
+        dest.set(-70*s,(IDLE_HEAD_BODY_SPLIT-136)*s,190*s,24*s);
         c.drawBitmap(body,src,dest,pixel);
-        float bob=breath*s;
-        src.set(sx,0,sx+260,112);
-        dest.set(-70*s,-136*s+bob,190*s,(112-136)*s+bob);
+        // Head-only movement. 9px overlap inside the existing shirt row avoids
+        // gaps around the neck and guarantees feet cannot inherit head bob.
+        float headBob=breath*s;
+        src.set(sx,0,sx+260,IDLE_HEAD_OVERLAP);
+        dest.set(-70*s,-136*s+headBob,190*s,
+                (IDLE_HEAD_OVERLAP-136)*s+headBob);
         c.drawBitmap(body,src,dest,pixel);
     }
     void handAtlas(Canvas c,int weapon,int row,float x,float y,float s,float size,float reach){
@@ -518,7 +529,7 @@ public final class GameView extends View {
         }
         if(!bandit){
             c.save();
-            if(breath!=Float.POSITIVE_INFINITY)c.translate(0,breath*s);
+            // Keep the accepted V36 torso-centered weapon/hand rig stationary.
             // Parent pivot is the CHARACTER'S torso center (constant across all weapons).
             // The approved weapon, main hand and support hand remain rigid sibling
             // sprites: one translation to an in-reach chest grip, then one shared rotation.
@@ -642,7 +653,7 @@ public final class GameView extends View {
     void menu(Canvas c){
         rounded(c,viewW/2-300,viewH/2-200,600,398,20,0xef14272b);
         label(c,"SURVIVAL PARADISE",viewW/2-254,viewH/2-115,34,WHITE,true);
-        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 38",
+        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 39",
                 viewW/2-254,viewH/2-80,15,OLIVE,true);
         label(c,"Move with the left stick. Aim & fire with the right.",viewW/2-254,viewH/2-40,15,WHITE,false);
         label(c,"Explore the world, fight bandits, and collect supplies.",viewW/2-254,viewH/2-15,15,WHITE,false);
