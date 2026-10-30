@@ -4,7 +4,10 @@ public final class Ballistics {
  private Ballistics(){}
  public static final float[] SPEED={2050f,2350f,2050f,0f,3100f,2850f,3000f,2350f,3950f,2950f,1450f,0f};
  public static float angle(float dx,float dy,int facing){
-  return (float)Math.atan2(dy,Math.max(0f,facing*dx));
+  // Aim pitch is side-independent: a horizontal flip must mirror the rifle
+  // without ever forcing a 90-degree vertical weapon pose.
+  // The Canvas already mirrors x for facing < 0; keep the same pitch.
+  return (float)Math.atan2(dy,Math.abs(dx));
  }
  public static float[] muzzle(float x,float y,int facing,float aimX,float aimY,float scale,
                               float mx,float my,float gx,float gy,float kick){
