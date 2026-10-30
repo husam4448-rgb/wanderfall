@@ -68,7 +68,8 @@ public final class GameView extends View {
     float worldTimer=0,autSaveClock=0,shake=0;
     long lastFrame=0;
     float viewW=1200,viewH=660,drawScale=1,camX=0,camY=0;
-    int leftPointer=-1,rightPointer=-1;
+    int leftPointer=-1,rightPointer=-1,firePointer=-1;
+    boolean runHeld=false,crouchHeld=false,dualTorch=true;
     boolean firing=false,moving=false;
     // V54.1: old control geometry remains default; test UI can tune it live.
     float movePadScale=1f,aimPadScale=1f,moveSensitivity=1f,aimSensitivity=1f;
@@ -193,6 +194,7 @@ public final class GameView extends View {
         moveSensitivity=host.setting("moveSensitivity",100)/100f;
         aimSensitivity=host.setting("aimSensitivity",100)/100f;
         controlOpacity=host.setting("controlOpacity",100);
+        dualTorch=host.option("dualTorch",true);
         zoom=host.setting("cameraZoom",100)/100f;
         showPerf=host.option("testPerf",true);
         showChunkGrid=host.option("testChunkGrid",false);
@@ -366,7 +368,8 @@ public final class GameView extends View {
           terrainChunks.generated,terrainChunks.pendingCount(),
           terrainChunks.cacheHits,terrainChunks.cacheMisses);
     }
-    void releaseControls(){stopWalking();firing=false;leftPointer=-1;rightPointer=-1;}
+    void releaseControls(){stopWalking();firing=false;leftPointer=-1;rightPointer=-1;
+        firePointer=-1;runHeld=false;crouchHeld=false;}
     void switchWeapon(){
         gun=(gun+1)%12;ammo=MAG[gun];reloadClock=0;
         host.prefs.edit().putInt("gun",gun).apply();
@@ -457,7 +460,7 @@ public final class GameView extends View {
         float length=(float)Math.hypot(vx,vy);
         if(length>.06f){
             vx/=Math.max(1,length);vy/=Math.max(1,length);
-            float speed=gun==9?147:207;
+            float speed=(gun==9?147:207)*(runHeld?1.43f:1f)*(crouchHeld?.53f:1f);
             float nx=playerX+vx*speed*dt;
             float ny=playerY+vy*speed*dt;
             if(!blocked(nx,playerY,20))playerX=nx;
@@ -756,15 +759,25 @@ public final class GameView extends View {
             if(WorldPerfV55.nearView(x,872,camX,camY,viewW,viewH,185))
                 lighting.point(x,872,175,.61f,0xffdbd5a0);
         if(lampOn){
-            if(gun==3){
+            if(gun==3||(dualTorch&&gun>=0&&gun<=2)){
+                // Independent off-hand flashlight aims with the same world vector.
+                // The player can fire a one-handed gun without interrupting lighting.
                 float[] tip=Ballistics.rigMuzzle(playerX,playerY,face,aimX,aimY,
                     .76f*scale,MX[3],MY[3],MAIN_X[3],MAIN_Y[3],0f);
                 lighting.flashlight(tip[0],tip[1],aimX,aimY,flashlightReach);
             }
-            for(Survivor f:friends)if(f.gun==3){
+            for(Survivor f:friends)if(f.gun==3||(dualTorch&&f.gun<=2)){
                 float[] tip=Ballistics.rigMuzzle(f.x,f.y,f.face,f.aimX,f.aimY,
                     .76f*scale,MX[3],MY[3],MAIN_X[3],MAIN_Y[3],0f);
                 lighting.flashlight(tip[0],tip[1],f.aimX,f.aimY,flashlightReach);
+            }
+            // Camp flashlights face their actual NPC walking/facing direction.
+            for(Survivor f:campStaff)if(f.gun==3||(dualTorch&&f.gun<=2)){
+                float fx=f.face<0?-1f:1f;
+                float[] tip=Ballistics.rigMuzzle(f.x,f.y,f.face,fx,0f,
+                        .76f*scale,MX[3],MY[3],MAIN_X[3],MAIN_Y[3],0f);
+                if(WorldPerfV55.nearView(tip[0],tip[1],camX,camY,viewW,viewH,flashlightReach))
+                    lighting.flashlight(tip[0],tip[1],fx,0f,flashlightReach);
             }
         }
         for(Flash f:flashes)if(f.ttl>0)
@@ -1003,6 +1016,18 @@ public final class GameView extends View {
                     (OFF_Y[weapon]-136f+supportVertical)*s-3,6,6,0xffe9cc8c);
             }
             c.restore();
+            // Independent off-hand attachment; original body and gun are intact.
+            // The beam is generated independently in applyWorldLighting().
+            if(dualTorch&&lampOn&&weapon>=0&&weapon<=2&&showWeapons){
+                c.save();
+                c.translate(-23*s,-48*s);
+                c.rotate(aimRotation?aimAng*180f/(float)Math.PI:0f);
+                c.scale(.62f,.62f);
+                atlas(c,gear,3*260,0,0,0,s);
+                drawFlashlightLens(c,s);
+                if(showHands)handAtlas(c,3,2,0,0,s,handScale,0,0);
+                c.restore();
+            }
         }else{
             // Bandit overlay is NEW independent art. Body pixels are not changed.
             rect(c,-16*s,-100*s,27*s,5*s,RED);
@@ -1168,7 +1193,12 @@ public final class GameView extends View {
         c.drawCircle(rx,ry,52*aimPadScale,p);
         color((alpha<<24)|0x00f2deb0);
         c.drawCircle(rx+aimX*39*aimPadScale,ry+aimY*39*aimPadScale,11*aimPadScale,p);
-        label(c,gun==3?"AIM":"FIRE",rx-20,ry+6,19,WHITE,true);
+        label(c,"AIM",rx-20,ry+6,18,WHITE,true);
+        btn(c,viewW-352,viewH-268,105,47,firing?"FIRING":"FIRE",0xff755048);
+        btn(c,viewW-475,viewH-160,103,44,runHeld?"RUNNING":"RUN",0xff36584e);
+        btn(c,viewW-475,viewH-105,103,44,crouchHeld?"CROUCHED":"CROUCH",0xff36504e);
+        btn(c,viewW/2-57,viewH-98,114,44,"USE",0xff426051);
+        btn(c,viewW/2-57,viewH-152,114,44,"MELEE",0xff4b5044);
         btn(c,viewW-348,viewH-105,103,44,"RELOAD",0xff344e51);
         btn(c,viewW-348,viewH-160,103,44,"SWAP",0xff344e51);
         label(c,"MOVE",81,viewH-30,12,0xffb8d4c5,true);
@@ -1190,9 +1220,9 @@ public final class GameView extends View {
     void menu(Canvas c){
         rounded(c,viewW/2-300,viewH/2-200,600,398,20,0xef14272b);
         label(c,"SURVIVAL PARADISE",viewW/2-254,viewH/2-115,34,WHITE,true);
-        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 56 RESTORED",
+        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 57 HYBRID",
                 viewW/2-254,viewH/2-80,15,OLIVE,true);
-        label(c,"Move with the left stick. Aim & fire with the right.",viewW/2-254,viewH/2-40,15,WHITE,false);
+        label(c,"Move left. Aim right. FIRE with independent button.",viewW/2-254,viewH/2-40,15,WHITE,false);
         label(c,"Explore the world, fight bandits, and collect supplies.",viewW/2-254,viewH/2-15,15,WHITE,false);
         btn(c,viewW/2-254,viewH/2+18,245,60,"NEW GAME",0xff396c5d);
         btn(c,viewW/2+8,viewH/2+18,245,60,hasSave?"CONTINUE":"NO SAVE",hasSave?0xff416b5f:0xff334441);
