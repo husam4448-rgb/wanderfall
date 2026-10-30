@@ -157,7 +157,7 @@ public final class MainActivity extends Activity {
         game.menuPause(true);
         ScrollView scroll=new ScrollView(this);
         LinearLayout root=column();scroll.addView(root);
-        section(root,"SURVIVAL PARADISE  •  ORIGINAL + TEST SETTINGS");
+        section(root,"SURVIVAL PARADISE  •  V55 TEST SETTINGS");
         root.addView(text("Controls apply to the playable game, and save automatically.",13,false));
         section(root,"PLAYER AND COMBAT");
         slider(root,"Character display size","scale",65,135,100,"%");
@@ -210,6 +210,11 @@ public final class MainActivity extends Activity {
         slider(root,"Aiming joystick sensitivity","aimSensitivity",50,160,100,"%");
         slider(root,"Joystick transparency / opacity","controlOpacity",25,100,100,"%");
         section(root,"CHUNK ENGINE  •  LIVE SETTINGS");
+        slider(root,"Distant NPC sleep radius","npcSleepRadius",600,2400,1200," px");
+        slider(root,"Lighting performance (100 = original quality)",
+               "lightResolution",100,250,100,"%");
+        root.addView(text("Higher lighting performance reduces lightmap resolution " +
+            "and shadow-processing cost. Original quality is 100%.",12,false));
         slider(root,"Maximum resident terrain chunks","testCacheMax",12,64,36,"");
         slider(root,"Chunk preloading radius","testPreloadRadius",1,3,2," chunks");
         action(root,"View current FPS and chunk statistics",()->{
@@ -247,7 +252,8 @@ public final class MainActivity extends Activity {
               .putInt("cameraZoom",100).putInt("movePadSize",100)
               .putInt("aimPadSize",100).putInt("moveSensitivity",100)
               .putInt("aimSensitivity",100).putInt("controlOpacity",100)
-              .putInt("testCacheMax",36).putInt("testPreloadRadius",2).apply();
+              .putInt("testCacheMax",36).putInt("testPreloadRadius",2)
+              .putInt("npcSleepRadius",1200).putInt("lightResolution",100).apply();
             game.reloadSettings();applyImmersive();
             Toast.makeText(this,"Defaults restored. Reopen settings to see the values.",Toast.LENGTH_LONG).show();
         });
