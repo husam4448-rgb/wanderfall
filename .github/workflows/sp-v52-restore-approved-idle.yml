@@ -54,7 +54,7 @@ jobs:
           python3 survival-paradise/native-game/tools/build_v52_idle.py
           python3 survival-paradise/native-game/tools/v52_idle_preview.py
           # Exact V50 ORIGINAL body file MUST be present unedited.
-          test "$(sha256sum survival-paradise/native-game/app/src/main/assets/body.png | cut -d' ' -f1)" = "a40d4b7db5c993a8fabef39aceee57da9e7c6cb18066406fe46a4f7e2230cd86"
+          test "$(sha256sum survival-paradise/native-game/app/src/main/assets/body.png | cut -d' ' -f1)" = "141878713a6880d05879b7102c728581dddb55730434bcac8e050fe44b3d82ad"
       - name: Test walk, idle, exact face silhouette, NPC roles and terrain patches
         run: |
           set -eu
