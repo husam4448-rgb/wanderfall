@@ -6,8 +6,8 @@ android {
   applicationId 'com.survivalparadise.nativegame'
   minSdk 24
   targetSdk 34
-  versionCode 57
-  versionName '0.56-approved-art-ui'
+  versionCode 58
+  versionName '0.57-hybrid-legacy-controls'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
