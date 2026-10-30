@@ -27,7 +27,7 @@ public final class GameView extends View {
     final MainActivity host;
     final Paint p=new Paint();
     final Paint pixel=new Paint(Paint.ANTI_ALIAS_FLAG==0?0:0);
-    Bitmap body,approvedWalkColors,stableBody,npcRoleAtlas,gear,approvedAxe;
+    Bitmap body,approvedWalkColors,stableBody,npcRoleAtlas,npcIdleAtlas,gear,approvedAxe;
     static final int ROLE_BANDIT=0,ROLE_GUARD=2,ROLE_MEDIC=4,ROLE_MECHANIC=6,
                      ROLE_TRADER=8,ROLE_CIVILIAN=10;
     static final float CAMP_X=1080,CAMP_Y=710;
@@ -72,9 +72,9 @@ public final class GameView extends View {
     final AnimationCycle playerAnimation=new AnimationCycle();
     // Keep projectile collision against the exact approved atlas alpha, not an
     // unrelated circle near the characters' feet.
-    final CharacterCollision.PixelMask bodyMask=(x,y)->stableBody!=null &&
-            x>=0&&y>=0&&x<stableBody.getWidth()&&y<stableBody.getHeight() &&
-            (stableBody.getPixel(x,y)>>>24)!=0;
+    final CharacterCollision.PixelMask bodyMask=(x,y)->body!=null &&
+            x>=0&&y>=0&&x<body.getWidth()&&y<body.getHeight() &&
+            (body.getPixel(x,y)>>>24)!=0;
     final CharacterCollision.PixelMask walkMask=(x,y)->stableBody!=null &&
             x>=0&&y>=0&&x<stableBody.getWidth()&&y<stableBody.getHeight() &&
             (stableBody.getPixel(x,y)>>>24)!=0;
@@ -134,6 +134,14 @@ public final class GameView extends View {
                 if(stableBody.getWidth()!=1040||stableBody.getHeight()!=160||
                    npcRoleAtlas.getWidth()!=1040||npcRoleAtlas.getHeight()!=1920)
                     throw new IllegalStateException("V51 character atlases not correctly built");
+            }
+            // V52: Role palettes applied to the ORIGINAL planted idle body frame.
+            // The V51 reconstructed walk atlas is never substituted for idle.
+            try(InputStream roleIdle=getResources().getAssets().open("npc_idle_v52.png")){
+                npcIdleAtlas=BitmapFactory.decodeStream(roleIdle);
+                if(npcIdleAtlas==null||npcIdleAtlas.getWidth()!=260||
+                   npcIdleAtlas.getHeight()!=1920)
+                    throw new IllegalStateException("V52 original-pose NPC idle atlas invalid");
             }
             try(InputStream axe=getResources().getAssets().open("approved_v29_axe.png")){
                 approvedAxe=BitmapFactory.decodeStream(axe);
@@ -809,26 +817,37 @@ public final class GameView extends View {
         dest.set(x-70*size,y-136*size,x+190*size,y+24*size);
         c.drawBitmap(bmp,src,dest,pixel);
     }
-    // V51: user-approved body colors/geometry are immutable in source archives.
-    // Stable atlases pre-normalize ALL four poses to the exact same head anchor.
-    // No per-frame black inset is drawn: front contour is identical in pixels.
-    void stablePose(Canvas c,Bitmap atlas,int variant,int frame,float s,float breath){
-        if(atlas==null)return;
-        int row=Math.max(0,variant)*160;
-        int f=Math.max(0,Math.min(3,frame));
+    // V52: Original V40/V50 idle is immutable. Walking still uses V51's
+    // approved role/color atlas and its four animation frames.
+    static final int APPROVED_PLANTED_IDLE_FRAME=2;
+    static final int IDLE_HEAD_BODY_SPLIT=92;
+    static final int IDLE_HEAD_OVERLAP=101;
+    void stablePose(Canvas c,Bitmap walkingAtlas,int variant,int frame,float s,float breath){
         if(breath==Float.POSITIVE_INFINITY){
+            if(walkingAtlas==null)return;
+            int row=Math.max(0,variant)*160;
+            int f=Math.max(0,Math.min(3,frame));
             src.set(f*260,row,f*260+260,row+160);
             dest.set(-70*s,-136*s,190*s,24*s);
-            c.drawBitmap(atlas,src,dest,pixel);
-        }else{
-            // Planted source frame 2 from the SAME role atlas; feet stay static.
-            src.set(520,row+92,780,row+160);
-            dest.set(-70*s,(92-136)*s,190*s,24*s);
-            c.drawBitmap(atlas,src,dest,pixel);
-            src.set(520,row,780,row+101);
-            dest.set(-70*s,-136*s+breath*s,190*s,(-136+101)*s+breath*s);
-            c.drawBitmap(atlas,src,dest,pixel);
+            c.drawBitmap(walkingAtlas,src,dest,pixel);
+            return;
         }
+        // Original planted idle source, NOT a walking pose reconstructed in V51.
+        // Approved NPC role colors are applied to an otherwise identical silhouette.
+        final boolean npc=variant>=0;
+        Bitmap idleSource=npc?npcIdleAtlas:body;
+        if(idleSource==null)return;
+        int sx=npc?0:APPROVED_PLANTED_IDLE_FRAME*260;
+        int sy=npc?Math.min(11,variant)*160:0;
+        src.set(sx,sy+IDLE_HEAD_BODY_SPLIT,sx+260,sy+160);
+        dest.set(-70*s,(IDLE_HEAD_BODY_SPLIT-136)*s,190*s,24*s);
+        c.drawBitmap(idleSource,src,dest,pixel);
+        // Exact V40 breathing: stationary legs/torso; head-only 0/-4px.
+        float headBob=breath*s;
+        src.set(sx,sy,sx+260,sy+IDLE_HEAD_OVERLAP);
+        dest.set(-70*s,-136*s+headBob,190*s,
+                (IDLE_HEAD_OVERLAP-136)*s+headBob);
+        c.drawBitmap(idleSource,src,dest,pixel);
     }
     void handAtlas(Canvas c,int weapon,int row,float x,float y,float s,float size,float reach,float vertical){
         float px=row==2?MAIN_X[weapon]:OFF_X[weapon];
@@ -1017,7 +1036,7 @@ public final class GameView extends View {
     void menu(Canvas c){
         rounded(c,viewW/2-300,viewH/2-200,600,398,20,0xef14272b);
         label(c,"SURVIVAL PARADISE",viewW/2-254,viewH/2-115,34,WHITE,true);
-        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 51",
+        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 52",
                 viewW/2-254,viewH/2-80,15,OLIVE,true);
         label(c,"Move with the left stick. Aim & fire with the right.",viewW/2-254,viewH/2-40,15,WHITE,false);
         label(c,"Explore the world, fight bandits, and collect supplies.",viewW/2-254,viewH/2-15,15,WHITE,false);
