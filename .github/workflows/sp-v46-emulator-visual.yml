@@ -1,0 +1,130 @@
+name: Survival Paradise V46 Emulator Lighting Visual Smoke
+on:
+  push:
+    branches: [sp-native-v46-lighting-fullscreen-20261030]
+    paths:
+      - '.github/workflows/sp-v46-emulator-visual.yml'
+  workflow_dispatch:
+
+jobs:
+  emulator-visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            survival-paradise
+          sparse-checkout-cone-mode: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Restore approved original sprite assets without changing pixels
+        run: |
+          python3 survival-paradise/native-game/tools/extract_locked_atlases.py
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64
+          p=Path('survival-paradise/native-game')
+          for name,dest in [
+             ('approved_v29_axe.png.b64','approved_v29_axe.png'),
+             ('approved_v44_walk_palette.png.b64','approved_v44_walk_palette.png')
+          ]:
+             (p/'app/src/main/assets'/dest).write_bytes(base64.b64decode((p/'tools'/name).read_text().strip()))
+          PY
+      - name: Compile APK to exercise graphical app on emulator
+        working-directory: survival-paradise/native-game
+        run: gradle --no-daemon :app:assembleDebug
+      - name: Enable KVM support
+        run: |
+          if [ -e /dev/kvm ]; then sudo chmod 666 /dev/kvm; fi
+          python3 -m pip install --quiet pillow
+          mkdir -p artifacts
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_5
+          cores: 2
+          ram-size: 2048M
+          disk-size: 4096M
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          disable-animations: true
+          script: |
+            set -eu
+            adb install -r survival-paradise/native-game/app/build/outputs/apk/debug/app-debug.apk
+            adb shell am start -n com.survivalparadise.nativegame/.MainActivity
+            sleep 5
+            # Read landscape viewport directly from the screenshot.
+            adb exec-out screencap -p > artifacts/initial.png
+            python3 - <<'PY'
+            from PIL import Image
+            import json
+            im=Image.open('artifacts/initial.png')
+            w,h=im.size
+            assert w>h, f'Expected landscape, got {w}x{h}'
+            s=h/660
+            coords={
+              'new_game':[int(w/2-132*s),int(377*s)],
+              'day_night':[int(w-455*s),int(30*s)],
+              'swap':[int(w-296*s),int(522*s)]
+            }
+            json.dump({'width':w,'height':h,'controls':coords},open('artifacts/coords.json','w'))
+            print('LANDSCAPE GAME SIZE',w,h,'COORDS',coords)
+            PY
+            cd artifacts
+            x=$(python3 -c "import json;print(json.load(open('coords.json'))['controls']['new_game'][0])")
+            y=$(python3 -c "import json;print(json.load(open('coords.json'))['controls']['new_game'][1])")
+            adb shell input tap "$x" "$y"
+            sleep 3
+            adb exec-out screencap -p > V46_Night_Emulator.png
+            x=$(python3 -c "import json;print(json.load(open('coords.json'))['controls']['day_night'][0])")
+            y=$(python3 -c "import json;print(json.load(open('coords.json'))['controls']['day_night'][1])")
+            adb shell input tap "$x" "$y"
+            sleep 1
+            adb exec-out screencap -p > V46_Day_Emulator.png
+            adb shell input tap "$x" "$y"
+            sx=$(python3 -c "import json;print(json.load(open('coords.json'))['controls']['swap'][0])")
+            sy=$(python3 -c "import json;print(json.load(open('coords.json'))['controls']['swap'][1])")
+            for i in 1 2 3; do adb shell input tap "$sx" "$sy"; sleep .18; done
+            sleep 2
+            adb exec-out screencap -p > V46_Flashlight_Emulator.png
+            adb shell cmd statusbar expand-notifications || true
+            sleep 1
+            adb shell cmd statusbar collapse || true
+            sleep 2
+            adb exec-out screencap -p > V46_After_Notification_Emulator.png
+            python3 - <<'PY'
+            from PIL import Image
+            import json
+            names=['V46_Night_Emulator.png','V46_Day_Emulator.png',
+                   'V46_Flashlight_Emulator.png','V46_After_Notification_Emulator.png']
+            frames=[Image.open(n).convert('RGB') for n in names]
+            w,h=frames[0].size
+            def brightness(image,x0,y0,x1,y1):
+              pixels=image.load();values=[]
+              for y in range(y0,y1,12):
+                for x in range(x0,x1,12):
+                  r,g,b=pixels[x,y];values.append((r+g+b)/3)
+              return sum(values)/max(1,len(values))
+            region=(int(w*.25),int(h*.15),int(w*.8),int(h*.84))
+            means=[round(brightness(image,*region),2) for image in frames]
+            diff=means[1]-means[0]
+            result={'day_night_brightness':means,'night_vs_day':diff,
+                    'screenshot_resolution':[w,h]}
+            json.dump(result,open('V46_Emulator_Lighting_Report.json','w'),indent=2)
+            print('LIGHTING EMULATOR PIXEL REPORT',result)
+            assert diff>=8, 'V46 NIGHT rendered no detectable darkness on Android emulator'
+            PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: SP_V46_Emulator_Lighting_Screenshots
+          path: artifacts/
+          retention-days: 14
+          if-no-files-found: warn

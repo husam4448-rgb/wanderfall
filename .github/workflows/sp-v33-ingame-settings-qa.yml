@@ -1,0 +1,100 @@
+name: Survival Paradise V33 In-Game Settings QA + APK
+on:
+  push:
+    branches: [sp-v33-ingame-settings-20261030]
+    paths:
+      - 'survival-paradise/**'
+      - '.github/workflows/sp-v33-ingame-settings-qa.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'survival-paradise/**'
+      - '.github/workflows/sp-v33-ingame-settings-qa.yml'
+  workflow_dispatch:
+
+jobs:
+  browser-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            survival-paradise
+          sparse-checkout-cone-mode: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser test dependencies
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Run V32 visual and interaction smoke tests
+        run: node survival-paradise/tests/v32-smoke.cjs
+      - name: Validate V33 settings and persistence on desktop/mobile
+        run: node survival-paradise/tests/v33-settings-smoke.cjs
+      - name: Install GIF encoder
+        if: success()
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+      - name: Encode 12-weapon gameplay preview GIF
+        if: success()
+        run: |
+          ffmpeg -y -hide_banner -loglevel error -framerate 4 -i artifacts/frames-v33/frame%02d.png -filter_complex "[0:v]fps=4,scale=960:-1:flags=neighbor,split[a][b];[a]palettegen=stats_mode=full[p];[b][p]paletteuse=dither=none" -loop 0 artifacts/Survival_Paradise_V33_Weapons.gif
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: SP_V33_Offline_HTML_Screenshots_GIF
+          path: |
+            survival-paradise/Survival_Paradise_Autonomous_Simulation_V33.html
+            survival-paradise/V31_original.html
+            survival-paradise/Survival_Paradise_Autonomous_Simulation_V32.html
+            artifacts/V33_Desktop_InGame_Settings.png
+            artifacts/V33_Android_InGame_Settings.png
+            artifacts/Survival_Paradise_V33_Weapons.gif
+            artifacts/V33_Settings_QA_Report.json
+            artifacts/frames-v33/
+          if-no-files-found: warn
+          retention-days: 30
+
+  android-apk:
+    needs: browser-qa
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            survival-paradise
+          sparse-checkout-cone-mode: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Verify and prepare preinstalled Android SDK
+        run: |
+          echo "Android SDK: ${ANDROID_HOME}"
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -path '*/bin/sdkmanager' | sort -V | tail -1)"
+          test -x "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Package approved V31 art and V32 simulation into offline app
+        run: |
+          mkdir -p survival-paradise/android/app/src/main/assets
+          cp survival-paradise/Survival_Paradise_Autonomous_Simulation_V33.html survival-paradise/android/app/src/main/assets/index.html
+      - name: Build Android debug APK
+        working-directory: survival-paradise/android
+        run: gradle --no-daemon :app:assembleDebug
+      - name: Export APK
+        run: |
+          mkdir -p artifacts
+          cp survival-paradise/android/app/build/outputs/apk/debug/app-debug.apk artifacts/Survival_Paradise_V33_Debug.apk
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: SP_V33_Android_Debug_APK
+          path: artifacts/Survival_Paradise_V33_Debug.apk
+          if-no-files-found: warn
+          retention-days: 30
