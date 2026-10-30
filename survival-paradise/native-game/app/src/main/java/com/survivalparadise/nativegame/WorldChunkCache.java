@@ -41,7 +41,17 @@ public final class WorldChunkCache {
     private final RectF dst=new RectF();
     private final int campX,campY;
     private volatile boolean closed=false;
+    private int residentLimit=WorldChunkModel.MAX_RESIDENT;
+    private int preloadRadius=2;
     public int cacheHits,cacheMisses,generated;
+    public int residentCount(){return resident.size();}
+    public int pendingCount(){return pending.size();}
+    public int residentLimit(){return residentLimit;}
+    // Called on the UI thread from the legacy settings dialog.
+    public void setLimits(int maxChunks,int preload){
+        residentLimit=Math.max(12,Math.min(64,maxChunks));
+        preloadRadius=Math.max(1,Math.min(3,preload));
+    }
 
     private static final class Chunk{
         final int cx,cy;
@@ -108,7 +118,7 @@ public final class WorldChunkCache {
             if(older!=null&&older.bitmap!=null)older.bitmap.recycle();
             generated++;
         }
-        while(resident.size()>WorldChunkModel.MAX_RESIDENT){
+        while(resident.size()>residentLimit){
             Iterator<Map.Entry<Long,Chunk>> it=resident.entrySet().iterator();
             if(!it.hasNext())break;
             Chunk evicted=it.next().getValue();
@@ -150,7 +160,7 @@ public final class WorldChunkCache {
         // Ring prefetch: a walking player usually reaches fully prepared chunks.
         int centerX=WorldChunkModel.chunkIndex(camX+width*.5f);
         int centerY=WorldChunkModel.chunkIndex(camY+height*.5f);
-        for(int radius=0;radius<=2;radius++){
+        for(int radius=0;radius<=preloadRadius;radius++){
             for(int dy=-radius;dy<=radius;dy++)for(int dx=-radius;dx<=radius;dx++){
                 if(Math.max(Math.abs(dx),Math.abs(dy))!=radius)continue;
                 queue(centerX+dx,centerY+dy);
