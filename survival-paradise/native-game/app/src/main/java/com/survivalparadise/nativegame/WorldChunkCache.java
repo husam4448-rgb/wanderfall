@@ -40,7 +40,7 @@ public final class WorldChunkCache {
     private final Paint terrainPaint=new Paint();
     private final RectF dst=new RectF();
     private final int campX,campY;
-    private boolean closed=false;
+    private volatile boolean closed=false;
     public int cacheHits,cacheMisses,generated;
 
     private static final class Chunk{
@@ -91,7 +91,8 @@ public final class WorldChunkCache {
             Chunk chunk=null;
             try{if(!Thread.currentThread().isInterrupted())chunk=build(cx,cy);}
             catch(Throwable ignored){/* fallback remains safe while queued work fails */}
-            if(chunk!=null)completed.offer(chunk);
+            if(closed){if(chunk!=null&&chunk.bitmap!=null)chunk.bitmap.recycle();}
+            else if(chunk!=null)completed.offer(chunk);
             else completed.offer(new Chunk(cx,cy,null));
         });
     }
@@ -119,7 +120,7 @@ public final class WorldChunkCache {
         // Exact deterministic colors while a fresh texture renders in background.
         for(int y=0;y<N;y++)for(int x=0;x<N;x++){
             int gx=cx*N+x,gy=cy*N+y;
-            tile(canvas,terrainPaint,gx,gy,cx*C+x*TILE,cy*C+y*TILE,
+            tile(canvas,terrainPaint,gx,gy,gx,gy,
                  TILE,1,campX,campY);
         }
     }
