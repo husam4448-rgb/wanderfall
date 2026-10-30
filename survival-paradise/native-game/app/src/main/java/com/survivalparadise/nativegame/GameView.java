@@ -330,7 +330,7 @@ public final class GameView extends View {
     }
     float clamp(float x,float min,float max){return Math.max(min,Math.min(max,x));}
     boolean blocked(float x,float y,float r){
-        if(x<32||y<40||x>WORLD_W-32||y>WORLD_H-32)return true;
+        // V53 unbounded world: collisions are against solid structures, never map borders.
         for(Cover c:covers)if(x+r>c.x&&x-r<c.x+c.w&&y+r>c.y&&y-r<c.y+c.h)return true;
         return false;
     }
