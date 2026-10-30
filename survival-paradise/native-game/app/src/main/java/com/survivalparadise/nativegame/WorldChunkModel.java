@@ -28,14 +28,45 @@ public final class WorldChunkModel {
         k^=k>>>13;k*=0x5bd1e995;
         return k^(k>>>15);
     }
+    // Continuous smooth value noise, sampled in WORLD coordinates, never per
+    // chunk; both sides of a chunk edge therefore resolve to identical colors.
+    private static float noise(float x,float y,float scale,int salt){
+        double fx=x/scale,fy=y/scale;
+        int ix=(int)Math.floor(fx),iy=(int)Math.floor(fy);
+        float tx=(float)(fx-ix),ty=(float)(fy-iy);
+        tx=tx*tx*(3f-2f*tx);ty=ty*ty*(3f-2f*ty);
+        float v00=(hash(ix+salt,iy-salt)&65535)/65535f;
+        float v10=(hash(ix+1+salt,iy-salt)&65535)/65535f;
+        float v01=(hash(ix+salt,iy+1-salt)&65535)/65535f;
+        float v11=(hash(ix+1+salt,iy+1-salt)&65535)/65535f;
+        return (v00+(v10-v00)*tx)*(1f-ty)+(v01+(v11-v01)*tx)*ty;
+    }
+    private static int pack(int r,int g,int b){
+        return 0xff000000|(Math.max(0,Math.min(255,r))<<16)
+            |(Math.max(0,Math.min(255,g))<<8)|Math.max(0,Math.min(255,b));
+    }
+    public static int groundColorAt(float wx,float wy,int campX,int campY){
+        // Muted old-world woodland/soil palette: continuous across all chunks.
+        float forest=noise(wx,wy,760f,17)*.62f+noise(wx,wy,280f,73)*.38f;
+        float soil=noise(wx,wy,410f,113)*.64f+noise(wx,wy,110f,37)*.36f;
+        float micro=noise(wx,wy,44f,201)*.5f+noise(wx,wy,18f,51)*.5f;
+        float dirt=Math.max(0f,Math.min(1f,(soil-.43f)*2.8f));
+        float grass=Math.max(0f,Math.min(1f,(forest-.22f)*1.8f));
+        float fine=(micro-.5f)*27f;
+        float rr=53f+grass*23f+dirt*21f+fine;
+        float gg=66f+grass*33f-dirt*4f+fine*.82f;
+        float bb=48f+grass*14f-dirt*7f+fine*.60f;
+        float dx=wx-campX,dy=wy-campY;
+        float camp=dx*dx+dy*dy;
+        if(camp<310f*310f){
+            float k=Math.max(0f,Math.min(1f,(310f-(float)Math.sqrt(camp))/170f));
+            rr=rr*(1f-k)+84f*k;gg=gg*(1f-k)+95f*k;
+            bb=bb*(1f-k)+70f*k;
+        }
+        return pack(Math.round(rr),Math.round(gg),Math.round(bb));
+    }
     public static int groundColor(int gx,int gy,int campX,int campY){
-        int patch=hash(Math.floorDiv(gx,5),Math.floorDiv(gy,5));
-        int biome=Math.floorMod(patch,4);
-        int tint=biome==0?0xff375347:biome==1?0xff414d39:
-                 biome==2?0xff40544b:0xff4b503d;
-        float dx=gx*(float)TILE-campX,dy=gy*(float)TILE-campY;
-        if(dx*dx+dy*dy<320f*320f)tint=0xff53624c;
-        return tint;
+        return groundColorAt((gx+.5f)*TILE,(gy+.5f)*TILE,campX,campY);
     }
     public static int tileDetail(int gx,int gy){
         return hash(gx,gy);
