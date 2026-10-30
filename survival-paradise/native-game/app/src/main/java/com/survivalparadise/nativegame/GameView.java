@@ -190,6 +190,7 @@ public final class GameView extends View {
     void togglePause(){if(!playing)return;paused=!paused;
         if(paused)stopWalking();saveProgress();invalidate();}
     void stopWalking(){stickX=0;stickY=0;moving=false;playerAnimation.reset();}
+    void releaseControls(){stopWalking();firing=false;leftPointer=-1;rightPointer=-1;}
     void switchWeapon(){
         gun=(gun+1)%12;ammo=MAG[gun];reloadClock=0;
         host.prefs.edit().putInt("gun",gun).apply();
