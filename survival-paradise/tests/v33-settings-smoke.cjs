@@ -54,6 +54,14 @@ new (require('vm').Script)(v33.match(/<script>([\s\S]*?)<\/script>/)[1],{filenam
  assert.equal(await desktop.locator('#ig_support').inputValue(),'0');
  assert.equal(await desktop.locator('#showHands').isChecked(),true);
  await desktop.locator('#igDone').click();
+ // Create real V33 frames for the weapon-preview GIF.
+ fs.mkdirSync('artifacts/frames-v33',{recursive:true});
+ await desktop.evaluate(()=>SP_TEST_API.setLoadout('all'));
+ for(let i=0;i<12;i++){
+  await desktop.evaluate(index=>{SCENE.players[0].gun=index;SCENE.players[0].ammo=MAG[index];},i);
+  await desktop.waitForTimeout(130);
+  await desktop.screenshot({path:'artifacts/frames-v33/frame'+String(i).padStart(2,'0')+'.png'});
+ }
  // Mobile geometry and touch interaction, including scrollable settings panel.
  const mobile=await open({width:393,height:852},true);
  await mobile.locator('#igSettingsButton').tap();
