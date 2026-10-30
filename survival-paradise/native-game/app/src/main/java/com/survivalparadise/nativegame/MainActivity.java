@@ -132,6 +132,11 @@ public final class MainActivity extends Activity {
         check(root,"Firing recoil + muzzle flashes","recoil",true);
         check(root,"Item drops + inventory","loot",true);
         check(root,"Night lighting","night",false);
+        slider(root,"Night darkness","darkness",45,96,83,"%");
+        slider(root,"Flashlight beam distance","beamReach",260,690,490," px");
+        check(root,"Hand flashlight switched on","lampOn",true);
+        check(root,"Warm campfires and flames","campfiresLit",true);
+        check(root,"Neon building signs","neonLights",true);
         check(root,"Full-screen immersive gameplay","fullscreen",true);
         section(root,"GAME ACTIONS");
         action(root,"Save game now",()->{game.saveProgress();Toast.makeText(this,"Game saved",Toast.LENGTH_SHORT).show();});
@@ -141,7 +146,10 @@ public final class MainActivity extends Activity {
               .putInt("speed",100).putInt("survivors",1).putInt("gun",0)
               .putBoolean("hands",true).putBoolean("weapons",true).putBoolean("anchors",false)
               .putBoolean("hitboxes",false).putBoolean("enemyAI",true).putBoolean("aimRotation",true)
-              .putBoolean("recoil",true).putBoolean("loot",true).putBoolean("night",false)
+               .putBoolean("recoil",true).putBoolean("loot",true).putBoolean("night",false)
+              .putInt("darkness",83).putInt("beamReach",490)
+              .putBoolean("lampOn",true).putBoolean("campfiresLit",true)
+              .putBoolean("neonLights",true)
               .putBoolean("fullscreen",true).apply();
             game.reloadSettings();applyImmersive();
             Toast.makeText(this,"Defaults restored. Reopen settings to see the values.",Toast.LENGTH_LONG).show();
