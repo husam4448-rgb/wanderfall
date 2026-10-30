@@ -1,3 +1,13 @@
+# V41 — Mirrored Facing and Accurate Hitboxes
+
+- Rifle pitch is side-independent: when a character turns left/right, the full weapon-hand assembly mirrors horizontally at its original elevation, never jumping to 90° vertical.
+- Player movement facing changes also mirror the stored aim direction. Target-acquisition and right-stick facing follow aim immediately.
+- High-speed projectiles collide with the original character atlas alpha silhouette (head, torso and feet), including every approved walking frame and the V39/V40 idle head movement.
+- Replaces oversized, low-centered circular combat hitboxes with swept alpha sampling and a small ~1px tolerance. Debug hitboxes now visually track head and lower body.
+- V40 two-pose idle, approved planted feet, V36 torso-rig, V29 approved axe and original PNG data remain unchanged.
+- Physical-device aiming/hit feedback still requires gameplay verification.
+
+
 # V40 — Two-Pose Head Breathing Polish
 
 - Idle head moves directly between two existing poses: neutral (0 px) and raised (-4 px), immediately returning to neutral without the intermediate -2 px step.
