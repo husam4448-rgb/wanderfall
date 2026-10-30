@@ -469,6 +469,21 @@ public final class GameView extends View {
         dest.set(x-70*size,y-136*size,x+190*size,y+24*size);
         c.drawBitmap(bmp,src,dest,pixel);
     }
+    // Breath in three distinct frames using the UNCHANGED approved V31 atlas pixels.
+    // Bottom/feet are drawn first at the original position; upper body shifts very
+    // slightly relative to fixed boots. The overlap hides gaps around the waist.
+    // No source pixel geometry is redrawn, recolored, regenerated or re-encoded.
+    void idleBody(Canvas c,int sourceFrame,float s,float breath){
+        if(body==null)return;
+        final int sx=sourceFrame*260;
+        src.set(sx,104,sx+260,160);
+        dest.set(-70*s,(104-136)*s,190*s,24*s);
+        c.drawBitmap(body,src,dest,pixel);
+        float bob=breath*s;
+        src.set(sx,0,sx+260,112);
+        dest.set(-70*s,-136*s+bob,190*s,(112-136)*s+bob);
+        c.drawBitmap(body,src,dest,pixel);
+    }
     void handAtlas(Canvas c,int weapon,int row,float x,float y,float s,float size,float reach){
         float px=row==2?MAIN_X[weapon]:OFF_X[weapon];
         float py=row==2?MAIN_Y[weapon]:OFF_Y[weapon];
@@ -490,16 +505,20 @@ public final class GameView extends View {
                 pivotY+(approvedAxe.getHeight()-138)*k);
         c.drawBitmap(approvedAxe,null,dest,pixel);
     }
-    void character(Canvas c,float x,float y,int weapon,int facing,int frame,float aimAng,float kick,
+    void character(Canvas c,float x,float y,int weapon,int facing,int frame,float breath,float aimAng,float kick,
                    boolean player,boolean bandit){
         float s=.76f*scale;
-        // Frame 0 is the approved V31 neutral idle. Never derive pose from a
-        // stale walking timer or an independently animated equipment layer.
+        // Walking frames are untouched. Idle receives a separate three-phase
+        // breathing offset. It never advances through walking frames.
         c.save();c.translate(x,y);if(facing<0)c.scale(-1,1);
         color(0x670b1a18);c.drawOval(-26*s,-7*s,26*s,7*s,p);
-        if(body!=null)atlas(c,body,frame*260,0,0,0,s);
+        if(body!=null){
+            if(breath==Float.POSITIVE_INFINITY)atlas(c,body,frame*260,0,0,0,s);
+            else idleBody(c,frame,s,breath);
+        }
         if(!bandit){
             c.save();
+            if(breath!=Float.POSITIVE_INFINITY)c.translate(0,breath*s);
             // Parent pivot is the CHARACTER'S torso center (constant across all weapons).
             // The approved weapon, main hand and support hand remain rigid sibling
             // sprites: one translation to an in-reach chest grip, then one shared rotation.
@@ -548,16 +567,22 @@ public final class GameView extends View {
         }
         ArrayList<DrawEntity> order=new ArrayList<>();
         for(Bandit e:enemies)if(e.active)order.add(new DrawEntity(e.y,()->{
-            character(c,e.x,e.y,0,e.face,e.animation.frame(),0,0,false,true);
+            character(c,e.x,e.y,0,e.face,e.animation.frame(),
+                    e.animation.isWalking()?Float.POSITIVE_INFINITY:e.animation.breathOffset(),
+                    0,0,false,true);
             rect(c,e.x-23,e.y-114,46,5,DK);rect(c,e.x-22,e.y-113,44*clamp(e.hp/78,0,1),3,RED);
         }));
         for(Survivor f:friends)order.add(new DrawEntity(f.y,()->{
-            character(c,f.x,f.y,f.gun,f.face,f.animation.frame(),Ballistics.angle(f.aimX,f.aimY,f.face),0,false,false);
+            character(c,f.x,f.y,f.gun,f.face,f.animation.frame(),
+                    f.animation.isWalking()?Float.POSITIVE_INFINITY:f.animation.breathOffset(),
+                    Ballistics.angle(f.aimX,f.aimY,f.face),0,false,false);
             rect(c,f.x-5,f.y-117,10,4,OLIVE);
         }));
         order.add(new DrawEntity(playerY,()->{
             float angle=Ballistics.angle(aimX,aimY,face);
-            character(c,playerX,playerY,gun,face,playerAnimation.frame(),angle,recoil*2.7f,true,false);
+            character(c,playerX,playerY,gun,face,playerAnimation.frame(),
+                    playerAnimation.isWalking()?Float.POSITIVE_INFINITY:playerAnimation.breathOffset(),
+                    angle,recoil*2.7f,true,false);
         }));
         order.sort((a,b)->Float.compare(a.y,b.y));
         for(DrawEntity e:order)e.draw.run();
@@ -617,7 +642,7 @@ public final class GameView extends View {
     void menu(Canvas c){
         rounded(c,viewW/2-300,viewH/2-200,600,398,20,0xef14272b);
         label(c,"SURVIVAL PARADISE",viewW/2-254,viewH/2-115,34,WHITE,true);
-        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 37",
+        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 38",
                 viewW/2-254,viewH/2-80,15,OLIVE,true);
         label(c,"Move with the left stick. Aim & fire with the right.",viewW/2-254,viewH/2-40,15,WHITE,false);
         label(c,"Explore the world, fight bandits, and collect supplies.",viewW/2-254,viewH/2-15,15,WHITE,false);
