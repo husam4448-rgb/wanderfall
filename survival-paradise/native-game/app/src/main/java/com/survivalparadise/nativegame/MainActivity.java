@@ -307,6 +307,9 @@ public final class MainActivity extends Activity {
         slider(root,"Movement joystick sensitivity","moveSensitivity",50,160,100,"%");
         slider(root,"Aiming joystick sensitivity","aimSensitivity",50,160,100,"%");
         slider(root,"Joystick transparency / opacity","controlOpacity",25,100,100,"%");
+        slider(root,"Independent FIRE button size","fireButtonSize",70,160,100,"%");
+        slider(root,"FIRE horizontal position","fireButtonX",-150,150,0," px");
+        slider(root,"FIRE vertical position","fireButtonY",-120,120,0," px");
         section(root,"SETTINGS LAYOUT  •  LIVE (reopen to apply sizes)");
         slider(root,"Settings text size","menuTextSize",75,155,100,"%");
         slider(root,"Settings slider thickness","menuSliderSize",65,160,100,"%");
@@ -314,7 +317,7 @@ public final class MainActivity extends Activity {
         section(root,"CHUNK ENGINE  •  LIVE SETTINGS");
         slider(root,"Distant NPC sleep radius","npcSleepRadius",600,2400,1200," px");
         slider(root,"Lighting performance (100 = original quality)",
-               "lightResolution",100,250,100,"%");
+               "lightResolution",100,250,150,"%");
         root.addView(text("Higher lighting performance reduces lightmap resolution " +
             "and shadow-processing cost. Original quality is 100%.",12,false));
         slider(root,"Maximum resident terrain chunks","testCacheMax",12,64,36,"");
@@ -356,7 +359,9 @@ public final class MainActivity extends Activity {
               .putInt("aimPadSize",100).putInt("moveSensitivity",100)
               .putInt("aimSensitivity",100).putInt("controlOpacity",100)
               .putInt("testCacheMax",36).putInt("testPreloadRadius",2)
-              .putInt("npcSleepRadius",1200).putInt("lightResolution",100)
+              .putInt("npcSleepRadius",1200).putInt("lightResolution",150)
+              .putInt("fireButtonSize",100).putInt("fireButtonX",0)
+              .putInt("fireButtonY",0)
               .putInt("testWindowWidth",96).putInt("testWindowHeight",94)
               .putInt("menuTextSize",100).putInt("menuSliderSize",100)
               .putInt("menuRowSpacing",100).putBoolean("dualTorch",true).apply();
