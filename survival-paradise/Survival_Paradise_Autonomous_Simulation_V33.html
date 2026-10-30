@@ -399,7 +399,7 @@ function v32Bind(){
   $(id).onchange=e=>{V32[key]=e.target.checked;v32UI();};
  }
  document.querySelector('.sub').textContent='Original V31 body / gear atlases · V32 hostile AI, recoil, loot and roadside environment · offline';
- document.querySelector('.eyebrow').textContent='SURVIVAL PARADISE · PIXEL FORGE / V32 FIELD TEST';
+ document.querySelector('.eyebrow').textContent='SURVIVAL PARADISE · PIXEL FORGE / V33 FIELD TEST';
  const footer=document.querySelector('.footer');
  footer.insertAdjacentHTML('beforeend','<p><strong>Frame limitation:</strong> V13 screenshot-derived poses remain, pending verification of the canonical 3 idle / 4 walk sheets. Sprite atlases untouched.</p>');
  document.title='Survival Paradise · Autonomous Yard V32';
@@ -600,7 +600,7 @@ v32Environment();v32InitActors();v32Bind();v32UI();
  }catch(e){}
  sync();
  const prior=window.SP_TEST_API.getState;
- window.SP_TEST_API.getState=()=>({...prior(),settingsMenuAvailable:true,settingsOpen:!shade.hidden});
+ window.SP_TEST_API.getState=()=>({...prior(),assetVersion:'V33-ingame-settings',settingsMenuAvailable:true,settingsOpen:!shade.hidden});
  window.SP_TEST_API.settings={open,close,isOpen:()=>!shade.hidden,get:snapshot,apply};
  document.title='Survival Paradise · V33 In-Game Settings';
 })();
