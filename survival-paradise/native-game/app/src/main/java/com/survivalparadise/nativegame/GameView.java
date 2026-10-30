@@ -74,6 +74,9 @@ public final class GameView extends View {
     float movePadScale=1f,aimPadScale=1f,moveSensitivity=1f,aimSensitivity=1f;
     int controlOpacity=100;
     boolean showPerf=false,showChunkGrid=false;
+    int npcSleepRadius=1200;
+    int lastVisibleNpcs=0;
+    int lastCulledNpcs=0;
     float smoothedFrameMs=16.67f;
     long drawFrames=0;
     final AnimationCycle playerAnimation=new AnimationCycle();
@@ -183,6 +186,8 @@ public final class GameView extends View {
         zoom=host.setting("cameraZoom",100)/100f;
         showPerf=host.option("testPerf",true);
         showChunkGrid=host.option("testChunkGrid",false);
+        npcSleepRadius=host.setting("npcSleepRadius",1200);
+        lighting.setPixelScale(host.setting("lightResolution",100)/100f);
         terrainChunks.setLimits(host.setting("testCacheMax",36),
                                 host.setting("testPreloadRadius",2));
         showHands=host.option("hands",true);
@@ -466,6 +471,8 @@ public final class GameView extends View {
         // at their workstations and breathe; half patrol short safe routes.
         for(int i=0;i<campStaff.size();i++){
             Survivor npc=campStaff.get(i);
+            if(WorldPerfV55.distantFrom(npc.homeX,npc.homeY,playerX,playerY,
+                    npcSleepRadius)){npc.animation.reset();continue;}
             float px=npc.x,py=npc.y;
             if((i&1)==0){
                 npc.x=npc.homeX+(float)Math.sin(worldTimer*.34f+i)*18f;
@@ -498,6 +505,10 @@ public final class GameView extends View {
         }
         if(enemyAI)for(Bandit e:enemies){
             if(!e.active)continue;
+            if(WorldPerfV55.distantFrom(e.x,e.y,playerX,playerY,npcSleepRadius)){
+                // Combat and HP remain persistent; only distant animation/ticks sleep.
+                e.animation.reset();continue;
+            }
             float beforeEnemyX=e.x,beforeEnemyY=e.y;
             e.cd-=dt;e.hit=Math.max(0,e.hit-dt);
             float d=distance(e.x,e.y,playerX,playerY);
@@ -526,19 +537,26 @@ public final class GameView extends View {
             Bandit victim=null;
             boolean hitPlayer=false,hitCover=false;
             for(Cover box:covers){
+                if(!WorldPerfV55.segmentNearRect(bullet.x,bullet.y,nx,ny,
+                        box.x,box.y,box.w,box.h,3f))continue;
                 float t=Ballistics.segmentBox(bullet.x,bullet.y,nx,ny,
                         box.x-2,box.y-2,box.x+box.w+2,box.y+box.h+2);
                 if(t<first){first=t;victim=null;hitPlayer=false;hitCover=true;}
             }
             if(bullet.hostile){
-                float t=CharacterCollision.firstHit(bullet.x,bullet.y,nx,ny,
+                float t=WorldPerfV55.segmentNearActor(bullet.x,bullet.y,nx,ny,
+                    playerX,playerY,scale)?
+                    CharacterCollision.firstHit(bullet.x,bullet.y,nx,ny,
                         playerX,
                         playerY,face,playerAnimation.frame(),
                         playerAnimation.isWalking(),playerAnimation.breathOffset(),scale,
-                        playerAnimation.isWalking()?walkMask:bodyMask);
+                        playerAnimation.isWalking()?walkMask:bodyMask):
+                    Float.POSITIVE_INFINITY;
                 if(t<first){first=t;victim=null;hitPlayer=true;hitCover=false;}
             }else{
                 for(Bandit e:enemies)if(e.active){
+                    if(!WorldPerfV55.segmentNearActor(bullet.x,bullet.y,nx,ny,
+                            e.x,e.y,scale))continue;
                     float t=CharacterCollision.firstHit(bullet.x,bullet.y,nx,ny,
                             e.x,
                             e.y,e.face,e.animation.frame(),
@@ -685,6 +703,7 @@ public final class GameView extends View {
                 lampOn?0xfffff0b1:0xff434c52);
     }
     void addCharacterShadow(float x,float y){
+        if(!WorldPerfV55.nearView(x,y,camX,camY,viewW,viewH,730f))return;
         float s=scale;
         // Cast from the original on-screen pixel silhouette (three small
         // rectangles, not a large circular aura). Source-facing side remains lit.
@@ -693,12 +712,17 @@ public final class GameView extends View {
         lighting.occludeRect(x-22*s,y-17*s,x+22*s,y-2*s); // boots
     }
     void populateLightBlockers(){
-        for(Cover b:covers)lighting.occludeRect(b.x,b.y,b.x+b.w,b.y+b.h);
+        final float edge=730f; // lights can only influence the viewport + reach
+        for(Cover b:covers)if(
+            b.x+b.w>=camX-edge&&b.x<=camX+viewW+edge&&
+            b.y+b.h>=camY-edge&&b.y<=camY+viewH+edge)
+            lighting.occludeRect(b.x,b.y,b.x+b.w,b.y+b.h);
         for(int i=0;i<140;i++){
             if(i%7!=0)continue; // tree trunks/crowns, not tiny grass flecks
             int x=(137*i+27*i*i)%3180,y=(211*i+47*i*i)%2170;
             if(y>912&&y<1160)continue;
             if(x>1480&&x<1740)continue;
+            if(!WorldPerfV55.nearView(x,y,camX,camY,viewW,viewH,edge))continue;
             lighting.occludeRect(x-8,y-9,x+29,y+31);
         }
         addCharacterShadow(playerX,playerY);
@@ -714,12 +738,13 @@ public final class GameView extends View {
             for(float[] f:FIXED_CAMPFIRES)fireLight(f[0],f[1]);
             for(float[] f:builtCampfires)fireLight(f[0],f[1]);
         }
-        if(neonEnabled)for(float[] n:NEONS){
-            lighting.point(n[0],n[1],202,.77f,(int)n[2]);
-        }
+        if(neonEnabled)for(float[] n:NEONS)
+            if(WorldPerfV55.nearView(n[0],n[1],camX,camY,viewW,viewH,215))
+                lighting.point(n[0],n[1],202,.77f,(int)n[2]);
         // Street lamps offer modest navigation light, not character glow.
         for(float x:new float[]{490,1790,2840})
-            lighting.point(x,872,175,.61f,0xffdbd5a0);
+            if(WorldPerfV55.nearView(x,872,camX,camY,viewW,viewH,185))
+                lighting.point(x,872,175,.61f,0xffdbd5a0);
         if(lampOn){
             if(gun==3){
                 float[] tip=Ballistics.rigMuzzle(playerX,playerY,face,aimX,aimY,
@@ -753,6 +778,7 @@ public final class GameView extends View {
         drawFixtures(c,true);
     }
     void fireLight(float x,float y){
+        if(!WorldPerfV55.nearView(x,y,camX,camY,viewW,viewH,225))return;
         float flicker=(float)Math.sin(worldTimer*11f+x*.33f);
         lighting.point(x,y-9,205+flicker*9,.89f+flicker*.07f,LightingV47.WARM);
     }
