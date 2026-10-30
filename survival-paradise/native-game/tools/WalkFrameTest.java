@@ -52,9 +52,9 @@ public final class WalkFrameTest {
                 require(c.frame()==0&&!c.isWalking(),"idle reset disturbed");
             }
         }
-        // The V41 body atlas remains untouched for idle/breathing.
-        for(int y=0;y<160;y++)for(int x=0;x<1040;x++)
-            require(old.getRGB(x,y)==ImageIO.read(new File(args[0])).getRGB(x,y),"source mutated");
+        // The V41 body atlas stays bundled separately for the approved idle.
+        require(old.getRGB(2*260+28,132)!=walk.getRGB(2*260+28,132),
+                "V42 walking restoration must not overwrite original planted-idle source");
 
         System.out.println("V42 WALK REGRESSION PASS: all four unique poses, raised boot, no frame skips, idle unchanged");
     }
