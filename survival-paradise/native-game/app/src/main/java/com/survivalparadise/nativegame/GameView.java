@@ -249,7 +249,7 @@ public final class GameView extends View {
             if(coords.length!=2)continue;
             try{
                 float x=Float.parseFloat(coords[0]),y=Float.parseFloat(coords[1]);
-                if(x>=30&&x<=WORLD_W-30&&y>=30&&y<=WORLD_H-30&&builtCampfires.size()<16)
+                if(Float.isFinite(x)&&Float.isFinite(y)&&builtCampfires.size()<16)
                     builtCampfires.add(new float[]{x,y});
             }catch(NumberFormatException ignored){}
         }
@@ -290,11 +290,11 @@ public final class GameView extends View {
         for(int i=0;i<enemyCount;i++){
             float a=(float)(rng.nextDouble()*Math.PI*2);
             float distance=430+rng.nextInt(620);
-            float x=clamp(playerX+(float)Math.cos(a)*distance,85,WORLD_W-85);
-            float y=clamp(playerY+(float)Math.sin(a)*distance,100,WORLD_H-90);
-            if(blocked(x,y,22)){x=clamp(x+140,90,WORLD_W-100);y=clamp(y+130,90,WORLD_H-100);}
+            float x=playerX+(float)Math.cos(a)*distance;
+            float y=playerY+(float)Math.sin(a)*distance;
+            if(blocked(x,y,22)){x+=140;y+=130;}
             // Prevent hostile wave placement in the protected spawn clearing.
-            if(distance(x,y,CAMP_X,CAMP_Y)<450){x=clamp(x+520,90,WORLD_W-90);}
+            if(distance(x,y,CAMP_X,CAMP_Y)<450){x+=520;}
             enemies.add(new Bandit(x,y,i%2));
         }
     }
@@ -410,8 +410,8 @@ public final class GameView extends View {
         if(length>.06f){
             vx/=Math.max(1,length);vy/=Math.max(1,length);
             float speed=gun==9?147:207;
-            float nx=clamp(playerX+vx*speed*dt,35,WORLD_W-40);
-            float ny=clamp(playerY+vy*speed*dt,50,WORLD_H-40);
+            float nx=playerX+vx*speed*dt;
+            float ny=playerY+vy*speed*dt;
             if(!blocked(nx,playerY,20))playerX=nx;
             if(!blocked(playerX,ny,20))playerY=ny;
             // Movement joystick is locomotion ONLY. No facing or aim updates.
@@ -730,7 +730,7 @@ public final class GameView extends View {
         int x0=(int)Math.floor(camX/tile)-1,x1=(int)Math.ceil((camX+viewW)/tile)+1;
         int y0=(int)Math.floor(camY/tile)-1,y1=(int)Math.ceil((camY+viewH)/tile)+1;
         for(int gy=y0;gy<=y1;gy++)for(int gx=x0;gx<=x1;gx++){
-            if(gx<0||gy<0||gx>WORLD_W/tile||gy>WORLD_H/tile)continue;
+            // All signed world tile indices are valid.
             int h=hash(gx,gy);
             float x=gx*tile,y=gy*tile;
             // Streaming deterministic 5x5-tile procedural terrain patches.
@@ -1036,7 +1036,7 @@ public final class GameView extends View {
     void menu(Canvas c){
         rounded(c,viewW/2-300,viewH/2-200,600,398,20,0xef14272b);
         label(c,"SURVIVAL PARADISE",viewW/2-254,viewH/2-115,34,WHITE,true);
-        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 52",
+        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 53",
                 viewW/2-254,viewH/2-80,15,OLIVE,true);
         label(c,"Move with the left stick. Aim & fire with the right.",viewW/2-254,viewH/2-40,15,WHITE,false);
         label(c,"Explore the world, fight bandits, and collect supplies.",viewW/2-254,viewH/2-15,15,WHITE,false);
@@ -1061,8 +1061,8 @@ public final class GameView extends View {
         update(dt);
         float effectiveZoom=zoom;
         // Camera follow and clamping in world coordinates.
-        camX=clamp(playerX-viewW/(2*effectiveZoom),0,Math.max(0,WORLD_W-viewW/effectiveZoom));
-        camY=clamp(playerY-viewH/(2*effectiveZoom),0,Math.max(0,WORLD_H-viewH/effectiveZoom));
+        camX=playerX-viewW/(2*effectiveZoom);
+        camY=playerY-viewH/(2*effectiveZoom);
         canvas.drawColor(0xff101f24);
         canvas.save();canvas.scale(drawScale,drawScale);
         canvas.save();canvas.scale(effectiveZoom,effectiveZoom);
@@ -1089,8 +1089,8 @@ public final class GameView extends View {
     private void drawSnapshot(Canvas canvas){
         float s=Math.max(.1f,getHeight()/H);
         viewW=getWidth()/s;viewH=H;drawScale=s;
-        camX=clamp(playerX-viewW/2,0,Math.max(0,WORLD_W-viewW));
-        camY=clamp(playerY-viewH/2,0,Math.max(0,WORLD_H-viewH));
+        camX=playerX-viewW/2;
+        camY=playerY-viewH/2;
         canvas.drawColor(0xff101f24);canvas.save();canvas.scale(s,s);
         if(playing){drawWorld(canvas);hud(canvas);}else menu(canvas);
         canvas.restore();
