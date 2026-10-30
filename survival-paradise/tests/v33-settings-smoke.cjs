@@ -14,6 +14,7 @@ new (require('vm').Script)(v33.match(/<script>([\s\S]*?)<\/script>/)[1],{filenam
 (async()=>{
  const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
  const errors=[];
+ fs.mkdirSync('artifacts',{recursive:true});
  const open=async (size,isMobile)=>{
   const page=await browser.newPage({viewport:size,isMobile,hasTouch:isMobile});
   page.on('pageerror',e=>errors.push(e.message));
