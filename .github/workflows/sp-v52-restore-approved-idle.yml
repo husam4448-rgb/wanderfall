@@ -1,0 +1,188 @@
+name: Survival Paradise V52 Restore Exact Original Idle
+on:
+  push:
+    branches: [sp-native-v52-restore-approved-idle-20261030]
+    paths:
+      - 'survival-paradise/native-game/**'
+      - 'assets/authored2d/**'
+      - '.github/workflows/sp-v52-restore-approved-idle.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'survival-paradise/native-game/**'
+      - 'assets/authored2d/**'
+      - '.github/workflows/sp-v52-restore-approved-idle.yml'
+  workflow_dispatch:
+jobs:
+  native-android-game:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            survival-paradise
+            assets/authored2d
+          sparse-checkout-cone-mode: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Prepare exact approved source assets
+        run: |
+          set -eu
+          python3 -m pip install --user --quiet Pillow numpy
+          python3 survival-paradise/native-game/tools/extract_locked_atlases.py
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64,hashlib
+          r=Path("survival-paradise/native-game")
+          for encoded,dest,expected in [
+             ("approved_v29_axe.png.b64","approved_v29_axe.png","f0d146757318e620024cae0c2a34243bdd9339a939a7f51e5428ae8250620dee"),
+             ("approved_v44_walk_palette.png.b64","approved_v44_walk_palette.png","fd01230e9c13ffd3087e933abe976a2179d80e9adc9b0710f899a7bef7fc3d71")
+          ]:
+              data=base64.b64decode((r/"tools"/encoded).read_text().strip(),validate=True)
+              assert hashlib.sha256(data).hexdigest()==expected
+              (r/"app/src/main/assets"/dest).write_bytes(data)
+          PY
+          # No placeholder NPCs: this step REQUIRES the real approved
+          # role art from the repository to generate twelve game-size atlases.
+          python3 survival-paradise/native-game/tools/build_v51_assets.py
+          python3 survival-paradise/native-game/tools/v51_previews.py
+          # V51's idle preview was incorrect; remove it from the deliverables.
+          rm -f survival-paradise/native-game/previews/SP_V51_Idle_Face_Stable.gif
+          python3 survival-paradise/native-game/tools/build_v52_idle.py
+          python3 survival-paradise/native-game/tools/v52_idle_preview.py
+          # Exact V50 ORIGINAL body file MUST be present unedited.
+          test "$(sha256sum survival-paradise/native-game/app/src/main/assets/body.png | cut -d' ' -f1)" = "141878713a6880d05879b7102c728581dddb55730434bcac8e050fe44b3d82ad"
+      - name: Test walk, idle, exact face silhouette, NPC roles and terrain patches
+        run: |
+          set -eu
+          mkdir -p /tmp/sp-v51-classes
+          ROOT=survival-paradise/native-game
+          P=$ROOT/app/src/main/java/com/survivalparadise/nativegame
+          javac -d /tmp/sp-v51-classes \
+            "$P"/AnimationCycle.java \
+            "$P"/Ballistics.java \
+            "$P"/CharacterCollision.java \
+            "$P"/GameClockV47.java \
+            "$P"/ShadowGeometryV47.java \
+            "$P"/WalkAlignmentV48.java \
+            "$P"/MuzzleGeometryV49.java \
+            "$ROOT"/tools/AnimationCycleTest.java \
+            "$ROOT"/tools/BallisticsTest.java \
+            "$ROOT"/tools/CharacterCollisionTest.java \
+            "$ROOT"/tools/ShadowDayNightV47Test.java \
+            "$ROOT"/tools/WalkAlignmentV48Test.java \
+            "$ROOT"/tools/MuzzleGeometryV49Test.java \
+            "$ROOT"/tools/VisualCorrectionsV50Test.java \
+            "$ROOT"/tools/V51CharacterTest.java \
+            "$ROOT"/tools/V51WorldTest.java
+          CP=/tmp/sp-v51-classes
+          A=$ROOT/app/src/main/assets
+          java -cp "$CP" com.survivalparadise.nativegame.AnimationCycleTest
+          java -cp "$CP" com.survivalparadise.nativegame.BallisticsTest
+          java -Djava.awt.headless=true -cp "$CP" com.survivalparadise.nativegame.CharacterCollisionTest "$A/body.png"
+          java -cp "$CP" com.survivalparadise.nativegame.ShadowDayNightV47Test
+          java -Djava.awt.headless=true -cp "$CP" com.survivalparadise.nativegame.WalkAlignmentV48Test "$A/approved_v44_walk_palette.png"
+          java -Djava.awt.headless=true -cp "$CP" com.survivalparadise.nativegame.MuzzleGeometryV49Test "$A/gear.png"
+          java -Djava.awt.headless=true -cp "$CP" com.survivalparadise.nativegame.VisualCorrectionsV50Test "$A/approved_v44_walk_palette.png" "$A/body.png"
+          java -Djava.awt.headless=true -cp "$CP" com.survivalparadise.nativegame.V51CharacterTest "$A/stable_v51_body.png" "$A/npc_roles_v51.png" "$A/approved_v44_walk_palette.png"
+          java -cp "$CP" com.survivalparadise.nativegame.V51WorldTest
+      - name: V52 prove exact V40/V50 original planted idle for player and NPCs
+        run: |
+          set -euo pipefail
+          ROOT=survival-paradise/native-game
+          A=$ROOT/app/src/main/assets
+          mkdir -p /tmp/sp-v52-classes
+          javac -d /tmp/sp-v52-classes \
+            "$ROOT/app/src/main/java/com/survivalparadise/nativegame/AnimationCycle.java" \
+            "$ROOT/tools/V52ApprovedIdleTest.java"
+          java -Djava.awt.headless=true -cp /tmp/sp-v52-classes \
+            com.survivalparadise.nativegame.V52ApprovedIdleTest \
+            "$A/body.png" "$A/npc_idle_v52.png" "$A/stable_v51_body.png"
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/GameView.java').read_text()
+          assert 'Bitmap idleSource=npc?npcIdleAtlas:body;' in p
+          assert 'int sx=npc?0:APPROVED_PLANTED_IDLE_FRAME*260;' in p
+          assert 'static final int APPROVED_PLANTED_IDLE_FRAME=2;' in p
+          assert 'static final int IDLE_HEAD_BODY_SPLIT=92;' in p
+          assert 'static final int IDLE_HEAD_OVERLAP=101;' in p
+          assert 'src.set(sx,sy+IDLE_HEAD_BODY_SPLIT,sx+260,sy+160);' in p
+          assert 'src.set(sx,sy,sx+260,sy+IDLE_HEAD_OVERLAP);' in p
+          assert 'float headBob=breath*s;' in p
+          assert 'final CharacterCollision.PixelMask bodyMask=(x,y)->body!=null' in p
+          assert 'if(breath==Float.POSITIVE_INFINITY)' in p # V51 walking remains
+          assert 'npc_roles_v51.png' in p and 'stable_v51_body.png' in p
+          assert 'void drawUniformHeadFrontOutline' not in p
+          assert 'drawSpawnCamp(c)' in p and 'flameTongue(c,' in p
+          print('V52 RUNTIME PASS: original V40 planted pixel data and head-only breathing, no V51 regenerated idle')
+          PY
+      - name: Verify all NPCs, shadows, support hand, camp, procedural map, and state machines
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame')
+          v=(root/'GameView.java').read_text()
+          m=(root/'MainActivity.java').read_text()
+          assert 'stablePose(c,atlas' in v and 'drawUniformHeadFrontOutline' not in v
+          assert 'npc_roles_v51.png' in v and 'stable_v51_body.png' in v
+          assert 'ROLE_BANDIT=0' in v and 'ROLE_TRADER=8' in v
+          assert 'new Bandit(x,y,i%2)' in v
+          assert 'initCampStaff()' in v
+          assert 'npc.animation.step(' in v and 'friend.animation.step(' in v and 'e.animation.step(' in v
+          assert 'order.add(new DrawEntity(npc.y' in v
+          assert 'order.sort((a,b)->Float.compare(a.y,b.y))' in v
+          assert 'Math.floorDiv(gx,5)' in v and 'drawSpawnCamp(c)' in v
+          assert 'flameTongue(c,' in v and 'void drawCampfire(' in v
+          assert 'addCharacterShadow(f.x,f.y)' in v
+          assert 'final LightingV47 lighting=new LightingV47()' in v
+          assert 'clock.advance(' in v and 'final GameClockV47 clock=' in v
+          assert 'void releaseControls(){stopWalking();' in v
+          assert 'supportVertical=host.setting("supportY",0)' in v
+          assert 'onWindowFocusChanged(boolean hasFocus)' in m
+          assert 'WindowInsetsController' in m
+          print('V51 INTEGRATION PASS: all NPC types use real approved role artwork, fixed head, camp, patches and V50 systems')
+          PY
+      - name: Prepare Android SDK and Gradle
+        run: |
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -path '*/bin/sdkmanager' | sort -V | tail -1)"
+          test -x "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Build REAL Android APK
+        working-directory: survival-paradise/native-game
+        run: gradle --no-daemon :app:assembleDebug
+      - name: Verify source art and all roles are actually inside the APK
+        run: |
+          set -euo pipefail
+          ROOT=survival-paradise/native-game
+          APK=$ROOT/app/build/outputs/apk/debug/app-debug.apk
+          test -s "$APK"
+          for a in body.png gear.png approved_v44_walk_palette.png approved_v29_axe.png stable_v51_body.png npc_roles_v51.png npc_idle_v52.png; do
+            unzip -l "$APK" | grep -q "assets/$a"
+            test "$(unzip -p "$APK" "assets/$a" | sha256sum | cut -d' ' -f1)" = \
+                 "$(sha256sum "$ROOT/app/src/main/assets/$a" | cut -d' ' -f1)"
+          done
+          unzip -l "$APK" | grep -q 'classes.dex'
+          echo "V51 BUILD PASS: immutable approved sprites plus 12 playable NPC identities bundled in native APK"
+      - name: Package APK, source, and verified animation GIFs
+        run: |
+          mkdir -p artifacts
+          R=survival-paradise/native-game
+          cp "$R/app/build/outputs/apk/debug/app-debug.apk" artifacts/Survival_Paradise_V52_Native_Game.apk
+          cp "$R/previews/"*.gif "$R/previews/"*.png artifacts/
+          cd survival-paradise
+          zip -qr ../artifacts/Survival_Paradise_V52_Native_Source.zip native-game \
+            -x 'native-game/.gradle/*' 'native-game/app/build/*'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: SP_V52_Native_APK_Original_Idle_Proof
+          path: artifacts/
+          retention-days: 30
+          if-no-files-found: warn
