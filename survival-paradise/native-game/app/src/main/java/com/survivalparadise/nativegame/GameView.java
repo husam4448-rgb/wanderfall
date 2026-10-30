@@ -27,7 +27,10 @@ public final class GameView extends View {
     final MainActivity host;
     final Paint p=new Paint();
     final Paint pixel=new Paint(Paint.ANTI_ALIAS_FLAG==0?0:0);
-    Bitmap body,approvedWalkColors,gear,approvedAxe;
+    Bitmap body,approvedWalkColors,stableBody,npcRoleAtlas,gear,approvedAxe;
+    static final int ROLE_BANDIT=0,ROLE_GUARD=2,ROLE_MEDIC=4,ROLE_MECHANIC=6,
+                     ROLE_TRADER=8,ROLE_CIVILIAN=10;
+    static final float CAMP_X=1080,CAMP_Y=710;
     final Random rng=new Random(14901);
     static final float H=660, WORLD_W=3200, WORLD_H=2200;
     static final int[] RANGES={250,265,220,0,430,415,395,325,650,435,330,74};
@@ -69,14 +72,15 @@ public final class GameView extends View {
     final AnimationCycle playerAnimation=new AnimationCycle();
     // Keep projectile collision against the exact approved atlas alpha, not an
     // unrelated circle near the characters' feet.
-    final CharacterCollision.PixelMask bodyMask=(x,y)->body!=null &&
-            x>=0&&y>=0&&x<body.getWidth()&&y<body.getHeight() &&
-            (body.getPixel(x,y)>>>24)!=0;
-    final CharacterCollision.PixelMask walkMask=(x,y)->approvedWalkColors!=null &&
-            x>=0&&y>=0&&x<approvedWalkColors.getWidth()&&y<approvedWalkColors.getHeight() &&
-            (approvedWalkColors.getPixel(x,y)>>>24)!=0;
+    final CharacterCollision.PixelMask bodyMask=(x,y)->stableBody!=null &&
+            x>=0&&y>=0&&x<stableBody.getWidth()&&y<stableBody.getHeight() &&
+            (stableBody.getPixel(x,y)>>>24)!=0;
+    final CharacterCollision.PixelMask walkMask=(x,y)->stableBody!=null &&
+            x>=0&&y>=0&&x<stableBody.getWidth()&&y<stableBody.getHeight() &&
+            (stableBody.getPixel(x,y)>>>24)!=0;
     final ArrayList<Bandit> enemies=new ArrayList<>();
     final ArrayList<Survivor> friends=new ArrayList<>();
+    final ArrayList<Survivor> campStaff=new ArrayList<>();
     final ArrayList<Shot> shots=new ArrayList<>();
     final ArrayList<Drop> drops=new ArrayList<>();
     final ArrayList<Spark> sparks=new ArrayList<>();
@@ -88,10 +92,11 @@ public final class GameView extends View {
     final float PAD=46;
     static class Bandit {float x,y,hp=78,cd,hit;int face=1;boolean active=true;
         final AnimationCycle animation=new AnimationCycle();
-        Bandit(float a,float b){x=a;y=b;cd=.7f;}}
-    static class Survivor {float x,y,cd,aimX=1,aimY=0;int gun,face=1;
+        int variant;
+        Bandit(float a,float b,int variant){x=a;y=b;cd=.7f;this.variant=variant;}}
+    static class Survivor {float x,y,homeX,homeY,cd,aimX=1,aimY=0;int gun,face=1,variant;
         final AnimationCycle animation=new AnimationCycle();
-        Survivor(float a,float b,int g){x=a;y=b;gun=g;}}
+        Survivor(float a,float b,int g,int variant){x=a;y=b;homeX=a;homeY=b;gun=g;this.variant=variant;}}
     static class Shot {float x,y,vx,vy,life,damage;boolean hostile;int color;
         Shot(float x,float y,float vx,float vy,float damage,boolean enemy){
             this.x=x;this.y=y;this.vx=vx;this.vy=vy;this.damage=damage;this.life=1.3f;
@@ -121,6 +126,14 @@ public final class GameView extends View {
                 if(approvedWalkColors==null||approvedWalkColors.getWidth()!=1040||
                    approvedWalkColors.getHeight()!=160)
                     throw new IllegalStateException("V44 color-locked walking atlas invalid");
+            }
+            try(InputStream stable=getResources().getAssets().open("stable_v51_body.png");
+                InputStream npcs=getResources().getAssets().open("npc_roles_v51.png")){
+                stableBody=BitmapFactory.decodeStream(stable);
+                npcRoleAtlas=BitmapFactory.decodeStream(npcs);
+                if(stableBody.getWidth()!=1040||stableBody.getHeight()!=160||
+                   npcRoleAtlas.getWidth()!=1040||npcRoleAtlas.getHeight()!=1920)
+                    throw new IllegalStateException("V51 character atlases not correctly built");
             }
             try(InputStream axe=getResources().getAssets().open("approved_v29_axe.png")){
                 approvedAxe=BitmapFactory.decodeStream(axe);
@@ -176,18 +189,19 @@ public final class GameView extends View {
     void adjustFriends(){
         while(friends.size()<allySetting-1){
             friends.add(new Survivor(playerX-30+rng.nextInt(100),playerY-30+rng.nextInt(100),
-                    2+friends.size()%9));
+                    2+friends.size()%9,ROLE_GUARD+friends.size()%2));
         }
         while(friends.size()>allySetting-1)friends.remove(friends.size()-1);
         allyCurrent=1+friends.size();
     }
     void newGame(){
-        playerX=1000;playerY=1060;health=100;stamina=100;playerAnimation.reset();moving=false;stickX=0;stickY=0;shotClock=0;
+        playerX=CAMP_X;playerY=CAMP_Y;health=100;stamina=100;playerAnimation.reset();moving=false;stickX=0;stickY=0;shotClock=0;
         gun=Math.max(0,Math.min(11,host.setting("gun",0)));ammo=MAG[gun];
         kills=0;wave=1;scrap=0;medkits=1;ammoPacks=2;worldTimer=0;autSaveClock=0;
         clock.setClock(night?21*60f:12*60f,1);
         face=1;aimX=1;aimY=0;refreshDaylight();
-        enemies.clear();friends.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();builtCampfires.clear();
+        enemies.clear();friends.clear();campStaff.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();builtCampfires.clear();
+        initCampStaff();
         playing=true;paused=false;settingsPause=false;gameOver=false;
         adjustFriends();spawnWave();
         saveProgress();invalidate();
@@ -210,6 +224,7 @@ public final class GameView extends View {
         ammo=Math.max(0,Math.min(MAG[gun],host.setting("ammo",MAG[gun])));
         enemies.clear();friends.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();
         restoreCampfires();
+        campStaff.clear();initCampStaff();
         playing=true;paused=false;gameOver=false;
         adjustFriends();spawnWave();invalidate();
     }
@@ -253,6 +268,15 @@ public final class GameView extends View {
         lampOn=!lampOn;
         host.prefs.edit().putBoolean("lampOn",lampOn).apply();
     }
+    void initCampStaff(){
+        // Approved roles and both sexes share the same exact V51 idle/walk geometry.
+        // Distinct NPC identities are sourced from the role art already in the repo.
+        campStaff.add(new Survivor(CAMP_X-175,CAMP_Y-75,3,ROLE_TRADER));
+        campStaff.add(new Survivor(CAMP_X-126,CAMP_Y-78,3,ROLE_MEDIC+1));
+        campStaff.add(new Survivor(CAMP_X+179,CAMP_Y-67,3,ROLE_MECHANIC));
+        campStaff.add(new Survivor(CAMP_X+156,CAMP_Y+84,2,ROLE_GUARD+1));
+        campStaff.add(new Survivor(CAMP_X-180,CAMP_Y+96,3,ROLE_CIVILIAN));
+    }
     void spawnWave(){
         enemies.clear();enemyCount=5+Math.min(17,wave*2);
         for(int i=0;i<enemyCount;i++){
@@ -261,7 +285,9 @@ public final class GameView extends View {
             float x=clamp(playerX+(float)Math.cos(a)*distance,85,WORLD_W-85);
             float y=clamp(playerY+(float)Math.sin(a)*distance,100,WORLD_H-90);
             if(blocked(x,y,22)){x=clamp(x+140,90,WORLD_W-100);y=clamp(y+130,90,WORLD_H-100);}
-            enemies.add(new Bandit(x,y));
+            // Prevent hostile wave placement in the protected spawn clearing.
+            if(distance(x,y,CAMP_X,CAMP_Y)<450){x=clamp(x+520,90,WORLD_W-90);}
+            enemies.add(new Bandit(x,y,i%2));
         }
     }
     void saveProgress(){
@@ -395,6 +421,18 @@ public final class GameView extends View {
                 }else reload();
             }
         }
+        // Camp NPCs share the exact approved idle/walk state machine. Half stay
+        // at their workstations and breathe; half patrol short safe routes.
+        for(int i=0;i<campStaff.size();i++){
+            Survivor npc=campStaff.get(i);
+            float px=npc.x,py=npc.y;
+            if((i&1)==0){
+                npc.x=npc.homeX+(float)Math.sin(worldTimer*.34f+i)*18f;
+                npc.y=npc.homeY+(float)Math.cos(worldTimer*.34f+i)*11f;
+                npc.face=(float)Math.cos(worldTimer*.34f+i)>=0?1:-1;
+            }
+            npc.animation.step(distance(px,py,npc.x,npc.y)>.001f,dt,6f);
+        }
         for(Survivor friend:friends){
             float beforeFriendX=friend.x,beforeFriendY=friend.y;
             friend.cd=Math.max(0,friend.cd-dt);
@@ -453,8 +491,7 @@ public final class GameView extends View {
             }
             if(bullet.hostile){
                 float t=CharacterCollision.firstHit(bullet.x,bullet.y,nx,ny,
-                        playerX+(playerAnimation.isWalking()?
-                            WalkAlignmentV48.worldOffsetX(playerAnimation.frame(),face,scale):0f),
+                        playerX,
                         playerY,face,playerAnimation.frame(),
                         playerAnimation.isWalking(),playerAnimation.breathOffset(),scale,
                         playerAnimation.isWalking()?walkMask:bodyMask);
@@ -462,8 +499,7 @@ public final class GameView extends View {
             }else{
                 for(Bandit e:enemies)if(e.active){
                     float t=CharacterCollision.firstHit(bullet.x,bullet.y,nx,ny,
-                            e.x+(e.animation.isWalking()?
-                                WalkAlignmentV48.worldOffsetX(e.animation.frame(),e.face,scale):0f),
+                            e.x,
                             e.y,e.face,e.animation.frame(),
                             e.animation.isWalking(),e.animation.breathOffset(),scale,
                             e.animation.isWalking()?walkMask:bodyMask);
@@ -542,59 +578,58 @@ public final class GameView extends View {
     // The fire's entire visual (hearth AND flame) is depth-sorted with
     // actors, so a character IN FRONT occludes fire pixels automatically.
     // Wider V50 fire: 142-world-unit hearth, 124-unit flame front (~3x V49).
+    // Pixel-stepped flame silhouettes (no equal-height vertical sound bars).
+    void flameTongue(Canvas c,float x,float baseline,float wide,float height,int outer,int core){
+        Path outline=new Path();
+        outline.moveTo(x-wide/2,baseline);
+        outline.lineTo(x-wide*.64f,baseline-height*.18f);
+        outline.lineTo(x-wide*.41f,baseline-height*.41f);
+        outline.lineTo(x-wide*.24f,baseline-height*.44f);
+        outline.lineTo(x-wide*.35f,baseline-height*.69f);
+        outline.lineTo(x-wide*.08f,baseline-height*.74f);
+        outline.lineTo(x+wide*.13f,baseline-height);
+        outline.lineTo(x+wide*.26f,baseline-height*.70f);
+        outline.lineTo(x+wide*.13f,baseline-height*.57f);
+        outline.lineTo(x+wide*.50f,baseline-height*.30f);
+        outline.lineTo(x+wide*.46f,baseline);
+        outline.close();color(outer);c.drawPath(outline,p);
+        Path inside=new Path();inside.moveTo(x-wide*.26f,baseline);
+        inside.lineTo(x-wide*.17f,baseline-height*.30f);
+        inside.lineTo(x,baseline-height*.50f);
+        inside.lineTo(x+wide*.12f,baseline-height*.66f);
+        inside.lineTo(x+wide*.23f,baseline-height*.23f);
+        inside.lineTo(x+wide*.25f,baseline);inside.close();
+        color(core);c.drawPath(inside,p);
+    }
     void drawCampfire(Canvas c,float x,float y,boolean emissive){
-        float a=(float)Math.sin(worldTimer*7.2f+x*.013f);
-        float b=(float)Math.sin(worldTimer*11.8f+y*.037f);
         if(!emissive){
-            // Dark ash bed and several offset edge stones, with highlight faces.
-            rect(c,x-73,y+8,146,13,0xff192323);
-            rect(c,x-70,y+5,140,10,0xff322d29);
-            for(int i=0;i<9;i++){
-                float xx=x-68+i*16f;
-                rect(c,xx,y+5+(i%3),13,7,(i&1)==0?0xff66645b:0xff736f63);
-                rect(c,xx+2,y+5+(i%3),6,2,0xff9b9788);
+            rect(c,x-76,y+6,152,15,0xff242724);
+            for(int i=0;i<11;i++){
+                float xx=x-75+i*14;
+                rect(c,xx,y+9+i%3,16,9,0xff727269);
+                rect(c,xx+3,y+10+i%3,7,2,0xffa09d83);
             }
-            rect(c,x-62,y+3,124,8,0xff443126);
+            rect(c,x-62,y+1,125,7,campfiresLit?0xffac4b20:0xff4b3b30);
+            for(int i=0;i<8;i++){
+                float xx=x-65+i*16;
+                rect(c,xx,y-2+i%3*3,31,7,0xff6f4a30);
+                rect(c,xx+3,y-1+i%3*3,19,2,0xffab7c4b);
+            }
             if(campfiresLit){
-                // Wide hot coal bed, staggered embers.
-                rect(c,x-57,y+6,114,5,0xffa44424);
-                for(int i=0;i<13;i++){
-                    rect(c,x-56+i*9,y+5+(i%3),5,3,
-                        i%3==0?0xffffbd57:0xffd9702b);
-                }
-                // Wide crisscrossing logs. All logs remain in the same
-                // occlusion depth as the flames, not pasted across actors.
-                for(int i=0;i<7;i++){
-                    rect(c,x-66+i*18,y+3-(i%3)*3,24,7,0xff68412b);
-                    rect(c,x-63+i*18,y+4-(i%3)*3,17,2,0xffad8050);
-                    rect(c,x-58+i*16,y-1+(i%3)*3,20,6,0xff593824);
-                }
-                float drift=(float)Math.sin(worldTimer*1.4f+x*.017f)*5f;
-                rect(c,x-19+drift,y-47,19,5,0x445f6663);
-                rect(c,x+21-drift*.8f,y-56,15,4,0x35696f6b);
-                rect(c,x-2+drift*.5f,y-69,12,4,0x22777b75);
-            }else{
-                rect(c,x-54,y+3,108,5,0xff51443b);
+                for(int i=0;i<12;i++)rect(c,x-58+i*10,y+1+i%3,5,3,0xffff9845);
             }
         }else if(campfiresLit){
-            // Five independently moving tongues span the full hearth width.
-            // Each tongue has deep-red edge, amber body and a bright core.
-            for(int i=0;i<5;i++){
-                float xx=x-49+i*25f;
-                float wa=(float)Math.sin(worldTimer*(6.7f+i*.93f)+i*1.47f+x*.012f);
-                float hb=19f+6f*wa+5f*a;
-                rect(c,xx-9,y-12-hb*.65f,21,22+hb*.65f,0xff9d3718);
-                rect(c,xx-7,y-10-hb*.82f,17,20+hb*.82f,0xffe56521);
-                rect(c,xx-4,y-12-hb*.64f,11,17+hb*.64f,0xffffa53b);
-                rect(c,xx-1,y-8-hb*.57f,6,13+hb*.57f,0xffffd471);
-                if(i%2==0)rect(c,xx+1,y-5,3,10,0xffffedaa);
-            }
-            // A few glowing independent sparks above the flames.
-            for(int i=0;i<7;i++){
-                float drift=(float)Math.sin(worldTimer*2.7f+i*2.8f+x*.05f)*6f;
-                float phase=(worldTimer*(10f+i*1.5f)+i*13f+x*.11f)%58f;
-                rect(c,x-60+i*20+drift,y-8-phase,3,3,
-                    i%2==0?0xffffdd77:0xfff79a3d);
+            // Intersecting, asymmetric tongues; stagger heights and tips.
+            float sway=(float)Math.sin(worldTimer*6f+x*.014f);
+            float wave=(float)Math.sin(worldTimer*9.4f+y*.025f);
+            flameTongue(c,x-37+sway*2,y+5,47,50+wave*8,0xffae3a16,0xfff7932e);
+            flameTongue(c,x+30-wave*4,y+5,56,66+sway*9,0xffb33e18,0xffffb53b);
+            flameTongue(c,x+sway*3,y+4,68,89+wave*10,0xffdb5a20,0xffffc857);
+            flameTongue(c,x+8-wave*2,y+3,31,46+sway*7,0xffff9430,0xffffe58a);
+            for(int i=0;i<6;i++){
+                float t=(worldTimer*(12+i*2f)+i*9f)%65f;
+                float xx=x-58+i*23f+(float)Math.sin(worldTimer*3f+i)*5;
+                rect(c,xx,y-20-t,3,3,i%2==0?0xffffdc85:0xffff9e43);
             }
         }
     }
@@ -627,6 +662,7 @@ public final class GameView extends View {
         }
         addCharacterShadow(playerX,playerY);
         for(Survivor f:friends)addCharacterShadow(f.x,f.y);
+        for(Survivor f:campStaff)addCharacterShadow(f.x,f.y);
         for(Bandit e:enemies)if(e.active)addCharacterShadow(e.x,e.y);
     }
     void applyWorldLighting(Canvas c){
@@ -689,7 +725,14 @@ public final class GameView extends View {
             if(gx<0||gy<0||gx>WORLD_W/tile||gy>WORLD_H/tile)continue;
             int h=hash(gx,gy);
             float x=gx*tile,y=gy*tile;
-            rect(c,x,y,tile,tile,(h&3)==0?0xff3b5141:0xff364d40);
+            // Streaming deterministic 5x5-tile procedural terrain patches.
+            // The protected camp clearing is restored around the spawn hub.
+            int patch=hash(Math.floorDiv(gx,5),Math.floorDiv(gy,5));
+            int biome=Math.floorMod(patch,4);
+            int tint=(biome==0?0xff375347:biome==1?0xff414d39:
+                      biome==2?0xff40544b:0xff4b503d);
+            if(Math.hypot(x-CAMP_X,y-CAMP_Y)<320)tint=0xff53624c;
+            rect(c,x,y,tile,tile,tint);
             rect(c,x+10+(h&17),y+30,4,3,0xff60745c);
             if((h&15)==1){rect(c,x+33,y+52,7,5,0xff647a61);rect(c,x+41,y+46,3,6,0xff557156);}
         }
@@ -705,6 +748,7 @@ public final class GameView extends View {
             int x=(137*i+27*i*i)%3180,y=(211*i+47*i*i)%2170;
             if(y>912&&y<1160)continue;
             if(x>1480&&x<1740)continue;
+            if(Math.hypot(x-CAMP_X,y-CAMP_Y)<325)continue;
             if((i%7)==0){
                 rect(c,x+7,y+19,8,24,0xff243c30);
                 rect(c,x-8,y,37,28,0xff172b25);
@@ -717,6 +761,29 @@ public final class GameView extends View {
             }
         }
         for(Cover box:covers)drawCover(c,box);
+        drawSpawnCamp(c);
+    }
+    void drawSpawnCamp(Canvas c){
+        float x=CAMP_X,y=CAMP_Y;
+        rect(c,x-255,y-165,506,355,0x345c7351);
+        // Restored simple survivor camp clearing with tents and equipment.
+        for(int side:new int[]{-1,1}){
+            float tx=x+side*168,ty=y-135;
+            rect(c,tx-70,ty-7,140,14,0xff263b32);
+            rect(c,tx-62,ty-45,124,39,0xff576c53);
+            rect(c,tx-49,ty-70,98,28,0xff71815e);
+            rect(c,tx-32,ty-13,64,28,0xff2c3a32);
+            rect(c,tx-25,ty-12,50,24,0xff3d483b);
+            rect(c,tx-68,ty+22,34,27,0xff634f32);
+            rect(c,tx-60,ty+23,18,5,0xffa58b5a);
+            rect(c,tx+40,ty+19,31,26,0xff53422c);
+        }
+        rect(c,x-93,y+108,190,14,0xff493c2b);
+        rect(c,x-91,y+112,186,5,0xff87764f);
+        for(int i=0;i<5;i++)rect(c,x-86+i*40,y+116,8,10,0xff312e27);
+        rect(c,x+212,y-5,9,80,0xff594832);
+        rect(c,x+217,y-4,68,22,0xff797a54);
+        label(c,"CAMP",x+223,y+12,13,0xffe1dbc2,true);
     }
     void drawCover(Canvas c,Cover box){
         float x=box.x,y=box.y,w=box.w,h=box.h;
@@ -742,47 +809,26 @@ public final class GameView extends View {
         dest.set(x-70*size,y-136*size,x+190*size,y+24*size);
         c.drawBitmap(bmp,src,dest,pixel);
     }
-    // Breath in three distinct frames using the UNCHANGED approved V31 atlas pixels.
-    // Bottom/feet are drawn first at the original position; upper body shifts very
-    // slightly relative to fixed boots. The overlap hides gaps around the waist.
-    // No source pixel geometry is redrawn, recolored, regenerated or re-encoded.
-    // Frame 2 of the unchanged V31 atlas has the two planted boots found in the
-    // approved 10x13 master idle template. Frame 0 is a one-foot stride pose.
-    // Do not change BODY_PNG or walking-frame order. The idle body is a
-    // pixel-exact split of the planted stance; only the head region breathes.
-    static final int APPROVED_PLANTED_IDLE_FRAME=2;
-    static final int IDLE_HEAD_BODY_SPLIT=92;
-    static final int IDLE_HEAD_OVERLAP=101;
-    void idleBody(Canvas c,int unusedWalkFrame,float s,float breath){
-        if(body==null)return;
-        final int sx=APPROVED_PLANTED_IDLE_FRAME*260;
-        // The exact approved feet, pants and torso remain fixed at every phase.
-        src.set(sx,IDLE_HEAD_BODY_SPLIT,sx+260,160);
-        dest.set(-70*s,(IDLE_HEAD_BODY_SPLIT-136)*s,190*s,24*s);
-        c.drawBitmap(body,src,dest,pixel);
-        // Head-only movement. 9px overlap inside the existing shirt row avoids
-        // gaps around the neck and guarantees feet cannot inherit head bob.
-        float headBob=breath*s;
-        src.set(sx,0,sx+260,IDLE_HEAD_OVERLAP);
-        dest.set(-70*s,-136*s+headBob,190*s,
-                (IDLE_HEAD_OVERLAP-136)*s+headBob);
-        c.drawBitmap(body,src,dest,pixel);
-    }
-    // Enforce 9-source-pixel front head outline in ALL frames, while keeping
-    // the approved pixel geometry/face, color palette and identity immutable.
-    // Frame black front widths are 9/7/5/7 source pixels respectively;
-    // only the missing 0/2/4/2 inner pixels are covered by a black inset.
-    // Source y=29..91 is the face edge; y>=92 already has a 9px border.
-    void drawUniformHeadFrontOutline(Canvas c,int frame,boolean walking,float s,float breath){
-        final int f=walking?Math.max(0,Math.min(3,frame)):APPROVED_PLANTED_IDLE_FRAME;
-        final int[] insets={0,2,4,2};
-        final int[] faceStart={96,100,104,100};
-        int missing=insets[f];
-        if(missing==0)return;
-        float frameShift=walking?WalkAlignmentV48.sourceOffsetX(f):0f;
-        float headShift=walking?0f:breath*s;
-        rect(c,(faceStart[f]-missing+1f-70f+frameShift)*s,
-            (29f-136f)*s+headShift,missing*s,63f*s,0xff000000);
+    // V51: user-approved body colors/geometry are immutable in source archives.
+    // Stable atlases pre-normalize ALL four poses to the exact same head anchor.
+    // No per-frame black inset is drawn: front contour is identical in pixels.
+    void stablePose(Canvas c,Bitmap atlas,int variant,int frame,float s,float breath){
+        if(atlas==null)return;
+        int row=Math.max(0,variant)*160;
+        int f=Math.max(0,Math.min(3,frame));
+        if(breath==Float.POSITIVE_INFINITY){
+            src.set(f*260,row,f*260+260,row+160);
+            dest.set(-70*s,-136*s,190*s,24*s);
+            c.drawBitmap(atlas,src,dest,pixel);
+        }else{
+            // Planted source frame 2 from the SAME role atlas; feet stay static.
+            src.set(520,row+92,780,row+160);
+            dest.set(-70*s,(92-136)*s,190*s,24*s);
+            c.drawBitmap(atlas,src,dest,pixel);
+            src.set(520,row,780,row+101);
+            dest.set(-70*s,-136*s+breath*s,190*s,(-136+101)*s+breath*s);
+            c.drawBitmap(atlas,src,dest,pixel);
+        }
     }
     void handAtlas(Canvas c,int weapon,int row,float x,float y,float s,float size,float reach,float vertical){
         float px=row==2?MAIN_X[weapon]:OFF_X[weapon];
@@ -806,25 +852,12 @@ public final class GameView extends View {
         c.drawBitmap(approvedAxe,null,dest,pixel);
     }
     void character(Canvas c,float x,float y,int weapon,int facing,int frame,float breath,float aimAng,float kick,
-                   boolean player,boolean bandit){
+                   boolean player,boolean bandit,int npcVariant){
         float s=.76f*scale;
-        // Approved character identity/palette preserved for ALL frames; V44 uses
-        // original torso/head pixels with user's four WALK OUTLINES only.
-        // The original approved idle/breathing animation is unchanged.
         c.save();c.translate(x,y);if(facing<0)c.scale(-1,1);
         color(0x670b1a18);c.drawOval(-26*s,-7*s,26*s,7*s,p);
-        if(body!=null){
-            if(breath==Float.POSITIVE_INFINITY){
-                // Compensate the approved 4-frame atlas source x-origin drift.
-                // This affects ONLY the body. Weapons/hands and their aim pivot
-                // stay fixed in world space; NO approved sprite bytes change.
-                c.save();
-                c.translate(WalkAlignmentV48.sourceOffsetX(frame)*s,0f);
-                atlas(c,approvedWalkColors!=null?approvedWalkColors:body,frame*260,0,0,0,s);
-                c.restore();
-            }else idleBody(c,frame,s,breath);
-            drawUniformHeadFrontOutline(c,frame,breath==Float.POSITIVE_INFINITY,s,breath);
-        }
+        Bitmap atlas=npcVariant>=0?npcRoleAtlas:stableBody;
+        stablePose(c,atlas,npcVariant<0?0:npcVariant,frame,s,breath);
         if(!bandit){
             c.save();
             // Keep the accepted V36 torso-centered weapon/hand rig stationary.
@@ -903,20 +936,25 @@ public final class GameView extends View {
         for(Bandit e:enemies)if(e.active)order.add(new DrawEntity(e.y,()->{
             character(c,e.x,e.y,0,e.face,e.animation.frame(),
                     e.animation.isWalking()?Float.POSITIVE_INFINITY:e.animation.breathOffset(),
-                    0,0,false,true);
+                    0,0,false,true,e.variant);
             rect(c,e.x-23,e.y-114,46,5,DK);rect(c,e.x-22,e.y-113,44*clamp(e.hp/78,0,1),3,RED);
         }));
         for(Survivor f:friends)order.add(new DrawEntity(f.y,()->{
             character(c,f.x,f.y,f.gun,f.face,f.animation.frame(),
                     f.animation.isWalking()?Float.POSITIVE_INFINITY:f.animation.breathOffset(),
-                    Ballistics.angle(f.aimX,f.aimY,f.face),0,false,false);
+                    Ballistics.angle(f.aimX,f.aimY,f.face),0,false,false,f.variant);
             rect(c,f.x-5,f.y-117,10,4,OLIVE);
+        }));
+        for(Survivor npc:campStaff)order.add(new DrawEntity(npc.y,()->{
+            character(c,npc.x,npc.y,npc.gun,npc.face,npc.animation.frame(),
+                npc.animation.isWalking()?Float.POSITIVE_INFINITY:npc.animation.breathOffset(),
+                0,0,false,false,npc.variant);
         }));
         order.add(new DrawEntity(playerY,()->{
             float angle=Ballistics.angle(aimX,aimY,face);
             character(c,playerX,playerY,gun,face,playerAnimation.frame(),
                     playerAnimation.isWalking()?Float.POSITIVE_INFINITY:playerAnimation.breathOffset(),
-                    angle,recoil*2.7f,true,false);
+                    angle,recoil*2.7f,true,false,-1);
         }));
         order.sort((a,b)->Float.compare(a.y,b.y));
         for(DrawEntity e:order)e.draw.run();
@@ -979,7 +1017,7 @@ public final class GameView extends View {
     void menu(Canvas c){
         rounded(c,viewW/2-300,viewH/2-200,600,398,20,0xef14272b);
         label(c,"SURVIVAL PARADISE",viewW/2-254,viewH/2-115,34,WHITE,true);
-        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 50",
+        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 51",
                 viewW/2-254,viewH/2-80,15,OLIVE,true);
         label(c,"Move with the left stick. Aim & fire with the right.",viewW/2-254,viewH/2-40,15,WHITE,false);
         label(c,"Explore the world, fight bandits, and collect supplies.",viewW/2-254,viewH/2-15,15,WHITE,false);
