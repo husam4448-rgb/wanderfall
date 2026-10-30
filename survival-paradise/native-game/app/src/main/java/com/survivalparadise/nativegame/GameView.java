@@ -27,7 +27,7 @@ public final class GameView extends View {
     final MainActivity host;
     final Paint p=new Paint();
     final Paint pixel=new Paint(Paint.ANTI_ALIAS_FLAG==0?0:0);
-    Bitmap body,approvedWalkColors,stableBody,npcRoleAtlas,npcIdleAtlas,gear,approvedAxe;
+    Bitmap body,approvedWalkColors,stableBody,npcRoleAtlas,npcIdleAtlas,npcWalkV56,npcIdleV56,gear,approvedAxe;
     static final int ROLE_BANDIT=0,ROLE_GUARD=2,ROLE_MEDIC=4,ROLE_MECHANIC=6,
                      ROLE_TRADER=8,ROLE_CIVILIAN=10;
     static final float CAMP_X=1080,CAMP_Y=710;
@@ -85,9 +85,9 @@ public final class GameView extends View {
     final CharacterCollision.PixelMask bodyMask=(x,y)->body!=null &&
             x>=0&&y>=0&&x<body.getWidth()&&y<body.getHeight() &&
             (body.getPixel(x,y)>>>24)!=0;
-    final CharacterCollision.PixelMask walkMask=(x,y)->stableBody!=null &&
-            x>=0&&y>=0&&x<stableBody.getWidth()&&y<stableBody.getHeight() &&
-            (stableBody.getPixel(x,y)>>>24)!=0;
+    final CharacterCollision.PixelMask walkMask=(x,y)->approvedWalkColors!=null &&
+            x>=0&&y>=0&&x<approvedWalkColors.getWidth()&&y<approvedWalkColors.getHeight() &&
+            (approvedWalkColors.getPixel(x,y)>>>24)!=0;
     final ArrayList<Bandit> enemies=new ArrayList<>();
     final ArrayList<Survivor> friends=new ArrayList<>();
     final ArrayList<Survivor> campStaff=new ArrayList<>();
@@ -152,6 +152,16 @@ public final class GameView extends View {
                 if(npcIdleAtlas==null||npcIdleAtlas.getWidth()!=260||
                    npcIdleAtlas.getHeight()!=1920)
                     throw new IllegalStateException("V52 original-pose NPC idle atlas invalid");
+            }
+            // V56 restored approved walking sheet: NPC recolors only,
+            // frame pixels/alpha and player character source remain immutable.
+            try(InputStream w=getResources().getAssets().open("npc_walk_v56.png");
+                InputStream i=getResources().getAssets().open("npc_idle_v56.png")){
+                npcWalkV56=BitmapFactory.decodeStream(w);
+                npcIdleV56=BitmapFactory.decodeStream(i);
+                if(npcWalkV56==null||npcWalkV56.getWidth()!=1040||npcWalkV56.getHeight()!=1920||
+                   npcIdleV56==null||npcIdleV56.getWidth()!=260||npcIdleV56.getHeight()!=1920)
+                    throw new IllegalStateException("V56 approved-skeleton role atlases invalid");
             }
             try(InputStream axe=getResources().getAssets().open("approved_v29_axe.png")){
                 approvedAxe=BitmapFactory.decodeStream(axe);
@@ -908,13 +918,18 @@ public final class GameView extends View {
             int f=Math.max(0,Math.min(3,frame));
             src.set(f*260,row,f*260+260,row+160);
             dest.set(-70*s,-136*s,190*s,24*s);
+            // The old approved V48 correction is applied ONLY at render-time:
+            // no altered head, boot, pants or skin pixels anywhere in the atlas.
+            c.save();
+            c.translate(WalkAlignmentV48.sourceOffsetX(f)*s,0);
             c.drawBitmap(walkingAtlas,src,dest,pixel);
+            c.restore();
             return;
         }
         // Original planted idle source, NOT a walking pose reconstructed in V51.
         // Approved NPC role colors are applied to an otherwise identical silhouette.
         final boolean npc=variant>=0;
-        Bitmap idleSource=npc?npcIdleAtlas:body;
+        Bitmap idleSource=npc?npcIdleV56:body;
         if(idleSource==null)return;
         int sx=npc?0:APPROVED_PLANTED_IDLE_FRAME*260;
         int sy=npc?Math.min(11,variant)*160:0;
@@ -954,7 +969,7 @@ public final class GameView extends View {
         float s=.76f*scale;
         c.save();c.translate(x,y);if(facing<0)c.scale(-1,1);
         color(0x670b1a18);c.drawOval(-26*s,-7*s,26*s,7*s,p);
-        Bitmap atlas=npcVariant>=0?npcRoleAtlas:stableBody;
+        Bitmap atlas=npcVariant>=0?npcWalkV56:approvedWalkColors;
         stablePose(c,atlas,npcVariant<0?0:npcVariant,frame,s,breath);
         if(!bandit){
             c.save();
@@ -1175,7 +1190,7 @@ public final class GameView extends View {
     void menu(Canvas c){
         rounded(c,viewW/2-300,viewH/2-200,600,398,20,0xef14272b);
         label(c,"SURVIVAL PARADISE",viewW/2-254,viewH/2-115,34,WHITE,true);
-        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 55 TEST",
+        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 56 RESTORED",
                 viewW/2-254,viewH/2-80,15,OLIVE,true);
         label(c,"Move with the left stick. Aim & fire with the right.",viewW/2-254,viewH/2-40,15,WHITE,false);
         label(c,"Explore the world, fight bandits, and collect supplies.",viewW/2-254,viewH/2-15,15,WHITE,false);
