@@ -1,3 +1,11 @@
+# V50 — Uniform Head Outline, Vertical Support Hand, Wide Campfire and Occlusion
+
+- **Head/front face outline:** In the unmodified approved V44 walk atlas, the front right black contour is 9, 7, 5, 7 source pixels across frames 0–3. V50 draws a precise black inset of 0, 2, 4, 2 pixels at source y=29–91 so all poses are a consistent **9-pixel outline**. Idle uses original planted frame 2 and follows breathing head bob. The overlay mirrors naturally to face left. All original body/face/gear PNG bytes remain unchanged; no body geometry added.
+- **Off-hand height:** Added independently saved slider `Support hand vertical offset` (−24 to +24 pixels). Reuses the same support-hand grip transform and parent weapon pivot, so aim and hand layers stay synchronous. Existing horizontal reach slider remains.
+- **Wider campfires:** Enlarged the animated hearth to 146 world pixels (formerly ~47), with a 125-pixel span of independently moving orange/yellow tongues, hot coals, rocks, wider crossed logs and rising sparks/smoke. The fire's real-time light and shadows remain active.
+- **Fire occlusion/depth:** Both the campfire hearth and luminous flame are inserted into the same world-Y sorting list as players, allies and bandits. Character in foreground now correctly covers fire behind it, while fire in foreground can naturally obscure actors farther away. `drawFixtures` no longer pastes glowing flames over all characters in a final overlay.
+- **Regression:** Source-asset color and silhouette bytes preserved, pure Java black-contour/identity check, CI fire/actor sorting check, all V49 and prior systems tested during Android APK compilation. Actual device verification pending.
+
 # V49 — Calibrated Muzzle Tips, Bullet Lighting, Flashlight Lens and Campfires
 
 - **Flashlight:** The original approved pixel sprite has a yellow lens baked in. A lens-only overlay now draws grey when OFF and amber when ON in *both DAY and NIGHT*. Only the tiny lens overlay changes; approved source atlas untouched.
