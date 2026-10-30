@@ -157,7 +157,7 @@ jobs:
           assert 'CharacterCollision.firstHit' in game
           assert 'Ballistics.segmentCircle(bullet.x,bullet.y' not in game
           assert 'Math.abs(dx)' in b and 'Math.max(0f,facing*dx)' not in b
-          assert 'aimX=face*Math.abs(aimX)' in game
+          assert 'Movement joystick is locomotion ONLY' in game
           print('V41 source guards PASS: no circular head hitbox or 90-degree mirrored aiming clamp')
           PY
       - name: V47 shadow geometry and solar clock regression
