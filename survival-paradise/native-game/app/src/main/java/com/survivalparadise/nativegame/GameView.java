@@ -44,15 +44,15 @@ public final class GameView extends View {
 
     float scale=1,handScale=1,support=0,timeSpeed=1,zoom=1;
     boolean showHands=true,showWeapons=true,anchors=false,hitboxes=false,enemyAI=true,
-            aimRotation=true,recoilFX=true,lootEnabled=true,night=false;
+            aimRotation=true,recoilFX=true,lootEnabled=true,night=true;
     boolean playing=false,paused=false,settingsPause=false,wasPaused=false,hasSave=false,gameOver=false;
     boolean lampOn=true,neonEnabled=true,campfiresLit=true;
     int nightDarkness=211,flashlightReach=490;
-    final LightingV45 lighting=new LightingV45();
+    final LightingV46 lighting=new LightingV46();
     static final float[][] FIXED_CAMPFIRES={{1170,805},{2140,1550},{300,780}};
     static final float[][] NEONS={
-       {465,321,LightingV45.NEON_BLUE},{1775,343,LightingV45.NEON_PINK},
-       {2455,1170,LightingV45.NEON_BLUE},{857,1710,LightingV45.NEON_PINK}};
+       {465,321,LightingV46.NEON_BLUE},{1775,343,LightingV46.NEON_PINK},
+       {2455,1170,LightingV45.NEON_BLUE},{857,1710,LightingV46.NEON_PINK}};
     final ArrayList<float[]> builtCampfires=new ArrayList<>();
     float playerX=1000,playerY=1060,health=100,stamina=100,shotClock=0,reloadClock=0,recoil=0;
     float aimX=1,aimY=0,stickX=0,stickY=0;
@@ -150,7 +150,7 @@ public final class GameView extends View {
         aimRotation=host.option("aimRotation",true);
         recoilFX=host.option("recoil",true);
         lootEnabled=host.option("loot",true);
-        night=host.option("night",false);
+        night=host.option("night",true);
         lampOn=host.option("lampOn",true);
         neonEnabled=host.option("neonLights",true);
         campfiresLit=host.option("campfiresLit",true);
@@ -217,6 +217,11 @@ public final class GameView extends View {
         float x=playerX+face*65,y=playerY+35;
         if(blocked(x,y,15)){android.widget.Toast.makeText(host,"Clear ground needed",android.widget.Toast.LENGTH_SHORT).show();return;}
         scrap-=3;builtCampfires.add(new float[]{x,y});saveProgress();
+    }
+    void toggleNight(){
+        night=!night;
+        host.prefs.edit().putBoolean("night",night).apply();
+        invalidate();
     }
     void toggleLamp(){
         lampOn=!lampOn;
@@ -553,7 +558,7 @@ public final class GameView extends View {
     }
     void fireLight(float x,float y){
         float flicker=(float)Math.sin(worldTimer*11f+x*.33f);
-        lighting.point(x,y-9,205+flicker*9,.89f+flicker*.07f,LightingV45.WARM);
+        lighting.point(x,y-9,205+flicker*9,.89f+flicker*.07f,LightingV46.WARM);
     }
     void terrain(Canvas c){
         // Deterministic, streaming visible world: foliage, asphalt, debris, and vegetation.
@@ -795,9 +800,11 @@ public final class GameView extends View {
         btn(c,viewW-244,7,68,42,"BAG",0xff293f46);
         btn(c,viewW-324,7,75,42,lampOn?"LAMP ON":"LAMP OFF",0xff364d48);
         btn(c,viewW-410,7,79,42,"CAMP",0xff5b463a);
+        btn(c,viewW-498,7,81,42,night?"DAY":"NIGHT",0xff34414c);
         rect(c,0,viewH-42,viewW,42,0xca122529);
         label(c,"SCRAP "+scrap+"   MED "+medkits+"   AMMO BOX "+ammoPacks+
-                "   "+MainActivity.LOADOUTS[gun],14,viewH-16,14,ORANGE,true);
+                "   "+MainActivity.LOADOUTS[gun]+(night?"  [NIGHT]":"  [DAY]"),
+                14,viewH-16,14,ORANGE,true);
         // Independent touch controls, never an autonomous-only simulation.
         float jy=viewH-140,rx=viewW-118,ry=viewH-145;
         color(0x663e625a);c.drawCircle(120,jy,86,p);
@@ -813,7 +820,7 @@ public final class GameView extends View {
     void menu(Canvas c){
         rounded(c,viewW/2-300,viewH/2-200,600,398,20,0xef14272b);
         label(c,"SURVIVAL PARADISE",viewW/2-254,viewH/2-115,34,WHITE,true);
-        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 45",
+        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 46",
                 viewW/2-254,viewH/2-80,15,OLIVE,true);
         label(c,"Move with the left stick. Aim & fire with the right.",viewW/2-254,viewH/2-40,15,WHITE,false);
         label(c,"Explore the world, fight bandits, and collect supplies.",viewW/2-254,viewH/2-15,15,WHITE,false);
@@ -908,6 +915,7 @@ public final class GameView extends View {
         if(within(x,y,viewW-170,7,78,42)){togglePause();return;}
         if(within(x,y,viewW-324,7,75,42)){toggleLamp();return;}
         if(within(x,y,viewW-410,7,79,42)){placeCampfire();return;}
+        if(within(x,y,viewW-498,7,81,42)){toggleNight();return;}
         if(within(x,y,viewW-244,7,68,42)){
             if(medkits>0&&health<100){medkits--;health=Math.min(100,health+40);}
             host.runOnUiThread(()->android.widget.Toast.makeText(host,
