@@ -1,3 +1,13 @@
+# V43 — Exact Approved Walking/Running Sheet
+
+- Base: last accepted native game V41. Discards rejected V42 synthetic legs entirely.
+- The original user-uploaded transparent 800 × 260 PNG is bundled **unchanged**, verified by SHA-256 49a40aaf2136c2cafee6850d47d4d8720808939b8a89b8e16439e0130da9c7fc.
+- Native renderer displays the four original 200 × 260 frames directly from the source PNG, ordered left to right: 0 → 1 → 2 → 3. Source pixels and leg shapes are NOT reconstructed, redrawn, edited, or re-encoded in gameplay.
+- Frame crops are mapped into the V41 torso/weapon/foot coordinate space using a render-time nearest-neighbor scale. Left-facing actors automatically mirror the complete pose. Player, bandits and allied survivors share the animation system.
+- Walking alpha collision samples the same actual user PNG; idle collision continues to use the accepted V41 original sprite.
+- V40 two-pose breathing idle, V39 approved idle feet, V36 torso weapon pivot, full mirrored aiming, muzzle tracking, faster bullets and approved axe are unchanged.
+- Real-device visual confirmation still required.
+
 # V41 — Mirrored Facing and Accurate Hitboxes
 
 - Rifle pitch is side-independent: when a character turns left/right, the full weapon-hand assembly mirrors horizontally at its original elevation, never jumping to 90° vertical.
