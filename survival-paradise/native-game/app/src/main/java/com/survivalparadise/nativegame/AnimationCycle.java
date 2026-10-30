@@ -2,16 +2,17 @@ package com.survivalparadise.nativegame;
 
 /**
  * Native animation state. Walking uses the exact approved four-frame atlas.
- * Idle is a separate three-phase BREATHING cycle made from unchanged V31 pixels,
- * with boots stationary and head/torso/attached gear moving together.
+ * Idle is a separate two-pose BREATHING cycle made from unchanged V31 pixels,
+ * with the V39 planted feet and unchanged weapon/hand rig.
  */
 public final class AnimationCycle {
     public static final int IDLE_FRAME=0;
     public static final int WALK_FRAMES=4;
-    public static final int IDLE_PHASES=3;
+    public static final int IDLE_PHASES=2;
     public static final float IDLE_PHASE_SECONDS=.65f;
     private static final float WALK_FRAME_FACTOR=1.25f;
-    private static final float[] BREATH_OFFSETS={0f,-4f,-2f};
+    // Direct return from the raised pose to neutral: NO intermediate -2px step.
+    private static final float[] BREATH_OFFSETS={0f,-4f};
 
     private float walkPhase=0f;
     private float idleTime=0f;
