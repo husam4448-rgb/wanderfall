@@ -1,0 +1,17 @@
+plugins { id 'com.android.application' }
+android {
+ namespace 'com.survivalparadise.nativegame'
+ compileSdk 35
+ defaultConfig {
+  applicationId 'com.survivalparadise.nativegame'
+  minSdk 24
+  targetSdk 34
+  versionCode 37
+  versionName '0.37-native-idle-reset'
+ }
+ compileOptions {
+  sourceCompatibility JavaVersion.VERSION_17
+  targetCompatibility JavaVersion.VERSION_17
+ }
+ buildTypes { release { minifyEnabled false } }
+}
