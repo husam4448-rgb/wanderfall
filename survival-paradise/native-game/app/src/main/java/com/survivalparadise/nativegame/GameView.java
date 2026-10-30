@@ -27,7 +27,7 @@ public final class GameView extends View {
     final MainActivity host;
     final Paint p=new Paint();
     final Paint pixel=new Paint(Paint.ANTI_ALIAS_FLAG==0?0:0);
-    Bitmap body,gear;
+    Bitmap body,gear,approvedAxe;
     final Random rng=new Random(14901);
     static final float H=660, WORLD_W=3200, WORLD_H=2200;
     static final int[] RANGES={250,265,220,0,430,415,395,325,650,435,330,74};
@@ -59,6 +59,7 @@ public final class GameView extends View {
     final ArrayList<Shot> shots=new ArrayList<>();
     final ArrayList<Drop> drops=new ArrayList<>();
     final ArrayList<Spark> sparks=new ArrayList<>();
+    final ArrayList<Flash> flashes=new ArrayList<>();
     final ArrayList<Cover> covers=new ArrayList<>();
     int allySetting=1,allyCurrent=1;
     final Rect src=new Rect();
@@ -66,13 +67,15 @@ public final class GameView extends View {
     final float PAD=46;
     static class Bandit {float x,y,hp=78,cd,walk,hit;int face=1;boolean active=true;
         Bandit(float a,float b){x=a;y=b;cd=.7f;}}
-    static class Survivor {float x,y,cd,walk;int gun,face=1;
+    static class Survivor {float x,y,cd,walk,aimX=1,aimY=0;int gun,face=1;
         Survivor(float a,float b,int g){x=a;y=b;gun=g;}}
     static class Shot {float x,y,vx,vy,life,damage;boolean hostile;int color;
         Shot(float x,float y,float vx,float vy,float damage,boolean enemy){
             this.x=x;this.y=y;this.vx=vx;this.vy=vy;this.damage=damage;this.life=1.3f;
             this.hostile=enemy;this.color=enemy?0xffffa88a:0xffeada9e;
         }}
+    static class Flash {float x,y,dx,dy,ttl=.065f;
+        Flash(float x,float y,float dx,float dy){this.x=x;this.y=y;this.dx=dx;this.dy=dy;}}
     static class Drop {float x,y,ttl=40;int type;
         Drop(float x,float y,int type){this.x=x;this.y=y;this.type=type;}}
     static class Spark {float x,y,vx,vy,ttl=.3f;int color;
@@ -87,6 +90,9 @@ public final class GameView extends View {
         try(InputStream bs=getResources().getAssets().open("body.png");
             InputStream gs=getResources().getAssets().open("gear.png")){
             body=BitmapFactory.decodeStream(bs);gear=BitmapFactory.decodeStream(gs);
+            try(InputStream axe=getResources().getAssets().open("approved_v29_axe.png")){
+                approvedAxe=BitmapFactory.decodeStream(axe);
+            }
         }catch(Exception e){body=null;gear=null;}
         initCovers();reloadSettings();hasSave=host.prefs.getBoolean("hasSave",false);
     }
@@ -135,7 +141,7 @@ public final class GameView extends View {
         playerX=1000;playerY=1060;health=100;stamina=100;walkClock=0;shotClock=0;
         gun=Math.max(0,Math.min(11,host.setting("gun",0)));ammo=MAG[gun];
         kills=0;wave=1;scrap=0;medkits=1;ammoPacks=2;worldTimer=0;autSaveClock=0;
-        enemies.clear();friends.clear();shots.clear();drops.clear();sparks.clear();
+        enemies.clear();friends.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();
         playing=true;paused=false;settingsPause=false;gameOver=false;
         adjustFriends();spawnWave();
         saveProgress();invalidate();
@@ -148,7 +154,7 @@ public final class GameView extends View {
         scrap=host.setting("scrap",0);medkits=host.setting("medkits",1);ammoPacks=host.setting("ammoPacks",2);
         gun=Math.max(0,Math.min(11,host.setting("gun",0)));
         ammo=Math.max(0,Math.min(MAG[gun],host.setting("ammo",MAG[gun])));
-        enemies.clear();friends.clear();shots.clear();drops.clear();sparks.clear();
+        enemies.clear();friends.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();
         playing=true;paused=false;gameOver=false;
         adjustFriends();spawnWave();invalidate();
     }
@@ -199,31 +205,33 @@ public final class GameView extends View {
             if(d<bestDist){best=e;bestDist=d;}}
         return best;
     }
-    void shoot(float x,float y,float dx,float dy,int weapon,boolean hostile){
-        float length=(float)Math.hypot(dx,dy);if(length<.01f){dx=1;dy=0;length=1;}
+    // A bullet's visible launch point is exactly the world-transformed barrel anchor.
+    // The same grip pivot, left/right mirror and full semicircle are used by rendering.
+    void shoot(float x,float y,float dx,float dy,int weapon,boolean hostile,int facing){
+        float length=(float)Math.hypot(dx,dy);
+        if(length<.01f){dx=facing;dy=0;length=1;}
         dx/=length;dy/=length;
-        if(weapon==3)return;
+        if(weapon==3)return; // Flashlight does not fire bullets.
         if(weapon==11){
             if(hostile){if(distance(x,y,playerX,playerY)<92)hurt(POWER[11]);}
             else for(Bandit e:enemies)if(e.active&&distance(x,y,e.x,e.y)<88)damage(e,POWER[11]);
             particles(x+dx*26,y-35,ORANGE,3);
             return;
         }
+        float kick=(!hostile&&x==playerX&&y==playerY&&recoilFX)?2.7f:0f;
+        float[] muzzle=Ballistics.muzzle(x,y,facing,dx,dy,.76f*scale,
+                MX[weapon],MY[weapon],MAIN_X[weapon],MAIN_Y[weapon],kick);
+        final float bx=muzzle[0],by=muzzle[1];
         int pellets=weapon==7?5:1;
         float theta=(float)Math.atan2(dy,dx);
-        float spriteFactor=.72f*scale;
-        float mx=(MX[weapon]-70)*spriteFactor;
-        float my=(MY[weapon]-136)*spriteFactor;
-        float bx=x+Math.signum(dx==0?1:dx)*mx;
-        float by=y+my;
         for(int i=0;i<pellets;i++){
-            float jitter=(rng.nextFloat()-.5f)*(weapon==7?.34f:.055f);
-            float angle=theta+jitter;float speed=weapon==10?640:870;
-            Shot bullet=new Shot(bx,by,(float)Math.cos(angle)*speed,
-                    (float)Math.sin(angle)*speed,POWER[weapon]/(pellets==5?2f:1f),hostile);
-            shots.add(bullet);
+            float jitter=(rng.nextFloat()-.5f)*(weapon==7?.30f:.027f);
+            float a=theta+jitter,velocity=Ballistics.SPEED[weapon];
+            shots.add(new Shot(bx,by,(float)Math.cos(a)*velocity,
+                    (float)Math.sin(a)*velocity,POWER[weapon]/(pellets==5?2f:1f),hostile));
         }
-        particles(bx,by,ORANGE,weapon==10?9:4);
+        if(recoilFX){flashes.add(new Flash(bx,by,dx,dy));}
+        particles(bx,by,ORANGE,weapon==10?4:2);
     }
     void damage(Bandit enemy,float amount){
         enemy.hp-=amount;enemy.hit=.14f;
@@ -274,7 +282,7 @@ public final class GameView extends View {
             if(aimX>.1f)face=1;else if(aimX<-.1f)face=-1;
             if(shotClock<=0&&reloadClock==0){
                 if(ammo>0||gun==11||gun==3){
-                    shoot(playerX,playerY,aimX,aimY,gun,false);
+                    shoot(playerX,playerY,aimX,aimY,gun,false,face);
                     if(gun!=3){shotClock=RATES[gun];ammo=Math.max(0,ammo-1);recoil=recoilFX?1:0;}
                 }else reload();
             }
@@ -293,7 +301,9 @@ public final class GameView extends View {
             if(target!=null&&friend.cd<=0){
                 float dx=target.x-friend.x,dy=target.y-friend.y;
                 friend.face=dx>=0?1:-1;
-                shoot(friend.x,friend.y,dx,dy,friend.gun,false);
+                float aimLen=Math.max(1,(float)Math.hypot(dx,dy));
+                friend.aimX=dx/aimLen;friend.aimY=dy/aimLen;
+                shoot(friend.x,friend.y,dx,dy,friend.gun,false,friend.face);
                 friend.cd=RATES[friend.gun]+.2f;
             }
         }
@@ -310,23 +320,46 @@ public final class GameView extends View {
                     if(!blocked(e.x,ny,18))e.y=ny;
                     e.walk+=dt*6;
                 }else if(e.cd<=0){
-                    shoot(e.x,e.y,dx,dy,0,true);
+                    shoot(e.x,e.y,dx,dy,0,true,e.face);
                     e.cd=1.1f+rng.nextFloat()*.7f;
                 }
             }
         }
+        // Continuous collision detection: no tunneling through actors or cover at 4000 px/s.
         for(Iterator<Shot> iter=shots.iterator();iter.hasNext();){
-            Shot s=iter.next();
-            float nx=s.x+s.vx*dt,ny=s.y+s.vy*dt;s.life-=dt;
-            boolean done=s.life<=0||blocked(nx,ny-18,2);
-            if(!done&&s.hostile){
-                if(distance(nx,ny,playerX,playerY-28)<34){hurt(s.damage);done=true;}
-            }else if(!done){
-                for(Bandit e:enemies)if(e.active&&distance(nx,ny,e.x,e.y-28)<32){
-                    damage(e,s.damage);done=true;break;
+            Shot bullet=iter.next();
+            float nx=bullet.x+bullet.vx*dt,ny=bullet.y+bullet.vy*dt;
+            bullet.life-=dt;
+            float first=Float.POSITIVE_INFINITY;
+            Bandit victim=null;
+            boolean hitPlayer=false,hitCover=false;
+            for(Cover box:covers){
+                float t=Ballistics.segmentBox(bullet.x,bullet.y,nx,ny,
+                        box.x-2,box.y-2,box.x+box.w+2,box.y+box.h+2);
+                if(t<first){first=t;victim=null;hitPlayer=false;hitCover=true;}
+            }
+            if(bullet.hostile){
+                float t=Ballistics.segmentCircle(bullet.x,bullet.y,nx,ny,playerX,playerY-28,32);
+                if(t<first){first=t;victim=null;hitPlayer=true;hitCover=false;}
+            }else{
+                for(Bandit e:enemies)if(e.active){
+                    float t=Ballistics.segmentCircle(bullet.x,bullet.y,nx,ny,e.x,e.y-28,30);
+                    if(t<first){first=t;victim=e;hitPlayer=false;hitCover=false;}
                 }
             }
-            if(done)iter.remove();else{s.x=nx;s.y=ny;}
+            if(first<=1f){
+                bullet.x+=(nx-bullet.x)*first;
+                bullet.y+=(ny-bullet.y)*first;
+                if(hitPlayer)hurt(bullet.damage);
+                else if(victim!=null)damage(victim,bullet.damage);
+                else if(hitCover&&recoilFX)particles(bullet.x,bullet.y,0xffc4b58a,2);
+                iter.remove();
+            }else if(bullet.life<=0||nx<0||ny<0||nx>WORLD_W||ny>WORLD_H){
+                iter.remove();
+            }else {bullet.x=nx;bullet.y=ny;}
+        }
+        for(Iterator<Flash> it=flashes.iterator();it.hasNext();){
+            Flash flash=it.next();flash.ttl-=dt;if(flash.ttl<=0)it.remove();
         }
         for(Iterator<Drop> it=drops.iterator();it.hasNext();){
             Drop d=it.next();d.ttl-=dt;
@@ -431,6 +464,16 @@ public final class GameView extends View {
         atlas(c,gear,weapon*260,row*160,x,y,s);
         c.restore();
     }
+    void drawApprovedAxe(Canvas c,float pivotX,float pivotY,float scale){
+        if(approvedAxe==null)return;
+        // Cropped from the user's approved V29 weapon presentation image, not redrawn.
+        // Grip at image coordinate (29,138), anchored to the approved main-hand pivot.
+        float k=.58f*scale;
+        dest.set(pivotX-29*k,pivotY-138*k,
+                pivotX+(approvedAxe.getWidth()-29)*k,
+                pivotY+(approvedAxe.getHeight()-138)*k);
+        c.drawBitmap(approvedAxe,null,dest,pixel);
+    }
     void character(Canvas c,float x,float y,int weapon,int facing,float move,float aimAng,float kick,
                    boolean player,boolean bandit){
         float s=.76f*scale;
@@ -442,9 +485,13 @@ public final class GameView extends View {
             c.save();
             float pivotX=(MAIN_X[weapon]-70)*s,pivotY=(MAIN_Y[weapon]-136)*s;
             c.translate(pivotX-kick,pivotY);
-            c.rotate(aimRotation?clamp(aimAng,-.35f,.35f)*180/(float)Math.PI:0);
+            // A full 180-degree right arc or full 180-degree left arc, not the old +/-20 degrees.
+            c.rotate(aimRotation?aimAng*180/(float)Math.PI:0);
             c.translate(-pivotX,-pivotY);
-            if(showWeapons)atlas(c,gear,weapon*260,0,0,0,s);
+            if(showWeapons){
+                if(weapon==11&&approvedAxe!=null)drawApprovedAxe(c,pivotX,pivotY,scale);
+                else atlas(c,gear,weapon*260,0,0,0,s);
+            }
             if(showHands){
                 handAtlas(c,weapon,2,0,0,s,handScale,0);
                 handAtlas(c,weapon,1,0,0,s,handScale,support);
@@ -478,18 +525,30 @@ public final class GameView extends View {
             rect(c,e.x-23,e.y-114,46,5,DK);rect(c,e.x-22,e.y-113,44*clamp(e.hp/78,0,1),3,RED);
         }));
         for(Survivor f:friends)order.add(new DrawEntity(f.y,()->{
-            character(c,f.x,f.y,f.gun,f.face,f.walk,0,0,false,false);
+            character(c,f.x,f.y,f.gun,f.face,f.walk,Ballistics.angle(f.aimX,f.aimY,f.face),0,false,false);
             rect(c,f.x-5,f.y-117,10,4,OLIVE);
         }));
         order.add(new DrawEntity(playerY,()->{
-            float angle=(float)Math.atan2(aimY,Math.max(.1f,Math.abs(aimX)));
+            float angle=Ballistics.angle(aimX,aimY,face);
             character(c,playerX,playerY,gun,face,walkClock,angle,recoil*2.7f,true,false);
         }));
         order.sort((a,b)->Float.compare(a.y,b.y));
         for(DrawEntity e:order)e.draw.run();
-        for(Shot s:shots){
-            rect(c,s.x-3,s.y-2,7,4,s.color);
-            rect(c,s.x-s.vx*.012f,s.y-s.vy*.012f,4,4,s.color);
+        for(Shot projectile:shots){
+            // Short, subtle tracer instead of slow glowing projectile blocks.
+            float inv=1f/Math.max(1f,(float)Math.hypot(projectile.vx,projectile.vy));
+            float vx=projectile.vx*inv,vy=projectile.vy*inv;
+            color(projectile.color);p.setStrokeWidth(1.6f);
+            c.drawLine(projectile.x-vx*19,projectile.y-vy*19,
+                    projectile.x,projectile.y,p);
+            rect(c,projectile.x-1,projectile.y-1,3,3,WHITE);
+        }
+        for(Flash flash:flashes){
+            float alpha=clamp(flash.ttl/.065f,0,1),length=18*alpha;
+            color(0xffffdf95);p.setStrokeWidth(Math.max(1.5f,3f*alpha));
+            c.drawLine(flash.x,flash.y,flash.x+flash.dx*length,
+                    flash.y+flash.dy*length,p);
+            rect(c,flash.x-2,flash.y-2,4,4,0xfffff7cf);
         }
         for(Spark s:sparks)rect(c,s.x,s.y,4,4,s.color);
         if(night){
@@ -596,7 +655,9 @@ public final class GameView extends View {
         float length=(float)Math.hypot(dx,dy);
         if(length>1){dx/=length;dy/=length;}
         if(right){
-            if(length>.14){aimX=dx;aimY=dy;}
+            if(length>.14){aimX=dx;aimY=dy;
+                if(dx>.025f)face=1;else if(dx<-.025f)face=-1;
+            }
             else{
                 Bandit closest=nearest(playerX,playerY,680);
                 if(closest!=null){float ax=closest.x-playerX,ay=closest.y-playerY;
