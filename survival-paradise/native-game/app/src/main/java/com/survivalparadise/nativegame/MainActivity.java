@@ -153,12 +153,70 @@ public final class MainActivity extends Activity {
         else
             Toast.makeText(this,"Start or continue a game before traveling",Toast.LENGTH_SHORT).show();
     }
+    private void resizeSettingsWindow(AlertDialog dialog,int widthPct,int heightPct){
+        if(dialog==null||dialog.getWindow()==null)return;
+        int sw=getResources().getDisplayMetrics().widthPixels;
+        int sh=getResources().getDisplayMetrics().heightPixels;
+        int w=Math.min(sw,Math.max(sw*65/100,sw*widthPct/100));
+        int h=Math.min(sh,Math.max(sh*65/100,sh*heightPct/100));
+        dialog.getWindow().setLayout(w,h);
+    }
+    private void jumpButton(LinearLayout bar,String label,Runnable task){
+        Button b=new Button(this);b.setText(label);b.setAllCaps(false);
+        b.setTextSize(12);b.setMinHeight(0);b.setMinimumHeight(0);
+        bar.addView(b,new LinearLayout.LayoutParams(0,-2,1f));
+        b.setOnClickListener(v->task.run());
+    }
     void settings(){
         game.menuPause(true);
+        final AlertDialog[] activeDialog=new AlertDialog[1];
+        LinearLayout shell=column();
+        shell.setPadding(8,4,8,4);
+        final int windowW=prefs.getInt("testWindowWidth",96);
+        final int windowH=prefs.getInt("testWindowHeight",94);
+        LinearLayout sizeRow=new LinearLayout(this);
+        sizeRow.setOrientation(LinearLayout.HORIZONTAL);
+        final TextView wLabel=text("WIDTH "+windowW+"%",11,false);
+        final TextView hLabel=text("HEIGHT "+windowH+"%",11,false);
+        final SeekBar wSize=new SeekBar(this),hSize=new SeekBar(this);
+        wSize.setMax(35);wSize.setProgress(windowW-65);
+        hSize.setMax(35);hSize.setProgress(windowH-65);
+        LinearLayout wGroup=column(),hGroup=column();
+        wGroup.addView(wLabel);wGroup.addView(wSize);
+        hGroup.addView(hLabel);hGroup.addView(hSize);
+        sizeRow.addView(wGroup,new LinearLayout.LayoutParams(0,-2,1f));
+        sizeRow.addView(hGroup,new LinearLayout.LayoutParams(0,-2,1f));
+        shell.addView(sizeRow);
+        wSize.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
+            public void onProgressChanged(SeekBar b,int v,boolean user){
+                int pct=65+v;wLabel.setText("WIDTH "+pct+"%");
+                if(user){prefs.edit().putInt("testWindowWidth",pct).apply();
+                    resizeSettingsWindow(activeDialog[0],pct,65+hSize.getProgress());}
+            }
+            public void onStartTrackingTouch(SeekBar b){}
+            public void onStopTrackingTouch(SeekBar b){}
+        });
+        hSize.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
+            public void onProgressChanged(SeekBar b,int v,boolean user){
+                int pct=65+v;hLabel.setText("HEIGHT "+pct+"%");
+                if(user){prefs.edit().putInt("testWindowHeight",pct).apply();
+                    resizeSettingsWindow(activeDialog[0],65+wSize.getProgress(),pct);}
+            }
+            public void onStartTrackingTouch(SeekBar b){}
+            public void onStopTrackingTouch(SeekBar b){}
+        });
         ScrollView scroll=new ScrollView(this);
+        scroll.setVerticalScrollBarEnabled(true);
+        scroll.setScrollbarFadingEnabled(false);
+        scroll.setFillViewport(false);
         LinearLayout root=column();scroll.addView(root);
-        section(root,"SURVIVAL PARADISE  •  V55 TEST SETTINGS");
+        final LinearLayout jumpBar=new LinearLayout(this);
+        jumpBar.setOrientation(LinearLayout.HORIZONTAL);
+        shell.addView(jumpBar);
+        shell.addView(scroll,new LinearLayout.LayoutParams(-1,0,1f));
+        section(root,"SURVIVAL PARADISE  •  V56 APPROVED CHARACTER TEST");
         root.addView(text("Controls apply to the playable game, and save automatically.",13,false));
+        final int playerSection=root.getChildCount();
         section(root,"PLAYER AND COMBAT");
         slider(root,"Character display size","scale",65,135,100,"%");
         slider(root,"Hand size (independent)","hand",60,145,100,"%");
@@ -197,7 +255,8 @@ public final class MainActivity extends Activity {
         check(root,"Warm campfires and flames","campfiresLit",true);
         check(root,"Neon building signs","neonLights",true);
         check(root,"Full-screen immersive gameplay","fullscreen",true);
-        section(root,"WORLD TEST LAB  •  V54.1");
+        final int worldSection=root.getChildCount();
+        section(root,"WORLD TEST LAB  •  V56");
         root.addView(text("All original settings and touch controls remain available. " +
             "The options below modify the live V54 chunk-streaming test.",13,false));
         check(root,"Show FPS, player coordinates, NPC and chunk diagnostics","testPerf",true);
@@ -234,6 +293,7 @@ public final class MainActivity extends Activity {
         action(root,"Return to original survivor camp",()->testTravel(
             GameView.CAMP_X-game.playerX,GameView.CAMP_Y-game.playerY,
             "Returned to survivor camp"));
+        final int actionSection=root.getChildCount();
         section(root,"GAME ACTIONS");
         action(root,"Save game now",()->{game.saveProgress();Toast.makeText(this,"Game saved",Toast.LENGTH_SHORT).show();});
         action(root,"Take screenshot",()->captureGame());
@@ -253,17 +313,53 @@ public final class MainActivity extends Activity {
               .putInt("aimPadSize",100).putInt("moveSensitivity",100)
               .putInt("aimSensitivity",100).putInt("controlOpacity",100)
               .putInt("testCacheMax",36).putInt("testPreloadRadius",2)
-              .putInt("npcSleepRadius",1200).putInt("lightResolution",100).apply();
+              .putInt("npcSleepRadius",1200).putInt("lightResolution",100)
+              .putInt("testWindowWidth",96).putInt("testWindowHeight",94).apply();
+            wSize.setProgress(96-65);hSize.setProgress(94-65);
+            resizeSettingsWindow(activeDialog[0],96,94);
             game.reloadSettings();applyImmersive();
             Toast.makeText(this,"Defaults restored. Reopen settings to see the values.",Toast.LENGTH_LONG).show();
         });
-        AlertDialog dialog=new AlertDialog.Builder(this).setView(scroll)
+        // Persistent pinned fast-scroll track: drag from 0 to 100% instead of
+        // swiping through dozens of game settings.
+        LinearLayout track=new LinearLayout(this);
+        track.setOrientation(LinearLayout.HORIZONTAL);
+        final TextView nav=text("SCROLL 0%",12,true);
+        track.addView(nav);
+        final SeekBar fastScroll=new SeekBar(this);
+        fastScroll.setMax(100);
+        track.addView(fastScroll,new LinearLayout.LayoutParams(0,-2,1f));
+        shell.addView(track);
+        fastScroll.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
+            public void onProgressChanged(SeekBar b,int progress,boolean user){
+                if(!user)return;
+                scroll.post(()->{
+                    int max=Math.max(0,root.getHeight()-scroll.getHeight());
+                    scroll.scrollTo(0,Math.round(max*progress/100f));
+                });
+            }
+            public void onStartTrackingTouch(SeekBar b){}
+            public void onStopTrackingTouch(SeekBar b){}
+        });
+        scroll.setOnScrollChangeListener((v,x,y,oldX,oldY)->{
+            int max=Math.max(1,root.getHeight()-scroll.getHeight());
+            int pct=Math.max(0,Math.min(100,Math.round(y*100f/max)));
+            fastScroll.setProgress(pct);
+            nav.setText("SCROLL "+pct+"%");
+        });
+        jumpButton(jumpBar,"CHARACTER",()->
+            scroll.post(()->scroll.smoothScrollTo(0,root.getChildAt(playerSection).getTop())));
+        jumpButton(jumpBar,"WORLD TEST",()->
+            scroll.post(()->scroll.smoothScrollTo(0,root.getChildAt(worldSection).getTop())));
+        jumpButton(jumpBar,"ACTIONS",()->
+            scroll.post(()->scroll.smoothScrollTo(0,root.getChildAt(actionSection).getTop())));
+        AlertDialog dialog=new AlertDialog.Builder(this).setView(shell)
           .setPositiveButton("RETURN TO GAME",(d,w)->game.menuPause(false))
           .setOnCancelListener(d->game.menuPause(false)).create();
+        activeDialog[0]=dialog;
         dialog.setOnDismissListener(d->{game.menuPause(false);restoreFullscreenAfterShade();});
         dialog.show();
-        if(dialog.getWindow()!=null)dialog.getWindow().setLayout(
-                (int)(getResources().getDisplayMetrics().widthPixels*.70f),-1);
+        resizeSettingsWindow(dialog,windowW,windowH);
     }
     void captureGame(){
         if(game==null)return;
