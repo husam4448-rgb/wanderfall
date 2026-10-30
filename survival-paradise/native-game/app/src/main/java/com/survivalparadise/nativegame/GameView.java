@@ -219,7 +219,7 @@ public final class GameView extends View {
             return;
         }
         float kick=(!hostile&&x==playerX&&y==playerY&&recoilFX)?2.7f:0f;
-        float[] muzzle=Ballistics.muzzle(x,y,facing,dx,dy,.76f*scale,
+        float[] muzzle=Ballistics.rigMuzzle(x,y,facing,dx,dy,.76f*scale,
                 MX[weapon],MY[weapon],MAIN_X[weapon],MAIN_Y[weapon],kick);
         final float bx=muzzle[0],by=muzzle[1];
         int pellets=weapon==7?5:1;
@@ -483,13 +483,20 @@ public final class GameView extends View {
         if(body!=null)atlas(c,body,frame*260,0,0,0,s);
         if(!bandit){
             c.save();
-            float pivotX=(MAIN_X[weapon]-70)*s,pivotY=(MAIN_Y[weapon]-136)*s;
+            // Parent pivot is the CHARACTER'S torso center (constant across all weapons).
+            // The approved weapon, main hand and support hand remain rigid sibling
+            // sprites: one translation to an in-reach chest grip, then one shared rotation.
+            final float pivotX=(Ballistics.TORSO_X-70f)*s;
+            final float pivotY=(Ballistics.TORSO_Y-136f)*s;
+            final float offsetX=(Ballistics.GRIP_X-MAIN_X[weapon])*s;
+            final float offsetY=(Ballistics.GRIP_Y-MAIN_Y[weapon])*s;
             c.translate(pivotX-kick,pivotY);
-            // A full 180-degree right arc or full 180-degree left arc, not the old +/-20 degrees.
-            c.rotate(aimRotation?aimAng*180/(float)Math.PI:0);
+            c.rotate(aimRotation?aimAng*180f/(float)Math.PI:0f);
             c.translate(-pivotX,-pivotY);
+            c.translate(offsetX,offsetY);
             if(showWeapons){
-                if(weapon==11&&approvedAxe!=null)drawApprovedAxe(c,pivotX,pivotY,scale);
+                if(weapon==11&&approvedAxe!=null)
+                    drawApprovedAxe(c,(MAIN_X[weapon]-70f)*s,(MAIN_Y[weapon]-136f)*s,scale);
                 else atlas(c,gear,weapon*260,0,0,0,s);
             }
             if(showHands){
@@ -497,8 +504,11 @@ public final class GameView extends View {
                 handAtlas(c,weapon,1,0,0,s,handScale,support);
             }
             if(anchors){
-                rect(c,pivotX-3,pivotY-3,6,6,0xffb9e9cf);
-                if(OFF_X[weapon]>0)rect(c,(OFF_X[weapon]-70+support)*s-3,(OFF_Y[weapon]-136)*s-3,6,6,0xffb9e9cf);
+                // Debug the torso parent + the attached contact points separately.
+                rect(c,pivotX-offsetX-3,pivotY-offsetY-3,6,6,0xff6ccde1);
+                rect(c,(MAIN_X[weapon]-70f)*s-3,(MAIN_Y[weapon]-136f)*s-3,6,6,0xffb9e9cf);
+                if(OFF_X[weapon]>0)rect(c,(OFF_X[weapon]-70f+support)*s-3,
+                    (OFF_Y[weapon]-136f)*s-3,6,6,0xffe9cc8c);
             }
             c.restore();
         }else{
