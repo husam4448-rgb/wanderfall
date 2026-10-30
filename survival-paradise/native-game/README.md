@@ -1,3 +1,16 @@
+# V44 — Original Character Identity + User Walk Silhouettes
+
+**This corrects the V43 visual regression.**
+
+- Native Android game uses the last accepted V41 character/weapon implementation, including V40 breathing idle and V39 planted feet.
+- The user's transparent 800x260 four-frame sheet is a GEOMETRY REFERENCE ONLY, not an appearance or palette replacement.
+- All pixels in the V41 character atlas y=0-109, including hair, face, skin, eyes, shirt and their black outlines, are EXACTLY IDENTICAL in all four V44 walking poses. No new head or torso art.
+- Only the bottom three logical silhouette rows (legs, lower pants, boots) follow the uploaded four-frame outline. Visible fills use exclusively original V41 colors: approved olive trousers, brown boots, and original black outlines.
+- A separate derived atlas `approved_v44_walk_palette.png` keeps original idle source PNG (`body.png`) untouched. V43's red shirt/blue trousers/skin palette is excluded.
+- Character hit detection follows the visible V44 outline during walking and original V41 atlas during idle.
+- V36 torso-relative weapons, both hands, mirrored aim, muzzle effects, fast bullets, approved axe, NPC behavior and controls remain intact.
+- CI includes per-pixel identity and approved-palette audits, plus Android APK checks. Physical-device verification remains pending.
+
 # V41 — Mirrored Facing and Accurate Hitboxes
 
 - Rifle pitch is side-independent: when a character turns left/right, the full weapon-hand assembly mirrors horizontally at its original elevation, never jumping to 90° vertical.
