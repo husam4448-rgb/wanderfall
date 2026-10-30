@@ -70,6 +70,7 @@ public final class GameView extends View {
     float viewW=1200,viewH=660,drawScale=1,camX=0,camY=0;
     int leftPointer=-1,rightPointer=-1,firePointer=-1;
     boolean runHeld=false,crouchHeld=false,dualTorch=true;
+    float fireButtonX=0,fireButtonY=0,fireButtonSize=1f;
     boolean firing=false,moving=false;
     // V54.1: old control geometry remains default; test UI can tune it live.
     float movePadScale=1f,aimPadScale=1f,moveSensitivity=1f,aimSensitivity=1f;
@@ -195,11 +196,14 @@ public final class GameView extends View {
         aimSensitivity=host.setting("aimSensitivity",100)/100f;
         controlOpacity=host.setting("controlOpacity",100);
         dualTorch=host.option("dualTorch",true);
+        fireButtonX=host.setting("fireButtonX",0);
+        fireButtonY=host.setting("fireButtonY",0);
+        fireButtonSize=host.setting("fireButtonSize",100)/100f;
         zoom=host.setting("cameraZoom",100)/100f;
         showPerf=host.option("testPerf",true);
         showChunkGrid=host.option("testChunkGrid",false);
         npcSleepRadius=host.setting("npcSleepRadius",1200);
-        lighting.setPixelScale(host.setting("lightResolution",100)/100f);
+        lighting.setPixelScale(host.setting("lightResolution",150)/100f);
         terrainChunks.setLimits(host.setting("testCacheMax",36),
                                 host.setting("testPreloadRadius",2));
         showHands=host.option("hands",true);
@@ -766,13 +770,20 @@ public final class GameView extends View {
                     .76f*scale,MX[3],MY[3],MAIN_X[3],MAIN_Y[3],0f);
                 lighting.flashlight(tip[0],tip[1],aimX,aimY,flashlightReach);
             }
-            for(Survivor f:friends)if(f.gun==3||(dualTorch&&f.gun<=2)){
+            int npcFlashlightBudget=2;
+            for(Survivor f:friends)if((f.gun==3||(dualTorch&&f.gun<=2))&&
+                    npcFlashlightBudget>0&&
+                    WorldPerfV55.nearView(f.x,f.y,camX,camY,viewW,viewH,flashlightReach)){
+                npcFlashlightBudget--;
                 float[] tip=Ballistics.rigMuzzle(f.x,f.y,f.face,f.aimX,f.aimY,
                     .76f*scale,MX[3],MY[3],MAIN_X[3],MAIN_Y[3],0f);
                 lighting.flashlight(tip[0],tip[1],f.aimX,f.aimY,flashlightReach);
             }
             // Camp flashlights face their actual NPC walking/facing direction.
-            for(Survivor f:campStaff)if(f.gun==3||(dualTorch&&f.gun<=2)){
+            for(Survivor f:campStaff)if((f.gun==3||(dualTorch&&f.gun<=2))&&
+                    npcFlashlightBudget>0&&
+                    WorldPerfV55.nearView(f.x,f.y,camX,camY,viewW,viewH,flashlightReach)){
+                npcFlashlightBudget--;
                 float fx=f.face<0?-1f:1f;
                 float[] tip=Ballistics.rigMuzzle(f.x,f.y,f.face,fx,0f,
                         .76f*scale,MX[3],MY[3],MAIN_X[3],MAIN_Y[3],0f);
@@ -1194,7 +1205,8 @@ public final class GameView extends View {
         color((alpha<<24)|0x00f2deb0);
         c.drawCircle(rx+aimX*39*aimPadScale,ry+aimY*39*aimPadScale,11*aimPadScale,p);
         label(c,"AIM",rx-20,ry+6,18,WHITE,true);
-        btn(c,viewW-352,viewH-268,105,47,firing?"FIRING":"FIRE",0xff755048);
+        btn(c,fireLeft(),fireTop(),fireWidth(),fireHeight(),
+                firing?"FIRING":"FIRE",0xff755048);
         btn(c,viewW-475,viewH-160,103,44,runHeld?"RUNNING":"RUN",0xff36584e);
         btn(c,viewW-475,viewH-105,103,44,crouchHeld?"CROUCHED":"CROUCH",0xff36504e);
         btn(c,viewW/2-57,viewH-98,114,44,"USE",0xff426051);
@@ -1306,6 +1318,10 @@ public final class GameView extends View {
 
         }else {stickX=dx;stickY=dy;}
     }
+    float fireWidth(){return 105f*fireButtonSize;}
+    float fireHeight(){return 47f*fireButtonSize;}
+    float fireLeft(){return viewW-352f+fireButtonX;}
+    float fireTop(){return viewH-268f+fireButtonY;}
     boolean within(float x,float y,float left,float top,float width,float height){
         return x>=left&&x<=left+width&&y>=top&&y<=top+height;
     }
@@ -1354,7 +1370,7 @@ public final class GameView extends View {
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_POINTER_DOWN:
                 if(!playing||paused||y<58){tap(x,y);return true;}
-                if(within(x,y,viewW-352,viewH-268,105,47)){
+                if(within(x,y,fireLeft(),fireTop(),fireWidth(),fireHeight())){
                     if(firePointer<0){firePointer=id;firing=true;}return true;
                 }
                 if(within(x,y,viewW-475,viewH-160,103,44)){
