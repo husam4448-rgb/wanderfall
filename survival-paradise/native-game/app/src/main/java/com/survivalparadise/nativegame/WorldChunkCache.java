@@ -139,8 +139,10 @@ public final class WorldChunkCache {
         // Exact deterministic colors while a fresh texture renders in background.
         for(int y=0;y<N;y++)for(int x=0;x<N;x++){
             int gx=cx*N+x,gy=cy*N+y;
-            tile(canvas,terrainPaint,gx,gy,gx,gy,
-                 TILE,1,campX,campY);
+            // UI-thread fallback stays cheap while an async detailed texture
+            // renders. 36 subtiles here caused first-entry FPS spikes.
+            rect(canvas,terrainPaint,gx*TILE,gy*TILE,TILE,TILE,
+                 WorldChunkModel.groundColor(gx,gy,campX,campY));
         }
     }
     public void draw(Canvas canvas,float camX,float camY,float width,float height){
