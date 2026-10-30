@@ -1,3 +1,12 @@
+# V49 — Calibrated Muzzle Tips, Bullet Lighting, Flashlight Lens and Campfires
+
+- **Flashlight:** The original approved pixel sprite has a yellow lens baked in. A lens-only overlay now draws grey when OFF and amber when ON in *both DAY and NIGHT*. Only the tiny lens overlay changes; approved source atlas untouched.
+- **Barrels:** Gun muzzle origin coordinates calibrated directly from original 3120x480 weapon sprite alpha data (at the actual barrel ends, not beneath the receiver). Projectiles, muzzle flash and lighting use the same Ballistics.rigMuzzle.
+- **Bullet lights:** Each moving projectile casts a warm, localized pool of light over the scenery at night, including its recent trail. The existing shadow system respects opaque obstructions. Limit: 18 active onscreen projectiles for mobile performance.
+- **Campfire:** Added stone hearth, crossed wooden logs, glowing coal bed, flickering layered amber/yellow flames, rising embers and low-opacity world-shaded smoke. Retains V47 dynamic warm terrain illumination. OFF shows unlit charcoal/wood.
+- **Preserved:** V48 walk stabilization, V47 solar clock and aim lock, V46 Samsung fullscreen, all V44 sprites and V41 projectile hitboxes. Original approved body, walk, gear and axe files remain untouched.
+- Automated per-weapon alpha geometry and Android tests; on-device visual/performance verification pending.
+
 # V48 — Stabilized Walk Body Pivot
 
 - Root cause: the user-approved four walking frames have head/torso origins at x=16, 20, 24 and 20 within their individual 260-pixel cells. Rendering all frames with the same world origin caused visible forward/backward wobble.
