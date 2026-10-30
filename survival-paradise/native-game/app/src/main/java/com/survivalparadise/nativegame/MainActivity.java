@@ -105,7 +105,9 @@ public final class MainActivity extends Activity {
     int setting(String key,int def){return prefs.getInt(key,def);}
     boolean option(String key,boolean def){return prefs.getBoolean(key,def);}
     private TextView text(String s,int sp,boolean bold){
-        TextView t=new TextView(this);t.setText(s);t.setTextSize(sp);t.setTextColor(INK);
+        TextView t=new TextView(this);t.setText(s);
+        t.setTextSize(sp*Math.max(.75f,Math.min(1.55f,prefs.getInt("menuTextSize",100)/100f)));
+        t.setTextColor(INK);
         if(bold)t.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
         t.setPadding(11,10,11,6);return t;
     }
@@ -118,12 +120,23 @@ public final class MainActivity extends Activity {
     }
     private void slider(LinearLayout root,String label,String key,int min,int max,int def,String suffix){
         LinearLayout box=column();
+        int density=prefs.getInt("menuRowSpacing",100);
+        box.setPadding(6,Math.max(1,density/35),6,Math.max(1,density/35));
         TextView value=text("",14,false);
         box.addView(value);
+        LinearLayout track=new LinearLayout(this);
+        track.setOrientation(LinearLayout.HORIZONTAL);
+        TextView left=text("↕",16,true),right=text("↕",16,true);
+        left.setGravity(Gravity.CENTER);right.setGravity(Gravity.CENTER);
+        int gutter=Math.max(46,Math.round(getResources().getDisplayMetrics().density*54));
+        track.addView(left,new LinearLayout.LayoutParams(gutter,-1));
         SeekBar bar=new SeekBar(this);bar.setMax(max-min);
+        bar.setScaleY(prefs.getInt("menuSliderSize",100)/100f);
         bar.setProgress(Math.max(0,Math.min(max-min,prefs.getInt(key,def)-min)));
+        track.addView(bar,new LinearLayout.LayoutParams(0,-2,1));
+        track.addView(right,new LinearLayout.LayoutParams(gutter,-1));
         value.setText(label+"   "+(min+bar.getProgress())+suffix);
-        box.addView(bar);
+        box.addView(track);
         bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
             public void onProgressChanged(SeekBar s,int progress,boolean fromUser){
                 int number=min+progress;value.setText(label+"   "+number+suffix);
@@ -132,6 +145,7 @@ public final class MainActivity extends Activity {
             public void onStartTrackingTouch(SeekBar s){}
             public void onStopTrackingTouch(SeekBar s){}
         });
+        // Touching only the central track edits; wide margins remain free to scroll.
         root.addView(box);
     }
     private void check(LinearLayout root,String title,String key,boolean def){
@@ -209,12 +223,35 @@ public final class MainActivity extends Activity {
         scroll.setVerticalScrollBarEnabled(true);
         scroll.setScrollbarFadingEnabled(false);
         scroll.setFillViewport(false);
-        LinearLayout root=column();scroll.addView(root);
+        LinearLayout root=column();
+        // Permanent outer touch gutters, separate from EVERY slider's touch target.
+        LinearLayout frame=new LinearLayout(this);frame.setOrientation(LinearLayout.HORIZONTAL);
+        TextView leftRail=text("↕",22,true),rightRail=text("↕",22,true);
+        leftRail.setGravity(Gravity.CENTER);rightRail.setGravity(Gravity.CENTER);
+        int railPx=Math.round(getResources().getDisplayMetrics().density*38);
+        frame.addView(leftRail,new LinearLayout.LayoutParams(railPx,-1));
+        frame.addView(root,new LinearLayout.LayoutParams(0,-2,1f));
+        frame.addView(rightRail,new LinearLayout.LayoutParams(railPx,-1));
+        scroll.addView(frame);
+        final android.view.View.OnTouchListener railScroll=(v,e)->{
+            switch(e.getActionMasked()){
+                case android.view.MotionEvent.ACTION_DOWN:
+                    v.setTag(Float.valueOf(e.getRawY()));return true;
+                case android.view.MotionEvent.ACTION_MOVE:
+                    float old=((Float)v.getTag()).floatValue();
+                    float now=e.getRawY();
+                    scroll.scrollBy(0,Math.round(old-now));v.setTag(Float.valueOf(now));return true;
+                case android.view.MotionEvent.ACTION_UP:
+                case android.view.MotionEvent.ACTION_CANCEL:return true;
+            }
+            return true;
+        };
+        leftRail.setOnTouchListener(railScroll);rightRail.setOnTouchListener(railScroll);
         final LinearLayout jumpBar=new LinearLayout(this);
         jumpBar.setOrientation(LinearLayout.HORIZONTAL);
         shell.addView(jumpBar);
         shell.addView(scroll,new LinearLayout.LayoutParams(-1,0,1f));
-        section(root,"SURVIVAL PARADISE  •  V56 APPROVED CHARACTER TEST");
+        section(root,"SURVIVAL PARADISE  •  V57 HYBRID DEVELOPMENT TEST");
         root.addView(text("Controls apply to the playable game, and save automatically.",13,false));
         final int playerSection=root.getChildCount();
         section(root,"PLAYER AND COMBAT");
@@ -238,6 +275,7 @@ public final class MainActivity extends Activity {
             }
         });
         section(root,"GAMEPLAY AND APPEARANCE");
+        check(root,"Flashlight in off-hand with pistol / revolver / UZI","dualTorch",true);
         check(root,"Show hands","hands",true);
         check(root,"Show weapons","weapons",true);
         check(root,"Grip anchors","anchors",false);
@@ -262,12 +300,17 @@ public final class MainActivity extends Activity {
         check(root,"Show FPS, player coordinates, NPC and chunk diagnostics","testPerf",true);
         check(root,"Show loaded chunk grid and coordinates","testChunkGrid",false);
         section(root,"CAMERA AND TOUCH CONTROLS");
+        root.addView(text("RIGHT STICK AIMS ONLY • FIRE is now a separate hold button.",14,true));
         slider(root,"Camera zoom","cameraZoom",70,180,100,"%");
         slider(root,"Movement joystick size","movePadSize",70,150,100,"%");
         slider(root,"Aiming joystick size","aimPadSize",70,150,100,"%");
         slider(root,"Movement joystick sensitivity","moveSensitivity",50,160,100,"%");
         slider(root,"Aiming joystick sensitivity","aimSensitivity",50,160,100,"%");
         slider(root,"Joystick transparency / opacity","controlOpacity",25,100,100,"%");
+        section(root,"SETTINGS LAYOUT  •  LIVE (reopen to apply sizes)");
+        slider(root,"Settings text size","menuTextSize",75,155,100,"%");
+        slider(root,"Settings slider thickness","menuSliderSize",65,160,100,"%");
+        slider(root,"Settings row spacing","menuRowSpacing",50,180,100,"%");
         section(root,"CHUNK ENGINE  •  LIVE SETTINGS");
         slider(root,"Distant NPC sleep radius","npcSleepRadius",600,2400,1200," px");
         slider(root,"Lighting performance (100 = original quality)",
@@ -314,7 +357,9 @@ public final class MainActivity extends Activity {
               .putInt("aimSensitivity",100).putInt("controlOpacity",100)
               .putInt("testCacheMax",36).putInt("testPreloadRadius",2)
               .putInt("npcSleepRadius",1200).putInt("lightResolution",100)
-              .putInt("testWindowWidth",96).putInt("testWindowHeight",94).apply();
+              .putInt("testWindowWidth",96).putInt("testWindowHeight",94)
+              .putInt("menuTextSize",100).putInt("menuSliderSize",100)
+              .putInt("menuRowSpacing",100).putBoolean("dualTorch",true).apply();
             wSize.setProgress(96-65);hSize.setProgress(94-65);
             resizeSettingsWindow(activeDialog[0],96,94);
             game.reloadSettings();applyImmersive();
