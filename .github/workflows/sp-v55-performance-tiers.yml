@@ -261,9 +261,9 @@ jobs:
           set -eu
           ROOT=survival-paradise/native-game
           mkdir -p /tmp/sp-v55-tests
-          javac -d /tmp/sp-v55-tests \\
-            "$ROOT/app/src/main/java/com/survivalparadise/nativegame/WorldChunkModel.java" \\
-            "$ROOT/app/src/main/java/com/survivalparadise/nativegame/WorldPerfV55.java" \\
+          javac -d /tmp/sp-v55-tests \
+            "$ROOT/app/src/main/java/com/survivalparadise/nativegame/WorldChunkModel.java" \
+            "$ROOT/app/src/main/java/com/survivalparadise/nativegame/WorldPerfV55.java" \
             "$ROOT/tools/V55PerformanceTest.java"
           java -cp /tmp/sp-v55-tests com.survivalparadise.nativegame.V55PerformanceTest
       - name: Prepare Android SDK and Gradle
