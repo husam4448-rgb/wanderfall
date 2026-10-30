@@ -35,8 +35,11 @@ public final class CharacterCollision {
         final float s=BASE_SCALE*characterScale;
         final int f=walking?Math.max(0,Math.min(3,walkingFrame)):STANDING_FRAME;
         final int face=facing<0?-1:1;
-        float l=actorX+face*(SOURCE_LEFT-ANCHOR_X)*s;
-        float r=actorX+face*(SOURCE_RIGHT-ANCHOR_X)*s;
+        // V56 rendering applies the previously approved V48 x-offset to the
+        // original walk frame. Collision follows the same render-only transform.
+        final float visibleX=actorX+(walking?WalkAlignmentV48.worldOffsetX(f,face,characterScale):0f);
+        float l=visibleX+face*(SOURCE_LEFT-ANCHOR_X)*s;
+        float r=visibleX+face*(SOURCE_RIGHT-ANCHOR_X)*s;
         float top=actorY+(SOURCE_TOP-ANCHOR_Y+Math.min(0,breath))*s-HIT_RADIUS;
         float bottom=actorY+(SOURCE_BOTTOM-ANCHOR_Y)*s+HIT_RADIUS;
         float minX=Math.min(l,r)-HIT_RADIUS,maxX=Math.max(l,r)+HIT_RADIUS;
@@ -57,11 +60,11 @@ public final class CharacterCollision {
                 continue;
             }
             entered=true;
-            if(opaqueAt(xx,yy,actorX,actorY,face,f,walking,breath,s,atlas) ||
-               opaqueAt(xx-HIT_RADIUS,yy,actorX,actorY,face,f,walking,breath,s,atlas) ||
-               opaqueAt(xx+HIT_RADIUS,yy,actorX,actorY,face,f,walking,breath,s,atlas) ||
-               opaqueAt(xx,yy-HIT_RADIUS,actorX,actorY,face,f,walking,breath,s,atlas) ||
-               opaqueAt(xx,yy+HIT_RADIUS,actorX,actorY,face,f,walking,breath,s,atlas)){
+            if(opaqueAt(xx,yy,visibleX,actorY,face,f,walking,breath,s,atlas) ||
+               opaqueAt(xx-HIT_RADIUS,yy,visibleX,actorY,face,f,walking,breath,s,atlas) ||
+               opaqueAt(xx+HIT_RADIUS,yy,visibleX,actorY,face,f,walking,breath,s,atlas) ||
+               opaqueAt(xx,yy-HIT_RADIUS,visibleX,actorY,face,f,walking,breath,s,atlas) ||
+               opaqueAt(xx,yy+HIT_RADIUS,visibleX,actorY,face,f,walking,breath,s,atlas)){
                 return tt;
             }
             if(tt>=1f)break;
