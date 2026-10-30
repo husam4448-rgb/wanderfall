@@ -1,3 +1,13 @@
+# V35 Native Gameplay Correction
+
+- Full 360° aim coverage: 180° right stance plus 180° left stance. Weapon and independent hand attachments rotate together around the approved grip pivot.
+- Weapon-specific ballistic speeds: pistol 2050 px/s, rifle 2850–3100 px/s, sniper 3950 px/s. Grenade launcher 1450 px/s for distinct heavy-projectile feel.
+- All muzzle flashes and bullets originate from each weapon's **transformed barrel-end anchor**, including mirrored and vertically aimed weapons.
+- Continuous swept collision prevents high-speed projectiles from tunneling through targets and solid obstacles.
+- Tracers are shorter, with brief muzzle flashes; firing cadence and approved non-axe art preserved.
+- Axe overlay extracted from the approved V29 screenshot and saved as a separate transparent PNG. The locked V31 body/gear atlas hashes are unchanged.
+- The APK is a native Java Android game, not an HTML/WebView simulation. Real-device QA remains pending.
+
 # SURVIVAL PARADISE — Native Android Game V34 (Playable Alpha)
 
 **This is a native Android game, NOT an HTML simulation in a WebView.**
