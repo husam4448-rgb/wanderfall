@@ -27,7 +27,7 @@ public final class GameView extends View {
     final MainActivity host;
     final Paint p=new Paint();
     final Paint pixel=new Paint(Paint.ANTI_ALIAS_FLAG==0?0:0);
-    Bitmap body,gear,approvedAxe;
+    Bitmap body,approvedWalkColors,gear,approvedAxe;
     final Random rng=new Random(14901);
     static final float H=660, WORLD_W=3200, WORLD_H=2200;
     static final int[] RANGES={250,265,220,0,430,415,395,325,650,435,330,74};
@@ -60,6 +60,9 @@ public final class GameView extends View {
     final CharacterCollision.PixelMask bodyMask=(x,y)->body!=null &&
             x>=0&&y>=0&&x<body.getWidth()&&y<body.getHeight() &&
             (body.getPixel(x,y)>>>24)!=0;
+    final CharacterCollision.PixelMask walkMask=(x,y)->approvedWalkColors!=null &&
+            x>=0&&y>=0&&x<approvedWalkColors.getWidth()&&y<approvedWalkColors.getHeight() &&
+            (approvedWalkColors.getPixel(x,y)>>>24)!=0;
     final ArrayList<Bandit> enemies=new ArrayList<>();
     final ArrayList<Survivor> friends=new ArrayList<>();
     final ArrayList<Shot> shots=new ArrayList<>();
@@ -98,6 +101,15 @@ public final class GameView extends View {
         try(InputStream bs=getResources().getAssets().open("body.png");
             InputStream gs=getResources().getAssets().open("gear.png")){
             body=BitmapFactory.decodeStream(bs);gear=BitmapFactory.decodeStream(gs);
+            // The V44 walk atlas uses ONLY original V41 colors and upper-body
+            // pixels. User's reference contributes the 4 lower-leg OUTLINES,
+            // not its red/blue/skin palette. Idle always uses unchanged body.png.
+            try(InputStream walk=getResources().getAssets().open("approved_v44_walk_palette.png")){
+                approvedWalkColors=BitmapFactory.decodeStream(walk);
+                if(approvedWalkColors==null||approvedWalkColors.getWidth()!=1040||
+                   approvedWalkColors.getHeight()!=160)
+                    throw new IllegalStateException("V44 color-locked walking atlas invalid");
+            }
             try(InputStream axe=getResources().getAssets().open("approved_v29_axe.png")){
                 approvedAxe=BitmapFactory.decodeStream(axe);
             }
@@ -370,13 +382,15 @@ public final class GameView extends View {
             if(bullet.hostile){
                 float t=CharacterCollision.firstHit(bullet.x,bullet.y,nx,ny,
                         playerX,playerY,face,playerAnimation.frame(),
-                        playerAnimation.isWalking(),playerAnimation.breathOffset(),scale,bodyMask);
+                        playerAnimation.isWalking(),playerAnimation.breathOffset(),scale,
+                        playerAnimation.isWalking()?walkMask:bodyMask);
                 if(t<first){first=t;victim=null;hitPlayer=true;hitCover=false;}
             }else{
                 for(Bandit e:enemies)if(e.active){
                     float t=CharacterCollision.firstHit(bullet.x,bullet.y,nx,ny,
                             e.x,e.y,e.face,e.animation.frame(),
-                            e.animation.isWalking(),e.animation.breathOffset(),scale,bodyMask);
+                            e.animation.isWalking(),e.animation.breathOffset(),scale,
+                            e.animation.isWalking()?walkMask:bodyMask);
                     if(t<first){first=t;victim=e;hitPlayer=false;hitCover=false;}
                 }
             }
@@ -536,12 +550,14 @@ public final class GameView extends View {
     void character(Canvas c,float x,float y,int weapon,int facing,int frame,float breath,float aimAng,float kick,
                    boolean player,boolean bandit){
         float s=.76f*scale;
-        // Walking frames are untouched. Idle receives a separate three-phase
-        // breathing offset. It never advances through walking frames.
+        // Approved character identity/palette preserved for ALL frames; V44 uses
+        // original torso/head pixels with user's four WALK OUTLINES only.
+        // The original approved idle/breathing animation is unchanged.
         c.save();c.translate(x,y);if(facing<0)c.scale(-1,1);
         color(0x670b1a18);c.drawOval(-26*s,-7*s,26*s,7*s,p);
         if(body!=null){
-            if(breath==Float.POSITIVE_INFINITY)atlas(c,body,frame*260,0,0,0,s);
+            if(breath==Float.POSITIVE_INFINITY)
+                atlas(c,approvedWalkColors!=null?approvedWalkColors:body,frame*260,0,0,0,s);
             else idleBody(c,frame,s,breath);
         }
         if(!bandit){
@@ -679,7 +695,7 @@ public final class GameView extends View {
     void menu(Canvas c){
         rounded(c,viewW/2-300,viewH/2-200,600,398,20,0xef14272b);
         label(c,"SURVIVAL PARADISE",viewW/2-254,viewH/2-115,34,WHITE,true);
-        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 41",
+        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 44",
                 viewW/2-254,viewH/2-80,15,OLIVE,true);
         label(c,"Move with the left stick. Aim & fire with the right.",viewW/2-254,viewH/2-40,15,WHITE,false);
         label(c,"Explore the world, fight bandits, and collect supplies.",viewW/2-254,viewH/2-15,15,WHITE,false);
