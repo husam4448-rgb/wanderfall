@@ -7,7 +7,7 @@ android {
   minSdk 24
   targetSdk 34
   versionCode 44
-  versionName '0.41-native-mirror-hitboxes'
+  versionName '0.44-walk-outline-only'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
