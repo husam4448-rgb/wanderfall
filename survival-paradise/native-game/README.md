@@ -1,3 +1,13 @@
+# V52 — Exact Original Idle Restoration (Corrects V51 Regression)
+
+- **Root cause:** V51 substituted generated stable_v51_body frame 2 for idle, altering 657 canonical pixels. This was not approved and must not be used for idle.
+- **Player idle:** Original immutable body.png frame 2, with exactly the approved V40/V50 split: body rows 92–159 stationary, head rows 0–100 shift 0/-4 original source pixels. No black-outline patches, no relabeled or reconstructed idle images.
+- **NPC idle:** Build npc_idle_v52.png by applying each existing approved NPC role palette to the SAME original body.png planted frame 2. Each of 12 roles has identical original alpha mask and unique approved colors.
+- **Walking:** V51 four-frame stabilized walk atlas and all approved NPC variants are unchanged. Head alignment stays normalized ONLY during actual walking.
+- **Retained:** V51 world camp and patches, revised fire, V50 support-hand height, V49 lights/muzzle, V47 aim/solar cycle, V46 fullscreen.
+- **Testing:** Source frame hashes, original full alpha and head-only offset test, all 12 NPC idle mask checks, exact GIF output generated directly from the original body.png. Existing walk NPC and terrain tests plus actual Android build.
+- No physical-device test claimed.
+
 # V51 — Stable Face, Approved Role NPCs, Restored Spawn Camp and Procedural Patches
 
 - All idle and walking poses now use the **same fixed approved head/front-face image** and one genuinely consistent 9px front contour. V50's per-frame black inset is deleted; frame correction occurs in a separately derived atlas, NEVER by modifying the approved source. Idle shifts only the head up/down, and feet remain planted. Automated GIFs are generated from the exact game atlases.
