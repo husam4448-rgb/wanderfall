@@ -1,3 +1,14 @@
+# V47 — Directional Shadows, Locked Aim and Continuous Solar Time
+
+- Every night light (flashlight, campfire, neon sign and streetlamp) casts occlusion-aware shadows behind buildings, crates, trees, the player, NPCs and allies. Character blockers follow the approved head, torso and boots geometry, leaving the directly lit side illuminated. Colored light obeys the same shadows.
+- The RIGHT aim joystick now solely controls aiming/facing. Releasing it keeps the last direction; the LEFT stick only moves the character and never reorients the weapon or changes its aim. No enemy auto-aim on right-stick release.
+- Fully automatic continuous day/night progression, by default one full game day in 36 real minutes (configurable 12–120 minutes). Smooth dawn 04:30–07:00 and dusk 17:30–20:00. No sudden lighting jumps when advancing time naturally.
+- Current clock time and game day appear on the HUD. The NOON / NIGHT button jumps temporarily for lighting tests, with the automatic cycle continuing afterward. The clock/aim persist with normal game saves.
+- Manual night mode is retained as an option when the automatic cycle is disabled.
+- Approved V44 characters and weapons, V39 idle feet, V40 breathing, V41 precise hitboxes and V46 native fullscreen behavior are unchanged.
+- Optimized low-resolution software lightmap filters nearby occluders by light radius before ray testing. Pure Java tests verify shadow direction, front-face lighting and solar continuity.
+- Native Android Gradle build verification and real-device performance testing are separate: full physical-device lighting/FPS validation remains pending.
+
 # V46 — Fix missing night lights and Samsung notification-bar fullscreen
 
 - **Root causes:** V45 defaulted to DAY, disabling its entire night lighting renderer; the old DST_OUT shader path was hardware/driver sensitive. Fullscreen flags were applied only on app startup/settings changes, not on returning from Android notification shade.
