@@ -998,3 +998,16 @@ public final class GameView extends View {
                     if(pointer==rightPointer)updateStick(px,py,true);
                 }return true;
             case MotionEvent.ACTION_POINTER_UP:
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:
+                if(id==leftPointer||action==MotionEvent.ACTION_CANCEL){
+                    leftPointer=-1;stopWalking();
+                }
+                if(id==rightPointer||action==MotionEvent.ACTION_CANCEL){
+                    rightPointer=-1;firing=false;
+                }
+                return true;
+        }
+        return true;
+    }
+}
