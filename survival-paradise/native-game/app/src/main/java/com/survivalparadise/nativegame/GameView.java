@@ -842,7 +842,10 @@ public final class GameView extends View {
                 }
             }
         }
-        for(Cover box:covers)drawCover(c,box);
+        for(Cover box:covers)
+            if(box.x+box.w>=camX-15&&box.x<=camX+viewW+15&&
+               box.y+box.h>=camY-15&&box.y<=camY+viewH+15)
+                drawCover(c,box);
         drawSpawnCamp(c);
     }
     void drawSpawnCamp(Canvas c){
@@ -1008,13 +1011,16 @@ public final class GameView extends View {
         terrain(c);
         drawFixtures(c,false);
         for(Drop d:drops){
+            if(!WorldPerfV55.nearView(d.x,d.y,camX,camY,viewW,viewH,24))continue;
             float bob=(float)Math.sin(worldTimer*5+d.x)*2;
             rect(c,d.x-9,d.y-13+bob,18,16,DK);
             rect(c,d.x-7,d.y-11+bob,14,12,d.type==2?0xffd7e2d7:d.type==1?0xff8e9b9d:ORANGE);
             if(d.type==2){rect(c,d.x-1,d.y-9+bob,3,9,RED);rect(c,d.x-5,d.y-6+bob,11,3,RED);}
         }
         ArrayList<DrawEntity> order=new ArrayList<>();
+        lastVisibleNpcs=0;lastCulledNpcs=0;
         for(float[] fire:FIXED_CAMPFIRES){
+            if(!WorldPerfV55.nearView(fire[0],fire[1],camX,camY,viewW,viewH,155))continue;
             final float fx=fire[0],fy=fire[1];
             order.add(new DrawEntity(fy,()->{
                 drawCampfire(c,fx,fy,false);
@@ -1022,29 +1028,48 @@ public final class GameView extends View {
             }));
         }
         for(float[] fire:builtCampfires){
+            if(!WorldPerfV55.nearView(fire[0],fire[1],camX,camY,viewW,viewH,155))continue;
             final float fx=fire[0],fy=fire[1];
             order.add(new DrawEntity(fy,()->{
                 drawCampfire(c,fx,fy,false);
                 drawCampfire(c,fx,fy,true);
             }));
         }
-        for(Bandit e:enemies)if(e.active)order.add(new DrawEntity(e.y,()->{
+        for(Bandit e:enemies)if(e.active){
+            if(!WorldPerfV55.nearView(e.x,e.y,camX,camY,viewW,viewH,180)){
+                lastCulledNpcs++;continue;
+            }
+            lastVisibleNpcs++;
+            order.add(new DrawEntity(e.y,()->{
             character(c,e.x,e.y,0,e.face,e.animation.frame(),
                     e.animation.isWalking()?Float.POSITIVE_INFINITY:e.animation.breathOffset(),
                     0,0,false,true,e.variant);
             rect(c,e.x-23,e.y-114,46,5,DK);rect(c,e.x-22,e.y-113,44*clamp(e.hp/78,0,1),3,RED);
         }));
-        for(Survivor f:friends)order.add(new DrawEntity(f.y,()->{
+        }
+        for(Survivor f:friends){
+            if(!WorldPerfV55.nearView(f.x,f.y,camX,camY,viewW,viewH,180)){
+                lastCulledNpcs++;continue;
+            }
+            lastVisibleNpcs++;
+            order.add(new DrawEntity(f.y,()->{
             character(c,f.x,f.y,f.gun,f.face,f.animation.frame(),
                     f.animation.isWalking()?Float.POSITIVE_INFINITY:f.animation.breathOffset(),
                     Ballistics.angle(f.aimX,f.aimY,f.face),0,false,false,f.variant);
             rect(c,f.x-5,f.y-117,10,4,OLIVE);
         }));
-        for(Survivor npc:campStaff)order.add(new DrawEntity(npc.y,()->{
+        }
+        for(Survivor npc:campStaff){
+            if(!WorldPerfV55.nearView(npc.x,npc.y,camX,camY,viewW,viewH,180)){
+                lastCulledNpcs++;continue;
+            }
+            lastVisibleNpcs++;
+            order.add(new DrawEntity(npc.y,()->{
             character(c,npc.x,npc.y,npc.gun,npc.face,npc.animation.frame(),
                 npc.animation.isWalking()?Float.POSITIVE_INFINITY:npc.animation.breathOffset(),
                 0,0,false,false,npc.variant);
         }));
+        }
         order.add(new DrawEntity(playerY,()->{
             float angle=Ballistics.angle(aimX,aimY,face);
             character(c,playerX,playerY,gun,face,playerAnimation.frame(),
@@ -1054,6 +1079,8 @@ public final class GameView extends View {
         order.sort((a,b)->Float.compare(a.y,b.y));
         for(DrawEntity e:order)e.draw.run();
         for(Shot projectile:shots){
+            if(!WorldPerfV55.nearView(projectile.x,projectile.y,
+                    camX,camY,viewW,viewH,25))continue;
             // Short, subtle tracer instead of slow glowing projectile blocks.
             float inv=1f/Math.max(1f,(float)Math.hypot(projectile.vx,projectile.vy));
             float vx=projectile.vx*inv,vy=projectile.vy*inv;
@@ -1063,13 +1090,16 @@ public final class GameView extends View {
             rect(c,projectile.x-1,projectile.y-1,3,3,WHITE);
         }
         for(Flash flash:flashes){
+            if(!WorldPerfV55.nearView(flash.x,flash.y,camX,camY,viewW,viewH,32))continue;
             float alpha=clamp(flash.ttl/.065f,0,1),length=18*alpha;
             color(0xffffdf95);p.setStrokeWidth(Math.max(1.5f,3f*alpha));
             c.drawLine(flash.x,flash.y,flash.x+flash.dx*length,
                     flash.y+flash.dy*length,p);
             rect(c,flash.x-2,flash.y-2,4,4,0xfffff7cf);
         }
-        for(Spark s:sparks)rect(c,s.x,s.y,4,4,s.color);
+        for(Spark s:sparks)if(
+            WorldPerfV55.nearView(s.x,s.y,camX,camY,viewW,viewH,10))
+                rect(c,s.x,s.y,4,4,s.color);
         // Last pass darkens the *entire* world, including all characters,
         // equipment, projectiles and props; real lights punch through this mask.
         if(lightAlpha>0)applyWorldLighting(c);else drawFixtures(c,true);
@@ -1132,20 +1162,20 @@ public final class GameView extends View {
             rounded(c,10,62,348,68,8,0xe41a3033);
             label(c,String.format(Locale.US,"FPS %.1f  %.1fms  NPC %d",
                 1000f/Math.max(1f,smoothedFrameMs),smoothedFrameMs,
-                enemies.size()+friends.size()+campStaff.size()),
+                lastVisibleNpcs),
                 18,82,14,WHITE,true);
             label(c,String.format(Locale.US,"CHUNK %d,%d   CACHE %d/%d  JOBS %d",
                 WorldChunkModel.chunkIndex(playerX),WorldChunkModel.chunkIndex(playerY),
                 terrainChunks.residentCount(),terrainChunks.residentLimit(),
                 terrainChunks.pendingCount()),18,102,13,OLIVE,false);
-            label(c,String.format(Locale.US,"WORLD %.0f, %.0f | BUILT %d",
-                playerX,playerY,terrainChunks.generated),18,120,12,ORANGE,false);
+            label(c,String.format(Locale.US,"WORLD %.0f, %.0f | CULLED %d",
+                playerX,playerY,lastCulledNpcs),18,120,12,ORANGE,false);
         }
     }
     void menu(Canvas c){
         rounded(c,viewW/2-300,viewH/2-200,600,398,20,0xef14272b);
         label(c,"SURVIVAL PARADISE",viewW/2-254,viewH/2-115,34,WHITE,true);
-        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 54.1 TEST",
+        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 55 TEST",
                 viewW/2-254,viewH/2-80,15,OLIVE,true);
         label(c,"Move with the left stick. Aim & fire with the right.",viewW/2-254,viewH/2-40,15,WHITE,false);
         label(c,"Explore the world, fight bandits, and collect supplies.",viewW/2-254,viewH/2-15,15,WHITE,false);
