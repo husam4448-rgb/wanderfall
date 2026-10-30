@@ -181,7 +181,7 @@ public final class GameView extends View {
         aimSensitivity=host.setting("aimSensitivity",100)/100f;
         controlOpacity=host.setting("controlOpacity",100);
         zoom=host.setting("cameraZoom",100)/100f;
-        showPerf=host.option("testPerf",false);
+        showPerf=host.option("testPerf",true);
         showChunkGrid=host.option("testChunkGrid",false);
         terrainChunks.setLimits(host.setting("testCacheMax",36),
                                 host.setting("testPreloadRadius",2));
