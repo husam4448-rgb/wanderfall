@@ -1335,6 +1335,15 @@ public final class GameView extends View {
         if(paused)return;
         if(within(x,y,viewW-348,viewH-160,103,44)){switchWeapon();return;}
         if(within(x,y,viewW-348,viewH-105,103,44)){reload();return;}
+        if(within(x,y,viewW/2-57,viewH-152,114,44)){shoot(playerX,playerY,
+                aimX,aimY,11,false,face);return;}
+        if(within(x,y,viewW/2-57,viewH-98,114,44)){
+            for(Drop drop:drops)if(distance(playerX,playerY,drop.x,drop.y)<100f){
+                if(drop.type==0)ammoPacks++;else if(drop.type==1)scrap+=2;else medkits++;
+                drops.remove(drop);break;
+            }
+            return;
+        }
         if(x<viewW*.37f&&y>viewH*.45f)return;
         if(x>viewW*.61f&&y>viewH*.42f)return;
     }
@@ -1344,16 +1353,25 @@ public final class GameView extends View {
         switch(action){
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_POINTER_DOWN:
-                if(!playing||paused||y<58||within(x,y,viewW-348,viewH-165,114,111)){
+                if(!playing||paused||y<58){tap(x,y);return true;}
+                if(within(x,y,viewW-352,viewH-268,105,47)){
+                    if(firePointer<0){firePointer=id;firing=true;}return true;
+                }
+                if(within(x,y,viewW-475,viewH-160,103,44)){
+                    runHeld=!runHeld;return true;
+                }
+                if(within(x,y,viewW-475,viewH-105,103,44)){
+                    crouchHeld=!crouchHeld;return true;
+                }
+                if(within(x,y,viewW-348,viewH-165,114,111)||
+                   within(x,y,viewW/2-57,viewH-152,114,98)){
                     tap(x,y);return true;
                 }
-                if(x<viewW*.42f&&y>viewH*.48f&&leftPointer<0){
+                if(x<viewW*.40f&&y>viewH*.47f&&leftPointer<0){
                     leftPointer=id;updateStick(x,y,false);return true;
                 }
-                if(x>viewW*.56f&&y>viewH*.45f&&rightPointer<0){
-                    rightPointer=id;
-                    firing=gun!=3;
-                    updateStick(x,y,true);return true;
+                if(x>viewW*.64f&&y>viewH*.47f&&rightPointer<0){
+                    rightPointer=id;updateStick(x,y,true);return true;
                 }
                 tap(x,y);return true;
             case MotionEvent.ACTION_MOVE:
@@ -1370,8 +1388,10 @@ public final class GameView extends View {
                 if(id==leftPointer||action==MotionEvent.ACTION_CANCEL){
                     leftPointer=-1;stopWalking();
                 }
-                if(id==rightPointer||action==MotionEvent.ACTION_CANCEL){
-                    rightPointer=-1;firing=false;
+                if(id==rightPointer||action==MotionEvent.ACTION_CANCEL)
+                    rightPointer=-1;
+                if(id==firePointer||action==MotionEvent.ACTION_CANCEL){
+                    firePointer=-1;firing=false;
                 }
                 return true;
         }
