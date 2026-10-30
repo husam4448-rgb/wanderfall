@@ -156,7 +156,8 @@ public final class MainActivity extends Activity {
         section(root,"PLAYER AND COMBAT");
         slider(root,"Character display size","scale",65,135,100,"%");
         slider(root,"Hand size (independent)","hand",60,145,100,"%");
-        slider(root,"Support hand reach","support",-12,24,0," px");
+        slider(root,"Support hand horizontal reach","support",-12,24,0," px");
+        slider(root,"Support hand vertical offset","supportY",-24,24,0," px");
         slider(root,"Simulation speed","speed",50,200,100,"%");
         slider(root,"Survivors (including player)","survivors",1,9,1,"");
         root.addView(text("Equipped weapon",14,true));
@@ -194,7 +195,7 @@ public final class MainActivity extends Activity {
         action(root,"Save game now",()->{game.saveProgress();Toast.makeText(this,"Game saved",Toast.LENGTH_SHORT).show();});
         action(root,"Take screenshot",()->captureGame());
         action(root,"Restore default settings",()->{
-            prefs.edit().putInt("scale",100).putInt("hand",100).putInt("support",0)
+            prefs.edit().putInt("scale",100).putInt("hand",100).putInt("support",0).putInt("supportY",0)
               .putInt("speed",100).putInt("survivors",1).putInt("gun",0)
               .putBoolean("hands",true).putBoolean("weapons",true).putBoolean("anchors",false)
               .putBoolean("hitboxes",false).putBoolean("enemyAI",true).putBoolean("aimRotation",true)
