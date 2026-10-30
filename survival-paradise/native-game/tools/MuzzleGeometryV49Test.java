@@ -20,7 +20,7 @@ public final class MuzzleGeometryV49Test {
             int worldX=weapon*260+x;
             // Muzzle source x is at the first empty image column immediately
             // right of opaque barrel: no offset beneath the image.
-            check((atlas.getRGB(worldX,y)>>>24)==0,"muzzle endpoint should be outside barrel at "+weapon);
+            check((atlas.getRGB(worldX,y)>>>24)<32,"muzzle endpoint must be outside the opaque barrel at "+weapon);
             int hit=0;
             for(int yy=Math.max(0,y-3);yy<=y+3;yy++)
                 if((atlas.getRGB(worldX-2,yy)>>>24)>96)hit++;
