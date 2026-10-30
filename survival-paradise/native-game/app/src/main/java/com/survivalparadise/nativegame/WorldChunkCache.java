@@ -71,16 +71,25 @@ public final class WorldChunkCache {
     }
     private static void tile(Canvas canvas,Paint p,int gx,int gy,int tx,int ty,
                              int pixelsPerTile,int scale,int campX,int campY){
-        int color=WorldChunkModel.groundColor(gx,gy,campX,campY);
+        float baseX=tx*(float)pixelsPerTile,baseY=ty*(float)pixelsPerTile;
+        final int subdivisions=6;
+        float cell=pixelsPerTile/(float)subdivisions;
+        // Subtile colors sample world coordinates; no hard square patch seams.
+        for(int sy=0;sy<subdivisions;sy++)for(int sx=0;sx<subdivisions;sx++){
+            float worldX=gx*TILE+(sx+.5f)*TILE/subdivisions;
+            float worldY=gy*TILE+(sy+.5f)*TILE/subdivisions;
+            int tint=WorldChunkModel.groundColorAt(worldX,worldY,campX,campY);
+            rect(canvas,p,baseX+sx*cell,baseY+sy*cell,cell+.07f,cell+.07f,tint);
+        }
+        // Small, irregular old-world grass, leaf and soil details stay on tile.
         int h=WorldChunkModel.tileDetail(gx,gy);
-        float x=tx*(float)pixelsPerTile,y=ty*(float)pixelsPerTile;
-        rect(canvas,p,x,y,pixelsPerTile,pixelsPerTile,color);
         float fx=(10+(h&17))/(float)scale;
-        rect(canvas,p,x+fx,y+30f/scale,Math.max(1,4f/scale),Math.max(1,3f/scale),0xff60745c);
+        rect(canvas,p,baseX+fx,baseY+30f/scale,Math.max(1,3f/scale),
+                Math.max(1,3f/scale),((h&4)!=0)?0xff72805e:0xff4b6848);
         if((h&15)==1){
-            rect(canvas,p,x+33f/scale,y+52f/scale,Math.max(1,7f/scale),
-                 Math.max(1,5f/scale),0xff647a61);
-            rect(canvas,p,x+41f/scale,y+46f/scale,1,Math.max(1,6f/scale),0xff557156);
+            rect(canvas,p,baseX+33f/scale,baseY+52f/scale,Math.max(1,7f/scale),
+                 Math.max(1,4f/scale),0xff566d51);
+            rect(canvas,p,baseX+41f/scale,baseY+46f/scale,1,Math.max(1,6f/scale),0xff61734d);
         }
     }
     private Chunk build(int cx,int cy){
