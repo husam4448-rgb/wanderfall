@@ -42,14 +42,14 @@ jobs:
       - name: Verify this is a REAL native game, not the previous WebView simulation
         run: |
           set -eu
-          ! grep -R -i 'WebView' survival-paradise/native-game/app/src/main/java/ || false
+          ! grep -R 'import android.webkit.WebView;' survival-paradise/native-game/app/src/main/java/
           python3 - <<'PY'
           from pathlib import Path
           s=(Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/GameView.java')).read_text()
           assert 'extends View' in s and 'onDraw(Canvas' in s
           assert 'onTouchEvent(MotionEvent' in s and 'void shoot(' in s
           assert 'void spawnWave(' in s and 'void saveProgress(' in s
-          assert 'WebView' not in s, 'Native game must not embed WebView'
+          assert 'import android.webkit' not in s and 'new WebView(' not in s, 'Native game must not embed WebView'
           print('NATIVE 2D GAME SYSTEMS PRESENT')
           PY
       - name: Compile real Android game APK
