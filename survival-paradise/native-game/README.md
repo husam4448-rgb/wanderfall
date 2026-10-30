@@ -1,3 +1,13 @@
+# V46 — Fix missing night lights and Samsung notification-bar fullscreen
+
+- **Root causes:** V45 defaulted to DAY, disabling its entire night lighting renderer; the old DST_OUT shader path was hardware/driver sensitive. Fullscreen flags were applied only on app startup/settings changes, not on returning from Android notification shade.
+- V46 switches existing installations to NIGHT once (user can switch back using the new top HUD **DAY/NIGHT** button). A separate **LAMP ON/OFF** button and native Settings beam reach remain.
+- A deterministic low-resolution CPU-generated ARGB lightmap applies darkness to **every part of the world including player/NPC sprites and weapons**; flashlight cuts a directional, wall-occluded beam into the darkness; warm campfires and colored building neon reveal surrounding terrain and characters.
+- No DST_OUT shader or GPU-specific erase mode is needed to reveal light. Updated scene lightmaps include campfires, streetlights, signs, AI flashlight holders and muzzle flashes.
+- Android API 30+ uses WindowInsetsController to hide status/navigation bars with swipe-transient behavior; immersive mode is re-applied whenever focus returns from the notification shade and after dialogs or resuming. Older devices retain sticky immersive flags.
+- Saved games/settings, native game behavior, V44 character art/weapon gear, animation, collision and gameplay remain intact.
+- Pure-Java illumination/occlusion regression and native APK compilation run in CI. Physical-device performance/visual verification still pending.
+
 # V45 — Shared Night Shading and Real Light Sources
 
 - **Unified darkness:** a single low-resolution world-space darkness layer is applied AFTER the terrain, player, NPCs, dropped objects and equipment; no character self-illumination.
