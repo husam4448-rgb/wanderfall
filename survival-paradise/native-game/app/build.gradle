@@ -6,8 +6,8 @@ android {
   applicationId 'com.survivalparadise.nativegame'
   minSdk 24
   targetSdk 34
-  versionCode 44
-  versionName '0.44-walk-outline-only'
+  versionCode 45
+  versionName '0.45-native-lighting'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
