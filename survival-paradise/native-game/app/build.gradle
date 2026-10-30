@@ -6,8 +6,8 @@ android {
   applicationId 'com.survivalparadise.nativegame'
   minSdk 24
   targetSdk 34
-  versionCode 53
-  versionName '0.53-unbounded-world-palette'
+  versionCode 54
+  versionName '0.54-chunk-streaming'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
