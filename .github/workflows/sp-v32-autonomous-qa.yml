@@ -37,7 +37,7 @@ jobs:
       - name: Encode 12-weapon gameplay preview GIF
         if: success()
         run: |
-          ffmpeg -y -hide_banner -loglevel error -framerate 4 -i artifacts/frames/frame%02d.png -vf "fps=5,scale=960:-1:flags=neighbor" -loop 0 artifacts/Survival_Paradise_V32_Weapons.gif
+          ffmpeg -y -hide_banner -loglevel error -framerate 4 -i artifacts/frames/frame%02d.png -filter_complex "[0:v]fps=4,scale=960:-1:flags=neighbor,split[a][b];[a]palettegen=stats_mode=full[p];[b][p]paletteuse=dither=none" -loop 0 artifacts/Survival_Paradise_V32_Weapons.gif
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -49,6 +49,7 @@ jobs:
             artifacts/Survival_Paradise_V32_Android_Viewport.png
             artifacts/Survival_Paradise_V32_Weapons.gif
             artifacts/V32_QA_Report.json
+            artifacts/frames/
           if-no-files-found: warn
           retention-days: 30
 
