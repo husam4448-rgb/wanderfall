@@ -34,8 +34,8 @@ public final class GameView extends View {
     static final int[] MAG={12,6,28,1,30,30,28,6,5,75,8,1};
     static final float[] RATES={.35f,.54f,.14f,999,.13f,.19f,.2f,.68f,1.35f,.095f,.95f,.58f};
     static final int[] POWER={23,37,12,0,15,20,19,46,110,11,78,52};
-    static final float[] MX={147,171,154,129,220,215,213,225,238,228,216,183};
-    static final float[] MY={79,73,75,88,75,78,72,80,74,72,71,92};
+    static final float[] MX=MuzzleGeometryV49.X;
+    static final float[] MY=MuzzleGeometryV49.Y;
     static final float[] MAIN_X={103,103,103,97,102,101,101,101,101,102,101,102};
     static final float[] MAIN_Y={76,75,76,78,77,77,77,77,77,77,77,81};
     static final float[] OFF_X={0,0,0,0,135,146,148,151,145,149,141,0};
@@ -539,17 +539,69 @@ public final class GameView extends View {
         }
     }
     void drawCampfire(Canvas c,float x,float y,boolean emissive){
+        // Pixel-art campfire: stone hearth, crossed firewood, glowing coals,
+        // asynchronous layered flame tongues, small embers, subtle smoke.
+        // No sprite assets are edited; all layers use world-space coordinates.
+        float a=(float)Math.sin(worldTimer*7.2f+x*.013f);
+        float b=(float)Math.sin(worldTimer*11.8f+y*.037f);
         if(!emissive){
-            rect(c,x-18,y+3,39,9,0xff1b2625);
-            rect(c,x-15,y+1,30,6,0xff6e5542);
-            rect(c,x-13,y+3,27,3,0xff3e3025);
-            rect(c,x-5,y-4,12,7,0xffb06537);
+            rect(c,x-23,y+6,47,8,0xff192323); // ash shadow under stones
+            rect(c,x-22,y+4,9,7,0xff66645b);
+            rect(c,x-18,y+2,6,3,0xff9b9884);
+            rect(c,x-11,y+9,10,6,0xff777366);
+            rect(c,x+3,y+9,11,6,0xff625f57);
+            rect(c,x+15,y+3,9,8,0xff6c6962);
+            rect(c,x+17,y+4,5,2,0xffada996);
+            rect(c,x-11,y+2,22,9,0xff342922); // embers inside the hearth
+            if(campfiresLit){
+                rect(c,x-10,y+5,20,4,0xff973e1e);
+                rect(c,x-7,y+5,5,3,0xffd55e28);
+                rect(c,x+2,y+6,6,2,0xffc9652b);
+                // Two diagonal bundles of logs on an 8-bit grid.
+                for(int i=0;i<5;i++){
+                    rect(c,x-20+i*8,y+7-i*2,9,5,0xff603c29);
+                    rect(c,x-18+i*8,y+8-i*2,5,2,0xffa07443);
+                    rect(c,x+12-i*7,y-1+i*2,9,5,0xff6d4126);
+                    rect(c,x+14-i*7,y+i*2,4,2,0xffa47c4d);
+                }
+            }else{
+                rect(c,x-17,y+5,34,5,0xff54473c);
+            }
+            // Semi-transparent smoke belongs to the world: it darkens naturally
+            // with the rest of the scene at night, never glows in isolation.
+            if(campfiresLit){
+                float drift=(float)Math.sin(worldTimer*1.6f+x*.02f)*4f;
+                rect(c,x-5+drift,y-34,8,5,0x445c6461);
+                rect(c,x-9-drift*.5f,y-48,6,4,0x2d7b8179);
+            }
         }else if(campfiresLit){
-            float flicker=(float)Math.sin(worldTimer*9f+x)*2;
-            rect(c,x-7,y-15-flicker,14,15,0xffff9a3a);
-            rect(c,x-3,y-19-flicker,7,17,0xffffd269);
-            rect(c,x-2,y-13-flicker,4,10,0xfffff0b5);
+            float h1=18f+a*4f,h2=15f+b*3f;
+            // Dark orange edge, amber body, lively yellow center.
+            rect(c,x-13,y-9,25,13,0xffa9431d);
+            rect(c,x-11,y-14-h1*.25f,8,20+h1*.25f,0xffed6d24);
+            rect(c,x+4,y-13-h2*.33f,8,17+h2*.33f,0xffd95a1b);
+            rect(c,x-8,y-11-h1*.70f,11,16+h1*.70f,0xffff9b31);
+            rect(c,x-2,y-13-h2*.72f,9,16+h2*.72f,0xffffc34f);
+            rect(c,x-4,y-12-h1*.47f,6,12+h1*.47f,0xffffe588);
+            rect(c,x-1,y-9,3,13,0xfffff0b1);
+            // Small independent rising fire sparks, never an enormous torch.
+            for(int i=0;i<3;i++){
+                float drift=(float)Math.sin(worldTimer*2.7f+i*2.8f+x*.05f)*5f;
+                float phase=(worldTimer*(12f+i*2f)+i*17f+x*.11f)%48f;
+                rect(c,x-8+i*8+drift,y-8-phase,2.5f,3f,
+                    i==1?0xffffdd77:0xfff79a3d);
+            }
         }
+    }
+    // Flashlight lens color is always tied to the lamp's actual ON/OFF state.
+    // Its immutable original artwork is untouched; a small lens-only overlay
+    // covers the atlas' baked-in yellow glow both in DAY and in NIGHT.
+    void drawFlashlightLens(Canvas c,float s){
+        rect(c,(121f-70f)*s,(80f-136f)*s,8*s,17*s,0xff222c30);
+        rect(c,(123f-70f)*s,(82f-136f)*s,5*s,13*s,
+                lampOn?0xfff1ba53:0xff62696e);
+        rect(c,(125f-70f)*s,(85f-136f)*s,2*s,7*s,
+                lampOn?0xfffff0b1:0xff434c52);
     }
     void addCharacterShadow(float x,float y){
         float s=scale;
@@ -600,6 +652,19 @@ public final class GameView extends View {
         }
         for(Flash f:flashes)if(f.ttl>0)
             lighting.point(f.x,f.y,90,Math.min(1f,f.ttl/.065f),0xffffedb3);
+        // Actual traveling projectiles cast moving pools of warm illumination.
+        // Keep an explicit cap so continuous automatic fire does not overwhelm
+        // the mobile CPU lightmap; each pool also respects world occluders.
+        int illuminatedBullets=0;
+        for(Shot projectile:shots){
+            if(illuminatedBullets>=18)break;
+            if(projectile.x<camX-85||projectile.x>camX+viewW+85||
+               projectile.y<camY-85||projectile.y>camY+viewH+85)continue;
+            lighting.point(projectile.x,projectile.y,66,.87f,projectile.color);
+            lighting.point(projectile.x-projectile.vx*.009f,
+                           projectile.y-projectile.vy*.009f,40,.43f,projectile.color);
+            illuminatedBullets++;
+        }
         lighting.render(c,camX,camY,viewW,viewH,lightAlpha,covers);
         // Only lamps and flames emit after darkness; people do NOT self-illuminate.
         drawFixtures(c,true);
@@ -755,6 +820,7 @@ public final class GameView extends View {
                 if(weapon==11&&approvedAxe!=null)
                     drawApprovedAxe(c,(MAIN_X[weapon]-70f)*s,(MAIN_Y[weapon]-136f)*s,scale);
                 else atlas(c,gear,weapon*260,0,0,0,s);
+                if(weapon==3)drawFlashlightLens(c,s);
             }
             if(showHands){
                 handAtlas(c,weapon,2,0,0,s,handScale,0);
@@ -876,7 +942,7 @@ public final class GameView extends View {
     void menu(Canvas c){
         rounded(c,viewW/2-300,viewH/2-200,600,398,20,0xef14272b);
         label(c,"SURVIVAL PARADISE",viewW/2-254,viewH/2-115,34,WHITE,true);
-        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 48",
+        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 49",
                 viewW/2-254,viewH/2-80,15,OLIVE,true);
         label(c,"Move with the left stick. Aim & fire with the right.",viewW/2-254,viewH/2-40,15,WHITE,false);
         label(c,"Explore the world, fight bandits, and collect supplies.",viewW/2-254,viewH/2-15,15,WHITE,false);
