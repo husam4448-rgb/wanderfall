@@ -70,6 +70,12 @@ public final class GameView extends View {
     float viewW=1200,viewH=660,drawScale=1,camX=0,camY=0;
     int leftPointer=-1,rightPointer=-1;
     boolean firing=false,moving=false;
+    // V54.1: old control geometry remains default; test UI can tune it live.
+    float movePadScale=1f,aimPadScale=1f,moveSensitivity=1f,aimSensitivity=1f;
+    int controlOpacity=100;
+    boolean showPerf=false,showChunkGrid=false;
+    float smoothedFrameMs=16.67f;
+    long drawFrames=0;
     final AnimationCycle playerAnimation=new AnimationCycle();
     // Keep projectile collision against the exact approved atlas alpha, not an
     // unrelated circle near the characters' feet.
@@ -169,6 +175,16 @@ public final class GameView extends View {
         support=host.setting("support",0);
         supportVertical=host.setting("supportY",0);
         timeSpeed=host.setting("speed",100)/100f;
+        movePadScale=host.setting("movePadSize",100)/100f;
+        aimPadScale=host.setting("aimPadSize",100)/100f;
+        moveSensitivity=host.setting("moveSensitivity",100)/100f;
+        aimSensitivity=host.setting("aimSensitivity",100)/100f;
+        controlOpacity=host.setting("controlOpacity",100);
+        zoom=host.setting("cameraZoom",100)/100f;
+        showPerf=host.option("testPerf",false);
+        showChunkGrid=host.option("testChunkGrid",false);
+        terrainChunks.setLimits(host.setting("testCacheMax",36),
+                                host.setting("testPreloadRadius",2));
         showHands=host.option("hands",true);
         showWeapons=host.option("weapons",true);
         anchors=host.option("anchors",false);
@@ -319,6 +335,22 @@ public final class GameView extends View {
     void togglePause(){if(!playing)return;paused=!paused;
         if(paused)stopWalking();saveProgress();invalidate();}
     void stopWalking(){stickX=0;stickY=0;moving=false;playerAnimation.reset();}
+    boolean debugTeleport(float dx,float dy){
+        if(!playing||gameOver)return false;
+        releaseControls();playerX+=dx;playerY+=dy;
+        shots.clear();flashes.clear();sparks.clear();
+        saveProgress();invalidate();return true;
+    }
+    String testStats(){
+        return String.format(Locale.US,
+          "FPS %.1f | Frame %.1f ms | World (%.0f, %.0f) | Chunk (%d, %d)\\n" +
+          "Terrain cache %d/%d | Generated %d | Queued %d | Hits %d | Misses %d",
+          1000f/Math.max(1f,smoothedFrameMs),smoothedFrameMs,playerX,playerY,
+          WorldChunkModel.chunkIndex(playerX),WorldChunkModel.chunkIndex(playerY),
+          terrainChunks.residentCount(),terrainChunks.residentLimit(),
+          terrainChunks.generated,terrainChunks.pendingCount(),
+          terrainChunks.cacheHits,terrainChunks.cacheMisses);
+    }
     void releaseControls(){stopWalking();firing=false;leftPointer=-1;rightPointer=-1;}
     void switchWeapon(){
         gun=(gun+1)%12;ammo=MAG[gun];reloadClock=0;
@@ -1015,7 +1047,20 @@ public final class GameView extends View {
         // Last pass darkens the *entire* world, including all characters,
         // equipment, projectiles and props; real lights punch through this mask.
         if(lightAlpha>0)applyWorldLighting(c);else drawFixtures(c,true);
+        if(showChunkGrid)drawChunkGrid(c);
         c.restore();
+    }
+    void drawChunkGrid(Canvas c){
+        final int unit=WorldChunkModel.CHUNK_SIZE;
+        int x0=WorldChunkModel.chunkIndex(camX),y0=WorldChunkModel.chunkIndex(camY);
+        int x1=WorldChunkModel.chunkIndex(camX+viewW)+1;
+        int y1=WorldChunkModel.chunkIndex(camY+viewH)+1;
+        color(0x99c8efbb);
+        p.setStrokeWidth(2f);
+        for(int x=x0;x<=x1;x++)c.drawLine(x*(float)unit,camY,x*(float)unit,camY+viewH,p);
+        for(int y=y0;y<=y1;y++)c.drawLine(camX,y*(float)unit,camX+viewW,y*(float)unit,p);
+        for(int y=y0;y<y1;y++)for(int x=x0;x<x1;x++)
+            label(c,"("+x+","+y+")",x*unit+12f,y*unit+24f,15,0xffbde5c8,false);
     }
     static class DrawEntity {float y;Runnable draw;DrawEntity(float y,Runnable r){this.y=y;draw=r;}}
     void btn(Canvas c,float x,float y,float w,float h,String label,int fill){
@@ -1038,23 +1083,43 @@ public final class GameView extends View {
                 "   "+MainActivity.LOADOUTS[gun]+"  "+clock.display()+
                 (automaticDayNight?" [AUTO]":" [MANUAL]"),
                 14,viewH-16,14,ORANGE,true);
-        // Independent touch controls, never an autonomous-only simulation.
+        // Original two virtual sticks, with per-stick size/sensitivity tests.
         float jy=viewH-140,rx=viewW-118,ry=viewH-145;
-        color(0x663e625a);c.drawCircle(120,jy,86,p);
-        color(0x9b96b8a5);c.drawCircle(120+stickX*46,jy+stickY*46,31,p);
-        color(0x665b6f61);c.drawCircle(rx,ry,82,p);
-        color(0xaaaa9d71);c.drawCircle(rx,ry,52,p);
-        color(0xfff2deb0);c.drawCircle(rx+aimX*39,ry+aimY*39,11,p);
+        float leftRadius=86*movePadScale,rightRadius=82*aimPadScale;
+        int alpha=Math.round(255f*Math.max(25,Math.min(100,controlOpacity))/100f);
+        color((alpha*0x66/255<<24)|0x003e625a);
+        c.drawCircle(120,jy,leftRadius,p);
+        color((alpha*0x9b/255<<24)|0x0096b8a5);
+        c.drawCircle(120+stickX*46*movePadScale,jy+stickY*46*movePadScale,31*movePadScale,p);
+        color((alpha*0x66/255<<24)|0x005b6f61);
+        c.drawCircle(rx,ry,rightRadius,p);
+        color((alpha*0xaa/255<<24)|0x00aa9d71);
+        c.drawCircle(rx,ry,52*aimPadScale,p);
+        color((alpha<<24)|0x00f2deb0);
+        c.drawCircle(rx+aimX*39*aimPadScale,ry+aimY*39*aimPadScale,11*aimPadScale,p);
         label(c,gun==3?"AIM":"FIRE",rx-20,ry+6,19,WHITE,true);
         btn(c,viewW-348,viewH-105,103,44,"RELOAD",0xff344e51);
         btn(c,viewW-348,viewH-160,103,44,"SWAP",0xff344e51);
         label(c,"MOVE",81,viewH-30,12,0xffb8d4c5,true);
         if(reloadClock>0)label(c,"RELOADING...",viewW-235,viewH-227,17,ORANGE,true);
+        if(showPerf){
+            rounded(c,10,62,348,68,8,0xe41a3033);
+            label(c,String.format(Locale.US,"FPS %.1f  %.1fms  NPC %d",
+                1000f/Math.max(1f,smoothedFrameMs),smoothedFrameMs,
+                enemies.size()+friends.size()+campStaff.size()),
+                18,82,14,WHITE,true);
+            label(c,String.format(Locale.US,"CHUNK %d,%d   CACHE %d/%d  JOBS %d",
+                WorldChunkModel.chunkIndex(playerX),WorldChunkModel.chunkIndex(playerY),
+                terrainChunks.residentCount(),terrainChunks.residentLimit(),
+                terrainChunks.pendingCount()),18,102,13,OLIVE,false);
+            label(c,String.format(Locale.US,"WORLD %.0f, %.0f | BUILT %d",
+                playerX,playerY,terrainChunks.generated),18,120,12,ORANGE,false);
+        }
     }
     void menu(Canvas c){
         rounded(c,viewW/2-300,viewH/2-200,600,398,20,0xef14272b);
         label(c,"SURVIVAL PARADISE",viewW/2-254,viewH/2-115,34,WHITE,true);
-        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 54",
+        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 54.1 TEST",
                 viewW/2-254,viewH/2-80,15,OLIVE,true);
         label(c,"Move with the left stick. Aim & fire with the right.",viewW/2-254,viewH/2-40,15,WHITE,false);
         label(c,"Explore the world, fight bandits, and collect supplies.",viewW/2-254,viewH/2-15,15,WHITE,false);
@@ -1079,6 +1144,11 @@ public final class GameView extends View {
     @Override protected void onDraw(Canvas canvas){
         super.onDraw(canvas);
         long now=System.nanoTime();float dt=lastFrame==0?0:(now-lastFrame)/1e9f;lastFrame=now;
+        if(dt>0&&dt<.5f){
+            float rawMs=dt*1000f;
+            smoothedFrameMs=drawFrames==0?rawMs:smoothedFrameMs*.92f+rawMs*.08f;
+            drawFrames++;
+        }
         drawScale=Math.max(.1f,getHeight()/H);
         viewW=getWidth()/drawScale;viewH=H;
         update(dt);
@@ -1120,7 +1190,10 @@ public final class GameView extends View {
     }
     void updateStick(float x,float y,boolean right){
         float cx=right?viewW-118:120,cy=right?viewH-145:viewH-140;
-        float dx=(x-cx)/74,dy=(y-cy)/74;
+        float padSize=right?aimPadScale:movePadScale;
+        float sensitivity=right?aimSensitivity:moveSensitivity;
+        float dx=(x-cx)/(74*padSize)*sensitivity;
+        float dy=(y-cy)/(74*padSize)*sensitivity;
         float length=(float)Math.hypot(dx,dy);
         if(length>1){dx/=length;dy/=length;}
         if(right){
