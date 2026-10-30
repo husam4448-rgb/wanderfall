@@ -24,7 +24,7 @@ public final class WorldChunkModel {
         return ((long)cx<<32)|(cy&0xffffffffL);
     }
     public static int hash(int a,int b){
-        int k=a*73856093^b*19349663^(int)WORLD_SEED;
+        int k=a*73856093^b*19349663; // preserve V53 terrain exactly
         k^=k>>>13;k*=0x5bd1e995;
         return k^(k>>>15);
     }
