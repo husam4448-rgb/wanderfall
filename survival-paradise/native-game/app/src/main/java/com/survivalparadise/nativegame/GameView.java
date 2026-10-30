@@ -55,6 +55,11 @@ public final class GameView extends View {
     int leftPointer=-1,rightPointer=-1;
     boolean firing=false,moving=false;
     final AnimationCycle playerAnimation=new AnimationCycle();
+    // Keep projectile collision against the exact approved atlas alpha, not an
+    // unrelated circle near the characters' feet.
+    final CharacterCollision.PixelMask bodyMask=(x,y)->body!=null &&
+            x>=0&&y>=0&&x<body.getWidth()&&y<body.getHeight() &&
+            (body.getPixel(x,y)>>>24)!=0;
     final ArrayList<Bandit> enemies=new ArrayList<>();
     final ArrayList<Survivor> friends=new ArrayList<>();
     final ArrayList<Shot> shots=new ArrayList<>();
@@ -283,14 +288,22 @@ public final class GameView extends View {
             float ny=clamp(playerY+vy*speed*dt,50,WORLD_H-40);
             if(!blocked(nx,playerY,20))playerX=nx;
             if(!blocked(playerX,ny,20))playerY=ny;
-            if(!firing)face=vx>=0?1:-1;
+            if(!firing){
+                int nextFacing=vx>=0?1:-1;
+                if(face!=nextFacing){
+                    face=nextFacing;
+                    // Preserve the same elevation when simply turning around.
+                    // The rifle must mirror rather than jump toward vertical.
+                    aimX=face*Math.abs(aimX);
+                }
+            }
         }
         // Animate actual displacement only: releasing the stick or hitting a wall
         // always restores the original neutral idle frame immediately.
         moving=distance(playerX,playerY,wasX,wasY)>.001f;
         playerAnimation.step(moving,dt,7f);
         if(firing){
-            if(aimX>.1f)face=1;else if(aimX<-.1f)face=-1;
+            if(aimX>.025f)face=1;else if(aimX<-.025f)face=-1;
             if(shotClock<=0&&reloadClock==0){
                 if(ammo>0||gun==11||gun==3){
                     shoot(playerX,playerY,aimX,aimY,gun,false,face);
@@ -355,11 +368,15 @@ public final class GameView extends View {
                 if(t<first){first=t;victim=null;hitPlayer=false;hitCover=true;}
             }
             if(bullet.hostile){
-                float t=Ballistics.segmentCircle(bullet.x,bullet.y,nx,ny,playerX,playerY-28,32);
+                float t=CharacterCollision.firstHit(bullet.x,bullet.y,nx,ny,
+                        playerX,playerY,face,playerAnimation.frame(),
+                        playerAnimation.isWalking(),playerAnimation.breathOffset(),scale,bodyMask);
                 if(t<first){first=t;victim=null;hitPlayer=true;hitCover=false;}
             }else{
                 for(Bandit e:enemies)if(e.active){
-                    float t=Ballistics.segmentCircle(bullet.x,bullet.y,nx,ny,e.x,e.y-28,30);
+                    float t=CharacterCollision.firstHit(bullet.x,bullet.y,nx,ny,
+                            e.x,e.y,e.face,e.animation.frame(),
+                            e.animation.isWalking(),e.animation.breathOffset(),scale,bodyMask);
                     if(t<first){first=t;victim=e;hitPlayer=false;hitCover=false;}
                 }
             }
@@ -563,8 +580,17 @@ public final class GameView extends View {
             rect(c,-16*s,-100*s,27*s,5*s,RED);
             rect(c,-16*s,-90*s,12*s,5*s,0xffad5b52);
         }
-        if(hitboxes){color(bandit?RED:OLIVE);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(1);
-            c.drawRect(-23,-92,23,0,p);p.setStyle(Paint.Style.FILL);}
+        if(hitboxes){
+            // Debug rectangles track the original atlas head and body areas,
+            // including the breathing offset; no oversized arbitrary circle.
+            p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(1.2f);
+            color(RED);
+            float hb=breath==Float.POSITIVE_INFINITY?0:breath*s;
+            c.drawRect((15-70)*s,(19-136)*s+hb,(112-70)*s,(100-136)*s+hb,p);
+            color(OLIVE);
+            c.drawRect((15-70)*s,(92-136)*s,(113-70)*s,(138-136)*s,p);
+            p.setStyle(Paint.Style.FILL);
+        }
         c.restore();
     }
     void drawWorld(Canvas c){
@@ -653,7 +679,7 @@ public final class GameView extends View {
     void menu(Canvas c){
         rounded(c,viewW/2-300,viewH/2-200,600,398,20,0xef14272b);
         label(c,"SURVIVAL PARADISE",viewW/2-254,viewH/2-115,34,WHITE,true);
-        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 40",
+        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 41",
                 viewW/2-254,viewH/2-80,15,OLIVE,true);
         label(c,"Move with the left stick. Aim & fire with the right.",viewW/2-254,viewH/2-40,15,WHITE,false);
         label(c,"Explore the world, fight bandits, and collect supplies.",viewW/2-254,viewH/2-15,15,WHITE,false);
@@ -724,8 +750,9 @@ public final class GameView extends View {
             else{
                 Bandit closest=nearest(playerX,playerY,680);
                 if(closest!=null){float ax=closest.x-playerX,ay=closest.y-playerY;
-                    float d=(float)Math.hypot(ax,ay);aimX=ax/Math.max(1,d);aimY=ay/Math.max(1,d);}
-                else {aimX=face;aimY=0;}
+                    float d=(float)Math.hypot(ax,ay);aimX=ax/Math.max(1,d);aimY=ay/Math.max(1,d);
+                    if(aimX>.025f)face=1;else if(aimX<-.025f)face=-1;
+                } else {aimX=face;aimY=0;}
             }
         }else {stickX=dx;stickY=dy;}
     }
