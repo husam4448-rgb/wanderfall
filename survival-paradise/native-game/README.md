@@ -1,3 +1,15 @@
+# V45 — Shared Night Shading and Real Light Sources
+
+- **Unified darkness:** a single low-resolution world-space darkness layer is applied AFTER the terrain, player, NPCs, dropped objects and equipment; no character self-illumination.
+- **Hand flashlight:** weapon slot 4 (flashlight) emits a directional, movable 60-degree beam aligned with the approved grip/muzzle anchor; both facing directions and companions work. Cone rays stop at solid buildings and obstacles.
+- **Campfires:** several fixed fires and placeable fires cast softly flickering orange-yellow light. CAMP button spends 3 scrap to place a fire; position persists with saved game.
+- **Neon signs:** MARKET and MOTEL signs illuminate the surrounding world cyan/pink; nearby characters share those colors when lit.
+- **Streetlights and muzzle flashes:** small environmental light pools and instantaneous light bursts.
+- **Controls:** toggle Night and configure darkness, beam range, flashlight, campfires and neon from the native Settings menu. Use LAMP ON/OFF on the HUD; the right stick aims the flashlight when equipped.
+- **Performance:** light blending runs on a reusable low-resolution software mask, scaled to the screen, with ray-blocked flashlight cones. HUD is drawn after lighting and remains legible.
+- **Preservation:** V44 approved identity-colored walking, V40 breathing idle, V36 torso-relative weapons and V41 headshot collisions are not edited. Original PNG assets remain byte-for-byte unchanged.
+- **QA:** deterministic Java geometry tests and Android APK compilation. Physical device performance and screenshot verification remain pending.
+
 # V44 — Original Character Identity + User Walk Silhouettes
 
 **This corrects the V43 visual regression.**
