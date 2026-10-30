@@ -905,6 +905,35 @@ public final class GameView extends View {
         rect(c,x+212,y-5,9,80,0xff594832);
         rect(c,x+217,y-4,68,22,0xff797a54);
         label(c,"CAMP",x+223,y+12,13,0xffe1dbc2,true);
+        // Approved original camp remains. Add deterministic ground-level detail:
+        // old-world woodland, scattered stones, wooden supplies and shrubbery.
+        for(int k=0;k<38;k++){
+            int h=hash(k+203,319-k*7);
+            float px=x-400f+Math.floorMod(h,800);
+            float py=y-275f+Math.floorMod(h>>>9,560);
+            if(Math.abs(px-x)<130&&Math.abs(py-y)<125)continue;
+            if((h&3)==0){
+                rect(c,px-8,py+4,29,8,0xff364b34);
+                rect(c,px-2,py-5,20,17,0xff466946);
+                rect(c,px+4,py-11,14,12,0xff66845a);
+                if((h&31)==0)rect(c,px+7,py-1,4,4,0xffa76560);
+            }else if((h&3)==1){
+                rect(c,px-11,py,27,11,0xff3d5148);
+                rect(c,px-8,py-6,22,11,0xff758379);
+                rect(c,px+1,py-7,6,3,0xff9a9d80);
+            }else if((h&3)==2){
+                rect(c,px,py,58,11,0xff3c392b);
+                rect(c,px,py-8,58,9,0xff775b39);
+                rect(c,px+4,py-6,43,3,0xff9a7945);
+                rect(c,px+49,py-6,7,7,0xffbda078);
+            }else{
+                for(int q=0;q<5;q++){
+                    float ox=Math.floorMod(hash(k,q*7),28);
+                    float oy=Math.floorMod(hash(q,k*9),22);
+                    rect(c,px+ox,py+oy,4,3,q%2==0?0xffa39c66:0xff6f864f);
+                }
+            }
+        }
     }
     void drawCover(Canvas c,Cover box){
         float x=box.x,y=box.y,w=box.w,h=box.h;
