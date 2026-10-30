@@ -44,6 +44,25 @@ public final class AnimationCycleTest {
             player.step(false,.016f,7f);
             check(player.frame()==0,"stationary aiming/firing stays idle");
         }
-        System.out.println("V37 IDLE/WALK STATE TESTS PASS: player, companions and enemies");
+        // V38 regression: three visibly distinct breathing frames at idle.
+        // After a walk ends, the torso begins at neutral, rises and settles;
+        // the boots are rendered fixed by idleBody() and equipment shares offset.
+        AnimationCycle[] breathing={new AnimationCycle(),new AnimationCycle(),new AnimationCycle()};
+        for(AnimationCycle a:breathing){
+            check(a.idlePhase()==0&&a.breathOffset()==0f,"neutral idle begins at frame zero");
+            for(int i=0;i<45;i++)a.step(false,.016f,7f);
+            check(a.idlePhase()==1 && a.breathOffset()==-4f,"breathing inhale frame");
+            for(int i=0;i<41;i++)a.step(false,.016f,7f);
+            check(a.idlePhase()==2 && a.breathOffset()==-2f,"breathing exhale frame");
+            for(int i=0;i<41;i++)a.step(false,.016f,7f);
+            check(a.idlePhase()==0 && a.breathOffset()==0f,"breathing returns to neutral");
+            a.step(true,.016f,7f);
+            check(a.breathOffset()==0f&&a.isWalking(),"breathing not applied to walking");
+            a.step(true,.32f,7f);
+            check(a.frame()>0,"four walking frames continue");
+            a.step(false,.016f,7f);
+            check(!a.isWalking() && a.frame()==0 && a.idlePhase()==0,"stopping initiates distinct breathing idle");
+        }
+        System.out.println("V38 BREATHING IDLE TESTS PASS for player, allies and enemies");
     }
 }
