@@ -52,6 +52,7 @@ public final class GameView extends View {
     boolean lampOn=true,neonEnabled=true,campfiresLit=true;
     int nightDarkness=211,flashlightReach=490;
     final LightingV47 lighting=new LightingV47();
+    final WorldChunkCache terrainChunks=new WorldChunkCache((int)CAMP_X,(int)CAMP_Y);
     // V47: solar clock advances during gameplay, including smooth dawn/dusk.
     final GameClockV47 clock=new GameClockV47(21*60f);
     boolean automaticDayNight=true;
@@ -521,7 +522,7 @@ public final class GameView extends View {
                 else if(victim!=null)damage(victim,bullet.damage);
                 else if(hitCover&&recoilFX)particles(bullet.x,bullet.y,0xffc4b58a,2);
                 iter.remove();
-            }else if(bullet.life<=0||nx<0||ny<0||nx>WORLD_W||ny>WORLD_H){
+            }else if(bullet.life<=0){
                 iter.remove();
             }else {bullet.x=nx;bullet.y=ny;}
         }
@@ -724,26 +725,9 @@ public final class GameView extends View {
         lighting.point(x,y-9,205+flicker*9,.89f+flicker*.07f,LightingV47.WARM);
     }
     void terrain(Canvas c){
-        // Deterministic, streaming visible world: foliage, asphalt, debris, and vegetation.
-        rect(c,camX-4,camY-4,viewW+8,viewH+8,0xff354c40);
-        int tile=72;
-        int x0=(int)Math.floor(camX/tile)-1,x1=(int)Math.ceil((camX+viewW)/tile)+1;
-        int y0=(int)Math.floor(camY/tile)-1,y1=(int)Math.ceil((camY+viewH)/tile)+1;
-        for(int gy=y0;gy<=y1;gy++)for(int gx=x0;gx<=x1;gx++){
-            // All signed world tile indices are valid.
-            int h=hash(gx,gy);
-            float x=gx*tile,y=gy*tile;
-            // Streaming deterministic 5x5-tile procedural terrain patches.
-            // The protected camp clearing is restored around the spawn hub.
-            int patch=hash(Math.floorDiv(gx,5),Math.floorDiv(gy,5));
-            int biome=Math.floorMod(patch,4);
-            int tint=(biome==0?0xff375347:biome==1?0xff414d39:
-                      biome==2?0xff40544b:0xff4b503d);
-            if(Math.hypot(x-CAMP_X,y-CAMP_Y)<320)tint=0xff53624c;
-            rect(c,x,y,tile,tile,tint);
-            rect(c,x+10+(h&17),y+30,4,3,0xff60745c);
-            if((h&15)==1){rect(c,x+33,y+52,7,5,0xff647a61);rect(c,x+41,y+46,3,6,0xff557156);}
-        }
+        // V54: render cached, asynchronously prepared 16x16-tile chunk textures.
+        // Missing chunks use a deterministic immediate fallback (no blank screen).
+        terrainChunks.draw(c,camX,camY,viewW,viewH);
         // Landmark road corridors extend through all visible world coordinates.
         rect(c,camX-4,925,viewW+8,225,0xff565b50);
         rect(c,camX-4,940,viewW+8,8,0xff3e493e);
@@ -762,6 +746,7 @@ public final class GameView extends View {
             if(y>912&&y<1160)continue;
             if(x>1480&&x<1740)continue;
             if(Math.hypot(x-CAMP_X,y-CAMP_Y)<325)continue;
+            if(x<camX-55||x>camX+viewW+55||y<camY-55||y>camY+viewH+55)continue;
             if((i%7)==0){
                 rect(c,x+7,y+19,8,24,0xff243c30);
                 rect(c,x-8,y,37,28,0xff172b25);
@@ -803,6 +788,8 @@ public final class GameView extends View {
         drawSpawnCamp(c);
     }
     void drawSpawnCamp(Canvas c){
+        if(CAMP_X<camX-350||CAMP_X>camX+viewW+350||
+           CAMP_Y<camY-250||CAMP_Y>camY+viewH+250)return;
         float x=CAMP_X,y=CAMP_Y;
         rect(c,x-255,y-165,506,355,0x345c7351);
         // Restored simple survivor camp clearing with tents and equipment.
@@ -1067,7 +1054,7 @@ public final class GameView extends View {
     void menu(Canvas c){
         rounded(c,viewW/2-300,viewH/2-200,600,398,20,0xef14272b);
         label(c,"SURVIVAL PARADISE",viewW/2-254,viewH/2-115,34,WHITE,true);
-        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 53",
+        label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 54",
                 viewW/2-254,viewH/2-80,15,OLIVE,true);
         label(c,"Move with the left stick. Aim & fire with the right.",viewW/2-254,viewH/2-40,15,WHITE,false);
         label(c,"Explore the world, fight bandits, and collect supplies.",viewW/2-254,viewH/2-15,15,WHITE,false);
@@ -1083,6 +1070,11 @@ public final class GameView extends View {
         label(c,gameOver?"YOU DIED":"GAME PAUSED",viewW/2-155,viewH/2-66,27,WHITE,true);
         btn(c,viewW/2-150,viewH/2-38,300,50,gameOver?"NEW GAME":"RESUME",0xff376a5e);
         btn(c,viewW/2-150,viewH/2+28,300,50,"SETTINGS",0xff344952);
+    }
+    @Override protected void onDetachedFromWindow(){
+        terrainChunks.release();
+        lighting.release();
+        super.onDetachedFromWindow();
     }
     @Override protected void onDraw(Canvas canvas){
         super.onDraw(canvas);
