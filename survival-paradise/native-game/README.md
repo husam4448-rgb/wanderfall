@@ -1,3 +1,12 @@
+# V48 — Stabilized Walk Body Pivot
+
+- Root cause: the user-approved four walking frames have head/torso origins at x=16, 20, 24 and 20 within their individual 260-pixel cells. Rendering all frames with the same world origin caused visible forward/backward wobble.
+- Fix: apply source-x render correction +4, 0, -4, 0 pixels to the **body only**. The weapon, hands, aiming pivot, torso/world position and lighting stay locked. The original walk poses, character identity/color, boot silhouettes, and all approved sprite PNG bytes remain unchanged.
+- The exact-alpha projectile hitboxes use the identical corrected offsets, mirrored left/right.
+- Pixel-by-pixel upper-body comparison confirms >98% alignment with fixed frame 2 versus 81–83% before correction in the jumping frames.
+- Preserves V47 continuous day/night, per-light shadows, right-joystick aim lock, V46 fullscreen, and V44 sprites.
+- Regression checks run through GitHub Android build; on-device appearance requires user validation.
+
 # V47 — Directional Shadows, Locked Aim and Continuous Solar Time
 
 - Every night light (flashlight, campfire, neon sign and streetlamp) casts occlusion-aware shadows behind buildings, crates, trees, the player, NPCs and allies. Character blockers follow the approved head, torso and boots geometry, leaving the directly lit side illuminated. Colored light obeys the same shadows.
