@@ -24,7 +24,7 @@ public final class AnimationCycle {
     }
 
     public void step(boolean actuallyMoving,float dt,float rate){
-        dt=Math.max(0f,Math.min(dt,.1f));
+        dt=Math.max(0f,Math.min(dt,.25f));
         if(!actuallyMoving){
             if(walking){walking=false;walkPhase=0f;idleTime=0f;}
             else idleTime=(idleTime+dt)%(IDLE_PHASES*IDLE_PHASE_SECONDS);
