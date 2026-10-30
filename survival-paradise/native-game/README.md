@@ -1,3 +1,14 @@
+# V37 — Idle / Walk Animation Reset
+
+- Explicit native animation state for player, allied survivors and bandits.
+- Idle always displays the approved V31 atlas frame 0, regardless of where the last walk ended.
+- Walking re-enters on its first approved frame and advances through the unchanged four-frame cycle.
+- State tracks actual displacement; a blocked movement stick cannot leave legs mid-stride.
+- Input release, pause, settings and Android activity pause reset locomotion immediately.
+- V36 torso-centered weapon rotation, synchronized hands, muzzle alignment, accelerated ballistics, V29 axe, saves and game controls are unchanged.
+- Canonical **three-frame idle sheet** is not present in the recovered V31 artwork; V37 restores the approved neutral idle pose rather than inventing or redrawing missing frames.
+- Native compilation and pure Java state regression tests verify this fix. Real-device testing remains pending.
+
 # V35 Native Gameplay Correction
 
 - Full 360° aim coverage: 180° right stance plus 180° left stance. Weapon and independent hand attachments rotate together around the approved grip pivot.
