@@ -181,7 +181,9 @@ public final class MainActivity extends Activity {
         check(root,"Aiming rotation","aimRotation",true);
         check(root,"Firing recoil + muzzle flashes","recoil",true);
         check(root,"Item drops + inventory","loot",true);
-        check(root,"Night lighting","night",true);
+        check(root,"Automatic day / night cycle","autoDayNight",true);
+        slider(root,"Real minutes per game day","dayLength",12,120,36," min");
+        check(root,"Manual night (when automatic is OFF)","night",true);
         slider(root,"Night darkness","darkness",45,96,83,"%");
         slider(root,"Flashlight beam distance","beamReach",260,690,490," px");
         check(root,"Hand flashlight switched on","lampOn",true);
@@ -197,6 +199,7 @@ public final class MainActivity extends Activity {
               .putBoolean("hands",true).putBoolean("weapons",true).putBoolean("anchors",false)
               .putBoolean("hitboxes",false).putBoolean("enemyAI",true).putBoolean("aimRotation",true)
                .putBoolean("recoil",true).putBoolean("loot",true).putBoolean("night",true)
+              .putBoolean("autoDayNight",true).putInt("dayLength",36)
               .putInt("darkness",83).putInt("beamReach",490)
               .putBoolean("lampOn",true).putBoolean("campfiresLit",true)
               .putBoolean("neonLights",true)
