@@ -744,13 +744,18 @@ public final class GameView extends View {
             rect(c,x+10+(h&17),y+30,4,3,0xff60745c);
             if((h&15)==1){rect(c,x+33,y+52,7,5,0xff647a61);rect(c,x+41,y+46,3,6,0xff557156);}
         }
-        rect(c,0,925,WORLD_W,225,0xff565b50);
-        rect(c,0,940,WORLD_W,8,0xff3e493e);
-        rect(c,0,1134,WORLD_W,7,0xff323f3a);
-        for(int x=20;x<WORLD_W;x+=123)rect(c,x,1035,56,6,0xffa1a78d);
-        rect(c,1500,0,220,WORLD_H,0xff525b50);
-        rect(c,1500,0,9,WORLD_H,0xff3c473f);
-        for(int y=0;y<WORLD_H;y+=135)rect(c,1604,y+12,7,63,0xffa5aa8e);
+        // Landmark road corridors extend through all visible world coordinates.
+        rect(c,camX-4,925,viewW+8,225,0xff565b50);
+        rect(c,camX-4,940,viewW+8,8,0xff3e493e);
+        rect(c,camX-4,1134,viewW+8,7,0xff323f3a);
+        int roadX=(int)Math.floor((camX-20)/123f);
+        for(int i=roadX;i<roadX+(int)Math.ceil(viewW/123f)+3;i++)
+            rect(c,20+i*123,1035,56,6,0xffa1a78d);
+        rect(c,1500,camY-4,220,viewH+8,0xff525b50);
+        rect(c,1500,camY-4,9,viewH+8,0xff3c473f);
+        int roadY=(int)Math.floor(camY/135f);
+        for(int i=roadY;i<roadY+(int)Math.ceil(viewH/135f)+3;i++)
+            rect(c,1604,i*135+12,7,63,0xffa5aa8e);
         // Bushes and trees are always behind buildings and actors.
         for(int i=0;i<140;i++){
             int x=(137*i+27*i*i)%3180,y=(211*i+47*i*i)%2170;
