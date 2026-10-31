@@ -33,10 +33,11 @@ public final class GameView extends View {
     final Paint pixel=new Paint(Paint.ANTI_ALIAS_FLAG==0?0:0);
     Bitmap body,approvedWalkColors,stableBody,npcRoleAtlas,npcIdleAtlas,npcWalkV56,npcIdleV56,gear,approvedAxe;
     Bitmap campStatic; // immutable pre-rendered authored camp, not per-frame rectangles
-    private static final float CAMP_TEXTURE_LEFT=CAMP_X-480,CAMP_TEXTURE_TOP=CAMP_Y-355;
+
     static final int ROLE_BANDIT=0,ROLE_GUARD=2,ROLE_MEDIC=4,ROLE_MECHANIC=6,
                      ROLE_TRADER=8,ROLE_CIVILIAN=10;
     static final float CAMP_X=1080,CAMP_Y=710;
+    private static final float CAMP_TEXTURE_LEFT=CAMP_X-480,CAMP_TEXTURE_TOP=CAMP_Y-355;
     final Random rng=new Random(14901);
     static final float H=660, WORLD_W=3200, WORLD_H=2200;
     static final int[] RANGES={250,265,220,0,430,415,395,325,650,435,330,74};
