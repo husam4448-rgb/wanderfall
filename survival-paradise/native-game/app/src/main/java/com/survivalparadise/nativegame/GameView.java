@@ -1849,7 +1849,7 @@ public final class GameView extends View {
         float dx=(x-cx)/(74*padSize)*sensitivity;
         float dy=(y-cy)/(74*padSize)*sensitivity;
         float length=(float)Math.hypot(dx,dy);
-        if(length>1){dx/=length;dy/=length;}
+        if(length>1){dx/=length;dy/=length;length=1f;}
         if(right){
             aimDeflection=Math.min(1f,length);
             // Analog velocity with a tunable center deadzone and response
