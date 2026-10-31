@@ -383,7 +383,7 @@ jobs:
               'float gain=FloatingAimV64.response(length,aimDeadzone,aimResponseCurve);',
               'cursorWorldX=playerX+aimX*aimCursorDistance;',
               'cursorWorldY=playerY-42f+aimY*aimCursorDistance;',
-              'pointerRange=(float)Math.hypot(pointerDx,pointerDy);',
+              'aimCursorDistance=RadialAimV65.distance(',
               'postInvalidateOnAnimation();','drawHudEditorOverlay(c);',
               'boolean hudEditorTouch(float x,float y)',
               'selectedHudControl=target;', 'editGrabX=x-uiX(target);',
@@ -566,7 +566,7 @@ jobs:
           assert 'aimX=pointerDx' not in g
           assert 'cursorWorldX=clamp(cursorWorldX' not in g
           assert 'float rest=RadialAimV65.rest(gun);' in g
-          assert 'Independent' or 'Camera' in m
+          assert 'Camera panning cannot capture the crosshair' in m
           assert 'weapon' in m.lower()
           assert 'Math.round(142*getResources().getDisplayMetrics().density)' in m
           print('V65 static PASS: aiming is stick-centered, never panning-owned')
