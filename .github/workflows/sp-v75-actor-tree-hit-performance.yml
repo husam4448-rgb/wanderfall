@@ -130,7 +130,7 @@ jobs:
           assert 'src.set(sx,sy+IDLE_HEAD_BODY_SPLIT,sx+260,sy+160);' in p
           assert 'src.set(sx,sy,sx+260,sy+IDLE_HEAD_OVERLAP);' in p
           assert 'float headBob=breath*s;' in p
-          assert 'final CharacterCollision.PixelMask bodyMask=(x,y)->body!=null' in p
+          assert 'bodyMask=packAlpha(body);' in p and 'walkMask=packAlpha(approvedWalkColors);' in p
           assert 'if(breath==Float.POSITIVE_INFINITY)' in p # V51 walking remains
           assert 'npc_roles_v51.png' in p and 'stable_v51_body.png' in p
           assert 'void drawUniformHeadFrontOutline' not in p
@@ -308,7 +308,7 @@ jobs:
           assert 'getAssets().open("npc_walk_v56.png")' in view
           assert 'c.drawBitmap(walkingAtlas,src,dest,pixel);' in view
           assert 'final float visibleX=actorX;' in collision
-          assert 'approvedWalkColors.getPixel(x,y)' in view
+          assert 'walkMask=packAlpha(approvedWalkColors);' in view and 'Bitmap atlas=npcVariant>=0?npcWalkV56:approvedWalkColors;' in view
           assert 'setView(shell)' in activity
           assert 'private void resizeSettingsWindow(' in activity
           assert 'scroll.setOnScrollChangeListener' in activity
