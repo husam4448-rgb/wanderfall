@@ -19,7 +19,9 @@ public final class RadialAimV65 {
     /** Tune the same per-weapon release distances without corrupting other slots. */
     public static float rest(int weapon,float sliderPercent){
         float scale=Math.max(.50f,Math.min(2.0f,sliderPercent/100f));
-        return rest(weapon)*scale;
+        float distance=rest(weapon)*scale;
+        // The axe has only an 88px hit radius, regardless of HUD setting.
+        return weapon==11?Math.min(88f,distance):distance;
     }
 
     public static float maximum(int weapon,int ballisticRange,float userCap){
