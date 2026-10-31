@@ -6,8 +6,8 @@ android {
   applicationId 'com.survivalparadise.nativegame'
   minSdk 24
   targetSdk 34
-  versionCode 72
-  versionName '0.71-classic-aim-rollback'
+  versionCode 73
+  versionName '0.72-reference-hud-weapon-pan'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
