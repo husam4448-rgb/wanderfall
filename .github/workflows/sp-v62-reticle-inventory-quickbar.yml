@@ -369,7 +369,7 @@ jobs:
           lighting=(root/'LightingV47.java').read_text()
           for q in [
               'final int split=110;','Bitmap locked=npc?npcIdleV56:body;',
-              'aimX=dx*inv;aimY=dy*inv;',
+              'aimX=dx/normalized;aimY=dy/normalized;',
               'cursorWorldX=playerX+aimX*aimCursorDistance;',
               'cursorWorldY=playerY-42f+aimY*aimCursorDistance;',
               'float cursorFollow=Math.min(1f,dt*20f);',
