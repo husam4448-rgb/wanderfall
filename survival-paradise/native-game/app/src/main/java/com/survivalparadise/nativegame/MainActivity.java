@@ -294,22 +294,60 @@ public final class MainActivity extends Activity {
         check(root,"Neon building signs","neonLights",true);
         check(root,"Full-screen immersive gameplay","fullscreen",true);
         final int worldSection=root.getChildCount();
-        section(root,"WORLD TEST LAB  •  V56");
+        section(root,"WORLD TEST LAB  •  V58");
         root.addView(text("All original settings and touch controls remain available. " +
             "The options below modify the live V54 chunk-streaming test.",13,false));
         check(root,"Show FPS, player coordinates, NPC and chunk diagnostics","testPerf",true);
         check(root,"Show loaded chunk grid and coordinates","testChunkGrid",false);
         section(root,"CAMERA AND TOUCH CONTROLS");
-        root.addView(text("RIGHT STICK AIMS ONLY • FIRE is now a separate hold button.",14,true));
+        root.addView(text("Right stick aims only. Left and right FIRE / MELEE act independently.",14,true));
+        check(root,"Show classic six status bars","showStatusBars",true);
+        check(root,"Show world aiming crosshair","showCrosshair",true);
+        check(root,"Aim-stick camera look-ahead","lookAheadEnabled",true);
+        slider(root,"Look-ahead stick threshold","lookAheadThreshold",45,95,72,"%");
+        slider(root,"Look-ahead distance","lookAheadStrength",0,240,120," px");
         slider(root,"Camera zoom","cameraZoom",70,180,100,"%");
         slider(root,"Movement joystick size","movePadSize",70,150,100,"%");
         slider(root,"Aiming joystick size","aimPadSize",70,150,100,"%");
         slider(root,"Movement joystick sensitivity","moveSensitivity",50,160,100,"%");
         slider(root,"Aiming joystick sensitivity","aimSensitivity",50,160,100,"%");
         slider(root,"Joystick transparency / opacity","controlOpacity",25,100,100,"%");
-        slider(root,"Independent FIRE button size","fireButtonSize",70,160,100,"%");
-        slider(root,"FIRE horizontal position","fireButtonX",-150,150,0," px");
-        slider(root,"FIRE vertical position","fireButtonY",-120,120,0," px");
+        section(root,"INDIVIDUAL BUTTON LAYOUT EDITOR");
+        check(root,"Enable ON-SCREEN control drag editor","editControls",false);
+        root.addView(text("Return to the game to drag buttons. Switch this OFF after editing.",13,false));
+        root.addView(text("Select one control to adjust its size, opacity and visibility.",13,false));
+        Spinner buttonPicker=new Spinner(this);
+        buttonPicker.setAdapter(new ArrayAdapter<String>(this,
+            android.R.layout.simple_spinner_dropdown_item,LegacyControlsV58.NAMES));
+        LinearLayout editorOptions=column();
+        root.addView(buttonPicker);
+        root.addView(editorOptions);
+        buttonPicker.setSelection(Math.max(0,Math.min(LegacyControlsV58.COUNT-1,
+                prefs.getInt("selectedButton",0))));
+        buttonPicker.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener(){
+            public void onNothingSelected(android.widget.AdapterView<?> parent){}
+            public void onItemSelected(android.widget.AdapterView<?> parent,View v,int index,long id){
+                prefs.edit().putInt("selectedButton",index).apply();
+                editorOptions.removeAllViews();
+                check(editorOptions,"Show "+LegacyControlsV58.NAMES[index],
+                      "uiEnabled"+index,true);
+                slider(editorOptions,"Button size","uiSize"+index,60,160,100,"%");
+                slider(editorOptions,"Button opacity","uiAlpha"+index,30,100,100,"%");
+                slider(editorOptions,"Horizontal offset","uiX"+index,-340,340,0," px");
+                slider(editorOptions,"Vertical offset","uiY"+index,-270,270,0," px");
+            }
+        });
+        action(root,"RESET ALL BUTTON POSITIONS AND SIZES",()->{
+            SharedPreferences.Editor settings=prefs.edit();
+            for(int i=0;i<LegacyControlsV58.COUNT;i++){
+                settings.remove("uiX"+i).remove("uiY"+i).remove("uiSize"+i)
+                    .remove("uiAlpha"+i).remove("uiEnabled"+i);
+            }
+            settings.putBoolean("editControls",false).apply();
+            game.reloadSettings();
+            Toast.makeText(this,"All buttons reset. Reopen menu to see defaults.",
+                    Toast.LENGTH_LONG).show();
+        });
         section(root,"SETTINGS LAYOUT  •  LIVE (reopen to apply sizes)");
         slider(root,"Settings text size","menuTextSize",75,155,100,"%");
         slider(root,"Settings slider thickness","menuSliderSize",65,160,100,"%");
@@ -364,7 +402,10 @@ public final class MainActivity extends Activity {
               .putInt("fireButtonY",0)
               .putInt("testWindowWidth",96).putInt("testWindowHeight",94)
               .putInt("menuTextSize",100).putInt("menuSliderSize",100)
-              .putInt("menuRowSpacing",100).putBoolean("dualTorch",true).apply();
+              .putInt("menuRowSpacing",100).putBoolean("dualTorch",true)
+              .putBoolean("showStatusBars",true).putBoolean("showCrosshair",true)
+              .putBoolean("lookAheadEnabled",true).putInt("lookAheadThreshold",72)
+              .putInt("lookAheadStrength",120).putBoolean("editControls",false).apply();
             wSize.setProgress(96-65);hSize.setProgress(94-65);
             resizeSettingsWindow(activeDialog[0],96,94);
             game.reloadSettings();applyImmersive();
