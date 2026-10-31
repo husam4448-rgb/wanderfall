@@ -89,7 +89,7 @@ public final class GameView extends View {
     float lookAheadSmooth=5f;
     float cameraLookX=0f,cameraLookY=0f;
     float cursorWorldX=0f,cursorWorldY=0f,cursorMoveX=0f,cursorMoveY=0f;
-    float aimCursorDistance=185f,cursorMaxRange=335f; // maximum radial reach; real pointer retains its own position
+    float aimCursorDistance=76f,cursorMaxRange=335f; // weapon-specific radial reticle
     long updateNs=0,worldNs=0,lightingNs=0;
     boolean cursorInitialized=false;
     float cursorSpeed=2900f,aimDeadzone=.08f,aimResponseCurve=1.35f;
@@ -470,12 +470,19 @@ public final class GameView extends View {
           terrainChunks.generated,terrainChunks.pendingCount(),
           terrainChunks.cacheHits,terrainChunks.cacheMisses);
     }
+    void snapAimToWeaponRest(){
+        aimCursorDistance=RadialAimV65.rest(gun);
+        cursorWorldX=playerX+aimX*aimCursorDistance;
+        cursorWorldY=playerY-42f+aimY*aimCursorDistance;
+        cursorInitialized=true;
+    }
     void releaseControls(){stopWalking();firing=false;leftPointer=-1;rightPointer=-1;
         firePointer=-1;fireLeftPointer=-1;editPointer=-1;editControl=-1;panelPointer=-1;
         runHeld=false;crouchHeld=false;aimDeflection=0;
-        cursorMoveX=0;cursorMoveY=0;}
+        cursorMoveX=0;cursorMoveY=0;snapAimToWeaponRest();}
     void switchWeapon(){
         gun=(gun+1)%12;ammo=MAG[gun];reloadClock=0;
+        snapAimToWeaponRest();
         host.prefs.edit().putInt("gun",gun).apply();
     }
     void reload(){
@@ -606,41 +613,27 @@ public final class GameView extends View {
         // always restores the original neutral idle frame immediately.
         moving=distance(playerX,playerY,wasX,wasY)>.001f;
         playerAnimation.step(moving,dt,7f);
-        // Virtual mouse pointer: relative stick direction is its VELOCITY,
-        // not an absolute compass bearing or constant-radius target.
-        // Locomotion translates the pointer with the actor, preserving the
-        // last aim point when either thumb is released.
+        // V65: the character is the stick/crosshair origin. Only distance
+        // increases while the right thumb is active. The heading comes DIRECTLY
+        // from the stick, so reversing aims instantly without crossing center.
+        float rest=RadialAimV65.rest(gun);
+        float maxAim=RadialAimV65.maximum(gun,RANGES[gun],cursorMaxRange);
         if(!cursorInitialized){
-            cursorWorldX=playerX+aimX*185f;
-            cursorWorldY=playerY-42f+aimY*185f;
-            cursorInitialized=true;
+            aimCursorDistance=rest;cursorInitialized=true;
         }
-        // Speed expressed in screen-aware world pixels per second; enough to
-        // cross a typical landscape viewport well under 0.3 s at maximum.
         float pointerSpeed=FloatingAimV64.scaledSpeed(cursorSpeed,viewW/Math.max(.01f,zoom));
-        cursorWorldX+=playerX-wasX+cursorMoveX*pointerSpeed*dt;
-        cursorWorldY+=playerY-wasY+cursorMoveY*pointerSpeed*dt;
-        if(legacyDirectionalAim&&rightPointer>=0&&aimDeflection>aimDeadzone){
-            float legacyDist=Math.min(cursorMaxRange,Math.max(185f,viewW/Math.max(.01f,zoom)*.50f));
-            cursorWorldX=playerX+aimX*legacyDist;
-            cursorWorldY=playerY-42f+aimY*legacyDist;
+        boolean rightAiming=rightPointer>=0&&aimDeflection>aimDeadzone;
+        if(!rightAiming){
+            // No lingering world pointer, no gradual tween back.
+            aimCursorDistance=rest;
+        }else if(legacyDirectionalAim){
+            aimCursorDistance=maxAim; // optional legacy full-range response
+        }else{
+            aimCursorDistance=RadialAimV65.distance(aimCursorDistance,gun,maxAim,
+                true,(float)Math.hypot(cursorMoveX,cursorMoveY),pointerSpeed,dt);
         }
-        float pointerDx=cursorWorldX-playerX;
-        float pointerDy=cursorWorldY-(playerY-42f);
-        float pointerRange=(float)Math.hypot(pointerDx,pointerDy);
-        if(pointerRange>cursorMaxRange){
-            float ratio=cursorMaxRange/pointerRange;
-            pointerDx*=ratio;pointerDy*=ratio;
-            cursorWorldX=playerX+pointerDx;
-            cursorWorldY=playerY-42f+pointerDy;
-        }
-        // FIRE and the weapon rig use the pointer ray, never the stick's
-        // position. Overshooting the physical joystick cannot reverse aim.
-        if(pointerRange>2f){
-            float len=Math.max(2f,(float)Math.hypot(pointerDx,pointerDy));
-            aimX=pointerDx/len;aimY=pointerDy/len;
-            if(rightPointer>=0)face=aimX<-.025f?-1:aimX>.025f?1:face;
-        }
+        cursorWorldX=playerX+aimX*aimCursorDistance;
+        cursorWorldY=playerY-42f+aimY*aimCursorDistance;
         stamina=Math.max(0,Math.min(100,stamina+dt*((moving&&runHeld)?-13f:8f)));
         if(moving){hunger=Math.max(0,hunger-dt*.012f);thirst=Math.max(0,thirst-dt*.023f);}
         fatigue=Math.max(0,Math.min(100,fatigue+dt*(moving&&runHeld?.20f:-.08f)));
@@ -654,9 +647,9 @@ public final class GameView extends View {
                     damage(knifeTarget,36);
             }
         }
-        // Mouse-like edge panning: stick magnitude alone does NOT pan.
-        // Approaching a screen edge while pushing outward shifts the world
-        // smoothly; letting go stops camera and cursor immediately.
+        // Camera is independent of cursor position. Extending aim past the
+        // weapon's visible reach may pan the world, but it cannot fix, drag,
+        // or redefine crosshair direction/distance.
         float z=Math.max(.01f,zoom);
         float marginX=Math.max(55f,viewW*(1.05f-lookAheadThreshold)*.20f);
         float marginY=Math.max(55f,viewH*(1.05f-lookAheadThreshold)*.20f);
@@ -664,38 +657,29 @@ public final class GameView extends View {
         float pointerScreenY=(cursorWorldY-playerY+viewH/(2f*z)-cameraLookY)*z;
         float edgeX=FloatingAimV64.edgeStrength(pointerScreenX,viewW,marginX,cursorMoveX);
         float edgeY=FloatingAimV64.edgeStrength(pointerScreenY,viewH,marginY,cursorMoveY);
+        // At a weapon's reach cap, continued full-stick input is a deliberate
+        // look-ahead request, even when the reticle is short of the screen edge.
+        float rangeLimit=rightAiming&&aimCursorDistance>=maxAim-1f?
+            FloatingAimV64.response(aimDeflection,lookAheadThreshold,1f):0f;
+        edgeX=Math.max(edgeX,rangeLimit);
+        edgeY=Math.max(edgeY,rangeLimit);
         float smooth=clamp(lookAheadSmooth/8f,.15f,1.8f);
-        float panMaxX=Math.min(lookAheadStrength,Math.max(0f,(viewW*.5f-85f)/z));
-        float panMaxY=Math.min(lookAheadStrength,Math.max(0f,(viewH*.5f-100f)/z));
-        if(lookAheadEnabled&&rightPointer>=0){
+        float panMaxX=Math.min(lookAheadStrength,Math.max(0f,(viewW*.5f-180f)/z));
+        float panMaxY=Math.min(lookAheadStrength,Math.max(0f,(viewH*.5f-210f)/z));
+        if(lookAheadEnabled&&rightAiming){
             cameraLookX=clamp(cameraLookX+cursorMoveX*pointerSpeed*dt*edgeX*smooth,
                 -panMaxX,panMaxX);
             cameraLookY=clamp(cameraLookY+cursorMoveY*pointerSpeed*dt*edgeY*smooth,
                 -panMaxY,panMaxY);
+        }else{
+            // On release the camera recenters separately; the crosshair has
+            // already snapped to its weapon rest distance on the same frame.
+            float ease=Math.min(1f,dt*lookAheadSmooth);
+            cameraLookX+=(0f-cameraLookX)*ease;
+            cameraLookY+=(0f-cameraLookY)*ease;
         }
-        // Prevent the floating pointer from leaving the unobscured viewport
-        // while look-ahead pans or recenters. World coords remain authoritative.
-        float half=21f*reticleSize;
-        float left=playerX-viewW/(2f*z)+cameraLookX;
-        float top=playerY-viewH/(2f*z)+cameraLookY;
-        cursorWorldX=clamp(cursorWorldX,left+(half+5f)/z,left+(viewW-half-5f)/z);
-        cursorWorldY=clamp(cursorWorldY,top+(59f+half)/z,top+(viewH-48f-half)/z);
-        pointerDx=cursorWorldX-playerX;
-        pointerDy=cursorWorldY-(playerY-42f);
-        pointerRange=(float)Math.hypot(pointerDx,pointerDy);
-        // Project back onto the maximum-range disk after screen clamping.
-        // The player anchor remains inside the viewport, so this projection
-        // also remains visible.
-        if(pointerRange>cursorMaxRange){
-            float k=cursorMaxRange/pointerRange;
-            pointerDx*=k;pointerDy*=k;
-            cursorWorldX=playerX+pointerDx;
-            cursorWorldY=playerY-42f+pointerDy;
-            pointerRange=cursorMaxRange;
-        }
-        if(pointerRange>2f){
-            aimX=pointerDx/pointerRange;aimY=pointerDy/pointerRange;
-        }
+        // Crucially: no screen clamp updates aimX/aimY or cursor world coords.
+        // The marker is rendered along its own ray; panning never owns it.
         if(firing){
             if(aimX>.025f)face=1;else if(aimX<-.025f)face=-1;
             if(shotClock<=0&&reloadClock==0){
@@ -1689,11 +1673,22 @@ public final class GameView extends View {
     // World space aiming marker is rendered AFTER lighting and above HUD darkness.
     void drawBrightCrosshair(Canvas c){
         if(!playing||!showCrosshair||crosshairReticle==null)return;
-        // Draw the real floating cursor. Do not recalculate its distance from
-        // stick deflection or snap it to the far end of the aiming ray.
+        // Screen bounds only affect RENDER distance along the aim ray.
+        // They never feed back into the actual aim direction, and the
+        // crosshair always remains on the character-to-stick ray.
         float half=21f*reticleSize;
-        float x=clamp((cursorWorldX-camX)*zoom,half+5,viewW-half-5);
-        float y=clamp((cursorWorldY-camY)*zoom,59+half,viewH-48-half);
+        float originX=(playerX-camX)*zoom,originY=(playerY-42f-camY)*zoom;
+        float available=aimCursorDistance*zoom;
+        if(aimX>.0001f)available=Math.min(available,
+            (viewW-half-5f-originX)/aimX);
+        else if(aimX<-.0001f)available=Math.min(available,
+            (half+5f-originX)/aimX);
+        if(aimY>.0001f)available=Math.min(available,
+            (viewH-48f-half-originY)/aimY);
+        else if(aimY<-.0001f)available=Math.min(available,
+            (59f+half-originY)/aimY);
+        available=Math.max(0f,available);
+        float x=originX+aimX*available,y=originY+aimY*available;
         dest.set(x-half,y-half,x+half,y+half);
         c.drawBitmap(crosshairReticle,null,dest,reticlePaint);
     }
@@ -1862,10 +1857,15 @@ public final class GameView extends View {
             float gain=FloatingAimV64.response(length,aimDeadzone,aimResponseCurve);
             float inv=length>.0001f?gain/length:0f;
             cursorMoveX=dx*inv;cursorMoveY=dy*inv;
-            if(legacyDirectionalAim&&length>aimDeadzone){
+            if(length>aimDeadzone){
+                // Every touch sample sets the new ray immediately, including
+                // 180-degree reversal; the previous cursor never intervenes.
                 float heading=Math.max(.001f,(float)Math.hypot(dx,dy));
-                aimX=dx/heading;aimY=dy/heading;
+                aimX=RadialAimV65.direction(dx,heading);
+                aimY=RadialAimV65.direction(dy,heading);
                 face=aimX<-.025f?-1:aimX>.025f?1:face;
+                cursorWorldX=playerX+aimX*aimCursorDistance;
+                cursorWorldY=playerY-42f+aimY*aimCursorDistance;
             }
         }else {stickX=dx;stickY=dy;}
     }
@@ -2046,7 +2046,7 @@ public final class GameView extends View {
                 }
                 if(id==rightPointer||action==MotionEvent.ACTION_CANCEL){
                     rightPointer=-1;aimDeflection=0f;
-                    cursorMoveX=0f;cursorMoveY=0f;
+                    cursorMoveX=0f;cursorMoveY=0f;snapAimToWeaponRest();
                 }
                 if(id==firePointer||action==MotionEvent.ACTION_CANCEL)firePointer=-1;
                 if(id==fireLeftPointer||action==MotionEvent.ACTION_CANCEL)fireLeftPointer=-1;
