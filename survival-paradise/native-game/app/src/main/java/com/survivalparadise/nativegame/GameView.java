@@ -89,6 +89,7 @@ public final class GameView extends View {
     float lookAheadSmooth=5f;
     float cameraLookX=0f,cameraLookY=0f,cameraPanLimit=65f;
     float cursorWorldX=0f,cursorWorldY=0f,cursorMoveX=0f,cursorMoveY=0f;
+    float aimStickX=0f,aimStickY=0f; // sliding physical right-stick thumb
     float aimCursorDistance=190f,crosshairRestPercent=100f; // tuned per-weapon radial resting reticle
     long updateNs=0,worldNs=0,lightingNs=0;
     boolean cursorInitialized=false;
@@ -257,7 +258,8 @@ public final class GameView extends View {
         panelScale=host.setting("hudPanelSize",100)/100f;
         showStatusBars=host.option("showStatusBars",true);
         showCrosshair=host.option("showCrosshair",true);
-        lookAheadEnabled=host.option("lookAheadEnabled",true);
+        // V71 rollback: old panning preference must not override classic aim.
+        lookAheadEnabled=host.option("classicAimCameraV71",false);
         lookAheadThreshold=host.setting("lookAheadThreshold",72)/100f;
         lookAheadStrength=host.setting("lookAheadStrength",420);
         lookAheadSmooth=host.setting("lookAheadSmooth",8);
@@ -487,7 +489,8 @@ public final class GameView extends View {
     void releaseControls(){stopWalking();firing=false;leftPointer=-1;rightPointer=-1;
         firePointer=-1;fireLeftPointer=-1;editPointer=-1;editControl=-1;panelPointer=-1;
         runHeld=false;crouchHeld=false;aimDeflection=0;
-        cursorMoveX=0;cursorMoveY=0;snapAimToWeaponRest();}
+        cursorMoveX=0;cursorMoveY=0;aimStickX=0;aimStickY=0;
+        snapAimToWeaponRest();}
     void switchWeapon(){
         gun=(gun+1)%12;ammo=MAG[gun];reloadClock=0;
         snapAimToWeaponRest();
@@ -624,20 +627,9 @@ public final class GameView extends View {
         // V65: the character is the stick/crosshair origin. Only distance
         // increases while the right thumb is active. The heading comes DIRECTLY
         // from the stick, so reversing aims instantly without crossing center.
-        boolean rightAiming=rightPointer>=0&&aimDeflection>aimDeadzone;
-        if(rightAiming){
-            // Angle controls screen-space CROSSHAIR velocity. At long range,
-            // the same tiny thumb rotation cannot jump a giant distance.
-            float step=StableAimV68.angularStep(aimX,aimY,targetAimX,targetAimY,
-                aimDeflection,aimCursorDistance,dt,aimSteeringPercent);
-            if(Math.abs(step)>.000001f){
-                float cos=(float)Math.cos(step),sin=(float)Math.sin(step);
-                float nx=aimX*cos-aimY*sin,ny=aimX*sin+aimY*cos;
-                float len=Math.max(.001f,(float)Math.hypot(nx,ny));
-                aimX=nx/len;aimY=ny/len;
-            }
-            if(aimX>.025f)face=1;else if(aimX<-.025f)face=-1;
-        }
+        // V71 exact V61-style analogue input: each touch event controls the
+        // direction directly. No angular interpolation or delayed rotation.
+        boolean rightAiming=rightPointer>=0&&aimDeflection>ClassicAimV71.DEADZONE;
         float rest=RadialAimV65.rest(gun,crosshairRestPercent);
         // The crosshair's maximum and the bullet use the identical speed
         // and lifetime values; the muzzle-to-player offset is projected onto
@@ -655,17 +647,12 @@ public final class GameView extends View {
         if(!cursorInitialized){
             aimCursorDistance=rest;cursorInitialized=true;
         }
-        // Inner 62% of stick travel is DIRECTION ONLY; no timed extension.
-        // 62–90% intentionally extends the crosshair at a fixed linear speed.
-        // Outer 90–100% is reserved for deliberate camera look-around.
-        if(!rightAiming){
-            aimCursorDistance=rest;
-        }else if(legacyDirectionalAim){
-            aimCursorDistance=maxAim; // legacy explicitly requested full range
-        }else{
-            aimCursorDistance=AimZonesV70.reach(aimCursorDistance,rest,maxAim,
-                aimDeflection,cursorSpeed,dt);
-        }
+        // Original proportional joystick: no auto-extension over time.
+        // One touch gesture changes aim direction AND marker distance.
+        // Keep V66 weapon-specific resting distance but restore V61 short
+        // 205px effective travel, rather than chasing a 5000px bullet path.
+        aimCursorDistance=rightAiming?
+            ClassicAimV71.distance(rest,maxAim,aimDeflection):rest;
         cursorWorldX=playerX+aimX*aimCursorDistance;
         cursorWorldY=playerY-42f+aimY*aimCursorDistance;
         stamina=Math.max(0,Math.min(100,stamina+dt*((moving&&runHeld)?-13f:8f)));
@@ -681,19 +668,13 @@ public final class GameView extends View {
                     damage(knifeTarget,36);
             }
         }
-        // V70: the joystick, not the world-space crosshair, enters an
-        // EXPLICIT panning mode only in its outermost 10% travel. A 360-degree
-        // circle has an identical radius for up/down/left/right/diagonals.
-        // The fixed limit is independent of aspect ratio and bullet reach.
+        // Optional V61-style direction look-ahead, capped to the V69
+        // small CIRCULAR radius. Disabled by default in this rollback.
         float panLimit=BoundedCameraV69.limit(cameraPanLimit,viewW,viewH,
             Math.max(.01f,zoom));
-        float currentFactor=BoundedCameraV69.radialFactor(cameraLookX,cameraLookY,panLimit);
-        cameraLookX*=currentFactor;cameraLookY*=currentFactor;
-        float desiredPanX=0f,desiredPanY=0f;
-        if(lookAheadEnabled&&rightAiming&&panLimit>0f){
-            desiredPanX=AimZonesV70.panX(aimX,aimY,panLimit,aimDeflection);
-            desiredPanY=AimZonesV70.panY(aimX,aimY,panLimit,aimDeflection);
-        }
+        float panFactor=ClassicAimV71.panFactor(aimDeflection,lookAheadThreshold);
+        float desiredPanX=aimX*panLimit*panFactor;
+        float desiredPanY=aimY*panLimit*panFactor;
         if(!rightAiming||!lookAheadEnabled||panLimit==0f){
             cameraLookX=0f;cameraLookY=0f;
         }else{
@@ -701,8 +682,8 @@ public final class GameView extends View {
                 cameraPanSpeed,lookAheadSmooth);
             cameraLookY+=StableAimV68.panStep(desiredPanY-cameraLookY,dt,
                 cameraPanSpeed,lookAheadSmooth);
-            float finalFactor=BoundedCameraV69.radialFactor(cameraLookX,cameraLookY,panLimit);
-            cameraLookX*=finalFactor;cameraLookY*=finalFactor;
+            float factor=BoundedCameraV69.radialFactor(cameraLookX,cameraLookY,panLimit);
+            cameraLookX*=factor;cameraLookY*=factor;
         }
         // Crosshair range remains the actual projectile endpoint, but
         // offscreen reach is clipped to the edge rather than chasing it.
@@ -1756,7 +1737,10 @@ public final class GameView extends View {
         color((rightAlpha*0xaa/255<<24)|0x00aa9d71);
         c.drawCircle(rx,ry,52*aimPadScale,p);
         color((rightAlpha<<24)|0x00f2deb0);
-        c.drawCircle(rx+aimX*39*aimPadScale,ry+aimY*39*aimPadScale,11*aimPadScale,p);
+        // Restored MOVING thumb: pad center when released, slides radially
+        // with touch distance instead of orbiting at a fixed 39px radius.
+        c.drawCircle(rx+aimStickX*59*aimPadScale,
+            ry+aimStickY*59*aimPadScale,13*aimPadScale,p);
         label(c,"AIM",rx-20,ry+6,17,WHITE,true);
         for(int ui=0;ui<LegacyControlsV58.COUNT;ui++)drawAction(c,ui);
         drawHotbar(c);
@@ -1880,29 +1864,24 @@ public final class GameView extends View {
         float length=(float)Math.hypot(dx,dy);
         if(length>1){dx/=length;dy/=length;length=1f;}
         if(right){
-            float filtered=StableAimV68.normalizedDeadzone(length,aimDeadzone);
-            aimDeflection=filtered;
-            // The stick controls POINTER SPEED only beyond a stable deadzone;
-            // light jitter cannot instantly rotate a 5,000-pixel target ray.
-            float gain=FloatingAimV64.response(filtered,aimDeadzone,aimResponseCurve);
-            float inv=filtered>.0001f?gain/filtered:0f;
-            cursorMoveX=dx*inv;cursorMoveY=dy*inv;
-            if(filtered>aimDeadzone){
+            // V61 directly maps thumb position to heading and distance.
+            // Position is clamped to the joystick rim, not angular-only.
+            aimStickX=dx;aimStickY=dy;
+            aimDeflection=length;
+            if(length>ClassicAimV71.DEADZONE){
                 float heading=Math.max(.001f,(float)Math.hypot(dx,dy));
-                targetAimX=RadialAimV65.direction(dx,heading);
-                targetAimY=RadialAimV65.direction(dy,heading);
-                if(StableAimV68.deliberateReverse(aimX,aimY,targetAimX,targetAimY,filtered)){
-                    // Deliberate hard 180-degree swipe still turns instantly,
-                    // restarting at the weapon resting range, not across the map.
-                    aimX=RadialAimV65.direction(dx,heading);
-                    aimY=RadialAimV65.direction(dy,heading);
-                    aimCursorDistance=RadialAimV65.rest(gun,crosshairRestPercent);
-                    cameraLookX=0f;cameraLookY=0f;
-                    cursorWorldX=playerX+aimX*aimCursorDistance;
-                    cursorWorldY=playerY-42f+aimY*aimCursorDistance;
-                    face=aimX<-.025f?-1:aimX>.025f?1:face;
-                }
+                aimX=ClassicAimV71.heading(dx,heading,aimX);
+                aimY=ClassicAimV71.heading(dy,heading,aimY);
+                targetAimX=aimX;targetAimY=aimY;
+                face=aimX<-.025f?-1:aimX>.025f?1:face;
             }
+            // Update immediately on a touch event; NO frame-accumulated speed.
+            float rest=RadialAimV65.rest(gun,crosshairRestPercent);
+            aimCursorDistance=rest+ClassicAimV71.TRAVEL*
+                Math.max(0f,Math.min(1f,length));
+            cursorInitialized=true;
+            cursorWorldX=playerX+aimX*aimCursorDistance;
+            cursorWorldY=playerY-42f+aimY*aimCursorDistance;
         }else {stickX=dx;stickY=dy;}
     }
     float fireWidth(){return 105f*fireButtonSize;}
@@ -2082,7 +2061,8 @@ public final class GameView extends View {
                 }
                 if(id==rightPointer||action==MotionEvent.ACTION_CANCEL){
                     rightPointer=-1;aimDeflection=0f;
-                    cursorMoveX=0f;cursorMoveY=0f;snapAimToWeaponRest();
+                    cursorMoveX=0f;cursorMoveY=0f;
+                    aimStickX=0f;aimStickY=0f;snapAimToWeaponRest();
                 }
                 if(id==firePointer||action==MotionEvent.ACTION_CANCEL)firePointer=-1;
                 if(id==fireLeftPointer||action==MotionEvent.ACTION_CANCEL)fireLeftPointer=-1;
