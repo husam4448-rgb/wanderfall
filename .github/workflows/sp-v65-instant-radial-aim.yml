@@ -496,7 +496,7 @@ jobs:
           assert 'Math.round(39*getResources().getDisplayMetrics().density)' in m
           assert 'closeBag.setOnClickListener(v->dialog.dismiss())' in m
           assert '.setPositiveButton("CLOSE BAG"' not in m
-          assert 'slider(root,"Floating crosshair speed","cursorSpeedV64"' in m
+          assert 'slider(root,"Crosshair extension speed while aiming","cursorSpeedV64"' in m
           assert 'aimCursorDistance=cursorMaxRange' not in g
           assert 'final int split=110' in g and 'Bitmap locked=npc?npcIdleV56:body;' in g
           print('V62 PASS: original generated red PNG, no backward aim, 24 slots, approved animated avatar, editable hotbar')
