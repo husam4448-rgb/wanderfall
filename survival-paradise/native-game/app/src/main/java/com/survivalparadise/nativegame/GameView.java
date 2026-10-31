@@ -127,12 +127,14 @@ public final class GameView extends View {
     final AnimationCycle playerAnimation=new AnimationCycle();
     // Keep projectile collision against the exact approved atlas alpha, not an
     // unrelated circle near the characters' feet.
-    final CharacterCollision.PixelMask bodyMask=(x,y)->body!=null &&
-            x>=0&&y>=0&&x<body.getWidth()&&y<body.getHeight() &&
-            (body.getPixel(x,y)>>>24)!=0;
-    final CharacterCollision.PixelMask walkMask=(x,y)->approvedWalkColors!=null &&
-            x>=0&&y>=0&&x<approvedWalkColors.getWidth()&&y<approvedWalkColors.getHeight() &&
-            (approvedWalkColors.getPixel(x,y)>>>24)!=0;
+    CharacterCollision.PixelMask bodyMask=(x,y)->false;
+    CharacterCollision.PixelMask walkMask=(x,y)->false;
+    static PackedAlphaMaskV75 packAlpha(Bitmap bitmap){
+        int w=bitmap.getWidth(),h=bitmap.getHeight();
+        int[] rgba=new int[w*h];
+        bitmap.getPixels(rgba,0,w,0,0,w,h);
+        return PackedAlphaMaskV75.fromArgb(rgba,w,h);
+    }
     final ArrayList<Bandit> enemies=new ArrayList<>();
     final ArrayList<Survivor> friends=new ArrayList<>();
     final ArrayList<Survivor> campStaff=new ArrayList<>();
@@ -230,6 +232,9 @@ public final class GameView extends View {
             if(biomeProps==null||biomeProps.getWidth()!=BiomeWorldV74.CELL*BiomeWorldV74.SPRITES||
                 biomeProps.getHeight()!=BiomeWorldV74.CELL)biomeProps=null;
         }catch(Exception ignored){biomeProps=null;}
+        // Build lossless alpha masks once, not per-bullet on the render thread.
+        if(body!=null)bodyMask=packAlpha(body);
+        if(approvedWalkColors!=null)walkMask=packAlpha(approvedWalkColors);
         initCovers();reloadSettings();hasSave=host.prefs.getBoolean("hasSave",false);
     }
     void initCovers(){
@@ -566,7 +571,7 @@ public final class GameView extends View {
             return;
         }
         float kick=(!hostile&&x==playerX&&y==playerY&&recoilFX)?2.7f:0f;
-        float[] muzzle=Ballistics.rigMuzzle(x,y,facing,dx,dy,.76f*scale,
+        float[] muzzle=Ballistics.rigMuzzle(x,y,facing,dx,dy,CharacterCollision.BASE_SCALE*scale,
                 MX[weapon],MY[weapon],MAIN_X[weapon],MAIN_Y[weapon],kick);
         final float bx=muzzle[0],by=muzzle[1];
         int pellets=weapon==7?5:1;
@@ -647,7 +652,7 @@ public final class GameView extends View {
         else if(gun==3)maxAim=Math.max(rest,host.setting("beamReach",490)); // torch: light
         else{
             float[] muzzle=Ballistics.rigMuzzle(playerX,playerY,face,aimX,aimY,
-                .76f*scale,MX[gun],MY[gun],MAIN_X[gun],MAIN_Y[gun],0f);
+                CharacterCollision.BASE_SCALE*scale,MX[gun],MY[gun],MAIN_X[gun],MAIN_Y[gun],0f);
             float muzzleOffset=(muzzle[0]-playerX)*aimX+
                 (muzzle[1]-(playerY-42f))*aimY;
             maxAim=Math.max(rest,Ballistics.unobstructedTravel(gun)+muzzleOffset);
@@ -859,7 +864,9 @@ public final class GameView extends View {
             Spark s=iter.next();s.x+=s.vx*dt;s.y+=s.vy*dt;
             s.ttl-=dt;if(s.ttl<=0)iter.remove();
         }
-        if(enemies.stream().noneMatch(e->e.active)){wave++;health=Math.min(100,health+15);spawnWave();}
+        boolean anyEnemyAlive=false;
+        for(Bandit e:enemies)if(e.active){anyEnemyAlive=true;break;}
+        if(!anyEnemyAlive){wave++;health=Math.min(100,health+15);spawnWave();}
         if(health<=0){gameOver=true;paused=true;}
     }
 
@@ -971,7 +978,7 @@ public final class GameView extends View {
     }
     void addCharacterShadow(float x,float y){
         if(!WorldPerfV55.nearView(x,y,camX,camY,viewW,viewH,730f))return;
-        float s=scale;
+        float s=scale*(CharacterCollision.BASE_SCALE/.76f);
         // Cast from the original on-screen pixel silhouette (three small
         // rectangles, not a large circular aura). Source-facing side remains lit.
         lighting.occludeRect(x-29*s,y-90*s,x+29*s,y-48*s); // head
@@ -1018,7 +1025,7 @@ public final class GameView extends View {
                 // Independent off-hand flashlight aims with the same world vector.
                 // The player can fire a one-handed gun without interrupting lighting.
                 float[] tip=Ballistics.rigMuzzle(playerX,playerY,face,aimX,aimY,
-                    .76f*scale,MX[3],MY[3],MAIN_X[3],MAIN_Y[3],0f);
+                    CharacterCollision.BASE_SCALE*scale,MX[3],MY[3],MAIN_X[3],MAIN_Y[3],0f);
                 lighting.flashlight(tip[0],tip[1],aimX,aimY,flashlightReach);
             }
             int npcFlashlightBudget=2;
@@ -1027,7 +1034,7 @@ public final class GameView extends View {
                     WorldPerfV55.nearView(f.x,f.y,camX,camY,viewW,viewH,flashlightReach)){
                 npcFlashlightBudget--;
                 float[] tip=Ballistics.rigMuzzle(f.x,f.y,f.face,f.aimX,f.aimY,
-                    .76f*scale,MX[3],MY[3],MAIN_X[3],MAIN_Y[3],0f);
+                    CharacterCollision.BASE_SCALE*scale,MX[3],MY[3],MAIN_X[3],MAIN_Y[3],0f);
                 lighting.flashlight(tip[0],tip[1],f.aimX,f.aimY,flashlightReach);
             }
             // Camp flashlights face their actual NPC walking/facing direction.
@@ -1037,7 +1044,7 @@ public final class GameView extends View {
                 npcFlashlightBudget--;
                 float fx=f.face<0?-1f:1f;
                 float[] tip=Ballistics.rigMuzzle(f.x,f.y,f.face,fx,0f,
-                        .76f*scale,MX[3],MY[3],MAIN_X[3],MAIN_Y[3],0f);
+                        CharacterCollision.BASE_SCALE*scale,MX[3],MY[3],MAIN_X[3],MAIN_Y[3],0f);
                 if(WorldPerfV55.nearView(tip[0],tip[1],camX,camY,viewW,viewH,flashlightReach))
                     lighting.flashlight(tip[0],tip[1],fx,0f,flashlightReach);
             }
@@ -1092,10 +1099,15 @@ public final class GameView extends View {
             if(Math.hypot(x-CAMP_X,y-CAMP_Y)<325)continue;
             if(x<camX-55||x>camX+viewW+55||y<camY-55||y>camY+viewH+55)continue;
             if((i%7)==0){
+                c.save();
+                c.translate(x,y+43f);
+                c.scale(1.48f,1.48f);
+                c.translate(-x,-y-43f);
                 rect(c,x+7,y+19,8,24,0xff243c30);
                 rect(c,x-8,y,37,28,0xff172b25);
                 rect(c,x-4,y-6,30,27,0xff4e7351);
                 rect(c,x+2,y-9,19,13,0xff65845d);
+                c.restore();
             }else{
                 rect(c,x,y+7,19,8,0xff233c30);
                 rect(c,x+3,y,17,11,0xff557253);
@@ -1125,7 +1137,7 @@ public final class GameView extends View {
             if(x<camX-140||x>camX+viewW+140||
                y<camY-140||y>camY+viewH+140)continue;
             int kind=BiomeWorldV74.prop(x,y,h);
-            float extent=kind==4?72f:kind==5?84f:kind==3?104f:120f;
+            float extent=kind==4?72f:kind==5?84f:kind==3?162f:186f;
             if(biomeProps!=null){
                 int size=BiomeWorldV74.CELL;
                 src.set(kind*size,0,(kind+1)*size,size);
@@ -1292,7 +1304,7 @@ public final class GameView extends View {
     }
     void character(Canvas c,float x,float y,int weapon,int facing,int frame,float breath,float aimAng,float kick,
                    boolean player,boolean bandit,int npcVariant){
-        float s=.76f*scale;
+        float s=CharacterCollision.BASE_SCALE*scale;
         c.save();c.translate(x,y);if(facing<0)c.scale(-1,1);
         color(0x670b1a18);c.drawOval(-26*s,-7*s,26*s,7*s,p);
         // V58 rear-layer hand torch. Draw BEFORE the immutable original body:
@@ -1325,7 +1337,7 @@ public final class GameView extends View {
             c.translate(offsetX,offsetY);
             if(showWeapons){
                 if(weapon==11&&approvedAxe!=null)
-                    drawApprovedAxe(c,(MAIN_X[weapon]-70f)*s,(MAIN_Y[weapon]-136f)*s,scale);
+                    drawApprovedAxe(c,(MAIN_X[weapon]-70f)*s,(MAIN_Y[weapon]-136f)*s,scale*(CharacterCollision.BASE_SCALE/.76f));
                 else atlas(c,gear,weapon*260,0,0,0,s);
                 if(weapon==3)drawFlashlightLens(c,s);
             }

@@ -15,7 +15,7 @@ public final class CharacterCollisionTest {
         BufferedImage atlas=ImageIO.read(new File(args[0]));
         check(atlas.getWidth()==1040 && atlas.getHeight()==160,"unchanged V31 atlas dimensions");
         CharacterCollision.PixelMask mask=(x,y)->((atlas.getRGB(x,y)>>>24)&255)>0;
-        float centerX=500,centerY=500,s=.76f;
+        float centerX=500,centerY=500,s=CharacterCollision.BASE_SCALE;
         // Top of approved character is ~88 px ABOVE the foot anchor;
         // old radius-30 circle centered only 28 px up missed these head shots.
         float topHeadY=centerY+(24-136)*s;

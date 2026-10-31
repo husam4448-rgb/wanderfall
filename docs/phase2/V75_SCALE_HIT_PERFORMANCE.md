@@ -1,0 +1,3 @@
+Survival Paradise V75
+Parent: V74 c04db89ca65f729d36d5a204c330d4d2c70f34b9.
+Actors reduced 0.76 to 0.70 (~8%), including consistent swept hitboxes, weapon muzzle/flashlight and shadow placement. Existing approved character sprites unchanged. V74 forest biome trees enlarged to 186 units (from 120); dead trees to 162 (from 104). Hub rectangle-tree size enlarged 48%, anchored by base. Prepacked unchanged body/walk alpha for pixel-accurate projectile hits; eliminates per-ray Bitmap.getPixel calls on UI thread. Eliminated one per-frame Java Stream. Offline JVM and Android QA in CI. No real-phone FPS measurement yet. Visual review pending.

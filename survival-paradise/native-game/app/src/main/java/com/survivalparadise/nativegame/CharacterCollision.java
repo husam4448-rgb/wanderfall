@@ -18,7 +18,7 @@ public final class CharacterCollision {
 
     public static final int FRAME_WIDTH=260, FRAME_HEIGHT=160;
     public static final int STANDING_FRAME=2;
-    public static final float BASE_SCALE=.76f;
+    public static final float BASE_SCALE=.70f; // V75 uniform character size
     public static final int HEAD_TOP=0, HEAD_END=101, LOWER_START=92;
 
     // Source alpha bounds over all four V31 character walk/idle poses.
