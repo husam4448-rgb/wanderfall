@@ -6,8 +6,8 @@ android {
   applicationId 'com.survivalparadise.nativegame'
   minSdk 24
   targetSdk 34
-  versionCode 76
-  versionName '0.75-actor-tree-hit-perf'
+  versionCode 77
+  versionName '0.76-transparent-compact-hud'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17

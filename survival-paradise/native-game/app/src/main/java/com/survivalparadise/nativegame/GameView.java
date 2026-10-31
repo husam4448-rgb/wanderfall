@@ -117,7 +117,7 @@ public final class GameView extends View {
     boolean firing=false,moving=false;
     // V54.1: old control geometry remains default; test UI can tune it live.
     float movePadScale=1f,aimPadScale=1f,moveSensitivity=1f,aimSensitivity=1f;
-    int controlOpacity=100,hudOpacityV73=100;
+    int controlOpacity=100,hudOpacityV73=100,topButtonOpacityV76=22;
     boolean showPerf=false,showChunkGrid=false;
     int npcSleepRadius=1200;
     int lastVisibleNpcs=0;
@@ -262,6 +262,7 @@ public final class GameView extends View {
         aimSensitivity=host.setting("aimSensitivity",100)/100f;
         controlOpacity=host.setting("controlOpacity",100);
         hudOpacityV73=CameraHudV73.opacity(host.setting("hudOpacityV73",100));
+        topButtonOpacityV76=Math.max(0,Math.min(65,host.setting("topButtonOpacityV76",22)));
         dualTorch=host.option("dualTorch",true);
         editControls=host.option("editControls",false);
         selectedHudControl=Math.min(EDITOR_ITEMS-1,host.setting("selectedButton",0));
@@ -299,7 +300,7 @@ public final class GameView extends View {
         fireButtonY=host.setting("fireButtonY",0);
         fireButtonSize=host.setting("fireButtonSize",100)/100f;
         zoom=CameraHudV73.zoom(host.setting("cameraZoom",100));
-        showPerf=host.option("testPerf",true);
+        showPerf=host.option("testPerf",false);
         showChunkGrid=host.option("testChunkGrid",false);
         npcSleepRadius=host.setting("npcSleepRadius",1200);
         followMode=Math.max(0,Math.min(4,host.setting("followMode",0)));
@@ -1726,30 +1727,42 @@ public final class GameView extends View {
         dest.set(x-half,y-half,x+half,y+half);
         c.drawBitmap(crosshairReticle,null,dest,reticlePaint);
     }
+    void topHudButton(Canvas c,int id,String title,boolean active){
+        float x=TopHudV76.x(id,viewW),width=TopHudV76.buttonWidth(id,viewW);
+        int alpha=Math.round(topButtonOpacityV76*255f/100f);
+        if(alpha>0)rounded(c,x,TopHudV76.Y,width,TopHudV76.HEIGHT,5,
+            (alpha<<24)|(active?0x003b665b:0x0010262b));
+        int size=TopHudV76.scale(viewW)<.8f?10:12;
+        p.setTypeface(PIXEL_BOLD);p.setTextSize(size);
+        float textX=x+(width-p.measureText(title))*.5f;
+        label(c,title,textX+1f,TopHudV76.Y+21f,size,0xff142526,true);
+        label(c,title,textX,TopHudV76.Y+20f,size,WHITE,true);
+    }
     void hud(Canvas c){
         // Entire interface fades together; world and targeting reticle are
         // outside this composited HUD layer and stay fully readable.
         // Avoid allocating an offscreen HUD layer at the 100% default.
         int hudLayer=hudOpacityV73<100?
             c.saveLayerAlpha(0f,0f,viewW,viewH,CameraHudV73.alpha(hudOpacityV73)):0;
-        rect(c,0,0,viewW,56,0xc90e2228);
-        label(c,"SURVIVAL PARADISE",17,23,18,WHITE,true);
-        label(c,"HP "+(int)health+"   AMMO "+ammo+"/"+MAG[gun]+"   WAVE "+wave+
-                "   KILLS "+kills,18,44,13,OLIVE,false);
-        btn(c,viewW-84,7,77,42,"⚙ SET",0xff30554d);
-        btn(c,viewW-170,7,78,42,paused?"RESUME":"PAUSE",0xff293f46);
-        btn(c,viewW-244,7,68,42,"BAG",0xff293f46);
-        btn(c,viewW-324,7,75,42,lampOn?"LAMP ON":"LAMP OFF",0xff364d48);
-        btn(c,viewW-410,7,79,42,"CAMP",0xff5b463a);
-        btn(c,viewW-498,7,81,42,lightAlpha>nightDarkness*.5f?"NOON":"NIGHT",0xff34414c);
-        btn(c,viewW-688,7,88,42,"FORM",0xff334f57);
-        btn(c,viewW-594,7,91,42,editControls?"HUD DONE":"HUD EDIT",
-            editControls?0xff4d7863:0xff465e63);
-        rect(c,0,viewH-42,viewW,42,0xca122529);
-        label(c,"SCRAP "+scrap+"   MED "+medkits+"   AMMO BOX "+ammoPacks+
-                "   "+MainActivity.LOADOUTS[gun]+"  "+clock.display()+
-                (automaticDayNight?" [AUTO]":" [MANUAL]"),
-                14,viewH-16,14,ORANGE,true);
+        // No opaque top or bottom bars: the world fills the entire screen.
+        label(c,"SURVIVAL PARADISE",13,17,15,0xff142326,true);
+        label(c,"SURVIVAL PARADISE",12,16,15,WHITE,true);
+        String meta="HP "+(int)health+"  AMMO "+ammo+"/"+MAG[gun]+"  WAVE "+wave+"  KILLS "+kills;
+        label(c,meta,13,35,11,0xff142326,false);
+        label(c,meta,12,34,11,OLIVE,false);
+        topHudButton(c,TopHudV76.FORM,"FORM",false);
+        topHudButton(c,TopHudV76.EDIT,editControls?"DONE":"EDIT",editControls);
+        topHudButton(c,TopHudV76.DAY,lightAlpha>nightDarkness*.5f?"NOON":"NIGHT",false);
+        topHudButton(c,TopHudV76.CAMP,"CAMP",false);
+        topHudButton(c,TopHudV76.LAMP,lampOn?"LAMP ON":"LAMP OFF",lampOn);
+        topHudButton(c,TopHudV76.BAG,"BAG",false);
+        topHudButton(c,TopHudV76.PAUSE,paused?"RESUME":"PAUSE",paused);
+        topHudButton(c,TopHudV76.SET,"SET",false);
+        String footer="SCRAP "+scrap+"  MED "+medkits+"  AMMO BOX "+ammoPacks+
+            "   "+MainActivity.LOADOUTS[gun]+"  "+clock.display()+
+            (automaticDayNight?" [AUTO]":" [MANUAL]");
+        label(c,footer,14,viewH-15,13,0xff182521,true);
+        label(c,footer,13,viewH-16,13,ORANGE,true);
         // Original two virtual sticks, with per-stick size/sensitivity tests.
         float jy=padCenterY(false),rx=padCenterX(true),ry=padCenterY(true);
         float lx=padCenterX(false);
@@ -1785,19 +1798,25 @@ public final class GameView extends View {
         label(c,"MOVE",lx-39,jy+105,12,0xffb8d4c5,true);
         if(reloadClock>0)label(c,"RELOADING...",viewW-235,viewH-227,17,ORANGE,true);
         if(showPerf){
-            rounded(c,10,62,348,87,8,0xe41a3033);
-            label(c,String.format(Locale.US,"FPS %.1f  %.1fms  NPC %d",
-                1000f/Math.max(1f,smoothedFrameMs),smoothedFrameMs,
-                lastVisibleNpcs),
-                18,82,14,WHITE,true);
-            label(c,String.format(Locale.US,"CHUNK %d,%d   CACHE %d/%d  JOBS %d",
-                WorldChunkModel.chunkIndex(playerX),WorldChunkModel.chunkIndex(playerY),
-                terrainChunks.residentCount(),terrainChunks.residentLimit(),
-                terrainChunks.pendingCount()),18,102,13,OLIVE,false);
-            label(c,String.format(Locale.US,"WORLD %.0f, %.0f | CULLED %d",
-                playerX,playerY,lastCulledNpcs),18,120,12,ORANGE,false);
-            label(c,String.format(Locale.US,"CPU UPDATE %.1f  DRAW %.1f  LIGHT %.1f ms",
-                updateNs/1e6f,worldNs/1e6f,lightingNs/1e6f),18,138,11,OLIVE,false);
+            if(host.option("compactDebugV76",true)){
+                label(c,String.format(Locale.US,"FPS %.1f | %.1fms | NPC %d | CHUNK %d,%d",
+                    1000f/Math.max(1f,smoothedFrameMs),smoothedFrameMs,lastVisibleNpcs,
+                    WorldChunkModel.chunkIndex(playerX),WorldChunkModel.chunkIndex(playerY)),
+                    13,55,12,WHITE,true);
+            }else{
+                rounded(c,10,46,348,87,8,0x761a3033);
+                label(c,String.format(Locale.US,"FPS %.1f  %.1fms  NPC %d",
+                    1000f/Math.max(1f,smoothedFrameMs),smoothedFrameMs,lastVisibleNpcs),
+                    18,66,14,WHITE,true);
+                label(c,String.format(Locale.US,"CHUNK %d,%d   CACHE %d/%d  JOBS %d",
+                    WorldChunkModel.chunkIndex(playerX),WorldChunkModel.chunkIndex(playerY),
+                    terrainChunks.residentCount(),terrainChunks.residentLimit(),
+                    terrainChunks.pendingCount()),18,86,13,OLIVE,false);
+                label(c,String.format(Locale.US,"WORLD %.0f, %.0f | CULLED %d",
+                    playerX,playerY,lastCulledNpcs),18,104,12,ORANGE,false);
+                label(c,String.format(Locale.US,"CPU UPDATE %.1f  DRAW %.1f  LIGHT %.1f ms",
+                    updateNs/1e6f,worldNs/1e6f,lightingNs/1e6f),18,122,11,OLIVE,false);
+            }
         }
         if(hudLayer!=0)c.restoreToCount(hudLayer);
         // Keep on-screen edit handles opaque at any HUD opacity.
@@ -1933,25 +1952,25 @@ public final class GameView extends View {
             if(within(x,y,viewW/2-150,viewH/2-38,300,50)){if(gameOver)newGame();else togglePause();return;}
             if(within(x,y,viewW/2-150,viewH/2+28,300,50)){host.settings();return;}
         }
-        if(within(x,y,viewW-688,7,88,42)){
-            followMode=(followMode+1)%FollowFormationV61.NAMES.length;
-            host.prefs.edit().putInt("followMode",followMode).apply();
-            host.runOnUiThread(()->android.widget.Toast.makeText(host,
-                "FORMATION: "+FollowFormationV61.NAMES[followMode],
-                android.widget.Toast.LENGTH_SHORT).show());
-            return;
+        switch(TopHudV76.hit(x,y,viewW)){
+            case TopHudV76.FORM:
+                followMode=(followMode+1)%FollowFormationV61.NAMES.length;
+                host.prefs.edit().putInt("followMode",followMode).apply();
+                host.runOnUiThread(()->android.widget.Toast.makeText(host,
+                    "FORMATION: "+FollowFormationV61.NAMES[followMode],
+                    android.widget.Toast.LENGTH_SHORT).show());return;
+            case TopHudV76.EDIT:
+                editControls=!editControls;releaseControls();
+                host.prefs.edit().putBoolean("editControls",editControls).apply();
+                invalidate();return;
+            case TopHudV76.SET:host.settings();return;
+            case TopHudV76.PAUSE:togglePause();return;
+            case TopHudV76.LAMP:toggleLamp();return;
+            case TopHudV76.CAMP:placeCampfire();return;
+            case TopHudV76.DAY:toggleNight();return;
+            case TopHudV76.BAG:host.inventory();return;
+            default:break;
         }
-        if(within(x,y,viewW-594,7,91,42)){
-            editControls=!editControls;releaseControls();
-            host.prefs.edit().putBoolean("editControls",editControls).apply();
-            invalidate();return;
-        }
-        if(within(x,y,viewW-84,7,77,42)){host.settings();return;}
-        if(within(x,y,viewW-170,7,78,42)){togglePause();return;}
-        if(within(x,y,viewW-324,7,75,42)){toggleLamp();return;}
-        if(within(x,y,viewW-410,7,79,42)){placeCampfire();return;}
-        if(within(x,y,viewW-498,7,81,42)){toggleNight();return;}
-        if(within(x,y,viewW-244,7,68,42)){host.inventory();return;}
         if(paused)return;
         // HUD action buttons are dispatched through LegacyControlsV58 so all
         // visible and touch regions always use the same configurable geometry.
@@ -1988,7 +2007,7 @@ public final class GameView extends View {
         switch(action){
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_POINTER_DOWN:
-                if(!playing||paused||y<58){tap(x,y);return true;}
+                if(!playing||paused||TopHudV76.hit(x,y,viewW)>=0){tap(x,y);return true;}
                 if(editControls&&hudEditorTouch(x,y)){
                     if(panelPointer==-2)panelPointer=id;
                     return true;

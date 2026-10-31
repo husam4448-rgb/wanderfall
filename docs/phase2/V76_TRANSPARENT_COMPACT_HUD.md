@@ -1,0 +1,1 @@
+V76 experimental HUD: transparent top and bottom status (no 56px/42px opaque strips); eight responsive 31px height top actions with synchronized touch rects; top button background adjustable 0-65% (default 22%); diagnostics off by default and compact single-line optional. V75 game controls, saves and locked sprites preserved. Await visual device review and CI build.

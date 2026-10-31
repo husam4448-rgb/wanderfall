@@ -249,6 +249,9 @@ public final class MainActivity extends Activity {
         scroll.addView(root);
         section(root,"GLOBAL HUD VISIBILITY");
         slider(root,"Global HUD opacity","hudOpacityV73",15,100,100,"%");
+        slider(root,"Top button background opacity","topButtonOpacityV76",0,65,22,"%");
+        check(root,"Show FPS diagnostics","testPerf",false);
+        check(root,"Compact performance readout","compactDebugV76",true);
         root.addView(text("Fades all HUD panels, controls, hotbar and status bars. Aim reticle and HUD editor remain visible.",11,false));
         section(root,"BUTTON SELECTION");
         Spinner picker=new Spinner(this);
@@ -293,7 +296,7 @@ public final class MainActivity extends Activity {
                 edit.remove("uiX"+i).remove("uiY"+i).remove("uiSize"+i)
                     .remove("uiAlpha"+i).remove("uiEnabled"+i);
             edit.remove("movePadSize").remove("aimPadSize")
-                .putInt("hudOpacityV73",100);
+                .putInt("hudOpacityV73",100).putInt("topButtonOpacityV76",22).putBoolean("compactDebugV76",true);
             edit.putBoolean("editControls",false).apply();
             game.reloadSettings();
             if(active[0]!=null)active[0].dismiss();
@@ -665,7 +668,9 @@ public final class MainActivity extends Activity {
         section(root,"WORLD TEST LAB  •  V58");
         root.addView(text("All original settings and touch controls remain available. " +
             "The options below modify the live V54 chunk-streaming test.",13,false));
-        check(root,"Show FPS, player coordinates, NPC and chunk diagnostics","testPerf",true);
+        check(root,"Show FPS, player coordinates, NPC and chunk diagnostics","testPerf",false);
+        check(root,"Compact diagnostics without a large background","compactDebugV76",true);
+        slider(root,"Top button background opacity","topButtonOpacityV76",0,65,22,"%");
         check(root,"Show loaded chunk grid and coordinates","testChunkGrid",false);
         final int aimSection=root.getChildCount();
         section(root,"CAMERA AND TOUCH CONTROLS");
@@ -741,11 +746,11 @@ public final class MainActivity extends Activity {
               .putBoolean("lampOn",true).putBoolean("campfiresLit",true)
               .putBoolean("neonLights",true)
               .putBoolean("fullscreen",true)
-              .putBoolean("testPerf",true).putBoolean("testChunkGrid",false)
+              .putBoolean("testPerf",false).putBoolean("compactDebugV76",true).putBoolean("testChunkGrid",false)
               .putInt("cameraZoom",100).putInt("movePadSize",180)
               .putInt("aimPadSize",180).putInt("moveSensitivity",100)
               .putInt("aimSensitivity",100).putInt("controlOpacity",100)
-              .putInt("hudOpacityV73",100)
+              .putInt("hudOpacityV73",100).putInt("topButtonOpacityV76",22)
               .putInt("testCacheMax",36).putInt("testPreloadRadius",2)
               .putInt("npcSleepRadius",1200).putInt("lightResolution",150)
               .putInt("fireButtonSize",100).putInt("fireButtonX",0)
