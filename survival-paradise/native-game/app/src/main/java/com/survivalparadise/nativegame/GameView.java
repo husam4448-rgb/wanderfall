@@ -73,6 +73,9 @@ public final class GameView extends View {
     boolean editControls=false,showStatusBars=true,showCrosshair=true,lookAheadEnabled=true;
     float lookAheadStrength=0f,lookAheadThreshold=.72f,aimDeflection=0f;
     float cameraLookX=0f,cameraLookY=0f;
+    float cursorWorldX=0f,cursorWorldY=0f,cursorMoveX=0f,cursorMoveY=0f;
+    boolean cursorInitialized=false;
+    float cursorSpeed=400f;
     float hunger=100f,thirst=100f,fatigue=0f;
     float knifeDuration=0f,knifeCooldown=0f;
     int knifeDirection=0;
@@ -211,6 +214,7 @@ public final class GameView extends View {
         lookAheadEnabled=host.option("lookAheadEnabled",true);
         lookAheadThreshold=host.setting("lookAheadThreshold",72)/100f;
         lookAheadStrength=host.setting("lookAheadStrength",120);
+        cursorSpeed=host.setting("cursorSpeed",400);
         fireButtonX=host.setting("fireButtonX",0);
         fireButtonY=host.setting("fireButtonY",0);
         fireButtonSize=host.setting("fireButtonSize",100)/100f;
@@ -259,6 +263,7 @@ public final class GameView extends View {
         playerX=CAMP_X;playerY=CAMP_Y;health=100;stamina=100;
         hunger=100;thirst=100;fatigue=0;knifeDuration=0;knifeCooldown=0;
         cameraLookX=0;cameraLookY=0;aimDeflection=0;
+        cursorInitialized=false;cursorMoveX=0;cursorMoveY=0;
         playerAnimation.reset();moving=false;stickX=0;stickY=0;shotClock=0;
         gun=Math.max(0,Math.min(11,host.setting("gun",0)));ammo=MAG[gun];
         kills=0;wave=1;scrap=0;medkits=1;ammoPacks=2;worldTimer=0;autSaveClock=0;
@@ -287,6 +292,7 @@ public final class GameView extends View {
         thirst=host.prefs.getFloat("thirst",100);
         fatigue=host.prefs.getFloat("fatigue",0);
         knifeDuration=0;knifeCooldown=0;cameraLookX=0;cameraLookY=0;
+        cursorInitialized=false;cursorMoveX=0;cursorMoveY=0;
         kills=host.setting("kills",0);
         wave=Math.max(1,host.setting("wave",1));
         scrap=host.setting("scrap",0);medkits=host.setting("medkits",1);ammoPacks=host.setting("ammoPacks",2);
@@ -400,7 +406,8 @@ public final class GameView extends View {
     }
     void releaseControls(){stopWalking();firing=false;leftPointer=-1;rightPointer=-1;
         firePointer=-1;fireLeftPointer=-1;editPointer=-1;editControl=-1;
-        runHeld=false;crouchHeld=false;aimDeflection=0;}
+        runHeld=false;crouchHeld=false;aimDeflection=0;
+        cursorMoveX=0;cursorMoveY=0;}
     void switchWeapon(){
         gun=(gun+1)%12;ammo=MAG[gun];reloadClock=0;
         host.prefs.edit().putInt("gun",gun).apply();
@@ -533,6 +540,23 @@ public final class GameView extends View {
         // always restores the original neutral idle frame immediately.
         moving=distance(playerX,playerY,wasX,wasY)>.001f;
         playerAnimation.step(moving,dt,7f);
+        // Right stick drives an independent freely floating world-space
+        // cursor, like a mouse. FIRE only uses the cursor-derived aim ray.
+        if(!cursorInitialized){
+            cursorWorldX=playerX+aimX*185f;
+            cursorWorldY=playerY-42f+aimY*185f;
+            cursorInitialized=true;
+        }
+        cursorWorldX+=cursorMoveX*cursorSpeed*dt;
+        cursorWorldY+=cursorMoveY*cursorSpeed*dt;
+        float cursorDx=cursorWorldX-playerX;
+        float cursorDy=cursorWorldY-(playerY-42f);
+        float cursorDistance=(float)Math.hypot(cursorDx,cursorDy);
+        if(cursorDistance>5f){
+            aimX=cursorDx/cursorDistance;aimY=cursorDy/cursorDistance;
+            if(aimX>.025f)face=1;
+            else if(aimX<-.025f)face=-1;
+        }
         stamina=Math.max(0,Math.min(100,stamina+dt*((moving&&runHeld)?-13f:8f)));
         if(moving){hunger=Math.max(0,hunger-dt*.012f);thirst=Math.max(0,thirst-dt*.023f);}
         fatigue=Math.max(0,Math.min(100,fatigue+dt*(moving&&runHeld?.20f:-.08f)));
@@ -1247,7 +1271,8 @@ public final class GameView extends View {
         drawKnifeSwing(c);
         if(showCrosshair&&playing){
             float len=Math.max(.001f,(float)Math.hypot(aimX,aimY));
-            float px=playerX+aimX/len*160f,py=playerY-42+aimY/len*160f;
+            float px=cursorInitialized?cursorWorldX:playerX+aimX/len*185f;
+            float py=cursorInitialized?cursorWorldY:playerY-42+aimY/len*185f;
             color(0xffd9e9d3);p.setStrokeWidth(2f);
             c.drawLine(px-13,py,px-5,py,p);
             c.drawLine(px+5,py,px+13,py,p);
@@ -1483,12 +1508,10 @@ public final class GameView extends View {
         if(length>1){dx/=length;dy/=length;}
         if(right){
             aimDeflection=Math.min(1f,length);
-            if(length>.14){aimX=dx;aimY=dy;
-                if(dx>.025f)face=1;else if(dx<-.025f)face=-1;
-            }
-            // Right-stick aim persists when released/centered. Never auto-target
-            // enemies or reset the direction just because the joystick returned.
-
+            cursorMoveX=Math.abs(dx)>.10f?dx:0f;
+            cursorMoveY=Math.abs(dy)>.10f?dy:0f;
+            // Persistent floating target; joystick steers cursor velocity.
+            // No firing and no automatic snapping to a fixed radius.
         }else {stickX=dx;stickY=dy;}
     }
     float fireWidth(){return 105f*fireButtonSize;}
@@ -1598,6 +1621,7 @@ public final class GameView extends View {
                 }
                 if(id==rightPointer||action==MotionEvent.ACTION_CANCEL){
                     rightPointer=-1;aimDeflection=0f;
+                    cursorMoveX=0f;cursorMoveY=0f;
                 }
                 if(id==firePointer||action==MotionEvent.ACTION_CANCEL)firePointer=-1;
                 if(id==fireLeftPointer||action==MotionEvent.ACTION_CANCEL)fireLeftPointer=-1;
