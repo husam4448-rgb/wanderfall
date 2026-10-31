@@ -17,7 +17,18 @@ jobs:
   native-android-game:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    permissions:
+      contents: read
+      issues: write
     steps:
+      - name: Report V63 native Android build run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SP_RUN_ID: ${{ github.run_id }}
+          SP_SHA: ${{ github.sha }}
+        run: |
+          gh api -X POST "repos/$GITHUB_REPOSITORY/issues/35/comments" \
+            -f body="V63_NATIVE_ANDROID | STARTED | run $SP_RUN_ID | source $SP_SHA | https://github.com/$GITHUB_REPOSITORY/actions/runs/$SP_RUN_ID" || true
       - uses: actions/checkout@v4
         with:
           sparse-checkout: |
@@ -531,3 +542,13 @@ jobs:
           path: artifacts/
           retention-days: 30
           if-no-files-found: warn
+      - name: Report V63 native Android build verdict
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SP_RUN_ID: ${{ github.run_id }}
+          SP_SHA: ${{ github.sha }}
+          SP_STATUS: ${{ job.status }}
+        run: |
+          gh api -X POST "repos/$GITHUB_REPOSITORY/issues/35/comments" \
+            -f body="V63_NATIVE_ANDROID | $SP_STATUS | run $SP_RUN_ID | source $SP_SHA | https://github.com/$GITHUB_REPOSITORY/actions/runs/$SP_RUN_ID" || true
