@@ -17,15 +17,20 @@ public final class V58LegacyControlsTest {
         }
         // Default buttons must be distinct, non-overlapping and outside joysticks.
         for(int a=0;a<LegacyControlsV58.COUNT;a++){
+            if(!LegacyControlsV58.defaultEnabled(a))continue;
             float ax=LegacyControlsV58.defaultX(a,1200),ay=LegacyControlsV58.defaultY(a,660);
-            float aw=LegacyControlsV58.defaultW(a),ah=LegacyControlsV58.defaultH(a);
-            check(ax>=0&&ay>=0&&ax+aw<=1200&&ay+ah<=660,"action bounds "+a);
+            float aw=LegacyControlsV58.defaultW(a)*LegacyControlsV58.defaultScale(a)/100f;
+            float ah=LegacyControlsV58.defaultH(a)*LegacyControlsV58.defaultScale(a)/100f;
+            check(ax>=0&&ay>=0&&ax+aw<=1200&&ay+ah<=660,
+                "action bounds "+a);
             for(int b=0;b<a;b++){
+                if(!LegacyControlsV58.defaultEnabled(b))continue;
                 float bx=LegacyControlsV58.defaultX(b,1200);
                 float by=LegacyControlsV58.defaultY(b,660);
-                float bw=LegacyControlsV58.defaultW(b),bh=LegacyControlsV58.defaultH(b);
+                float bw=LegacyControlsV58.defaultW(b)*LegacyControlsV58.defaultScale(b)/100f;
+                float bh=LegacyControlsV58.defaultH(b)*LegacyControlsV58.defaultScale(b)/100f;
                 boolean overlap=ax<bx+bw&&ax+aw>bx&&ay<by+bh&&ay+ah>by;
-                check(!overlap,"default buttons overlap "+a+" "+b);
+                check(!overlap,"reference buttons overlap "+a+" "+b);
             }
         }
         check(LegacyControlsV58.hit(320,565,315,561,105,44),"button hit center");
