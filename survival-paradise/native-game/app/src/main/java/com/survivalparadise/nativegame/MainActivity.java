@@ -345,6 +345,20 @@ public final class MainActivity extends Activity {
         slider(root,"Support hand vertical offset","supportY",-24,24,0," px");
         slider(root,"Simulation speed","speed",50,200,100,"%");
         slider(root,"Survivors (including player)","survivors",1,9,1,"");
+        root.addView(text("COMPANION FOLLOW FORMATION",13,true));
+        Spinner formationPicker=new Spinner(this);
+        formationPicker.setAdapter(new ArrayAdapter<String>(this,
+            android.R.layout.simple_spinner_dropdown_item,FollowFormationV61.NAMES));
+        formationPicker.setSelection(Math.max(0,Math.min(4,prefs.getInt("followMode",0))));
+        root.addView(formationPicker);
+        formationPicker.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener(){
+            public void onNothingSelected(android.widget.AdapterView<?> parent){}
+            public void onItemSelected(android.widget.AdapterView<?> parent,View v,int pos,long id){
+                prefs.edit().putInt("followMode",pos).apply();
+                game.reloadSettings();
+            }
+        });
+        slider(root,"Companion spacing","followSpacing",70,260,125," px");
         root.addView(text("Equipped weapon",14,true));
         Spinner spinner=new Spinner(this);
         ArrayAdapter<String> adapter=new ArrayAdapter<>(this,android.R.layout.simple_spinner_dropdown_item,LOADOUTS);
@@ -390,16 +404,17 @@ public final class MainActivity extends Activity {
         check(root,"Show classic six status bars","showStatusBars",true);
         check(root,"Show world aiming crosshair","showCrosshair",true);
         check(root,"Aim-stick camera look-ahead","lookAheadEnabled",true);
-        slider(root,"Look-ahead stick threshold","lookAheadThreshold",45,95,72,"%");
-        slider(root,"Look-ahead distance","lookAheadStrength",0,240,120," px");
-        slider(root,"Aim crosshair distance at full stick","cursorRange",180,460,335," px");
+        slider(root,"Look-ahead stick threshold","lookAheadThreshold",20,95,55,"%");
+        slider(root,"Look-ahead distance","lookAheadStrength",0,1000,420," px");
+        slider(root,"Camera panning response speed","lookAheadSmooth",2,18,8," /s");
+        slider(root,"Aim crosshair distance at full stick","cursorRange",250,1200,750," px");
         slider(root,"Camera zoom","cameraZoom",70,180,100,"%");
-        slider(root,"Movement joystick size","movePadSize",70,150,100,"%");
-        slider(root,"Aiming joystick size","aimPadSize",70,150,100,"%");
+        slider(root,"Movement joystick size","movePadSize",70,180,100,"%");
+        slider(root,"Aiming joystick size","aimPadSize",70,180,100,"%");
         slider(root,"Movement joystick sensitivity","moveSensitivity",50,160,100,"%");
         slider(root,"Aiming joystick sensitivity","aimSensitivity",50,160,100,"%");
         slider(root,"Joystick transparency / opacity","controlOpacity",25,100,100,"%");
-        action(root,"ENABLE LIVE HUD EDITOR (THEN RETURN TO GAME)",()->{
+        action(root,"OPEN ON-SCREEN HUD EDITOR",()->{
             prefs.edit().putBoolean("editControls",true).apply();
             game.reloadSettings();
             if(activeDialog[0]!=null)activeDialog[0].dismiss();
@@ -466,9 +481,10 @@ public final class MainActivity extends Activity {
               .putInt("menuTextSize",100).putInt("menuSliderSize",100)
               .putInt("menuRowSpacing",100).putBoolean("dualTorch",true)
               .putBoolean("showStatusBars",true).putBoolean("showCrosshair",true)
-              .putBoolean("lookAheadEnabled",true).putInt("lookAheadThreshold",72)
-              .putInt("lookAheadStrength",120).putInt("cursorSpeed",400)
-              .putInt("cursorRange",335).putBoolean("staticLightCache",true)
+              .putBoolean("lookAheadEnabled",true).putInt("lookAheadThreshold",55)
+              .putInt("lookAheadStrength",420).putInt("lookAheadSmooth",8)
+              .putInt("followMode",0).putInt("followSpacing",125).putInt("cursorSpeed",400)
+              .putInt("cursorRange",750).putBoolean("staticLightCache",true)
               .putBoolean("fastPointLights",true).putInt("lightResolution",220)
               .putBoolean("editControls",false).apply();
             wSize.setProgress(96-65);hSize.setProgress(94-65);
