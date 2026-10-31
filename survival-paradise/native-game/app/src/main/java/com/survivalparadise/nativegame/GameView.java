@@ -1047,11 +1047,22 @@ public final class GameView extends View {
             if(walkingAtlas==null)return;
             int row=Math.max(0,variant)*160;
             int f=Math.max(0,Math.min(3,frame));
-            src.set(f*260,row,f*260+260,row+160);
-            dest.set(-70*s,-136*s,190*s,24*s);
-            // Exact approved atlas; no whole-body translation. The former V48
-            // offset moved the head outline and complexion at every walk step.
+            // V59 locked identity compositor: use the approved walking frame
+            // only below the upper-body split. Face, hair, eyes, chest colors
+            // and their near-black outlines are taken from the SAME approved
+            // idle frame for every walk step. No source image is modified.
+            final int split=110;
+            src.set(f*260,row+split,f*260+260,row+160);
+            dest.set(-70*s,(split-136)*s,190*s,24*s);
             c.drawBitmap(walkingAtlas,src,dest,pixel);
+            final boolean npc=variant>=0;
+            Bitmap locked=npc?npcIdleV56:body;
+            if(locked==null)return;
+            int sx=npc?0:APPROVED_PLANTED_IDLE_FRAME*260;
+            int sy=npc?Math.min(11,variant)*160:0;
+            src.set(sx,sy,sx+260,sy+split);
+            dest.set(-70*s,-136*s,190*s,(split-136)*s);
+            c.drawBitmap(locked,src,dest,pixel);
             return;
         }
         // Original planted idle source, NOT a walking pose reconstructed in V51.
