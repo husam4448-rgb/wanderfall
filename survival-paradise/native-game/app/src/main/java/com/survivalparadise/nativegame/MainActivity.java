@@ -641,6 +641,8 @@ public final class MainActivity extends Activity {
         slider(root,"Support hand vertical offset","supportY",-24,24,0," px");
         slider(root,"Simulation speed","speed",50,200,100,"%");
         slider(root,"Player walking speed","walkSpeedV77",75,200,130,"%");
+        slider(root,"Walking animation speed","walkingAnimationSpeedV79",50,200,100,"%");
+        root.addView(text("100% automatically matches your walking-speed setting; adjust animation tempo without changing movement.",11,false));
         slider(root,"Survivors (including player)","survivors",1,9,1,"");
         root.addView(text("COMPANION FOLLOW FORMATION",13,true));
         Spinner formationPicker=new Spinner(this);
@@ -763,7 +765,7 @@ public final class MainActivity extends Activity {
         action(root,"Take screenshot",()->captureGame());
         action(root,"Restore default settings",()->{
             prefs.edit().putInt("scale",100).putInt("hand",100).putInt("support",0).putInt("supportY",0)
-              .putInt("speed",100).putInt("walkSpeedV77",130).putInt("survivors",1).putInt("gun",0)
+              .putInt("speed",100).putInt("walkSpeedV77",130).putInt("walkingAnimationSpeedV79",100).putInt("survivors",1).putInt("gun",0)
               .putBoolean("hands",true).putBoolean("weapons",true).putBoolean("anchors",false)
               .putBoolean("hitboxes",false).putBoolean("enemyAI",true).putBoolean("aimRotation",true)
                .putBoolean("recoil",true).putBoolean("loot",true).putBoolean("night",true)

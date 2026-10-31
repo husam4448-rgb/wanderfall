@@ -55,7 +55,7 @@ public final class GameView extends View {
     static final float[] OFF_Y={0,0,0,0,77,75,72,75,73,71,74,0};
     static final int DK=0xff101b1a,WHITE=0xffedf2e6,OLIVE=0xff8ab397,ORANGE=0xffe8bc72,RED=0xffce766b;
 
-    float scale=1,handScale=1,support=0,supportVertical=0,timeSpeed=1,zoom=1,walkSpeedMultiplier=1.30f;
+    float scale=1,handScale=1,support=0,supportVertical=0,timeSpeed=1,zoom=1,walkSpeedMultiplier=1.30f,walkingAnimationMultiplierV79=1f;
     boolean showHands=true,showWeapons=true,anchors=false,hitboxes=false,enemyAI=true,
             aimRotation=true,recoilFX=true,lootEnabled=true,night=true;
     boolean playing=false,paused=false,settingsPause=false,wasPaused=false,hasSave=false,gameOver=false;
@@ -257,6 +257,8 @@ public final class GameView extends View {
         supportVertical=host.setting("supportY",0);
         timeSpeed=host.setting("speed",100)/100f;
         walkSpeedMultiplier=PlayerMovementV77.multiplier(host.setting("walkSpeedV77",PlayerMovementV77.DEFAULT_PERCENT));
+        walkingAnimationMultiplierV79=WalkingAnimationV79.multiplier(
+            host.setting("walkingAnimationSpeedV79",WalkingAnimationV79.DEFAULT_PERCENT));
         movePadScale=host.setting("movePadSize",180)/100f;
         aimPadScale=host.setting("aimPadSize",180)/100f;
         moveSensitivity=host.setting("moveSensitivity",100)/100f;
@@ -638,7 +640,10 @@ public final class GameView extends View {
         // Animate actual displacement only: releasing the stick or hitting a wall
         // always restores the original neutral idle frame immediately.
         moving=distance(playerX,playerY,wasX,wasY)>.001f;
-        playerAnimation.step(moving,dt,PlayerMovementV77.gait(walkSpeedMultiplier,runHeld&&stamina>0));
+        // Adjustable extra gait multiplier, auto-synced to movement at 100%.
+        playerAnimation.step(moving,dt,
+            PlayerMovementV77.gait(walkSpeedMultiplier,runHeld&&stamina>0)*
+            walkingAnimationMultiplierV79);
         // V65: the character is the stick/crosshair origin. Only distance
         // increases while the right thumb is active. The heading comes DIRECTLY
         // from the stick, so reversing aims instantly without crossing center.
