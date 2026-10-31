@@ -404,7 +404,7 @@ jobs:
           assert 'c.translate(WalkAlignmentV48.sourceOffsetX' not in game
           for q in ['void hudEditor(){','"v60_lighting_migrated"',
                     '"fastPointLights"','"staticLightCache"',
-                    'slider(root,"Aim crosshair maximum distance"',
+                    'slider(root,"Absolute crosshair distance cap',
                     '"OPEN ON-SCREEN HUD EDITOR"',
                     'jumpButton(jumpBar2,"HUD EDIT"',
                     'leftRail.setOnTouchListener(railScroll)']:
@@ -528,7 +528,7 @@ jobs:
           assert 'slider(root,"Crosshair stick deadzone"' in m
           assert 'slider(root,"Crosshair fine-aim response curve"' in m
           assert 'check(root,"Legacy full-range crosshair while aiming"' in m
-          assert 'Aim crosshair maximum distance' in m
+          assert 'Absolute crosshair distance cap' in m
           assert 'Approved crimson crosshair size' in m
           assert 'Math.round(142*getResources().getDisplayMetrics().density)' in m
           assert 'aimCursorDistance=cursorMaxRange' not in g
