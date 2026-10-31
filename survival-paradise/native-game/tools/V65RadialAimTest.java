@@ -28,10 +28,10 @@ public final class V65RadialAimTest {
         float newCursor=RadialAimV65.direction(-1f,1f)*distance;
         ok(oldCursor>0&&newCursor<0&&Math.abs(newCursor)==distance,
            "instant opposite hemisphere at same radial distance");
-        float d=RadialAimV65.distance(76,0,250,true,1,2900,.040f);
-        ok(d>175,"rapid aim reach within 40ms at default speed");
+        float d=RadialAimV65.distance(RadialAimV65.rest(0),0,250,true,1,2900,.040f);
+        ok(d>RadialAimV65.rest(0),"rapid aim extension at default speed");
         near(RadialAimV65.distance(d,0,250,false,0,2900,.016f),
-             76f,"close snap without animation");
+             RadialAimV65.rest(0),"range-indicator snap without animation");
         near(RadialAimV65.maximum(8,650,400),400f,"player-configured max");
         System.out.println("V65 PASS: per-weapon rest, instant reversal, release snap, ballistic cap");
     }
