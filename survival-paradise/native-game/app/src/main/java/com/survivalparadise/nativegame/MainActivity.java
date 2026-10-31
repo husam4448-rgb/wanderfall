@@ -623,16 +623,18 @@ public final class MainActivity extends Activity {
         check(root,"Show classic six status bars","showStatusBars",true);
         check(root,"Show world aiming crosshair","showCrosshair",true);
         slider(root,"Approved crimson crosshair size","reticleSize",40,220,100,"%");
-        root.addView(text("Maximum crosshair reach equals the bullet endpoint: speed multiplied by actual lifetime, including muzzle offset. Cover or targets can interrupt bullets sooner.",11,false));
+        root.addView(text("Precise aiming: small stick movements are filtered, big deliberate reversals stay immediate. Crosshair still stops at each weapon\u0027s true projectile endpoint. Release returns to your chosen resting distance.",11,false));
         check(root,"Aim-stick camera look-ahead","lookAheadEnabled",true);
         slider(root,"Camera edge-pan threshold","lookAheadThreshold",20,95,55,"%");
         slider(root,"Look-ahead distance","lookAheadStrength",0,1000,420," px");
         slider(root,"Camera panning response speed","lookAheadSmooth",2,18,8," /s");
         slider(root,"Released crosshair distance (weapon-relative)","crosshairRestPercent",50,200,100,"%");
-        slider(root,"Crosshair extension speed while aiming","cursorSpeedV64",500,6500,2900," px/s");
-        slider(root,"Crosshair stick deadzone","aimDeadzone",0,25,8,"%");
-        slider(root,"Crosshair fine-aim response curve","aimCurve",80,200,135,"%");
-        check(root,"Legacy full-range crosshair while aiming","legacyDirectionalAim",false);
+        slider(root,"Crosshair movement speed","cursorSpeedV68",150,2400,650," px/s");
+        slider(root,"Fine aim stability / deadzone","aimDeadzoneV68",5,30,17,"%");
+        slider(root,"Fine aim acceleration curve","aimCurveV68",100,250,175,"%");
+        slider(root,"Direction steering sensitivity","aimSteeringV68",35,200,100,"%");
+        slider(root,"Maximum camera pan speed","cameraPanSpeedV68",120,1200,350," px/s");
+                check(root,"Legacy full-range crosshair while aiming","legacyDirectionalAim",false);
         slider(root,"Camera zoom","cameraZoom",70,180,100,"%");
         slider(root,"Movement joystick size","movePadSize",70,180,100,"%");
         slider(root,"Aiming joystick size","aimPadSize",70,180,100,"%");
@@ -709,7 +711,9 @@ public final class MainActivity extends Activity {
               .putBoolean("lookAheadEnabled",true).putInt("lookAheadThreshold",55)
               .putInt("lookAheadStrength",420).putInt("lookAheadSmooth",8)
               .putInt("followMode",0).putInt("followSpacing",125).putInt("cursorSpeed",400)
-              .putInt("crosshairRestPercent",100).putInt("cursorSpeedV64",2900)
+              .putInt("crosshairRestPercent",100).putInt("cursorSpeedV68",650)
+              .putInt("aimDeadzoneV68",17).putInt("aimCurveV68",175)
+              .putInt("aimSteeringV68",100).putInt("cameraPanSpeedV68",350)
               .putInt("reticleSize",100).putBoolean("staticLightCache",true)
               .putBoolean("fastPointLights",true).putInt("lightResolution",220)
               .putBoolean("editControls",false).apply();
