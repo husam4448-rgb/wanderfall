@@ -1548,8 +1548,20 @@ public final class GameView extends View {
         if(!playing||!showCrosshair||crosshairReticle==null)return;
         float aimLength=(float)Math.max(.001,Math.hypot(aimX,aimY));
         float dirX=aimX/aimLength,dirY=aimY/aimLength;
-        float x=(playerX+dirX*aimCursorDistance-camX)*zoom;
-        float y=(playerY-42+dirY*aimCursorDistance-camY)*zoom;
+        float originX=(playerX-camX)*zoom,originY=(playerY-42-camY)*zoom;
+        // Clamp along the aiming ray to the visible non-HUD world rectangle.
+        // This cannot change aim direction or flip to the reverse hemisphere.
+        float available=cursorMaxRange*zoom;
+        if(dirX>0.0001f)available=Math.min(available,
+            (viewW-25*reticleSize-originX)/dirX);
+        else if(dirX<-.0001f)available=Math.min(available,
+            (25*reticleSize-originX)/dirX);
+        if(dirY>.0001f)available=Math.min(available,
+            (viewH-58-25*reticleSize-originY)/dirY);
+        else if(dirY<-.0001f)available=Math.min(available,
+            (66+25*reticleSize-originY)/dirY);
+        available=Math.max(0f,available);
+        float x=originX+dirX*available,y=originY+dirY*available;
         float half=21f*reticleSize;
         // Reticle remains on-screen, but never flips or retracts behind the survivor.
         x=clamp(x,half+5,viewW-half-5);
@@ -1647,6 +1659,7 @@ public final class GameView extends View {
         terrainChunks.release();
         lighting.release();
         if(campStatic!=null){campStatic.recycle();campStatic=null;}
+        if(crosshairReticle!=null){crosshairReticle.recycle();crosshairReticle=null;}
         super.onDetachedFromWindow();
     }
     @Override protected void onDraw(Canvas canvas){
@@ -1716,10 +1729,11 @@ public final class GameView extends View {
         if(right){
             aimDeflection=Math.min(1f,length);
             if(length>.12f){
-                float inv=1f/length;
-                aimX=dx*inv;aimY=dy*inv;
-                aimCursorDistance=clamp(130f+Math.min(1f,length)*(cursorMaxRange-130f),
-                        130f,cursorMaxRange);
+                // Critical V62 fix: normalize the CLAMPED vector, never divide
+                // it by the original beyond-edge magnitude a second time.
+                float normalized=(float)Math.max(.0001,Math.hypot(dx,dy));
+                aimX=dx/normalized;aimY=dy/normalized;
+                aimCursorDistance=cursorMaxRange;
                 face=aimX<-.025f?-1:aimX>.025f?1:face;
                 if(cursorInitialized){
                     // Immediate heading correction: no dragging an old pointer
