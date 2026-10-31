@@ -480,7 +480,7 @@ jobs:
           ]: assert tag in m,tag
           assert 'game.character(canvas,0,0,game.gun' in preview
           assert 'postInvalidateDelayed(95)' in preview
-          assert 'float factor=Math.min(w/210f,h/150f)*.92f;' in preview
+          assert 'float factor=Math.min(w/210f,h/150f)*.92f/Math.max(.65f,game.scale);' in preview
           assert 'Math.round(142*getResources().getDisplayMetrics().density)' in m
           assert 'Math.round(39*getResources().getDisplayMetrics().density)' in m
           assert 'closeBag.setOnClickListener(v->dialog.dismiss())' in m
