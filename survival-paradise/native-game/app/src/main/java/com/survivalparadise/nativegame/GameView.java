@@ -89,7 +89,7 @@ public final class GameView extends View {
     float lookAheadSmooth=5f;
     float cameraLookX=0f,cameraLookY=0f;
     float cursorWorldX=0f,cursorWorldY=0f,cursorMoveX=0f,cursorMoveY=0f;
-    float aimCursorDistance=76f,cursorMaxRange=335f; // weapon-specific radial reticle
+    float aimCursorDistance=190f,crosshairRestPercent=100f; // tuned per-weapon radial resting reticle
     long updateNs=0,worldNs=0,lightingNs=0;
     boolean cursorInitialized=false;
     float cursorSpeed=2900f,aimDeadzone=.08f,aimResponseCurve=1.35f;
@@ -153,7 +153,7 @@ public final class GameView extends View {
         Survivor(float a,float b,int g,int variant){x=a;y=b;homeX=a;homeY=b;gun=g;this.variant=variant;}}
     static class Shot {float x,y,vx,vy,life,damage;boolean hostile;int color;
         Shot(float x,float y,float vx,float vy,float damage,boolean enemy){
-            this.x=x;this.y=y;this.vx=vx;this.vy=vy;this.damage=damage;this.life=1.3f;
+            this.x=x;this.y=y;this.vx=vx;this.vy=vy;this.damage=damage;this.life=Ballistics.PROJECTILE_LIFE;
             this.hostile=enemy;this.color=enemy?0xffffa88a:0xffeada9e;
         }}
     static class Flash {float x,y,dx,dy,ttl=.065f;
@@ -265,7 +265,7 @@ public final class GameView extends View {
         aimDeadzone=host.setting("aimDeadzone",8)/100f;
         aimResponseCurve=host.setting("aimCurve",135)/100f;
         legacyDirectionalAim=host.option("legacyDirectionalAim",false);
-        cursorMaxRange=host.setting("cursorRange",750);
+        crosshairRestPercent=host.setting("crosshairRestPercent",100);
         reticleSize=host.setting("reticleSize",100)/100f;
         hotbarX=host.setting("uiX"+HOTBAR,0);
         hotbarY=host.setting("uiY"+HOTBAR,0);
@@ -471,7 +471,7 @@ public final class GameView extends View {
           terrainChunks.cacheHits,terrainChunks.cacheMisses);
     }
     void snapAimToWeaponRest(){
-        aimCursorDistance=RadialAimV65.rest(gun);
+        aimCursorDistance=RadialAimV65.rest(gun,crosshairRestPercent);
         cursorWorldX=playerX+aimX*aimCursorDistance;
         cursorWorldY=playerY-42f+aimY*aimCursorDistance;
         cursorInitialized=true;
@@ -616,8 +616,20 @@ public final class GameView extends View {
         // V65: the character is the stick/crosshair origin. Only distance
         // increases while the right thumb is active. The heading comes DIRECTLY
         // from the stick, so reversing aims instantly without crossing center.
-        float rest=RadialAimV65.rest(gun);
-        float maxAim=RadialAimV65.maximum(gun,RANGES[gun],cursorMaxRange);
+        float rest=RadialAimV65.rest(gun,crosshairRestPercent);
+        // The crosshair's maximum and the bullet use the identical speed
+        // and lifetime values; the muzzle-to-player offset is projected onto
+        // the aiming ray to locate the actual bullet endpoint in world space.
+        float maxAim=rest;
+        if(gun==11)maxAim=Math.max(rest,88f); // axe: collision reach, no bullet
+        else if(gun==3)maxAim=Math.max(rest,host.setting("beamReach",490)); // torch: light
+        else{
+            float[] muzzle=Ballistics.rigMuzzle(playerX,playerY,face,aimX,aimY,
+                .76f*scale,MX[gun],MY[gun],MAIN_X[gun],MAIN_Y[gun],0f);
+            float muzzleOffset=(muzzle[0]-playerX)*aimX+
+                (muzzle[1]-(playerY-42f))*aimY;
+            maxAim=Math.max(rest,Ballistics.unobstructedTravel(gun)+muzzleOffset);
+        }
         if(!cursorInitialized){
             aimCursorDistance=rest;cursorInitialized=true;
         }
@@ -630,7 +642,8 @@ public final class GameView extends View {
             aimCursorDistance=maxAim; // optional legacy full-range response
         }else{
             aimCursorDistance=RadialAimV65.distance(aimCursorDistance,gun,maxAim,
-                true,(float)Math.hypot(cursorMoveX,cursorMoveY),pointerSpeed,dt);
+                true,(float)Math.hypot(cursorMoveX,cursorMoveY),pointerSpeed,dt,
+                crosshairRestPercent);
         }
         cursorWorldX=playerX+aimX*aimCursorDistance;
         cursorWorldY=playerY-42f+aimY*aimCursorDistance;
@@ -647,39 +660,28 @@ public final class GameView extends View {
                     damage(knifeTarget,36);
             }
         }
-        // Camera is independent of cursor position. Extending aim past the
-        // weapon's visible reach may pan the world, but it cannot fix, drag,
-        // or redefine crosshair direction/distance.
+        // Camera follows a cursor only when it reaches the viewport margins.
+        // It is not bounded to the old 420 px look-ahead offset: long-range
+        // sniper bullets can genuinely fly thousands of world pixels.
+        // Camera never rewrites cursor position, weapon reach or aim heading.
         float z=Math.max(.01f,zoom);
-        float marginX=Math.max(55f,viewW*(1.05f-lookAheadThreshold)*.20f);
-        float marginY=Math.max(55f,viewH*(1.05f-lookAheadThreshold)*.20f);
-        float pointerScreenX=(cursorWorldX-playerX+viewW/(2f*z)-cameraLookX)*z;
-        float pointerScreenY=(cursorWorldY-playerY+viewH/(2f*z)-cameraLookY)*z;
-        float edgeX=FloatingAimV64.edgeStrength(pointerScreenX,viewW,marginX,cursorMoveX);
-        float edgeY=FloatingAimV64.edgeStrength(pointerScreenY,viewH,marginY,cursorMoveY);
-        // At a weapon's reach cap, continued full-stick input is a deliberate
-        // look-ahead request, even when the reticle is short of the screen edge.
-        float rangeLimit=rightAiming&&aimCursorDistance>=maxAim-1f?
-            FloatingAimV64.response(aimDeflection,lookAheadThreshold,1f):0f;
-        edgeX=Math.max(edgeX,rangeLimit);
-        edgeY=Math.max(edgeY,rangeLimit);
-        float smooth=clamp(lookAheadSmooth/8f,.15f,1.8f);
-        float panMaxX=Math.min(lookAheadStrength,Math.max(0f,(viewW*.5f-180f)/z));
-        float panMaxY=Math.min(lookAheadStrength,Math.max(0f,(viewH*.5f-210f)/z));
+        float halfVisibleX=(viewW*.5f-60f)/z;
+        float halfVisibleY=(viewH*.5f-80f)/z;
+        float desiredX=cursorWorldX-playerX;
+        float desiredY=cursorWorldY-playerY;
+        float targetX=desiredX-clamp(desiredX,-halfVisibleX,halfVisibleX);
+        float targetY=desiredY-clamp(desiredY,-halfVisibleY,halfVisibleY);
         if(lookAheadEnabled&&rightAiming){
-            cameraLookX=clamp(cameraLookX+cursorMoveX*pointerSpeed*dt*edgeX*smooth,
-                -panMaxX,panMaxX);
-            cameraLookY=clamp(cameraLookY+cursorMoveY*pointerSpeed*dt*edgeY*smooth,
-                -panMaxY,panMaxY);
+            float follow=Math.min(1f,dt*lookAheadSmooth);
+            cameraLookX+=(targetX-cameraLookX)*follow;
+            cameraLookY+=(targetY-cameraLookY)*follow;
         }else{
-            // On release the camera recenters separately; the crosshair has
-            // already snapped to its weapon rest distance on the same frame.
-            float ease=Math.min(1f,dt*lookAheadSmooth);
-            cameraLookX+=(0f-cameraLookX)*ease;
-            cameraLookY+=(0f-cameraLookY)*ease;
+            float follow=Math.min(1f,dt*lookAheadSmooth);
+            cameraLookX+=(0f-cameraLookX)*follow;
+            cameraLookY+=(0f-cameraLookY)*follow;
         }
-        // Crucially: no screen clamp updates aimX/aimY or cursor world coords.
-        // The marker is rendered along its own ray; panning never owns it.
+        // Rendering may stay at the screen rim while the camera catches up,
+        // but the actual crosshair stops ONLY at the real bullet endpoint.
         if(firing){
             if(aimX>.025f)face=1;else if(aimX<-.025f)face=-1;
             if(shotClock<=0&&reloadClock==0){
@@ -781,7 +783,10 @@ public final class GameView extends View {
         // Continuous collision detection: no tunneling through actors or cover at 4000 px/s.
         for(Iterator<Shot> iter=shots.iterator();iter.hasNext();){
             Shot bullet=iter.next();
-            float nx=bullet.x+bullet.vx*dt,ny=bullet.y+bullet.vy*dt;
+            // Do not overshoot the lifespan in the final frame: the
+            // crosshair and projectile must share the same exact endpoint.
+            float travelDt=Math.min(dt,Math.max(0f,bullet.life));
+            float nx=bullet.x+bullet.vx*travelDt,ny=bullet.y+bullet.vy*travelDt;
             bullet.life-=dt;
             float first=Float.POSITIVE_INFINITY;
             Bandit victim=null;
