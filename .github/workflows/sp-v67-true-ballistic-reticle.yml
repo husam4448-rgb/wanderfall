@@ -517,8 +517,8 @@ jobs:
           m=(p/'MainActivity.java').read_text()
           assert 'cursorSpeed=host.setting("cursorSpeedV64",2900)' in g
           assert 'FloatingAimV64.scaledSpeed(cursorSpeed' in g
-          assert 'FloatingAimV64.edgeStrength(pointerScreenX' in g
-          assert 'FloatingAimV64.edgeStrength(pointerScreenY' in g
+          assert 'float targetX=desiredX-clamp(desiredX,-halfVisibleX,halfVisibleX);' in g
+          assert 'float targetY=desiredY-clamp(desiredY,-halfVisibleY,halfVisibleY);' in g
           assert 'cameraLookX+=(targetX-cameraLookX)*follow;' in g
           assert 'cursorMoveX=dx*inv;cursorMoveY=dy*inv;' in g
           assert 'else if(legacyDirectionalAim){' in g
