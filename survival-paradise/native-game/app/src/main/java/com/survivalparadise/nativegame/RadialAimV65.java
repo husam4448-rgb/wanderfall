@@ -16,6 +16,12 @@ public final class RadialAimV65 {
         return REST[Math.max(0,Math.min(REST.length-1,weapon))];
     }
 
+    /** Tune the same per-weapon release distances without corrupting other slots. */
+    public static float rest(int weapon,float sliderPercent){
+        float scale=Math.max(.50f,Math.min(2.0f,sliderPercent/100f));
+        return rest(weapon)*scale;
+    }
+
     public static float maximum(int weapon,int ballisticRange,float userCap){
         float near=rest(weapon);
         // The weapon has the final say; flashlight and melee use a short arc.
@@ -28,6 +34,18 @@ public final class RadialAimV65 {
                                  boolean aiming,float deflection,
                                  float travelPixelsPerSecond,float seconds){
         float close=rest(weapon);
+        if(!aiming)return close;
+        if(deflection<=0f)return Math.max(close,Math.min(max,previous));
+        float delta=Math.max(0f,travelPixelsPerSecond)*Math.max(0f,seconds)
+                    *Math.min(1f,deflection);
+        return Math.max(close,Math.min(max,Math.max(close,previous)+delta));
+    }
+
+    /** V67 adjustable rest anchor, preserving V65 legacy signature. */
+    public static float distance(float previous,int weapon,float max,
+                                 boolean aiming,float deflection,
+                                 float travelPixelsPerSecond,float seconds,float restPercent){
+        float close=rest(weapon,restPercent);
         if(!aiming)return close;
         if(deflection<=0f)return Math.max(close,Math.min(max,previous));
         float delta=Math.max(0f,travelPixelsPerSecond)*Math.max(0f,seconds)
