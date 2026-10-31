@@ -69,7 +69,7 @@ public final class GameView extends View {
     long lastFrame=0;
     float viewW=1200,viewH=660,drawScale=1,camX=0,camY=0;
     int leftPointer=-1,rightPointer=-1,firePointer=-1,fireLeftPointer=-1;
-    int editPointer=-1,editControl=-1;
+    int editPointer=-1,editControl=-1,editX=0,editY=0;
     boolean editControls=false,showStatusBars=true,showCrosshair=true,lookAheadEnabled=true;
     float lookAheadStrength=0f,lookAheadThreshold=.72f,aimDeflection=0f;
     float cameraLookX=0f,cameraLookY=0f;
@@ -1277,6 +1277,49 @@ public final class GameView extends View {
         rounded(c,x,y,w,h,9,fill);
         label(c,label,x+12,y+h*.66f,14,WHITE,true);
     }
+    float uiSize(int id){return host.setting("uiSize"+id,100)/100f;}
+    float uiWidth(int id){return LegacyControlsV58.defaultW(id)*uiSize(id);}
+    float uiHeight(int id){return LegacyControlsV58.defaultH(id)*uiSize(id);}
+    float uiX(int id){
+        int delta=editPointer>=0&&editControl==id?editX:
+            host.setting("uiX"+id,0);
+        return LegacyControlsV58.defaultX(id,viewW)+delta;
+    }
+    float uiY(int id){
+        int delta=editPointer>=0&&editControl==id?editY:
+            host.setting("uiY"+id,0);
+        return LegacyControlsV58.defaultY(id,viewH)+delta;
+    }
+    boolean uiEnabled(int id){return host.option("uiEnabled"+id,true);}
+    int actionAt(float x,float y){
+        for(int i=0;i<LegacyControlsV58.COUNT;i++)
+            if((uiEnabled(i)||editControls)&&
+                LegacyControlsV58.hit(x,y,uiX(i),uiY(i),uiWidth(i),uiHeight(i)))
+                return i;
+        return -1;
+    }
+    void drawAction(Canvas c,int id){
+        if(!uiEnabled(id)&&!editControls)return;
+        float x=uiX(id),y=uiY(id),w=uiWidth(id),h=uiHeight(id);
+        int opacity=host.setting("uiAlpha"+id,100);
+        int alpha=Math.max(36,Math.min(255,opacity*255/100));
+        int fill=(LegacyControlsV58.isFire(id)?0x735148:
+            LegacyControlsV58.isMelee(id)?0x4e5145:0x345354);
+        if(editControls&&id==editControl)fill=0x367665;
+        btn(c,x,y,w,h,LegacyControlsV58.LABELS[id],(alpha<<24)|fill);
+        if(editControls){
+            color(uiEnabled(id)?0xffc4dcbb:0xffe29b80);
+            p.setStrokeWidth(2f);p.setStyle(Paint.Style.STROKE);
+            c.drawRect(x,y,x+w,y+h,p);p.setStyle(Paint.Style.FILL);
+        }
+    }
+    void drawStatusBar(Canvas c,String title,float value,float x,float y,int fill){
+        float v=Math.max(0f,Math.min(100f,value));
+        label(c,title,x,y+12,12,WHITE,true);
+        rect(c,x+63,y,146,16,0xbb132623);
+        rect(c,x+65,y+2,142*v/100f,12,fill);
+        label(c,Integer.toString(Math.round(v)),x+213,y+12,12,WHITE,true);
+    }
     void hud(Canvas c){
         rect(c,0,0,viewW,56,0xc90e2228);
         label(c,"SURVIVAL PARADISE",17,23,18,WHITE,true);
@@ -1308,14 +1351,18 @@ public final class GameView extends View {
         color((alpha<<24)|0x00f2deb0);
         c.drawCircle(rx+aimX*39*aimPadScale,ry+aimY*39*aimPadScale,11*aimPadScale,p);
         label(c,"AIM",rx-20,ry+6,18,WHITE,true);
-        btn(c,fireLeft(),fireTop(),fireWidth(),fireHeight(),
-                firing?"FIRING":"FIRE",0xff755048);
-        btn(c,viewW-475,viewH-160,103,44,runHeld?"RUNNING":"RUN",0xff36584e);
-        btn(c,viewW-475,viewH-105,103,44,crouchHeld?"CROUCHED":"CROUCH",0xff36504e);
-        btn(c,viewW/2-57,viewH-98,114,44,"USE",0xff426051);
-        btn(c,viewW/2-57,viewH-152,114,44,"MELEE",0xff4b5044);
-        btn(c,viewW-348,viewH-105,103,44,"RELOAD",0xff344e51);
-        btn(c,viewW-348,viewH-160,103,44,"SWAP",0xff344e51);
+        for(int ui=0;ui<LegacyControlsV58.COUNT;ui++)drawAction(c,ui);
+        if(showStatusBars){
+            drawStatusBar(c,"HP",health,12,145,0xffc76b65);
+            drawStatusBar(c,"STA",stamina,12,165,0xff64ad80);
+            drawStatusBar(c,"HUN TEST",hunger,12,185,0xffb5a06b);
+            drawStatusBar(c,"THR TEST",thirst,12,205,0xff608dad);
+            drawStatusBar(c,"FAT TEST",fatigue,12,225,0xffa18eaf);
+            float enc=Math.min(100f,scrap*.8f+ammoPacks*5f+medkits*7f);
+            drawStatusBar(c,"ENC TEST",enc,12,245,0xffbca36e);
+        }
+        if(editControls)label(c,"DRAG BUTTONS TO MOVE  •  SETTINGS TO EXIT",
+                viewW/2-233,85,13,0xffe5d9a6,true);
         label(c,"MOVE",81,viewH-30,12,0xffb8d4c5,true);
         if(reloadClock>0)label(c,"RELOADING...",viewW-235,viewH-227,17,ORANGE,true);
         if(showPerf){
