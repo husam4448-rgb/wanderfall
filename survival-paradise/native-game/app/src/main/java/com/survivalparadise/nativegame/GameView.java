@@ -123,6 +123,8 @@ public final class GameView extends View {
     final ArrayList<Flash> flashes=new ArrayList<>();
     final ArrayList<Cover> covers=new ArrayList<>();
     int allySetting=1,allyCurrent=1;
+    int followMode=FollowFormationV61.SCATTER,followSpacing=125;
+    float followHeadingX=1f,followHeadingY=0f;
     final Rect src=new Rect();
     final RectF dest=new RectF();
     final float PAD=46;
@@ -237,6 +239,8 @@ public final class GameView extends View {
         showPerf=host.option("testPerf",true);
         showChunkGrid=host.option("testChunkGrid",false);
         npcSleepRadius=host.setting("npcSleepRadius",1200);
+        followMode=Math.max(0,Math.min(4,host.setting("followMode",0)));
+        followSpacing=host.setting("followSpacing",125);
         lighting.setPixelScale(host.setting("lightResolution",220)/100f);
         lighting.setFastPointLights(host.option("fastPointLights",true));
         lighting.setStaticCache(host.option("staticLightCache",true));
@@ -615,26 +619,54 @@ public final class GameView extends View {
             }
             npc.animation.step(distance(px,py,npc.x,npc.y)>.001f,dt,6f);
         }
-        for(Survivor friend:friends){
+        if(moving&&length>.13f){
+            followHeadingX=vx;followHeadingY=vy;
+        }
+        for(int fi=0;fi<friends.size();fi++){
+            Survivor friend=friends.get(fi);
             float beforeFriendX=friend.x,beforeFriendY=friend.y;
             friend.cd=Math.max(0,friend.cd-dt);
-            float d=distance(friend.x,friend.y,playerX,playerY);
-            if(d>80){
-                float ux=(playerX-friend.x)/Math.max(1,d),uy=(playerY-friend.y)/Math.max(1,d);
-                float nx=friend.x+ux*170*dt,ny=friend.y+uy*170*dt;
+            float gx=FollowFormationV61.targetX(playerX,followHeadingX,followHeadingY,
+                followMode,fi,friends.size(),followSpacing);
+            float gy=FollowFormationV61.targetY(playerY,followHeadingX,followHeadingY,
+                followMode,fi,friends.size(),followSpacing);
+            // Repel overlapping followers even when multiple follow slots coincide
+            // with the same obstacle. No teleport or body/rig alterations.
+            float repelX=0f,repelY=0f;
+            for(int other=0;other<friends.size();other++){
+                if(fi==other)continue;
+                Survivor neighbor=friends.get(other);
+                float rx=friend.x-neighbor.x,ry=friend.y-neighbor.y;
+                float dd=rx*rx+ry*ry;
+                if(dd<78f*78f){
+                    if(dd<1){rx=(fi<other?-1:1)*20f;ry=(fi%2==0?-12:12);dd=rx*rx+ry*ry;}
+                    float inv=1f/(float)Math.sqrt(dd);
+                    repelX+=rx*inv*(78f-(float)Math.sqrt(dd))*.9f;
+                    repelY+=ry*inv*(78f-(float)Math.sqrt(dd))*.9f;
+                }
+            }
+            gx+=repelX;gy+=repelY;
+            float d=distance(friend.x,friend.y,gx,gy);
+            if(d>24){
+                float ux=(gx-friend.x)/Math.max(1,d),uy=(gy-friend.y)/Math.max(1,d);
+                float velocity=Math.min(260f,170f+(d>300?65:0));
+                float nx=friend.x+ux*velocity*dt,ny=friend.y+uy*velocity*dt;
                 if(!blocked(nx,friend.y,18))friend.x=nx;
                 if(!blocked(friend.x,ny,18))friend.y=ny;
                 friend.face=ux>=0?1:-1;
+                friend.aimX=friend.face;friend.aimY=0f; // flashlight tracks travel facing
             }
             friend.animation.step(distance(friend.x,friend.y,beforeFriendX,beforeFriendY)>.001f,dt,7f);
             Bandit target=nearest(friend.x,friend.y,460);
-            if(target!=null&&friend.cd<=0){
+            if(target!=null){
                 float dx=target.x-friend.x,dy=target.y-friend.y;
                 friend.face=dx>=0?1:-1;
                 float aimLen=Math.max(1,(float)Math.hypot(dx,dy));
                 friend.aimX=dx/aimLen;friend.aimY=dy/aimLen;
-                shoot(friend.x,friend.y,dx,dy,friend.gun,false,friend.face);
-                friend.cd=RATES[friend.gun]+.2f;
+                if(friend.cd<=0){
+                    shoot(friend.x,friend.y,dx,dy,friend.gun,false,friend.face);
+                    friend.cd=RATES[friend.gun]+.2f;
+                }
             }
         }
         if(enemyAI)for(Bandit e:enemies){
