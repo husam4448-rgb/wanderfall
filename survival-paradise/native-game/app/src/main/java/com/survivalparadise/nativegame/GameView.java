@@ -68,7 +68,16 @@ public final class GameView extends View {
     float worldTimer=0,autSaveClock=0,shake=0;
     long lastFrame=0;
     float viewW=1200,viewH=660,drawScale=1,camX=0,camY=0;
-    int leftPointer=-1,rightPointer=-1,firePointer=-1;
+    int leftPointer=-1,rightPointer=-1,firePointer=-1,fireLeftPointer=-1;
+    int editPointer=-1,editControl=-1;
+    boolean editControls=false,showStatusBars=true,showCrosshair=true,lookAheadEnabled=true;
+    float lookAheadStrength=0f,lookAheadThreshold=.72f,aimDeflection=0f;
+    float cameraLookX=0f,cameraLookY=0f;
+    float hunger=100f,thirst=100f,fatigue=0f;
+    float knifeDuration=0f,knifeCooldown=0f;
+    int knifeDirection=0;
+    boolean knifeHitPending=false;
+    Bandit knifeTarget=null;
     boolean runHeld=false,crouchHeld=false,dualTorch=true;
     float fireButtonX=0,fireButtonY=0,fireButtonSize=1f;
     boolean firing=false,moving=false;
@@ -196,6 +205,12 @@ public final class GameView extends View {
         aimSensitivity=host.setting("aimSensitivity",100)/100f;
         controlOpacity=host.setting("controlOpacity",100);
         dualTorch=host.option("dualTorch",true);
+        editControls=host.option("editControls",false);
+        showStatusBars=host.option("showStatusBars",true);
+        showCrosshair=host.option("showCrosshair",true);
+        lookAheadEnabled=host.option("lookAheadEnabled",true);
+        lookAheadThreshold=host.setting("lookAheadThreshold",72)/100f;
+        lookAheadStrength=host.setting("lookAheadStrength",120);
         fireButtonX=host.setting("fireButtonX",0);
         fireButtonY=host.setting("fireButtonY",0);
         fireButtonSize=host.setting("fireButtonSize",100)/100f;
@@ -373,7 +388,8 @@ public final class GameView extends View {
           terrainChunks.cacheHits,terrainChunks.cacheMisses);
     }
     void releaseControls(){stopWalking();firing=false;leftPointer=-1;rightPointer=-1;
-        firePointer=-1;runHeld=false;crouchHeld=false;}
+        firePointer=-1;fireLeftPointer=-1;editPointer=-1;editControl=-1;
+        runHeld=false;crouchHeld=false;aimDeflection=0;}
     void switchWeapon(){
         gun=(gun+1)%12;ammo=MAG[gun];reloadClock=0;
         host.prefs.edit().putInt("gun",gun).apply();
@@ -464,7 +480,8 @@ public final class GameView extends View {
         float length=(float)Math.hypot(vx,vy);
         if(length>.06f){
             vx/=Math.max(1,length);vy/=Math.max(1,length);
-            float speed=(gun==9?147:207)*(runHeld?1.43f:1f)*(crouchHeld?.53f:1f);
+            float runMultiplier=runHeld&&stamina>0?1.43f:1f;
+            float speed=(gun==9?147:207)*runMultiplier*(crouchHeld?.53f:1f);
             float nx=playerX+vx*speed*dt;
             float ny=playerY+vy*speed*dt;
             if(!blocked(nx,playerY,20))playerX=nx;
@@ -475,6 +492,26 @@ public final class GameView extends View {
         // always restores the original neutral idle frame immediately.
         moving=distance(playerX,playerY,wasX,wasY)>.001f;
         playerAnimation.step(moving,dt,7f);
+        stamina=Math.max(0,Math.min(100,stamina+dt*((moving&&runHeld)?-13f:8f)));
+        if(moving){hunger=Math.max(0,hunger-dt*.012f);thirst=Math.max(0,thirst-dt*.023f);}
+        fatigue=Math.max(0,Math.min(100,fatigue+dt*(moving&&runHeld?.20f:-.08f)));
+        knifeCooldown=Math.max(0,knifeCooldown-dt);
+        if(knifeDuration>0){
+            knifeDuration=Math.max(0,knifeDuration-dt);
+            if(knifeHitPending&&knifeDuration<=.135f){
+                knifeHitPending=false;
+                if(knifeTarget!=null&&knifeTarget.active&&
+                    distance(playerX,playerY,knifeTarget.x,knifeTarget.y)<118f)
+                    damage(knifeTarget,36);
+            }
+        }
+        float desiredAhead=lookAheadEnabled&&rightPointer>=0&&
+            aimDeflection>=lookAheadThreshold?lookAheadStrength*
+            (aimDeflection-lookAheadThreshold)/Math.max(.01f,1-lookAheadThreshold):0f;
+        float aimLength=Math.max(.001f,(float)Math.hypot(aimX,aimY));
+        float ease=Math.min(1f,dt*5f);
+        cameraLookX+=(aimX/aimLength*desiredAhead-cameraLookX)*ease;
+        cameraLookY+=(aimY/aimLength*desiredAhead-cameraLookY)*ease;
         if(firing){
             if(aimX>.025f)face=1;else if(aimX<-.025f)face=-1;
             if(shotClock<=0&&reloadClock==0){
@@ -1293,8 +1330,8 @@ public final class GameView extends View {
         update(dt);
         float effectiveZoom=zoom;
         // Camera follow and clamping in world coordinates.
-        camX=playerX-viewW/(2*effectiveZoom);
-        camY=playerY-viewH/(2*effectiveZoom);
+        camX=playerX-viewW/(2*effectiveZoom)+cameraLookX;
+        camY=playerY-viewH/(2*effectiveZoom)+cameraLookY;
         canvas.drawColor(0xff101f24);
         canvas.save();canvas.scale(drawScale,drawScale);
         canvas.save();canvas.scale(effectiveZoom,effectiveZoom);
@@ -1336,6 +1373,7 @@ public final class GameView extends View {
         float length=(float)Math.hypot(dx,dy);
         if(length>1){dx/=length;dy/=length;}
         if(right){
+            aimDeflection=Math.min(1f,length);
             if(length>.14){aimX=dx;aimY=dy;
                 if(dx>.025f)face=1;else if(dx<-.025f)face=-1;
             }
@@ -1430,8 +1468,9 @@ public final class GameView extends View {
                 if(id==leftPointer||action==MotionEvent.ACTION_CANCEL){
                     leftPointer=-1;stopWalking();
                 }
-                if(id==rightPointer||action==MotionEvent.ACTION_CANCEL)
-                    rightPointer=-1;
+                if(id==rightPointer||action==MotionEvent.ACTION_CANCEL){
+                    rightPointer=-1;aimDeflection=0f;
+                }
                 if(id==firePointer||action==MotionEvent.ACTION_CANCEL){
                     firePointer=-1;firing=false;
                 }
