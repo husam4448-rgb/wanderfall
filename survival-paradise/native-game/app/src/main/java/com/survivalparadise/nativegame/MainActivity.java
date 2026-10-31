@@ -296,95 +296,172 @@ public final class MainActivity extends Activity {
             return false;
         });
     }
+    private Button v62Slot(String title,boolean equipped){
+        Button button=new Button(this);
+        button.setAllCaps(false);button.setText(title);button.setTextSize(10);
+        button.setTextColor(0xffe1cfac);
+        button.setPadding(3,2,3,2);
+        button.setMinHeight(0);button.setMinimumHeight(0);
+        button.setMinWidth(0);button.setMinimumWidth(0);
+        android.graphics.drawable.GradientDrawable bg=
+            new android.graphics.drawable.GradientDrawable(
+                android.graphics.drawable.GradientDrawable.Orientation.TL_BR,
+                equipped?new int[]{0xff554335,0xff2c2521}:
+                new int[]{0xff40342b,0xff201d1c});
+        bg.setCornerRadius(5);
+        bg.setStroke(2,equipped?0xffaa854d:0xff665747);
+        button.setBackground(bg);
+        return button;
+    }
     void inventory(){
         if(game==null||!game.isPlaying())return;
         game.menuPause(true);
         LinearLayout shell=column();
-        TextView handle=text("⋮⋮  SURVIVOR BAG & EQUIPMENT   •   DRAG TO MOVE  ⋮⋮",15,true);
-        handle.setBackgroundColor(0xff36545a);handle.setGravity(Gravity.CENTER);
+        shell.setBackgroundColor(0xff251e1a);
+        TextView handle=text("✦  SURVIVAL PARADISE  •  INVENTORY & EQUIPMENT  ✦",17,true);
+        handle.setGravity(Gravity.CENTER);
+        handle.setTextColor(0xffe5b966);handle.setBackgroundColor(0xff60402d);
         shell.addView(handle);
         ScrollView scroll=new ScrollView(this);
-        LinearLayout root=column();scroll.addView(root);
-        LinearLayout sides=new LinearLayout(this);
-        sides.setOrientation(LinearLayout.HORIZONTAL);
-        LinearLayout gear=column(),bag=column();
-        sides.addView(gear,new LinearLayout.LayoutParams(0,-2,1));
-        sides.addView(bag,new LinearLayout.LayoutParams(0,-2,2));
-        root.addView(sides);
-        section(gear,"EQUIPPED / BODY");
-        section(gear,"SURVIVOR  •  MALE");
-        TextView body=text("HEAD: None\nFACE: None\nTORSO: Standard shirt\nPANTS: Standard\nFEET: Standard boots\nBACK: None\nOFF-HAND: "+
-             (game.lampOn&&game.dualTorch?"Flashlight":"Empty"),13,false);
-        gear.addView(body);
-        section(gear,"PRIMARY WEAPON");
-        Spinner weapons=new Spinner(this);
-        weapons.setAdapter(new ArrayAdapter<String>(this,
-             android.R.layout.simple_spinner_dropdown_item,LOADOUTS));
-        weapons.setSelection(game.gun);
-        gear.addView(weapons);
-        weapons.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener(){
-            public void onNothingSelected(android.widget.AdapterView<?> parent){}
-            public void onItemSelected(android.widget.AdapterView<?> parent,View v,int index,long id){
-                if(game.gun!=index){
-                    prefs.edit().putInt("gun",index).apply();
-                    game.reloadSettings();game.saveProgress();
-                }
-            }
-        });
-        CheckBox torch=new CheckBox(this);
-        torch.setText("Equip off-hand flashlight");
-        torch.setTextColor(INK);torch.setChecked(game.lampOn&&game.dualTorch);
-        gear.addView(torch);
-        torch.setOnCheckedChangeListener((v,enabled)->{
-            prefs.edit().putBoolean("dualTorch",enabled).putBoolean("lampOn",enabled).apply();
-            game.reloadSettings();body.setText(
-                "HEAD: None\nFACE: None\nTORSO: Standard shirt\nPANTS: Standard\n"+
-                "FEET: Standard boots\nBACK: None\nOFF-HAND: "+(enabled?"Flashlight":"Empty"));
-        });
-        section(bag,"BAG STORAGE  •  24 SLOTS");
-        bag.addView(text("Filled slots show actual resource stacks. Empty slots are reserved for future items.",12,false));
-        for(int row=0;row<4;row++){
-            LinearLayout slots=new LinearLayout(this);slots.setOrientation(LinearLayout.HORIZONTAL);
-            for(int col=0;col<6;col++){
-                final int idx=row*6+col;
-                String title=idx==0?"SCRAP\n"+game.scrap:
-                    idx==1?"MEDKIT\n"+game.medkits:
-                    idx==2?"AMMO\n"+game.ammoPacks:"EMPTY";
-                Button slot=new Button(this);slot.setAllCaps(false);
-                slot.setText(title);slot.setTextSize(10);
-                slot.setMinWidth(0);slot.setMinimumWidth(0);
-                slot.setMinHeight(45);slot.setMinimumHeight(45);
-                slots.addView(slot,new LinearLayout.LayoutParams(0,-2,1));
-                slot.setOnClickListener(v->{
-                    if(idx==1&&game.medkits>0&&game.health<100){
-                        game.medkits--;game.health=Math.min(100,game.health+40);
-                        slot.setText("MEDKIT\n"+game.medkits);game.saveProgress();
-                    }else if(idx==2&&game.ammoPacks>0&&game.ammo<game.MAG[game.gun]){
-                        game.ammoPacks--;game.ammo=game.MAG[game.gun];
-                        slot.setText("AMMO\n"+game.ammoPacks);game.saveProgress();
-                    }else Toast.makeText(this,idx>2?"Empty slot":
-                        "No usable action for this slot",Toast.LENGTH_SHORT).show();
+        LinearLayout root=column();
+        root.setBackgroundColor(0xff2e2521);scroll.addView(root);
+        LinearLayout row=new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        root.addView(row);
+        LinearLayout left=column(),right=column();
+        left.setBackgroundColor(0xff302621);
+        right.setBackgroundColor(0xff282321);
+        row.addView(left,new LinearLayout.LayoutParams(0,-2,44f));
+        row.addView(right,new LinearLayout.LayoutParams(0,-2,56f));
+        section(left,"SURVIVOR   •   EQUIPMENT");
+        V62InventoryPreview avatar=new V62InventoryPreview(this,game);
+        left.addView(avatar,new LinearLayout.LayoutParams(-1,
+            Math.round(215*getResources().getDisplayMetrics().density)));
+        LinearLayout vital=new LinearLayout(this);
+        vital.setOrientation(LinearLayout.HORIZONTAL);
+        vital.addView(text("HP "+Math.round(game.health),12,true),
+            new LinearLayout.LayoutParams(0,-2,1));
+        vital.addView(text("STA "+Math.round(game.stamina),12,true),
+            new LinearLayout.LayoutParams(0,-2,1));
+        vital.addView(text("FOOD "+game.foodCount+"   WATER "+game.waterCount,12,true),
+            new LinearLayout.LayoutParams(0,-2,2));
+        left.addView(vital);
+        final String[] equipment={
+            "HEAD","FACE","TORSO","LEGS","FEET","BACK","PRIMARY","OFF-HAND"};
+        for(int er=0;er<4;er++){
+            LinearLayout gearRow=new LinearLayout(this);
+            gearRow.setOrientation(LinearLayout.HORIZONTAL);
+            for(int ec=0;ec<2;ec++){
+                int ix=er*2+ec;
+                String label=equipment[ix];
+                String value=ix==2?"SHIRT":ix==3?"PANTS":ix==4?"BOOTS":
+                    ix==6?LOADOUTS[game.gun]:
+                    ix==7?(game.dualTorch&&game.lampOn?"FLASHLIGHT":"EMPTY"):"EMPTY";
+                Button equipped=v62Slot(label+"\n"+value,true);
+                LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(0,
+                    Math.round(43*getResources().getDisplayMetrics().density),1);
+                p.setMargins(3,3,3,3);gearRow.addView(equipped,p);
+                equipped.setOnClickListener(v->{
+                    if(ix==6){
+                        new AlertDialog.Builder(this).setTitle("EQUIP PRIMARY WEAPON")
+                            .setItems(LOADOUTS,(d,weapon)->{
+                                prefs.edit().putInt("gun",weapon).apply();
+                                game.reloadSettings();game.saveProgress();
+                                equipped.setText("PRIMARY\n"+LOADOUTS[weapon]);
+                                avatar.invalidate();
+                            }).show();
+                    }else if(ix==7){
+                        boolean enabled=!(game.lampOn&&game.dualTorch);
+                        prefs.edit().putBoolean("dualTorch",enabled)
+                            .putBoolean("lampOn",enabled).apply();
+                        game.reloadSettings();avatar.invalidate();
+                        equipped.setText("OFF-HAND\n"+(enabled?"FLASHLIGHT":"EMPTY"));
+                    }else Toast.makeText(this,
+                        "Approved "+label+" overlay assets not installed yet",
+                        Toast.LENGTH_SHORT).show();
                 });
             }
-            bag.addView(slots);
+            left.addView(gearRow);
         }
+        left.addView(text("Appearance uses locked character pixels. Future armor and transmog require approved overlays.",11,false));
+        section(right,"BACKPACK   •   24 SLOTS");
+        right.addView(text("Select an item to USE it or assign it to the quick-access bar.",12,false));
+        final int[] itemKinds={0,1,2,6,7};
+        for(int ir=0;ir<4;ir++){
+            LinearLayout slots=new LinearLayout(this);slots.setOrientation(LinearLayout.HORIZONTAL);
+            for(int ic=0;ic<6;ic++){
+                int idx=ir*6+ic;
+                int kind=idx==0?0:idx==1?1:idx==2?2:idx==3?6:idx==4?7:0;
+                String name=idx==0?"SCRAP":idx==1?"MEDKIT":idx==2?"AMMO":
+                    idx==3?"FOOD":idx==4?"WATER":"";
+                int qty=idx==0?game.scrap:idx==1?game.medkits:
+                    idx==2?game.ammoPacks:idx==3?game.foodCount:
+                    idx==4?game.waterCount:0;
+                Button slot=v62Slot(name.isEmpty()?"":name+"\n×"+qty,qty>0);
+                LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(0,
+                    Math.round(53*getResources().getDisplayMetrics().density),1);
+                params.setMargins(3,3,3,3);slots.addView(slot,params);
+                slot.setOnClickListener(v->{
+                    if(idx>=5)return;
+                    String[] choices={"USE","ASSIGN HOTBAR 1","ASSIGN HOTBAR 2",
+                        "ASSIGN HOTBAR 3","ASSIGN HOTBAR 4","ASSIGN HOTBAR 5","ASSIGN HOTBAR 6"};
+                    new AlertDialog.Builder(this).setTitle(name+" • "+qty)
+                      .setItems(choices,(d,choice)->{
+                        if(choice==0){
+                            if(kind==0)Toast.makeText(this,
+                                "Scrap is a crafting resource",Toast.LENGTH_SHORT).show();
+                            else{
+                                int h=game.hotbar[0];
+                                game.hotbar[0]=kind;game.useHotbar(0);
+                                game.hotbar[0]=h;
+                                slot.setText(name+"\n×"+(kind==1?game.medkits:
+                                    kind==2?game.ammoPacks:kind==6?game.foodCount:game.waterCount));
+                            }
+                        }else game.setHotbarItem(choice-1,kind);
+                        avatar.invalidate();
+                      }).show();
+                });
+            }
+            right.addView(slots);
+        }
+        section(right,"QUICK ACCESS   •   6 SLOTS");
+        right.addView(text("Tap a quick slot to choose an item. It appears on the gameplay HUD.",12,false));
+        LinearLayout quickRow=new LinearLayout(this);
+        quickRow.setOrientation(LinearLayout.HORIZONTAL);
+        right.addView(quickRow);
+        final Runnable[] refresh=new Runnable[1];
+        refresh[0]=()->{
+            quickRow.removeAllViews();
+            for(int i=0;i<6;i++){
+                final int slotIndex=i,item=game.hotbar[i];
+                Button hot=v62Slot((i+1)+"\n"+GameView.hotbarLabel(item),true);
+                LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(0,
+                    Math.round(49*getResources().getDisplayMetrics().density),1);
+                p.setMargins(2,2,2,2);quickRow.addView(hot,p);
+                hot.setOnClickListener(v->{
+                    new AlertDialog.Builder(this).setTitle("ASSIGN QUICK SLOT "+(slotIndex+1))
+                      .setItems(GameView.HOTBAR_TYPES,(d,which)->{
+                          game.setHotbarItem(slotIndex,which);refresh[0].run();
+                      }).show();
+                });
+            }
+        };
+        refresh[0].run();
+        root.addView(text("Transmog / cosmetic skins: future equipment layer. Current preview changes with weapons and flashlight.",12,false));
         shell.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
-        final AlertDialog[] active=new AlertDialog[1];
         LinearLayout tools=new LinearLayout(this);tools.setOrientation(LinearLayout.HORIZONTAL);
-        Button smaller=new Button(this),larger=new Button(this);
-        smaller.setText("WINDOW -");larger.setText("WINDOW +");
+        Button smaller=v62Slot("WINDOW −",true),larger=v62Slot("WINDOW +",true);
         tools.addView(smaller,new LinearLayout.LayoutParams(0,-2,1));
         tools.addView(larger,new LinearLayout.LayoutParams(0,-2,1));
         shell.addView(tools);
         AlertDialog dialog=new AlertDialog.Builder(this).setView(shell)
             .setPositiveButton("CLOSE BAG",(d,w)->{}).create();
-        active[0]=dialog;
         dialog.setOnDismissListener(d->{
             game.saveProgress();game.menuPause(false);restoreFullscreenAfterShade();
         });
         dialog.show();
-        final int[] width={prefs.getInt("bagWindowWidth",80)},
-                    height={prefs.getInt("bagWindowHeight",82)};
+        final int[] width={prefs.getInt("bagWindowWidth",94)},
+                    height={prefs.getInt("bagWindowHeight",92)};
         makeWindowMovable(dialog,handle,width[0],height[0],"bagWindow");
         smaller.setOnClickListener(v->{
             width[0]=Math.max(60,width[0]-5);height[0]=Math.max(58,height[0]-5);
