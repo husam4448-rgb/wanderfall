@@ -623,12 +623,12 @@ public final class MainActivity extends Activity {
         check(root,"Show classic six status bars","showStatusBars",true);
         check(root,"Show world aiming crosshair","showCrosshair",true);
         slider(root,"Approved crimson crosshair size","reticleSize",40,220,100,"%");
-        root.addView(text("V65: aim-stick direction instantly rotates the crosshair around the survivor. Hold to extend; release to snap to the equipped weapon\u0027s close-range resting point. Camera panning cannot capture the crosshair.",11,false));
+        root.addView(text("Maximum crosshair reach equals the bullet endpoint: speed multiplied by actual lifetime, including muzzle offset. Cover or targets can interrupt bullets sooner.",11,false));
         check(root,"Aim-stick camera look-ahead","lookAheadEnabled",true);
         slider(root,"Camera edge-pan threshold","lookAheadThreshold",20,95,55,"%");
         slider(root,"Look-ahead distance","lookAheadStrength",0,1000,420," px");
         slider(root,"Camera panning response speed","lookAheadSmooth",2,18,8," /s");
-        slider(root,"Absolute crosshair distance cap (also limited by weapon range)","cursorRange",250,1200,750," px");
+        slider(root,"Released crosshair distance (weapon-relative)","crosshairRestPercent",50,200,100,"%");
         slider(root,"Crosshair extension speed while aiming","cursorSpeedV64",500,6500,2900," px/s");
         slider(root,"Crosshair stick deadzone","aimDeadzone",0,25,8,"%");
         slider(root,"Crosshair fine-aim response curve","aimCurve",80,200,135,"%");
@@ -709,7 +709,8 @@ public final class MainActivity extends Activity {
               .putBoolean("lookAheadEnabled",true).putInt("lookAheadThreshold",55)
               .putInt("lookAheadStrength",420).putInt("lookAheadSmooth",8)
               .putInt("followMode",0).putInt("followSpacing",125).putInt("cursorSpeed",400)
-              .putInt("cursorRange",750).putInt("reticleSize",100).putBoolean("staticLightCache",true)
+              .putInt("crosshairRestPercent",100).putInt("cursorSpeedV64",2900)
+              .putInt("reticleSize",100).putBoolean("staticLightCache",true)
               .putBoolean("fastPointLights",true).putInt("lightResolution",220)
               .putBoolean("editControls",false).apply();
             wSize.setProgress(96-65);hSize.setProgress(94-65);
