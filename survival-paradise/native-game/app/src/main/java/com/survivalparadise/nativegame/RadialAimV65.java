@@ -4,9 +4,13 @@ package com.survivalparadise.nativegame;
 public final class RadialAimV65 {
     private RadialAimV65(){}
 
-    // A close neutral position for each distinct equipped weapon (world pixels).
-    private static final float[] REST={76f,84f,72f,62f,108f,112f,
-                                     105f,98f,142f,118f,115f,66f};
+    // V66: genuine weapon reach indicator at rest (world pixels).
+    // Firearms sit WELL beyond their muzzle even when the stick is released.
+    // Slot order: pistol, revolver, UZI, torch, carbine, AK, bullpup,
+    // shotgun, sniper, LMG, grenade launcher, axe.
+    // Rests remain below each weapon's existing ballistic maximum; melee is close.
+    private static final float[] REST={190f,205f,175f,185f,325f,315f,
+                                     300f,255f,505f,330f,260f,66f};
 
     public static float rest(int weapon){
         return REST[Math.max(0,Math.min(REST.length-1,weapon))];
