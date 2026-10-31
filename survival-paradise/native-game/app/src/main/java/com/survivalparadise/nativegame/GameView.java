@@ -80,7 +80,7 @@ public final class GameView extends View {
     float lookAheadStrength=0f,lookAheadThreshold=.72f,aimDeflection=0f;
     float cameraLookX=0f,cameraLookY=0f;
     float cursorWorldX=0f,cursorWorldY=0f,cursorMoveX=0f,cursorMoveY=0f;
-    float aimCursorDistance=185f; // pointer orbits the player, never drags across the screen
+    float aimCursorDistance=185f,cursorMaxRange=335f; // pointer orbits the player, never drags across the screen
     long updateNs=0,worldNs=0,lightingNs=0;
     boolean cursorInitialized=false;
     float cursorSpeed=400f;
@@ -224,6 +224,7 @@ public final class GameView extends View {
         lookAheadThreshold=host.setting("lookAheadThreshold",72)/100f;
         lookAheadStrength=host.setting("lookAheadStrength",120);
         cursorSpeed=host.setting("cursorSpeed",400); // retained setting for older saves
+        cursorMaxRange=host.setting("cursorRange",335);
         fireButtonX=host.setting("fireButtonX",0);
         fireButtonY=host.setting("fireButtonY",0);
         fireButtonSize=host.setting("fireButtonSize",100)/100f;
@@ -233,6 +234,7 @@ public final class GameView extends View {
         npcSleepRadius=host.setting("npcSleepRadius",1200);
         lighting.setPixelScale(host.setting("lightResolution",220)/100f);
         lighting.setFastPointLights(host.option("fastPointLights",true));
+        lighting.setStaticCache(host.option("staticLightCache",true));
         terrainChunks.setLimits(host.setting("testCacheMax",36),
                                 host.setting("testPreloadRadius",2));
         showHands=host.option("hands",true);
@@ -1587,7 +1589,8 @@ public final class GameView extends View {
             if(length>.12f){
                 float inv=1f/length;
                 aimX=dx*inv;aimY=dy*inv;
-                aimCursorDistance=clamp(95f+Math.min(1f,length)*240f,95f,335f);
+                aimCursorDistance=clamp(95f+Math.min(1f,length)*(cursorMaxRange-95f),
+                        95f,cursorMaxRange);
                 face=aimX<-.025f?-1:aimX>.025f?1:face;
                 if(cursorInitialized){
                     // Immediate heading correction: no dragging an old pointer
