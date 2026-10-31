@@ -676,9 +676,10 @@ public final class GameView extends View {
             cameraLookX+=(targetX-cameraLookX)*follow;
             cameraLookY+=(targetY-cameraLookY)*follow;
         }else{
-            float follow=Math.min(1f,dt*lookAheadSmooth);
-            cameraLookX+=(0f-cameraLookX)*follow;
-            cameraLookY+=(0f-cameraLookY)*follow;
+            // A released aim-stick resets the camera too: otherwise the
+            // reticle can be outside the viewport for several frames even
+            // though its weapon-specific snap-back distance is correct.
+            cameraLookX=0f;cameraLookY=0f;
         }
         // Rendering may stay at the screen rim while the camera catches up,
         // but the actual crosshair stops ONLY at the real bullet endpoint.
@@ -1866,8 +1867,14 @@ public final class GameView extends View {
                 // Every touch sample sets the new ray immediately, including
                 // 180-degree reversal; the previous cursor never intervenes.
                 float heading=Math.max(.001f,(float)Math.hypot(dx,dy));
+                float previousAimX=aimX,previousAimY=aimY;
                 aimX=RadialAimV65.direction(dx,heading);
                 aimY=RadialAimV65.direction(dy,heading);
+                // Reset stale, far-range camera offsets on a rapid reversal.
+                // Aim direction and radial reach still change immediately.
+                if(previousAimX*aimX+previousAimY*aimY<-.05f){
+                    cameraLookX=0f;cameraLookY=0f;
+                }
                 face=aimX<-.025f?-1:aimX>.025f?1:face;
                 cursorWorldX=playerX+aimX*aimCursorDistance;
                 cursorWorldY=playerY-42f+aimY*aimCursorDistance;
