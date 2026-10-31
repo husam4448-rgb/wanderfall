@@ -1378,6 +1378,7 @@ public final class GameView extends View {
         btn(c,viewW-324,7,75,42,lampOn?"LAMP ON":"LAMP OFF",0xff364d48);
         btn(c,viewW-410,7,79,42,"CAMP",0xff5b463a);
         btn(c,viewW-498,7,81,42,lightAlpha>nightDarkness*.5f?"NOON":"NIGHT",0xff34414c);
+        btn(c,viewW-594,7,91,42,"HUD EDIT",0xff465e63);
         rect(c,0,viewH-42,viewW,42,0xca122529);
         label(c,"SCRAP "+scrap+"   MED "+medkits+"   AMMO BOX "+ammoPacks+
                 "   "+MainActivity.LOADOUTS[gun]+"  "+clock.display()+
@@ -1397,7 +1398,7 @@ public final class GameView extends View {
         c.drawCircle(rx,ry,52*aimPadScale,p);
         color((alpha<<24)|0x00f2deb0);
         c.drawCircle(rx+aimX*39*aimPadScale,ry+aimY*39*aimPadScale,11*aimPadScale,p);
-        label(c,"AIM",rx-20,ry+6,18,WHITE,true);
+        label(c,"CURSOR",rx-33,ry+6,15,WHITE,true);
         for(int ui=0;ui<LegacyControlsV58.COUNT;ui++)drawAction(c,ui);
         if(showStatusBars){
             drawStatusBar(c,"HP",health,12,145,0xffc76b65);
@@ -1532,6 +1533,7 @@ public final class GameView extends View {
             if(within(x,y,viewW/2-150,viewH/2-38,300,50)){if(gameOver)newGame();else togglePause();return;}
             if(within(x,y,viewW/2-150,viewH/2+28,300,50)){host.settings();return;}
         }
+        if(within(x,y,viewW-594,7,91,42)){host.hudEditor();return;}
         if(within(x,y,viewW-84,7,77,42)){host.settings();return;}
         if(within(x,y,viewW-170,7,78,42)){togglePause();return;}
         if(within(x,y,viewW-324,7,75,42)){toggleLamp();return;}
