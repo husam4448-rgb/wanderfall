@@ -6,8 +6,8 @@ android {
   applicationId 'com.survivalparadise.nativegame'
   minSdk 24
   targetSdk 34
-  versionCode 77
-  versionName '0.76-transparent-compact-hud'
+  versionCode 78
+  versionName '0.77-walk-speed-side-settings'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17

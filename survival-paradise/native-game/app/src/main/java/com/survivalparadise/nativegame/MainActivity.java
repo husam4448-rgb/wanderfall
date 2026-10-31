@@ -236,6 +236,20 @@ public final class MainActivity extends Activity {
         bar.addView(b,new LinearLayout.LayoutParams(0,-2,1f));
         b.setOnClickListener(v->task.run());
     }
+    /** Compact one-column section navigation outside the settings scroll area. */
+    private Button sideNavButton(LinearLayout nav,String title,Runnable click){
+        Button button=new Button(this);
+        button.setText(title);button.setAllCaps(false);button.setTextSize(11);
+        button.setMinHeight(0);button.setMinimumHeight(0);
+        button.setPadding(4,0,4,0);
+        button.setTextColor(0xffd7e4de);
+        button.setBackgroundColor(0xff2e4c50);
+        int height=Math.max(31,Math.round(34*getResources().getDisplayMetrics().density));
+        LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,height);
+        lp.bottomMargin=Math.max(2,Math.round(getResources().getDisplayMetrics().density*3));
+        nav.addView(button,lp);button.setOnClickListener(v->click.run());
+        return button;
+    }
     // Separate from game settings: the actual HUD has its own layout editor.
     void hudEditor(){
         game.menuPause(true);
@@ -553,7 +567,7 @@ public final class MainActivity extends Activity {
         hGroup.addView(hLabel);hGroup.addView(hSize);
         sizeRow.addView(wGroup,new LinearLayout.LayoutParams(0,-2,1f));
         sizeRow.addView(hGroup,new LinearLayout.LayoutParams(0,-2,1f));
-        shell.addView(sizeRow);
+        // V77: window size controls move into LAYOUT rather than consume header space.
         wSize.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
             public void onProgressChanged(SeekBar b,int v,boolean user){
                 int pct=65+v;wLabel.setText("WIDTH "+pct+"%");
@@ -572,20 +586,37 @@ public final class MainActivity extends Activity {
             public void onStartTrackingTouch(SeekBar b){}
             public void onStopTrackingTouch(SeekBar b){}
         });
+        // Left: independent, narrow section navigation. Right: the full-height
+        // scrollable settings list; no stacked horizontal category button rows.
+        LinearLayout contentRow=new LinearLayout(this);
+        contentRow.setOrientation(LinearLayout.HORIZONTAL);
+        ScrollView navScroll=new ScrollView(this);
+        navScroll.setVerticalScrollBarEnabled(false);
+        navScroll.setFillViewport(false);
+        LinearLayout navigation=column();
+        navigation.setPadding(3,3,3,3);
+        navScroll.addView(navigation);
+        int screenWidth=getResources().getDisplayMetrics().widthPixels;
+        float density=getResources().getDisplayMetrics().density;
+        int sidebarWidth=Math.min(Math.round(145f*density),Math.max(Math.round(98f*density),screenWidth/5));
+        contentRow.addView(navScroll,new LinearLayout.LayoutParams(sidebarWidth,-1));
         ScrollView scroll=new ScrollView(this);
         scroll.setVerticalScrollBarEnabled(true);
         scroll.setScrollbarFadingEnabled(false);
         scroll.setFillViewport(false);
         LinearLayout root=column();
-        // Permanent outer touch gutters, separate from EVERY slider's touch target.
+        // Slim optional swipe rails retain the original reliable scroll gestures,
+        // with the actual scroll indicator on the RIGHT side of the content.
         LinearLayout frame=new LinearLayout(this);frame.setOrientation(LinearLayout.HORIZONTAL);
-        TextView leftRail=text("↕",22,true),rightRail=text("↕",22,true);
+        TextView leftRail=text("↕",13,true),rightRail=text("↕",13,true);
         leftRail.setGravity(Gravity.CENTER);rightRail.setGravity(Gravity.CENTER);
-        int railPx=Math.round(getResources().getDisplayMetrics().density*38);
+        int railPx=Math.max(10,Math.round(density*13));
         frame.addView(leftRail,new LinearLayout.LayoutParams(railPx,-1));
         frame.addView(root,new LinearLayout.LayoutParams(0,-2,1f));
         frame.addView(rightRail,new LinearLayout.LayoutParams(railPx,-1));
         scroll.addView(frame);
+        contentRow.addView(scroll,new LinearLayout.LayoutParams(0,-1,1f));
+        shell.addView(contentRow,new LinearLayout.LayoutParams(-1,0,1f));
         final android.view.View.OnTouchListener railScroll=(v,e)->{
             switch(e.getActionMasked()){
                 case android.view.MotionEvent.ACTION_DOWN:
@@ -600,13 +631,6 @@ public final class MainActivity extends Activity {
             return true;
         };
         leftRail.setOnTouchListener(railScroll);rightRail.setOnTouchListener(railScroll);
-        final LinearLayout jumpBar=new LinearLayout(this);
-        jumpBar.setOrientation(LinearLayout.HORIZONTAL);
-        shell.addView(jumpBar);
-        final LinearLayout jumpBar2=new LinearLayout(this);
-        jumpBar2.setOrientation(LinearLayout.HORIZONTAL);
-        shell.addView(jumpBar2);
-        shell.addView(scroll,new LinearLayout.LayoutParams(-1,0,1f));
         section(root,"SURVIVAL PARADISE  •  V57 HYBRID DEVELOPMENT TEST");
         root.addView(text("Controls apply to the playable game, and save automatically.",13,false));
         final int playerSection=root.getChildCount();
@@ -616,6 +640,7 @@ public final class MainActivity extends Activity {
         slider(root,"Support hand horizontal reach","support",-12,24,0," px");
         slider(root,"Support hand vertical offset","supportY",-24,24,0," px");
         slider(root,"Simulation speed","speed",50,200,100,"%");
+        slider(root,"Player walking speed","walkSpeedV77",75,200,130,"%");
         slider(root,"Survivors (including player)","survivors",1,9,1,"");
         root.addView(text("COMPANION FOLLOW FORMATION",13,true));
         Spinner formationPicker=new Spinner(this);
@@ -698,6 +723,7 @@ public final class MainActivity extends Activity {
         });
         final int layoutSection=root.getChildCount();
         section(root,"SETTINGS LAYOUT  •  LIVE (reopen to apply sizes)");
+        root.addView(sizeRow);
         slider(root,"Settings text size","menuTextSize",75,155,100,"%");
         slider(root,"Settings slider thickness","menuSliderSize",65,160,100,"%");
         slider(root,"Settings row spacing","menuRowSpacing",50,180,100,"%");
@@ -737,7 +763,7 @@ public final class MainActivity extends Activity {
         action(root,"Take screenshot",()->captureGame());
         action(root,"Restore default settings",()->{
             prefs.edit().putInt("scale",100).putInt("hand",100).putInt("support",0).putInt("supportY",0)
-              .putInt("speed",100).putInt("survivors",1).putInt("gun",0)
+              .putInt("speed",100).putInt("walkSpeedV77",130).putInt("survivors",1).putInt("gun",0)
               .putBoolean("hands",true).putBoolean("weapons",true).putBoolean("anchors",false)
               .putBoolean("hitboxes",false).putBoolean("enemyAI",true).putBoolean("aimRotation",true)
                .putBoolean("recoil",true).putBoolean("loot",true).putBoolean("night",true)
@@ -784,7 +810,7 @@ public final class MainActivity extends Activity {
         final SeekBar fastScroll=new SeekBar(this);
         fastScroll.setMax(100);
         track.addView(fastScroll,new LinearLayout.LayoutParams(0,-2,1f));
-        shell.addView(track);
+        navigation.addView(track);
         fastScroll.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
             public void onProgressChanged(SeekBar b,int progress,boolean user){
                 if(!user)return;
@@ -802,21 +828,21 @@ public final class MainActivity extends Activity {
             fastScroll.setProgress(pct);
             nav.setText("SCROLL "+pct+"%");
         });
-        jumpButton(jumpBar,"CHARACTER",()->
+        sideNavButton(navigation,"CHARACTER",()->
             scroll.post(()->scroll.smoothScrollTo(0,root.getChildAt(playerSection).getTop())));
-        jumpButton(jumpBar,"GAMEPLAY",()->
+        sideNavButton(navigation,"GAMEPLAY",()->
             scroll.post(()->scroll.smoothScrollTo(0,root.getChildAt(gameplaySection).getTop())));
-        jumpButton(jumpBar,"WORLD",()->
+        sideNavButton(navigation,"WORLD",()->
             scroll.post(()->scroll.smoothScrollTo(0,root.getChildAt(worldSection).getTop())));
-        jumpButton(jumpBar,"AIM / CAMERA",()->
+        sideNavButton(navigation,"AIM / CAMERA",()->
             scroll.post(()->scroll.smoothScrollTo(0,root.getChildAt(aimSection).getTop())));
-        jumpButton(jumpBar2,"LAYOUT",()->
+        sideNavButton(navigation,"LAYOUT",()->
             scroll.post(()->scroll.smoothScrollTo(0,root.getChildAt(layoutSection).getTop())));
-        jumpButton(jumpBar2,"PERFORMANCE",()->
+        sideNavButton(navigation,"PERFORMANCE",()->
             scroll.post(()->scroll.smoothScrollTo(0,root.getChildAt(perfSection).getTop())));
-        jumpButton(jumpBar2,"ACTIONS",()->
+        sideNavButton(navigation,"ACTIONS",()->
             scroll.post(()->scroll.smoothScrollTo(0,root.getChildAt(actionSection).getTop())));
-        jumpButton(jumpBar2,"HUD EDIT",()->{
+        sideNavButton(navigation,"HUD EDIT",()->{
             if(activeDialog[0]!=null)activeDialog[0].dismiss();
             hudEditor();
         });
