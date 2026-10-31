@@ -1490,6 +1490,7 @@ public final class GameView extends View {
                     int current=host.setting(key,100);
                     int next=Math.round(clamp(current+(j%2==0?-10:10),min,j<=3?180:100));
                     host.prefs.edit().putInt(key,next).apply();
+                    if(i>=MOVE_PAD&&j<=3)reloadSettings();
                 }
                 invalidate();return true;
             }
@@ -1556,15 +1557,17 @@ public final class GameView extends View {
         float lx=padCenterX(false);
         float leftRadius=86*movePadScale,rightRadius=82*aimPadScale;
         int alpha=Math.round(255f*Math.max(25,Math.min(100,controlOpacity))/100f);
-        color((alpha*0x66/255<<24)|0x003e625a);
+        int leftAlpha=alpha*host.setting("uiAlpha"+MOVE_PAD,100)/100;
+        int rightAlpha=alpha*host.setting("uiAlpha"+AIM_PAD,100)/100;
+        color((leftAlpha*0x66/255<<24)|0x003e625a);
         c.drawCircle(lx,jy,leftRadius,p);
-        color((alpha*0x9b/255<<24)|0x0096b8a5);
+        color((leftAlpha*0x9b/255<<24)|0x0096b8a5);
         c.drawCircle(lx+stickX*46*movePadScale,jy+stickY*46*movePadScale,31*movePadScale,p);
-        color((alpha*0x66/255<<24)|0x005b6f61);
+        color((rightAlpha*0x66/255<<24)|0x005b6f61);
         c.drawCircle(rx,ry,rightRadius,p);
-        color((alpha*0xaa/255<<24)|0x00aa9d71);
+        color((rightAlpha*0xaa/255<<24)|0x00aa9d71);
         c.drawCircle(rx,ry,52*aimPadScale,p);
-        color((alpha<<24)|0x00f2deb0);
+        color((rightAlpha<<24)|0x00f2deb0);
         c.drawCircle(rx+aimX*39*aimPadScale,ry+aimY*39*aimPadScale,11*aimPadScale,p);
         label(c,"AIM",rx-20,ry+6,17,WHITE,true);
         for(int ui=0;ui<LegacyControlsV58.COUNT;ui++)drawAction(c,ui);
