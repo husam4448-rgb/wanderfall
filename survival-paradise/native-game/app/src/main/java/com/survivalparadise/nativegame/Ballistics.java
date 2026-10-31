@@ -3,6 +3,12 @@ package com.survivalparadise.nativegame;
 public final class Ballistics {
  private Ballistics(){}
  public static final float[] SPEED={2050f,2350f,2050f,0f,3100f,2850f,3000f,2350f,3950f,2950f,1450f,0f};
+ // Shared, actual bullet lifetime used by both Shot integration and the HUD reticle.
+ public static final float PROJECTILE_LIFE=1.3f;
+ public static float unobstructedTravel(int weapon){
+  return SPEED[Math.max(0,Math.min(SPEED.length-1,weapon))]*PROJECTILE_LIFE;
+ }
+
  public static float angle(float dx,float dy,int facing){
   // Aim pitch is side-independent: a horizontal flip must mirror the rifle
   // without ever forcing a 90-degree vertical weapon pose.
