@@ -97,6 +97,10 @@ public final class GameView extends View {
     float hotbarX=0,hotbarY=0,hotbarScale=1f;
     int hotbarOpacity=90,selectedHotbar=0;
     int hotbarPointer=-1;
+    static final int HOTBAR=HUD_ITEMS,EDITOR_ITEMS=HOTBAR+1;
+    static final String[] HOTBAR_TYPES={
+        "EMPTY","MEDKIT","AMMO","PISTOL","SHOTGUN","UZI","FOOD","WATER","TORCH"};
+    int foodCount=2,waterCount=2;
     float hotbarGrabX,hotbarGrabY;
     float hunger=100f,thirst=100f,fatigue=0f;
     float knifeDuration=0f,knifeCooldown=0f;
@@ -244,7 +248,7 @@ public final class GameView extends View {
         controlOpacity=host.setting("controlOpacity",100);
         dualTorch=host.option("dualTorch",true);
         editControls=host.option("editControls",false);
-        selectedHudControl=Math.min(HUD_ITEMS-1,host.setting("selectedButton",0));
+        selectedHudControl=Math.min(EDITOR_ITEMS-1,host.setting("selectedButton",0));
         panelX=host.setting("hudPanelX",0);
         panelY=host.setting("hudPanelY",62);
         panelScale=host.setting("hudPanelSize",100)/100f;
@@ -257,10 +261,10 @@ public final class GameView extends View {
         cursorSpeed=host.setting("cursorSpeed",400); // retained setting for older saves
         cursorMaxRange=host.setting("cursorRange",750);
         reticleSize=host.setting("reticleSize",100)/100f;
-        hotbarX=host.setting("hotbarX",0);
-        hotbarY=host.setting("hotbarY",0);
-        hotbarScale=host.setting("hotbarScale",100)/100f;
-        hotbarOpacity=host.setting("hotbarOpacity",90);
+        hotbarX=host.setting("uiX"+HOTBAR,0);
+        hotbarY=host.setting("uiY"+HOTBAR,0);
+        hotbarScale=host.setting("uiSize"+HOTBAR,100)/100f;
+        hotbarOpacity=host.setting("uiAlpha"+HOTBAR,90);
         for(int i=0;i<6;i++)hotbar[i]=host.setting("hotbar"+i,
             i==0?1:i==1?2:i==2?3:i==3?4:i==4?6:7);
         fireButtonX=host.setting("fireButtonX",0);
@@ -313,7 +317,8 @@ public final class GameView extends View {
     }
     void newGame(){
         playerX=CAMP_X;playerY=CAMP_Y;health=100;stamina=100;
-        hunger=100;thirst=100;fatigue=0;knifeDuration=0;knifeCooldown=0;
+        hunger=100;thirst=100;fatigue=0;foodCount=2;waterCount=2;
+        knifeDuration=0;knifeCooldown=0;
         cameraLookX=0;cameraLookY=0;aimDeflection=0;
         cursorInitialized=false;cursorMoveX=0;cursorMoveY=0;
         playerAnimation.reset();moving=false;stickX=0;stickY=0;shotClock=0;
@@ -343,6 +348,8 @@ public final class GameView extends View {
         hunger=host.prefs.getFloat("hunger",100);
         thirst=host.prefs.getFloat("thirst",100);
         fatigue=host.prefs.getFloat("fatigue",0);
+        foodCount=host.setting("foodCount",2);
+        waterCount=host.setting("waterCount",2);
         knifeDuration=0;knifeCooldown=0;cameraLookX=0;cameraLookY=0;
         cursorInitialized=false;cursorMoveX=0;cursorMoveY=0;
         kills=host.setting("kills",0);
@@ -423,7 +430,8 @@ public final class GameView extends View {
         host.prefs.edit().putBoolean("hasSave",true).putFloat("px",playerX).putFloat("py",playerY)
                 .putFloat("hp",health).putFloat("stamina",stamina)
                 .putFloat("hunger",hunger).putFloat("thirst",thirst)
-                .putFloat("fatigue",fatigue).putInt("kills",kills).putInt("wave",wave)
+                .putFloat("fatigue",fatigue).putInt("foodCount",foodCount)
+                .putInt("waterCount",waterCount).putInt("kills",kills).putInt("wave",wave)
                 .putInt("scrap",scrap).putInt("medkits",medkits)
                 .putInt("ammoPacks",ammoPacks).putInt("ammo",ammo)
                 .putString("campfire_locations",encodeCampfires())
@@ -1434,7 +1442,7 @@ public final class GameView extends View {
         return padBaseY(right)+(editPointer>=0&&editControl==id?editY:host.setting("uiY"+id,0));
     }
     String controlName(int id){return id==MOVE_PAD?"MOVE JOYSTICK":id==AIM_PAD?"AIM JOYSTICK":
-        LegacyControlsV58.NAMES[id];}
+        id==HOTBAR?"QUICK ACCESS BAR":LegacyControlsV58.NAMES[id];}
     String controlSizeKey(int id){return id==MOVE_PAD?"movePadSize":id==AIM_PAD?"aimPadSize":"uiSize"+id;}
     int stickEditorAt(float x,float y){
         for(int id=MOVE_PAD;id<=AIM_PAD;id++){
@@ -1472,7 +1480,7 @@ public final class GameView extends View {
         float left=hudEditorLeft(),top=panelY;
         c.save();c.translate(left,top);c.scale(panelScale,panelScale);
         rounded(c,0,0,700,113,10,0xf2203436);
-        int i=Math.max(0,Math.min(HUD_ITEMS-1,selectedHudControl));
+        int i=Math.max(0,Math.min(EDITOR_ITEMS-1,selectedHudControl));
         label(c,"MOVE PANEL: drag header    "+controlName(i)+
              "   SIZE "+host.setting(controlSizeKey(i),100)+"%",10,17,12,WHITE,true);
         btn(c,610,0,42,20,"-",0xff456961);
@@ -1490,7 +1498,7 @@ public final class GameView extends View {
         float left=hudEditorLeft(),top=panelY;
         if(!within(x,y,left,top,700*panelScale,113*panelScale))return false;
         float u=(x-left)/panelScale,v=(y-top)/panelScale;
-        int i=Math.max(0,Math.min(HUD_ITEMS-1,selectedHudControl));
+        int i=Math.max(0,Math.min(EDITOR_ITEMS-1,selectedHudControl));
         if(v<20){
             if(u>=608){
                 panelScale=clamp(panelScale+(u<655?-.10f:.10f),.65f,1.5f);
@@ -1504,7 +1512,7 @@ public final class GameView extends View {
             int j=(int)((u-5)/99);
             if(j>=0&&j<7){
                 if(j==0||j==1){
-                    selectedHudControl=Math.floorMod(i+(j==0?-1:1),HUD_ITEMS);
+                    selectedHudControl=Math.floorMod(i+(j==0?-1:1),EDITOR_ITEMS);
                     host.prefs.edit().putInt("selectedButton",selectedHudControl).apply();
                 }else if(j==6){
                     if(i<LegacyControlsV58.COUNT)
