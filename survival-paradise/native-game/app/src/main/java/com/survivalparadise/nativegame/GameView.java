@@ -414,6 +414,36 @@ public final class GameView extends View {
     }
     // A bullet's visible launch point is exactly the world-transformed barrel anchor.
     // The same grip pivot, left/right mirror and full semicircle are used by rendering.
+    void knifeStrike(){
+        if(!playing||paused||knifeCooldown>0)return;
+        knifeCooldown=.52f;knifeDuration=.26f;knifeHitPending=true;
+        knifeTarget=nearest(playerX,playerY,112);
+        float dx=knifeTarget==null?aimX:knifeTarget.x-playerX;
+        float dy=knifeTarget==null?aimY:knifeTarget.y-playerY;
+        knifeDirection=LegacyControlsV58.quantizeKnife(dx,dy);
+        if(LegacyControlsV58.knifeX(knifeDirection)>.01f)face=1;
+        else if(LegacyControlsV58.knifeX(knifeDirection)<-.01f)face=-1;
+    }
+    void drawKnifeSwing(Canvas c){
+        if(knifeDuration<=0)return;
+        // 4-phase pixel-step knife sweep; 8 world directions. Body is unchanged.
+        float t=1f-knifeDuration/.26f;
+        float bearing=knifeDirection*45f;
+        float sweep=-72f+t*144f;
+        float px=playerX+LegacyControlsV58.knifeX(knifeDirection)*29f;
+        float py=playerY-48f+LegacyControlsV58.knifeY(knifeDirection)*29f;
+        c.save();c.translate(px,py);
+        c.rotate(bearing+sweep);
+        rect(c,-6,-5,17,10,0xff201d1a);
+        rect(c,-3,-4,11,8,0xff705744);
+        rect(c,11,-3,29,7,0xff1d2c32);
+        rect(c,11,-2,27,4,0xffa2b7ac);
+        rect(c,15,-3,19,2,0xffe1e5cf);
+        c.restore();
+        color(0x99c7d4bb);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(2f);
+        c.drawArc(px-58,py-58,px+58,py+58,bearing-74f,Math.max(6f,t*138f),false,p);
+        p.setStyle(Paint.Style.FILL);
+    }
     void shoot(float x,float y,float dx,float dy,int weapon,boolean hostile,int facing){
         float length=(float)Math.hypot(dx,dy);
         if(length<.01f){dx=facing;dy=0;length=1;}
@@ -1192,6 +1222,16 @@ public final class GameView extends View {
         }));
         order.sort((a,b)->Float.compare(a.y,b.y));
         for(DrawEntity e:order)e.draw.run();
+        drawKnifeSwing(c);
+        if(showCrosshair&&playing){
+            float len=Math.max(.001f,(float)Math.hypot(aimX,aimY));
+            float px=playerX+aimX/len*160f,py=playerY-42+aimY/len*160f;
+            color(0xffd9e9d3);p.setStrokeWidth(2f);
+            c.drawLine(px-13,py,px-5,py,p);
+            c.drawLine(px+5,py,px+13,py,p);
+            c.drawLine(px,py-13,px,py-5,p);
+            c.drawLine(px,py+5,px,py+13,p);
+        }
         for(Shot projectile:shots){
             if(!WorldPerfV55.nearView(projectile.x,projectile.y,
                     camX,camY,viewW,viewH,25))continue;
