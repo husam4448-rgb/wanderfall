@@ -14,25 +14,51 @@ public final class LegacyControlsV58 {
     public static final String[] LABELS={
         "FIRE","FIRE","MELEE","MELEE","RUN","CROUCH","USE",
         "SWAP","RELOAD","ZOOM +","ZOOM -"};
+    // V72 screenshot-based 1480x720 reference, normalized horizontally
+    // for narrower mobile screens. Default joystick and hotbar also move.
     public static int defaultX(int id,float w){
         switch(id){
-            case FIRE_L:case MELEE_L:return 315;
-            case FIRE_R:case MELEE_R:return Math.round(w-348);
-            case RUN:case CROUCH:return 433;
-            case USE:return Math.round(w*.5f-54);
-            case SWAP:case RELOAD:return Math.round(w-481);
-            case ZOOM_IN:return Math.round(w-88);
-            case ZOOM_OUT:return Math.round(w-174);
+            case FIRE_L:return Math.round(w*.225f);
+            case MELEE_L:return Math.round(w*.243f);
+            case FIRE_R:return Math.round(w-465f);
+            case MELEE_R:return Math.round(w-501f);
+            case RUN:return Math.round(w-145f);
+            case CROUCH:return Math.round(w*.28f);
+            case USE:return Math.round(w*.397f);
+            case SWAP:return Math.round(w*.505f);
+            case RELOAD:return Math.round(w-513f);
+            case ZOOM_IN:return Math.round(w-88f);
+            case ZOOM_OUT:return Math.round(w-174f);
             default:throw new IllegalArgumentException("unknown control "+id);
         }
     }
     public static int defaultY(int id,float h){
         switch(id){
-            case FIRE_L:case FIRE_R:case RUN:case USE:case RELOAD:return Math.round(h-99);
-            case MELEE_L:case MELEE_R:case CROUCH:case SWAP:return Math.round(h-157);
+            case FIRE_L:return Math.round(h-302f);
+            case FIRE_R:return Math.round(h-324f);
+            case MELEE_L:return Math.round(h-199f);
+            case MELEE_R:return Math.round(h-95f);
+            case RUN:return Math.round(h-372f);
+            case CROUCH:return Math.round(h-199f);
+            case USE:case SWAP:return Math.round(h-47f);
+            case RELOAD:return Math.round(h-219f);
             case ZOOM_IN:case ZOOM_OUT:return 66;
             default:throw new IllegalArgumentException("unknown control "+id);
         }
+    }
+    /** Screenshot-based button scales; individual HUD edits still override. */
+    public static int defaultScale(int id){
+        switch(id){
+            case FIRE_L:case FIRE_R:return 140;
+            case MELEE_L:return 110;
+            case MELEE_R:case RELOAD:return 130;
+            case RUN:return 110;
+            case USE:case SWAP:return 105;
+            default:return 100;
+        }
+    }
+    public static boolean defaultEnabled(int id){
+        return id!=CROUCH; // hidden in the requested reference HUD
     }
     public static int defaultW(int id){
         return (id==ZOOM_IN||id==ZOOM_OUT)?78:105;
