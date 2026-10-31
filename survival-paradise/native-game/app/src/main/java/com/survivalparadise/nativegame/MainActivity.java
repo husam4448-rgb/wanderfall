@@ -262,6 +262,141 @@ public final class MainActivity extends Activity {
         resizeSettingsWindow(dialog,92,90);
     }
 
+    private void makeWindowMovable(AlertDialog dialog,View handle,
+                                   int widthPct,int heightPct,String key){
+        if(dialog==null||dialog.getWindow()==null)return;
+        android.view.Window window=dialog.getWindow();
+        window.setGravity(Gravity.TOP|Gravity.LEFT);
+        int screenW=getResources().getDisplayMetrics().widthPixels;
+        int screenH=getResources().getDisplayMetrics().heightPixels;
+        int w=screenW*Math.max(60,Math.min(100,widthPct))/100;
+        int h=screenH*Math.max(58,Math.min(98,heightPct))/100;
+        WindowManager.LayoutParams init=window.getAttributes();
+        init.width=w;init.height=h;
+        init.x=Math.max(0,Math.min(screenW-w,prefs.getInt(key+"X",(screenW-w)/2)));
+        init.y=Math.max(0,Math.min(screenH-h,prefs.getInt(key+"Y",(screenH-h)/2)));
+        window.setAttributes(init);
+        final float[] grab=new float[4];
+        handle.setOnTouchListener((v,e)->{
+            switch(e.getActionMasked()){
+                case android.view.MotionEvent.ACTION_DOWN:
+                    grab[0]=e.getRawX();grab[1]=e.getRawY();
+                    grab[2]=window.getAttributes().x;grab[3]=window.getAttributes().y;
+                    return true;
+                case android.view.MotionEvent.ACTION_MOVE:
+                    WindowManager.LayoutParams p=window.getAttributes();
+                    p.x=Math.max(0,Math.min(screenW-p.width,Math.round(grab[2]+e.getRawX()-grab[0])));
+                    p.y=Math.max(0,Math.min(screenH-p.height,Math.round(grab[3]+e.getRawY()-grab[1])));
+                    window.setAttributes(p);return true;
+                case android.view.MotionEvent.ACTION_UP:
+                    prefs.edit().putInt(key+"X",window.getAttributes().x)
+                        .putInt(key+"Y",window.getAttributes().y).apply();return true;
+                case android.view.MotionEvent.ACTION_CANCEL:return true;
+            }
+            return false;
+        });
+    }
+    void inventory(){
+        if(game==null||!game.isPlaying())return;
+        game.menuPause(true);
+        LinearLayout shell=column();
+        TextView handle=text("⋮⋮  SURVIVOR BAG & EQUIPMENT   •   DRAG TO MOVE  ⋮⋮",15,true);
+        handle.setBackgroundColor(0xff36545a);handle.setGravity(Gravity.CENTER);
+        shell.addView(handle);
+        ScrollView scroll=new ScrollView(this);
+        LinearLayout root=column();scroll.addView(root);
+        LinearLayout sides=new LinearLayout(this);
+        sides.setOrientation(LinearLayout.HORIZONTAL);
+        LinearLayout gear=column(),bag=column();
+        sides.addView(gear,new LinearLayout.LayoutParams(0,-2,1));
+        sides.addView(bag,new LinearLayout.LayoutParams(0,-2,2));
+        root.addView(sides);
+        section(gear,"EQUIPPED / BODY");
+        section(gear,"SURVIVOR  •  MALE");
+        TextView body=text("HEAD: None\nFACE: None\nTORSO: Standard shirt\nPANTS: Standard\nFEET: Standard boots\nBACK: None\nOFF-HAND: "+
+             (game.lampOn&&game.dualTorch?"Flashlight":"Empty"),13,false);
+        gear.addView(body);
+        section(gear,"PRIMARY WEAPON");
+        Spinner weapons=new Spinner(this);
+        weapons.setAdapter(new ArrayAdapter<String>(this,
+             android.R.layout.simple_spinner_dropdown_item,LOADOUTS));
+        weapons.setSelection(game.gun);
+        gear.addView(weapons);
+        weapons.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener(){
+            public void onNothingSelected(android.widget.AdapterView<?> parent){}
+            public void onItemSelected(android.widget.AdapterView<?> parent,View v,int index,long id){
+                if(game.gun!=index){
+                    prefs.edit().putInt("gun",index).apply();
+                    game.reloadSettings();game.saveProgress();
+                }
+            }
+        });
+        CheckBox torch=new CheckBox(this);
+        torch.setText("Equip off-hand flashlight");
+        torch.setTextColor(INK);torch.setChecked(game.lampOn&&game.dualTorch);
+        gear.addView(torch);
+        torch.setOnCheckedChangeListener((v,enabled)->{
+            prefs.edit().putBoolean("dualTorch",enabled).putBoolean("lampOn",enabled).apply();
+            game.reloadSettings();body.setText(
+                "HEAD: None\nFACE: None\nTORSO: Standard shirt\nPANTS: Standard\n"+
+                "FEET: Standard boots\nBACK: None\nOFF-HAND: "+(enabled?"Flashlight":"Empty"));
+        });
+        section(bag,"BAG STORAGE  •  24 SLOTS");
+        bag.addView(text("Filled slots show actual resource stacks. Empty slots are reserved for future items.",12,false));
+        for(int row=0;row<4;row++){
+            LinearLayout slots=new LinearLayout(this);slots.setOrientation(LinearLayout.HORIZONTAL);
+            for(int col=0;col<6;col++){
+                final int idx=row*6+col;
+                String title=idx==0?"SCRAP\n"+game.scrap:
+                    idx==1?"MEDKIT\n"+game.medkits:
+                    idx==2?"AMMO\n"+game.ammoPacks:"EMPTY";
+                Button slot=new Button(this);slot.setAllCaps(false);
+                slot.setText(title);slot.setTextSize(10);
+                slot.setMinWidth(0);slot.setMinimumWidth(0);
+                slot.setMinHeight(45);slot.setMinimumHeight(45);
+                slots.addView(slot,new LinearLayout.LayoutParams(0,-2,1));
+                slot.setOnClickListener(v->{
+                    if(idx==1&&game.medkits>0&&game.health<100){
+                        game.medkits--;game.health=Math.min(100,game.health+40);
+                        slot.setText("MEDKIT\n"+game.medkits);game.saveProgress();
+                    }else if(idx==2&&game.ammoPacks>0&&game.ammo<game.MAG[game.gun]){
+                        game.ammoPacks--;game.ammo=game.MAG[game.gun];
+                        slot.setText("AMMO\n"+game.ammoPacks);game.saveProgress();
+                    }else Toast.makeText(this,idx>2?"Empty slot":
+                        "No usable action for this slot",Toast.LENGTH_SHORT).show();
+                });
+            }
+            bag.addView(slots);
+        }
+        shell.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
+        final AlertDialog[] active=new AlertDialog[1];
+        LinearLayout tools=new LinearLayout(this);tools.setOrientation(LinearLayout.HORIZONTAL);
+        Button smaller=new Button(this),larger=new Button(this);
+        smaller.setText("WINDOW -");larger.setText("WINDOW +");
+        tools.addView(smaller,new LinearLayout.LayoutParams(0,-2,1));
+        tools.addView(larger,new LinearLayout.LayoutParams(0,-2,1));
+        shell.addView(tools);
+        AlertDialog dialog=new AlertDialog.Builder(this).setView(shell)
+            .setPositiveButton("CLOSE BAG",(d,w)->{}).create();
+        active[0]=dialog;
+        dialog.setOnDismissListener(d->{
+            game.saveProgress();game.menuPause(false);restoreFullscreenAfterShade();
+        });
+        dialog.show();
+        final int[] width={prefs.getInt("bagWindowWidth",80)},
+                    height={prefs.getInt("bagWindowHeight",82)};
+        makeWindowMovable(dialog,handle,width[0],height[0],"bagWindow");
+        smaller.setOnClickListener(v->{
+            width[0]=Math.max(60,width[0]-5);height[0]=Math.max(58,height[0]-5);
+            prefs.edit().putInt("bagWindowWidth",width[0]).putInt("bagWindowHeight",height[0]).apply();
+            makeWindowMovable(dialog,handle,width[0],height[0],"bagWindow");
+        });
+        larger.setOnClickListener(v->{
+            width[0]=Math.min(98,width[0]+5);height[0]=Math.min(98,height[0]+5);
+            prefs.edit().putInt("bagWindowWidth",width[0]).putInt("bagWindowHeight",height[0]).apply();
+            makeWindowMovable(dialog,handle,width[0],height[0],"bagWindow");
+        });
+    }
     void settings(){
         game.menuPause(true);
         final AlertDialog[] activeDialog=new AlertDialog[1];
