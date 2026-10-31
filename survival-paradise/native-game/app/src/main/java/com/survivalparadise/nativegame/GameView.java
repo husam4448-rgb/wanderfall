@@ -81,6 +81,7 @@ public final class GameView extends View {
     int selectedHudControl=0;
     boolean editControls=false,showStatusBars=true,showCrosshair=true,lookAheadEnabled=true;
     float lookAheadStrength=0f,lookAheadThreshold=.72f,aimDeflection=0f;
+    float lookAheadSmooth=5f;
     float cameraLookX=0f,cameraLookY=0f;
     float cursorWorldX=0f,cursorWorldY=0f,cursorMoveX=0f,cursorMoveY=0f;
     float aimCursorDistance=185f,cursorMaxRange=335f; // pointer orbits the player, never drags across the screen
@@ -225,9 +226,10 @@ public final class GameView extends View {
         showCrosshair=host.option("showCrosshair",true);
         lookAheadEnabled=host.option("lookAheadEnabled",true);
         lookAheadThreshold=host.setting("lookAheadThreshold",72)/100f;
-        lookAheadStrength=host.setting("lookAheadStrength",120);
+        lookAheadStrength=host.setting("lookAheadStrength",420);
+        lookAheadSmooth=host.setting("lookAheadSmooth",8);
         cursorSpeed=host.setting("cursorSpeed",400); // retained setting for older saves
-        cursorMaxRange=host.setting("cursorRange",335);
+        cursorMaxRange=host.setting("cursorRange",750);
         fireButtonX=host.setting("fireButtonX",0);
         fireButtonY=host.setting("fireButtonY",0);
         fireButtonSize=host.setting("fireButtonSize",100)/100f;
@@ -587,7 +589,7 @@ public final class GameView extends View {
             aimDeflection>=lookAheadThreshold?lookAheadStrength*
             (aimDeflection-lookAheadThreshold)/Math.max(.01f,1-lookAheadThreshold):0f;
         float aimLength=Math.max(.001f,(float)Math.hypot(aimX,aimY));
-        float ease=Math.min(1f,dt*5f);
+        float ease=Math.min(1f,dt*lookAheadSmooth);
         cameraLookX+=(aimX/aimLength*desiredAhead-cameraLookX)*ease;
         cameraLookY+=(aimY/aimLength*desiredAhead-cameraLookY)*ease;
         if(firing){
@@ -1292,16 +1294,6 @@ public final class GameView extends View {
         order.sort((a,b)->Float.compare(a.y,b.y));
         for(DrawEntity e:order)e.draw.run();
         drawKnifeSwing(c);
-        if(showCrosshair&&playing){
-            float len=Math.max(.001f,(float)Math.hypot(aimX,aimY));
-            float px=cursorInitialized?cursorWorldX:playerX+aimX/len*185f;
-            float py=cursorInitialized?cursorWorldY:playerY-42+aimY/len*185f;
-            color(0xffd9e9d3);p.setStrokeWidth(2f);
-            c.drawLine(px-13,py,px-5,py,p);
-            c.drawLine(px+5,py,px+13,py,p);
-            c.drawLine(px,py-13,px,py-5,p);
-            c.drawLine(px,py+5,px,py+13,p);
-        }
         for(Shot projectile:shots){
             if(!WorldPerfV55.nearView(projectile.x,projectile.y,
                     camX,camY,viewW,viewH,25))continue;
@@ -1448,6 +1440,22 @@ public final class GameView extends View {
         }
         return true; // never accidentally touches underlying gameplay objects
     }
+    // HUD-pass world marker: must be painted AFTER darkening the entire world.
+    void drawBrightCrosshair(Canvas c){
+        if(!playing||!showCrosshair)return;
+        float px=(cursorInitialized?cursorWorldX:playerX+aimX*185f)-camX;
+        float py=(cursorInitialized?cursorWorldY:playerY-42+aimY*185f)-camY;
+        if(px<4||py<54||px>viewW-4||py>viewH-45)return;
+        p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(3f);
+        color(0xff061b20);c.drawCircle(px,py,15,p);
+        color(0xfff1ead0);c.drawCircle(px,py,13,p);
+        c.drawLine(px-23,py,px-6,py,p);
+        c.drawLine(px+6,py,px+23,py,p);
+        c.drawLine(px,py-23,px,py-6,p);
+        c.drawLine(px,py+6,px,py+23,p);
+        p.setStyle(Paint.Style.FILL);
+        rect(c,px-2,py-2,4,4,0xffffd583);
+    }
     void hud(Canvas c){
         rect(c,0,0,viewW,56,0xc90e2228);
         label(c,"SURVIVAL PARADISE",17,23,18,WHITE,true);
@@ -1566,6 +1574,7 @@ public final class GameView extends View {
         viewW=oldW;viewH=oldH;
         canvas.restore();
         if(playing){
+            drawBrightCrosshair(canvas);
             hud(canvas);
             if(paused&&!settingsPause)pauseOverlay(canvas);
         }else menu(canvas);
@@ -1588,7 +1597,7 @@ public final class GameView extends View {
         camX=playerX-viewW/2;
         camY=playerY-viewH/2;
         canvas.drawColor(0xff101f24);canvas.save();canvas.scale(s,s);
-        if(playing){drawWorld(canvas);hud(canvas);}else menu(canvas);
+        if(playing){drawWorld(canvas);drawBrightCrosshair(canvas);hud(canvas);}else menu(canvas);
         canvas.restore();
     }
     void updateStick(float x,float y,boolean right){
@@ -1604,8 +1613,8 @@ public final class GameView extends View {
             if(length>.12f){
                 float inv=1f/length;
                 aimX=dx*inv;aimY=dy*inv;
-                aimCursorDistance=clamp(95f+Math.min(1f,length)*(cursorMaxRange-95f),
-                        95f,cursorMaxRange);
+                aimCursorDistance=clamp(130f+Math.min(1f,length)*(cursorMaxRange-130f),
+                        130f,cursorMaxRange);
                 face=aimX<-.025f?-1:aimX>.025f?1:face;
                 if(cursorInitialized){
                     // Immediate heading correction: no dragging an old pointer
