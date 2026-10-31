@@ -63,7 +63,7 @@ public final class WorldChunkModel {
             rr=rr*(1f-k)+84f*k;gg=gg*(1f-k)+95f*k;
             bb=bb*(1f-k)+70f*k;
         }
-        return pack(Math.round(rr),Math.round(gg),Math.round(bb));
+        return BiomeWorldV74.tint(wx,wy,pack(Math.round(rr),Math.round(gg),Math.round(bb)),campX,campY);
     }
     public static int groundColor(int gx,int gy,int campX,int campY){
         return groundColorAt((gx+.5f)*TILE,(gy+.5f)*TILE,campX,campY);

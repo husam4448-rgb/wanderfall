@@ -85,7 +85,7 @@ public final class WorldChunkCache {
         int h=WorldChunkModel.tileDetail(gx,gy);
         float fx=(10+(h&17))/(float)scale;
         rect(canvas,p,baseX+fx,baseY+30f/scale,Math.max(1,3f/scale),
-                Math.max(1,3f/scale),((h&4)!=0)?0xff72805e:0xff4b6848);
+                Math.max(1,3f/scale),BiomeWorldV74.detail(BiomeWorldV74.biome((gx+.5f)*TILE,(gy+.5f)*TILE),h));
         if((h&15)==1){
             rect(canvas,p,baseX+33f/scale,baseY+52f/scale,Math.max(1,7f/scale),
                  Math.max(1,4f/scale),0xff566d51);

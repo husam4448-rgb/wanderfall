@@ -33,6 +33,7 @@ public final class GameView extends View {
     final Paint pixel=new Paint(Paint.ANTI_ALIAS_FLAG==0?0:0);
     Bitmap body,approvedWalkColors,stableBody,npcRoleAtlas,npcIdleAtlas,npcWalkV56,npcIdleV56,gear,approvedAxe;
     Bitmap crosshairReticle;
+    Bitmap biomeProps;
     final Paint reticlePaint=new Paint(Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG);
     Bitmap campStatic; // immutable pre-rendered authored camp, not per-frame rectangles
 
@@ -224,6 +225,11 @@ public final class GameView extends View {
                 approvedAxe=BitmapFactory.decodeStream(axe);
             }
         }catch(Exception e){body=null;gear=null;}
+        try(InputStream env=getResources().getAssets().open("world_props_v74.png")){
+            biomeProps=BitmapFactory.decodeStream(env);
+            if(biomeProps==null||biomeProps.getWidth()!=BiomeWorldV74.CELL*BiomeWorldV74.SPRITES||
+                biomeProps.getHeight()!=BiomeWorldV74.CELL)biomeProps=null;
+        }catch(Exception ignored){biomeProps=null;}
         initCovers();reloadSettings();hasSave=host.prefs.getBoolean("hasSave",false);
     }
     void initCovers(){
@@ -1096,37 +1102,41 @@ public final class GameView extends View {
                 rect(c,x+8,y-4,8,7,0xff647f58);
             }
         }
-        // Unbounded, deterministic foliage outside the original authored hub.
-        // Work is proportional to the visible camera grid, not distance travelled.
-        final int cell=288;
-        int cx0=(int)Math.floor(camX/cell)-1, cx1=(int)Math.ceil((camX+viewW)/cell)+1;
-        int cy0=(int)Math.floor(camY/cell)-1, cy1=(int)Math.ceil((camY+viewH)/cell)+1;
-        for(int cy=cy0;cy<=cy1;cy++)for(int cx=cx0;cx<=cx1;cx++){
-            for(int k=0;k<3;k++){
-                int h=hash(cx*7+k,cy*11-k);
-                float x=cx*cell+20+Math.floorMod(h,cell-40);
-                float y=cy*cell+20+Math.floorMod(h>>>8,cell-40);
-                if(x>=0&&x<=WORLD_W&&y>=0&&y<=WORLD_H)continue;
-                if(y>912&&y<1160)continue;
-                if(x>1480&&x<1740)continue;
-                if(Math.hypot(x-CAMP_X,y-CAMP_Y)<325)continue;
-                if((h&7)==0){
-                    rect(c,x+7,y+19,8,24,0xff243c30);
-                    rect(c,x-8,y,37,28,0xff172b25);
-                    rect(c,x-4,y-6,30,27,0xff4e7351);
-                    rect(c,x+2,y-9,19,13,0xff65845d);
-                }else{
-                    rect(c,x,y+7,19,8,0xff233c30);
-                    rect(c,x+3,y,17,11,0xff557253);
-                    rect(c,x+8,y-4,8,7,0xff647f58);
-                }
-            }
-        }
+        drawBiomePropsV74(c);
         for(Cover box:covers)
             if(box.x+box.w>=camX-15&&box.x<=camX+viewW+15&&
                box.y+box.h>=camY-15&&box.y<=camY+viewH+15)
                 drawCover(c,box);
         drawSpawnCamp(c);
+    }
+    /** World-position deterministic decorative sprites, evaluated only on visible cells. */
+    void drawBiomePropsV74(Canvas c){
+        final int cell=288;
+        int x0=(int)Math.floor(camX/cell)-1,x1=(int)Math.ceil((camX+viewW)/cell)+1;
+        int y0=(int)Math.floor(camY/cell)-1,y1=(int)Math.ceil((camY+viewH)/cell)+1;
+        for(int cy=y0;cy<=y1;cy++)for(int cx=x0;cx<=x1;cx++)for(int k=0;k<3;k++){
+            int h=WorldChunkModel.hash(cx*7+k,cy*11-k);
+            float x=cx*cell+20+Math.floorMod(h,cell-40);
+            float y=cy*cell+20+Math.floorMod(h>>>8,cell-40);
+            // Preserve the complete V73 hub's existing foliage and objects.
+            if(x>=0&&x<=WORLD_W&&y>=0&&y<=WORLD_H)continue;
+            if(y>912&&y<1160 || x>1480&&x<1740)continue;
+            if(Math.hypot(x-CAMP_X,y-CAMP_Y)<470f)continue;
+            if(x<camX-140||x>camX+viewW+140||
+               y<camY-140||y>camY+viewH+140)continue;
+            int kind=BiomeWorldV74.prop(x,y,h);
+            float extent=kind==4?72f:kind==5?84f:kind==3?104f:120f;
+            if(biomeProps!=null){
+                int size=BiomeWorldV74.CELL;
+                src.set(kind*size,0,(kind+1)*size,size);
+                dest.set(x-extent*.5f,y-extent,x+extent*.5f,y);
+                c.drawBitmap(biomeProps,src,dest,pixel);
+            }else{
+                int tint=BiomeWorldV74.detail(BiomeWorldV74.biome(x,y),h);
+                rect(c,x-8,y-14,16,14,0xff24332a);
+                rect(c,x-17,y-28,34,17,tint);
+            }
+        }
     }
     void drawSpawnCamp(Canvas c){
         if(CAMP_X<camX-520||CAMP_X>camX+viewW+520||
