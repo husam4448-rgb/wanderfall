@@ -6,8 +6,8 @@ android {
   applicationId 'com.survivalparadise.nativegame'
   minSdk 24
   targetSdk 34
-  versionCode 69
-  versionName '0.68-stable-precise-aim'
+  versionCode 70
+  versionName '0.69-bounded-aim-camera'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
