@@ -517,12 +517,12 @@ jobs:
           m=(p/'MainActivity.java').read_text()
           assert 'cursorSpeed=host.setting("cursorSpeedV68",650)' in g
           assert 'FloatingAimV64.scaledSpeed(cursorSpeed' in g
-          assert 'float targetX=desiredX-clamp(desiredX,-halfVisibleX,halfVisibleX);' in g
-          assert 'float targetY=desiredY-clamp(desiredY,-halfVisibleY,halfVisibleY);' in g
+          assert 'float targetX=BoundedCameraV69.beyondMargin(desiredX,halfVisibleX);' in g
+          assert 'float targetY=BoundedCameraV69.beyondMargin(desiredY,halfVisibleY);' in g
           assert 'cameraLookX+=StableAimV68.panStep(targetX-cameraLookX,dt,' in g
           assert 'cursorMoveX=dx*inv;cursorMoveY=dy*inv;' in g
           assert 'else if(legacyDirectionalAim){' in g
-          assert 'if(lookAheadEnabled&&rightAiming)' in g
+          assert 'if(lookAheadEnabled&&rightAiming&&panLimit>0f)' in g
           assert 'cursorMoveX=0f;cursorMoveY=0f;' in g
           assert 'slider(root,"Crosshair movement speed","cursorSpeedV68",150,2400,650' in m
           assert 'slider(root,"Fine aim stability / deadzone","aimDeadzoneV68"' in m
