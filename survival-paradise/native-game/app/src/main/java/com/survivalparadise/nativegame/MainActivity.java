@@ -402,6 +402,10 @@ public final class MainActivity extends Activity {
         final AlertDialog[] activeDialog=new AlertDialog[1];
         LinearLayout shell=column();
         shell.setPadding(8,4,8,4);
+        TextView dragTitle=text("⋮⋮ SETTINGS • DRAG HEADER TO MOVE WINDOW ⋮⋮",14,true);
+        dragTitle.setGravity(Gravity.CENTER);
+        dragTitle.setBackgroundColor(0xff355a62);
+        shell.addView(dragTitle);
         final int windowW=prefs.getInt("testWindowWidth",98);
         final int windowH=prefs.getInt("testWindowHeight",96);
         LinearLayout sizeRow=new LinearLayout(this);
@@ -678,7 +682,7 @@ public final class MainActivity extends Activity {
         activeDialog[0]=dialog;
         dialog.setOnDismissListener(d->{game.menuPause(false);restoreFullscreenAfterShade();});
         dialog.show();
-        resizeSettingsWindow(dialog,windowW,windowH);
+        makeWindowMovable(dialog,dragTitle,windowW,windowH,"settingsWindow");
     }
     void captureGame(){
         if(game==null)return;
