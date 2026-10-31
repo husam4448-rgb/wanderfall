@@ -432,7 +432,7 @@ public final class GameView extends View {
           terrainChunks.cacheHits,terrainChunks.cacheMisses);
     }
     void releaseControls(){stopWalking();firing=false;leftPointer=-1;rightPointer=-1;
-        firePointer=-1;fireLeftPointer=-1;editPointer=-1;editControl=-1;
+        firePointer=-1;fireLeftPointer=-1;editPointer=-1;editControl=-1;panelPointer=-1;
         runHeld=false;crouchHeld=false;aimDeflection=0;
         cursorMoveX=0;cursorMoveY=0;}
     void switchWeapon(){
@@ -1400,8 +1400,14 @@ public final class GameView extends View {
     }
     float padBaseX(boolean right){return right?viewW-118f:120f;}
     float padBaseY(boolean right){return viewH-(right?145f:140f);}
-    float padCenterX(boolean right){return padBaseX(right)+host.setting("uiX"+(right?AIM_PAD:MOVE_PAD),0);}
-    float padCenterY(boolean right){return padBaseY(right)+host.setting("uiY"+(right?AIM_PAD:MOVE_PAD),0);}
+    float padCenterX(boolean right){
+        int id=right?AIM_PAD:MOVE_PAD;
+        return padBaseX(right)+(editPointer>=0&&editControl==id?editX:host.setting("uiX"+id,0));
+    }
+    float padCenterY(boolean right){
+        int id=right?AIM_PAD:MOVE_PAD;
+        return padBaseY(right)+(editPointer>=0&&editControl==id?editY:host.setting("uiY"+id,0));
+    }
     String controlName(int id){return id==MOVE_PAD?"MOVE JOYSTICK":id==AIM_PAD?"AIM JOYSTICK":
         LegacyControlsV58.NAMES[id];}
     String controlSizeKey(int id){return id==MOVE_PAD?"movePadSize":id==AIM_PAD?"aimPadSize":"uiSize"+id;}
@@ -1436,54 +1442,70 @@ public final class GameView extends View {
         rect(c,x+65,y+2,142*v/100f,12,fill);
         label(c,Integer.toString(Math.round(v)),x+213,y+12,12,WHITE,true);
     }
-    float hudEditorLeft(){return viewW*.5f-350f;}
+    float hudEditorLeft(){return viewW*.5f-350f+panelX;}
     void drawHudEditorOverlay(Canvas c){
-        float left=hudEditorLeft(),top=63;
-        rounded(c,left,top,700,113,10,0xf2203436);
-        int i=Math.max(0,Math.min(LegacyControlsV58.COUNT-1,selectedHudControl));
-        label(c,"LIVE HUD EDIT  •  "+LegacyControlsV58.NAMES[i]+
-             "   SIZE "+host.setting("uiSize"+i,100)+"%   OPACITY "+host.setting("uiAlpha"+i,100)+"%",
-             left+10,top+17,12,WHITE,true);
+        float left=hudEditorLeft(),top=panelY;
+        c.save();c.translate(left,top);c.scale(panelScale,panelScale);
+        rounded(c,0,0,700,113,10,0xf2203436);
+        int i=Math.max(0,Math.min(HUD_ITEMS-1,selectedHudControl));
+        label(c,"MOVE PANEL: drag header    "+controlName(i)+
+             "   SIZE "+host.setting(controlSizeKey(i),100)+"%",10,17,12,WHITE,true);
+        btn(c,610,0,42,20,"-",0xff456961);
+        btn(c,657,0,42,20,"+",0xff456961);
         String[] names={"PREV","NEXT","SIZE -","SIZE +","ALPHA -","ALPHA +","HIDE"};
         for(int j=0;j<names.length;j++)
-            btn(c,left+5+j*99,top+22,94,36,names[j],0xff34565a);
+            btn(c,5+j*99,22,94,36,names[j],0xff34565a);
         String[] positions={"LEFT","RIGHT","UP","DOWN","RESET","DONE"};
         for(int j=0;j<positions.length;j++)
-            btn(c,left+8+j*115,top+65,110,35,positions[j],0xff395653);
+            btn(c,8+j*115,65,110,35,positions[j],0xff395653);
+        c.restore();
     }
     boolean hudEditorTouch(float x,float y){
         if(!editControls)return false;
-        float left=hudEditorLeft(),top=63;
-        if(!within(x,y,left,top,700,113))return false;
-        int i=Math.max(0,Math.min(LegacyControlsV58.COUNT-1,selectedHudControl));
-        if(y>=top+22&&y<=top+58){
-            int j=(int)((x-left-5)/99);
+        float left=hudEditorLeft(),top=panelY;
+        if(!within(x,y,left,top,700*panelScale,113*panelScale))return false;
+        float u=(x-left)/panelScale,v=(y-top)/panelScale;
+        int i=Math.max(0,Math.min(HUD_ITEMS-1,selectedHudControl));
+        if(v<20){
+            if(u>=608){
+                panelScale=clamp(panelScale+(u<655?-.10f:.10f),.65f,1.5f);
+                host.prefs.edit().putInt("hudPanelSize",Math.round(panelScale*100f)).apply();
+            }else{
+                panelPointer=-2;panelGrabX=x-left;panelGrabY=y-top;
+            }
+            return true;
+        }
+        if(v>=22&&v<=58){
+            int j=(int)((u-5)/99);
             if(j>=0&&j<7){
                 if(j==0||j==1){
-                    selectedHudControl=Math.floorMod(i+(j==0?-1:1),LegacyControlsV58.COUNT);
+                    selectedHudControl=Math.floorMod(i+(j==0?-1:1),HUD_ITEMS);
                     host.prefs.edit().putInt("selectedButton",selectedHudControl).apply();
                 }else if(j==6){
-                    host.prefs.edit().putBoolean("uiEnabled"+i,!uiEnabled(i)).apply();
+                    if(i<LegacyControlsV58.COUNT)
+                        host.prefs.edit().putBoolean("uiEnabled"+i,!uiEnabled(i)).apply();
                 }else{
-                    String key=(j==2||j==3?"uiSize":"uiAlpha")+i;
-                    int min=j<=3?60:30;
+                    String key=j==2||j==3?controlSizeKey(i):"uiAlpha"+i;
+                    int min=j<=3?(i>=MOVE_PAD?70:60):30;
                     int current=host.setting(key,100);
-                    int next=Math.round(clamp(current+(j%2==0?-10:10),min,j<=3?160:100));
+                    int next=Math.round(clamp(current+(j%2==0?-10:10),min,j<=3?180:100));
                     host.prefs.edit().putInt(key,next).apply();
                 }
                 invalidate();return true;
             }
         }
-        if(y>=top+65&&y<=top+102){
-            int j=(int)((x-left-8)/115);
+        if(v>=65&&v<=102){
+            int j=(int)((u-8)/115);
             if(j>=0&&j<6){
                 if(j==5){
                     editControls=false;
                     host.prefs.edit().putBoolean("editControls",false).apply();
                 }else if(j==4){
-                    host.prefs.edit().remove("uiX"+i).remove("uiY"+i)
-                        .remove("uiSize"+i).remove("uiAlpha"+i)
-                        .remove("uiEnabled"+i).apply();
+                    android.content.SharedPreferences.Editor reset=host.prefs.edit()
+                        .remove("uiX"+i).remove("uiY"+i).remove("uiAlpha"+i)
+                        .remove("uiEnabled"+i);
+                    reset.remove(controlSizeKey(i)).apply();
+                    reloadSettings();
                 }else{
                     String key=(j<=1?"uiX":"uiY")+i;
                     int shift=(j==0||j==2)?-10:10;
@@ -1752,7 +1774,10 @@ public final class GameView extends View {
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_POINTER_DOWN:
                 if(!playing||paused||y<58){tap(x,y);return true;}
-                if(editControls&&hudEditorTouch(x,y)){return true;}
+                if(editControls&&hudEditorTouch(x,y)){
+                    if(panelPointer==-2)panelPointer=id;
+                    return true;
+                }
                 int target=actionAt(x,y);
                 if(target>=0){
                     if(editControls){
@@ -1792,6 +1817,11 @@ public final class GameView extends View {
                     float py=e.getY(j)/Math.max(.01f,drawScale);
                     if(pointer==leftPointer)updateStick(px,py,false);
                     if(pointer==rightPointer)updateStick(px,py,true);
+                    if(pointer==panelPointer){
+                        panelX=clamp(px-panelGrabX-(viewW*.5f-350f),
+                                     -viewW*.5f+355f,viewW*.5f-350f);
+                        panelY=clamp(py-panelGrabY,55f,viewH-75f);
+                    }
                     if(pointer==editPointer&&editControl>=0){
                         editX=Math.round(px-editGrabX-
                                 (editControl<LegacyControlsV58.COUNT?
@@ -1828,6 +1858,11 @@ public final class GameView extends View {
                 if(id==firePointer||action==MotionEvent.ACTION_CANCEL)firePointer=-1;
                 if(id==fireLeftPointer||action==MotionEvent.ACTION_CANCEL)fireLeftPointer=-1;
                 firing=firePointer>=0||fireLeftPointer>=0;
+                if(id==panelPointer||action==MotionEvent.ACTION_CANCEL){
+                    panelPointer=-1;
+                    host.prefs.edit().putInt("hudPanelX",Math.round(panelX))
+                         .putInt("hudPanelY",Math.round(panelY)).apply();
+                }
                 if((id==editPointer||action==MotionEvent.ACTION_CANCEL)&&editControl>=0){
                     host.prefs.edit().putInt("uiX"+editControl,editX)
                         .putInt("uiY"+editControl,editY).apply();
