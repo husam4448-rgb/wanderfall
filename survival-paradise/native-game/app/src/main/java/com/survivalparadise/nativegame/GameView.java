@@ -1809,10 +1809,15 @@ public final class GameView extends View {
                     }
                     return true;
                 }
-                if(x<viewW*.40f&&y>viewH*.47f&&leftPointer<0){
+                // Joystick hit tests follow their EDITED positions; the old
+                // fixed screen zones broke input after moving the controls.
+                float moveDistance=(float)Math.hypot(x-padCenterX(false),y-padCenterY(false));
+                float aimDistance=(float)Math.hypot(x-padCenterX(true),y-padCenterY(true));
+                float moveReach=100f*movePadScale,aimReach=100f*aimPadScale;
+                if(leftPointer<0&&moveDistance<moveReach&&moveDistance<=aimDistance){
                     leftPointer=id;updateStick(x,y,false);return true;
                 }
-                if(x>viewW*.64f&&y>viewH*.47f&&rightPointer<0){
+                if(rightPointer<0&&aimDistance<aimReach){
                     rightPointer=id;updateStick(x,y,true);return true;
                 }
                 tap(x,y);return true;
