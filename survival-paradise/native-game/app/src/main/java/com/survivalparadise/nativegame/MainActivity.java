@@ -182,6 +182,76 @@ public final class MainActivity extends Activity {
         bar.addView(b,new LinearLayout.LayoutParams(0,-2,1f));
         b.setOnClickListener(v->task.run());
     }
+    // Separate from game settings: the actual HUD has its own layout editor.
+    void hudEditor(){
+        game.menuPause(true);
+        LinearLayout shell=column();
+        section(shell,"HUD BUTTON EDITOR  •  V59");
+        shell.addView(text("Select a button and adjust its placement, size and opacity. "
+            +"Use ON-SCREEN DRAG to fine-tune each button directly in the game.",12,false));
+        ScrollView scroll=new ScrollView(this);
+        scroll.setFillViewport(false);
+        LinearLayout root=column();
+        scroll.addView(root);
+        section(root,"BUTTON SELECTION");
+        Spinner picker=new Spinner(this);
+        picker.setAdapter(new ArrayAdapter<String>(this,
+            android.R.layout.simple_spinner_dropdown_item,LegacyControlsV58.NAMES));
+        root.addView(picker);
+        LinearLayout options=column();
+        root.addView(options);
+        picker.setSelection(Math.max(0,Math.min(LegacyControlsV58.COUNT-1,
+            prefs.getInt("selectedButton",0))));
+        picker.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener(){
+            public void onNothingSelected(android.widget.AdapterView<?> parent){}
+            public void onItemSelected(android.widget.AdapterView<?> parent,View item,int index,long id){
+                prefs.edit().putInt("selectedButton",index).apply();
+                options.removeAllViews();
+                check(options,"Enable "+LegacyControlsV58.NAMES[index],
+                    "uiEnabled"+index,true);
+                slider(options,"SIZE","uiSize"+index,60,160,100,"%");
+                slider(options,"OPACITY","uiAlpha"+index,30,100,100,"%");
+                slider(options,"HORIZONTAL POSITION","uiX"+index,-340,340,0,"");
+                slider(options,"VERTICAL POSITION","uiY"+index,-270,270,0,"");
+            }
+        });
+        section(root,"LAYOUT ACTIONS");
+        final AlertDialog[] active=new AlertDialog[1];
+        action(root,"EDIT BUTTONS ON THE GAME SCREEN",()->{
+            prefs.edit().putBoolean("editControls",true).apply();
+            game.reloadSettings();
+            if(active[0]!=null)active[0].dismiss();
+            Toast.makeText(this,"Drag a button to reposition it. Open HUD EDIT to finish.",
+                    Toast.LENGTH_LONG).show();
+        });
+        action(root,"FINISH EDITING / LOCK BUTTONS",()->{
+            prefs.edit().putBoolean("editControls",false).apply();
+            game.reloadSettings();
+            if(active[0]!=null)active[0].dismiss();
+        });
+        action(root,"RESTORE ALL BUTTON DEFAULTS",()->{
+            SharedPreferences.Editor edit=prefs.edit();
+            for(int i=0;i<LegacyControlsV58.COUNT;i++)
+                edit.remove("uiX"+i).remove("uiY"+i).remove("uiSize"+i)
+                    .remove("uiAlpha"+i).remove("uiEnabled"+i);
+            edit.putBoolean("editControls",false).apply();
+            game.reloadSettings();
+            if(active[0]!=null)active[0].dismiss();
+            Toast.makeText(this,"HUD controls restored to approved default layout",
+                    Toast.LENGTH_SHORT).show();
+        });
+        shell.addView(scroll,new LinearLayout.LayoutParams(-1,0,1f));
+        AlertDialog dialog=new AlertDialog.Builder(this).setView(shell)
+            .setPositiveButton("RETURN TO GAME",(d,w)->{})
+            .create();
+        active[0]=dialog;
+        dialog.setOnDismissListener(d->{
+            game.menuPause(false);restoreFullscreenAfterShade();
+        });
+        dialog.show();
+        resizeSettingsWindow(dialog,92,90);
+    }
+
     void settings(){
         game.menuPause(true);
         final AlertDialog[] activeDialog=new AlertDialog[1];
