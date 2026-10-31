@@ -298,7 +298,7 @@ public final class MainActivity extends Activity {
     }
     private Button v62Slot(String title,boolean equipped){
         Button button=new Button(this);
-        button.setAllCaps(false);button.setText(title);button.setTextSize(10);
+        button.setAllCaps(false);button.setText(title);button.setTextSize(9);
         button.setTextColor(0xffe1cfac);
         button.setPadding(3,2,3,2);
         button.setMinHeight(0);button.setMinimumHeight(0);
@@ -318,7 +318,7 @@ public final class MainActivity extends Activity {
         game.menuPause(true);
         LinearLayout shell=column();
         shell.setBackgroundColor(0xff251e1a);
-        TextView handle=text("✦  SURVIVAL PARADISE  •  INVENTORY & EQUIPMENT  ✦",17,true);
+        TextView handle=text("✦  SURVIVAL PARADISE  •  INVENTORY & EQUIPMENT  ✦",14,true);
         handle.setGravity(Gravity.CENTER);
         handle.setTextColor(0xffe5b966);handle.setBackgroundColor(0xff60402d);
         shell.addView(handle);
@@ -336,7 +336,7 @@ public final class MainActivity extends Activity {
         section(left,"SURVIVOR   •   EQUIPMENT");
         V62InventoryPreview avatar=new V62InventoryPreview(this,game);
         left.addView(avatar,new LinearLayout.LayoutParams(-1,
-            Math.round(215*getResources().getDisplayMetrics().density)));
+            Math.round(142*getResources().getDisplayMetrics().density)));
         LinearLayout vital=new LinearLayout(this);
         vital.setOrientation(LinearLayout.HORIZONTAL);
         vital.addView(text("HP "+Math.round(game.health),12,true),
@@ -359,7 +359,7 @@ public final class MainActivity extends Activity {
                     ix==7?(game.dualTorch&&game.lampOn?"FLASHLIGHT":"EMPTY"):"EMPTY";
                 Button equipped=v62Slot(label+"\n"+value,true);
                 LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(0,
-                    Math.round(43*getResources().getDisplayMetrics().density),1);
+                    Math.round(32*getResources().getDisplayMetrics().density),1);
                 p.setMargins(3,3,3,3);gearRow.addView(equipped,p);
                 equipped.setOnClickListener(v->{
                     if(ix==6){
@@ -399,7 +399,7 @@ public final class MainActivity extends Activity {
                     idx==4?game.waterCount:0;
                 Button slot=v62Slot(name.isEmpty()?"":name+"\n×"+qty,qty>0);
                 LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(0,
-                    Math.round(53*getResources().getDisplayMetrics().density),1);
+                    Math.round(39*getResources().getDisplayMetrics().density),1);
                 params.setMargins(3,3,3,3);slots.addView(slot,params);
                 slot.setOnClickListener(v->{
                     if(idx>=5)return;
@@ -436,7 +436,7 @@ public final class MainActivity extends Activity {
                 final int slotIndex=i,item=game.hotbar[i];
                 Button hot=v62Slot((i+1)+"\n"+GameView.hotbarLabel(item),true);
                 LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(0,
-                    Math.round(49*getResources().getDisplayMetrics().density),1);
+                    Math.round(37*getResources().getDisplayMetrics().density),1);
                 p.setMargins(2,2,2,2);quickRow.addView(hot,p);
                 hot.setOnClickListener(v->{
                     new AlertDialog.Builder(this).setTitle("ASSIGN QUICK SLOT "+(slotIndex+1))
@@ -451,11 +451,14 @@ public final class MainActivity extends Activity {
         shell.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
         LinearLayout tools=new LinearLayout(this);tools.setOrientation(LinearLayout.HORIZONTAL);
         Button smaller=v62Slot("WINDOW −",true),larger=v62Slot("WINDOW +",true);
+        Button closeBag=v62Slot("CLOSE BAG",true);
         tools.addView(smaller,new LinearLayout.LayoutParams(0,-2,1));
         tools.addView(larger,new LinearLayout.LayoutParams(0,-2,1));
+        tools.addView(closeBag,new LinearLayout.LayoutParams(0,-2,1));
         shell.addView(tools);
-        AlertDialog dialog=new AlertDialog.Builder(this).setView(shell)
-            .setPositiveButton("CLOSE BAG",(d,w)->{}).create();
+        // A compact in-panel footer avoids Android AlertDialog’s large button strip.
+        AlertDialog dialog=new AlertDialog.Builder(this).setView(shell).create();
+        closeBag.setOnClickListener(v->dialog.dismiss());
         dialog.setOnDismissListener(d->{
             game.saveProgress();game.menuPause(false);restoreFullscreenAfterShade();
         });
@@ -620,12 +623,13 @@ public final class MainActivity extends Activity {
         check(root,"Show classic six status bars","showStatusBars",true);
         check(root,"Show world aiming crosshair","showCrosshair",true);
         slider(root,"Approved crimson crosshair size","reticleSize",40,220,100,"%");
-        root.addView(text("Crosshair stays on the aiming ray and never reverses when dragging beyond joystick limits.",11,false));
+        root.addView(text("Crosshair moves freely with the aim stick, stops on release, and stays inside the visible world. Camera panning does not reverse it.",11,false));
         check(root,"Aim-stick camera look-ahead","lookAheadEnabled",true);
         slider(root,"Look-ahead stick threshold","lookAheadThreshold",20,95,55,"%");
         slider(root,"Look-ahead distance","lookAheadStrength",0,1000,420," px");
         slider(root,"Camera panning response speed","lookAheadSmooth",2,18,8," /s");
         slider(root,"Aim crosshair maximum distance","cursorRange",250,1200,750," px");
+        slider(root,"Floating crosshair movement speed","cursorSpeed",150,1200,500," px/s");
         slider(root,"Camera zoom","cameraZoom",70,180,100,"%");
         slider(root,"Movement joystick size","movePadSize",70,180,100,"%");
         slider(root,"Aiming joystick size","aimPadSize",70,180,100,"%");
