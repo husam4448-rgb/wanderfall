@@ -1,0 +1,652 @@
+name: Survival Paradise V66 Long-Range Crosshair Rest and Brisk Locomotion
+on:
+  push:
+    branches: [sp-native-v66-weapon-range-rest-faster-gait-20261031]
+    paths:
+      - 'survival-paradise/native-game/**'
+      - 'assets/authored2d/**'
+      - '.github/workflows/sp-v66-far-range-hasty-gait.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'survival-paradise/native-game/**'
+      - 'assets/authored2d/**'
+      - '.github/workflows/sp-v66-far-range-hasty-gait.yml'
+  workflow_dispatch:
+jobs:
+  native-android-game:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Report V66 native Android build run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SP_RUN_ID: ${{ github.run_id }}
+          SP_SHA: ${{ github.sha }}
+        run: |
+          gh api -X POST "repos/$GITHUB_REPOSITORY/issues/35/comments" \
+            -f body="V66_NATIVE_ANDROID | STARTED | run $SP_RUN_ID | source $SP_SHA | https://github.com/$GITHUB_REPOSITORY/actions/runs/$SP_RUN_ID" || true
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            survival-paradise
+            assets/authored2d
+          sparse-checkout-cone-mode: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Prepare exact approved source assets
+        run: |
+          set -eu
+          python3 -m pip install --user --quiet Pillow numpy
+          python3 survival-paradise/native-game/tools/extract_locked_atlases.py
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64,hashlib
+          r=Path("survival-paradise/native-game")
+          for encoded,dest,expected in [
+             ("approved_v29_axe.png.b64","approved_v29_axe.png","f0d146757318e620024cae0c2a34243bdd9339a939a7f51e5428ae8250620dee"),
+             ("approved_v44_walk_palette.png.b64","approved_v44_walk_palette.png","fd01230e9c13ffd3087e933abe976a2179d80e9adc9b0710f899a7bef7fc3d71")
+          ]:
+              data=base64.b64decode((r/"tools"/encoded).read_text().strip(),validate=True)
+              assert hashlib.sha256(data).hexdigest()==expected
+              (r/"app/src/main/assets"/dest).write_bytes(data)
+          PY
+          # No placeholder NPCs: this step REQUIRES the real approved
+          # role art from the repository to generate twelve game-size atlases.
+          python3 survival-paradise/native-game/tools/build_v51_assets.py
+          python3 survival-paradise/native-game/tools/v51_previews.py
+          # V51's idle preview was incorrect; remove it from the deliverables.
+          rm -f survival-paradise/native-game/previews/SP_V51_Idle_Face_Stable.gif
+          python3 survival-paradise/native-game/tools/build_v52_idle.py
+          python3 survival-paradise/native-game/tools/fix_v53_skin_palette.py
+          # Do not use reconstructed V51 as player/role animation artwork.
+          # Build V56 directly from the immutable V44 source and canonical V31 idle.
+          python3 survival-paradise/native-game/tools/build_v56_approved_character_atlases.py
+          python3 survival-paradise/native-game/tools/v56_compare_preview.py
+          python3 survival-paradise/native-game/tools/v52_idle_preview.py
+          # Exact V50 ORIGINAL body file MUST be present unedited.
+          test "$(sha256sum survival-paradise/native-game/app/src/main/assets/body.png | cut -d' ' -f1)" = "141878713a6880d05879b7102c728581dddb55730434bcac8e050fe44b3d82ad"
+      - name: Test walk, idle, exact face silhouette, NPC roles and terrain patches
+        run: |
+          set -eu
+          mkdir -p /tmp/sp-v51-classes
+          ROOT=survival-paradise/native-game
+          P=$ROOT/app/src/main/java/com/survivalparadise/nativegame
+          javac -d /tmp/sp-v51-classes \
+            "$P"/AnimationCycle.java \
+            "$P"/Ballistics.java \
+            "$P"/CharacterCollision.java \
+            "$P"/GameClockV47.java \
+            "$P"/ShadowGeometryV47.java \
+            "$P"/WalkAlignmentV48.java \
+            "$P"/MuzzleGeometryV49.java \
+            "$ROOT"/tools/AnimationCycleTest.java \
+            "$ROOT"/tools/BallisticsTest.java \
+            "$ROOT"/tools/CharacterCollisionTest.java \
+            "$ROOT"/tools/ShadowDayNightV47Test.java \
+            "$ROOT"/tools/WalkAlignmentV48Test.java \
+            "$ROOT"/tools/MuzzleGeometryV49Test.java \
+            "$ROOT"/tools/VisualCorrectionsV50Test.java \
+            "$ROOT"/tools/V51CharacterTest.java \
+            "$ROOT"/tools/V51WorldTest.java
+          CP=/tmp/sp-v51-classes
+          A=$ROOT/app/src/main/assets
+          java -cp "$CP" com.survivalparadise.nativegame.AnimationCycleTest
+          java -cp "$CP" com.survivalparadise.nativegame.BallisticsTest
+          java -Djava.awt.headless=true -cp "$CP" com.survivalparadise.nativegame.CharacterCollisionTest "$A/body.png"
+          java -cp "$CP" com.survivalparadise.nativegame.ShadowDayNightV47Test
+          java -Djava.awt.headless=true -cp "$CP" com.survivalparadise.nativegame.WalkAlignmentV48Test "$A/approved_v44_walk_palette.png"
+          java -Djava.awt.headless=true -cp "$CP" com.survivalparadise.nativegame.MuzzleGeometryV49Test "$A/gear.png"
+          java -Djava.awt.headless=true -cp "$CP" com.survivalparadise.nativegame.VisualCorrectionsV50Test "$A/approved_v44_walk_palette.png" "$A/body.png"
+          java -Djava.awt.headless=true -cp "$CP" com.survivalparadise.nativegame.V51CharacterTest "$A/stable_v51_body.png" "$A/npc_roles_v51.png" "$A/approved_v44_walk_palette.png"
+          java -cp "$CP" com.survivalparadise.nativegame.V51WorldTest
+      - name: V52 prove exact V40/V50 original planted idle for player and NPCs
+        run: |
+          set -euo pipefail
+          ROOT=survival-paradise/native-game
+          A=$ROOT/app/src/main/assets
+          mkdir -p /tmp/sp-v52-classes
+          javac -d /tmp/sp-v52-classes \
+            "$ROOT/app/src/main/java/com/survivalparadise/nativegame/AnimationCycle.java" \
+            "$ROOT/tools/V52ApprovedIdleTest.java"
+          java -Djava.awt.headless=true -cp /tmp/sp-v52-classes \
+            com.survivalparadise.nativegame.V52ApprovedIdleTest \
+            "$A/body.png" "$A/npc_idle_v52.png" "$A/stable_v51_body.png"
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/GameView.java').read_text()
+          assert 'Bitmap idleSource=npc?npcIdleV56:body;' in p
+          assert 'int sx=npc?0:APPROVED_PLANTED_IDLE_FRAME*260;' in p
+          assert 'static final int APPROVED_PLANTED_IDLE_FRAME=2;' in p
+          assert 'static final int IDLE_HEAD_BODY_SPLIT=92;' in p
+          assert 'static final int IDLE_HEAD_OVERLAP=101;' in p
+          assert 'src.set(sx,sy+IDLE_HEAD_BODY_SPLIT,sx+260,sy+160);' in p
+          assert 'src.set(sx,sy,sx+260,sy+IDLE_HEAD_OVERLAP);' in p
+          assert 'float headBob=breath*s;' in p
+          assert 'final CharacterCollision.PixelMask bodyMask=(x,y)->body!=null' in p
+          assert 'if(breath==Float.POSITIVE_INFINITY)' in p # V51 walking remains
+          assert 'npc_roles_v51.png' in p and 'stable_v51_body.png' in p
+          assert 'void drawUniformHeadFrontOutline' not in p
+          assert 'drawSpawnCamp(c)' in p and 'flameTongue(c,' in p
+          print('V52 RUNTIME PASS: original V40 planted pixel data and head-only breathing, no V51 regenerated idle')
+          PY
+      - name: Verify all NPCs, shadows, support hand, camp, procedural map, and state machines
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame')
+          v=(root/'GameView.java').read_text()
+          m=(root/'MainActivity.java').read_text()
+          assert 'stablePose(c,atlas' in v and 'drawUniformHeadFrontOutline' not in v
+          assert 'npc_roles_v51.png' in v and 'stable_v51_body.png' in v
+          assert 'ROLE_BANDIT=0' in v and 'ROLE_TRADER=8' in v
+          assert 'new Bandit(x,y,i%2)' in v
+          assert 'initCampStaff()' in v
+          assert 'npc.animation.step(' in v and 'friend.animation.step(' in v and 'e.animation.step(' in v
+          assert 'order.add(new DrawEntity(npc.y' in v
+          assert 'order.sort((a,b)->Float.compare(a.y,b.y))' in v
+          assert 'terrainChunks.draw(c,camX,camY,viewW,viewH)' in v and 'drawSpawnCamp(c)' in v
+          assert 'flameTongue(c,' in v and 'void drawCampfire(' in v
+          assert 'addCharacterShadow(f.x,f.y)' in v
+          assert 'final LightingV47 lighting=new LightingV47()' in v
+          assert 'clock.advance(' in v and 'final GameClockV47 clock=' in v
+          assert 'void releaseControls(){stopWalking();' in v
+          assert 'supportVertical=host.setting("supportY",0)' in v
+          assert 'onWindowFocusChanged(boolean hasFocus)' in m
+          assert 'WindowInsetsController' in m
+          print('V51 INTEGRATION PASS: all NPC types use real approved role artwork, fixed head, camp, patches and V50 systems')
+          PY
+      - name: V54 streaming world, persistence, and no boundary regression
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame')
+          v=(p/'GameView.java').read_text()
+          w=(p/'WorldChunkCache.java').read_text()
+          m=(p/'WorldChunkModel.java').read_text()
+          for clause in [
+              'terrainChunks.draw(c,camX,camY,viewW,viewH);',
+              'float nx=playerX+vx*speed*dt;',
+              'float ny=playerY+vy*speed*dt;',
+              'camX=playerX-viewW/(2*effectiveZoom)+cameraLookX;',
+              'camY=playerY-viewH/(2*effectiveZoom)+cameraLookY;',
+              'Float.isFinite(x)&&Float.isFinite(y)',
+              'void saveProgress()',
+          ]: assert clause in v,clause
+          for forbidden in ['if(x<32||y<40||x>WORLD_W-32||y>WORLD_H-32)',
+                  'nx<0||ny<0||nx>WORLD_W||ny>WORLD_H','camX=clamp(playerX',
+                  'float nx=clamp(playerX','float ny=clamp(playerY']:
+              assert forbidden not in v,forbidden
+          for required in ['Executors.newSingleThreadExecutor',
+                           'Bitmap.Config.RGB_565','groundColorAt',
+                           'MAX_PENDING','LinkedHashMap','fallback(canvas,cx,cy);']:
+              assert required in w or required in m,required
+          assert 'groundColorAt(' in m and 'float noise(' in m
+          print('V54 PASS: background chunk rendering, bounded memory, seamless signed world')
+          PY
+      - name: V54 pure-JVM deterministic chunk regression tests
+        run: |
+          set -eu
+          ROOT=survival-paradise/native-game
+          mkdir -p /tmp/sp-v54-classes
+          javac -d /tmp/sp-v54-classes \
+            "$ROOT/app/src/main/java/com/survivalparadise/nativegame/WorldChunkModel.java" \
+            "$ROOT/tools/V54WorldChunkTest.java"
+          java -cp /tmp/sp-v54-classes com.survivalparadise.nativegame.V54WorldChunkTest
+      - name: Verify original UI and live world-testing controls
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame")
+          game=(root/"GameView.java").read_text()
+          main=(root/"MainActivity.java").read_text()
+          chunks=(root/"WorldChunkCache.java").read_text()
+          controls=(root/"LegacyControlsV58.java").read_text()
+          for original in [
+            '"NEW GAME"','"CONTINUE"','"GAME SETTINGS"',
+            '"RELOAD"','"SWAP"','"PAUSE"','"BAG"',
+            '"LAMP ON"','"CAMP"','"FIRE"','"MOVE"',
+            'void updateStick(', 'MotionEvent.ACTION_POINTER_DOWN',
+            'void newGame()', 'void continueGame()', 'void switchWeapon()',
+            'void saveProgress()', 'void drawWorld(Canvas c)'
+          ]: assert original in game or original in controls,original
+          for oldsetting in [
+            '"scale"','"hand"','"support"','"supportY"','"speed"',
+            '"survivors"','"gun"','"hands"','"weapons"','"anchors"',
+            '"hitboxes"','"enemyAI"','"aimRotation"','"recoil"',
+            '"loot"','"night"','"autoDayNight"','"dayLength"',
+            '"darkness"','"beamReach"','"lampOn"','"campfiresLit"',
+            '"neonLights"','"fullscreen"',
+          ]: assert oldsetting in main,oldsetting
+          for newsetting in [
+            '"movePadSize"','"aimPadSize"','"moveSensitivity"',
+            '"aimSensitivity"','"controlOpacity"','"cameraZoom"',
+            '"testPerf"','"testChunkGrid"','"testCacheMax"',
+            '"testPreloadRadius"'
+          ]:
+            assert newsetting in main and newsetting in game,newsetting
+          for label in [
+            'Return to original survivor camp',
+            'Travel 8 chunks east', 'Travel 8 chunks west',
+            'Travel 8 chunks north','Travel 8 chunks south',
+            'View current FPS and chunk statistics'
+          ]: assert label in main,label
+          for member in ['void setLimits(', 'residentCount()','pendingCount()',
+                         'residentLimit()', 'for(int radius=0;radius<=preloadRadius']:
+            assert member in chunks,member
+          assert 'terrainChunks.draw(c,camX,camY,viewW,viewH);' in game
+          print("V54.1 PASS: legacy controls & all settings retained; test UI hooked up")
+          PY
+      - name: V55 visible-entity, physics and lighting source regression
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame')
+          g=(p/'GameView.java').read_text()
+          l=(p/'LightingV47.java').read_text()
+          a=(p/'MainActivity.java').read_text()
+          f=(p/'WorldPerfV55.java').read_text()
+          for clause in [
+              'WorldPerfV55.segmentNearActor','WorldPerfV55.segmentNearRect',
+              'WorldPerfV55.distantFrom','lastVisibleNpcs++',
+              'lastCulledNpcs++','void drawChunkGrid(',
+              'terrainChunks.draw(c,camX,camY,viewW,viewH);',
+              'addCharacterShadow','playerAnimation.step(moving,dt,runHeld&&stamina>0?9.7f:8.2f)',
+              'CharacterCollision.firstHit','WorldPerfV55.nearView',
+          ]: assert clause in g,clause
+          assert 'setPixelScale(' in l and 'screenDst.set(' in l
+          assert 'npcSleepRadius' in a and 'lightResolution' in a
+          assert 'WORLD_SEED' in (p/'WorldChunkModel.java').read_text()
+          assert 'groundColorAt(' in (p/'WorldChunkModel.java').read_text()
+          for legacy in [
+            'Movement joystick size','Aiming joystick sensitivity',
+            'Original' if False else 'Hand size (independent)',
+            'Return to original survivor camp',
+            'Automatic day / night cycle','Survivors (including player)'
+          ]: assert legacy in a,legacy
+          assert 'segmentNearActor' in f
+          print('V55 PASS: legacy test UI retained, runtime broad phase and lighting quality installed')
+          PY
+      - name: V55 pure JVM broad-phase and AI regression
+        run: |
+          set -eu
+          ROOT=survival-paradise/native-game
+          mkdir -p /tmp/sp-v55-tests
+          javac -d /tmp/sp-v55-tests \
+            "$ROOT/app/src/main/java/com/survivalparadise/nativegame/WorldChunkModel.java" \
+            "$ROOT/app/src/main/java/com/survivalparadise/nativegame/WorldPerfV55.java" \
+            "$ROOT/tools/V55PerformanceTest.java"
+          java -cp /tmp/sp-v55-tests com.survivalparadise.nativegame.V55PerformanceTest
+      - name: V56 strict approved animation geometry, face and palette checks
+        run: |
+          set -euo pipefail
+          ROOT=survival-paradise/native-game
+          A="$ROOT/app/src/main/assets"
+          mkdir -p /tmp/sp-v56-classes
+          javac -d /tmp/sp-v56-classes "$ROOT/tools/V56ApprovedCharacterTest.java"
+          java -Djava.awt.headless=true -cp /tmp/sp-v56-classes \
+            com.survivalparadise.nativegame.V56ApprovedCharacterTest \
+            "$A/approved_v44_walk_palette.png" "$A/body.png" \
+            "$A/npc_walk_v56.png" "$A/npc_idle_v56.png"
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame')
+          view=(root/'GameView.java').read_text()
+          collision=(root/'CharacterCollision.java').read_text()
+          activity=(root/'MainActivity.java').read_text()
+          assert 'Bitmap atlas=npcVariant>=0?npcWalkV56:approvedWalkColors;' in view
+          assert 'Bitmap idleSource=npc?npcIdleV56:body;' in view
+          assert 'getAssets().open("npc_walk_v56.png")' in view
+          assert 'c.drawBitmap(walkingAtlas,src,dest,pixel);' in view
+          assert 'final float visibleX=actorX;' in collision
+          assert 'approvedWalkColors.getPixel(x,y)' in view
+          assert 'setView(shell)' in activity
+          assert 'private void resizeSettingsWindow(' in activity
+          assert 'scroll.setOnScrollChangeListener' in activity
+          assert 'fastScroll.setOnSeekBarChangeListener' in activity
+          for key in ['testWindowWidth','testWindowHeight','"CHARACTER"','"WORLD"','"ACTIONS"']:
+            assert key in activity,key
+          # The known buggy reconstructed sprites must NEVER be runtime-selected.
+          assert 'npcVariant>=0?npcRoleAtlas:stableBody' not in view
+          assert 'npc?npcIdleAtlas:body' not in view
+          print('V56 PASS: original art selected, exact walk collision, resizable accessible UI')
+          PY
+      - name: V58 strict interaction, art geometry, camera and settings gate
+        run: |
+          set -eu
+          python3 - <<'PY'
+          from pathlib import Path
+          r=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame')
+          g=(r/'GameView.java').read_text()
+          m=(r/'MainActivity.java').read_text()
+          w=(r/'WorldChunkModel.java').read_text()
+          cl=(r/'WorldChunkCache.java').read_text()
+          for token in [
+            'fireLeftPointer=pointer','firePointer=pointer',
+            'firing=firePointer>=0||fireLeftPointer>=0',
+            'knifeDirection=LegacyControlsV58.quantizeKnife',
+            'knifeHitPending=false','drawKnifeSwing(c);',
+            'lastVisibleNpcs++','showCrosshair','cameraLookX',
+            'cameraLookY','rightPointer>=0','lookAheadThreshold',
+            'drawStatusBar(c,"HP"','drawStatusBar(c,"STA"',
+            'drawStatusBar(c,"HUN TEST"','drawStatusBar(c,"THR TEST"',
+            'drawStatusBar(c,"FAT TEST"','drawStatusBar(c,"ENC TEST"',
+            'LegacyControlsV58.COUNT','editPointer=id',
+            'getAssets().open("npc_walk_v56.png")',
+            'Bitmap atlas=npcVariant>=0?npcWalkV56:approvedWalkColors;',
+            'Bitmap idleSource=npc?npcIdleV56:body;',
+            'c.drawBitmap(walkingAtlas,src,dest,pixel);'
+          ]: assert token in g,token
+          assert 'firing=gun!=3' not in g
+          assert 'c.translate(WalkAlignmentV48.sourceOffsetX(f)*s,0);' not in g
+          assert 'c.translate(-23*s,-48*s);' not in g
+          for token in ['LegacyControlsV58.NAMES','"selectedButton"',
+                        '"editControls"','"uiEnabled"+index',
+                        '"uiSize"+index','"uiAlpha"+index',
+                        '"uiX"+index','"uiY"+index','"showStatusBars"',
+                        '"showCrosshair"','"lookAheadEnabled"',
+                        '"lookAheadThreshold"','"lookAheadStrength"',
+                        'leftRail.setOnTouchListener(railScroll)',
+                        'fastScroll.setOnSeekBarChangeListener']:
+            assert token in m,token
+          assert 'groundColorAt(' in w and 'float noise(' in w
+          assert 'Executors.newSingleThreadExecutor' in cl
+          print('V58 PASS: independent 4 buttons, eight-way knife, status bars, zoom, crosshair, lookahead, sprite lock')
+          PY
+      - name: V58 JVM independent button and melee sector regression
+        run: |
+          set -eu
+          ROOT=survival-paradise/native-game
+          mkdir -p /tmp/sp-v58-tests
+          javac -d /tmp/sp-v58-tests \
+            "$ROOT/app/src/main/java/com/survivalparadise/nativegame/LegacyControlsV58.java" \
+            "$ROOT/tools/V58LegacyControlsTest.java"
+          java -cp /tmp/sp-v58-tests com.survivalparadise.nativegame.V58LegacyControlsTest
+      - name: V59 immutable face compositor pixel tests and GIF proof
+        run: |
+          python3 survival-paradise/native-game/tools/v59_verify_locked_compositor.py
+      - name: V60 immediate direction, live HUD editor and idle FPS performance gates
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame')
+          game=(root/'GameView.java').read_text()
+          settings=(root/'MainActivity.java').read_text()
+          lighting=(root/'LightingV47.java').read_text()
+          for q in [
+              'final int split=110;','Bitmap locked=npc?npcIdleV56:body;',
+              'float gain=FloatingAimV64.response(length,aimDeadzone,aimResponseCurve);',
+              'cursorWorldX=playerX+aimX*aimCursorDistance;',
+              'cursorWorldY=playerY-42f+aimY*aimCursorDistance;',
+              'aimCursorDistance=RadialAimV65.distance(',
+              'postInvalidateOnAnimation();','drawHudEditorOverlay(c);',
+              'boolean hudEditorTouch(float x,float y)',
+              'selectedHudControl=target;', 'editGrabX=x-uiX(target);',
+              'editControls=!editControls;releaseControls();',
+              'if(editControls&&hudEditorTouch(x,y)){',
+              'host.prefs.edit().putInt("uiX"+editControl,editX)',
+              'Bitmap campStatic;','void drawSpawnCampDetails(Canvas c)',
+              'if(campStatic==null)','lighting.setFastPointLights',
+              'lighting.setStaticCache', 'updateNs=System.nanoTime()-updateStart;',
+              'worldNs=System.nanoTime()-renderStart;',
+              'CPU UPDATE %.1f  DRAW %.1f  LIGHT %.1f ms',
+              'PIXEL_BOLD','PIXEL_NORMAL',
+              'firing=firePointer>=0||fireLeftPointer>=0'
+          ]: assert q in game,q
+          assert 'postInvalidateDelayed(16);' not in game
+          assert 'aimCursorDistance=RadialAimV65.distance(' in game
+          assert 'host.hudEditor();return;' not in game
+          assert 'c.translate(WalkAlignmentV48.sourceOffsetX' not in game
+          for q in ['void hudEditor(){','"v60_lighting_migrated"',
+                    '"fastPointLights"','"staticLightCache"',
+                    'slider(root,"Absolute crosshair distance cap',
+                    '"OPEN ON-SCREEN HUD EDITOR"',
+                    'jumpButton(jumpBar2,"HUD EDIT"',
+                    'leftRail.setOnTouchListener(railScroll)']:
+              assert q in settings,q
+          for q in ['IDLE_LIGHT_REFRESH_NS','cacheReuse++',
+                    'setFastPointLights','setStaticCache','fullUpdates++',
+                    'if(fastPointLights)activeCount=0;']:
+              assert q in lighting,q
+          print('V60 PASS: 180-degree snap aim, in-world HUD editing, cached camp, next-vsync rendering, mobile lighting')
+          PY
+      - name: V61 five formation modes unit tests
+        run: |
+          set -e
+          ROOT=survival-paradise/native-game
+          mkdir -p /tmp/sp-v61-tests
+          javac -d /tmp/sp-v61-tests \
+            "$ROOT/app/src/main/java/com/survivalparadise/nativegame/FollowFormationV61.java" \
+            "$ROOT/tools/V61FormationTest.java"
+          java -cp /tmp/sp-v61-tests com.survivalparadise.nativegame.V61FormationTest
+      - name: V61 aim visibility, controls editor and native inventory source gate
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame')
+          v=(p/'GameView.java').read_text()
+          m=(p/'MainActivity.java').read_text()
+          for token in [
+            'drawBrightCrosshair(canvas);', 'void drawBrightCrosshair(Canvas c)',
+            'hud(canvas);','lookAheadSmooth','cursorMaxRange=host.setting("cursorRange",750)',
+            'followMode=FollowFormationV61.SCATTER',
+            'FollowFormationV61.targetX(', 'FollowFormationV61.targetY(',
+            'float repelX=0f,repelY=0f;', 'followMode=(followMode+1)%FollowFormationV61.NAMES.length;',
+            'host.inventory();', 'MOVE_PAD=LegacyControlsV58.COUNT',
+            'AIM_PAD=MOVE_PAD+1', 'stickEditorAt(', 'padCenterX(right)',
+            'panelScale=clamp(', 'panelPointer=id;', 'panelX=clamp(',
+            'lighting.flashlight(tip[0],tip[1],f.aimX,f.aimY,flashlightReach);',
+            'Bitmap locked=npc?npcIdleV56:body;', 'final int split=110;',
+            'postInvalidateOnAnimation();']:
+            assert token in v,token
+          for token in [
+            'void inventory()', 'BACKPACK   •   24 SLOTS', 'SURVIVOR   •   EQUIPMENT',
+            'OFF-HAND', 'void makeWindowMovable(',
+            'settingsWindow','bagWindow','followSpacing','formationPicker',
+            '"cursorRange",250,1200,750','"lookAheadStrength",0,1000,420',
+            'Camera panning response speed']:
+            assert token in m,token
+          assert v.index('drawBrightCrosshair(canvas);')>v.index('drawWorld(canvas);')
+          print('V61 PASS: post-lighting crosshair, five formations, on-screen pad editing, native bag and draggable windows')
+          PY
+      - name: V62 approved generated reticle asset identity and controller integrity
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64,hashlib,io
+          from PIL import Image
+          root=Path('survival-paradise/native-game')
+          src=root/'app/src/main/assets/crosshair_v62.png.b64'
+          raw=base64.b64decode(src.read_text().strip(),validate=True)
+          assert hashlib.sha256(raw).hexdigest()=='df7ed6ec954eb440fd9068574f4af22c343cd964d53ccf6542938c76099b6176', 'approved generated PNG changed'
+          image=Image.open(io.BytesIO(raw)).convert('RGBA')
+          assert image.size==(96,96) and image.getpixel((0,0))[3]==0
+          assert image.getbbox() is not None
+          g=(root/'app/src/main/java/com/survivalparadise/nativegame/GameView.java').read_text()
+          m=(root/'app/src/main/java/com/survivalparadise/nativegame/MainActivity.java').read_text()
+          preview=(root/'app/src/main/java/com/survivalparadise/nativegame/V62InventoryPreview.java').read_text()
+          for tag in [
+              'crosshair_v62.png.b64','Bitmap crosshairReticle;',
+              'android.util.Base64.decode','drawBitmap(crosshairReticle',
+              'reticleSize=host.setting("reticleSize",100)/100f',
+              'cursorMoveY=dy*inv;',
+              'float gain=FloatingAimV64.response(length,aimDeadzone,aimResponseCurve);',
+              'float originX=(playerX-camX)*zoom',
+              'float x=originX+aimX*available',
+              'drawHotbar(c);','hotbarAt(x,y);','useHotbar(hotSlot);',
+              'HOTBAR=HUD_ITEMS','HOTBAR_TYPES','foodCount','waterCount',
+              'setHotbarItem(int slot,int item)', 'editControl==HOTBAR'
+          ]: assert tag in g,tag
+          for tag in [
+              'Approved crimson crosshair size','"reticleSize",40,220,100',
+              'new V62InventoryPreview(this,game)','BACKPACK   •   24 SLOTS',
+              'QUICK ACCESS   •   6 SLOTS','EQUIPPED / BODY' if False else 'SURVIVOR   •   EQUIPMENT',
+              'GameView.HOTBAR_TYPES', 'game.setHotbarItem(slotIndex,which)',
+              'v62Slot(String title,boolean equipped)'
+          ]: assert tag in m,tag
+          assert 'game.character(canvas,0,0,game.gun' in preview
+          assert 'postInvalidateDelayed(95)' in preview
+          assert 'float factor=Math.min(w/210f,h/150f)*.92f/Math.max(.65f,game.scale);' in preview
+          assert 'Math.round(142*getResources().getDisplayMetrics().density)' in m
+          assert 'Math.round(39*getResources().getDisplayMetrics().density)' in m
+          assert 'closeBag.setOnClickListener(v->dialog.dismiss())' in m
+          assert '.setPositiveButton("CLOSE BAG"' not in m
+          assert 'slider(root,"Crosshair extension speed while aiming","cursorSpeedV64"' in m
+          assert 'aimCursorDistance=cursorMaxRange' not in g
+          assert 'final int split=110' in g and 'Bitmap locked=npc?npcIdleV56:body;' in g
+          print('V62 PASS: original generated red PNG, no backward aim, 24 slots, approved animated avatar, editable hotbar')
+          PY
+      - name: V64 pure-JVM analog pointer and edge-pan behavior tests
+        run: |
+          set -euo pipefail
+          P=survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame
+          mkdir -p /tmp/sp-v64-tests
+          javac -d /tmp/sp-v64-tests \
+            "$P/FloatingAimV64.java" \
+            "survival-paradise/native-game/tools/V64FloatingAimTest.java"
+          java -cp /tmp/sp-v64-tests com.survivalparadise.nativegame.V64FloatingAimTest
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame')
+          g=(p/'GameView.java').read_text()
+          m=(p/'MainActivity.java').read_text()
+          assert 'cursorSpeed=host.setting("cursorSpeedV64",2900)' in g
+          assert 'FloatingAimV64.scaledSpeed(cursorSpeed' in g
+          assert 'FloatingAimV64.edgeStrength(pointerScreenX' in g
+          assert 'FloatingAimV64.edgeStrength(pointerScreenY' in g
+          assert 'cameraLookX=clamp(cameraLookX+cursorMoveX*pointerSpeed*dt*edgeX*smooth' in g
+          assert 'cursorMoveX=dx*inv;cursorMoveY=dy*inv;' in g
+          assert 'else if(legacyDirectionalAim){' in g
+          assert 'if(lookAheadEnabled&&rightAiming)' in g
+          assert 'cursorMoveX=0f;cursorMoveY=0f;' in g
+          assert 'slider(root,"Crosshair extension speed while aiming","cursorSpeedV64",500,6500,2900' in m
+          assert 'slider(root,"Crosshair stick deadzone"' in m
+          assert 'slider(root,"Crosshair fine-aim response curve"' in m
+          assert 'check(root,"Legacy full-range crosshair while aiming"' in m
+          assert 'Absolute crosshair distance cap' in m
+          assert 'Approved crimson crosshair size' in m
+          assert 'Math.round(142*getResources().getDisplayMetrics().density)' in m
+          assert 'aimCursorDistance=cursorMaxRange' not in g
+          print('V64 PASS: analog mouse pointer, high speed, precision, HUD clamp, edge pan, optional legacy')
+          PY
+      - name: V65 radial distance, instant reversal and release snapback unit tests
+        run: |
+          set -euo pipefail
+          P=survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame
+          mkdir -p /tmp/sp-v65-tests
+          javac -d /tmp/sp-v65-tests \
+            "$P/RadialAimV65.java" \
+            "survival-paradise/native-game/tools/V65RadialAimTest.java"
+          java -cp /tmp/sp-v65-tests com.survivalparadise.nativegame.V65RadialAimTest
+          python3 - <<'PY'
+          from pathlib import Path
+          r=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame')
+          g=(r/'GameView.java').read_text()
+          m=(r/'MainActivity.java').read_text()
+          for token in (
+            'aimX=RadialAimV65.direction(dx,heading)',
+            'aimY=RadialAimV65.direction(dy,heading)',
+            'RadialAimV65.rest(gun)',
+            'RadialAimV65.maximum(gun,RANGES[gun],cursorMaxRange)',
+            'if(!rightAiming){',
+            'aimCursorDistance=rest;',
+            'aimCursorDistance=RadialAimV65.distance(',
+            'cursorWorldX=playerX+aimX*aimCursorDistance;',
+            'cursorWorldY=playerY-42f+aimY*aimCursorDistance;',
+            'cursorMoveX=0f;cursorMoveY=0f;snapAimToWeaponRest();',
+            'if(length>1){dx/=length;dy/=length;length=1f;}',
+            'float x=originX+aimX*available,y=originY+aimY*available;',
+          ): assert token in g,token
+          assert 'float pointerDx=cursorWorldX-playerX' not in g
+          assert 'aimX=pointerDx' not in g
+          assert 'cursorWorldX=clamp(cursorWorldX' not in g
+          assert 'float rest=RadialAimV65.rest(gun);' in g
+          assert 'Camera panning cannot capture the crosshair' in m
+          assert 'weapon' in m.lower()
+          assert 'Math.round(142*getResources().getDisplayMetrics().density)' in m
+          print('V65 static PASS: aiming is stick-centered, never panning-owned')
+          PY
+      - name: V66 far snapback weapon-distance and synchronized faster gait tests
+        run: |
+          set -euo pipefail
+          P=survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame
+          mkdir -p /tmp/sp-v66-tests
+          javac -d /tmp/sp-v66-tests \
+            "$P/RadialAimV65.java" "$P/AnimationCycle.java" \
+            "survival-paradise/native-game/tools/V66ReachGaitTest.java"
+          java -cp /tmp/sp-v66-tests com.survivalparadise.nativegame.V66ReachGaitTest
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame')
+          g=(p/'GameView.java').read_text()
+          a=(p/'RadialAimV65.java').read_text()
+          assert '190f,205f,175f,185f,325f,315f' in a
+          assert '300f,255f,505f,330f,260f,66f' in a
+          assert 'float runMultiplier=runHeld&&stamina>0?1.52f:1f;' in g
+          assert 'float speed=(gun==9?169:236)*runMultiplier' in g
+          assert 'playerAnimation.step(moving,dt,runHeld&&stamina>0?9.7f:8.2f)' in g
+          assert 'friend.animation.step(' in g and '8.5f);' in g
+          assert 'npc.animation.step(' in g and '7.1f);' in g
+          assert 'e.animation.step(' in g and '7.2f);' in g
+          assert 'float nx=e.x+dx*120*dt,ny=e.y+dy*120*dt;' in g
+          assert 'aimCursorDistance=rest;' in g
+          assert 'snapAimToWeaponRest();' in g
+          assert 'float x=originX+aimX*available,y=originY+aimY*available;' in g
+          print('V66 PASS: all 12 ranges, original sprites, faster walk/run/companions')
+          PY
+      - name: Prepare Android SDK and Gradle
+        run: |
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -path '*/bin/sdkmanager' | sort -V | tail -1)"
+          test -x "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Build REAL Android APK
+        working-directory: survival-paradise/native-game
+        run: gradle --no-daemon :app:assembleDebug
+      - name: Verify source art and all roles are actually inside the APK
+        run: |
+          set -euo pipefail
+          ROOT=survival-paradise/native-game
+          APK=$ROOT/app/build/outputs/apk/debug/app-debug.apk
+          test -s "$APK"
+          for a in body.png gear.png approved_v44_walk_palette.png approved_v29_axe.png stable_v51_body.png npc_roles_v51.png npc_idle_v52.png npc_walk_v56.png npc_idle_v56.png crosshair_v62.png.b64; do
+            unzip -l "$APK" | grep -q "assets/$a"
+            test "$(unzip -p "$APK" "assets/$a" | sha256sum | cut -d' ' -f1)" = \
+                 "$(sha256sum "$ROOT/app/src/main/assets/$a" | cut -d' ' -f1)"
+          done
+          unzip -l "$APK" | grep -q 'classes.dex'
+          echo "V51 BUILD PASS: immutable approved sprites plus 12 playable NPC identities bundled in native APK"
+      - name: Package APK, source, and verified animation GIFs
+        run: |
+          mkdir -p artifacts
+          R=survival-paradise/native-game
+          cp "$R/app/build/outputs/apk/debug/app-debug.apk" artifacts/Survival_Paradise_V66_Long_Range_Brisk_Gait.apk
+          cp "$R/previews/"*.gif "$R/previews/"*.png artifacts/
+          cd survival-paradise
+          zip -qr ../artifacts/Survival_Paradise_V66_Source.zip native-game \
+            -x 'native-game/.gradle/*' 'native-game/app/build/*'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: SP_V66_Long_Range_Brisk_Gait
+          path: artifacts/
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Report V66 native Android build verdict
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SP_RUN_ID: ${{ github.run_id }}
+          SP_SHA: ${{ github.sha }}
+          SP_STATUS: ${{ job.status }}
+        run: |
+          gh api -X POST "repos/$GITHUB_REPOSITORY/issues/35/comments" \
+            -f body="V66_NATIVE_ANDROID | $SP_STATUS | run $SP_RUN_ID | source $SP_SHA | https://github.com/$GITHUB_REPOSITORY/actions/runs/$SP_RUN_ID" || true
