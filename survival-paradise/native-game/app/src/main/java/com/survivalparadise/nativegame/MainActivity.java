@@ -257,8 +257,8 @@ public final class MainActivity extends Activity {
         final AlertDialog[] activeDialog=new AlertDialog[1];
         LinearLayout shell=column();
         shell.setPadding(8,4,8,4);
-        final int windowW=prefs.getInt("testWindowWidth",96);
-        final int windowH=prefs.getInt("testWindowHeight",94);
+        final int windowW=prefs.getInt("testWindowWidth",98);
+        final int windowH=prefs.getInt("testWindowHeight",96);
         LinearLayout sizeRow=new LinearLayout(this);
         sizeRow.setOrientation(LinearLayout.HORIZONTAL);
         final TextView wLabel=text("WIDTH "+windowW+"%",11,false);
@@ -321,6 +321,9 @@ public final class MainActivity extends Activity {
         final LinearLayout jumpBar=new LinearLayout(this);
         jumpBar.setOrientation(LinearLayout.HORIZONTAL);
         shell.addView(jumpBar);
+        final LinearLayout jumpBar2=new LinearLayout(this);
+        jumpBar2.setOrientation(LinearLayout.HORIZONTAL);
+        shell.addView(jumpBar2);
         shell.addView(scroll,new LinearLayout.LayoutParams(-1,0,1f));
         section(root,"SURVIVAL PARADISE  •  V57 HYBRID DEVELOPMENT TEST");
         root.addView(text("Controls apply to the playable game, and save automatically.",13,false));
@@ -345,6 +348,7 @@ public final class MainActivity extends Activity {
                 if(game!=null)game.reloadSettings();
             }
         });
+        final int gameplaySection=root.getChildCount();
         section(root,"GAMEPLAY AND APPEARANCE");
         check(root,"Flashlight in off-hand with pistol / revolver / UZI","dualTorch",true);
         check(root,"Show hands","hands",true);
@@ -370,6 +374,7 @@ public final class MainActivity extends Activity {
             "The options below modify the live V54 chunk-streaming test.",13,false));
         check(root,"Show FPS, player coordinates, NPC and chunk diagnostics","testPerf",true);
         check(root,"Show loaded chunk grid and coordinates","testChunkGrid",false);
+        final int aimSection=root.getChildCount();
         section(root,"CAMERA AND TOUCH CONTROLS");
         root.addView(text("Right stick aims only. Left and right FIRE / MELEE act independently.",14,true));
         check(root,"Show classic six status bars","showStatusBars",true);
@@ -377,52 +382,23 @@ public final class MainActivity extends Activity {
         check(root,"Aim-stick camera look-ahead","lookAheadEnabled",true);
         slider(root,"Look-ahead stick threshold","lookAheadThreshold",45,95,72,"%");
         slider(root,"Look-ahead distance","lookAheadStrength",0,240,120," px");
+        slider(root,"Floating crosshair pointer speed","cursorSpeed",120,900,400," px/s");
         slider(root,"Camera zoom","cameraZoom",70,180,100,"%");
         slider(root,"Movement joystick size","movePadSize",70,150,100,"%");
         slider(root,"Aiming joystick size","aimPadSize",70,150,100,"%");
         slider(root,"Movement joystick sensitivity","moveSensitivity",50,160,100,"%");
         slider(root,"Aiming joystick sensitivity","aimSensitivity",50,160,100,"%");
         slider(root,"Joystick transparency / opacity","controlOpacity",25,100,100,"%");
-        section(root,"INDIVIDUAL BUTTON LAYOUT EDITOR");
-        check(root,"Enable ON-SCREEN control drag editor","editControls",false);
-        root.addView(text("Return to the game to drag buttons. Switch this OFF after editing.",13,false));
-        root.addView(text("Select one control to adjust its size, opacity and visibility.",13,false));
-        Spinner buttonPicker=new Spinner(this);
-        buttonPicker.setAdapter(new ArrayAdapter<String>(this,
-            android.R.layout.simple_spinner_dropdown_item,LegacyControlsV58.NAMES));
-        LinearLayout editorOptions=column();
-        root.addView(buttonPicker);
-        root.addView(editorOptions);
-        buttonPicker.setSelection(Math.max(0,Math.min(LegacyControlsV58.COUNT-1,
-                prefs.getInt("selectedButton",0))));
-        buttonPicker.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener(){
-            public void onNothingSelected(android.widget.AdapterView<?> parent){}
-            public void onItemSelected(android.widget.AdapterView<?> parent,View v,int index,long id){
-                prefs.edit().putInt("selectedButton",index).apply();
-                editorOptions.removeAllViews();
-                check(editorOptions,"Show "+LegacyControlsV58.NAMES[index],
-                      "uiEnabled"+index,true);
-                slider(editorOptions,"Button size","uiSize"+index,60,160,100,"%");
-                slider(editorOptions,"Button opacity","uiAlpha"+index,30,100,100,"%");
-                slider(editorOptions,"Horizontal offset","uiX"+index,-340,340,0," px");
-                slider(editorOptions,"Vertical offset","uiY"+index,-270,270,0," px");
-            }
+        action(root,"OPEN HUD BUTTON EDITOR (SEPARATE WINDOW)",()->{
+            if(activeDialog[0]!=null)activeDialog[0].dismiss();
+            hudEditor();
         });
-        action(root,"RESET ALL BUTTON POSITIONS AND SIZES",()->{
-            SharedPreferences.Editor settings=prefs.edit();
-            for(int i=0;i<LegacyControlsV58.COUNT;i++){
-                settings.remove("uiX"+i).remove("uiY"+i).remove("uiSize"+i)
-                    .remove("uiAlpha"+i).remove("uiEnabled"+i);
-            }
-            settings.putBoolean("editControls",false).apply();
-            game.reloadSettings();
-            Toast.makeText(this,"All buttons reset. Reopen menu to see defaults.",
-                    Toast.LENGTH_LONG).show();
-        });
+        final int layoutSection=root.getChildCount();
         section(root,"SETTINGS LAYOUT  •  LIVE (reopen to apply sizes)");
         slider(root,"Settings text size","menuTextSize",75,155,100,"%");
         slider(root,"Settings slider thickness","menuSliderSize",65,160,100,"%");
         slider(root,"Settings row spacing","menuRowSpacing",50,180,100,"%");
+        final int perfSection=root.getChildCount();
         section(root,"CHUNK ENGINE  •  LIVE SETTINGS");
         slider(root,"Distant NPC sleep radius","npcSleepRadius",600,2400,1200," px");
         slider(root,"Lighting performance (100 = original quality)",
@@ -476,7 +452,8 @@ public final class MainActivity extends Activity {
               .putInt("menuRowSpacing",100).putBoolean("dualTorch",true)
               .putBoolean("showStatusBars",true).putBoolean("showCrosshair",true)
               .putBoolean("lookAheadEnabled",true).putInt("lookAheadThreshold",72)
-              .putInt("lookAheadStrength",120).putBoolean("editControls",false).apply();
+              .putInt("lookAheadStrength",120).putInt("cursorSpeed",400)
+              .putBoolean("editControls",false).apply();
             wSize.setProgress(96-65);hSize.setProgress(94-65);
             resizeSettingsWindow(activeDialog[0],96,94);
             game.reloadSettings();applyImmersive();
@@ -511,10 +488,22 @@ public final class MainActivity extends Activity {
         });
         jumpButton(jumpBar,"CHARACTER",()->
             scroll.post(()->scroll.smoothScrollTo(0,root.getChildAt(playerSection).getTop())));
-        jumpButton(jumpBar,"WORLD TEST",()->
+        jumpButton(jumpBar,"GAMEPLAY",()->
+            scroll.post(()->scroll.smoothScrollTo(0,root.getChildAt(gameplaySection).getTop())));
+        jumpButton(jumpBar,"WORLD",()->
             scroll.post(()->scroll.smoothScrollTo(0,root.getChildAt(worldSection).getTop())));
-        jumpButton(jumpBar,"ACTIONS",()->
+        jumpButton(jumpBar,"AIM / CAMERA",()->
+            scroll.post(()->scroll.smoothScrollTo(0,root.getChildAt(aimSection).getTop())));
+        jumpButton(jumpBar2,"LAYOUT",()->
+            scroll.post(()->scroll.smoothScrollTo(0,root.getChildAt(layoutSection).getTop())));
+        jumpButton(jumpBar2,"PERFORMANCE",()->
+            scroll.post(()->scroll.smoothScrollTo(0,root.getChildAt(perfSection).getTop())));
+        jumpButton(jumpBar2,"ACTIONS",()->
             scroll.post(()->scroll.smoothScrollTo(0,root.getChildAt(actionSection).getTop())));
+        jumpButton(jumpBar2,"HUD EDIT",()->{
+            if(activeDialog[0]!=null)activeDialog[0].dismiss();
+            hudEditor();
+        });
         AlertDialog dialog=new AlertDialog.Builder(this).setView(shell)
           .setPositiveButton("RETURN TO GAME",(d,w)->game.menuPause(false))
           .setOnCancelListener(d->game.menuPause(false)).create();
