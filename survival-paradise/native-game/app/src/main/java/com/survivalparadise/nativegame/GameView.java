@@ -245,8 +245,8 @@ public final class GameView extends View {
         support=host.setting("support",0);
         supportVertical=host.setting("supportY",0);
         timeSpeed=host.setting("speed",100)/100f;
-        movePadScale=host.setting("movePadSize",100)/100f;
-        aimPadScale=host.setting("aimPadSize",100)/100f;
+        movePadScale=host.setting("movePadSize",180)/100f;
+        aimPadScale=host.setting("aimPadSize",180)/100f;
         moveSensitivity=host.setting("moveSensitivity",100)/100f;
         aimSensitivity=host.setting("aimSensitivity",100)/100f;
         controlOpacity=host.setting("controlOpacity",100);
@@ -264,7 +264,8 @@ public final class GameView extends View {
         lookAheadStrength=host.setting("lookAheadStrength",420);
         lookAheadSmooth=host.setting("lookAheadSmooth",8);
         // Fresh preference key avoids V67/V68 legacy 420px look-ahead values.
-        cameraPanLimit=host.setting("cameraPanLimitV69",65);
+        // Percentage adjusts the circular maximum automatically by weapon type.
+        cameraPanLimit=host.setting("cameraPanPercentV72",72);
         // New preference key intentionally migrates V63's 500px/s ceiling to a fast V64 default.
         // Separate V68 keys intentionally migrate the excessively fast V67
         // defaults without changing earlier player preference storage.
@@ -276,9 +277,9 @@ public final class GameView extends View {
         legacyDirectionalAim=host.option("legacyDirectionalAim",false);
         crosshairRestPercent=host.setting("crosshairRestPercent",100);
         reticleSize=host.setting("reticleSize",100)/100f;
-        hotbarX=host.setting("uiX"+HOTBAR,0);
+        hotbarX=host.setting("uiX"+HOTBAR,-17);
         hotbarY=host.setting("uiY"+HOTBAR,0);
-        hotbarScale=host.setting("uiSize"+HOTBAR,100)/100f;
+        hotbarScale=host.setting("uiSize"+HOTBAR,105)/100f;
         hotbarOpacity=host.setting("uiAlpha"+HOTBAR,90);
         for(int i=0;i<6;i++)hotbar[i]=host.setting("hotbar"+i,
             i==0?1:i==1?2:i==2?3:i==3?4:i==4?6:7);
@@ -670,8 +671,8 @@ public final class GameView extends View {
         }
         // Optional V61-style direction look-ahead, capped to the V69
         // small CIRCULAR radius. Disabled by default in this rollback.
-        float panLimit=BoundedCameraV69.limit(cameraPanLimit,viewW,viewH,
-            Math.max(.01f,zoom));
+        float panLimit=WeaponCameraV72.distance(gun,Math.round(cameraPanLimit),
+            viewW,viewH,Math.max(.01f,zoom));
         float panFactor=ClassicAimV71.panFactor(aimDeflection,lookAheadThreshold);
         float desiredPanX=aimX*panLimit*panFactor;
         float desiredPanY=aimY*panLimit*panFactor;
@@ -1465,7 +1466,7 @@ public final class GameView extends View {
         rounded(c,x,y,w,h,9,fill);
         label(c,label,x+12,y+h*.66f,14,WHITE,true);
     }
-    float uiSize(int id){return host.setting("uiSize"+id,100)/100f;}
+    float uiSize(int id){return host.setting("uiSize"+id,LegacyControlsV58.defaultScale(id))/100f;}
     float uiWidth(int id){return LegacyControlsV58.defaultW(id)*uiSize(id);}
     float uiHeight(int id){return LegacyControlsV58.defaultH(id)*uiSize(id);}
     float uiX(int id){
@@ -1478,7 +1479,7 @@ public final class GameView extends View {
             host.setting("uiY"+id,0);
         return LegacyControlsV58.defaultY(id,viewH)+delta;
     }
-    boolean uiEnabled(int id){return host.option("uiEnabled"+id,true);}
+    boolean uiEnabled(int id){return host.option("uiEnabled"+id,LegacyControlsV58.defaultEnabled(id));}
     int actionAt(float x,float y){
         for(int i=0;i<LegacyControlsV58.COUNT;i++)
             if((uiEnabled(i)||editControls)&&
@@ -1486,8 +1487,8 @@ public final class GameView extends View {
                 return i;
         return -1;
     }
-    float padBaseX(boolean right){return right?viewW-118f:120f;}
-    float padBaseY(boolean right){return viewH-(right?145f:140f);}
+    float padBaseX(boolean right){return right?viewW-190f:Math.max(165f,viewW*.122f);}
+    float padBaseY(boolean right){return viewH-(right?145f:153f);}
     float padCenterX(boolean right){
         int id=right?AIM_PAD:MOVE_PAD;
         return padBaseX(right)+(editPointer>=0&&editControl==id?editX:host.setting("uiX"+id,0));
@@ -1532,10 +1533,10 @@ public final class GameView extends View {
     }
     float hotbarLeft(){
         return viewW*.5f-6*47f*hotbarScale*.5f+
-            (editPointer>=0&&editControl==HOTBAR?editX:host.setting("uiX"+HOTBAR,0));
+            (editPointer>=0&&editControl==HOTBAR?editX:host.setting("uiX"+HOTBAR,-17));
     }
     float hotbarTop(){
-        return viewH-256f+
+        return viewH-103f+
             (editPointer>=0&&editControl==HOTBAR?editY:host.setting("uiY"+HOTBAR,0));
     }
     int hotbarAt(float x,float y){
@@ -1966,7 +1967,7 @@ public final class GameView extends View {
                 if(hotSlot>=0){
                     if(editControls){
                         editPointer=id;editControl=HOTBAR;selectedHudControl=HOTBAR;
-                        editX=host.setting("uiX"+HOTBAR,0);
+                        editX=host.setting("uiX"+HOTBAR,-17);
                         editY=host.setting("uiY"+HOTBAR,0);
                         editGrabX=x-hotbarLeft();editGrabY=y-hotbarTop();
                         host.prefs.edit().putInt("selectedButton",HOTBAR).apply();
@@ -2029,7 +2030,7 @@ public final class GameView extends View {
                                  LegacyControlsV58.defaultX(editControl,viewW):
                                  padBaseX(editControl==AIM_PAD)));
                         editY=Math.round(py-editGrabY-
-                                (editControl==HOTBAR?viewH-256f:
+                                (editControl==HOTBAR?viewH-103f:
                                  editControl<LegacyControlsV58.COUNT?
                                  LegacyControlsV58.defaultY(editControl,viewH):
                                  padBaseY(editControl==AIM_PAD)));
@@ -2042,8 +2043,8 @@ public final class GameView extends View {
                             float width=6*47f*hotbarScale;
                             editX=Math.round(clamp(editX,-viewW*.5f+width*.5f+5,
                                       viewW*.5f-width*.5f-5));
-                            editY=Math.round(clamp(editY,65-(viewH-256f),
-                                      viewH-55-(viewH-256f)));
+                            editY=Math.round(clamp(editY,65-(viewH-103f),
+                                      viewH-55-(viewH-103f)));
                         }else{
                             editX=Math.round(clamp(editX,70-padBaseX(editControl==AIM_PAD),
                                   viewW-70-padBaseX(editControl==AIM_PAD)));
