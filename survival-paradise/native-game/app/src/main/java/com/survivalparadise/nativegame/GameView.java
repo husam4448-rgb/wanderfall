@@ -655,16 +655,16 @@ public final class GameView extends View {
         if(!cursorInitialized){
             aimCursorDistance=rest;cursorInitialized=true;
         }
-        float pointerSpeed=FloatingAimV64.scaledSpeed(cursorSpeed,viewW/Math.max(.01f,zoom));
+        // Inner 62% of stick travel is DIRECTION ONLY; no timed extension.
+        // 62–90% intentionally extends the crosshair at a fixed linear speed.
+        // Outer 90–100% is reserved for deliberate camera look-around.
         if(!rightAiming){
-            // No lingering world pointer, no gradual tween back.
             aimCursorDistance=rest;
         }else if(legacyDirectionalAim){
-            aimCursorDistance=maxAim; // optional legacy full-range response
+            aimCursorDistance=maxAim; // legacy explicitly requested full range
         }else{
-            aimCursorDistance=RadialAimV65.distance(aimCursorDistance,gun,maxAim,
-                true,(float)Math.hypot(cursorMoveX,cursorMoveY),pointerSpeed,dt,
-                crosshairRestPercent);
+            aimCursorDistance=AimZonesV70.reach(aimCursorDistance,rest,maxAim,
+                aimDeflection,cursorSpeed,dt);
         }
         cursorWorldX=playerX+aimX*aimCursorDistance;
         cursorWorldY=playerY-42f+aimY*aimCursorDistance;
@@ -681,33 +681,28 @@ public final class GameView extends View {
                     damage(knifeTarget,36);
             }
         }
-        // V69: tiny, HARD-CAPPED camera offset. A sniper's 5000+ pixel
-        // projectile reach NEVER becomes a 5000px camera destination.
-        // Range and the stick-centered reticle are independent of camera pan.
-        float z=Math.max(.01f,zoom);
-        float halfVisibleX=(viewW*.5f-110f)/z;
-        float halfVisibleY=(viewH*.5f-125f)/z;
-        float desiredX=cursorWorldX-playerX;
-        float desiredY=cursorWorldY-playerY;
-        float targetX=BoundedCameraV69.beyondMargin(desiredX,halfVisibleX);
-        float targetY=BoundedCameraV69.beyondMargin(desiredY,halfVisibleY);
-        float panLimit=BoundedCameraV69.limit(cameraPanLimit,viewW,viewH,z);
-        float targetFactor=BoundedCameraV69.radialFactor(targetX,targetY,panLimit);
-        targetX*=targetFactor;targetY*=targetFactor;
-        // Clamp existing offsets first, including stale values saved by
-        // older builds, and clamp again after easing (including diagonals).
+        // V70: the joystick, not the world-space crosshair, enters an
+        // EXPLICIT panning mode only in its outermost 10% travel. A 360-degree
+        // circle has an identical radius for up/down/left/right/diagonals.
+        // The fixed limit is independent of aspect ratio and bullet reach.
+        float panLimit=BoundedCameraV69.limit(cameraPanLimit,viewW,viewH,
+            Math.max(.01f,zoom));
         float currentFactor=BoundedCameraV69.radialFactor(cameraLookX,cameraLookY,panLimit);
         cameraLookX*=currentFactor;cameraLookY*=currentFactor;
+        float desiredPanX=0f,desiredPanY=0f;
         if(lookAheadEnabled&&rightAiming&&panLimit>0f){
-            cameraLookX+=StableAimV68.panStep(targetX-cameraLookX,dt,
+            desiredPanX=AimZonesV70.panX(aimX,aimY,panLimit,aimDeflection);
+            desiredPanY=AimZonesV70.panY(aimX,aimY,panLimit,aimDeflection);
+        }
+        if(!rightAiming||!lookAheadEnabled||panLimit==0f){
+            cameraLookX=0f;cameraLookY=0f;
+        }else{
+            cameraLookX+=StableAimV68.panStep(desiredPanX-cameraLookX,dt,
                 cameraPanSpeed,lookAheadSmooth);
-            cameraLookY+=StableAimV68.panStep(targetY-cameraLookY,dt,
+            cameraLookY+=StableAimV68.panStep(desiredPanY-cameraLookY,dt,
                 cameraPanSpeed,lookAheadSmooth);
             float finalFactor=BoundedCameraV69.radialFactor(cameraLookX,cameraLookY,panLimit);
             cameraLookX*=finalFactor;cameraLookY*=finalFactor;
-        }else{
-            // Aim release and the OFF setting return to centered view.
-            cameraLookX=0f;cameraLookY=0f;
         }
         // Crosshair range remains the actual projectile endpoint, but
         // offscreen reach is clipped to the edge rather than chasing it.
