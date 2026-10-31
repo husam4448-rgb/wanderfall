@@ -109,14 +109,14 @@ public final class MainActivity extends Activity {
         t.setTextSize(sp*Math.max(.75f,Math.min(1.55f,prefs.getInt("menuTextSize",100)/100f)));
         t.setTextColor(INK);
         if(bold)t.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
-        t.setPadding(11,10,11,6);return t;
+        t.setPadding(7,4,7,3);return t;
     }
     private LinearLayout column(){
         LinearLayout v=new LinearLayout(this);v.setOrientation(LinearLayout.VERTICAL);
-        v.setPadding(12,8,12,14);v.setBackgroundColor(BG);return v;
+        v.setPadding(8,4,8,6);v.setBackgroundColor(BG);return v;
     }
     private void section(LinearLayout root,String title){
-        TextView t=text(title,16,true);t.setTextColor(ACC);t.setPadding(9,15,9,6);root.addView(t);
+        TextView t=text(title,15,true);t.setTextColor(ACC);t.setPadding(7,7,7,3);root.addView(t);
     }
     private void slider(LinearLayout root,String label,String key,int min,int max,int def,String suffix){
         LinearLayout box=column();
@@ -128,9 +128,10 @@ public final class MainActivity extends Activity {
         track.setOrientation(LinearLayout.HORIZONTAL);
         TextView left=text("↕",16,true),right=text("↕",16,true);
         left.setGravity(Gravity.CENTER);right.setGravity(Gravity.CENTER);
-        int gutter=Math.max(46,Math.round(getResources().getDisplayMetrics().density*54));
+        int gutter=Math.max(24,Math.round(getResources().getDisplayMetrics().density*28));
         track.addView(left,new LinearLayout.LayoutParams(gutter,-1));
         SeekBar bar=new SeekBar(this);bar.setMax(max-min);
+        bar.setMinimumHeight(22);bar.setPadding(0,0,0,0);
         bar.setScaleY(prefs.getInt("menuSliderSize",100)/100f);
         bar.setProgress(Math.max(0,Math.min(max-min,prefs.getInt(key,def)-min)));
         track.addView(bar,new LinearLayout.LayoutParams(0,-2,1));
@@ -149,8 +150,8 @@ public final class MainActivity extends Activity {
         root.addView(box);
     }
     private void check(LinearLayout root,String title,String key,boolean def){
-        CheckBox b=new CheckBox(this);b.setText(title);b.setTextColor(INK);b.setTextSize(15);
-        b.setPadding(12,5,8,5);b.setChecked(prefs.getBoolean(key,def));root.addView(b);
+        CheckBox b=new CheckBox(this);b.setText(title);b.setTextColor(INK);b.setTextSize(13);
+        b.setPadding(8,1,5,1);b.setChecked(prefs.getBoolean(key,def));root.addView(b);
         b.setOnCheckedChangeListener((v,on)->{
             prefs.edit().putBoolean(key,on).apply();
             if("fullscreen".equals(key))applyImmersive();
@@ -177,7 +178,7 @@ public final class MainActivity extends Activity {
     }
     private void jumpButton(LinearLayout bar,String label,Runnable task){
         Button b=new Button(this);b.setText(label);b.setAllCaps(false);
-        b.setTextSize(12);b.setMinHeight(0);b.setMinimumHeight(0);
+        b.setTextSize(11);b.setMinHeight(0);b.setMinimumHeight(0);
         bar.addView(b,new LinearLayout.LayoutParams(0,-2,1f));
         b.setOnClickListener(v->task.run());
     }
