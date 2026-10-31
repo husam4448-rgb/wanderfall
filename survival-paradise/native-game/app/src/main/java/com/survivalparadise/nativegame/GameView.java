@@ -1500,19 +1500,34 @@ public final class GameView extends View {
             return;
         }
         if(paused)return;
-        if(within(x,y,viewW-348,viewH-160,103,44)){switchWeapon();return;}
-        if(within(x,y,viewW-348,viewH-105,103,44)){reload();return;}
-        if(within(x,y,viewW/2-57,viewH-152,114,44)){shoot(playerX,playerY,
-                aimX,aimY,11,false,face);return;}
-        if(within(x,y,viewW/2-57,viewH-98,114,44)){
-            for(Drop drop:drops)if(distance(playerX,playerY,drop.x,drop.y)<100f){
-                if(drop.type==0)ammoPacks++;else if(drop.type==1)scrap+=2;else medkits++;
-                drops.remove(drop);break;
-            }
-            return;
-        }
+        // HUD action buttons are dispatched through LegacyControlsV58 so all
+        // visible and touch regions always use the same configurable geometry.
         if(x<viewW*.37f&&y>viewH*.45f)return;
         if(x>viewW*.61f&&y>viewH*.42f)return;
+    }
+    void activateButton(int ui,int pointer){
+        if(LegacyControlsV58.isFire(ui)){
+            if(ui==LegacyControlsV58.FIRE_L)fireLeftPointer=pointer;
+            else firePointer=pointer;
+            firing=true;
+        }else if(LegacyControlsV58.isMelee(ui))knifeStrike();
+        else if(ui==LegacyControlsV58.RUN)runHeld=!runHeld;
+        else if(ui==LegacyControlsV58.CROUCH)crouchHeld=!crouchHeld;
+        else if(ui==LegacyControlsV58.SWAP)switchWeapon();
+        else if(ui==LegacyControlsV58.RELOAD)reload();
+        else if(ui==LegacyControlsV58.ZOOM_IN||ui==LegacyControlsV58.ZOOM_OUT){
+            float delta=ui==LegacyControlsV58.ZOOM_IN?.12f:-.12f;
+            zoom=clamp(zoom+delta,.7f,1.8f);
+            host.prefs.edit().putInt("cameraZoom",Math.round(zoom*100f)).apply();
+        }else if(ui==LegacyControlsV58.USE){
+            for(Iterator<Drop> it=drops.iterator();it.hasNext();){
+                Drop drop=it.next();
+                if(distance(playerX,playerY,drop.x,drop.y)<100f){
+                    if(drop.type==0)ammoPacks++;else if(drop.type==1)scrap+=2;
+                    else medkits++;it.remove();break;
+                }
+            }
+        }
     }
     @Override public boolean onTouchEvent(MotionEvent e){
         int action=e.getActionMasked(),i=e.getActionIndex(),id=e.getPointerId(i);
@@ -1521,19 +1536,16 @@ public final class GameView extends View {
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_POINTER_DOWN:
                 if(!playing||paused||y<58){tap(x,y);return true;}
-                if(within(x,y,fireLeft(),fireTop(),fireWidth(),fireHeight())){
-                    if(firePointer<0){firePointer=id;firing=true;}return true;
+                int target=actionAt(x,y);
+                if(target>=0){
+                    if(editControls){
+                        editPointer=id;editControl=target;
+                        editX=host.setting("uiX"+target,0);
+                        editY=host.setting("uiY"+target,0);
+                    }else activateButton(target,id);
+                    return true;
                 }
-                if(within(x,y,viewW-475,viewH-160,103,44)){
-                    runHeld=!runHeld;return true;
-                }
-                if(within(x,y,viewW-475,viewH-105,103,44)){
-                    crouchHeld=!crouchHeld;return true;
-                }
-                if(within(x,y,viewW-348,viewH-165,114,111)||
-                   within(x,y,viewW/2-57,viewH-152,114,98)){
-                    tap(x,y);return true;
-                }
+                if(editControls)return true;
                 if(x<viewW*.40f&&y>viewH*.47f&&leftPointer<0){
                     leftPointer=id;updateStick(x,y,false);return true;
                 }
@@ -1548,6 +1560,13 @@ public final class GameView extends View {
                     float py=e.getY(j)/Math.max(.01f,drawScale);
                     if(pointer==leftPointer)updateStick(px,py,false);
                     if(pointer==rightPointer)updateStick(px,py,true);
+                    if(pointer==editPointer&&editControl>=0){
+                        editX=Math.round(px-uiWidth(editControl)*.5f-
+                                LegacyControlsV58.defaultX(editControl,viewW));
+                        editY=Math.round(py-uiHeight(editControl)*.5f-
+                                LegacyControlsV58.defaultY(editControl,viewH));
+                        invalidate();
+                    }
                 }return true;
             case MotionEvent.ACTION_POINTER_UP:
             case MotionEvent.ACTION_UP:
@@ -1558,8 +1577,13 @@ public final class GameView extends View {
                 if(id==rightPointer||action==MotionEvent.ACTION_CANCEL){
                     rightPointer=-1;aimDeflection=0f;
                 }
-                if(id==firePointer||action==MotionEvent.ACTION_CANCEL){
-                    firePointer=-1;firing=false;
+                if(id==firePointer||action==MotionEvent.ACTION_CANCEL)firePointer=-1;
+                if(id==fireLeftPointer||action==MotionEvent.ACTION_CANCEL)fireLeftPointer=-1;
+                firing=firePointer>=0||fireLeftPointer>=0;
+                if((id==editPointer||action==MotionEvent.ACTION_CANCEL)&&editControl>=0){
+                    host.prefs.edit().putInt("uiX"+editControl,editX)
+                        .putInt("uiY"+editControl,editY).apply();
+                    editPointer=-1;editControl=-1;
                 }
                 return true;
         }
