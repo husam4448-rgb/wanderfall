@@ -707,9 +707,10 @@ jobs:
              '.putString("depleted_resources_v80",harvestWorld.encode())',
              'harvestWorld.clear();','boolean gatherNearestV80()',
              'gatherNearestV80();','harvestWorld.exhausted(cx,cy,k)',
-             'ResourceWorldV80.node(cx,cy,k,','ResourceWorldV80.BUSH',
+             'ResourceWorldV80.seed(cx,cy,k)','ResourceWorldV80.BUSH',
              'USE: GATHER ','GATHERED ','woodV80','stoneV80','fiberV80']:
               assert needle in g,needle
+          assert 'ResourceWorldV80.node(cx,cy,k,' not in g
           assert 'idx==5?"WOOD"' in m and 'idx==6?"STONE"' in m and 'idx==7?"FIBER"' in m
           assert 'PlayerMovementV77.speed(gun==9?169f:236f,walkSpeedMultiplier,runMultiplier,crouchHeld)' in g
           assert 'walkingAnimationMultiplierV79' in g

@@ -115,10 +115,15 @@ public final class ResourceWorldV80 {
         for(int cy=y0;cy<=y1;cy++)for(int cx=x0;cx<=x1;cx++)
             for(int slot=0;slot<SLOTS;slot++){
                 if(exhausted(cx,cy,slot))continue;
-                Node node=node(cx,cy,slot,campX,campY,worldW,worldH);
-                if(node==null)continue;
-                float dx=node.x-px,dy=node.y-py,ds=dx*dx+dy*dy;
-                if(ds<=best2){best2=ds;closest=node;}
+                int h=seed(cx,cy,slot);
+                float x=worldX(cx,h),y=worldY(cy,h);
+                if(!placed(x,y,slot,h,campX,campY,worldW,worldH))continue;
+                float dx=x-px,dy=y-py,ds=dx*dx+dy*dy;
+                if(ds<=best2){
+                    best2=ds;
+                    int kind=slot==3?BUSH:BiomeWorldV74.prop(x,y,h);
+                    closest=new Node(cx,cy,slot,kind,h,x,y);
+                }
             }
         return closest;
     }

@@ -1153,13 +1153,15 @@ public final class GameView extends View {
         for(int cy=y0;cy<=y1;cy++)for(int cx=x0;cx<=x1;cx++)
             for(int k=0;k<ResourceWorldV80.SLOTS;k++){
                 if(harvestWorld.exhausted(cx,cy,k))continue;
-                ResourceWorldV80.Node node=ResourceWorldV80.node(cx,cy,k,
-                    CAMP_X,CAMP_Y,WORLD_W,WORLD_H);
-                if(node==null)continue;
-                float x=node.x,y=node.y;
+                // V80 low-end performance: render world props allocation-free.
+                int h=ResourceWorldV80.seed(cx,cy,k);
+                float x=ResourceWorldV80.worldX(cx,h);
+                float y=ResourceWorldV80.worldY(cy,h);
+                if(!ResourceWorldV80.placed(x,y,k,h,
+                       CAMP_X,CAMP_Y,WORLD_W,WORLD_H))continue;
                 if(x<camX-200||x>camX+viewW+200||
                    y<camY-200||y>camY+viewH+200)continue;
-                int kind=node.kind,h=node.seed;
+                int kind=k==3?ResourceWorldV80.BUSH:BiomeWorldV74.prop(x,y,h);
                 if(kind==ResourceWorldV80.BUSH){
                     // Low stepped pixel bush; distinct fiber gathering target.
                     int leaf=BiomeWorldV74.detail(BiomeWorldV74.biome(x,y),h);
