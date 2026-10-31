@@ -619,11 +619,13 @@ public final class MainActivity extends Activity {
         root.addView(text("Right stick aims only. Left and right FIRE / MELEE act independently.",14,true));
         check(root,"Show classic six status bars","showStatusBars",true);
         check(root,"Show world aiming crosshair","showCrosshair",true);
+        slider(root,"Approved crimson crosshair size","reticleSize",40,220,100,"%");
+        root.addView(text("Crosshair stays on the aiming ray and never reverses when dragging beyond joystick limits.",11,false));
         check(root,"Aim-stick camera look-ahead","lookAheadEnabled",true);
         slider(root,"Look-ahead stick threshold","lookAheadThreshold",20,95,55,"%");
         slider(root,"Look-ahead distance","lookAheadStrength",0,1000,420," px");
         slider(root,"Camera panning response speed","lookAheadSmooth",2,18,8," /s");
-        slider(root,"Aim crosshair distance at full stick","cursorRange",250,1200,750," px");
+        slider(root,"Aim crosshair maximum distance","cursorRange",250,1200,750," px");
         slider(root,"Camera zoom","cameraZoom",70,180,100,"%");
         slider(root,"Movement joystick size","movePadSize",70,180,100,"%");
         slider(root,"Aiming joystick size","aimPadSize",70,180,100,"%");
@@ -700,7 +702,7 @@ public final class MainActivity extends Activity {
               .putBoolean("lookAheadEnabled",true).putInt("lookAheadThreshold",55)
               .putInt("lookAheadStrength",420).putInt("lookAheadSmooth",8)
               .putInt("followMode",0).putInt("followSpacing",125).putInt("cursorSpeed",400)
-              .putInt("cursorRange",750).putBoolean("staticLightCache",true)
+              .putInt("cursorRange",750).putInt("reticleSize",100).putBoolean("staticLightCache",true)
               .putBoolean("fastPointLights",true).putInt("lightResolution",220)
               .putBoolean("editControls",false).apply();
             wSize.setProgress(96-65);hSize.setProgress(94-65);
