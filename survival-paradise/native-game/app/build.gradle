@@ -6,8 +6,8 @@ android {
   applicationId 'com.survivalparadise.nativegame'
   minSdk 24
   targetSdk 34
-  versionCode 64
-  versionName '0.63-floating-cursor-compact-bag'
+  versionCode 65
+  versionName '0.64-responsive-pointer-edge-pan'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
