@@ -37,7 +37,7 @@ public final class CharacterCollision {
         final int face=facing<0?-1:1;
         // V56 rendering applies the previously approved V48 x-offset to the
         // original walk frame. Collision follows the same render-only transform.
-        final float visibleX=actorX+(walking?WalkAlignmentV48.worldOffsetX(f,face,characterScale):0f);
+        final float visibleX=actorX; // V58 zero walk translation matches the sprite renderer.
         float l=visibleX+face*(SOURCE_LEFT-ANCHOR_X)*s;
         float r=visibleX+face*(SOURCE_RIGHT-ANCHOR_X)*s;
         float top=actorY+(SOURCE_TOP-ANCHOR_Y+Math.min(0,breath))*s-HIT_RADIUS;
