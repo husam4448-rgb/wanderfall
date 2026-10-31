@@ -6,8 +6,8 @@ android {
   applicationId 'com.survivalparadise.nativegame'
   minSdk 24
   targetSdk 34
-  versionCode 71
-  versionName '0.70-separated-aim-radial-pan'
+  versionCode 72
+  versionName '0.71-classic-aim-rollback'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
