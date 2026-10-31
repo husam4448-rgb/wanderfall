@@ -70,6 +70,8 @@ public final class GameView extends View {
     float viewW=1200,viewH=660,drawScale=1,camX=0,camY=0;
     int leftPointer=-1,rightPointer=-1,firePointer=-1,fireLeftPointer=-1;
     int editPointer=-1,editControl=-1,editX=0,editY=0;
+    float editGrabX=0,editGrabY=0;
+    int selectedHudControl=0;
     boolean editControls=false,showStatusBars=true,showCrosshair=true,lookAheadEnabled=true;
     float lookAheadStrength=0f,lookAheadThreshold=.72f,aimDeflection=0f;
     float cameraLookX=0f,cameraLookY=0f;
@@ -211,6 +213,7 @@ public final class GameView extends View {
         controlOpacity=host.setting("controlOpacity",100);
         dualTorch=host.option("dualTorch",true);
         editControls=host.option("editControls",false);
+        selectedHudControl=host.setting("selectedButton",0);
         showStatusBars=host.option("showStatusBars",true);
         showCrosshair=host.option("showCrosshair",true);
         lookAheadEnabled=host.option("lookAheadEnabled",true);
@@ -513,7 +516,7 @@ public final class GameView extends View {
         }
     }
     void update(float dt){
-        if(!playing||paused)return;
+        if(!playing||paused||editControls)return;
         // Clock is real-world-time based and independent of enemy simulation speed.
         clock.advance(Math.min(.04f,dt));
         refreshDaylight();
@@ -1367,6 +1370,64 @@ public final class GameView extends View {
         rect(c,x+65,y+2,142*v/100f,12,fill);
         label(c,Integer.toString(Math.round(v)),x+213,y+12,12,WHITE,true);
     }
+    float hudEditorLeft(){return viewW*.5f-350f;}
+    void drawHudEditorOverlay(Canvas c){
+        float left=hudEditorLeft(),top=63;
+        rounded(c,left,top,700,113,10,0xf2203436);
+        int i=Math.max(0,Math.min(LegacyControlsV58.COUNT-1,selectedHudControl));
+        label(c,"LIVE HUD EDIT  •  "+LegacyControlsV58.NAMES[i]+
+             "   SIZE "+host.setting("uiSize"+i,100)+"%   OPACITY "+host.setting("uiAlpha"+i,100)+"%",
+             left+10,top+17,12,WHITE,true);
+        String[] names={"PREV","NEXT","SIZE -","SIZE +","ALPHA -","ALPHA +","HIDE"};
+        for(int j=0;j<names.length;j++)
+            btn(c,left+5+j*99,top+22,94,36,names[j],0xff34565a);
+        String[] positions={"LEFT","RIGHT","UP","DOWN","RESET","DONE"};
+        for(int j=0;j<positions.length;j++)
+            btn(c,left+8+j*115,top+65,110,35,positions[j],0xff395653);
+    }
+    boolean hudEditorTouch(float x,float y){
+        if(!editControls)return false;
+        float left=hudEditorLeft(),top=63;
+        if(!within(x,y,left,top,700,113))return false;
+        int i=Math.max(0,Math.min(LegacyControlsV58.COUNT-1,selectedHudControl));
+        if(y>=top+22&&y<=top+58){
+            int j=(int)((x-left-5)/99);
+            if(j>=0&&j<7){
+                if(j==0||j==1){
+                    selectedHudControl=Math.floorMod(i+(j==0?-1:1),LegacyControlsV58.COUNT);
+                    host.prefs.edit().putInt("selectedButton",selectedHudControl).apply();
+                }else if(j==6){
+                    host.prefs.edit().putBoolean("uiEnabled"+i,!uiEnabled(i)).apply();
+                }else{
+                    String key=(j==2||j==3?"uiSize":"uiAlpha")+i;
+                    int min=j<=3?60:30;
+                    int current=host.setting(key,100);
+                    int next=Math.round(clamp(current+(j%2==0?-10:10),min,j<=3?160:100));
+                    host.prefs.edit().putInt(key,next).apply();
+                }
+                invalidate();return true;
+            }
+        }
+        if(y>=top+65&&y<=top+102){
+            int j=(int)((x-left-8)/115);
+            if(j>=0&&j<6){
+                if(j==5){
+                    editControls=false;
+                    host.prefs.edit().putBoolean("editControls",false).apply();
+                }else if(j==4){
+                    host.prefs.edit().remove("uiX"+i).remove("uiY"+i)
+                        .remove("uiSize"+i).remove("uiAlpha"+i)
+                        .remove("uiEnabled"+i).apply();
+                }else{
+                    String key=(j<=1?"uiX":"uiY")+i;
+                    int shift=(j==0||j==2)?-10:10;
+                    host.prefs.edit().putInt(key,host.setting(key,0)+shift).apply();
+                }
+                invalidate();return true;
+            }
+        }
+        return true; // never accidentally touches underlying gameplay objects
+    }
     void hud(Canvas c){
         rect(c,0,0,viewW,56,0xc90e2228);
         label(c,"SURVIVAL PARADISE",17,23,18,WHITE,true);
@@ -1378,7 +1439,8 @@ public final class GameView extends View {
         btn(c,viewW-324,7,75,42,lampOn?"LAMP ON":"LAMP OFF",0xff364d48);
         btn(c,viewW-410,7,79,42,"CAMP",0xff5b463a);
         btn(c,viewW-498,7,81,42,lightAlpha>nightDarkness*.5f?"NOON":"NIGHT",0xff34414c);
-        btn(c,viewW-594,7,91,42,"HUD EDIT",0xff465e63);
+        btn(c,viewW-594,7,91,42,editControls?"HUD DONE":"HUD EDIT",
+            editControls?0xff4d7863:0xff465e63);
         rect(c,0,viewH-42,viewW,42,0xca122529);
         label(c,"SCRAP "+scrap+"   MED "+medkits+"   AMMO BOX "+ammoPacks+
                 "   "+MainActivity.LOADOUTS[gun]+"  "+clock.display()+
@@ -1409,8 +1471,7 @@ public final class GameView extends View {
             float enc=Math.min(100f,scrap*.8f+ammoPacks*5f+medkits*7f);
             drawStatusBar(c,"ENC TEST",enc,12,245,0xffbca36e);
         }
-        if(editControls)label(c,"DRAG BUTTONS TO MOVE  •  SETTINGS TO EXIT",
-                viewW/2-233,85,13,0xffe5d9a6,true);
+        if(editControls)drawHudEditorOverlay(c);
         label(c,"MOVE",81,viewH-30,12,0xffb8d4c5,true);
         if(reloadClock>0)label(c,"RELOADING...",viewW-235,viewH-227,17,ORANGE,true);
         if(showPerf){
@@ -1541,7 +1602,11 @@ public final class GameView extends View {
             if(within(x,y,viewW/2-150,viewH/2-38,300,50)){if(gameOver)newGame();else togglePause();return;}
             if(within(x,y,viewW/2-150,viewH/2+28,300,50)){host.settings();return;}
         }
-        if(within(x,y,viewW-594,7,91,42)){host.hudEditor();return;}
+        if(within(x,y,viewW-594,7,91,42)){
+            editControls=!editControls;releaseControls();
+            host.prefs.edit().putBoolean("editControls",editControls).apply();
+            invalidate();return;
+        }
         if(within(x,y,viewW-84,7,77,42)){host.settings();return;}
         if(within(x,y,viewW-170,7,78,42)){togglePause();return;}
         if(within(x,y,viewW-324,7,75,42)){toggleLamp();return;}
@@ -1591,12 +1656,17 @@ public final class GameView extends View {
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_POINTER_DOWN:
                 if(!playing||paused||y<58){tap(x,y);return true;}
+                if(editControls&&hudEditorTouch(x,y)){return true;}
                 int target=actionAt(x,y);
                 if(target>=0){
                     if(editControls){
                         editPointer=id;editControl=target;
+                        selectedHudControl=target;
+                        host.prefs.edit().putInt("selectedButton",target).apply();
                         editX=host.setting("uiX"+target,0);
                         editY=host.setting("uiY"+target,0);
+                        editGrabX=x-uiX(target);
+                        editGrabY=y-uiY(target);
                     }else activateButton(target,id);
                     return true;
                 }
@@ -1616,10 +1686,14 @@ public final class GameView extends View {
                     if(pointer==leftPointer)updateStick(px,py,false);
                     if(pointer==rightPointer)updateStick(px,py,true);
                     if(pointer==editPointer&&editControl>=0){
-                        editX=Math.round(px-uiWidth(editControl)*.5f-
+                        editX=Math.round(px-editGrabX-
                                 LegacyControlsV58.defaultX(editControl,viewW));
-                        editY=Math.round(py-uiHeight(editControl)*.5f-
+                        editY=Math.round(py-editGrabY-
                                 LegacyControlsV58.defaultY(editControl,viewH));
+                        editX=Math.round(clamp(editX,-LegacyControlsV58.defaultX(editControl,viewW),
+                              viewW-uiWidth(editControl)-LegacyControlsV58.defaultX(editControl,viewW)));
+                        editY=Math.round(clamp(editY,-LegacyControlsV58.defaultY(editControl,viewH),
+                              viewH-uiHeight(editControl)-LegacyControlsV58.defaultY(editControl,viewH)));
                         invalidate();
                     }
                 }return true;
