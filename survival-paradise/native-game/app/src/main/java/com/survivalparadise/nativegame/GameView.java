@@ -33,6 +33,7 @@ public final class GameView extends View {
     final Paint pixel=new Paint(Paint.ANTI_ALIAS_FLAG==0?0:0);
     Bitmap body,approvedWalkColors,stableBody,npcRoleAtlas,npcIdleAtlas,npcWalkV56,npcIdleV56,gear,approvedAxe;
     Bitmap crosshairReticle;
+    final Paint reticlePaint=new Paint(Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG);
     Bitmap campStatic; // immutable pre-rendered authored camp, not per-frame rectangles
 
     static final int ROLE_BANDIT=0,ROLE_GUARD=2,ROLE_MEDIC=4,ROLE_MECHANIC=6,
@@ -1649,7 +1650,7 @@ public final class GameView extends View {
         x=clamp(x,half+5,viewW-half-5);
         y=clamp(y,59+half,viewH-48-half);
         dest.set(x-half,y-half,x+half,y+half);
-        c.drawBitmap(crosshairReticle,null,dest,pixel);
+        c.drawBitmap(crosshairReticle,null,dest,reticlePaint);
     }
     void hud(Canvas c){
         rect(c,0,0,viewW,56,0xc90e2228);
