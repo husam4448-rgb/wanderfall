@@ -6,8 +6,8 @@ android {
   applicationId 'com.survivalparadise.nativegame'
   minSdk 24
   targetSdk 34
-  versionCode 62
-  versionName '0.61-formations-inventory-aim'
+  versionCode 63
+  versionName '0.62-reticle-paperdoll-quickbar'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
