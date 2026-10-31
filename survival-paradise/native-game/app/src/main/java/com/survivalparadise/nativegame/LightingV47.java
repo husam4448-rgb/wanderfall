@@ -124,7 +124,8 @@ public final class LightingV47 {
     private int ix(float x){return (int)Math.floor((x-left)/stepX);}
     private int iy(float y){return (int)Math.floor((y-top)/stepY);}
     private void pointMask(Point light){
-        prepareBlockers(light.x,light.y,light.radius);
+        if(fastPointLights)activeCount=0;
+        else prepareBlockers(light.x,light.y,light.radius);
         int minX=Math.max(0,ix(light.x-light.radius));
         int maxX=Math.min(width-1,ix(light.x+light.radius)+1);
         int minY=Math.max(0,iy(light.y-light.radius));
