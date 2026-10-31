@@ -259,7 +259,7 @@ public final class GameView extends View {
         showStatusBars=host.option("showStatusBars",true);
         showCrosshair=host.option("showCrosshair",true);
         // V71 rollback: old panning preference must not override classic aim.
-        lookAheadEnabled=host.option("classicAimCameraV71",false);
+        lookAheadEnabled=host.option("classicAimCameraV71",true);
         lookAheadThreshold=host.setting("lookAheadThreshold",72)/100f;
         lookAheadStrength=host.setting("lookAheadStrength",420);
         lookAheadSmooth=host.setting("lookAheadSmooth",8);
