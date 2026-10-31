@@ -43,6 +43,7 @@ public final class LightingV47 {
     private long lastRenderTime=0;
     private float lastCameraX,lastCameraY,lastScreenW,lastScreenH;
     private int lastDarkness=-1;
+    private long lastLightSourceSignature=0L;
     private static final long IDLE_LIGHT_REFRESH_NS=100_000_000L; // 10Hz only at static camera
     public int cacheReuse=0,fullUpdates=0;
     public void setFastPointLights(boolean enabled){fastPointLights=enabled;cacheValid=false;}
@@ -92,6 +93,16 @@ public final class LightingV47 {
         if(reach>0)beams.add(new Beam(x,y,dx,dy,reach));
     }
     public int sourceCount(){return points.size()+beams.size();}
+    /** Recomputed after clear/add on each draw; no per-frame heap objects. */
+    private long currentLightSourceSignature(){
+        long hash=LightCacheV78.seed(points.size(),beams.size());
+        for(Point point:points)
+            hash=LightCacheV78.point(hash,point.x,point.y,point.radius,point.color);
+        for(Beam beam:beams)
+            hash=LightCacheV78.beam(hash,beam.x,beam.y,beam.dx,beam.dy,beam.reach);
+        return hash;
+    }
+
 
     private void ensure(float w,float h){
         int minWidth=Math.max(96,Math.round(180f/resolutionFactor));
@@ -184,10 +195,15 @@ public final class LightingV47 {
         ensure(w,h);
         int nextDarkness=Math.max(0,Math.min(248,nightDarkness));
         long now=System.nanoTime();
-        if(staticCache&&cacheValid&&Math.abs(camX-lastCameraX)<.15f&&
-           Math.abs(camY-lastCameraY)<.15f&&w==lastScreenW&&h==lastScreenH&&
-           Math.abs(nextDarkness-lastDarkness)<=2&&
-           now-lastRenderTime<IDLE_LIGHT_REFRESH_NS){
+        // V78: the 10Hz stationary-camera reuse MUST NOT freeze moving lights.
+        // When companion flashlights or projectile pools move, render at vsync.
+        long lightSignature=currentLightSourceSignature();
+        if(LightCacheV78.canReuse(staticCache,cacheValid,
+           Math.abs(camX-lastCameraX)<.15f&&Math.abs(camY-lastCameraY)<.15f&&
+               w==lastScreenW&&h==lastScreenH,
+           Math.abs(nextDarkness-lastDarkness)<=2,
+           now-lastRenderTime<IDLE_LIGHT_REFRESH_NS,
+           lastLightSourceSignature,lightSignature)){
             cacheReuse++;
             screenDst.set(camX,camY,camX+w,camY+h);
             scene.drawBitmap(bitmap,null,screenDst,mapPaint);
@@ -211,7 +227,7 @@ public final class LightingV47 {
         scene.drawBitmap(tintBitmap,null,screenDst,tintMapPaint);
         cacheValid=true;lastCameraX=camX;lastCameraY=camY;
         lastScreenW=w;lastScreenH=h;lastDarkness=nextDarkness;
-        lastRenderTime=now;fullUpdates++;
+        lastRenderTime=now;lastLightSourceSignature=lightSignature;fullUpdates++;
     }
     public void release(){
         if(bitmap!=null){bitmap.recycle();bitmap=null;}

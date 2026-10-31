@@ -753,16 +753,21 @@ public final class GameView extends View {
             }
             gx+=repelX;gy+=repelY;
             float d=distance(friend.x,friend.y,gx,gy);
-            if(d>24){
+            float travel=FollowerArrivalV78.step(d,dt,
+                Math.min(300f,198f+(d>300?76:0)));
+            if(travel>0f){
                 float ux=(gx-friend.x)/Math.max(1,d),uy=(gy-friend.y)/Math.max(1,d);
-                float velocity=Math.min(300f,198f+(d>300?76:0));
-                float nx=friend.x+ux*velocity*dt,ny=friend.y+uy*velocity*dt;
+                float nx=friend.x+ux*travel,ny=friend.y+uy*travel;
                 if(!blocked(nx,friend.y,18))friend.x=nx;
                 if(!blocked(friend.x,ny,18))friend.y=ny;
-                friend.face=ux>=0?1:-1;
-                friend.aimX=friend.face;friend.aimY=0f; // flashlight tracks travel facing
+                // Do not flip a companion and both flashlight hands back/forth
+                // as small repulsion/arrival corrections cross the desired slot.
+                if(FollowerArrivalV78.shouldTurn(gx-beforeFriendX,d))
+                    friend.face=ux>=0f?1:-1;
             }
-            friend.animation.step(distance(friend.x,friend.y,beforeFriendX,beforeFriendY)>.001f,dt,8.5f);
+            friend.aimX=friend.face;friend.aimY=0f;
+            friend.animation.step(FollowerArrivalV78.visuallyWalking(
+                distance(friend.x,friend.y,beforeFriendX,beforeFriendY)),dt,8.5f);
             Bandit target=nearest(friend.x,friend.y,460);
             if(target!=null){
                 float dx=target.x-friend.x,dy=target.y-friend.y;
