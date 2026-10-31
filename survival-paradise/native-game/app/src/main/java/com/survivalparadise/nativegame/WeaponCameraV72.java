@@ -7,20 +7,20 @@ public final class WeaponCameraV72 {
     // medium, sniper longest. Melee remains deliberately short.
     public static int weaponMaximum(int weapon){
         switch(weapon){
-            case 0: case 1: case 2: return 180;
-            case 3: return 140;     // flashlight, short visual look
-            case 4: case 5: case 6: return 280; // rifles / carbine
-            case 7: return 210;    // shotgun
-            case 8: return 360;    // sniper
-            case 9: return 300;    // LMG
-            case 10: return 240;   // launcher
-            case 11: return 90;    // axe
+            case 0: case 1: case 2: return 320;
+            case 3: return 250;     // flashlight, short visual look
+            case 4: case 5: case 6: return 520; // rifles / carbine
+            case 7: return 400;    // shotgun
+            case 8: return 720;    // sniper
+            case 9: return 560;    // LMG
+            case 10: return 440;   // launcher
+            case 11: return 160;    // axe
             default: return 180;
         }
     }
     /** Prevents pushing the actor out of the vertical viewport at any zoom. */
     public static int visibleMaximum(int weapon,float w,float h,float zoom){
-        int viewport=(int)Math.floor(Math.max(0f,Math.min(w,h)*.48f/
+        int viewport=(int)Math.floor(Math.max(0f,Math.min(w,h)*.98f/
             Math.max(.01f,zoom)));
         return Math.max(0,Math.min(weaponMaximum(weapon),viewport));
     }
