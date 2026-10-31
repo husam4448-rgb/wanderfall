@@ -971,12 +971,9 @@ public final class GameView extends View {
             int f=Math.max(0,Math.min(3,frame));
             src.set(f*260,row,f*260+260,row+160);
             dest.set(-70*s,-136*s,190*s,24*s);
-            // The old approved V48 correction is applied ONLY at render-time:
-            // no altered head, boot, pants or skin pixels anywhere in the atlas.
-            c.save();
-            c.translate(WalkAlignmentV48.sourceOffsetX(f)*s,0);
+            // Exact approved atlas; no whole-body translation. The former V48
+            // offset moved the head outline and complexion at every walk step.
             c.drawBitmap(walkingAtlas,src,dest,pixel);
-            c.restore();
             return;
         }
         // Original planted idle source, NOT a walking pose reconstructed in V51.
@@ -1022,6 +1019,18 @@ public final class GameView extends View {
         float s=.76f*scale;
         c.save();c.translate(x,y);if(facing<0)c.scale(-1,1);
         color(0x670b1a18);c.drawOval(-26*s,-7*s,26*s,7*s,p);
+        // V58 rear-layer hand torch. Draw BEFORE the immutable original body:
+        // its silhouette cannot cover the head, eyes, or facial outline.
+        if(!bandit&&dualTorch&&lampOn&&weapon>=0&&weapon<=2&&showWeapons){
+            c.save();
+            c.translate(-30*s,-33*s);
+            c.rotate(aimRotation?aimAng*180f/(float)Math.PI:0f);
+            c.scale(.50f,.50f);
+            atlas(c,gear,3*260,0,0,0,s);
+            drawFlashlightLens(c,s);
+            if(showHands)handAtlas(c,3,2,0,0,s,handScale,0,0);
+            c.restore();
+        }
         Bitmap atlas=npcVariant>=0?npcWalkV56:approvedWalkColors;
         stablePose(c,atlas,npcVariant<0?0:npcVariant,frame,s,breath);
         if(!bandit){
@@ -1056,18 +1065,6 @@ public final class GameView extends View {
                     (OFF_Y[weapon]-136f+supportVertical)*s-3,6,6,0xffe9cc8c);
             }
             c.restore();
-            // Independent off-hand attachment; original body and gun are intact.
-            // The beam is generated independently in applyWorldLighting().
-            if(dualTorch&&lampOn&&weapon>=0&&weapon<=2&&showWeapons){
-                c.save();
-                c.translate(-23*s,-48*s);
-                c.rotate(aimRotation?aimAng*180f/(float)Math.PI:0f);
-                c.scale(.62f,.62f);
-                atlas(c,gear,3*260,0,0,0,s);
-                drawFlashlightLens(c,s);
-                if(showHands)handAtlas(c,3,2,0,0,s,handScale,0,0);
-                c.restore();
-            }
         }else{
             // Bandit overlay is NEW independent art. Body pixels are not changed.
             rect(c,-16*s,-100*s,27*s,5*s,RED);
