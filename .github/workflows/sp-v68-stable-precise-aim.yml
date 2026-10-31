@@ -566,7 +566,7 @@ jobs:
           assert 'aimX=pointerDx' not in g
           assert 'cursorWorldX=clamp(cursorWorldX' not in g
           assert 'float rest=RadialAimV65.rest(gun,crosshairRestPercent);' in g
-          assert 'Maximum crosshair reach equals the bullet endpoint' in m
+          assert 'Crosshair still stops at each weapon' in m
           assert 'weapon' in m.lower()
           assert 'Math.round(142*getResources().getDisplayMetrics().density)' in m
           print('V65 static PASS: aiming is stick-centered, never panning-owned')
