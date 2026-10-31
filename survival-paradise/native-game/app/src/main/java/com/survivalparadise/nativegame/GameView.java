@@ -74,6 +74,8 @@ public final class GameView extends View {
     float lookAheadStrength=0f,lookAheadThreshold=.72f,aimDeflection=0f;
     float cameraLookX=0f,cameraLookY=0f;
     float cursorWorldX=0f,cursorWorldY=0f,cursorMoveX=0f,cursorMoveY=0f;
+    float aimCursorDistance=185f; // pointer orbits the player, never drags across the screen
+    long updateNs=0,worldNs=0,lightingNs=0;
     boolean cursorInitialized=false;
     float cursorSpeed=400f;
     float hunger=100f,thirst=100f,fatigue=0f;
@@ -214,7 +216,7 @@ public final class GameView extends View {
         lookAheadEnabled=host.option("lookAheadEnabled",true);
         lookAheadThreshold=host.setting("lookAheadThreshold",72)/100f;
         lookAheadStrength=host.setting("lookAheadStrength",120);
-        cursorSpeed=host.setting("cursorSpeed",400);
+        cursorSpeed=host.setting("cursorSpeed",400); // retained setting for older saves
         fireButtonX=host.setting("fireButtonX",0);
         fireButtonY=host.setting("fireButtonY",0);
         fireButtonSize=host.setting("fireButtonSize",100)/100f;
@@ -547,16 +549,14 @@ public final class GameView extends View {
             cursorWorldY=playerY-42f+aimY*185f;
             cursorInitialized=true;
         }
-        cursorWorldX+=cursorMoveX*cursorSpeed*dt;
-        cursorWorldY+=cursorMoveY*cursorSpeed*dt;
-        float cursorDx=cursorWorldX-playerX;
-        float cursorDy=cursorWorldY-(playerY-42f);
-        float cursorDistance=(float)Math.hypot(cursorDx,cursorDy);
-        if(cursorDistance>5f){
-            aimX=cursorDx/cursorDistance;aimY=cursorDy/cursorDistance;
-            if(aimX>.025f)face=1;
-            else if(aimX<-.025f)face=-1;
-        }
+        // Aim direction is set immediately by each stick gesture (including
+        // 180-degree reversals); crosshair is a visual pointer that follows it.
+        // Distance responds to stick extension, rather than cursor drag history.
+        float targetX=playerX+aimX*aimCursorDistance;
+        float targetY=playerY-42f+aimY*aimCursorDistance;
+        float cursorFollow=Math.min(1f,dt*20f);
+        cursorWorldX+=(targetX-cursorWorldX)*cursorFollow;
+        cursorWorldY+=(targetY-cursorWorldY)*cursorFollow;
         stamina=Math.max(0,Math.min(100,stamina+dt*((moving&&runHeld)?-13f:8f)));
         if(moving){hunger=Math.max(0,hunger-dt*.012f);thirst=Math.max(0,thirst-dt*.023f);}
         fatigue=Math.max(0,Math.min(100,fatigue+dt*(moving&&runHeld?.20f:-.08f)));
@@ -1398,7 +1398,7 @@ public final class GameView extends View {
         c.drawCircle(rx,ry,52*aimPadScale,p);
         color((alpha<<24)|0x00f2deb0);
         c.drawCircle(rx+aimX*39*aimPadScale,ry+aimY*39*aimPadScale,11*aimPadScale,p);
-        label(c,"CURSOR",rx-33,ry+6,15,WHITE,true);
+        label(c,"AIM",rx-20,ry+6,17,WHITE,true);
         for(int ui=0;ui<LegacyControlsV58.COUNT;ui++)drawAction(c,ui);
         if(showStatusBars){
             drawStatusBar(c,"HP",health,12,145,0xffc76b65);
@@ -1509,10 +1509,18 @@ public final class GameView extends View {
         if(length>1){dx/=length;dy/=length;}
         if(right){
             aimDeflection=Math.min(1f,length);
-            cursorMoveX=Math.abs(dx)>.10f?dx:0f;
-            cursorMoveY=Math.abs(dy)>.10f?dy:0f;
-            // Persistent floating target; joystick steers cursor velocity.
-            // No firing and no automatic snapping to a fixed radius.
+            if(length>.12f){
+                float inv=1f/length;
+                aimX=dx*inv;aimY=dy*inv;
+                aimCursorDistance=clamp(95f+Math.min(1f,length)*240f,95f,335f);
+                face=aimX<-.025f?-1:aimX>.025f?1:face;
+                if(cursorInitialized){
+                    // Immediate heading correction: no dragging an old pointer
+                    // across the character when swiping to the reverse side.
+                    cursorWorldX=playerX+aimX*aimCursorDistance;
+                    cursorWorldY=playerY-42f+aimY*aimCursorDistance;
+                }
+            }
         }else {stickX=dx;stickY=dy;}
     }
     float fireWidth(){return 105f*fireButtonSize;}
