@@ -6,8 +6,8 @@ android {
   applicationId 'com.survivalparadise.nativegame'
   minSdk 24
   targetSdk 34
-  versionCode 65
-  versionName '0.64-responsive-pointer-edge-pan'
+  versionCode 66
+  versionName '0.65-instant-radial-aim-snapback'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
