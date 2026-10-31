@@ -1557,7 +1557,9 @@ public final class GameView extends View {
             if(paused&&!settingsPause)pauseOverlay(canvas);
         }else menu(canvas);
         canvas.restore();
-        postInvalidateDelayed(16);
+        // Schedule at the next display vsync, never add a fixed 16ms delay ON TOP
+        // of CPU draw time. The old loop capped real FPS below panel refresh.
+        postInvalidateOnAnimation();
     }
     byte[] capturePNG(){
         Bitmap image=Bitmap.createBitmap(Math.max(1,getWidth()),Math.max(1,getHeight()),Bitmap.Config.ARGB_8888);
