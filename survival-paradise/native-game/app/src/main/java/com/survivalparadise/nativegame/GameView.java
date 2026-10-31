@@ -26,6 +26,10 @@ import java.util.Random;
 public final class GameView extends View {
     final MainActivity host;
     final Paint p=new Paint();
+    private static final android.graphics.Typeface PIXEL_BOLD=
+        android.graphics.Typeface.create("monospace",1);
+    private static final android.graphics.Typeface PIXEL_NORMAL=
+        android.graphics.Typeface.create("monospace",0);
     final Paint pixel=new Paint(Paint.ANTI_ALIAS_FLAG==0?0:0);
     Bitmap body,approvedWalkColors,stableBody,npcRoleAtlas,npcIdleAtlas,npcWalkV56,npcIdleV56,gear,approvedAxe;
     static final int ROLE_BANDIT=0,ROLE_GUARD=2,ROLE_MEDIC=4,ROLE_MECHANIC=6,
@@ -227,7 +231,8 @@ public final class GameView extends View {
         showPerf=host.option("testPerf",true);
         showChunkGrid=host.option("testChunkGrid",false);
         npcSleepRadius=host.setting("npcSleepRadius",1200);
-        lighting.setPixelScale(host.setting("lightResolution",150)/100f);
+        lighting.setPixelScale(host.setting("lightResolution",220)/100f);
+        lighting.setFastPointLights(host.option("fastPointLights",true));
         terrainChunks.setLimits(host.setting("testCacheMax",36),
                                 host.setting("testPreloadRadius",2));
         showHands=host.option("hands",true);
@@ -725,8 +730,7 @@ public final class GameView extends View {
         color(color);c.drawRoundRect(x,y,x+w,y+h,radius,radius,p);
     }
     void label(Canvas c,String t,float x,float y,int size,int col,boolean bold){
-        color(col);p.setTypeface(bold?android.graphics.Typeface.create("monospace",1):
-                android.graphics.Typeface.create("monospace",0));
+        color(col);p.setTypeface(bold?PIXEL_BOLD:PIXEL_NORMAL);
         p.setTextSize(size);c.drawText(t,x,y,p);
     }
     int hash(int a,int b){int k=a*73856093^b*19349663;k^=k>>>13;k*=0x5bd1e995;return k^(k>>>15);}
@@ -854,6 +858,7 @@ public final class GameView extends View {
     }
     void applyWorldLighting(Canvas c){
         if(lightAlpha<=0)return;
+        long lightStart=System.nanoTime();
         lighting.clear();
         populateLightBlockers();
         if(campfiresLit){
@@ -912,6 +917,7 @@ public final class GameView extends View {
             illuminatedBullets++;
         }
         lighting.render(c,camX,camY,viewW,viewH,lightAlpha,covers);
+        lightingNs=System.nanoTime()-lightStart;
         // Lamps/neon signage are static architecture; campfire flames were
         // already depth-sorted with characters and are NOT painted over them.
         drawFixtures(c,true);
@@ -1475,7 +1481,7 @@ public final class GameView extends View {
         label(c,"MOVE",81,viewH-30,12,0xffb8d4c5,true);
         if(reloadClock>0)label(c,"RELOADING...",viewW-235,viewH-227,17,ORANGE,true);
         if(showPerf){
-            rounded(c,10,62,348,68,8,0xe41a3033);
+            rounded(c,10,62,348,87,8,0xe41a3033);
             label(c,String.format(Locale.US,"FPS %.1f  %.1fms  NPC %d",
                 1000f/Math.max(1f,smoothedFrameMs),smoothedFrameMs,
                 lastVisibleNpcs),
@@ -1486,6 +1492,8 @@ public final class GameView extends View {
                 terrainChunks.pendingCount()),18,102,13,OLIVE,false);
             label(c,String.format(Locale.US,"WORLD %.0f, %.0f | CULLED %d",
                 playerX,playerY,lastCulledNpcs),18,120,12,ORANGE,false);
+            label(c,String.format(Locale.US,"CPU UPDATE %.1f  DRAW %.1f  LIGHT %.1f ms",
+                updateNs/1e6f,worldNs/1e6f,lightingNs/1e6f),18,138,11,OLIVE,false);
         }
     }
     void menu(Canvas c){
@@ -1523,7 +1531,9 @@ public final class GameView extends View {
         }
         drawScale=Math.max(.1f,getHeight()/H);
         viewW=getWidth()/drawScale;viewH=H;
+        long updateStart=System.nanoTime();
         update(dt);
+        updateNs=System.nanoTime()-updateStart;
         float effectiveZoom=zoom;
         // Camera follow and clamping in world coordinates.
         camX=playerX-viewW/(2*effectiveZoom)+cameraLookX;
@@ -1534,7 +1544,11 @@ public final class GameView extends View {
         float drawW=viewW/effectiveZoom,drawH=viewH/effectiveZoom;
         float oldW=viewW,oldH=viewH;
         viewW=drawW;viewH=drawH;
-        drawWorld(canvas);viewW=oldW;viewH=oldH;
+        long renderStart=System.nanoTime();
+        if(lightAlpha<=0)lightingNs=0;
+        drawWorld(canvas);
+        worldNs=System.nanoTime()-renderStart;
+        viewW=oldW;viewH=oldH;
         canvas.restore();
         if(playing){
             hud(canvas);
