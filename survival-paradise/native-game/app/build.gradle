@@ -6,8 +6,8 @@ android {
   applicationId 'com.survivalparadise.nativegame'
   minSdk 24
   targetSdk 34
-  versionCode 63
-  versionName '0.62-reticle-paperdoll-quickbar'
+  versionCode 64
+  versionName '0.63-floating-cursor-compact-bag'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
