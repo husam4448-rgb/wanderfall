@@ -25,7 +25,7 @@ public final class LegacyControlsV58 {
             case RUN:return Math.round(w-145f);
             case CROUCH:return Math.round(w*.28f);
             case USE:return Math.round(w*.397f);
-            case SWAP:return Math.round(w*.505f);
+            case SWAP:return Math.round(Math.min(w*.505f,w-619f));
             case RELOAD:return Math.round(w-513f);
             case ZOOM_IN:return Math.round(w-88f);
             case ZOOM_OUT:return Math.round(w-174f);
