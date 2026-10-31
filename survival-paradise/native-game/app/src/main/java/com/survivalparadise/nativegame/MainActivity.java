@@ -60,6 +60,19 @@ public final class MainActivity extends Activity {
                      .putBoolean("staticLightCache",true)
                      .putBoolean("v60_lighting_migrated",true).apply();
         }
+        // One-time V72 HUD preset, without modifying world/equipment saves.
+        if(!prefs.getBoolean("v72_reference_hud_migrated",false)){
+            SharedPreferences.Editor hud=prefs.edit();
+            for(int id=0;id<LegacyControlsV58.COUNT+4;id++){
+                hud.remove("uiX"+id).remove("uiY"+id).remove("uiSize"+id)
+                    .remove("uiAlpha"+id).remove("uiEnabled"+id);
+            }
+            hud.remove("movePadSize").remove("aimPadSize")
+                .putBoolean("editControls",false)
+                .putBoolean("classicAimCameraV71",true)
+                .putInt("cameraPanPercentV72",72)
+                .putBoolean("v72_reference_hud_migrated",true).apply();
+        }
         applyImmersive();
         game=new GameView(this);
         setContentView(game);
@@ -159,6 +172,37 @@ public final class MainActivity extends Activity {
         // Touching only the central track edits; wide margins remain free to scroll.
         root.addView(box);
     }
+    /** The slider's actual maximum follows the currently equipped weapon.
+     * Save percentage rather than absolute pixels so swapping guns can
+     * increase/decrease pan reach without resetting the user's preference. */
+    private void weaponPanSlider(LinearLayout root){
+        int weapon=game==null?0:game.gun;
+        int maximum=WeaponCameraV72.visibleMaximum(weapon,
+            game==null?1480f:game.viewW,game==null?720f:game.viewH,
+            game==null?1f:Math.max(.01f,game.zoom));
+        int percent=prefs.getInt("cameraPanPercentV72",72);
+        LinearLayout box=column();box.setPadding(6,3,6,3);
+        TextView caption=text("",14,false);box.addView(caption);
+        SeekBar bar=new SeekBar(this);bar.setMax(Math.max(1,maximum));
+        bar.setProgress(Math.round(maximum*percent/100f));
+        caption.setText("CIRCULAR CAMERA PAN — "+LOADOUTS[weapon]+
+            "   "+bar.getProgress()+" / "+maximum+" px");
+        bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
+            public void onProgressChanged(SeekBar v,int p,boolean fromUser){
+                caption.setText("CIRCULAR CAMERA PAN — "+LOADOUTS[weapon]+
+                    "   "+Math.min(maximum,p)+" / "+maximum+" px");
+                if(fromUser){
+                    prefs.edit().putInt("cameraPanPercentV72",
+                        maximum>0?Math.round(p*100f/maximum):0).apply();
+                    game.reloadSettings();
+                }
+            }
+            public void onStartTrackingTouch(SeekBar v){}
+            public void onStopTrackingTouch(SeekBar v){}
+        });
+        box.addView(bar);root.addView(box);
+        root.addView(text("Range follows equipped weapon; reopen Settings after swapping. Equal circular pan in all directions.",11,false));
+    }
     private void check(LinearLayout root,String title,String key,boolean def){
         CheckBox b=new CheckBox(this);b.setText(title);b.setTextColor(INK);b.setTextSize(13);
         b.setPadding(8,1,5,1);b.setChecked(prefs.getBoolean(key,def));root.addView(b);
@@ -218,8 +262,9 @@ public final class MainActivity extends Activity {
                 prefs.edit().putInt("selectedButton",index).apply();
                 options.removeAllViews();
                 check(options,"Enable "+LegacyControlsV58.NAMES[index],
-                    "uiEnabled"+index,true);
-                slider(options,"SIZE","uiSize"+index,60,160,100,"%");
+                    "uiEnabled"+index,LegacyControlsV58.defaultEnabled(index));
+                slider(options,"SIZE","uiSize"+index,60,160,
+                    LegacyControlsV58.defaultScale(index),"%");
                 slider(options,"OPACITY","uiAlpha"+index,30,100,100,"%");
                 slider(options,"HORIZONTAL POSITION","uiX"+index,-340,340,0,"");
                 slider(options,"VERTICAL POSITION","uiY"+index,-270,270,0,"");
@@ -241,9 +286,10 @@ public final class MainActivity extends Activity {
         });
         action(root,"RESTORE ALL BUTTON DEFAULTS",()->{
             SharedPreferences.Editor edit=prefs.edit();
-            for(int i=0;i<LegacyControlsV58.COUNT;i++)
+            for(int i=0;i<LegacyControlsV58.COUNT+4;i++)
                 edit.remove("uiX"+i).remove("uiY"+i).remove("uiSize"+i)
                     .remove("uiAlpha"+i).remove("uiEnabled"+i);
+            edit.remove("movePadSize").remove("aimPadSize");
             edit.putBoolean("editControls",false).apply();
             game.reloadSettings();
             if(active[0]!=null)active[0].dismiss();
@@ -625,8 +671,8 @@ public final class MainActivity extends Activity {
         slider(root,"Approved crimson crosshair size","reticleSize",40,220,100,"%");
         root.addView(text("CLASSIC V61 AIM RESTORED: drag the aim thumb from its center toward the rim. Both the thumb and crosshair slide directly with your finger, without auto-extension, acceleration, or aim zones.",11,false));
         slider(root,"Released crosshair distance (weapon-relative)","crosshairRestPercent",50,200,100,"%");
-        check(root,"Optional classic look-ahead camera (OFF by default)","classicAimCameraV71",false);
-        slider(root,"Circular camera offset limit","cameraPanLimitV69",0,180,65," px");
+        check(root,"Circular camera look-ahead (ON by default)","classicAimCameraV71",true);
+        weaponPanSlider(root);
         slider(root,"Camera look-ahead stick threshold","lookAheadThreshold",30,95,72,"%");
         slider(root,"Camera panning response speed","lookAheadSmooth",2,18,8," /s");
         slider(root,"Maximum camera pan speed","cameraPanSpeedV68",120,1200,350," px/s");
@@ -692,8 +738,8 @@ public final class MainActivity extends Activity {
               .putBoolean("neonLights",true)
               .putBoolean("fullscreen",true)
               .putBoolean("testPerf",true).putBoolean("testChunkGrid",false)
-              .putInt("cameraZoom",100).putInt("movePadSize",100)
-              .putInt("aimPadSize",100).putInt("moveSensitivity",100)
+              .putInt("cameraZoom",100).putInt("movePadSize",180)
+              .putInt("aimPadSize",180).putInt("moveSensitivity",100)
               .putInt("aimSensitivity",100).putInt("controlOpacity",100)
               .putInt("testCacheMax",36).putInt("testPreloadRadius",2)
               .putInt("npcSleepRadius",1200).putInt("lightResolution",150)
@@ -703,10 +749,10 @@ public final class MainActivity extends Activity {
               .putInt("menuTextSize",100).putInt("menuSliderSize",100)
               .putInt("menuRowSpacing",100).putBoolean("dualTorch",true)
               .putBoolean("showStatusBars",true).putBoolean("showCrosshair",true)
-              .putBoolean("lookAheadEnabled",false).putBoolean("classicAimCameraV71",false)
+              .putBoolean("lookAheadEnabled",true).putBoolean("classicAimCameraV71",true)
               .putInt("lookAheadThreshold",72)
               .putInt("lookAheadStrength",420).putInt("lookAheadSmooth",8)
-              .putInt("cameraPanLimitV69",65)
+              .putInt("cameraPanPercentV72",72)
               .putInt("followMode",0).putInt("followSpacing",125).putInt("cursorSpeed",400)
               .putInt("crosshairRestPercent",100).putInt("cursorSpeedV68",650)
               .putInt("aimDeadzoneV68",17).putInt("aimCurveV68",175)
@@ -764,9 +810,23 @@ public final class MainActivity extends Activity {
             if(activeDialog[0]!=null)activeDialog[0].dismiss();
             hudEditor();
         });
+        // Compact in-window button replaces Android AlertDialog's oversized
+        // grey positive-button strip and leaves more useful scroll height.
+        Button returnGame=new Button(this);
+        returnGame.setText("RETURN TO GAME");
+        returnGame.setTextSize(12);
+        returnGame.setAllCaps(false);
+        returnGame.setMinHeight(0);returnGame.setMinimumHeight(0);
+        returnGame.setPadding(0,0,0,0);
+        returnGame.setTextColor(0xff85d6d0);
+        returnGame.setBackgroundColor(0xff23393e);
+        int footerPx=Math.max(30,Math.min(
+            Math.round(30f*getResources().getDisplayMetrics().density),
+            getResources().getDisplayMetrics().heightPixels/12));
+        shell.addView(returnGame,new LinearLayout.LayoutParams(-1,footerPx));
         AlertDialog dialog=new AlertDialog.Builder(this).setView(shell)
-          .setPositiveButton("RETURN TO GAME",(d,w)->game.menuPause(false))
           .setOnCancelListener(d->game.menuPause(false)).create();
+        returnGame.setOnClickListener(v->dialog.dismiss());
         activeDialog[0]=dialog;
         dialog.setOnDismissListener(d->{game.menuPause(false);restoreFullscreenAfterShade();});
         dialog.show();
