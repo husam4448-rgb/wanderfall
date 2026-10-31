@@ -393,7 +393,7 @@ jobs:
           assert 'c.translate(WalkAlignmentV48.sourceOffsetX' not in game
           for q in ['void hudEditor(){','"v60_lighting_migrated"',
                     '"fastPointLights"','"staticLightCache"',
-                    'slider(root,"Aim crosshair distance at full stick"',
+                    'slider(root,"Aim crosshair maximum distance"',
                     '"OPEN ON-SCREEN HUD EDITOR"',
                     'jumpButton(jumpBar2,"HUD EDIT"',
                     'leftRail.setOnTouchListener(railScroll)']:
