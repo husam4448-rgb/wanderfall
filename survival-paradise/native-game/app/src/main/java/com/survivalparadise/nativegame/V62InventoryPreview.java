@@ -24,7 +24,9 @@ public final class V62InventoryPreview extends View {
         paint.setStyle(Paint.Style.FILL);
         // The exact approved idle atlas and current equipped firearm/torch are
         // rendered through GameView.character; head/torso art is never reconstructed.
-        // Fit the complete approved survivor and weapon within this panel. Never\n        // enlarge by the world/character zoom or crop the face/equipment.\n        float factor=Math.min(w/210f,h/150f)*.92f;
+        // Fit the complete approved survivor and weapon within this panel. Never
+        // enlarge by the world/character zoom or crop the face/equipment.
+        float factor=Math.min(w/210f,h/150f)*.92f;
         canvas.save();
         canvas.translate(w*.55f,h*.81f);
         canvas.scale(factor,factor);
