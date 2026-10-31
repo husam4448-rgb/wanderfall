@@ -623,12 +623,12 @@ public final class MainActivity extends Activity {
         check(root,"Show classic six status bars","showStatusBars",true);
         check(root,"Show world aiming crosshair","showCrosshair",true);
         slider(root,"Approved crimson crosshair size","reticleSize",40,220,100,"%");
-        root.addView(text("V69: camera pans at most 65 px by default, never to the distant bullet endpoint. Set maximum camera movement to 0 for fixed view. Ballistic ranges are unchanged.",11,false));
+        root.addView(text("V70 AIM ZONES: inner 0–62% rotates aim at the resting range; 62–90% deliberately extends the crosshair; outer 90–100% enters circular camera panning. All four directions have equal pan reach.",11,false));
         check(root,"Aim-stick camera look-ahead (OFF = fixed camera)","lookAheadEnabled",true);
-        slider(root,"Maximum camera movement from character","cameraPanLimitV69",0,180,65," px");
+        slider(root,"Circular pan radius (all directions equally)","cameraPanLimitV69",0,180,65," px");
         slider(root,"Camera panning response speed","lookAheadSmooth",2,18,8," /s");
         slider(root,"Released crosshair distance (weapon-relative)","crosshairRestPercent",50,200,100,"%");
-        slider(root,"Crosshair movement speed","cursorSpeedV68",150,2400,650," px/s");
+        slider(root,"Crosshair outward extension speed","cursorSpeedV68",150,2400,650," px/s");
         slider(root,"Fine aim stability / deadzone","aimDeadzoneV68",5,30,17,"%");
         slider(root,"Fine aim acceleration curve","aimCurveV68",100,250,175,"%");
         slider(root,"Direction steering sensitivity","aimSteeringV68",35,200,100,"%");
