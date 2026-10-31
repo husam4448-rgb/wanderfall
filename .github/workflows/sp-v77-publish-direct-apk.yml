@@ -1,0 +1,49 @@
+name: Survival Paradise V77 — Publish direct APK
+on:
+  push:
+    branches: [sp-native-v77-walkspeed-side-settings-20261101]
+    paths: ['.github/workflows/sp-v77-publish-direct-apk.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish-verified-v77:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Download and check verified V77 Android artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/spv77
+          gh run download 41249905662 -R "$GITHUB_REPOSITORY" \
+            -n SP_V77_Walkspeed_Settings -D /tmp/spv77
+          APK=/tmp/spv77/SurvivalParadise_V77_Walkspeed_Settings.apk
+          test -s "$APK"
+          echo "cbed6fe0def2ed0213fbb1451c3159d7e2cdd3233cb5fa0aecb526ca984b0b62  $APK" | sha256sum -c -
+          unzip -t "$APK" >/dev/null
+          unzip -l "$APK" | grep 'classes.dex'
+          test -s /tmp/spv77/SurvivalParadise_V77_Source.zip
+          echo "V77 verified APK source=7b24c8478332d95fa776fbc028a56b185edfafe4"
+      - name: Publish stable download URLs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG=survival-paradise-v77-walkspeed-settings
+          APK=/tmp/spv77/SurvivalParadise_V77_Walkspeed_Settings.apk
+          SOURCE=/tmp/spv77/SurvivalParadise_V77_Source.zip
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" "$SOURCE" --clobber -R "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" "$APK" "$SOURCE" \
+              -R "$GITHUB_REPOSITORY" \
+              --target 7b24c8478332d95fa776fbc028a56b185edfafe4 \
+              --title "Survival Paradise V77 — Faster Walking and Side Settings (Experimental)" \
+              --notes "Native Android game APK compiled and CI-verified from 7b24c8478332d95fa776fbc028a56b185edfafe4. Player walk speed slider 75–200% default 130%, separate from simulation speed. Settings section navigation on the left, vertically scrollable settings on the right. V76 approved controls, graphics, inventory and world preserved. On-device visual review pending." \
+              --prerelease
+          fi
+          gh release view "$TAG" -R "$GITHUB_REPOSITORY" \
+            --json url,assets --jq '{url:.url,assets:[.assets[]|{name:.name,url:.url}]}'
