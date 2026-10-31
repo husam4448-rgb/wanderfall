@@ -250,7 +250,7 @@ public final class GameView extends View {
         moveSensitivity=host.setting("moveSensitivity",100)/100f;
         aimSensitivity=host.setting("aimSensitivity",100)/100f;
         controlOpacity=host.setting("controlOpacity",100);
-        hudOpacityV73=Math.max(15,Math.min(100,host.setting("hudOpacityV73",100)));
+        hudOpacityV73=CameraHudV73.opacity(host.setting("hudOpacityV73",100));
         dualTorch=host.option("dualTorch",true);
         editControls=host.option("editControls",false);
         selectedHudControl=Math.min(EDITOR_ITEMS-1,host.setting("selectedButton",0));
@@ -287,7 +287,7 @@ public final class GameView extends View {
         fireButtonX=host.setting("fireButtonX",0);
         fireButtonY=host.setting("fireButtonY",0);
         fireButtonSize=host.setting("fireButtonSize",100)/100f;
-        zoom=Math.max(.45f,Math.min(1.8f,host.setting("cameraZoom",100)/100f));
+        zoom=CameraHudV73.zoom(host.setting("cameraZoom",100));
         showPerf=host.option("testPerf",true);
         showChunkGrid=host.option("testChunkGrid",false);
         npcSleepRadius=host.setting("npcSleepRadius",1200);
@@ -1707,8 +1707,9 @@ public final class GameView extends View {
     void hud(Canvas c){
         // Entire interface fades together; world and targeting reticle are
         // outside this composited HUD layer and stay fully readable.
-        int hudLayer=c.saveLayerAlpha(0f,0f,viewW,viewH,
-            Math.round(255f*hudOpacityV73/100f));
+        // Avoid allocating an offscreen HUD layer at the 100% default.
+        int hudLayer=hudOpacityV73<100?
+            c.saveLayerAlpha(0f,0f,viewW,viewH,CameraHudV73.alpha(hudOpacityV73)):0;
         rect(c,0,0,viewW,56,0xc90e2228);
         label(c,"SURVIVAL PARADISE",17,23,18,WHITE,true);
         label(c,"HP "+(int)health+"   AMMO "+ammo+"/"+MAG[gun]+"   WAVE "+wave+
@@ -1776,7 +1777,7 @@ public final class GameView extends View {
             label(c,String.format(Locale.US,"CPU UPDATE %.1f  DRAW %.1f  LIGHT %.1f ms",
                 updateNs/1e6f,worldNs/1e6f,lightingNs/1e6f),18,138,11,OLIVE,false);
         }
-        c.restoreToCount(hudLayer);
+        if(hudLayer!=0)c.restoreToCount(hudLayer);
         // Keep on-screen edit handles opaque at any HUD opacity.
         if(editControls)drawHudEditorOverlay(c);
     }
