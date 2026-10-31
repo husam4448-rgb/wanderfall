@@ -646,8 +646,13 @@ public final class GameView extends View {
             (aimDeflection-lookAheadThreshold)/Math.max(.01f,1-lookAheadThreshold):0f;
         float stickLength=Math.max(.001f,(float)Math.hypot(cursorMoveX,cursorMoveY));
         float ease=Math.min(1f,dt*lookAheadSmooth);
-        cameraLookX+=(cursorMoveX/stickLength*desiredAhead-cameraLookX)*ease;
-        cameraLookY+=(cursorMoveY/stickLength*desiredAhead-cameraLookY)*ease;
+        // Camera travel never pushes the survivor under the HUD or offscreen.
+        float panMaxX=Math.max(0f,(viewW*.5f-85f)/Math.max(.01f,zoom));
+        float panMaxY=Math.max(0f,(viewH*.5f-100f)/Math.max(.01f,zoom));
+        float panX=clamp(cursorMoveX/stickLength*desiredAhead,-panMaxX,panMaxX);
+        float panY=clamp(cursorMoveY/stickLength*desiredAhead,-panMaxY,panMaxY);
+        cameraLookX+=(panX-cameraLookX)*ease;
+        cameraLookY+=(panY-cameraLookY)*ease;
         // Prevent the floating pointer from leaving the unobscured viewport
         // while look-ahead pans or recenters. World coords remain authoritative.
         float half=21f*reticleSize,z=Math.max(.01f,zoom);
@@ -658,6 +663,16 @@ public final class GameView extends View {
         pointerDx=cursorWorldX-playerX;
         pointerDy=cursorWorldY-(playerY-42f);
         pointerRange=(float)Math.hypot(pointerDx,pointerDy);
+        // Project back onto the maximum-range disk after screen clamping.
+        // The player anchor remains inside the viewport, so this projection
+        // also remains visible.
+        if(pointerRange>cursorMaxRange){
+            float k=cursorMaxRange/pointerRange;
+            pointerDx*=k;pointerDy*=k;
+            cursorWorldX=playerX+pointerDx;
+            cursorWorldY=playerY-42f+pointerDy;
+            pointerRange=cursorMaxRange;
+        }
         if(pointerRange>2f){
             aimX=pointerDx/pointerRange;aimY=pointerDy/pointerRange;
         }
