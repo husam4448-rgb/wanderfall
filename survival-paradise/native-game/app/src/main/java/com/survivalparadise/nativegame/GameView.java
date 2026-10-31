@@ -32,6 +32,8 @@ public final class GameView extends View {
         android.graphics.Typeface.create("monospace",0);
     final Paint pixel=new Paint(Paint.ANTI_ALIAS_FLAG==0?0:0);
     Bitmap body,approvedWalkColors,stableBody,npcRoleAtlas,npcIdleAtlas,npcWalkV56,npcIdleV56,gear,approvedAxe;
+    Bitmap campStatic; // immutable pre-rendered authored camp, not per-frame rectangles
+    private static final float CAMP_TEXTURE_LEFT=CAMP_X-480,CAMP_TEXTURE_TOP=CAMP_Y-355;
     static final int ROLE_BANDIT=0,ROLE_GUARD=2,ROLE_MEDIC=4,ROLE_MECHANIC=6,
                      ROLE_TRADER=8,ROLE_CIVILIAN=10;
     static final float CAMP_X=1080,CAMP_Y=710;
@@ -996,8 +998,17 @@ public final class GameView extends View {
         drawSpawnCamp(c);
     }
     void drawSpawnCamp(Canvas c){
-        if(CAMP_X<camX-350||CAMP_X>camX+viewW+350||
-           CAMP_Y<camY-250||CAMP_Y>camY+viewH+250)return;
+        if(CAMP_X<camX-520||CAMP_X>camX+viewW+520||
+           CAMP_Y<camY-375||CAMP_Y>camY+viewH+375)return;
+        if(campStatic==null){
+            campStatic=Bitmap.createBitmap(1000,730,Bitmap.Config.ARGB_8888);
+            Canvas texture=new Canvas(campStatic);
+            texture.translate(-CAMP_TEXTURE_LEFT,-CAMP_TEXTURE_TOP);
+            drawSpawnCampDetails(texture);
+        }
+        c.drawBitmap(campStatic,CAMP_TEXTURE_LEFT,CAMP_TEXTURE_TOP,pixel);
+    }
+    void drawSpawnCampDetails(Canvas c){
         float x=CAMP_X,y=CAMP_Y;
         rect(c,x-255,y-165,506,355,0x345c7351);
         // Restored simple survivor camp clearing with tents and equipment.
@@ -1521,6 +1532,7 @@ public final class GameView extends View {
     @Override protected void onDetachedFromWindow(){
         terrainChunks.release();
         lighting.release();
+        if(campStatic!=null){campStatic.recycle();campStatic=null;}
         super.onDetachedFromWindow();
     }
     @Override protected void onDraw(Canvas canvas){
