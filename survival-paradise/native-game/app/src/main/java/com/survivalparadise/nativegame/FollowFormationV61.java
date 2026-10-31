@@ -24,7 +24,7 @@ public final class FollowFormationV61 {
             case SQUARE:return (1+i/3)*s;
             case CARAVAN:return (i+1)*s;
             case LINE:return 1.2f*s;
-            case RANDOM:return (1f+i*.17f+jitter(i,77)) *s*1.4f;
+            case RANDOM:return (i+1)*s*1.35f+jitter(i,77)*s*.18f;
             default:return (1f+i/2*.55f)*s;
         }
     }
