@@ -1475,6 +1475,80 @@ public final class GameView extends View {
         rect(c,x+65,y+2,142*v/100f,12,fill);
         label(c,Integer.toString(Math.round(v)),x+213,y+12,12,WHITE,true);
     }
+    float hotbarLeft(){
+        return viewW*.5f-6*47f*hotbarScale*.5f+
+            (editPointer>=0&&editControl==HOTBAR?editX:host.setting("uiX"+HOTBAR,0));
+    }
+    float hotbarTop(){
+        return viewH-256f+
+            (editPointer>=0&&editControl==HOTBAR?editY:host.setting("uiY"+HOTBAR,0));
+    }
+    int hotbarAt(float x,float y){
+        float l=hotbarLeft(),top=hotbarTop(),size=47f*hotbarScale;
+        if(y<top||y>top+size||x<l||x>=l+6*size)return -1;
+        return Math.min(5,(int)((x-l)/size));
+    }
+    static String hotbarLabel(int item){
+        if(item<0||item>=HOTBAR_TYPES.length)return "?";
+        return HOTBAR_TYPES[item];
+    }
+    int hotbarQuantity(int item){
+        if(item==1)return medkits;
+        if(item==2)return ammoPacks;
+        if(item==6)return foodCount;
+        if(item==7)return waterCount;
+        return 0;
+    }
+    void setHotbarItem(int slot,int item){
+        if(slot<0||slot>=hotbar.length||item<0||item>=HOTBAR_TYPES.length)return;
+        hotbar[slot]=item;
+        host.prefs.edit().putInt("hotbar"+slot,item).apply();
+    }
+    void useHotbar(int slot){
+        if(slot<0||slot>=6||!playing||paused)return;
+        selectedHotbar=slot;int item=hotbar[slot];
+        if(item==1&&medkits>0&&health<100){
+            medkits--;health=Math.min(100,health+40);
+        }else if(item==2&&ammoPacks>0&&ammo<MAG[gun]){
+            ammoPacks--;ammo=MAG[gun];
+        }else if(item==3||item==4||item==5){
+            int weapon=item==3?0:item==4?7:2;
+            gun=weapon;ammo=Math.min(ammo,MAG[gun]);
+            host.prefs.edit().putInt("gun",weapon).apply();
+        }else if(item==6&&foodCount>0){
+            foodCount--;hunger=Math.min(100f,hunger+30);
+        }else if(item==7&&waterCount>0){
+            waterCount--;thirst=Math.min(100f,thirst+35);
+        }else if(item==8){
+            toggleLamp();
+        }
+        saveProgress();invalidate();
+    }
+    void drawHotbar(Canvas c){
+        float x=hotbarLeft(),y=hotbarTop(),size=47f*hotbarScale;
+        for(int i=0;i<6;i++){
+            int item=hotbar[i],alpha=Math.round(255f*hotbarOpacity/100f);
+            int bg=((Math.max(35,alpha)&255)<<24)|(i==selectedHotbar?0x0067573c:0x002e3938);
+            rounded(c,x+i*size+1,y+1,size-3,size-3,5,bg);
+            p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(i==selectedHotbar?2.4f:1f);
+            color(i==selectedHotbar?0xffe5bb6e:0xff8b8270);
+            c.drawRect(x+i*size+3,y+3,x+(i+1)*size-4,y+size-4,p);
+            p.setStyle(Paint.Style.FILL);
+            label(c,Integer.toString(i+1),x+i*size+5,y+12,9,0xffc2c5ad,true);
+            String name=hotbarLabel(item);
+            label(c,name.length()>6?name.substring(0,6):name,x+i*size+5,y+size*.63f,
+                    9,0xffe7e1c7,true);
+            if(item==1||item==2||item==6||item==7)
+                label(c,Integer.toString(hotbarQuantity(item)),x+(i+1)*size-14,
+                      y+size-6,10,0xffe6d4aa,true);
+        }
+        if(editControls){
+            p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(2);
+            color(0xffe6bc71);
+            c.drawRect(x,y,x+size*6,y+size,p);
+            p.setStyle(Paint.Style.FILL);
+        }
+    }
     float hudEditorLeft(){return viewW*.5f-350f+panelX;}
     void drawHudEditorOverlay(Canvas c){
         float left=hudEditorLeft(),top=panelY;
@@ -1615,6 +1689,7 @@ public final class GameView extends View {
         c.drawCircle(rx+aimX*39*aimPadScale,ry+aimY*39*aimPadScale,11*aimPadScale,p);
         label(c,"AIM",rx-20,ry+6,17,WHITE,true);
         for(int ui=0;ui<LegacyControlsV58.COUNT;ui++)drawAction(c,ui);
+        drawHotbar(c);
         if(showStatusBars){
             drawStatusBar(c,"HP",health,12,145,0xffc76b65);
             drawStatusBar(c,"STA",stamina,12,165,0xff64ad80);
@@ -1828,6 +1903,17 @@ public final class GameView extends View {
                 if(!playing||paused||y<58){tap(x,y);return true;}
                 if(editControls&&hudEditorTouch(x,y)){
                     if(panelPointer==-2)panelPointer=id;
+                    return true;
+                }
+                int hotSlot=hotbarAt(x,y);
+                if(hotSlot>=0){
+                    if(editControls){
+                        editPointer=id;editControl=HOTBAR;selectedHudControl=HOTBAR;
+                        editX=host.setting("uiX"+HOTBAR,0);
+                        editY=host.setting("uiY"+HOTBAR,0);
+                        editGrabX=x-hotbarLeft();editGrabY=y-hotbarTop();
+                        host.prefs.edit().putInt("selectedButton",HOTBAR).apply();
+                    }else useHotbar(hotSlot);
                     return true;
                 }
                 int target=actionAt(x,y);
