@@ -195,6 +195,7 @@ jobs:
           game=(root/"GameView.java").read_text()
           main=(root/"MainActivity.java").read_text()
           chunks=(root/"WorldChunkCache.java").read_text()
+          controls=(root/"LegacyControlsV58.java").read_text()
           for original in [
             '"NEW GAME"','"CONTINUE"','"GAME SETTINGS"',
             '"RELOAD"','"SWAP"','"PAUSE"','"BAG"',
@@ -202,7 +203,7 @@ jobs:
             'void updateStick(', 'MotionEvent.ACTION_POINTER_DOWN',
             'void newGame()', 'void continueGame()', 'void switchWeapon()',
             'void saveProgress()', 'void drawWorld(Canvas c)'
-          ]: assert original in game,original
+          ]: assert original in game or original in controls,original
           for oldsetting in [
             '"scale"','"hand"','"support"','"supportY"','"speed"',
             '"survivors"','"gun"','"hands"','"weapons"','"anchors"',
