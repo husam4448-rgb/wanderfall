@@ -394,7 +394,7 @@ jobs:
           for q in ['void hudEditor(){','"v60_lighting_migrated"',
                     '"fastPointLights"','"staticLightCache"',
                     'slider(root,"Aim crosshair distance at full stick"',
-                    '"ENABLE LIVE HUD EDITOR (THEN RETURN TO GAME)"',
+                    '"OPEN ON-SCREEN HUD EDITOR"',
                     'jumpButton(jumpBar2,"HUD EDIT"',
                     'leftRail.setOnTouchListener(railScroll)']:
               assert q in settings,q
