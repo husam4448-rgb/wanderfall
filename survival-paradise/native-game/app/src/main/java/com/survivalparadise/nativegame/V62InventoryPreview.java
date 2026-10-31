@@ -26,7 +26,7 @@ public final class V62InventoryPreview extends View {
         // rendered through GameView.character; head/torso art is never reconstructed.
         // Fit the complete approved survivor and weapon within this panel. Never
         // enlarge by the world/character zoom or crop the face/equipment.
-        float factor=Math.min(w/210f,h/150f)*.92f;
+        float factor=Math.min(w/210f,h/150f)*.92f/Math.max(.65f,game.scale);
         canvas.save();
         canvas.translate(w*.55f,h*.81f);
         canvas.scale(factor,factor);
