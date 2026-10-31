@@ -32,6 +32,7 @@ public final class GameView extends View {
         android.graphics.Typeface.create("monospace",0);
     final Paint pixel=new Paint(Paint.ANTI_ALIAS_FLAG==0?0:0);
     Bitmap body,approvedWalkColors,stableBody,npcRoleAtlas,npcIdleAtlas,npcWalkV56,npcIdleV56,gear,approvedAxe;
+    Bitmap crosshairReticle;
     Bitmap campStatic; // immutable pre-rendered authored camp, not per-frame rectangles
 
     static final int ROLE_BANDIT=0,ROLE_GUARD=2,ROLE_MEDIC=4,ROLE_MECHANIC=6,
@@ -91,6 +92,12 @@ public final class GameView extends View {
     long updateNs=0,worldNs=0,lightingNs=0;
     boolean cursorInitialized=false;
     float cursorSpeed=400f;
+    float reticleSize=1f;
+    int[] hotbar=new int[6];
+    float hotbarX=0,hotbarY=0,hotbarScale=1f;
+    int hotbarOpacity=90,selectedHotbar=0;
+    int hotbarPointer=-1;
+    float hotbarGrabX,hotbarGrabY;
     float hunger=100f,thirst=100f,fatigue=0f;
     float knifeDuration=0f,knifeCooldown=0f;
     int knifeDirection=0;
@@ -156,6 +163,17 @@ public final class GameView extends View {
         super(activity);host=activity;
         setFocusable(true);setLayerType(View.LAYER_TYPE_HARDWARE,null);
         pixel.setAntiAlias(false);pixel.setFilterBitmap(false);
+        try(InputStream ret=getResources().getAssets().open("crosshair_v62.png.b64")){
+            ByteArrayOutputStream reticleBytes=new ByteArrayOutputStream();
+            byte[] buffer=new byte[4096];int count;
+            while((count=ret.read(buffer))>=0)reticleBytes.write(buffer,0,count);
+            byte[] raw=android.util.Base64.decode(reticleBytes.toByteArray(),
+                android.util.Base64.DEFAULT);
+            crosshairReticle=BitmapFactory.decodeByteArray(raw,0,raw.length);
+            if(crosshairReticle==null||crosshairReticle.getWidth()!=96)
+                throw new IllegalStateException("Approved crimson reticle failed decoding");
+        }catch(Exception fail){throw new IllegalStateException(
+             "Missing approved V62 reticle asset",fail);}
         try(InputStream bs=getResources().getAssets().open("body.png");
             InputStream gs=getResources().getAssets().open("gear.png")){
             body=BitmapFactory.decodeStream(bs);gear=BitmapFactory.decodeStream(gs);
@@ -238,6 +256,13 @@ public final class GameView extends View {
         lookAheadSmooth=host.setting("lookAheadSmooth",8);
         cursorSpeed=host.setting("cursorSpeed",400); // retained setting for older saves
         cursorMaxRange=host.setting("cursorRange",750);
+        reticleSize=host.setting("reticleSize",100)/100f;
+        hotbarX=host.setting("hotbarX",0);
+        hotbarY=host.setting("hotbarY",0);
+        hotbarScale=host.setting("hotbarScale",100)/100f;
+        hotbarOpacity=host.setting("hotbarOpacity",90);
+        for(int i=0;i<6;i++)hotbar[i]=host.setting("hotbar"+i,
+            i==0?1:i==1?2:i==2?3:i==3?4:i==4?6:7);
         fireButtonX=host.setting("fireButtonX",0);
         fireButtonY=host.setting("fireButtonY",0);
         fireButtonSize=host.setting("fireButtonSize",100)/100f;
@@ -1518,20 +1543,19 @@ public final class GameView extends View {
         return true; // never accidentally touches underlying gameplay objects
     }
     // HUD-pass world marker: must be painted AFTER darkening the entire world.
+    // World space aiming marker is rendered AFTER lighting and above HUD darkness.
     void drawBrightCrosshair(Canvas c){
-        if(!playing||!showCrosshair)return;
-        float px=(cursorInitialized?cursorWorldX:playerX+aimX*185f)-camX;
-        float py=(cursorInitialized?cursorWorldY:playerY-42+aimY*185f)-camY;
-        if(px<4||py<54||px>viewW-4||py>viewH-45)return;
-        p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(3f);
-        color(0xff061b20);c.drawCircle(px,py,15,p);
-        color(0xfff1ead0);c.drawCircle(px,py,13,p);
-        c.drawLine(px-23,py,px-6,py,p);
-        c.drawLine(px+6,py,px+23,py,p);
-        c.drawLine(px,py-23,px,py-6,p);
-        c.drawLine(px,py+6,px,py+23,p);
-        p.setStyle(Paint.Style.FILL);
-        rect(c,px-2,py-2,4,4,0xffffd583);
+        if(!playing||!showCrosshair||crosshairReticle==null)return;
+        float aimLength=(float)Math.max(.001,Math.hypot(aimX,aimY));
+        float dirX=aimX/aimLength,dirY=aimY/aimLength;
+        float x=(playerX+dirX*aimCursorDistance-camX)*zoom;
+        float y=(playerY-42+dirY*aimCursorDistance-camY)*zoom;
+        float half=21f*reticleSize;
+        // Reticle remains on-screen, but never flips or retracts behind the survivor.
+        x=clamp(x,half+5,viewW-half-5);
+        y=clamp(y,59+half,viewH-48-half);
+        dest.set(x-half,y-half,x+half,y+half);
+        c.drawBitmap(crosshairReticle,null,dest,pixel);
     }
     void hud(Canvas c){
         rect(c,0,0,viewW,56,0xc90e2228);
