@@ -6,8 +6,8 @@ android {
   applicationId 'com.survivalparadise.nativegame'
   minSdk 24
   targetSdk 34
-  versionCode 67
-  versionName '0.66-weapon-range-rest-hasty-gait'
+  versionCode 68
+  versionName '0.67-true-ballistic-reticle'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
