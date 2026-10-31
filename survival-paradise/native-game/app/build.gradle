@@ -6,8 +6,8 @@ android {
   applicationId 'com.survivalparadise.nativegame'
   minSdk 24
   targetSdk 34
-  versionCode 60
-  versionName '0.59-face-cursor-hud-editor'
+  versionCode 61
+  versionName '0.60-live-hud-aim-fps'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
