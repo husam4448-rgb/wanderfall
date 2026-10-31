@@ -298,7 +298,7 @@ jobs:
           assert 'private void resizeSettingsWindow(' in activity
           assert 'scroll.setOnScrollChangeListener' in activity
           assert 'fastScroll.setOnSeekBarChangeListener' in activity
-          for key in ['testWindowWidth','testWindowHeight','"CHARACTER"','"WORLD TEST"','"ACTIONS"']:
+          for key in ['testWindowWidth','testWindowHeight','"CHARACTER"','"WORLD"','"ACTIONS"']:
             assert key in activity,key
           # The known buggy reconstructed sprites must NEVER be runtime-selected.
           assert 'npcVariant>=0?npcRoleAtlas:stableBody' not in view
