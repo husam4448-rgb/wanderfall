@@ -92,7 +92,8 @@ public final class GameView extends View {
     float aimCursorDistance=185f,cursorMaxRange=335f; // maximum radial reach; real pointer retains its own position
     long updateNs=0,worldNs=0,lightingNs=0;
     boolean cursorInitialized=false;
-    float cursorSpeed=400f;
+    float cursorSpeed=2900f,aimDeadzone=.08f,aimResponseCurve=1.35f;
+    boolean legacyDirectionalAim=false;
     float reticleSize=1f;
     int[] hotbar=new int[6];
     float hotbarX=0,hotbarY=0,hotbarScale=1f;
@@ -259,7 +260,11 @@ public final class GameView extends View {
         lookAheadThreshold=host.setting("lookAheadThreshold",72)/100f;
         lookAheadStrength=host.setting("lookAheadStrength",420);
         lookAheadSmooth=host.setting("lookAheadSmooth",8);
-        cursorSpeed=host.setting("cursorSpeed",500); // live virtual-pointer movement speed
+        // New preference key intentionally migrates V63's 500px/s ceiling to a fast V64 default.
+        cursorSpeed=host.setting("cursorSpeedV64",2900);
+        aimDeadzone=host.setting("aimDeadzone",8)/100f;
+        aimResponseCurve=host.setting("aimCurve",135)/100f;
+        legacyDirectionalAim=host.option("legacyDirectionalAim",false);
         cursorMaxRange=host.setting("cursorRange",750);
         reticleSize=host.setting("reticleSize",100)/100f;
         hotbarX=host.setting("uiX"+HOTBAR,0);
@@ -610,8 +615,16 @@ public final class GameView extends View {
             cursorWorldY=playerY-42f+aimY*185f;
             cursorInitialized=true;
         }
-        cursorWorldX+=playerX-wasX+cursorMoveX*cursorSpeed*dt;
-        cursorWorldY+=playerY-wasY+cursorMoveY*cursorSpeed*dt;
+        // Speed expressed in screen-aware world pixels per second; enough to
+        // cross a typical landscape viewport well under 0.3 s at maximum.
+        float pointerSpeed=FloatingAimV64.scaledSpeed(cursorSpeed,viewW/Math.max(.01f,zoom));
+        cursorWorldX+=playerX-wasX+cursorMoveX*pointerSpeed*dt;
+        cursorWorldY+=playerY-wasY+cursorMoveY*pointerSpeed*dt;
+        if(legacyDirectionalAim&&rightPointer>=0&&aimDeflection>aimDeadzone){
+            float legacyDist=Math.min(cursorMaxRange,Math.max(185f,viewW/Math.max(.01f,zoom)*.50f));
+            cursorWorldX=playerX+aimX*legacyDist;
+            cursorWorldY=playerY-42f+aimY*legacyDist;
+        }
         float pointerDx=cursorWorldX-playerX;
         float pointerDy=cursorWorldY-(playerY-42f);
         float pointerRange=(float)Math.hypot(pointerDx,pointerDy);
@@ -641,21 +654,28 @@ public final class GameView extends View {
                     damage(knifeTarget,36);
             }
         }
-        float desiredAhead=lookAheadEnabled&&rightPointer>=0&&
-            aimDeflection>=lookAheadThreshold?lookAheadStrength*
-            (aimDeflection-lookAheadThreshold)/Math.max(.01f,1-lookAheadThreshold):0f;
-        float stickLength=Math.max(.001f,(float)Math.hypot(cursorMoveX,cursorMoveY));
-        float ease=Math.min(1f,dt*lookAheadSmooth);
-        // Camera travel never pushes the survivor under the HUD or offscreen.
-        float panMaxX=Math.max(0f,(viewW*.5f-85f)/Math.max(.01f,zoom));
-        float panMaxY=Math.max(0f,(viewH*.5f-100f)/Math.max(.01f,zoom));
-        float panX=clamp(cursorMoveX/stickLength*desiredAhead,-panMaxX,panMaxX);
-        float panY=clamp(cursorMoveY/stickLength*desiredAhead,-panMaxY,panMaxY);
-        cameraLookX+=(panX-cameraLookX)*ease;
-        cameraLookY+=(panY-cameraLookY)*ease;
+        // Mouse-like edge panning: stick magnitude alone does NOT pan.
+        // Approaching a screen edge while pushing outward shifts the world
+        // smoothly; letting go stops camera and cursor immediately.
+        float z=Math.max(.01f,zoom);
+        float marginX=Math.max(55f,viewW*(1.05f-lookAheadThreshold)*.20f);
+        float marginY=Math.max(55f,viewH*(1.05f-lookAheadThreshold)*.20f);
+        float pointerScreenX=(cursorWorldX-playerX+viewW/(2f*z)-cameraLookX)*z;
+        float pointerScreenY=(cursorWorldY-playerY+viewH/(2f*z)-cameraLookY)*z;
+        float edgeX=FloatingAimV64.edgeStrength(pointerScreenX,viewW,marginX,cursorMoveX);
+        float edgeY=FloatingAimV64.edgeStrength(pointerScreenY,viewH,marginY,cursorMoveY);
+        float smooth=clamp(lookAheadSmooth/8f,.15f,1.8f);
+        float panMaxX=Math.min(lookAheadStrength,Math.max(0f,(viewW*.5f-85f)/z));
+        float panMaxY=Math.min(lookAheadStrength,Math.max(0f,(viewH*.5f-100f)/z));
+        if(lookAheadEnabled&&rightPointer>=0){
+            cameraLookX=clamp(cameraLookX+cursorMoveX*pointerSpeed*dt*edgeX*smooth,
+                -panMaxX,panMaxX);
+            cameraLookY=clamp(cameraLookY+cursorMoveY*pointerSpeed*dt*edgeY*smooth,
+                -panMaxY,panMaxY);
+        }
         // Prevent the floating pointer from leaving the unobscured viewport
         // while look-ahead pans or recenters. World coords remain authoritative.
-        float half=21f*reticleSize,z=Math.max(.01f,zoom);
+        float half=21f*reticleSize;
         float left=playerX-viewW/(2f*z)+cameraLookX;
         float top=playerY-viewH/(2f*z)+cameraLookY;
         cursorWorldX=clamp(cursorWorldX,left+(half+5f)/z,left+(viewW-half-5f)/z);
@@ -1837,10 +1857,16 @@ public final class GameView extends View {
         if(length>1){dx/=length;dy/=length;}
         if(right){
             aimDeflection=Math.min(1f,length);
-            // The clamped stick controls pointer velocity. Its physical
-            // travel beyond the rim cannot wrap aim back across the player.
-            cursorMoveX=length>.12f?dx:0f;
-            cursorMoveY=length>.12f?dy:0f;
+            // Analog velocity with a tunable center deadzone and response
+            // curve. Beyond-pad dragging is clamped, never reversed.
+            float gain=FloatingAimV64.response(length,aimDeadzone,aimResponseCurve);
+            float inv=length>.0001f?gain/length:0f;
+            cursorMoveX=dx*inv;cursorMoveY=dy*inv;
+            if(legacyDirectionalAim&&length>aimDeadzone){
+                float heading=Math.max(.001f,(float)Math.hypot(dx,dy));
+                aimX=dx/heading;aimY=dy/heading;
+                face=aimX<-.025f?-1:aimX>.025f?1:face;
+            }
         }else {stickX=dx;stickY=dy;}
     }
     float fireWidth(){return 105f*fireButtonSize;}
