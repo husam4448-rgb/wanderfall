@@ -79,6 +79,9 @@ public final class GameView extends View {
     int editPointer=-1,editControl=-1,editX=0,editY=0;
     float editGrabX=0,editGrabY=0;
     int selectedHudControl=0;
+    static final int MOVE_PAD=LegacyControlsV58.COUNT,AIM_PAD=MOVE_PAD+1,HUD_ITEMS=MOVE_PAD+2;
+    int panelPointer=-1;float panelGrabX,panelGrabY;
+    float panelX=0,panelY=62,panelScale=1f;
     boolean editControls=false,showStatusBars=true,showCrosshair=true,lookAheadEnabled=true;
     float lookAheadStrength=0f,lookAheadThreshold=.72f,aimDeflection=0f;
     float lookAheadSmooth=5f;
@@ -223,7 +226,10 @@ public final class GameView extends View {
         controlOpacity=host.setting("controlOpacity",100);
         dualTorch=host.option("dualTorch",true);
         editControls=host.option("editControls",false);
-        selectedHudControl=host.setting("selectedButton",0);
+        selectedHudControl=Math.min(HUD_ITEMS-1,host.setting("selectedButton",0));
+        panelX=host.setting("hudPanelX",0);
+        panelY=host.setting("hudPanelY",62);
+        panelScale=host.setting("hudPanelSize",100)/100f;
         showStatusBars=host.option("showStatusBars",true);
         showCrosshair=host.option("showCrosshair",true);
         lookAheadEnabled=host.option("lookAheadEnabled",true);
@@ -1392,6 +1398,22 @@ public final class GameView extends View {
                 return i;
         return -1;
     }
+    float padBaseX(boolean right){return right?viewW-118f:120f;}
+    float padBaseY(boolean right){return viewH-(right?145f:140f);}
+    float padCenterX(boolean right){return padBaseX(right)+host.setting("uiX"+(right?AIM_PAD:MOVE_PAD),0);}
+    float padCenterY(boolean right){return padBaseY(right)+host.setting("uiY"+(right?AIM_PAD:MOVE_PAD),0);}
+    String controlName(int id){return id==MOVE_PAD?"MOVE JOYSTICK":id==AIM_PAD?"AIM JOYSTICK":
+        LegacyControlsV58.NAMES[id];}
+    String controlSizeKey(int id){return id==MOVE_PAD?"movePadSize":id==AIM_PAD?"aimPadSize":"uiSize"+id;}
+    int stickEditorAt(float x,float y){
+        for(int id=MOVE_PAD;id<=AIM_PAD;id++){
+            boolean right=id==AIM_PAD;
+            float cx=padCenterX(right),cy=padCenterY(right);
+            float radius=(right?82*aimPadScale:86*movePadScale);
+            if(Math.hypot(x-cx,y-cy)<radius+20)return id;
+        }
+        return -1;
+    }
     void drawAction(Canvas c,int id){
         if(!uiEnabled(id)&&!editControls)return;
         float x=uiX(id),y=uiY(id),w=uiWidth(id),h=uiHeight(id);
@@ -1507,13 +1529,14 @@ public final class GameView extends View {
                 (automaticDayNight?" [AUTO]":" [MANUAL]"),
                 14,viewH-16,14,ORANGE,true);
         // Original two virtual sticks, with per-stick size/sensitivity tests.
-        float jy=viewH-140,rx=viewW-118,ry=viewH-145;
+        float jy=padCenterY(false),rx=padCenterX(true),ry=padCenterY(true);
+        float lx=padCenterX(false);
         float leftRadius=86*movePadScale,rightRadius=82*aimPadScale;
         int alpha=Math.round(255f*Math.max(25,Math.min(100,controlOpacity))/100f);
         color((alpha*0x66/255<<24)|0x003e625a);
-        c.drawCircle(120,jy,leftRadius,p);
+        c.drawCircle(lx,jy,leftRadius,p);
         color((alpha*0x9b/255<<24)|0x0096b8a5);
-        c.drawCircle(120+stickX*46*movePadScale,jy+stickY*46*movePadScale,31*movePadScale,p);
+        c.drawCircle(lx+stickX*46*movePadScale,jy+stickY*46*movePadScale,31*movePadScale,p);
         color((alpha*0x66/255<<24)|0x005b6f61);
         c.drawCircle(rx,ry,rightRadius,p);
         color((alpha*0xaa/255<<24)|0x00aa9d71);
@@ -1532,7 +1555,7 @@ public final class GameView extends View {
             drawStatusBar(c,"ENC TEST",enc,12,245,0xffbca36e);
         }
         if(editControls)drawHudEditorOverlay(c);
-        label(c,"MOVE",81,viewH-30,12,0xffb8d4c5,true);
+        label(c,"MOVE",lx-39,jy+105,12,0xffb8d4c5,true);
         if(reloadClock>0)label(c,"RELOADING...",viewW-235,viewH-227,17,ORANGE,true);
         if(showPerf){
             rounded(c,10,62,348,87,8,0xe41a3033);
@@ -1633,7 +1656,7 @@ public final class GameView extends View {
         canvas.restore();
     }
     void updateStick(float x,float y,boolean right){
-        float cx=right?viewW-118:120,cy=right?viewH-145:viewH-140;
+        float cx=padCenterX(right),cy=padCenterY(right);
         float padSize=right?aimPadScale:movePadScale;
         float sensitivity=right?aimSensitivity:moveSensitivity;
         float dx=(x-cx)/(74*padSize)*sensitivity;
@@ -1743,7 +1766,18 @@ public final class GameView extends View {
                     }else activateButton(target,id);
                     return true;
                 }
-                if(editControls)return true;
+                if(editControls){
+                    int stickTarget=stickEditorAt(x,y);
+                    if(stickTarget>=0){
+                        editPointer=id;editControl=stickTarget;selectedHudControl=stickTarget;
+                        host.prefs.edit().putInt("selectedButton",stickTarget).apply();
+                        editX=host.setting("uiX"+stickTarget,0);
+                        editY=host.setting("uiY"+stickTarget,0);
+                        editGrabX=x-padCenterX(stickTarget==AIM_PAD);
+                        editGrabY=y-padCenterY(stickTarget==AIM_PAD);
+                    }
+                    return true;
+                }
                 if(x<viewW*.40f&&y>viewH*.47f&&leftPointer<0){
                     leftPointer=id;updateStick(x,y,false);return true;
                 }
@@ -1760,13 +1794,24 @@ public final class GameView extends View {
                     if(pointer==rightPointer)updateStick(px,py,true);
                     if(pointer==editPointer&&editControl>=0){
                         editX=Math.round(px-editGrabX-
-                                LegacyControlsV58.defaultX(editControl,viewW));
+                                (editControl<LegacyControlsV58.COUNT?
+                                 LegacyControlsV58.defaultX(editControl,viewW):
+                                 padBaseX(editControl==AIM_PAD)));
                         editY=Math.round(py-editGrabY-
-                                LegacyControlsV58.defaultY(editControl,viewH));
-                        editX=Math.round(clamp(editX,-LegacyControlsV58.defaultX(editControl,viewW),
-                              viewW-uiWidth(editControl)-LegacyControlsV58.defaultX(editControl,viewW)));
-                        editY=Math.round(clamp(editY,-LegacyControlsV58.defaultY(editControl,viewH),
-                              viewH-uiHeight(editControl)-LegacyControlsV58.defaultY(editControl,viewH)));
+                                (editControl<LegacyControlsV58.COUNT?
+                                 LegacyControlsV58.defaultY(editControl,viewH):
+                                 padBaseY(editControl==AIM_PAD)));
+                        if(editControl<LegacyControlsV58.COUNT){
+                            editX=Math.round(clamp(editX,-LegacyControlsV58.defaultX(editControl,viewW),
+                                  viewW-uiWidth(editControl)-LegacyControlsV58.defaultX(editControl,viewW)));
+                            editY=Math.round(clamp(editY,-LegacyControlsV58.defaultY(editControl,viewH),
+                                  viewH-uiHeight(editControl)-LegacyControlsV58.defaultY(editControl,viewH)));
+                        }else{
+                            editX=Math.round(clamp(editX,70-padBaseX(editControl==AIM_PAD),
+                                  viewW-70-padBaseX(editControl==AIM_PAD)));
+                            editY=Math.round(clamp(editY,90-padBaseY(editControl==AIM_PAD),
+                                  viewH-70-padBaseY(editControl==AIM_PAD)));
+                        }
                         invalidate();
                     }
                 }return true;
