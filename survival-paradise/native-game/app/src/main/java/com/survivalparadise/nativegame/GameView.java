@@ -256,7 +256,10 @@ public final class GameView extends View {
         allyCurrent=1+friends.size();
     }
     void newGame(){
-        playerX=CAMP_X;playerY=CAMP_Y;health=100;stamina=100;playerAnimation.reset();moving=false;stickX=0;stickY=0;shotClock=0;
+        playerX=CAMP_X;playerY=CAMP_Y;health=100;stamina=100;
+        hunger=100;thirst=100;fatigue=0;knifeDuration=0;knifeCooldown=0;
+        cameraLookX=0;cameraLookY=0;aimDeflection=0;
+        playerAnimation.reset();moving=false;stickX=0;stickY=0;shotClock=0;
         gun=Math.max(0,Math.min(11,host.setting("gun",0)));ammo=MAG[gun];
         kills=0;wave=1;scrap=0;medkits=1;ammoPacks=2;worldTimer=0;autSaveClock=0;
         clock.setClock(night?21*60f:12*60f,1);
@@ -278,7 +281,13 @@ public final class GameView extends View {
         face=aimX<-.025f?-1:1;
         refreshDaylight();
         playerX=host.prefs.getFloat("px",1000);playerY=host.prefs.getFloat("py",1060);
-        health=host.prefs.getFloat("hp",100);kills=host.setting("kills",0);
+        health=host.prefs.getFloat("hp",100);
+        stamina=host.prefs.getFloat("stamina",100);
+        hunger=host.prefs.getFloat("hunger",100);
+        thirst=host.prefs.getFloat("thirst",100);
+        fatigue=host.prefs.getFloat("fatigue",0);
+        knifeDuration=0;knifeCooldown=0;cameraLookX=0;cameraLookY=0;
+        kills=host.setting("kills",0);
         wave=Math.max(1,host.setting("wave",1));
         scrap=host.setting("scrap",0);medkits=host.setting("medkits",1);ammoPacks=host.setting("ammoPacks",2);
         gun=Math.max(0,Math.min(11,host.setting("gun",0)));
@@ -354,7 +363,9 @@ public final class GameView extends View {
     void saveProgress(){
         if(!playing||gameOver)return;
         host.prefs.edit().putBoolean("hasSave",true).putFloat("px",playerX).putFloat("py",playerY)
-                .putFloat("hp",health).putInt("kills",kills).putInt("wave",wave)
+                .putFloat("hp",health).putFloat("stamina",stamina)
+                .putFloat("hunger",hunger).putFloat("thirst",thirst)
+                .putFloat("fatigue",fatigue).putInt("kills",kills).putInt("wave",wave)
                 .putInt("scrap",scrap).putInt("medkits",medkits)
                 .putInt("ammoPacks",ammoPacks).putInt("ammo",ammo)
                 .putString("campfire_locations",encodeCampfires())
