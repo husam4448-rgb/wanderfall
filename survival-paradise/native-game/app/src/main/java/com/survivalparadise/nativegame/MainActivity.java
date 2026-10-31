@@ -623,10 +623,9 @@ public final class MainActivity extends Activity {
         check(root,"Show classic six status bars","showStatusBars",true);
         check(root,"Show world aiming crosshair","showCrosshair",true);
         slider(root,"Approved crimson crosshair size","reticleSize",40,220,100,"%");
-        root.addView(text("Precise aiming: small stick movements are filtered, big deliberate reversals stay immediate. Crosshair still stops at each weapon\u0027s true projectile endpoint. Release returns to your chosen resting distance.",11,false));
-        check(root,"Aim-stick camera look-ahead","lookAheadEnabled",true);
-        slider(root,"Camera edge-pan threshold","lookAheadThreshold",20,95,55,"%");
-        slider(root,"Look-ahead distance","lookAheadStrength",0,1000,420," px");
+        root.addView(text("V69: camera pans at most 65 px by default, never to the distant bullet endpoint. Set maximum camera movement to 0 for fixed view. Ballistic ranges are unchanged.",11,false));
+        check(root,"Aim-stick camera look-ahead (OFF = fixed camera)","lookAheadEnabled",true);
+        slider(root,"Maximum camera movement from character","cameraPanLimitV69",0,180,65," px");
         slider(root,"Camera panning response speed","lookAheadSmooth",2,18,8," /s");
         slider(root,"Released crosshair distance (weapon-relative)","crosshairRestPercent",50,200,100,"%");
         slider(root,"Crosshair movement speed","cursorSpeedV68",150,2400,650," px/s");
@@ -710,6 +709,7 @@ public final class MainActivity extends Activity {
               .putBoolean("showStatusBars",true).putBoolean("showCrosshair",true)
               .putBoolean("lookAheadEnabled",true).putInt("lookAheadThreshold",55)
               .putInt("lookAheadStrength",420).putInt("lookAheadSmooth",8)
+              .putInt("cameraPanLimitV69",65)
               .putInt("followMode",0).putInt("followSpacing",125).putInt("cursorSpeed",400)
               .putInt("crosshairRestPercent",100).putInt("cursorSpeedV68",650)
               .putInt("aimDeadzoneV68",17).putInt("aimCurveV68",175)
