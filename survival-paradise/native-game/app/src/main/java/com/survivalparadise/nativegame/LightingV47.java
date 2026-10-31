@@ -39,13 +39,14 @@ public final class LightingV47 {
     private int width,height;
     private float resolutionFactor=1f;
     private final RectF screenDst=new RectF();
-    private boolean fastPointLights=true,cacheValid=false;
+    private boolean fastPointLights=true,cacheValid=false,staticCache=true;
     private long lastRenderTime=0;
     private float lastCameraX,lastCameraY,lastScreenW,lastScreenH;
     private int lastDarkness=-1;
     private static final long IDLE_LIGHT_REFRESH_NS=100_000_000L; // 10Hz only at static camera
     public int cacheReuse=0,fullUpdates=0;
     public void setFastPointLights(boolean enabled){fastPointLights=enabled;cacheValid=false;}
+    public void setStaticCache(boolean enabled){staticCache=enabled;cacheValid=false;}
     /** A larger factor saves per-pixel occlusion work on low-end Android devices. */
     public void setPixelScale(float factor){
         resolutionFactor=Math.max(.85f,Math.min(2.5f,factor));
@@ -183,7 +184,7 @@ public final class LightingV47 {
         ensure(w,h);
         int nextDarkness=Math.max(0,Math.min(248,nightDarkness));
         long now=System.nanoTime();
-        if(cacheValid&&Math.abs(camX-lastCameraX)<.15f&&
+        if(staticCache&&cacheValid&&Math.abs(camX-lastCameraX)<.15f&&
            Math.abs(camY-lastCameraY)<.15f&&w==lastScreenW&&h==lastScreenH&&
            Math.abs(nextDarkness-lastDarkness)<=2&&
            now-lastRenderTime<IDLE_LIGHT_REFRESH_NS){
