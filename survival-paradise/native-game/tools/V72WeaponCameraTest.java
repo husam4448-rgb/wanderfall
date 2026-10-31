@@ -5,25 +5,25 @@ public final class V72WeaponCameraTest{
         ok(Math.abs(actual-desired)<.01f,msg+": "+actual+" expected "+desired);
     }
     public static void main(String[] args){
-        int[] expected={180,180,180,140,280,280,280,210,360,300,240,90};
+        int[] expected={320,320,320,250,520,520,520,400,720,560,440,160};
         for(int w=0;w<12;w++)ok(WeaponCameraV72.weaponMaximum(w)==expected[w],
             "weapon maximum "+w);
         ok(WeaponCameraV72.weaponMaximum(0)<WeaponCameraV72.weaponMaximum(4),
             "short firearm vs rifle");
         ok(WeaponCameraV72.weaponMaximum(4)<WeaponCameraV72.weaponMaximum(8),
             "rifle vs sniper");
-        near(WeaponCameraV72.distance(0,72,1480,720,1),129.6f,
+        near(WeaponCameraV72.distance(0,72,1480,720,1),230.4f,
             "short pistol default ~2x former 65px");
-        near(WeaponCameraV72.distance(4,72,1480,720,1),201.6f,
+        near(WeaponCameraV72.distance(4,72,1480,720,1),374.4f,
             "rifle default longer");
-        near(WeaponCameraV72.distance(8,100,1480,900,1),360f,
-            "sniper fully doubles former 180px max");
-        near(WeaponCameraV72.distance(8,100,1480,720,1),345f,
-            "screen-height safeguard symmetric");
+        near(WeaponCameraV72.distance(8,100,1480,900,1),720f,
+            "sniper maximum doubled again to 720 world pixels");
+        near(WeaponCameraV72.distance(8,100,1480,720,1),705f,
+            "screen-height guard remains symmetric");
         near(WeaponCameraV72.distance(8,0,1480,720,1),0,
             "0% disables camera pan");
-        near(WeaponCameraV72.distance(8,100,1480,720,2),172f,
-            "zoom keeps survivor visible");
+        near(WeaponCameraV72.distance(8,100,1480,720,2),352f,
+            "zoom affects symmetric viewport guard");
         for(int w=0;w<12;w++){
             float radius=WeaponCameraV72.distance(w,100,1480,720,1);
             float[] left=WeaponCameraV72.circle(-1000,0,radius);
@@ -37,6 +37,6 @@ public final class V72WeaponCameraTest{
             near(bottom[1],radius,"down "+w);
             near((float)Math.hypot(diagonal[0],diagonal[1]),radius,"diagonal "+w);
         }
-        System.out.println("V72 PASS: dynamic weapon pan caps, doubled limits, equal four-axis circular panning");
+        System.out.println("V73 PASS: expanded weapon pan caps, viewport limits, equal four-axis circular panning");
     }
 }
