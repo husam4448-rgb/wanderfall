@@ -162,8 +162,8 @@ jobs:
               'terrainChunks.draw(c,camX,camY,viewW,viewH);',
               'float nx=playerX+vx*speed*dt;',
               'float ny=playerY+vy*speed*dt;',
-              'camX=playerX-viewW/(2*effectiveZoom);',
-              'camY=playerY-viewH/(2*effectiveZoom);',
+              'camX=playerX-viewW/(2*effectiveZoom)+cameraLookX;',
+              'camY=playerY-viewH/(2*effectiveZoom)+cameraLookY;',
               'Float.isFinite(x)&&Float.isFinite(y)',
               'void saveProgress()',
           ]: assert clause in v,clause
