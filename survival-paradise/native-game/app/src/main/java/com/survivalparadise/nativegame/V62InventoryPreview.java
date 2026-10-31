@@ -35,7 +35,6 @@ public final class V62InventoryPreview extends View {
         canvas.restore();
         paint.setColor(0xffd9bd83);paint.setTextSize(Math.max(11f,Math.min(16f,w*.036f)));
         canvas.drawText("SURVIVOR • LIVE GEAR",w*.07f,h*.10f,paint);
-        canvas.drawText("IDLE / LIVE GEAR",w*.14f,h*.15f,paint);
         postInvalidateDelayed(95);
     }
 }
