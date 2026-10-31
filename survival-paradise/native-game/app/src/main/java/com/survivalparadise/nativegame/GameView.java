@@ -601,8 +601,8 @@ public final class GameView extends View {
         float length=(float)Math.hypot(vx,vy);
         if(length>.06f){
             vx/=Math.max(1,length);vy/=Math.max(1,length);
-            float runMultiplier=runHeld&&stamina>0?1.43f:1f;
-            float speed=(gun==9?147:207)*runMultiplier*(crouchHeld?.53f:1f);
+            float runMultiplier=runHeld&&stamina>0?1.52f:1f;
+            float speed=(gun==9?169:236)*runMultiplier*(crouchHeld?.53f:1f);
             float nx=playerX+vx*speed*dt;
             float ny=playerY+vy*speed*dt;
             if(!blocked(nx,playerY,20))playerX=nx;
@@ -612,7 +612,7 @@ public final class GameView extends View {
         // Animate actual displacement only: releasing the stick or hitting a wall
         // always restores the original neutral idle frame immediately.
         moving=distance(playerX,playerY,wasX,wasY)>.001f;
-        playerAnimation.step(moving,dt,7f);
+        playerAnimation.step(moving,dt,runHeld&&stamina>0?9.7f:8.2f);
         // V65: the character is the stick/crosshair origin. Only distance
         // increases while the right thumb is active. The heading comes DIRECTLY
         // from the stick, so reversing aims instantly without crossing center.
@@ -697,11 +697,11 @@ public final class GameView extends View {
                     npcSleepRadius)){npc.animation.reset();continue;}
             float px=npc.x,py=npc.y;
             if((i&1)==0){
-                npc.x=npc.homeX+(float)Math.sin(worldTimer*.34f+i)*18f;
-                npc.y=npc.homeY+(float)Math.cos(worldTimer*.34f+i)*11f;
-                npc.face=(float)Math.cos(worldTimer*.34f+i)>=0?1:-1;
+                npc.x=npc.homeX+(float)Math.sin(worldTimer*.41f+i)*18f;
+                npc.y=npc.homeY+(float)Math.cos(worldTimer*.41f+i)*11f;
+                npc.face=(float)Math.cos(worldTimer*.41f+i)>=0?1:-1;
             }
-            npc.animation.step(distance(px,py,npc.x,npc.y)>.001f,dt,6f);
+            npc.animation.step(distance(px,py,npc.x,npc.y)>.001f,dt,7.1f);
         }
         if(moving&&length>.13f){
             followHeadingX=vx;followHeadingY=vy;
@@ -733,14 +733,14 @@ public final class GameView extends View {
             float d=distance(friend.x,friend.y,gx,gy);
             if(d>24){
                 float ux=(gx-friend.x)/Math.max(1,d),uy=(gy-friend.y)/Math.max(1,d);
-                float velocity=Math.min(260f,170f+(d>300?65:0));
+                float velocity=Math.min(300f,198f+(d>300?76:0));
                 float nx=friend.x+ux*velocity*dt,ny=friend.y+uy*velocity*dt;
                 if(!blocked(nx,friend.y,18))friend.x=nx;
                 if(!blocked(friend.x,ny,18))friend.y=ny;
                 friend.face=ux>=0?1:-1;
                 friend.aimX=friend.face;friend.aimY=0f; // flashlight tracks travel facing
             }
-            friend.animation.step(distance(friend.x,friend.y,beforeFriendX,beforeFriendY)>.001f,dt,7f);
+            friend.animation.step(distance(friend.x,friend.y,beforeFriendX,beforeFriendY)>.001f,dt,8.5f);
             Bandit target=nearest(friend.x,friend.y,460);
             if(target!=null){
                 float dx=target.x-friend.x,dy=target.y-friend.y;
@@ -766,7 +766,7 @@ public final class GameView extends View {
                 float dx=(playerX-e.x)/Math.max(1,d),dy=(playerY-e.y)/Math.max(1,d);
                 e.face=dx>=0?1:-1;
                 if(d>240){
-                    float nx=e.x+dx*105*dt,ny=e.y+dy*105*dt;
+                    float nx=e.x+dx*120*dt,ny=e.y+dy*120*dt;
                     if(!blocked(nx,e.y,18))e.x=nx;
                     if(!blocked(e.x,ny,18))e.y=ny;
                     // Animation is driven by displacement, not historical walking time.
@@ -775,7 +775,7 @@ public final class GameView extends View {
                     e.cd=1.1f+rng.nextFloat()*.7f;
                 }
             }
-            e.animation.step(distance(e.x,e.y,beforeEnemyX,beforeEnemyY)>.001f,dt,6f);
+            e.animation.step(distance(e.x,e.y,beforeEnemyX,beforeEnemyY)>.001f,dt,7.2f);
         }
         if(!enemyAI)for(Bandit e:enemies)e.animation.reset();
         // Continuous collision detection: no tunneling through actors or cover at 4000 px/s.
