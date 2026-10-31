@@ -39,6 +39,13 @@ public final class LightingV47 {
     private int width,height;
     private float resolutionFactor=1f;
     private final RectF screenDst=new RectF();
+    private boolean fastPointLights=true,cacheValid=false;
+    private long lastRenderTime=0;
+    private float lastCameraX,lastCameraY,lastScreenW,lastScreenH;
+    private int lastDarkness=-1;
+    private static final long IDLE_LIGHT_REFRESH_NS=100_000_000L; // 10Hz only at static camera
+    public int cacheReuse=0,fullUpdates=0;
+    public void setFastPointLights(boolean enabled){fastPointLights=enabled;cacheValid=false;}
     /** A larger factor saves per-pixel occlusion work on low-end Android devices. */
     public void setPixelScale(float factor){
         resolutionFactor=Math.max(.85f,Math.min(2.5f,factor));
@@ -96,6 +103,7 @@ public final class LightingV47 {
         if(bitmap!=null)bitmap.recycle();
         if(tintBitmap!=null)tintBitmap.recycle();
         width=newWidth;height=newHeight;
+        cacheValid=false;
         bitmap=Bitmap.createBitmap(width,height,Bitmap.Config.ARGB_8888);
         tintBitmap=Bitmap.createBitmap(width,height,Bitmap.Config.ARGB_8888);
         pixels=new int[width*height];
@@ -129,7 +137,9 @@ public final class LightingV47 {
                 float d2=dx*dx+dy*dy;
                 if(d2>=r2)continue;
                 float px=left+(x+.5f)*stepX,py=top+(y+.5f)*stepY;
-                if(activeCount>0&&shadowed(light.x,light.y,px,py))continue;
+                // Nearby torch and beam geometry remains shadowed; decorative
+                // point glows use the inexpensive field path in mobile mode.
+                if(!fastPointLights&&activeCount>0&&shadowed(light.x,light.y,px,py))continue;
                 float strength=LightMathV46.pointStrength(dx,dy,light.radius,light.power);
                 int index=y*width+x;
                 uncover(index,strength);
@@ -170,9 +180,21 @@ public final class LightingV47 {
     public void render(Canvas scene,float camX,float camY,float w,float h,
                        int nightDarkness,List<GameView.Cover> covers){
         ensure(w,h);
+        int nextDarkness=Math.max(0,Math.min(248,nightDarkness));
+        long now=System.nanoTime();
+        if(cacheValid&&Math.abs(camX-lastCameraX)<.15f&&
+           Math.abs(camY-lastCameraY)<.15f&&w==lastScreenW&&h==lastScreenH&&
+           Math.abs(nextDarkness-lastDarkness)<=2&&
+           now-lastRenderTime<IDLE_LIGHT_REFRESH_NS){
+            cacheReuse++;
+            screenDst.set(camX,camY,camX+w,camY+h);
+            scene.drawBitmap(bitmap,null,screenDst,mapPaint);
+            scene.drawBitmap(tintBitmap,null,screenDst,tintMapPaint);
+            return;
+        }
         left=camX;top=camY;screenWidth=w;screenHeight=h;
         stepX=w/width;stepY=h/height;
-        darkness=Math.max(0,Math.min(248,nightDarkness));
+        darkness=nextDarkness;
         Arrays.fill(pixels,(darkness<<24)|DARK_RGB);
         Arrays.fill(tintPixels,0);
         for(Point point:points)pointMask(point);
@@ -185,10 +207,13 @@ public final class LightingV47 {
         // without ray tests would otherwise brighten actors and walls in shade.
         tintBitmap.setPixels(tintPixels,0,width,0,0,width,height);
         scene.drawBitmap(tintBitmap,null,screenDst,tintMapPaint);
+        cacheValid=true;lastCameraX=camX;lastCameraY=camY;
+        lastScreenW=w;lastScreenH=h;lastDarkness=nextDarkness;
+        lastRenderTime=now;fullUpdates++;
     }
     public void release(){
         if(bitmap!=null){bitmap.recycle();bitmap=null;}
         if(tintBitmap!=null){tintBitmap.recycle();tintBitmap=null;}
-        pixels=null;tintPixels=null;
+        pixels=null;tintPixels=null;cacheValid=false;
     }
 }
