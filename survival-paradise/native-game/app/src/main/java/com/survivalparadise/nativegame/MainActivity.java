@@ -50,6 +50,16 @@ public final class MainActivity extends Activity {
                 .putBoolean("lampOn",true)
                 .putBoolean("v46_lighting_migrated",true).apply();
         }
+        // Upgrade prior V59 default light resolution only once; preserve user-
+        // selected values other than the old, unmodified 150% default.
+        if(!prefs.getBoolean("v60_lighting_migrated",false)){
+            SharedPreferences.Editor migration=prefs.edit();
+            if(prefs.getInt("lightResolution",150)==150)
+                migration.putInt("lightResolution",220);
+            migration.putBoolean("fastPointLights",true)
+                     .putBoolean("staticLightCache",true)
+                     .putBoolean("v60_lighting_migrated",true).apply();
+        }
         applyImmersive();
         game=new GameView(this);
         setContentView(game);
@@ -382,16 +392,17 @@ public final class MainActivity extends Activity {
         check(root,"Aim-stick camera look-ahead","lookAheadEnabled",true);
         slider(root,"Look-ahead stick threshold","lookAheadThreshold",45,95,72,"%");
         slider(root,"Look-ahead distance","lookAheadStrength",0,240,120," px");
-        slider(root,"Floating crosshair pointer speed","cursorSpeed",120,900,400," px/s");
+        slider(root,"Aim crosshair distance at full stick","cursorRange",180,460,335," px");
         slider(root,"Camera zoom","cameraZoom",70,180,100,"%");
         slider(root,"Movement joystick size","movePadSize",70,150,100,"%");
         slider(root,"Aiming joystick size","aimPadSize",70,150,100,"%");
         slider(root,"Movement joystick sensitivity","moveSensitivity",50,160,100,"%");
         slider(root,"Aiming joystick sensitivity","aimSensitivity",50,160,100,"%");
         slider(root,"Joystick transparency / opacity","controlOpacity",25,100,100,"%");
-        action(root,"OPEN HUD BUTTON EDITOR (SEPARATE WINDOW)",()->{
+        action(root,"ENABLE LIVE HUD EDITOR (THEN RETURN TO GAME)",()->{
+            prefs.edit().putBoolean("editControls",true).apply();
+            game.reloadSettings();
             if(activeDialog[0]!=null)activeDialog[0].dismiss();
-            hudEditor();
         });
         final int layoutSection=root.getChildCount();
         section(root,"SETTINGS LAYOUT  •  LIVE (reopen to apply sizes)");
@@ -402,7 +413,11 @@ public final class MainActivity extends Activity {
         section(root,"CHUNK ENGINE  •  LIVE SETTINGS");
         slider(root,"Distant NPC sleep radius","npcSleepRadius",600,2400,1200," px");
         slider(root,"Lighting performance (100 = original quality)",
-               "lightResolution",100,250,150,"%");
+               "lightResolution",100,300,220,"%");
+        check(root,"Cache night lightmap when camera is still","staticLightCache",true);
+        check(root,"Mobile performance: simplified point-light shadows","fastPointLights",true);
+        root.addView(text("FPS test: compare static-light cache ON/OFF at spawn camp. "+
+              "CPU UPDATE / DRAW / LIGHT timing appears on the FPS HUD.",12,false));
         root.addView(text("Higher lighting performance reduces lightmap resolution " +
             "and shadow-processing cost. Original quality is 100%.",12,false));
         slider(root,"Maximum resident terrain chunks","testCacheMax",12,64,36,"");
@@ -453,6 +468,8 @@ public final class MainActivity extends Activity {
               .putBoolean("showStatusBars",true).putBoolean("showCrosshair",true)
               .putBoolean("lookAheadEnabled",true).putInt("lookAheadThreshold",72)
               .putInt("lookAheadStrength",120).putInt("cursorSpeed",400)
+              .putInt("cursorRange",335).putBoolean("staticLightCache",true)
+              .putBoolean("fastPointLights",true).putInt("lightResolution",220)
               .putBoolean("editControls",false).apply();
             wSize.setProgress(96-65);hSize.setProgress(94-65);
             resizeSettingsWindow(activeDialog[0],96,94);
