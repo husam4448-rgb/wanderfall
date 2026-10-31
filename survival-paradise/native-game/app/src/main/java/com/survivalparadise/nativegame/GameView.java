@@ -87,7 +87,7 @@ public final class GameView extends View {
     boolean editControls=false,showStatusBars=true,showCrosshair=true,lookAheadEnabled=true;
     float lookAheadStrength=0f,lookAheadThreshold=.72f,aimDeflection=0f;
     float lookAheadSmooth=5f;
-    float cameraLookX=0f,cameraLookY=0f;
+    float cameraLookX=0f,cameraLookY=0f,cameraPanLimit=65f;
     float cursorWorldX=0f,cursorWorldY=0f,cursorMoveX=0f,cursorMoveY=0f;
     float aimCursorDistance=190f,crosshairRestPercent=100f; // tuned per-weapon radial resting reticle
     long updateNs=0,worldNs=0,lightingNs=0;
@@ -261,6 +261,8 @@ public final class GameView extends View {
         lookAheadThreshold=host.setting("lookAheadThreshold",72)/100f;
         lookAheadStrength=host.setting("lookAheadStrength",420);
         lookAheadSmooth=host.setting("lookAheadSmooth",8);
+        // Fresh preference key avoids V67/V68 legacy 420px look-ahead values.
+        cameraPanLimit=host.setting("cameraPanLimitV69",65);
         // New preference key intentionally migrates V63's 500px/s ceiling to a fast V64 default.
         // Separate V68 keys intentionally migrate the excessively fast V67
         // defaults without changing earlier player preference storage.
@@ -679,32 +681,36 @@ public final class GameView extends View {
                     damage(knifeTarget,36);
             }
         }
-        // Camera follows a cursor only when it reaches the viewport margins.
-        // It is not bounded to the old 420 px look-ahead offset: long-range
-        // sniper bullets can genuinely fly thousands of world pixels.
-        // Camera never rewrites cursor position, weapon reach or aim heading.
+        // V69: tiny, HARD-CAPPED camera offset. A sniper's 5000+ pixel
+        // projectile reach NEVER becomes a 5000px camera destination.
+        // Range and the stick-centered reticle are independent of camera pan.
         float z=Math.max(.01f,zoom);
-        float halfVisibleX=(viewW*.5f-60f)/z;
-        float halfVisibleY=(viewH*.5f-80f)/z;
+        float halfVisibleX=(viewW*.5f-110f)/z;
+        float halfVisibleY=(viewH*.5f-125f)/z;
         float desiredX=cursorWorldX-playerX;
         float desiredY=cursorWorldY-playerY;
-        float targetX=desiredX-clamp(desiredX,-halfVisibleX,halfVisibleX);
-        float targetY=desiredY-clamp(desiredY,-halfVisibleY,halfVisibleY);
-        if(lookAheadEnabled&&rightAiming){
-            // V68 camera cannot race across thousands of world pixels
-            // or capture the aiming marker when stick angle changes slightly.
+        float targetX=BoundedCameraV69.beyondMargin(desiredX,halfVisibleX);
+        float targetY=BoundedCameraV69.beyondMargin(desiredY,halfVisibleY);
+        float panLimit=BoundedCameraV69.limit(cameraPanLimit,viewW,viewH,z);
+        float targetFactor=BoundedCameraV69.radialFactor(targetX,targetY,panLimit);
+        targetX*=targetFactor;targetY*=targetFactor;
+        // Clamp existing offsets first, including stale values saved by
+        // older builds, and clamp again after easing (including diagonals).
+        float currentFactor=BoundedCameraV69.radialFactor(cameraLookX,cameraLookY,panLimit);
+        cameraLookX*=currentFactor;cameraLookY*=currentFactor;
+        if(lookAheadEnabled&&rightAiming&&panLimit>0f){
             cameraLookX+=StableAimV68.panStep(targetX-cameraLookX,dt,
                 cameraPanSpeed,lookAheadSmooth);
             cameraLookY+=StableAimV68.panStep(targetY-cameraLookY,dt,
                 cameraPanSpeed,lookAheadSmooth);
+            float finalFactor=BoundedCameraV69.radialFactor(cameraLookX,cameraLookY,panLimit);
+            cameraLookX*=finalFactor;cameraLookY*=finalFactor;
         }else{
-            // A released aim-stick resets the camera too: otherwise the
-            // reticle can be outside the viewport for several frames even
-            // though its weapon-specific snap-back distance is correct.
+            // Aim release and the OFF setting return to centered view.
             cameraLookX=0f;cameraLookY=0f;
         }
-        // Rendering may stay at the screen rim while the camera catches up,
-        // but the actual crosshair stops ONLY at the real bullet endpoint.
+        // Crosshair range remains the actual projectile endpoint, but
+        // offscreen reach is clipped to the edge rather than chasing it.
         if(firing){
             if(aimX>.025f)face=1;else if(aimX<-.025f)face=-1;
             if(shotClock<=0&&reloadClock==0){
