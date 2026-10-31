@@ -1,0 +1,48 @@
+name: Survival Paradise V76 — Publish direct APK download
+on:
+  push:
+    branches: [sp-native-v76-transparent-compact-hud-20261101]
+    paths: ['.github/workflows/sp-v76-publish-direct-apk.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish-verified-v76:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Download verified V76 Android build artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/spv76
+          gh run download 41248420372 -R "$GITHUB_REPOSITORY" \
+            -n SP_V76_TransparentHUD -D /tmp/spv76
+          APK=/tmp/spv76/SurvivalParadise_V76_TransparentHUD.apk
+          test -s "$APK"
+          echo "7d0bdcff30ddd6158df53a16904c5e37df7f3ceb37b86dd3f329695351b71d7b  $APK" | sha256sum -c -
+          unzip -t "$APK" >/dev/null
+          test -s /tmp/spv76/SurvivalParadise_V76_Source.zip
+          echo "V76 VERIFIED: APK hash, ZIP CRC and source bundle"
+      - name: Publish GitHub Release with individual APK and source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG=survival-paradise-v76-transparent-hud
+          APK=/tmp/spv76/SurvivalParadise_V76_TransparentHUD.apk
+          SOURCE=/tmp/spv76/SurvivalParadise_V76_Source.zip
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" "$SOURCE" --clobber -R "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" "$APK" "$SOURCE" \
+              -R "$GITHUB_REPOSITORY" \
+              --target 59ef2ae8f088ff375c8388470f9218a4da879fa0 \
+              --title "Survival Paradise V76 — Transparent HUD (Experimental)" \
+              --notes "Installable Android APK built and tested from commit 59ef2ae8f088ff375c8388470f9218a4da879fa0. Transparent compact top HUD; optional FPS panel. Visual acceptance pending. This release allows a direct APK download without the ChatGPT sandbox or GitHub Actions ZIP." \
+              --prerelease
+          fi
+          gh release view "$TAG" -R "$GITHUB_REPOSITORY" \
+            --json url,assets --jq '{url:.url,assets:[.assets[]|{name:.name,url:.url}]}'
