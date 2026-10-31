@@ -623,17 +623,13 @@ public final class MainActivity extends Activity {
         check(root,"Show classic six status bars","showStatusBars",true);
         check(root,"Show world aiming crosshair","showCrosshair",true);
         slider(root,"Approved crimson crosshair size","reticleSize",40,220,100,"%");
-        root.addView(text("V70 AIM ZONES: inner 0–62% rotates aim at the resting range; 62–90% deliberately extends the crosshair; outer 90–100% enters circular camera panning. All four directions have equal pan reach.",11,false));
-        check(root,"Aim-stick camera look-ahead (OFF = fixed camera)","lookAheadEnabled",true);
-        slider(root,"Circular pan radius (all directions equally)","cameraPanLimitV69",0,180,65," px");
-        slider(root,"Camera panning response speed","lookAheadSmooth",2,18,8," /s");
+        root.addView(text("CLASSIC V61 AIM RESTORED: drag the aim thumb from its center toward the rim. Both the thumb and crosshair slide directly with your finger, without auto-extension, acceleration, or aim zones.",11,false));
         slider(root,"Released crosshair distance (weapon-relative)","crosshairRestPercent",50,200,100,"%");
-        slider(root,"Crosshair outward extension speed","cursorSpeedV68",150,2400,650," px/s");
-        slider(root,"Fine aim stability / deadzone","aimDeadzoneV68",5,30,17,"%");
-        slider(root,"Fine aim acceleration curve","aimCurveV68",100,250,175,"%");
-        slider(root,"Direction steering sensitivity","aimSteeringV68",35,200,100,"%");
+        check(root,"Optional classic look-ahead camera (OFF by default)","classicAimCameraV71",false);
+        slider(root,"Circular camera offset limit","cameraPanLimitV69",0,180,65," px");
+        slider(root,"Camera look-ahead stick threshold","lookAheadThreshold",30,95,72,"%");
+        slider(root,"Camera panning response speed","lookAheadSmooth",2,18,8," /s");
         slider(root,"Maximum camera pan speed","cameraPanSpeedV68",120,1200,350," px/s");
-                check(root,"Legacy full-range crosshair while aiming","legacyDirectionalAim",false);
         slider(root,"Camera zoom","cameraZoom",70,180,100,"%");
         slider(root,"Movement joystick size","movePadSize",70,180,100,"%");
         slider(root,"Aiming joystick size","aimPadSize",70,180,100,"%");
@@ -707,7 +703,8 @@ public final class MainActivity extends Activity {
               .putInt("menuTextSize",100).putInt("menuSliderSize",100)
               .putInt("menuRowSpacing",100).putBoolean("dualTorch",true)
               .putBoolean("showStatusBars",true).putBoolean("showCrosshair",true)
-              .putBoolean("lookAheadEnabled",true).putInt("lookAheadThreshold",55)
+              .putBoolean("lookAheadEnabled",false).putBoolean("classicAimCameraV71",false)
+              .putInt("lookAheadThreshold",72)
               .putInt("lookAheadStrength",420).putInt("lookAheadSmooth",8)
               .putInt("cameraPanLimitV69",65)
               .putInt("followMode",0).putInt("followSpacing",125).putInt("cursorSpeed",400)
