@@ -201,7 +201,7 @@ public final class MainActivity extends Activity {
             public void onStopTrackingTouch(SeekBar v){}
         });
         box.addView(bar);root.addView(box);
-        root.addView(text("Range follows equipped weapon; reopen Settings after swapping. Equal circular pan in all directions.",11,false));
+        root.addView(text("Extended camera pan follows your weapon; reopen Settings after swapping. Equal circular range in all directions. Zoom out for wider look-around.",11,false));
     }
     private void check(LinearLayout root,String title,String key,boolean def){
         CheckBox b=new CheckBox(this);b.setText(title);b.setTextColor(INK);b.setTextSize(13);
@@ -247,6 +247,9 @@ public final class MainActivity extends Activity {
         scroll.setFillViewport(false);
         LinearLayout root=column();
         scroll.addView(root);
+        section(root,"GLOBAL HUD VISIBILITY");
+        slider(root,"Global HUD opacity","hudOpacityV73",15,100,100,"%");
+        root.addView(text("Fades all HUD panels, controls, hotbar and status bars. Aim reticle and HUD editor remain visible.",11,false));
         section(root,"BUTTON SELECTION");
         Spinner picker=new Spinner(this);
         picker.setAdapter(new ArrayAdapter<String>(this,
@@ -289,7 +292,8 @@ public final class MainActivity extends Activity {
             for(int i=0;i<LegacyControlsV58.COUNT+4;i++)
                 edit.remove("uiX"+i).remove("uiY"+i).remove("uiSize"+i)
                     .remove("uiAlpha"+i).remove("uiEnabled"+i);
-            edit.remove("movePadSize").remove("aimPadSize");
+            edit.remove("movePadSize").remove("aimPadSize")
+                .putInt("hudOpacityV73",100);
             edit.putBoolean("editControls",false).apply();
             game.reloadSettings();
             if(active[0]!=null)active[0].dismiss();
@@ -676,7 +680,7 @@ public final class MainActivity extends Activity {
         slider(root,"Camera look-ahead stick threshold","lookAheadThreshold",30,95,72,"%");
         slider(root,"Camera panning response speed","lookAheadSmooth",2,18,8," /s");
         slider(root,"Maximum camera pan speed","cameraPanSpeedV68",120,1200,350," px/s");
-        slider(root,"Camera zoom","cameraZoom",70,180,100,"%");
+        slider(root,"Camera zoom — lower = farther view","cameraZoom",45,180,100,"%");
         slider(root,"Movement joystick size","movePadSize",70,180,100,"%");
         slider(root,"Aiming joystick size","aimPadSize",70,180,100,"%");
         slider(root,"Movement joystick sensitivity","moveSensitivity",50,160,100,"%");
@@ -741,6 +745,7 @@ public final class MainActivity extends Activity {
               .putInt("cameraZoom",100).putInt("movePadSize",180)
               .putInt("aimPadSize",180).putInt("moveSensitivity",100)
               .putInt("aimSensitivity",100).putInt("controlOpacity",100)
+              .putInt("hudOpacityV73",100)
               .putInt("testCacheMax",36).putInt("testPreloadRadius",2)
               .putInt("npcSleepRadius",1200).putInt("lightResolution",150)
               .putInt("fireButtonSize",100).putInt("fireButtonX",0)
