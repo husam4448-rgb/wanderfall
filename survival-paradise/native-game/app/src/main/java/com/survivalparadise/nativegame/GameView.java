@@ -116,7 +116,7 @@ public final class GameView extends View {
     boolean firing=false,moving=false;
     // V54.1: old control geometry remains default; test UI can tune it live.
     float movePadScale=1f,aimPadScale=1f,moveSensitivity=1f,aimSensitivity=1f;
-    int controlOpacity=100;
+    int controlOpacity=100,hudOpacityV73=100;
     boolean showPerf=false,showChunkGrid=false;
     int npcSleepRadius=1200;
     int lastVisibleNpcs=0;
@@ -250,6 +250,7 @@ public final class GameView extends View {
         moveSensitivity=host.setting("moveSensitivity",100)/100f;
         aimSensitivity=host.setting("aimSensitivity",100)/100f;
         controlOpacity=host.setting("controlOpacity",100);
+        hudOpacityV73=Math.max(15,Math.min(100,host.setting("hudOpacityV73",100)));
         dualTorch=host.option("dualTorch",true);
         editControls=host.option("editControls",false);
         selectedHudControl=Math.min(EDITOR_ITEMS-1,host.setting("selectedButton",0));
@@ -286,7 +287,7 @@ public final class GameView extends View {
         fireButtonX=host.setting("fireButtonX",0);
         fireButtonY=host.setting("fireButtonY",0);
         fireButtonSize=host.setting("fireButtonSize",100)/100f;
-        zoom=host.setting("cameraZoom",100)/100f;
+        zoom=Math.max(.45f,Math.min(1.8f,host.setting("cameraZoom",100)/100f));
         showPerf=host.option("testPerf",true);
         showChunkGrid=host.option("testChunkGrid",false);
         npcSleepRadius=host.setting("npcSleepRadius",1200);
@@ -1704,6 +1705,10 @@ public final class GameView extends View {
         c.drawBitmap(crosshairReticle,null,dest,reticlePaint);
     }
     void hud(Canvas c){
+        // Entire interface fades together; world and targeting reticle are
+        // outside this composited HUD layer and stay fully readable.
+        int hudLayer=c.saveLayerAlpha(0f,0f,viewW,viewH,
+            Math.round(255f*hudOpacityV73/100f));
         rect(c,0,0,viewW,56,0xc90e2228);
         label(c,"SURVIVAL PARADISE",17,23,18,WHITE,true);
         label(c,"HP "+(int)health+"   AMMO "+ammo+"/"+MAG[gun]+"   WAVE "+wave+
@@ -1754,7 +1759,6 @@ public final class GameView extends View {
             float enc=Math.min(100f,scrap*.8f+ammoPacks*5f+medkits*7f);
             drawStatusBar(c,"ENC TEST",enc,12,245,0xffbca36e);
         }
-        if(editControls)drawHudEditorOverlay(c);
         label(c,"MOVE",lx-39,jy+105,12,0xffb8d4c5,true);
         if(reloadClock>0)label(c,"RELOADING...",viewW-235,viewH-227,17,ORANGE,true);
         if(showPerf){
@@ -1772,6 +1776,9 @@ public final class GameView extends View {
             label(c,String.format(Locale.US,"CPU UPDATE %.1f  DRAW %.1f  LIGHT %.1f ms",
                 updateNs/1e6f,worldNs/1e6f,lightingNs/1e6f),18,138,11,OLIVE,false);
         }
+        c.restoreToCount(hudLayer);
+        // Keep on-screen edit handles opaque at any HUD opacity.
+        if(editControls)drawHudEditorOverlay(c);
     }
     void menu(Canvas c){
         rounded(c,viewW/2-300,viewH/2-200,600,398,20,0xef14272b);
@@ -1940,7 +1947,7 @@ public final class GameView extends View {
         else if(ui==LegacyControlsV58.RELOAD)reload();
         else if(ui==LegacyControlsV58.ZOOM_IN||ui==LegacyControlsV58.ZOOM_OUT){
             float delta=ui==LegacyControlsV58.ZOOM_IN?.12f:-.12f;
-            zoom=clamp(zoom+delta,.7f,1.8f);
+            zoom=clamp(zoom+delta,.45f,1.8f);
             host.prefs.edit().putInt("cameraZoom",Math.round(zoom*100f)).apply();
         }else if(ui==LegacyControlsV58.USE){
             for(Iterator<Drop> it=drops.iterator();it.hasNext();){
