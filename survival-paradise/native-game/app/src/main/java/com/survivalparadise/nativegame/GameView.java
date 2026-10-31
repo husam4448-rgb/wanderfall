@@ -72,9 +72,12 @@ public final class GameView extends View {
        {465,321,LightingV47.NEON_BLUE},{1775,343,LightingV47.NEON_PINK},
        {2455,1170,LightingV47.NEON_BLUE},{857,1710,LightingV47.NEON_PINK}};
     final ArrayList<float[]> builtCampfires=new ArrayList<>();
+    final ResourceWorldV80 harvestWorld=new ResourceWorldV80();
     float playerX=1000,playerY=1060,health=100,stamina=100,shotClock=0,reloadClock=0,recoil=0;
     float aimX=1,aimY=0,stickX=0,stickY=0;
     int face=1,gun=0,ammo=12,kills=0,wave=1,scrap=0,medkits=0,ammoPacks=0,enemyCount=0;
+    int wood=0,stone=0,fiber=0;
+    String gatherFeedback="";float gatherFeedbackTime=0f;
     float worldTimer=0,autSaveClock=0,shake=0;
     long lastFrame=0;
     float viewW=1200,viewH=660,drawScale=1,camX=0,camY=0;
@@ -355,7 +358,9 @@ public final class GameView extends View {
         cursorInitialized=false;cursorMoveX=0;cursorMoveY=0;
         playerAnimation.reset();moving=false;stickX=0;stickY=0;shotClock=0;
         gun=Math.max(0,Math.min(11,host.setting("gun",0)));ammo=MAG[gun];
-        kills=0;wave=1;scrap=0;medkits=1;ammoPacks=2;worldTimer=0;autSaveClock=0;
+        kills=0;wave=1;scrap=0;medkits=1;ammoPacks=2;
+        wood=0;stone=0;fiber=0;harvestWorld.clear();gatherFeedback="";gatherFeedbackTime=0;
+        worldTimer=0;autSaveClock=0;
         clock.setClock(night?21*60f:12*60f,1);
         face=1;aimX=1;aimY=0;refreshDaylight();
         enemies.clear();friends.clear();campStaff.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();builtCampfires.clear();
@@ -387,6 +392,9 @@ public final class GameView extends View {
         kills=host.setting("kills",0);
         wave=Math.max(1,host.setting("wave",1));
         scrap=host.setting("scrap",0);medkits=host.setting("medkits",1);ammoPacks=host.setting("ammoPacks",2);
+        wood=host.setting("woodV80",0);stone=host.setting("stoneV80",0);fiber=host.setting("fiberV80",0);
+        harvestWorld.decode(host.prefs.getString("depleted_resources_v80",""));
+        gatherFeedback="";gatherFeedbackTime=0;
         gun=Math.max(0,Math.min(11,host.setting("gun",0)));
         ammo=Math.max(0,Math.min(MAG[gun],host.setting("ammo",MAG[gun])));
         enemies.clear();friends.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();
@@ -466,6 +474,8 @@ public final class GameView extends View {
                 .putInt("waterCount",waterCount).putInt("kills",kills).putInt("wave",wave)
                 .putInt("scrap",scrap).putInt("medkits",medkits)
                 .putInt("ammoPacks",ammoPacks).putInt("ammo",ammo)
+                .putInt("woodV80",wood).putInt("stoneV80",stone).putInt("fiberV80",fiber)
+                .putString("depleted_resources_v80",harvestWorld.encode())
                 .putString("campfire_locations",encodeCampfires())
                 .putFloat("clockMinutes",clock.minute()).putInt("clockDay",clock.day())
                 .putFloat("aimX",aimX).putFloat("aimY",aimY).apply();
@@ -618,6 +628,7 @@ public final class GameView extends View {
         refreshDaylight();
         dt=Math.min(.04f,dt)*timeSpeed;
         worldTimer+=dt;autSaveClock+=dt;
+        gatherFeedbackTime=Math.max(0f,gatherFeedbackTime-dt);
         if(autSaveClock>9){saveProgress();autSaveClock=0;}
         shotClock=Math.max(0,shotClock-dt);
         recoil=Math.max(0,recoil-dt*5);
@@ -1133,34 +1144,43 @@ public final class GameView extends View {
                 drawCover(c,box);
         drawSpawnCamp(c);
     }
-    /** World-position deterministic decorative sprites, evaluated only on visible cells. */
+    /** V80 living biome: V74 trees/rocks become harvestable, plus small fiber shrubs. */
     void drawBiomePropsV74(Canvas c){
-        final int cell=288;
+        final int cell=ResourceWorldV80.CELL;
         int x0=(int)Math.floor(camX/cell)-1,x1=(int)Math.ceil((camX+viewW)/cell)+1;
         int y0=(int)Math.floor(camY/cell)-1,y1=(int)Math.ceil((camY+viewH)/cell)+1;
-        for(int cy=y0;cy<=y1;cy++)for(int cx=x0;cx<=x1;cx++)for(int k=0;k<3;k++){
-            int h=WorldChunkModel.hash(cx*7+k,cy*11-k);
-            float x=cx*cell+20+Math.floorMod(h,cell-40);
-            float y=cy*cell+20+Math.floorMod(h>>>8,cell-40);
-            // Preserve the complete V73 hub's existing foliage and objects.
-            if(x>=0&&x<=WORLD_W&&y>=0&&y<=WORLD_H)continue;
-            if(y>912&&y<1160 || x>1480&&x<1740)continue;
-            if(Math.hypot(x-CAMP_X,y-CAMP_Y)<470f)continue;
-            if(x<camX-140||x>camX+viewW+140||
-               y<camY-140||y>camY+viewH+140)continue;
-            int kind=BiomeWorldV74.prop(x,y,h);
-            float extent=kind==4?72f:kind==5?84f:kind==3?162f:186f;
-            if(biomeProps!=null){
-                int size=BiomeWorldV74.CELL;
-                src.set(kind*size,0,(kind+1)*size,size);
-                dest.set(x-extent*.5f,y-extent,x+extent*.5f,y);
-                c.drawBitmap(biomeProps,src,dest,pixel);
-            }else{
-                int tint=BiomeWorldV74.detail(BiomeWorldV74.biome(x,y),h);
-                rect(c,x-8,y-14,16,14,0xff24332a);
-                rect(c,x-17,y-28,34,17,tint);
+        // Loop only visible cells; sparse harvest state stays independent of bitmap cache.
+        for(int cy=y0;cy<=y1;cy++)for(int cx=x0;cx<=x1;cx++)
+            for(int k=0;k<ResourceWorldV80.SLOTS;k++){
+                if(harvestWorld.exhausted(cx,cy,k))continue;
+                ResourceWorldV80.Node node=ResourceWorldV80.node(cx,cy,k,
+                    CAMP_X,CAMP_Y,WORLD_W,WORLD_H);
+                if(node==null)continue;
+                float x=node.x,y=node.y;
+                if(x<camX-200||x>camX+viewW+200||
+                   y<camY-200||y>camY+viewH+200)continue;
+                int kind=node.kind,h=node.seed;
+                if(kind==ResourceWorldV80.BUSH){
+                    // Low stepped pixel bush; distinct fiber gathering target.
+                    int leaf=BiomeWorldV74.detail(BiomeWorldV74.biome(x,y),h);
+                    rect(c,x-21,y-12,42,12,0xff192b24);
+                    rect(c,x-27,y-21,54,13,0xff23372b);
+                    rect(c,x-17,y-28,35,15,leaf);
+                    rect(c,x-7,y-34,14,12,0xff7b9168);
+                    continue;
+                }
+                float extent=kind==4?72f:kind==5?84f:kind==3?162f:186f;
+                if(biomeProps!=null){
+                    int size=BiomeWorldV74.CELL;
+                    src.set(kind*size,0,(kind+1)*size,size);
+                    dest.set(x-extent*.5f,y-extent,x+extent*.5f,y);
+                    c.drawBitmap(biomeProps,src,dest,pixel);
+                }else{
+                    int tint=BiomeWorldV74.detail(BiomeWorldV74.biome(x,y),h);
+                    rect(c,x-8,y-14,16,14,0xff24332a);
+                    rect(c,x-17,y-28,34,17,tint);
+                }
             }
-        }
     }
     void drawSpawnCamp(Canvas c){
         if(CAMP_X<camX-520||CAMP_X>camX+viewW+520||
@@ -1769,11 +1789,20 @@ public final class GameView extends View {
         topHudButton(c,TopHudV76.BAG,"BAG",false);
         topHudButton(c,TopHudV76.PAUSE,paused?"RESUME":"PAUSE",paused);
         topHudButton(c,TopHudV76.SET,"SET",false);
-        String footer="SCRAP "+scrap+"  MED "+medkits+"  AMMO BOX "+ammoPacks+
+        String footer="SCRAP "+scrap+"  WOOD "+wood+"  STONE "+stone+
+            "  FIBER "+fiber+"  MED "+medkits+"  AMMO "+ammoPacks+
             "   "+MainActivity.LOADOUTS[gun]+"  "+clock.display()+
             (automaticDayNight?" [AUTO]":" [MANUAL]");
         label(c,footer,14,viewH-15,13,0xff182521,true);
         label(c,footer,13,viewH-16,13,ORANGE,true);
+        if(gatherFeedbackTime>0)
+            label(c,gatherFeedback,14,viewH-54,13,0xffd3e4a7,true);
+        else{
+            ResourceWorldV80.Node near=harvestWorld.nearest(playerX,playerY,
+                ResourceWorldV80.USE_RADIUS,CAMP_X,CAMP_Y,WORLD_W,WORLD_H);
+            if(near!=null)
+                label(c,"USE: GATHER "+near.name(),14,viewH-54,12,0xffd3e4a7,true);
+        }
         // Original two virtual sticks, with per-stick size/sensitivity tests.
         float jy=padCenterY(false),rx=padCenterX(true),ry=padCenterY(true);
         float lx=padCenterX(false);
@@ -1988,6 +2017,21 @@ public final class GameView extends View {
         if(x<viewW*.37f&&y>viewH*.45f)return;
         if(x>viewW*.61f&&y>viewH*.42f)return;
     }
+    /** Existing USE button retains dropped-loot priority, then gathers nearby resources. */
+    boolean gatherNearestV80(){
+        ResourceWorldV80.Node node=harvestWorld.nearest(playerX,playerY,
+            ResourceWorldV80.USE_RADIUS,CAMP_X,CAMP_Y,WORLD_W,WORLD_H);
+        if(node==null||!harvestWorld.harvest(node))return false;
+        switch(node.resource()){
+            case ResourceWorldV80.STONE:stone+=node.quantity();break;
+            case ResourceWorldV80.FIBER:fiber+=node.quantity();break;
+            default:wood+=node.quantity();break;
+        }
+        gatherFeedback="GATHERED "+node.name()+" +"+node.quantity();
+        gatherFeedbackTime=2.3f;
+        saveProgress();
+        return true;
+    }
     void activateButton(int ui,int pointer){
         if(LegacyControlsV58.isFire(ui)){
             if(ui==LegacyControlsV58.FIRE_L)fireLeftPointer=pointer;
@@ -2007,9 +2051,10 @@ public final class GameView extends View {
                 Drop drop=it.next();
                 if(distance(playerX,playerY,drop.x,drop.y)<100f){
                     if(drop.type==0)ammoPacks++;else if(drop.type==1)scrap+=2;
-                    else medkits++;it.remove();break;
+                    else medkits++;it.remove();saveProgress();return;
                 }
             }
+            gatherNearestV80();
         }
     }
     @Override public boolean onTouchEvent(MotionEvent e){

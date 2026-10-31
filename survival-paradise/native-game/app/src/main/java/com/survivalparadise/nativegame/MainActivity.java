@@ -453,23 +453,29 @@ public final class MainActivity extends Activity {
         left.addView(text("Appearance uses locked character pixels. Future armor and transmog require approved overlays.",11,false));
         section(right,"BACKPACK   •   24 SLOTS");
         right.addView(text("Select an item to USE it or assign it to the quick-access bar.",12,false));
-        final int[] itemKinds={0,1,2,6,7};
+        final int[] itemKinds={0,1,2,6,7}; // legacy usable hotbar; V80 resources are crafting stacks
         for(int ir=0;ir<4;ir++){
             LinearLayout slots=new LinearLayout(this);slots.setOrientation(LinearLayout.HORIZONTAL);
             for(int ic=0;ic<6;ic++){
                 int idx=ir*6+ic;
                 int kind=idx==0?0:idx==1?1:idx==2?2:idx==3?6:idx==4?7:0;
                 String name=idx==0?"SCRAP":idx==1?"MEDKIT":idx==2?"AMMO":
-                    idx==3?"FOOD":idx==4?"WATER":"";
+                    idx==3?"FOOD":idx==4?"WATER":idx==5?"WOOD":
+                    idx==6?"STONE":idx==7?"FIBER":"";
                 int qty=idx==0?game.scrap:idx==1?game.medkits:
                     idx==2?game.ammoPacks:idx==3?game.foodCount:
-                    idx==4?game.waterCount:0;
+                    idx==4?game.waterCount:idx==5?game.wood:
+                    idx==6?game.stone:idx==7?game.fiber:0;
                 Button slot=v62Slot(name.isEmpty()?"":name+"\n×"+qty,qty>0);
                 LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(0,
                     Math.round(39*getResources().getDisplayMetrics().density),1);
                 params.setMargins(3,3,3,3);slots.addView(slot,params);
                 slot.setOnClickListener(v->{
-                    if(idx>=5)return;
+                    if(idx>=8)return;
+                    if(idx>=5){
+                        Toast.makeText(this,name+" is a gathering/crafting material",
+                            Toast.LENGTH_SHORT).show();return;
+                    }
                     String[] choices={"USE","ASSIGN HOTBAR 1","ASSIGN HOTBAR 2",
                         "ASSIGN HOTBAR 3","ASSIGN HOTBAR 4","ASSIGN HOTBAR 5","ASSIGN HOTBAR 6"};
                     new AlertDialog.Builder(this).setTitle(name+" • "+qty)
