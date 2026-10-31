@@ -1,0 +1,52 @@
+name: Survival Paradise V80 — Publish direct APK
+on:
+  push:
+    branches: [sp-native-v80-harvestable-resources-20261101]
+    paths: ['.github/workflows/sp-v80-publish-direct-apk.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish-verified-v80:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Download verified V80 APK and source archive
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/spv80
+          gh run download 41252901187 -R "$GITHUB_REPOSITORY" \
+            -n SP_V80_Harvestables -D /tmp/spv80
+          APK=/tmp/spv80/SurvivalParadise_V80_Harvestables.apk
+          test -s "$APK"
+          unzip -t "$APK" >/dev/null
+          unzip -l "$APK" | grep -q 'classes.dex'
+          unzip -l "$APK" | grep -q 'assets/world_props_v74.png'
+          unzip -l "$APK" | grep -q 'assets/body.png'
+          test -s /tmp/spv80/SurvivalParadise_V80_Source.zip
+          sha256sum "$APK" > /tmp/spv80/V80_APK_SHA256.txt
+          cat /tmp/spv80/V80_APK_SHA256.txt
+      - name: Publish public release with direct installable APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG=survival-paradise-v80-harvestable-resources
+          APK=/tmp/spv80/SurvivalParadise_V80_Harvestables.apk
+          SOURCE=/tmp/spv80/SurvivalParadise_V80_Source.zip
+          HASH=/tmp/spv80/V80_APK_SHA256.txt
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" "$SOURCE" "$HASH" --clobber -R "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" "$APK" "$SOURCE" "$HASH" \
+              -R "$GITHUB_REPOSITORY" \
+              --target f0e04476971615cc37a372b4db47f2236e6de432 \
+              --title "Survival Paradise V80 — Harvestable World Resources" \
+              --notes "Android APK built and tested from f0e04476971615cc37a372b4db47f2236e6de432. Use USE to gather wood from trees and logs, stone from rocks and fiber from new bushes. Nearby resource prompts and backpack stacks; persistent depleted world plants and resources after save/continue. Spawn-camp ring has sample resource nodes. Original HUD, V79 animation and V78 lighting preserved. Visual Android device testing pending. Trees have no falling animation yet and crafting recipes are future phases." \
+              --prerelease
+          fi
+          gh release view "$TAG" -R "$GITHUB_REPOSITORY" \
+            --json url,assets --jq '{url:.url,assets:[.assets[]|{name:.name,url:.url}]}'
