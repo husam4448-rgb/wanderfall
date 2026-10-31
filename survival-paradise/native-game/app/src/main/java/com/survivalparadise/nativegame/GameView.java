@@ -1543,6 +1543,7 @@ public final class GameView extends View {
         btn(c,viewW-324,7,75,42,lampOn?"LAMP ON":"LAMP OFF",0xff364d48);
         btn(c,viewW-410,7,79,42,"CAMP",0xff5b463a);
         btn(c,viewW-498,7,81,42,lightAlpha>nightDarkness*.5f?"NOON":"NIGHT",0xff34414c);
+        btn(c,viewW-688,7,88,42,"FORM",0xff334f57);
         btn(c,viewW-594,7,91,42,editControls?"HUD DONE":"HUD EDIT",
             editControls?0xff4d7863:0xff465e63);
         rect(c,0,viewH-42,viewW,42,0xca122529);
@@ -1720,6 +1721,14 @@ public final class GameView extends View {
             if(within(x,y,viewW/2-150,viewH/2-38,300,50)){if(gameOver)newGame();else togglePause();return;}
             if(within(x,y,viewW/2-150,viewH/2+28,300,50)){host.settings();return;}
         }
+        if(within(x,y,viewW-688,7,88,42)){
+            followMode=(followMode+1)%FollowFormationV61.NAMES.length;
+            host.prefs.edit().putInt("followMode",followMode).apply();
+            host.runOnUiThread(()->android.widget.Toast.makeText(host,
+                "FORMATION: "+FollowFormationV61.NAMES[followMode],
+                android.widget.Toast.LENGTH_SHORT).show());
+            return;
+        }
         if(within(x,y,viewW-594,7,91,42)){
             editControls=!editControls;releaseControls();
             host.prefs.edit().putBoolean("editControls",editControls).apply();
@@ -1730,13 +1739,7 @@ public final class GameView extends View {
         if(within(x,y,viewW-324,7,75,42)){toggleLamp();return;}
         if(within(x,y,viewW-410,7,79,42)){placeCampfire();return;}
         if(within(x,y,viewW-498,7,81,42)){toggleNight();return;}
-        if(within(x,y,viewW-244,7,68,42)){
-            if(medkits>0&&health<100){medkits--;health=Math.min(100,health+40);}
-            host.runOnUiThread(()->android.widget.Toast.makeText(host,
-                    "INVENTORY   Scrap: "+scrap+"   Medkits: "+medkits+
-                    "   Ammo boxes: "+ammoPacks,android.widget.Toast.LENGTH_SHORT).show());
-            return;
-        }
+        if(within(x,y,viewW-244,7,68,42)){host.inventory();return;}
         if(paused)return;
         // HUD action buttons are dispatched through LegacyControlsV58 so all
         // visible and touch regions always use the same configurable geometry.
