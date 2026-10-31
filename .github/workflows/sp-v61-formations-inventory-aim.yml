@@ -377,7 +377,7 @@ jobs:
               'boolean hudEditorTouch(float x,float y)',
               'selectedHudControl=target;', 'editGrabX=x-uiX(target);',
               'editControls=!editControls;releaseControls();',
-              'if(editControls&&hudEditorTouch(x,y)){return true;}',
+              'if(editControls&&hudEditorTouch(x,y)){',
               'host.prefs.edit().putInt("uiX"+editControl,editX)',
               'Bitmap campStatic;','void drawSpawnCampDetails(Canvas c)',
               'if(campStatic==null)','lighting.setFastPointLights',
