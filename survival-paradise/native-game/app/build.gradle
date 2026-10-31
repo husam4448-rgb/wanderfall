@@ -6,8 +6,8 @@ android {
   applicationId 'com.survivalparadise.nativegame'
   minSdk 24
   targetSdk 34
-  versionCode 61
-  versionName '0.60-live-hud-aim-fps'
+  versionCode 62
+  versionName '0.61-formations-inventory-aim'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
