@@ -1,0 +1,49 @@
+name: Survival Paradise V78 — Publish direct APK
+on:
+  push:
+    branches: [sp-native-v78-companion-flashlight-stutter-20261101]
+    paths: ['.github/workflows/sp-v78-publish-direct-apk.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish-verified-v78:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Retrieve tested V78 Android APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/spv78
+          gh run download 41251395643 -R "$GITHUB_REPOSITORY" \
+            -n SP_V78_FlashlightFix -D /tmp/spv78
+          APK=/tmp/spv78/SurvivalParadise_V78_FlashlightFix.apk
+          test -s "$APK"
+          unzip -t "$APK" >/dev/null
+          unzip -l "$APK" | grep 'classes.dex'
+          test -s /tmp/spv78/SurvivalParadise_V78_Source.zip
+          sha256sum "$APK" | tee /tmp/spv78/V78_APK_SHA256.txt
+      - name: Publish stable GitHub Release APK and source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG=survival-paradise-v78-night-flashlight-fix
+          APK=/tmp/spv78/SurvivalParadise_V78_FlashlightFix.apk
+          SOURCE=/tmp/spv78/SurvivalParadise_V78_Source.zip
+          HASH=/tmp/spv78/V78_APK_SHA256.txt
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" "$SOURCE" "$HASH" --clobber -R "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" "$APK" "$SOURCE" "$HASH" \
+              -R "$GITHUB_REPOSITORY" \
+              --target a58aef887824c5900dbf85f465cc0f2e5c8cd4cc \
+              --title "Survival Paradise V78 — Night Companion Flashlight Fix" \
+              --notes "Verified native APK from a58aef887824c5900dbf85f465cc0f2e5c8cd4cc. At a stationary player/camera, moving flashlight and projectile light sources now invalidate the stale 10Hz lightmap. Following NPCs slow to their formation slots with stable facing and walking frames. V77 HUD, slider settings and original character atlases preserved. Visual device review pending." \
+              --prerelease
+          fi
+          gh release view "$TAG" -R "$GITHUB_REPOSITORY" \
+            --json url,assets --jq '{url:.url,assets:[.assets[]|{name:.name,url:.url}]}'
