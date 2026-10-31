@@ -1,0 +1,50 @@
+name: Survival Paradise V79 — Direct APK Release
+on:
+  push:
+    branches: [sp-native-v79-walk-animation-tempo-20261101]
+    paths: ['.github/workflows/sp-v79-publish-direct-apk.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish-verified-v79:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Retrieve V79 CI-validated Android APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/spv79
+          gh run download 41251995213 -R "$GITHUB_REPOSITORY" \
+            -n SP_V79_WalkingAnimation -D /tmp/spv79
+          APK=/tmp/spv79/SurvivalParadise_V79_WalkingAnimation.apk
+          test -s "$APK"
+          unzip -t "$APK" >/dev/null
+          unzip -l "$APK" | grep 'classes.dex'
+          test -s /tmp/spv79/SurvivalParadise_V79_Source.zip
+          sha256sum "$APK" > /tmp/spv79/V79_APK_SHA256.txt
+          cat /tmp/spv79/V79_APK_SHA256.txt
+      - name: Publish public release with direct APK link
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG=survival-paradise-v79-walking-animation
+          APK=/tmp/spv79/SurvivalParadise_V79_WalkingAnimation.apk
+          SOURCE=/tmp/spv79/SurvivalParadise_V79_Source.zip
+          HASH=/tmp/spv79/V79_APK_SHA256.txt
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" "$SOURCE" "$HASH" --clobber -R "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" "$APK" "$SOURCE" "$HASH" \
+              -R "$GITHUB_REPOSITORY" \
+              --target 6f165c696a2809533f70e01c3f36ffec99c71411 \
+              --title "Survival Paradise V79 — Adjustable Walking Animation" \
+              --notes "Verified Android APK from 6f165c696a2809533f70e01c3f36ffec99c71411. Walking animation speed slider 50-200%, default 100% auto-synchronizes with movement-speed slider. Only the player's gait animation cadence changes; V78 companion flashlights, world, combat, HUD and approved sprite assets preserved. On-device visual acceptance pending." \
+              --prerelease
+          fi
+          gh release view "$TAG" -R "$GITHUB_REPOSITORY" \
+            --json url,assets --jq '{url:.url,assets:[.assets[]|{name:.name,url:.url}]}'
