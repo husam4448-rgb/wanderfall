@@ -1597,7 +1597,7 @@ public final class GameView extends View {
                     int current=host.setting(key,100);
                     int next=Math.round(clamp(current+(j%2==0?-10:10),min,j<=3?180:100));
                     host.prefs.edit().putInt(key,next).apply();
-                    if(i>=MOVE_PAD&&j<=3)reloadSettings();
+                    if(i==HOTBAR||(i>=MOVE_PAD&&j<=3))reloadSettings();
                 }
                 invalidate();return true;
             }
@@ -1967,11 +1967,13 @@ public final class GameView extends View {
                     }
                     if(pointer==editPointer&&editControl>=0){
                         editX=Math.round(px-editGrabX-
-                                (editControl<LegacyControlsV58.COUNT?
+                                (editControl==HOTBAR?viewW*.5f-6*47f*hotbarScale*.5f:
+                                 editControl<LegacyControlsV58.COUNT?
                                  LegacyControlsV58.defaultX(editControl,viewW):
                                  padBaseX(editControl==AIM_PAD)));
                         editY=Math.round(py-editGrabY-
-                                (editControl<LegacyControlsV58.COUNT?
+                                (editControl==HOTBAR?viewH-256f:
+                                 editControl<LegacyControlsV58.COUNT?
                                  LegacyControlsV58.defaultY(editControl,viewH):
                                  padBaseY(editControl==AIM_PAD)));
                         if(editControl<LegacyControlsV58.COUNT){
@@ -1979,6 +1981,12 @@ public final class GameView extends View {
                                   viewW-uiWidth(editControl)-LegacyControlsV58.defaultX(editControl,viewW)));
                             editY=Math.round(clamp(editY,-LegacyControlsV58.defaultY(editControl,viewH),
                                   viewH-uiHeight(editControl)-LegacyControlsV58.defaultY(editControl,viewH)));
+                        }else if(editControl==HOTBAR){
+                            float width=6*47f*hotbarScale;
+                            editX=Math.round(clamp(editX,-viewW*.5f+width*.5f+5,
+                                      viewW*.5f-width*.5f-5));
+                            editY=Math.round(clamp(editY,65-(viewH-256f),
+                                      viewH-55-(viewH-256f)));
                         }else{
                             editX=Math.round(clamp(editX,70-padBaseX(editControl==AIM_PAD),
                                   viewW-70-padBaseX(editControl==AIM_PAD)));
