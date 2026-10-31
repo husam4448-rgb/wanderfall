@@ -259,7 +259,7 @@ jobs:
               'WorldPerfV55.distantFrom','lastVisibleNpcs++',
               'lastCulledNpcs++','void drawChunkGrid(',
               'terrainChunks.draw(c,camX,camY,viewW,viewH);',
-              'addCharacterShadow','playerAnimation.step(moving,dt,runHeld&&stamina>0?9.7f:8.2f)',
+              'addCharacterShadow','PlayerMovementV77.gait(walkSpeedMultiplier,runHeld&&stamina>0)',
               'CharacterCollision.firstHit','WorldPerfV55.nearView',
           ]: assert clause in g,clause
           assert 'setPixelScale(' in l and 'screenDst.set(' in l
@@ -412,7 +412,7 @@ jobs:
             'Ballistics.unobstructedTravel(gun)+muzzleOffset',
             'drawHotbar(c);',
             'new V62InventoryPreview' if False else 'drawBrightCrosshair(canvas);',
-            'playerAnimation.step(moving,dt,runHeld&&stamina>0?9.7f:8.2f);',
+            'playerAnimation.step(moving,dt,PlayerMovementV77.gait(walkSpeedMultiplier,runHeld&&stamina>0));',
             'final int split=110',
             'Bitmap locked=npc?npcIdleV56:body;',
             'postInvalidateOnAnimation();',
