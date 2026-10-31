@@ -32,7 +32,7 @@ public final class V65RadialAimTest {
         ok(d>RadialAimV65.rest(0),"rapid aim extension at default speed");
         near(RadialAimV65.distance(d,0,250,false,0,2900,.016f),
              RadialAimV65.rest(0),"range-indicator snap without animation");
-        near(RadialAimV65.maximum(8,650,400),400f,"player-configured max");
+        near(RadialAimV65.maximum(8,650,600),600f,"player-configured cap beyond resting distance");
         System.out.println("V65 PASS: per-weapon rest, instant reversal, release snap, ballistic cap");
     }
 }
