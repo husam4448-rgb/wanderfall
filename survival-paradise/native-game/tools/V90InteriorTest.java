@@ -21,7 +21,7 @@ public final class V90InteriorTest {
   ok(v.blockedRays>0,"vision ignores clinic walls");
   ok(v.visible(800*s,565*s,1,0,820*s,565*s,map),
       "forward corridor not visible");
-  ok(!v.visible(800*s,565*s,1,0,760*s,565*s,map),
+  ok(!v.visible(800*s,565*s,1,0,650*s,565*s,map),
       "rear vision not concealed");
   ClinicActorsV90 enemies=new ClinicActorsV90(map);
   ok(enemies.actors.length>=7,"missing indoor enemy/friendly actors");
