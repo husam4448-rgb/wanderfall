@@ -75,6 +75,7 @@ public final class GameView extends View {
     final ArrayList<float[]> builtCampfires=new ArrayList<>();
     final CampCraftV83 craftV83=new CampCraftV83();
     final SalvageWorldV84 salvageWorldV84=new SalvageWorldV84();
+    final GroundPickupsV85 groundPickupsV85=new GroundPickupsV85();
     final ItemIconsV84 itemIconsV84=new ItemIconsV84();
     int placingKindV84=-1,placingPointerV84=-1;
     float placingXv84,placingYv84;
@@ -370,7 +371,7 @@ public final class GameView extends View {
         playerAnimation.reset();moving=false;stickX=0;stickY=0;shotClock=0;
         gun=Math.max(0,Math.min(11,host.setting("gun",0)));ammo=MAG[gun];
         kills=0;wave=1;scrap=0;medkits=1;ammoPacks=2;
-        wood=0;stone=0;fiber=0;harvestWorld.clear();salvageWorldV84.clear();
+        wood=0;stone=0;fiber=0;harvestWorld.clear();salvageWorldV84.clear();groundPickupsV85.clear();
         placingKindV84=-1;placingPointerV84=-1;harvestV81.cancel();
         harvestImpactTimeV81=0;gatherFeedback="";gatherFeedbackTime=0;
         worldTimer=0;autSaveClock=0;
@@ -417,6 +418,7 @@ public final class GameView extends View {
         craftV83.decode(host.prefs.getString("camp_buildings_v83",""));
         craftV83.decodeStock(host.prefs.getString("camp_stock_v84",""));
         salvageWorldV84.decode(host.prefs.getString("salvaged_scrap_v84",""));
+        groundPickupsV85.decode(host.prefs.getString("loose_pickups_v85",""));
         placingKindV84=-1;placingPointerV84=-1;
         removeBarricadeCoverV83();restoreBarricadeCoverV83();
         campStaff.clear();initCampStaff();
@@ -590,6 +592,7 @@ public final class GameView extends View {
                 .putString("camp_buildings_v83",craftV83.encode())
                 .putString("camp_stock_v84",craftV83.encodeStock())
                 .putString("salvaged_scrap_v84",salvageWorldV84.encode())
+                .putString("loose_pickups_v85",groundPickupsV85.encode())
                 .putFloat("clockMinutes",clock.minute()).putInt("clockDay",clock.day())
                 .putFloat("aimX",aimX).putFloat("aimY",aimY).apply();
         hasSave=true;
@@ -1340,6 +1343,7 @@ public final class GameView extends View {
         }
         drawBiomePropsV74(c);
         drawSalvageWorldV84(c);
+        drawLooseGroundPickupsV85(c);
         if(placingKindV84>=0){
             rect(c,placingXv84-48,placingYv84-40,96,55,0x6640a688);
             // Reuse the finished structure geometry in transparent placement preview.
@@ -1353,6 +1357,39 @@ public final class GameView extends View {
         drawSpawnCamp(c);
     }
     /** V80 living biome: V74 trees/rocks become harvestable, plus small fiber shrubs. */
+    /** Three small, discoverable pickups, no heavy atlas or bitmap regeneration. */
+    void drawLooseGroundPickupsV85(Canvas c){
+        int cell=GroundPickupsV85.CELL;
+        int x0=(int)Math.floor(camX/cell)-1,x1=(int)Math.ceil((camX+viewW)/cell)+1;
+        int y0=(int)Math.floor(camY/cell)-1,y1=(int)Math.ceil((camY+viewH)/cell)+1;
+        for(int cy=y0;cy<=y1;cy++)for(int cx=x0;cx<=x1;cx++)
+        for(int kind=0;kind<GroundPickupsV85.SLOTS;kind++){
+            if(groundPickupsV85.collected(cx,cy,kind))continue;
+            int seed=GroundPickupsV85.seed(cx,cy,kind);
+            float x=GroundPickupsV85.worldX(cx,seed),y=GroundPickupsV85.worldY(cy,seed);
+            if(x<camX-60||x>camX+viewW+60||y<camY-60||y>camY+viewH+60||
+               !GroundPickupsV85.placed(kind,seed,x,y,CAMP_X,CAMP_Y))continue;
+            color(0x990e231f);c.drawOval(x-13,y-5,x+13,y+6,p);
+            itemIconsV84.draw(c,kind==GroundPickupsV85.STONE?ItemIconsV84.STONE:
+                kind==GroundPickupsV85.WOOD?ItemIconsV84.WOOD:ItemIconsV84.SCRAP,
+                x-14f,y-25f,28f);
+            // Distinguishable pale edge on pickup, independent of biome.
+            p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(1.5f);
+            color(0xffc6bda1);c.drawRect(x-14,y-25,x+14,y+3,p);
+            p.setStyle(Paint.Style.FILL);
+        }
+    }
+    /** USE immediately picks up small items, unlike axe/pick/crowbar resources. */
+    boolean pickupGroundV85(){
+        GroundPickupsV85.Item item=groundPickupsV85.nearest(playerX,playerY,
+            GroundPickupsV85.REACH,CAMP_X,CAMP_Y);
+        if(item==null||!groundPickupsV85.collect(item))return false;
+        if(item.slot==GroundPickupsV85.STONE)stone+=item.quantity();
+        else if(item.slot==GroundPickupsV85.WOOD)wood+=item.quantity();
+        else scrap+=item.quantity();
+        gatherFeedback="PICKED UP "+item.label()+" +"+item.quantity();
+        gatherFeedbackTime=2f;saveProgress();return true;
+    }
     /** Procedural rusted vehicles and scrap heaps, drawn only in visible cells. */
     void drawSalvageWorldV84(Canvas c){
         int cell=SalvageWorldV84.CELL;
@@ -2461,7 +2498,7 @@ public final class GameView extends View {
                     else medkits++;it.remove();saveProgress();return;
                 }
             }
-            gatherNearestV80();
+            if(!pickupGroundV85())gatherNearestV80();
         }
     }
     @Override public boolean onTouchEvent(MotionEvent e){
