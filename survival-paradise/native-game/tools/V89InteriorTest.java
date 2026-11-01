@@ -16,7 +16,7 @@ public final class V89InteriorTest {
   ok(!in.blocked(300,830,18),"pharmacy inaccessible");
   ok(!in.blocked(1300,970,18),"recovery ward inaccessible");
   ok(in.blocked(530,215,10),"wall collision absent");
-  ok(in.blocked(1000,200,10),"interior perimeter failed");
+  ok(in.blocked(12,200,10),"interior perimeter failed");
   // Flood fill verifies the door gaps actually connect all six departments.
   final int grid=20,w=ClinicInteriorV89.WIDTH/grid,h=ClinicInteriorV89.HEIGHT/grid;
   boolean[][] seen=new boolean[w][h];ArrayDeque<int[]> q=new ArrayDeque<>();
