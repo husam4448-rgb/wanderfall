@@ -51,7 +51,7 @@ public final class V81HarvestTest {
         ResourceWorldV80 w=new ResourceWorldV80();
         ResourceWorldV80.Node n=choose(kind);HarvestActionV81 a=new HarvestActionV81();
         ok(a.begin(n),"start failed");
-        a.advance(a.period()*.80f); // impact occurred, but not completion
+        for(int frame=0;frame<5;frame++)a.advance(a.period()/6f); // real frame steps: one impact, no completion
         ok(a.hitsDone>0,"cancellation test did not reach impact");
         a.cancel();
         ok(!a.active&&!a.finished&&a.target==null,"cannot cancel");
