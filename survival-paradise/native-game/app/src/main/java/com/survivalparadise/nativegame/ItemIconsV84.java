@@ -12,8 +12,9 @@ import android.content.res.Resources;
 /** Original compact pixel item silhouettes generated once; no render-time allocation. */
 public final class ItemIconsV84 {
     public static final int SCRAP=0,MED=1,AMMO=2,FOOD=3,WATER=4,WOOD=5,
-        STONE=6,FIBER=7,BARRICADE=8,LAMP=9,PISTOL=10,RIFLE=11,TORCH=12;
-    private final Bitmap[] art=new Bitmap[13];
+        STONE=6,FIBER=7,BARRICADE=8,LAMP=9,PISTOL=10,RIFLE=11,TORCH=12,
+        WATER_COLLECTOR=13,FIELD_SHELTER=14;
+    private final Bitmap[] art=new Bitmap[15];
     private final Paint paint=new Paint();
     private final RectF dst=new RectF();
     private final android.graphics.Rect src=new android.graphics.Rect(0,0,32,32);
@@ -78,6 +79,14 @@ public final class ItemIconsV84 {
             case TORCH:
                 r(c,5,13,23,9,dk);r(c,7,15,15,5,metal);
                 r(c,23,11,5,13,gold);r(c,25,13,4,8,shine);break;
+            case WATER_COLLECTOR:
+                r(c,4,9,24,21,dk);r(c,6,11,20,18,0xff4e7181);
+                r(c,3,7,27,6,0xff273b3c);r(c,6,6,21,4,shine);
+                r(c,11,13,10,8,0xff8cb8c2);r(c,23,18,4,11,brown);break;
+            case FIELD_SHELTER:
+                r(c,3,22,27,7,dk);r(c,6,13,21,11,green);
+                r(c,10,8,14,7,0xff99a879);r(c,12,16,10,12,dk);
+                r(c,15,18,5,10,brown);r(c,3,24,27,3,gold);break;
             default:break;
         }
     }
@@ -104,6 +113,8 @@ public final class ItemIconsV84 {
         if(item==8)return TORCH;
         if(item==9)return BARRICADE;
         if(item==10)return LAMP;
+        if(item==11)return WATER_COLLECTOR;
+        if(item==12)return FIELD_SHELTER;
         return SCRAP;
     }
     public void release(){for(Bitmap b:art)if(b!=null&&!b.isRecycled())b.recycle();}
