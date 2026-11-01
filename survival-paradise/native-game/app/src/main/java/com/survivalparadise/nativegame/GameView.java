@@ -104,6 +104,7 @@ public final class GameView extends View {
     float worldTimer=0,autSaveClock=0,shake=0;
     long lastFrame=0;
     float viewW=1200,viewH=660,drawScale=1,camX=0,camY=0;
+    float renderZoomV90=1f;
     int leftPointer=-1,rightPointer=-1,firePointer=-1,fireLeftPointer=-1;
     int editPointer=-1,editControl=-1,editX=0,editY=0;
     float editGrabX=0,editGrabY=0;
@@ -1362,6 +1363,19 @@ public final class GameView extends View {
     void knifeStrike(){
         if(!playing||paused||knifeCooldown>0||harvestV81.active)return;
         knifeCooldown=MeleeSlashV83.COOLDOWN;knifeDuration=MeleeSlashV83.DURATION;knifeHitPending=true;
+        if(insideClinicV89){
+            knifeHitPending=false;knifeTarget=null;
+            knifeDirection=LegacyControlsV58.quantizeKnife(aimX,aimY);
+            ClinicActorsV90.Actor target=clinicActorsV90.target(
+                playerX,playerY-27,aimX,aimY,MeleeSlashV83.REACH,
+                clinicInteriorV89);
+            if(target!=null){
+                clinicActorsV90.hit(target,40f);
+                particles(target.x,target.y-28,0xffa45146,6);
+                saveProgress();
+            }
+            return;
+        }
         knifeTarget=nearest(playerX,playerY,MeleeSlashV83.REACH);
         float dx=knifeTarget==null?aimX:knifeTarget.x-playerX;
         float dy=knifeTarget==null?aimY:knifeTarget.y-playerY;
@@ -3006,8 +3020,9 @@ public final class GameView extends View {
         // They never feed back into the actual aim direction, and the
         // crosshair always remains on the character-to-stick ray.
         float half=21f*reticleSize;
-        float originX=(playerX-camX)*zoom,originY=(playerY-42f-camY)*zoom;
-        float available=aimCursorDistance*zoom;
+        float originX=(playerX-camX)*renderZoomV90,
+            originY=(playerY-42f-camY)*renderZoomV90;
+        float available=aimCursorDistance*renderZoomV90;
         if(aimX>.0001f)available=Math.min(available,
             (viewW-half-5f-originX)/aimX);
         else if(aimX<-.0001f)available=Math.min(available,
@@ -3250,6 +3265,7 @@ public final class GameView extends View {
         float effectiveZoom=insideClinicV89?
             Math.max(zoom,Math.max(viewW/ClinicInteriorV89.WIDTH,
                 viewH/ClinicInteriorV89.HEIGHT)):zoom;
+        renderZoomV90=effectiveZoom;
         // Camera follow and clamping in world coordinates.
         if(insideClinicV89){
             float frameW=viewW/effectiveZoom,frameH=viewH/effectiveZoom;
