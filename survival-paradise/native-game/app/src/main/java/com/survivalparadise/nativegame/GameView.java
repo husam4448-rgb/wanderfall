@@ -1324,6 +1324,13 @@ public final class GameView extends View {
             }
         }
         drawBiomePropsV74(c);
+        drawSalvageWorldV84(c);
+        if(placingKindV84>=0){
+            rect(c,placingXv84-48,placingYv84-40,96,55,0x6640a688);
+            // Reuse the finished structure geometry in transparent placement preview.
+            drawCraftStructureV83(c,new CampCraftV83.Structure(
+                placingKindV84,placingXv84,placingYv84));
+        }
         for(Cover box:covers)
             if(box.x+box.w>=camX-15&&box.x<=camX+viewW+15&&
                box.y+box.h>=camY-15&&box.y<=camY+viewH+15)
@@ -1331,6 +1338,58 @@ public final class GameView extends View {
         drawSpawnCamp(c);
     }
     /** V80 living biome: V74 trees/rocks become harvestable, plus small fiber shrubs. */
+    /** Procedural rusted vehicles and scrap heaps, drawn only in visible cells. */
+    void drawSalvageWorldV84(Canvas c){
+        int cell=SalvageWorldV84.CELL;
+        int x0=(int)Math.floor(camX/cell)-1,x1=(int)Math.ceil((camX+viewW)/cell)+1;
+        int y0=(int)Math.floor(camY/cell)-1,y1=(int)Math.ceil((camY+viewH)/cell)+1;
+        for(int cy=y0;cy<=y1;cy++)for(int cx=x0;cx<=x1;cx++)
+        for(int k=0;k<SalvageWorldV84.SLOTS;k++){
+            int seed=SalvageWorldV84.seed(cx,cy,k);
+            float x=SalvageWorldV84.x(cx,seed),y=SalvageWorldV84.y(cy,seed);
+            if(x<camX-170||x>camX+viewW+170||
+               y<camY-110||y>camY+viewH+110||
+               !SalvageWorldV84.placed(x,y,seed,CAMP_X,CAMP_Y,WORLD_W,WORLD_H))continue;
+            int type=Math.floorMod(seed,3);
+            boolean depleted=salvageWorldV84.exhausted(cx,cy,k);
+            if(depleted&&type!=SalvageWorldV84.CAR)continue;
+            boolean shake=harvestImpactTimeV81>0f&&harvestV81.salvageTarget!=null&&
+                harvestV81.salvageTarget.cx==cx&&harvestV81.salvageTarget.cy==cy&&
+                harvestV81.salvageTarget.slot==k;
+            if(shake){c.save();c.translate((float)Math.sin(worldTimer*72f)*3f,0);}
+            if(type==SalvageWorldV84.CAR){
+                rect(c,x-75,y-35,150,44,0xff172528);
+                rect(c,x-70,y-39,140,39,depleted?0xff535952:0xff704c39);
+                rect(c,x-37,y-61,75,27,0xff192b2e);
+                rect(c,x-31,y-55,60,18,depleted?0xff313b3b:0xff5a7377);
+                rect(c,x-25,y-52,20,13,0xff91a09a);
+                rect(c,x-72,y-10,144,15,0xff293737);
+                rect(c,x-50,y+1,23,17,0xff152025);
+                rect(c,x+28,y+1,23,17,0xff152025);
+                rect(c,x-44,y+5,11,7,0xff77837d);
+                rect(c,x+34,y+5,11,7,0xff77837d);
+                if(!depleted){
+                    rect(c,x+45,y-28,20,12,0xffaf6a45);
+                    rect(c,x-68,y-31,8,9,0xffc9a86b);
+                }
+            }else if(type==SalvageWorldV84.PILE){
+                rect(c,x-53,y-6,106,17,0xff152427);
+                rect(c,x-44,y-24,85,28,0xff474c45);
+                rect(c,x-33,y-43,63,27,0xff74543d);
+                rect(c,x-7,y-56,24,18,0xff293e3e);
+                rect(c,x-30,y-33,18,8,0xffab784e);
+                rect(c,x+19,y-29,11,15,0xff929a90);
+            }else{
+                for(int n=0;n<3;n++){
+                    float off=n*24-24;
+                    rect(c,x+off-10,y-38-(n%2)*9,20,44,0xff142428);
+                    rect(c,x+off-7,y-35-(n%2)*9,14,38,0xff81513a);
+                    rect(c,x+off-8,y-29-(n%2)*9,16,6,0xffba8155);
+                }
+            }
+            if(shake)c.restore();
+        }
+    }
     void drawBiomePropsV74(Canvas c){
         final int cell=ResourceWorldV80.CELL;
         int x0=(int)Math.floor(camX/cell)-1,x1=(int)Math.ceil((camX+viewW)/cell)+1;
@@ -1902,6 +1961,8 @@ public final class GameView extends View {
         if(item==2)return ammoPacks;
         if(item==6)return foodCount;
         if(item==7)return waterCount;
+        if(item==9)return craftV83.stock[0];
+        if(item==10)return craftV83.stock[1];
         return 0;
     }
     void setHotbarItem(int slot,int item){
@@ -1926,6 +1987,8 @@ public final class GameView extends View {
             waterCount--;thirst=Math.min(100f,thirst+35);
         }else if(item==8){
             toggleLamp();
+        }else if(item==9||item==10){
+            selectPlaceItemV84(item-9);
         }
         saveProgress();invalidate();
     }
@@ -1941,9 +2004,11 @@ public final class GameView extends View {
             p.setStyle(Paint.Style.FILL);
             label(c,Integer.toString(i+1),x+i*size+5,y+12,9,0xffc2c5ad,true);
             String name=hotbarLabel(item);
-            label(c,name.length()>6?name.substring(0,6):name,x+i*size+5,y+size*.63f,
-                    9,0xffe7e1c7,true);
-            if(item==1||item==2||item==6||item==7)
+            itemIconsV84.draw(c,ItemIconsV84.hotbarType(item),
+                x+i*size+size*.5f-11f,y+size*.24f,22f);
+            label(c,name.length()>6?name.substring(0,6):name,x+i*size+5,y+size-7,
+                    8,0xffe7e1c7,true);
+            if(item==1||item==2||item==6||item==7||item==9||item==10)
                 label(c,Integer.toString(hotbarQuantity(item)),x+(i+1)*size-14,
                       y+size-6,10,0xffe6d4aa,true);
         }
@@ -2156,6 +2221,11 @@ public final class GameView extends View {
                 label(c,String.format(Locale.US,"CPU UPDATE %.1f  DRAW %.1f  LIGHT %.1f ms",
                     updateNs/1e6f,worldNs/1e6f,lightingNs/1e6f),18,122,11,OLIVE,false);
             }
+        }
+        if(placingKindV84>=0){
+            label(c,"PLACE "+(placingKindV84==0?"BARRICADE":"LIGHT POST")+
+                " • DRAG / RELEASE ON GROUND",viewW*.5f-205f,66,13,0xfff4d5a1,true);
+            label(c,"Tap BAG to cancel placement",viewW*.5f-117f,86,11,0xffdfd6c2,false);
         }
         if(hudLayer!=0)c.restoreToCount(hudLayer);
         // Keep on-screen edit handles opaque at any HUD opacity.
