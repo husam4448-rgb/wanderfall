@@ -78,6 +78,11 @@ public final class GameView extends View {
     final GroundPickupsV85 groundPickupsV85=new GroundPickupsV85();
     final BanditLootV87 banditLootV87=new BanditLootV87();
     final FieldFindsV91 fieldFindsV91=new FieldFindsV91();
+    final WardrobeV92 wardrobeV92=new WardrobeV92();
+    final NPCRelationshipsV92 relationshipsV92=new NPCRelationshipsV92();
+    final int[] bagOrderV92=new int[24];
+    boolean bagOrderInitializedV92=false;
+    float campGuardCooldownV92=0f;
     int activeSiteV91=-1; // -1 outdoors, 1 original clinic, all others separate indoor maps
     boolean sitesInitializedV88=false;
     ClinicInteriorV89 clinicInteriorV89=new ClinicInteriorV89();
@@ -270,10 +275,8 @@ public final class GameView extends View {
         initCovers();reloadSettings();hasSave=host.prefs.getBoolean("hasSave",false);
     }
     void initCovers(){
-        covers.add(new Cover(350,280,280,180,0));
-        covers.add(new Cover(1650,300,330,215,0));
-        covers.add(new Cover(2350,1120,345,275,0));
-        covers.add(new Cover(750,1660,310,220,0));
+        // Four formerly solid cover buildings have real enterable POI exteriors
+        // now; do not leave a second invisible collision hull at those spots.
         covers.add(new Cover(1300,850,95,37,1));
         covers.add(new Cover(1920,1020,110,48,1));
         covers.add(new Cover(2100,710,120,36,1));
@@ -463,6 +466,59 @@ public final class GameView extends View {
         while(friends.size()>allySetting-1)friends.remove(friends.size()-1);
         allyCurrent=1+friends.size();
     }
+    int inventoryQuantityV92(int idx){
+        switch(idx){
+            case 0:return scrap;case 1:return medkits;case 2:return ammoPacks;
+            case 3:return foodCount;case 4:return waterCount;case 5:return wood;
+            case 6:return stone;case 7:return fiber;
+            case 8:case 9:case 10:case 11:return craftV83.stock[idx-8];
+            case 12:return bandagesV88;case 13:return energyV88;
+            default:return idx>=14&&idx<24?fieldFindsV91.items[idx-14]:0;
+        }
+    }
+    static final String[] INVENTORY_NAMES_V92={"SCRAP","MEDKIT","AMMO",
+        "FOOD","WATER","WOOD","STONE","FIBER","BARRICADE","LIGHT POST",
+        "WATER COLLECTOR","FIELD SHELTER","BANDAGE","ENERGY RATION",
+        "CLOTH","BATTERY","WIRING","ANTISEPTIC","FUEL","WATER FILTER",
+        "SEEDS","TOOLKIT","ROPE","SPARE PARTS"};
+    void initInventoryOrderV92(){
+        int count=0;
+        for(int i=0;i<24;i++)if(inventoryQuantityV92(i)>0)bagOrderV92[count++]=i;
+        for(int i=0;i<24;i++)if(inventoryQuantityV92(i)==0)bagOrderV92[count++]=i;
+        bagOrderInitializedV92=true;
+    }
+    void restoreBagOrderV92(String raw){
+        initInventoryOrderV92();
+        if(raw==null||raw.isEmpty())return;
+        String[] fields=raw.split(",");
+        if(fields.length!=24)return;
+        boolean[] used=new boolean[24];
+        int[] restored=new int[24];
+        try{
+            for(int i=0;i<24;i++){
+                int n=Integer.parseInt(fields[i]);
+                if(n<0||n>=24||used[n])return;
+                used[n]=true;restored[i]=n;
+            }
+            System.arraycopy(restored,0,bagOrderV92,0,24);
+        }catch(NumberFormatException ignored){}
+    }
+    String encodeBagOrderV92(){
+        StringBuilder b=new StringBuilder();
+        for(int i=0;i<24;i++){
+            if(i>0)b.append(',');
+            b.append(bagOrderV92[i]);
+        }
+        return b.toString();
+    }
+    boolean moveBagSlotV92(int source,int dest){
+        if(source<0||dest<0||source>=24||dest>=24||source==dest)return false;
+        int type=bagOrderV92[source];
+        System.arraycopy(bagOrderV92,Math.min(source,dest)+(source<dest?1:0),
+            bagOrderV92,Math.min(source,dest)+(source<dest?0:1),
+            Math.abs(source-dest));
+        bagOrderV92[dest]=type;saveProgress();return true;
+    }
     void newGame(){
         playerX=CAMP_X;playerY=CAMP_Y;health=100;stamina=100;
         hunger=100;thirst=100;fatigue=0;foodCount=2;waterCount=2;
@@ -485,6 +541,8 @@ public final class GameView extends View {
         clinicActorsV90=new ClinicActorsV90(clinicInteriorV89);
         clinicNavV90=new ClinicNavV90(clinicInteriorV89);
         insideClinicV89=false;activeSiteV91=-1;fieldFindsV91.clear();
+        wardrobeV92.clear();relationshipsV92.decode("");
+        bagOrderInitializedV92=false;campGuardCooldownV92=0f;
         android.content.SharedPreferences.Editor sitesClear=host.prefs.edit();
         for(int i=0;i<ExpeditionSitesV88.SITES.length+CampCraftV83.MAX;i++)
             sitesClear.remove("site_containers_v91_"+i).remove("site_actors_v91_"+i);
@@ -495,6 +553,7 @@ public final class GameView extends View {
         indoorShotCooldownV90=0f;indoorCompanionNavClockV90=0f;
         outsideDoorXv89=0f;outsideDoorYv89=0f;
         seedExpeditionCachesV88();
+        initInventoryOrderV92();
         initCampStaff();
         playing=true;paused=false;settingsPause=false;gameOver=false;
         adjustFriends();spawnWave();
@@ -541,6 +600,9 @@ public final class GameView extends View {
         if(!sitesInitializedV88)seedExpeditionCachesV88();
         decodeFacilityCooldownV88(host.prefs.getString("facilityCooldownV88",""));
         fieldFindsV91.decode(host.prefs.getString("field_finds_v91",""));
+        wardrobeV92.decode(host.prefs.getString("wardrobe_v92",""));
+        relationshipsV92.decode(host.prefs.getString("npc_relations_v92",""));
+        restoreBagOrderV92(host.prefs.getString("bag_order_v92",""));
         insideClinicV89=host.prefs.getBoolean("inside_clinic_v89",false);
         int savedSiteV91=host.prefs.getInt("active_site_v91",1);
         if(insideClinicV89)configureInteriorV91(savedSiteV91);
@@ -559,6 +621,10 @@ public final class GameView extends View {
             ExpeditionSitesV88.SITES[1].x);
         outsideDoorYv89=host.prefs.getFloat("clinic_return_y_v89",
             ExpeditionSitesV88.SITES[1].y+165f);
+        if(!insideClinicV89&&blocked(playerX,playerY,21f)){
+            float[] safe=WorldSafetyV92.resolveExit(this::blocked,playerX,playerY);
+            playerX=safe[0];playerY=safe[1];
+        }
         if(insideClinicV89){
             playerX=clamp(playerX,40,ClinicInteriorV89.WIDTH-40);
             playerY=clamp(playerY,45,ClinicInteriorV89.HEIGHT-40);
@@ -926,8 +992,9 @@ public final class GameView extends View {
         return false;
     }
     boolean enterIndoorSiteV91(int site,float worldX,float worldY,String name){
-        outsideDoorXv89=worldX;
-        outsideDoorYv89=worldY;
+        float[] landing=WorldSafetyV92.resolveExit(this::blocked,worldX,worldY);
+        outsideDoorXv89=landing[0];
+        outsideDoorYv89=landing[1];
         configureInteriorV91(site);
         insideClinicV89=true;
         playerX=ClinicInteriorV89.ENTRANCE_X;
@@ -945,7 +1012,9 @@ public final class GameView extends View {
         String place=currentSiteNameV91();
         persistCurrentInteriorV91();
         insideClinicV89=false;activeSiteV91=-1;
-        playerX=outsideDoorXv89;playerY=outsideDoorYv89;
+        float[] landingV92=WorldSafetyV92.resolveExit(this::blocked,
+            outsideDoorXv89,outsideDoorYv89);
+        playerX=landingV92[0];playerY=landingV92[1];
         returnFriendsOutsideV90();
         releaseControls();shots.clear();sparks.clear();flashes.clear();
         cameraLookX=0;cameraLookY=0;
@@ -1382,14 +1451,18 @@ public final class GameView extends View {
     void spawnWave(){
         enemies.clear();enemyCount=5+Math.min(17,wave*2);
         for(int i=0;i<enemyCount;i++){
-            float a=(float)(rng.nextDouble()*Math.PI*2);
-            float distance=430+rng.nextInt(620);
-            float x=playerX+(float)Math.cos(a)*distance;
-            float y=playerY+(float)Math.sin(a)*distance;
-            if(blocked(x,y,22)){x+=140;y+=130;}
-            // Prevent hostile wave placement in the protected spawn clearing.
-            if(distance(x,y,CAMP_X,CAMP_Y)<450){x+=520;}
-            enemies.add(new Bandit(x,y,i%2));
+            // Camp is an actual protected settlement, never a bandit spawn or patrol target.
+            boolean spawned=false;
+            for(int retry=0;retry<80;retry++){
+                float a=(float)(rng.nextDouble()*Math.PI*2);
+                float distance=830+rng.nextInt(480);
+                float x=playerX+(float)Math.cos(a)*distance;
+                float y=playerY+(float)Math.sin(a)*distance;
+                if(!WorldSafetyV92.hostileAllowed(x,y,CAMP_X,CAMP_Y)||
+                    blocked(x,y,28f))continue;
+                enemies.add(new Bandit(x,y,i%2));spawned=true;break;
+            }
+            if(!spawned)enemyCount--;
         }
     }
     void saveProgress(){
@@ -1415,6 +1488,9 @@ public final class GameView extends View {
                 .putString("facilityCooldownV88",encodeFacilityCooldownV88())
                 .putInt("active_site_v91",insideClinicV89?activeSiteV91:-1)
                 .putString("field_finds_v91",fieldFindsV91.encode())
+                .putString("wardrobe_v92",wardrobeV92.encode())
+                .putString("npc_relations_v92",relationshipsV92.encode())
+                .putString("bag_order_v92",encodeBagOrderV92())
                 .putBoolean("inside_clinic_v89",insideClinicV89)
                 .putFloat("clinic_return_x_v89",outsideDoorXv89)
                 .putFloat("clinic_return_y_v89",outsideDoorYv89)
@@ -1853,6 +1929,23 @@ public final class GameView extends View {
             e.cd-=dt;e.hit=Math.max(0,e.hit-dt);e.patrolClock+=dt;
             float d=distance(e.x,e.y,playerX,playerY);
             float dx=(playerX-e.x)/Math.max(1,d),dy=(playerY-e.y)/Math.max(1,d);
+            if(!WorldSafetyV92.hostileAllowed(e.x,e.y,CAMP_X,CAMP_Y)){
+                float rx=e.x-CAMP_X,ry=e.y-CAMP_Y,rl=(float)Math.hypot(rx,ry);
+                float heading=(float)(e.variant*2.39996323);
+                if(rl<1f){rx=(float)Math.cos(heading);ry=(float)Math.sin(heading);rl=1;}
+                float safeDist=WorldSafetyV92.CAMP_SAFE_RADIUS+30f;
+                e.x=CAMP_X+rx/rl*safeDist;e.y=CAMP_Y+ry/rl*safeDist;
+                e.animation.reset();continue;
+            }
+            // The camp guard protects the settlement and engages approaching raiders.
+            if(distance(playerX,playerY,CAMP_X,CAMP_Y)<600f&&
+                distance(e.x,e.y,CAMP_X,CAMP_Y)<1050f){
+                campGuardCooldownV92=Math.max(0f,campGuardCooldownV92-dt);
+                if(campGuardCooldownV92<=0f){
+                    e.hp=Math.max(0f,e.hp-18f);campGuardCooldownV92=.60f;
+                    if(e.hp<=0){e.active=false;continue;}
+                }
+            }
             boolean clear=banditHasLineOfSightV88(e.x,e.y-30,playerX,playerY-32);
             int state=BanditBrainV88.state(d,e.hp,banditNearCoverV88(e.x,e.y));
             if(!clear&&state==BanditBrainV88.GUARD)state=BanditBrainV88.STRAFE;
@@ -1873,13 +1966,18 @@ public final class GameView extends View {
             // Obstacle-aware slide is stable at different render frame rates.
             float speed=BanditBrainV88.speed(state)*dt;
             float nx=e.x+mx*speed,ny=e.y+my*speed;
-            if(!blocked(nx,e.y,18))e.x=nx;
-            else if(!blocked(e.x-my*speed,e.y,18))e.x-=my*speed;
-            if(!blocked(e.x,ny,18))e.y=ny;
-            else if(!blocked(e.x,e.y+mx*speed,18))e.y+=mx*speed;
+            if(WorldSafetyV92.hostileAllowed(nx,e.y,CAMP_X,CAMP_Y)&&
+                !blocked(nx,e.y,18))e.x=nx;
+            else if(WorldSafetyV92.hostileAllowed(e.x-my*speed,e.y,CAMP_X,CAMP_Y)&&
+                !blocked(e.x-my*speed,e.y,18))e.x-=my*speed;
+            if(WorldSafetyV92.hostileAllowed(e.x,ny,CAMP_X,CAMP_Y)&&
+                !blocked(e.x,ny,18))e.y=ny;
+            else if(WorldSafetyV92.hostileAllowed(e.x,e.y+mx*speed,CAMP_X,CAMP_Y)&&
+                !blocked(e.x,e.y+mx*speed,18))e.y+=mx*speed;
             if(d<BanditBrainV88.ALERT_RANGE)e.face=dx>=0?1:-1;
             else if(Math.abs(e.x-oldX)>.001f)e.face=e.x>oldX?1:-1;
-            if(BanditBrainV88.shouldShoot(state,d,e.cd,clear)){
+            if(WorldSafetyV92.hostileAllowed(playerX,playerY,CAMP_X,CAMP_Y)&&
+                BanditBrainV88.shouldShoot(state,d,e.cd,clear)){
                 shoot(e.x,e.y,dx,dy,0,true,e.face);
                 e.cd=.95f+(e.variant%3)*.19f;
             }
