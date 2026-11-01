@@ -544,6 +544,12 @@ public final class GameView extends View {
         clinicNavV90=new ClinicNavV90(clinicInteriorV89);
         insideClinicV89=false;activeSiteV91=-1;fieldFindsV91.clear();
         wardrobeV92.clear();relationshipsV92.decode("");
+        // Starting clothes are modular overlays, never edits to the locked
+        // original character frames. Additional sets are found inside cases.
+        for(int slot=1;slot<4;slot++){
+            wardrobeV92.found[slot][0]=1;
+            wardrobeV92.equip(slot,0);
+        }
         bagOrderInitializedV92=false;campGuardCooldownV92=0f;
         android.content.SharedPreferences.Editor sitesClear=host.prefs.edit();
         for(int i=0;i<ExpeditionSitesV88.SITES.length+CampCraftV83.MAX;i++)
