@@ -73,6 +73,7 @@ public final class GameView extends View {
        {465,321,LightingV47.NEON_BLUE},{1775,343,LightingV47.NEON_PINK},
        {2455,1170,LightingV47.NEON_BLUE},{857,1710,LightingV47.NEON_PINK}};
     final ArrayList<float[]> builtCampfires=new ArrayList<>();
+    final CampCraftV83 craftV83=new CampCraftV83();
     final ResourceWorldV80 harvestWorld=new ResourceWorldV80();
     final HarvestActionV81 harvestV81=new HarvestActionV81();
     float harvestImpactTimeV81=0f;
@@ -370,6 +371,7 @@ public final class GameView extends View {
         clock.setClock(night?21*60f:12*60f,1);
         face=1;aimX=1;aimY=0;refreshDaylight();
         enemies.clear();friends.clear();campStaff.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();builtCampfires.clear();
+        craftV83.clear();removeBarricadeCoverV83();
         initCampStaff();
         playing=true;paused=false;settingsPause=false;gameOver=false;
         adjustFriends();spawnWave();
@@ -406,6 +408,8 @@ public final class GameView extends View {
         ammo=Math.max(0,Math.min(MAG[gun],host.setting("ammo",MAG[gun])));
         enemies.clear();friends.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();
         restoreCampfires();
+        craftV83.decode(host.prefs.getString("camp_buildings_v83",""));
+        removeBarricadeCoverV83();restoreBarricadeCoverV83();
         campStaff.clear();initCampStaff();
         playing=true;paused=false;gameOver=false;
         adjustFriends();spawnWave();invalidate();
@@ -426,6 +430,57 @@ public final class GameView extends View {
                 if(Float.isFinite(x)&&Float.isFinite(y)&&builtCampfires.size()<16)
                     builtCampfires.add(new float[]{x,y});
             }catch(NumberFormatException ignored){}
+        }
+    }
+    void removeBarricadeCoverV83(){
+        for(Iterator<Cover> it=covers.iterator();it.hasNext();)
+            if(it.next().kind==3)it.remove();
+    }
+    void restoreBarricadeCoverV83(){
+        for(CampCraftV83.Structure s:craftV83.objects)
+            if(s.kind==CampCraftV83.BARRICADE)
+                covers.add(new Cover(s.x-39,s.y-15,78,27,3));
+    }
+    /** Craft using gathered resources, while the inventory is paused. */
+    boolean craftPlaceV83(int kind){
+        if(!playing||gameOver){craftV83.error="Start a game first";return false;}
+        if(harvestV81.active){craftV83.error="Finish harvesting first";return false;}
+        float x=playerX+face*110f,y=playerY+28f;
+        if(blocked(x,y,43)){craftV83.error="Find clear ground";return false;}
+        for(float[] fire:FIXED_CAMPFIRES)if(distance(x,y,fire[0],fire[1])<110){
+            craftV83.error="Move away from campfire";return false;
+        }
+        for(float[] fire:builtCampfires)if(distance(x,y,fire[0],fire[1])<110){
+            craftV83.error="Move away from campfire";return false;
+        }
+        int[] ingredients={wood,stone,fiber,scrap};
+        if(!craftV83.craft(kind,x,y,ingredients))return false;
+        wood=ingredients[0];stone=ingredients[1];fiber=ingredients[2];scrap=ingredients[3];
+        if(kind==CampCraftV83.BARRICADE)
+            covers.add(new Cover(x-39,y-15,78,27,3));
+        gatherFeedback=kind==CampCraftV83.BARRICADE?"BUILT BARRICADE":"BUILT LIGHT POST";
+        gatherFeedbackTime=2.5f;saveProgress();invalidate();
+        return true;
+    }
+    /** Chunky dark-outlined world props, depth-sorted with NPCs. */
+    void drawCraftStructureV83(Canvas c,CampCraftV83.Structure node){
+        float x=node.x,y=node.y;
+        if(node.kind==CampCraftV83.BARRICADE){
+            rect(c,x-43,y-25,86,40,0xff172522);
+            rect(c,x-38,y-21,76,12,0xff775a3e);
+            rect(c,x-38,y-6,76,11,0xff997649);
+            rect(c,x-38,y+8,76,5,0xff625037);
+            rect(c,x-31,y-27,9,43,0xff28372e);
+            rect(c,x+22,y-27,9,43,0xff28372e);
+            for(int i=-29;i<27;i+=18)rect(c,x+i,y-18,5,3,0xffc2a276);
+        }else{
+            rect(c,x-10,y-92,20,94,0xff16241f);
+            rect(c,x-5,y-88,10,86,0xff786043);
+            rect(c,x-21,y-99,42,12,0xff2a3f39);
+            rect(c,x-17,y-95,34,6,0xff978356);
+            rect(c,x-13,y-87,26,13,0xffd5ae69);
+            rect(c,x-8,y-83,16,8,0xffffdf8f);
+            rect(c,x-9,y-3,18,6,0xff394d40);
         }
     }
     void placeCampfire(){
@@ -484,6 +539,7 @@ public final class GameView extends View {
                 .putInt("woodV80",wood).putInt("stoneV80",stone).putInt("fiberV80",fiber)
                 .putString("depleted_resources_v80",harvestWorld.encode())
                 .putString("campfire_locations",encodeCampfires())
+                .putString("camp_buildings_v83",craftV83.encode())
                 .putFloat("clockMinutes",clock.minute()).putInt("clockDay",clock.day())
                 .putFloat("aimX",aimX).putFloat("aimY",aimY).apply();
         hasSave=true;
@@ -553,8 +609,8 @@ public final class GameView extends View {
     // The same grip pivot, left/right mirror and full semicircle are used by rendering.
     void knifeStrike(){
         if(!playing||paused||knifeCooldown>0||harvestV81.active)return;
-        knifeCooldown=.52f;knifeDuration=.26f;knifeHitPending=true;
-        knifeTarget=nearest(playerX,playerY,112);
+        knifeCooldown=MeleeSlashV83.COOLDOWN;knifeDuration=MeleeSlashV83.DURATION;knifeHitPending=true;
+        knifeTarget=nearest(playerX,playerY,MeleeSlashV83.REACH);
         float dx=knifeTarget==null?aimX:knifeTarget.x-playerX;
         float dy=knifeTarget==null?aimY:knifeTarget.y-playerY;
         knifeDirection=LegacyControlsV58.quantizeKnife(dx,dy);
@@ -578,29 +634,36 @@ public final class GameView extends View {
         rect(c,60,-2,5,2,0xff324447);
         c.restore();
     }
-    /** A 22px stroke near the tip, not a 140-degree sweeping circle. */
+    /** High-contrast 43px two-layer streak, aligned with enlarged knife tip. */
     void drawShortKnifeTrailV82(Canvas c,float gx,float gy,float s){
-        color(0x9bd6e3d8);
-        p.setStrokeWidth(Math.max(1f,2.5f*s));
-        c.drawLine(gx+88*s,gy-11*s,
-                   gx+(88+HeadKnifeV82.KNIFE_TRAIL_LENGTH)*s,gy-17*s,p);
+        float x=gx+100f*s,y=gy-8f*s,len=MeleeSlashV83.STREAK*s;
+        color(0xff31504c);p.setStyle(Paint.Style.STROKE);
+        p.setStrokeCap(Paint.Cap.SQUARE);p.setStrokeWidth(Math.max(5f,9f*s));
+        c.drawLine(x,y-10*s,x+len,y-24*s,p);
+        color(0xffe3f8ec);p.setStyle(Paint.Style.STROKE);
+        p.setStrokeWidth(Math.max(3f,5f*s));
+        c.drawLine(x+3*s,y-11*s,x+len-3*s,y-24*s,p);
+        color(0xffffe7bc);p.setStyle(Paint.Style.STROKE);
+        p.setStrokeWidth(Math.max(1.5f,2.6f*s));
+        c.drawLine(x+8*s,y-12*s,x+len-9*s,y-22*s,p);
+        p.setStrokeCap(Paint.Cap.BUTT);p.setStyle(Paint.Style.FILL);
     }
     /** Small torso-pivot melee animation with a proper weapon-hand grip. */
     void drawKnifeSwing(Canvas c,float s){
         if(knifeDuration<=0f)return;
-        float t=1f-knifeDuration/.26f;
+        float t=1f-knifeDuration/MeleeSlashV83.DURATION;
         float pivotX=(Ballistics.TORSO_X-70f)*s;
         float pivotY=(Ballistics.TORSO_Y-136f)*s;
         float offsetX=(Ballistics.GRIP_X-MAIN_X[11])*s;
         float offsetY=(Ballistics.GRIP_Y-MAIN_Y[11])*s;
         c.save();
         c.translate(pivotX,pivotY);
-        c.rotate(HeadKnifeV82.localBearing(knifeDirection,face)+HeadKnifeV82.sweep(t));
+        c.rotate(HeadKnifeV82.localBearing(knifeDirection,face)+MeleeSlashV83.angle(t));
         c.translate(-pivotX,-pivotY);
         c.translate(offsetX,offsetY);
         float gx=(MAIN_X[11]-70f)*s,gy=(MAIN_Y[11]-136f)*s;
         if(showWeapons)drawKnifeBladeV82(c,gx,gy,s*HeadKnifeV82.KNIFE_SIZE);
-        if(t>.22f&&t<.78f&&showWeapons)drawShortKnifeTrailV82(c,gx,gy,s);
+        if(MeleeSlashV83.streakVisible(t)&&showWeapons)drawShortKnifeTrailV82(c,gx,gy,s);
         if(showHands)handAtlas(c,11,2,0,0,s,handScale,0,0);
         c.restore();
     }
@@ -762,10 +825,10 @@ public final class GameView extends View {
         knifeCooldown=Math.max(0,knifeCooldown-dt);
         if(knifeDuration>0){
             knifeDuration=Math.max(0,knifeDuration-dt);
-            if(knifeHitPending&&knifeDuration<=.135f){
+            if(knifeHitPending&&knifeDuration<=MeleeSlashV83.DURATION*.50f){
                 knifeHitPending=false;
                 if(knifeTarget!=null&&knifeTarget.active&&
-                    distance(playerX,playerY,knifeTarget.x,knifeTarget.y)<118f)
+                    distance(playerX,playerY,knifeTarget.x,knifeTarget.y)<MeleeSlashV83.REACH+8f)
                     damage(knifeTarget,36);
             }
         }
@@ -1109,6 +1172,10 @@ public final class GameView extends View {
         if(neonEnabled)for(float[] n:NEONS)
             if(WorldPerfV55.nearView(n[0],n[1],camX,camY,viewW,viewH,215))
                 lighting.point(n[0],n[1],202,.77f,(int)n[2]);
+        for(CampCraftV83.Structure node:craftV83.objects)
+            if(node.kind==CampCraftV83.LIGHT_POST&&
+               WorldPerfV55.nearView(node.x,node.y,camX,camY,viewW,viewH,260))
+                lighting.point(node.x,node.y-85,185,.83f,0xffffda82);
         // Street lamps offer modest navigation light, not character glow.
         for(float x:new float[]{490,1790,2840})
             if(WorldPerfV55.nearView(x,872,camX,camY,viewW,viewH,185))
@@ -1325,6 +1392,7 @@ public final class GameView extends View {
         }
     }
     void drawCover(Canvas c,Cover box){
+        if(box.kind==3)return; // V83 player-built barricades are depth-sorted.
         float x=box.x,y=box.y,w=box.w,h=box.h;
         if(box.kind==0){
             rect(c,x+5,y+9,w,h,0xff142b29);
@@ -1604,6 +1672,10 @@ public final class GameView extends View {
                 drawCampfire(c,fx,fy,false);
                 drawCampfire(c,fx,fy,true);
             }));
+        }
+        for(CampCraftV83.Structure node:craftV83.objects){
+            if(!WorldPerfV55.nearView(node.x,node.y,camX,camY,viewW,viewH,140))continue;
+            order.add(new DrawEntity(node.y,()->drawCraftStructureV83(c,node)));
         }
         for(Bandit e:enemies)if(e.active){
             if(!WorldPerfV55.nearView(e.x,e.y,camX,camY,viewW,viewH,180)){
