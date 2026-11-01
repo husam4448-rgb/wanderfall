@@ -1092,7 +1092,7 @@ jobs:
             'if(insideClinicV89){drawClinicInteriorV89(c);return;}',
             'if(insideClinicV89){interactClinicV89();return;}',
             'if(enterClinicFromWorldV89())return;',
-            'if(!insideClinicV89)spawnWave();else enemies.clear();',
+            'playerX=outsideDoorXv89;playerY=outsideDoorYv89;',
             'if(insideClinicV89){',
             'clinicInteriorV89.blocked(nx,playerY,19f)',
             'lootClinicStackV89(ClinicInteriorV89.Storage box,int kind)',
