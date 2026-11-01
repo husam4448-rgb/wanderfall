@@ -806,7 +806,7 @@ jobs:
           p=Path("survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame")
           g=(p/"GameView.java").read_text()
           m=(p/"MainActivity.java").read_text()
-          for s in ['craftV83.clear();removeBarricadeCoverV83();',
+          for s in ['craftV83.clear();banditLootV87.clear();removeBarricadeCoverV83();',
                     'craftV83.decode(host.prefs.getString("camp_buildings_v83",""))',
                     '.putString("camp_buildings_v83",craftV83.encode())',
                     'boolean craftPlaceV83(int kind)',
