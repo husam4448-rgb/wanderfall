@@ -6,8 +6,8 @@ android {
   applicationId 'com.survivalparadise.nativegame'
   minSdk 24
   targetSdk 34
-  versionCode 89
-  versionName '0.88-expedition-world-tactical-ai'
+  versionCode 90
+  versionName '0.89-field-clinic-interior'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
