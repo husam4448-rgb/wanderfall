@@ -115,7 +115,8 @@ public final class GameView extends View {
     int hotbarPointer=-1;
     static final int HOTBAR=HUD_ITEMS,EDITOR_ITEMS=HOTBAR+1;
     static final String[] HOTBAR_TYPES={
-        "EMPTY","MEDKIT","AMMO","PISTOL","SHOTGUN","UZI","FOOD","WATER","TORCH"};
+        "EMPTY","MEDKIT","AMMO","PISTOL","SHOTGUN","UZI","FOOD","WATER","TORCH",
+        "BARRICADE","LIGHT POST"};
     int foodCount=2,waterCount=2;
     float hotbarGrabX,hotbarGrabY;
     float hunger=100f,thirst=100f,fatigue=0f;
@@ -2510,6 +2511,12 @@ public final class GameView extends View {
                     }
                     return true;
                 }
+                if(placingKindV84>=0&&!editControls){
+                    placingPointerV84=id;
+                    placingXv84=camX+x/Math.max(.01f,zoom);
+                    placingYv84=camY+y/Math.max(.01f,zoom);
+                    invalidate();return true;
+                }
                 // Joystick hit tests follow their EDITED positions; the old
                 // fixed screen zones broke input after moving the controls.
                 float moveDistance=(float)Math.hypot(x-padCenterX(false),y-padCenterY(false));
@@ -2527,6 +2534,11 @@ public final class GameView extends View {
                     int pointer=e.getPointerId(j);
                     float px=e.getX(j)/Math.max(.01f,drawScale);
                     float py=e.getY(j)/Math.max(.01f,drawScale);
+                    if(pointer==placingPointerV84){
+                        placingXv84=camX+px/Math.max(.01f,zoom);
+                        placingYv84=camY+py/Math.max(.01f,zoom);
+                        invalidate();
+                    }
                     if(pointer==leftPointer)updateStick(px,py,false);
                     if(pointer==rightPointer)updateStick(px,py,true);
                     if(pointer==panelPointer){
@@ -2568,6 +2580,13 @@ public final class GameView extends View {
             case MotionEvent.ACTION_POINTER_UP:
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
+                if(id==placingPointerV84){
+                    placingPointerV84=-1;
+                    if(action!=MotionEvent.ACTION_CANCEL)
+                        placeAtV84(camX+x/Math.max(.01f,zoom),
+                            camY+y/Math.max(.01f,zoom));
+                    invalidate();return true;
+                }
                 if(id==leftPointer||action==MotionEvent.ACTION_CANCEL){
                     leftPointer=-1;stopWalking();
                 }
