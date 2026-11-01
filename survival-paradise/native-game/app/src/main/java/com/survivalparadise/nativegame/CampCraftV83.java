@@ -10,7 +10,7 @@ public final class CampCraftV83 {
  }
  public final ArrayList<Structure> objects=new ArrayList<>();
  public String error="";
- public void clear(){objects.clear();error="";}
+ public void clear(){objects.clear();stock[0]=0;stock[1]=0;error="";}
  public boolean near(float x,float y){
   for(Structure v:objects){float dx=x-v.x,dy=y-v.y;if(dx*dx+dy*dy<96f*96f)return true;}
   return false;
@@ -25,6 +25,36 @@ public final class CampCraftV83 {
   for(int i=0;i<4;i++)if(inv[i]<COST[kind][i]){error="Insufficient materials";return false;}
   for(int i=0;i<4;i++)inv[i]-=COST[kind][i];
   objects.add(new Structure(kind,x,y));error="";return true;
+ }
+
+ /** V84: crafting yields portable backpack items rather than placing immediately. */
+ public final int[] stock=new int[2];
+ public boolean craftToBag(int kind,int[] resources){
+  if(kind<0||kind>1){error="Unknown recipe";return false;}
+  if(resources==null||resources.length<4){error="Missing resources";return false;}
+  if(stock[kind]>=99){error="Bag stack full";return false;}
+  for(int i=0;i<4;i++)if(resources[i]<COST[kind][i]){
+   error="Insufficient materials";return false;
+  }
+  for(int i=0;i<4;i++)resources[i]-=COST[kind][i];
+  stock[kind]++;error="";return true;
+ }
+ public boolean placeFromBag(int kind,float x,float y){
+  if(kind<0||kind>1||stock[kind]<1){error="No crafted item in backpack";return false;}
+  if(!Float.isFinite(x)||!Float.isFinite(y)){error="Invalid position";return false;}
+  if(objects.size()>=MAX){error="Maximum 24 structures";return false;}
+  if(near(x,y)){error="Too close to another structure";return false;}
+  objects.add(new Structure(kind,x,y));stock[kind]--;error="";return true;
+ }
+ public String encodeStock(){return stock[0]+","+stock[1];}
+ public void decodeStock(String data){
+  stock[0]=0;stock[1]=0;if(data==null)return;
+  String[] p=data.split(",");
+  if(p.length!=2)return;
+  try{
+   int a=Integer.parseInt(p[0]),b=Integer.parseInt(p[1]);
+   if(a>=0&&a<=99&&b>=0&&b<=99){stock[0]=a;stock[1]=b;}
+  }catch(NumberFormatException ignored){}
  }
  public String encode(){
   StringBuilder b=new StringBuilder();
