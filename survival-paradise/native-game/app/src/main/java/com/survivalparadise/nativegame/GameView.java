@@ -79,6 +79,37 @@ public final class GameView extends View {
     final BanditLootV87 banditLootV87=new BanditLootV87();
     final FieldFindsV91 fieldFindsV91=new FieldFindsV91();
     final WardrobeV92 wardrobeV92=new WardrobeV92();
+    // Previously authored gear source images, normalized via transparent ROIs.
+    // No modification is performed on the locked body/head animation atlas.
+    final Bitmap[] approvedGearV93=new Bitmap[7];
+    final Rect[] approvedGearBoundsV93=new Rect[7];
+    void loadApprovedGearV93(){
+        String[] names={"pack_civilian.png","pack_guard.png","pack_medic.png",
+            "head_generic.png","torso_generic.png","leg_generic.png","boot_generic.png"};
+        for(int i=0;i<names.length;i++){
+            try(InputStream in=getResources().getAssets().open("approved_equipment_v93/"+names[i])){
+                Bitmap bitmap=BitmapFactory.decodeStream(in);
+                if(bitmap==null||bitmap.getWidth()>2048||bitmap.getHeight()>2048)continue;
+                int left=bitmap.getWidth(),top=bitmap.getHeight(),right=0,bottom=0;
+                for(int y=0;y<bitmap.getHeight();y++)for(int x=0;x<bitmap.getWidth();x++){
+                    if((bitmap.getPixel(x,y)>>>24)<48)continue;
+                    if(x<left)left=x;if(x>right)right=x;
+                    if(y<top)top=y;if(y>bottom)bottom=y;
+                }
+                if(left>right||top>bottom){bitmap.recycle();continue;}
+                approvedGearV93[i]=bitmap;
+                approvedGearBoundsV93[i]=new Rect(left,top,right+1,bottom+1);
+            }catch(Exception ignored){approvedGearV93[i]=null;}
+        }
+    }
+    void drawApprovedGearV93(Canvas c,int index,float left,float top,
+        float right,float bottom,float scale){
+        if(index<0||index>=approvedGearV93.length||
+            approvedGearV93[index]==null||approvedGearBoundsV93[index]==null)return;
+        // Preserve native-pixel silhouette; scale through nearest-neighbor.
+        RectF frame=new RectF(left*scale,top*scale,right*scale,bottom*scale);
+        c.drawBitmap(approvedGearV93[index],approvedGearBoundsV93[index],frame,pixel);
+    }
     final NPCRelationshipsV92 relationshipsV92=new NPCRelationshipsV92();
     final int[] bagOrderV92=new int[24];
     boolean bagOrderInitializedV92=false;
@@ -272,6 +303,7 @@ public final class GameView extends View {
         if(body!=null)bodyMask=packAlpha(body);
         if(approvedWalkColors!=null)walkMask=packAlpha(approvedWalkColors);
         pickaxeV81=makePixelPickaxeV81();
+        loadApprovedGearV93();
         initCovers();reloadSettings();hasSave=host.prefs.getBoolean("hasSave",false);
     }
     void initCovers(){
@@ -2827,7 +2859,10 @@ public final class GameView extends View {
         c.save();c.translate(x,y);if(facing<0)c.scale(-1,1);
         color(0x670b1a18);c.drawOval(-26*s,-7*s,26*s,7*s,p);
         if(player&&fieldFindsV91.equipped>=0)
-            drawEquippedPackV91(c,s,fieldFindsV91.equipped);
+            drawApprovedGearV93(c,Math.min(2,fieldFindsV91.equipped),
+                -58f,-112f,-22f,-23f,s);
+        else if(!player&&!bandit&&npcVariant>=0&&(npcVariant%3)!=0)
+            drawApprovedGearV93(c,npcVariant%3,-58f,-112f,-22f,-23f,s);
         // V58 rear-layer hand torch. Draw BEFORE the immutable original body:
         // its silhouette cannot cover the head, eyes, or facial outline.
         if(!bandit&&!(player&&harvestV81.active)&&dualTorch&&lampOn&&weapon>=0&&weapon<=2&&showWeapons){
@@ -2896,57 +2931,17 @@ public final class GameView extends View {
         c.restore();
     }
     /** Separate rear-layer pixel silhouette, attached to player pose, no body atlas edits. */
-    void drawEquippedPackV91(Canvas c,float s,int kind){
-        int dark=0xff172725,base=kind==0?0xff777255:kind==1?0xff627759:0xff515f54;
-        int light=kind==0?0xffaa9768:kind==1?0xff8c9875:0xff88958b;
-        float top=kind==0?-93f:kind==1?-110f:-117f;
-        float height=kind==0?47f:kind==1?69f:79f;
-        rect(c,-53*s,(top-4)*s,33*s,(height+9)*s,dark);
-        rect(c,-49*s,top*s,25*s,height*s,base);
-        rect(c,-44*s,(top+7)*s,17*s,7*s,light);
-        rect(c,-48*s,(top+height-24)*s,23*s,18*s,0xff3c5145);
-        rect(c,-46*s,(top+height-23)*s,18*s,4*s,light);
-        rect(c,-27*s,(top+6)*s,5*s,(height-15)*s,0xff22332c);
-        rect(c,-30*s,(top+18)*s,7*s,12*s,0xffb9a477);
-    }
-    /** New modular clothes are overlays; the original V31 body atlas is never changed. */
+    /** Gear-only layers from prior authored art, never procedural replacements. */
     void drawWardrobeV92(Canvas c,float size,boolean player,boolean bandit,int variant){
-        int id=variant<0?3:variant;
-        int[] parts=new int[4];
-        for(int slot=0;slot<4;slot++)parts[slot]=player?
-            wardrobeV92.equipped[slot]:WardrobeV92.npcOutfit(id,slot);
-        int[] cloth={0xff7b835e,0xff687b76,0xff626a57};
-        int[] trim={0xffc0b185,0xff9aa8a5,0xff414d4d};
-        if(parts[0]>=0){
-            int v=parts[0];
-            rect(c,-15*size,-119*size,30*size,8*size,0xff1d2b2a);
-            rect(c,-12*size,-117*size,25*size,5*size,cloth[v]);
-            if(v==1)rect(c,-17*size,-112*size,35*size,3*size,trim[v]);
-            if(v==2)rect(c,-11*size,-122*size,22*size,5*size,trim[v]);
-        }
-        if(parts[1]>=0){
-            int v=parts[1],vcol=bandit?0xff745244:cloth[v];
-            rect(c,-15*size,-58*size,30*size,26*size,0xff192b2a);
-            rect(c,-12*size,-56*size,23*size,21*size,vcol);
-            rect(c,-2*size,-55*size,4*size,20*size,trim[v]);
-            if(v==2){rect(c,-10*size,-53*size,9*size,11*size,0xff3f4c47);
-                rect(c,4*size,-53*size,6*size,11*size,0xff364943);}
-            rect(c,-16*size,-53*size,5*size,11*size,vcol);
-        }
-        if(parts[2]>=0){
-            int v=parts[2];
-            rect(c,-12*size,-31*size,10*size,16*size,cloth[v]);
-            rect(c,3*size,-31*size,10*size,16*size,cloth[v]);
-            if(v==2){rect(c,-11*size,-22*size,9*size,4*size,trim[v]);
-                rect(c,4*size,-22*size,8*size,4*size,trim[v]);}
-        }
-        if(parts[3]>=0){
-            int v=parts[3];
-            rect(c,-15*size,-13*size,14*size,7*size,0xff182523);
-            rect(c,1*size,-13*size,14*size,7*size,0xff182523);
-            rect(c,-13*size,-12*size,10*size,4*size,trim[v]);
-            rect(c,3*size,-12*size,10*size,4*size,trim[v]);
-        }
+        int role=variant<0?0:variant;
+        int head=player?wardrobeV92.equipped[0]:WardrobeV92.npcOutfit(role,0);
+        int torso=player?wardrobeV92.equipped[1]:WardrobeV92.npcOutfit(role,1);
+        int legs=player?wardrobeV92.equipped[2]:WardrobeV92.npcOutfit(role,2);
+        int boots=player?wardrobeV92.equipped[3]:WardrobeV92.npcOutfit(role,3);
+        if(head>=0)drawApprovedGearV93(c,3,-18,-121,18,-100,size);
+        if(torso>=0)drawApprovedGearV93(c,4,-19,-64,19,-31,size);
+        if(legs>=0)drawApprovedGearV93(c,5,-14,-33,14,-12,size);
+        if(boots>=0)drawApprovedGearV93(c,6,-16,-14,16,-3,size);
     }
     void drawSpeechV92(Canvas c,float x,float y,int code,int attitude,boolean threat){
         if(distance(playerX,playerY,x,y)>445f)return;
@@ -3702,6 +3697,7 @@ public final class GameView extends View {
         lighting.release();
         if(campStatic!=null){campStatic.recycle();campStatic=null;}
         itemIconsV84.release();
+        for(Bitmap b:approvedGearV93)if(b!=null&&!b.isRecycled())b.recycle();
         if(pickaxeV81!=null){pickaxeV81.recycle();pickaxeV81=null;}
         if(crosshairReticle!=null){crosshairReticle.recycle();crosshairReticle=null;}
         super.onDetachedFromWindow();
