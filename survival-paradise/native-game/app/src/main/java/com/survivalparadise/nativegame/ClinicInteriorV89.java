@@ -5,7 +5,7 @@ package com.survivalparadise.nativegame;
  * world coordinates and is never re-generated when this scene is loaded.
  * All geometry uses logical world pixels; only container contents are mutable.
  */
-public final class ClinicInteriorV89 {
+public class ClinicInteriorV89 {
     public static final float EXPANSION_V90=1.7f;
     public static final int WIDTH=2720,HEIGHT=1904;
     public static final float ENTRANCE_X=1360f,ENTRANCE_Y=1757.8f;
