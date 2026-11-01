@@ -334,7 +334,7 @@ jobs:
             'fireLeftPointer=pointer','firePointer=pointer',
             'firing=firePointer>=0||fireLeftPointer>=0',
             'knifeDirection=LegacyControlsV58.quantizeKnife',
-            'knifeHitPending=false','drawKnifeSwing(c);',
+            'knifeHitPending=false','drawKnifeSwing(c,s)',
             'lastVisibleNpcs++','showCrosshair','cameraLookX',
             'cameraLookY','rightPointer>=0','lookAheadThreshold',
             'drawStatusBar(c,"HP"','drawStatusBar(c,"STA"',

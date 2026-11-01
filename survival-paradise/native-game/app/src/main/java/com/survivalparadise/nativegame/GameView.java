@@ -582,8 +582,8 @@ public final class GameView extends View {
     void drawShortKnifeTrailV82(Canvas c,float gx,float gy,float s){
         color(0x9bd6e3d8);
         p.setStrokeWidth(Math.max(1f,2.5f*s));
-        c.drawLine(gx+49*s,gy-13*s,
-                   gx+(49+HeadKnifeV82.KNIFE_TRAIL_LENGTH)*s,gy-19*s,p);
+        c.drawLine(gx+88*s,gy-11*s,
+                   gx+(88+HeadKnifeV82.KNIFE_TRAIL_LENGTH)*s,gy-17*s,p);
     }
     /** Small torso-pivot melee animation with a proper weapon-hand grip. */
     void drawKnifeSwing(Canvas c,float s){
