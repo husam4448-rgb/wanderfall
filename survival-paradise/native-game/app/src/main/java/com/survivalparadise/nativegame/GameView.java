@@ -354,6 +354,8 @@ public final class GameView extends View {
             distance(playerX,playerY,box.x,box.y)>ClinicInteriorV89.USE_RADIUS+12f)return "";
         String found=fieldFindsV91.scavenge(activeSiteV91,id);
         if(!found.isEmpty()){
+            String clothing=wardrobeV92.scavenge(activeSiteV91,id);
+            if(!clothing.isEmpty())found+=" • "+clothing;
             gatherFeedback="GEAR: "+found;gatherFeedbackTime=3.5f;
             saveProgress();invalidate();
         }
@@ -1022,12 +1024,69 @@ public final class GameView extends View {
         gatherFeedbackTime=2.5f;
         spawnWave();saveProgress();invalidate();
     }
+    /** Non-hostile NPCs have affiliations, dialogue, trading and recruitment. */
+    int nearbyNPCInteractionV92(){
+        if(insideClinicV89){
+            for(ClinicActorsV90.Actor a:clinicActorsV90.actors){
+                if(!a.active||a.hostile())continue;
+                if(distance(playerX,playerY,a.x,a.y)<145f)
+                    return a.type==ClinicActorsV90.MEDIC?1:4;
+            }
+            return -1;
+        }
+        for(Survivor npc:campStaff){
+            if(distance(playerX,playerY,npc.x,npc.y)>=148f)continue;
+            if(npc.variant==ROLE_TRADER)return 0;
+            if(npc.variant==ROLE_MEDIC||npc.variant==ROLE_MEDIC+1)return 1;
+            if(npc.variant==ROLE_GUARD||npc.variant==ROLE_GUARD+1)return 2;
+            if(npc.variant==ROLE_MECHANIC||npc.variant==ROLE_MECHANIC+1)return 3;
+            return 4;
+        }
+        return -1;
+    }
+    boolean interactNearbyNPCV92(){
+        int role=nearbyNPCInteractionV92();
+        if(role<0)return false;
+        host.runOnUiThread(()->host.npcInteractionV92(role));
+        return true;
+    }
+    boolean tradeNPCV92(int choice){
+        if(nearbyNPCInteractionV92()<0||!playing||gameOver)return false;
+        switch(choice){
+            case 0:if(scrap<2)return false;scrap-=2;medkits++;break;
+            case 1:if(scrap<1)return false;scrap--;foodCount+=2;break;
+            case 2:if(scrap<1)return false;scrap--;waterCount+=2;break;
+            case 3:
+                if(scrap<4||!relationshipsV92.canRecruit()||friends.size()>=6)return false;
+                scrap-=4;
+                Survivor ally=new Survivor(playerX+60,playerY+52,2,
+                    ROLE_GUARD+friends.size()%2);
+                if(insideClinicV89){
+                    if(clinicInteriorV89.blocked(ally.x,ally.y,17)){
+                        ally.x=ClinicInteriorV89.ENTRANCE_X;
+                        ally.y=ClinicInteriorV89.ENTRANCE_Y;
+                    }
+                    outdoorCompanionPositionsV90.add(new float[]{outsideDoorXv89+60,
+                        outsideDoorYv89+52});
+                }
+                friends.add(ally);
+                allySetting=friends.size()+1;
+                host.prefs.edit().putInt("survivors",allySetting).apply();
+                break;
+            default:return false;
+        }
+        relationshipsV92.trade();
+        gatherFeedback=choice==3?"SURVIVOR RECRUITED":"TRADE COMPLETE • RELATIONSHIP IMPROVED";
+        gatherFeedbackTime=3f;saveProgress();invalidate();
+        return true;
+    }
     void interactClinicV89(){
         if(!insideClinicV89)return;
         if(distance(playerX,playerY,
             ClinicInteriorV89.EXIT_X,ClinicInteriorV89.EXIT_Y)<110f){
             exitClinicV89();return;
         }
+        if(interactNearbyNPCV92())return;
         ClinicInteriorV89.Storage found=nearestAnyInteriorStorageV91(
             playerX,playerY,ClinicInteriorV89.USE_RADIUS);
         if(found!=null){
@@ -3792,6 +3851,7 @@ public final class GameView extends View {
             }
             if(insideClinicV89){interactClinicV89();return;}
             if(enterClinicFromWorldV89())return;
+            if(interactNearbyNPCV92())return;
             if(useFacilityV88())return;
             BanditLootV87.Bag banditBag=nearbyBanditBagV87();
             if(banditBag!=null){
