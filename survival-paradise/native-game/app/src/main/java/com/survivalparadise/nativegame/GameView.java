@@ -1399,6 +1399,7 @@ public final class GameView extends View {
         for(int y=45;y<1080;y+=72)
             rect(c,24,y,1551,2,0x37455851);
         float inv=1f/ClinicInteriorV89.EXPANSION_V90;
+        drawIndoorFloorIlluminationV93(c);
         for(float[] wall:nonClinicV91?
             ((ExpeditionInteriorV91)clinicInteriorV89).sceneWalls():ClinicInteriorV89.WALLS){
             float wx=wall[0]*inv,wy=wall[1]*inv,
@@ -1443,6 +1444,8 @@ public final class GameView extends View {
         if(distance(playerX,playerY,ClinicInteriorV89.EXIT_X,
            ClinicInteriorV89.EXIT_Y)<125f)
             label(c,"USE TO EXIT TO WORLD",691*s,1020*s,18,0xfff0e5bf,true);
+        drawIndoorLightFixturesV93(c);
+        drawClinicVisionV90(c);
         // Actual world-Y depth sort. NPCs cannot visually disappear beneath
         // accompanying survivors merely because companions render last.
         ArrayList<DrawEntity> indoorOrderV92=new ArrayList<>();
@@ -1464,8 +1467,7 @@ public final class GameView extends View {
                     friend.animation.breathOffset(),friendAim,0,false,false,
                     friend.variant);
                 rect(c,friend.x-6,friend.y-117,13,4,OLIVE);
-                drawSpeechV92(c,friend.x,friend.y,friend.variant+30,
-                    NPCRelationshipsV92.FRIENDLY,false);
+                
             }));
         }
         indoorOrderV92.add(new DrawEntity(playerY,()->{
@@ -1476,8 +1478,7 @@ public final class GameView extends View {
         }));
         indoorOrderV92.sort((a,b)->Float.compare(a.y,b.y));
         for(DrawEntity entity:indoorOrderV92)entity.draw.run();
-        drawClinicVisionV90(c);
-        drawIndoorLightsV92(c);
+        drawIndoorSpeechAfterLightingV93(c);
         c.restore();
     }
     void drawClinicActorV90(Canvas c,ClinicActorsV90.Actor a){
@@ -1511,9 +1512,7 @@ public final class GameView extends View {
             rect(c,a.x-9,a.y-107,18,5,0xff9d514c);
         else if(!hostile)
             rect(c,a.x-6,a.y-118,12,4,0xff7cc9b0);
-        drawSpeechV92(c,a.x,a.y,a.type,
-            a.hostile()?NPCRelationshipsV92.HOSTILE:NPCRelationshipsV92.FRIENDLY,
-            distance(playerX,playerY,a.x,a.y)<255f);
+        
         if(hostile){
             rect(c,a.x-21,a.y-126,42,4,0xff172827);
             rect(c,a.x-20,a.y-125,40*a.hp/85f,3,
@@ -3100,8 +3099,7 @@ public final class GameView extends View {
                     e.animation.isWalking()?Float.POSITIVE_INFINITY:e.animation.breathOffset(),
                     0,0,false,true,e.variant);
             rect(c,e.x-23,e.y-114,46,5,DK);rect(c,e.x-22,e.y-113,44*clamp(e.hp/78,0,1),3,RED);
-            drawSpeechV92(c,e.x,e.y,e.variant+20,NPCRelationshipsV92.HOSTILE,
-                distance(e.x,e.y,playerX,playerY)<420f);
+            
         }));
         }
         for(Survivor f:friends){
@@ -3114,8 +3112,7 @@ public final class GameView extends View {
                     f.animation.isWalking()?Float.POSITIVE_INFINITY:f.animation.breathOffset(),
                     Ballistics.angle(f.aimX,f.aimY,f.face),0,false,false,f.variant);
             rect(c,f.x-5,f.y-117,10,4,OLIVE);
-            drawSpeechV92(c,f.x,f.y,f.variant+30,
-                NPCRelationshipsV92.FRIENDLY,nearest(f.x,f.y,430f)!=null);
+            
         }));
         }
         for(Survivor npc:campStaff){
@@ -3127,9 +3124,7 @@ public final class GameView extends View {
             character(c,npc.x,npc.y,npc.gun,npc.face,npc.animation.frame(),
                 npc.animation.isWalking()?Float.POSITIVE_INFINITY:npc.animation.breathOffset(),
                 0,0,false,false,npc.variant);
-            drawSpeechV92(c,npc.x,npc.y,npc.variant,
-                npc.variant==ROLE_GUARD+1?NPCRelationshipsV92.FRIENDLY:
-                NPCRelationshipsV92.NEUTRAL,nearest(npc.x,npc.y,400f)!=null);
+            
         }));
         }
         order.add(new DrawEntity(playerY,()->{
@@ -3167,6 +3162,7 @@ public final class GameView extends View {
         // equipment, projectiles and props; real lights punch through this mask.
         if(lightAlpha>0)applyWorldLighting(c);else drawFixtures(c,true);
         if(showChunkGrid)drawChunkGrid(c);
+        drawOutdoorSpeechAfterLightingV93(c);
         c.restore();
     }
     void drawChunkGrid(Canvas c){
