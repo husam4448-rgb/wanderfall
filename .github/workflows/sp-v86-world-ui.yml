@@ -898,7 +898,7 @@ jobs:
               assert needle in a,needle
           assert 'android:allowBackup="true"' in manifest
           assert "applicationId 'com.survivalparadise.nativegame'" in gradle
-          assert 'versionCode 86' in gradle
+          assert 'versionCode 87' in gradle
           assert 'SP_SIGNING_STORE' in gradle
           print("V85 PASS loose resources, near-camp rock, portable save and big item icons")
           PY
