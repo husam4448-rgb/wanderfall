@@ -53,7 +53,8 @@ public final class ResourceWorldV80 {
         int seed=seed(cx,cy,slot);
         float x=worldX(cx,seed),y=worldY(cy,seed);
         if(!placed(x,y,slot,seed,campX,campY,worldW,worldH))return null;
-        int kind=slot==3?BUSH:BiomeWorldV74.prop(x,y,seed);
+        int kind=slot==3?BUSH:slot==2 && x>=0&&x<=worldW&&y>=0&&y<=worldH?
+            4:BiomeWorldV74.prop(x,y,seed);
         return new Node(cx,cy,slot,kind,seed,x,y);
     }
     public boolean exhausted(int cx,int cy,int slot){
@@ -121,7 +122,8 @@ public final class ResourceWorldV80 {
                 float dx=x-px,dy=y-py,ds=dx*dx+dy*dy;
                 if(ds<=best2){
                     best2=ds;
-                    int kind=slot==3?BUSH:BiomeWorldV74.prop(x,y,h);
+                    int kind=slot==3?BUSH:slot==2&&x>=0&&x<=worldW&&y>=0&&y<=worldH?
+                        4:BiomeWorldV74.prop(x,y,h);
                     closest=new Node(cx,cy,slot,kind,h,x,y);
                 }
             }
