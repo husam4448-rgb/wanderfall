@@ -791,8 +791,9 @@ public final class MainActivity extends Activity {
                             (idx==12?game.bandagesV88:game.energyV88))
                             .setItems(commands,(d,choice)->{
                                 if(choice==0){
-                                    int prior=game.hotbar[0];game.hotbar[0]=utility;
-                                    game.useHotbar(0);game.hotbar[0]=prior;
+                                    boolean used=game.useBackpackV88(utility);
+                                    if(!used)Toast.makeText(this,"Item not needed or unavailable",
+                                        Toast.LENGTH_SHORT).show();
                                     refreshCraftCountsV83.run();
                                 }else game.setHotbarItem(choice-1,utility);
                             }).show();
@@ -824,11 +825,10 @@ public final class MainActivity extends Activity {
                             if(kind==0)Toast.makeText(this,
                                 "Scrap is a crafting resource",Toast.LENGTH_SHORT).show();
                             else{
-                                int h=game.hotbar[0];
-                                game.hotbar[0]=kind;game.useHotbar(0);
-                                game.hotbar[0]=h;
-                                slot.setText(name+"\n×"+(kind==1?game.medkits:
-                                    kind==2?game.ammoPacks:kind==6?game.foodCount:game.waterCount));
+                                boolean used=game.useBackpackV88(kind);
+                                if(!used)Toast.makeText(this,"Item not needed or unavailable",
+                                    Toast.LENGTH_SHORT).show();
+                                refreshCraftCountsV83.run();
                             }
                         }else game.setHotbarItem(choice-1,kind);
                         avatar.invalidate();
