@@ -1437,31 +1437,39 @@ public final class GameView extends View {
         if(distance(playerX,playerY,ClinicInteriorV89.EXIT_X,
            ClinicInteriorV89.EXIT_Y)<125f)
             label(c,"USE TO EXIT TO WORLD",691*s,1020*s,18,0xfff0e5bf,true);
-        // Room threats and allies are depth-sorted with the player, reusing the
-        // original approved character sprites rather than regenerating artwork.
-        for(ClinicActorsV90.Actor a:clinicActorsV90.actors){
-            if(!a.active)continue;
-            if(!WorldPerfV55.nearView(a.x,a.y,camX,camY,viewW,viewH,160))
+        // Actual world-Y depth sort. NPCs cannot visually disappear beneath
+        // accompanying survivors merely because companions render last.
+        ArrayList<DrawEntity> indoorOrderV92=new ArrayList<>();
+        for(ClinicActorsV90.Actor actor:clinicActorsV90.actors){
+            if(!actor.active)continue;
+            if(!WorldPerfV55.nearView(actor.x,actor.y,camX,camY,viewW,viewH,160))
                 continue;
-            drawClinicActorV90(c,a);
+            indoorOrderV92.add(new DrawEntity(actor.y,
+                ()->drawClinicActorV90(c,actor)));
         }
         for(Survivor friend:friends){
             if(!WorldPerfV55.nearView(friend.x,friend.y,camX,camY,viewW,viewH,145))
                 continue;
-            float friendAim=Ballistics.angle(friend.aimX,friend.aimY,friend.face);
-            character(c,friend.x,friend.y,friend.gun,friend.face,
-                friend.animation.frame(),
-                friend.animation.isWalking()?Float.POSITIVE_INFINITY:
-                friend.animation.breathOffset(),friendAim,0,false,false,
-                friend.variant);
-            rect(c,friend.x-6,friend.y-117,13,4,OLIVE);
-            drawSpeechV92(c,friend.x,friend.y,friend.variant+30,
-                NPCRelationshipsV92.FRIENDLY,false);
+            indoorOrderV92.add(new DrawEntity(friend.y,()->{
+                float friendAim=Ballistics.angle(friend.aimX,friend.aimY,friend.face);
+                character(c,friend.x,friend.y,friend.gun,friend.face,
+                    friend.animation.frame(),
+                    friend.animation.isWalking()?Float.POSITIVE_INFINITY:
+                    friend.animation.breathOffset(),friendAim,0,false,false,
+                    friend.variant);
+                rect(c,friend.x-6,friend.y-117,13,4,OLIVE);
+                drawSpeechV92(c,friend.x,friend.y,friend.variant+30,
+                    NPCRelationshipsV92.FRIENDLY,false);
+            }));
         }
-        float angle=Ballistics.angle(aimX,aimY,face);
-        character(c,playerX,playerY,gun,face,playerAnimation.frame(),
-            playerAnimation.isWalking()?Float.POSITIVE_INFINITY:
-            playerAnimation.breathOffset(),angle,recoil*2.7f,true,false,-1);
+        indoorOrderV92.add(new DrawEntity(playerY,()->{
+            float angle=Ballistics.angle(aimX,aimY,face);
+            character(c,playerX,playerY,gun,face,playerAnimation.frame(),
+                playerAnimation.isWalking()?Float.POSITIVE_INFINITY:
+                playerAnimation.breathOffset(),angle,recoil*2.7f,true,false,-1);
+        }));
+        indoorOrderV92.sort((a,b)->Float.compare(a.y,b.y));
+        for(DrawEntity entity:indoorOrderV92)entity.draw.run();
         drawClinicVisionV90(c);
         drawIndoorLightsV92(c);
         c.restore();
