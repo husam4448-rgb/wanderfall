@@ -3,7 +3,7 @@ public final class V85GroundPickupTest {
  static void ok(boolean b,String m){if(!b)throw new AssertionError(m);}
  public static void main(String[]args){
   GroundPickupsV85 g=new GroundPickupsV85();
-  int[] count=new int[3],near=0;GroundPickupsV85.Item sample=null;
+  int[] count=new int[3];int near=0;GroundPickupsV85.Item sample=null;
   for(int cy=-15;cy<15;cy++)for(int cx=-15;cx<15;cx++)
   for(int slot=0;slot<3;slot++){
     GroundPickupsV85.Item p=GroundPickupsV85.item(cx,cy,slot,1080,710);
