@@ -966,6 +966,10 @@ public final class GameView extends View {
         shotClock=Math.max(0f,shotClock-dt);
         recoil=Math.max(0f,recoil-dt*5f);
         indoorShotCooldownV90=Math.max(0f,indoorShotCooldownV90-dt);
+        if(reloadClock>0f){
+            reloadClock-=dt;
+            if(reloadClock<=0f){ammo=MAG[gun];reloadClock=0f;}
+        }
         float vx=stickX,vy=stickY;
         float oldX=playerX,oldY=playerY;
         float len=(float)Math.hypot(vx,vy);
@@ -999,7 +1003,7 @@ public final class GameView extends View {
         updateClinicFriendsV90(dt);
         float threat=clinicActorsV90.tick(dt,playerX,playerY,clinicInteriorV89);
         if(threat>0f)hurt(threat);
-        if(firing&&indoorShotCooldownV90<=0f&&
+        if(firing&&indoorShotCooldownV90<=0f&&reloadClock<=0f&&
             gun!=3&&gun!=11&&!gameOver){
             if(ammo>0){
                 ammo--;
