@@ -1236,7 +1236,7 @@ jobs:
             "WardrobeV92.NAMES[clothesSlot]",
           ]:assert x in a,x
           assert "covers.add(new Cover(350,280,280,180,0))" not in g
-          assert "versionCode 93" in (p.parents[4]/"build.gradle").read_text()
+          assert "versionCode 93" in Path("survival-paradise/native-game/app/build.gradle").read_text()
           print("V92 PASS user-reported blockers, dialogue, wearable clothing and drag targets")
           PY
       - name: Prepare Android SDK and Gradle
