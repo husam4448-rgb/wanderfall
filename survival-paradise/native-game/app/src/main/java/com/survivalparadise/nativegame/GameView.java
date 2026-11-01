@@ -1181,6 +1181,18 @@ public final class GameView extends View {
         knifeDuration=Math.max(0,knifeDuration-dt);
         updateClinicFriendsV90(dt);
         float threat=clinicActorsV90.tick(dt,playerX,playerY,clinicInteriorV89);
+        // Actors never despawn when colliding with allies. Separate their
+        // footprints instead of hiding overlapping sprites or mutating 'active'.
+        for(ClinicActorsV90.Actor actor:clinicActorsV90.actors)if(actor.active)
+            for(Survivor friend:friends){
+                float dx=actor.x-friend.x,dy=actor.y-friend.y;
+                float d=(float)Math.hypot(dx,dy);
+                if(d>=65f)continue;
+                if(d<.1f){dx=17f;dy=-19f;d=25.5f;}
+                float nx=actor.x+dx/d*(65f-d),ny=actor.y+dy/d*(65f-d);
+                if(!clinicInteriorV89.blocked(nx,actor.y,15f))actor.x=nx;
+                if(!clinicInteriorV89.blocked(actor.x,ny,15f))actor.y=ny;
+            }
         if(threat>0f)hurt(threat);
         if(firing&&indoorShotCooldownV90<=0f&&reloadClock<=0f&&
             gun!=3&&gun!=11&&!gameOver){
@@ -1384,12 +1396,15 @@ public final class GameView extends View {
                 friend.animation.breathOffset(),friendAim,0,false,false,
                 friend.variant);
             rect(c,friend.x-6,friend.y-117,13,4,OLIVE);
+            drawSpeechV92(c,friend.x,friend.y,friend.variant+30,
+                NPCRelationshipsV92.FRIENDLY,false);
         }
         float angle=Ballistics.angle(aimX,aimY,face);
         character(c,playerX,playerY,gun,face,playerAnimation.frame(),
             playerAnimation.isWalking()?Float.POSITIVE_INFINITY:
             playerAnimation.breathOffset(),angle,recoil*2.7f,true,false,-1);
         drawClinicVisionV90(c);
+        drawIndoorLightsV92(c);
         c.restore();
     }
     void drawClinicActorV90(Canvas c,ClinicActorsV90.Actor a){
@@ -1423,6 +1438,9 @@ public final class GameView extends View {
             rect(c,a.x-9,a.y-107,18,5,0xff9d514c);
         else if(!hostile)
             rect(c,a.x-6,a.y-118,12,4,0xff7cc9b0);
+        drawSpeechV92(c,a.x,a.y,a.type,
+            a.hostile()?NPCRelationshipsV92.HOSTILE:NPCRelationshipsV92.FRIENDLY,
+            distance(playerX,playerY,a.x,a.y)<255f);
         if(hostile){
             rect(c,a.x-21,a.y-126,42,4,0xff172827);
             rect(c,a.x-20,a.y-125,40*a.hp/85f,3,
@@ -1442,7 +1460,7 @@ public final class GameView extends View {
             Path.Direction.CW);
         c.save();
         c.clipPath(clinicVisionPathV90,android.graphics.Region.Op.DIFFERENCE);
-        rect(c,camX-10,camY-10,viewW+20,viewH+20,0xdc071516);
+        rect(c,camX-10,camY-10,viewW+20,viewH+20,0xb9071516);
         c.restore();
         // Soft normal lighting inside visible cone (avoids pure white floors).
         color(0x180b1c1d);
@@ -2752,6 +2770,7 @@ public final class GameView extends View {
         }
         Bitmap atlas=npcVariant>=0?npcWalkV56:approvedWalkColors;
         stablePose(c,atlas,npcVariant<0?0:npcVariant,frame,s,breath);
+        drawWardrobeV92(c,s,player,bandit,npcVariant);
         if(player&&harvestV81.active)drawHarvestRigV81(c,s);
         else if(player&&knifeDuration>0f)drawKnifeSwing(c,s);
         else if(!bandit){
@@ -2817,6 +2836,88 @@ public final class GameView extends View {
         rect(c,-46*s,(top+height-23)*s,18*s,4*s,light);
         rect(c,-27*s,(top+6)*s,5*s,(height-15)*s,0xff22332c);
         rect(c,-30*s,(top+18)*s,7*s,12*s,0xffb9a477);
+    }
+    /** New modular clothes are overlays; the original V31 body atlas is never changed. */
+    void drawWardrobeV92(Canvas c,float size,boolean player,boolean bandit,int variant){
+        int id=variant<0?3:variant;
+        int[] parts=new int[4];
+        for(int slot=0;slot<4;slot++)parts[slot]=player?
+            wardrobeV92.equipped[slot]:WardrobeV92.npcOutfit(id,slot);
+        int[] cloth={0xff7b835e,0xff687b76,0xff626a57};
+        int[] trim={0xffc0b185,0xff9aa8a5,0xff414d4d};
+        if(parts[0]>=0){
+            int v=parts[0];
+            rect(c,-15*size,-119*size,30*size,8*size,0xff1d2b2a);
+            rect(c,-12*size,-117*size,25*size,5*size,cloth[v]);
+            if(v==1)rect(c,-17*size,-112*size,35*size,3*size,trim[v]);
+            if(v==2)rect(c,-11*size,-122*size,22*size,5*size,trim[v]);
+        }
+        if(parts[1]>=0){
+            int v=parts[1],vcol=bandit?0xff745244:cloth[v];
+            rect(c,-15*size,-58*size,30*size,26*size,0xff192b2a);
+            rect(c,-12*size,-56*size,23*size,21*size,vcol);
+            rect(c,-2*size,-55*size,4*size,20*size,trim[v]);
+            if(v==2){rect(c,-10*size,-53*size,9*size,11*size,0xff3f4c47);
+                rect(c,4*size,-53*size,6*size,11*size,0xff364943);}
+            rect(c,-16*size,-53*size,5*size,11*size,vcol);
+        }
+        if(parts[2]>=0){
+            int v=parts[2];
+            rect(c,-12*size,-31*size,10*size,16*size,cloth[v]);
+            rect(c,3*size,-31*size,10*size,16*size,cloth[v]);
+            if(v==2){rect(c,-11*size,-22*size,9*size,4*size,trim[v]);
+                rect(c,4*size,-22*size,8*size,4*size,trim[v]);}
+        }
+        if(parts[3]>=0){
+            int v=parts[3];
+            rect(c,-15*size,-13*size,14*size,7*size,0xff182523);
+            rect(c,1*size,-13*size,14*size,7*size,0xff182523);
+            rect(c,-13*size,-12*size,10*size,4*size,trim[v]);
+            rect(c,3*size,-12*size,10*size,4*size,trim[v]);
+        }
+    }
+    void drawSpeechV92(Canvas c,float x,float y,int code,int attitude,boolean threat){
+        if(distance(playerX,playerY,x,y)>445f)return;
+        float phase=(worldTimer+code*2.13f)%11.7f;
+        if(phase>3.5f)return;
+        String message=relationshipsV92.speech(attitude,
+            ((int)(worldTimer/11.7f)+code),threat);
+        float width=19f+message.length()*7.1f;
+        float left=x-width*.5f,top=y-165f;
+        rounded(c,left,top,width,27f,5f,0xdd152a29);
+        label(c,message,left+9,top+18,12,
+            attitude==NPCRelationshipsV92.HOSTILE?0xffef9e91:0xffe6e3c4,true);
+    }
+    void drawIndoorLightsV92(Canvas c){
+        float z=ClinicInteriorV89.EXPANSION_V90;
+        boolean clinic=activeSiteV91==1;
+        boolean electric=clinic||(activeSiteV91>=0&&activeSiteV91<
+            ExpeditionSitesV88.SITES.length&&
+            (ExpeditionSitesV88.SITES[activeSiteV91].kind==ExpeditionSitesV88.RELAY||
+             ExpeditionSitesV88.SITES[activeSiteV91].kind==ExpeditionSitesV88.MOTEL));
+        int core=electric?0xffc5eaff:0xffffcf79;
+        int faint=electric?0x2d68a8b9:0x35efba69;
+        final int[][] lamps={{260,225},{790,225},{1310,225},
+            {260,845},{790,845},{1310,845},{800,562}};
+        for(int i=0;i<lamps.length;i++){
+            float lx=lamps[i][0]*z,ly=lamps[i][1]*z;
+            if(!WorldPerfV55.nearView(lx,ly,camX,camY,viewW,viewH,280))continue;
+            float x0=i==6?23*z:(i%3==0?23*z:i%3==1?551*z:1071*z);
+            float x1=i==6?1577*z:(i%3==0?530*z:i%3==1?1050*z:1577*z);
+            float y0=i==6?508*z:i<3?44*z:642*z;
+            float y1=i==6?620*z:i<3?486*z:1070*z;
+            c.save();c.clipRect(x0,y0,x1,y1);
+            color(faint);c.drawCircle(lx,ly,235*z/1.7f,p);
+            color(electric?0x2c9ccedc:0x39f1c37b);
+            c.drawCircle(lx,ly,142*z/1.7f,p);
+            color(electric?0x3fc1e9f6:0x4dffd18a);
+            c.drawCircle(lx,ly,66*z/1.7f,p);
+            c.restore();
+            rect(c,lx-15,ly-9,30,18,0xff17282a);
+            rect(c,lx-11,ly-6,22,12,electric?0xff88b9bd:0xff8e6843);
+            rect(c,lx-8,ly-4,16,8,core);
+            rect(c,lx-3,ly-7,6,14,0xffe4e4c0);
+        }
     }
     /** A grounded pixel-art dropped backpack with zipper, straps and loot count. */
     void drawBanditBagV87(Canvas c,BanditLootV87.Bag bag){
@@ -2926,6 +3027,8 @@ public final class GameView extends View {
                     e.animation.isWalking()?Float.POSITIVE_INFINITY:e.animation.breathOffset(),
                     0,0,false,true,e.variant);
             rect(c,e.x-23,e.y-114,46,5,DK);rect(c,e.x-22,e.y-113,44*clamp(e.hp/78,0,1),3,RED);
+            drawSpeechV92(c,e.x,e.y,e.variant+20,NPCRelationshipsV92.HOSTILE,
+                distance(e.x,e.y,playerX,playerY)<420f);
         }));
         }
         for(Survivor f:friends){
@@ -2938,6 +3041,8 @@ public final class GameView extends View {
                     f.animation.isWalking()?Float.POSITIVE_INFINITY:f.animation.breathOffset(),
                     Ballistics.angle(f.aimX,f.aimY,f.face),0,false,false,f.variant);
             rect(c,f.x-5,f.y-117,10,4,OLIVE);
+            drawSpeechV92(c,f.x,f.y,f.variant+30,
+                NPCRelationshipsV92.FRIENDLY,nearest(f.x,f.y,430f)!=null);
         }));
         }
         for(Survivor npc:campStaff){
@@ -2949,6 +3054,9 @@ public final class GameView extends View {
             character(c,npc.x,npc.y,npc.gun,npc.face,npc.animation.frame(),
                 npc.animation.isWalking()?Float.POSITIVE_INFINITY:npc.animation.breathOffset(),
                 0,0,false,false,npc.variant);
+            drawSpeechV92(c,npc.x,npc.y,npc.variant,
+                npc.variant==ROLE_GUARD+1?NPCRelationshipsV92.FRIENDLY:
+                NPCRelationshipsV92.NEUTRAL,nearest(npc.x,npc.y,400f)!=null);
         }));
         }
         order.add(new DrawEntity(playerY,()->{
