@@ -265,6 +265,10 @@ public final class GameView extends View {
         covers.add(new Cover(650,1160,100,38,1));
         covers.add(new Cover(1360,1570,110,40,1));
         covers.add(new Cover(2520,1760,110,40,1));
+        // The ten fixed facilities are physical solid buildings; loot is
+        // reachable from the cache parked outside each entrance.
+        for(ExpeditionSitesV88.Site s:ExpeditionSitesV88.SITES)
+            covers.add(new Cover(s.x-68,s.y-56,136,120,4));
     }
     boolean isPlaying(){return playing;}
     void reloadSettings(){
@@ -1768,7 +1772,7 @@ public final class GameView extends View {
         }
     }
     void drawCover(Canvas c,Cover box){
-        if(box.kind==3)return; // V83 player-built barricades are depth-sorted.
+        if(box.kind==3||box.kind==4)return; // player builds and authored V88 POIs drawn in their own passes.
         float x=box.x,y=box.y,w=box.w,h=box.h;
         if(box.kind==0){
             rect(c,x+5,y+9,w,h,0xff142b29);
@@ -2618,6 +2622,22 @@ public final class GameView extends View {
                     playerX,playerY,lastCulledNpcs),18,104,12,ORANGE,false);
                 label(c,String.format(Locale.US,"CPU UPDATE %.1f  DRAW %.1f  LIGHT %.1f ms",
                     updateNs/1e6f,worldNs/1e6f,lightingNs/1e6f),18,122,11,OLIVE,false);
+            }
+        }
+        if(playing&&!gameOver){
+            ExpeditionSitesV88.Site nearby=null;
+            float nearestDistance=1450f;
+            for(ExpeditionSitesV88.Site site:ExpeditionSitesV88.SITES){
+                float d=distance(playerX,playerY,site.x,site.y);
+                if(d<nearestDistance){nearestDistance=d;nearby=site;}
+            }
+            if(nearby!=null){
+                float dx=nearby.x-playerX,dy=nearby.y-playerY;
+                String heading=Math.abs(dx)>Math.abs(dy)?
+                    (dx>=0?"E":"W"):(dy>=0?"S":"N");
+                label(c,"EXPLORE "+heading+"  "+nearby.name+
+                    "   "+Math.round(nearestDistance)+"m",
+                    14,viewH-84,12,0xffd9c9a0,true);
             }
         }
         if(placingKindV84>=0){
