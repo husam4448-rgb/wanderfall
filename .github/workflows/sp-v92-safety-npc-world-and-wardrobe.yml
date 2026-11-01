@@ -714,7 +714,7 @@ jobs:
              'USE: GATHER ','GATHERED ','woodV80','stoneV80','fiberV80']:
               assert needle in g,needle
           assert 'ResourceWorldV80.node(cx,cy,k,' not in g
-          assert 'idx==5?"WOOD"' in m and 'idx==6?"STONE"' in m and 'idx==7?"FIBER"' in m
+          assert 'GameView.INVENTORY_NAMES_V92[idx]' in m
           assert 'PlayerMovementV77.speed(gun==9?169f:236f,walkSpeedMultiplier,runMultiplier,crouchHeld)' in g
           assert 'walkingAnimationMultiplierV79' in g
           assert 'TopHudV76.hit(x,y,viewW)' in g
@@ -896,7 +896,7 @@ jobs:
           for needle in ['void exportGameSaveV85()','void importGameSaveV85()',
               'void restoreSaveV85(String content)','onActivityResult(',
               'survival-paradise-save-v85','EXPORT GAME SAVE TO FILE',
-              'IMPORT GAME SAVE FROM FILE','getResources(),idx==10?ItemIconsV84.WATER_COLLECTOR:',
+              'IMPORT GAME SAVE FROM FILE','FieldItemIconsV91.drawable(getResources(),kind-14,25)',
               'ItemIconsV84.hotbarType(item),31)']:
               assert needle in a,needle
           assert 'android:allowBackup="true"' in manifest
