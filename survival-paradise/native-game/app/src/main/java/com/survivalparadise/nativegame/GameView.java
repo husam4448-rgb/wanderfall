@@ -683,19 +683,25 @@ public final class GameView extends View {
         rect(c,60,-2,5,2,0xff324447);
         c.restore();
     }
-    /** High-contrast 43px two-layer streak, aligned with enlarged knife tip. */
+    // V84 pointed crescent lies tangential to the blade's rotational cutting path.
+    // The same reusable Path is reset each frame; no bitmap or object allocations.
+    final Path knifeCutPathV84=new Path();
     void drawShortKnifeTrailV82(Canvas c,float gx,float gy,float s){
-        float x=gx+100f*s,y=gy-8f*s,len=MeleeSlashV83.STREAK*s;
-        color(0xff31504c);p.setStyle(Paint.Style.STROKE);
-        p.setStrokeCap(Paint.Cap.SQUARE);p.setStrokeWidth(Math.max(5f,9f*s));
-        c.drawLine(x,y-10*s,x+len,y-24*s,p);
-        color(0xffe3f8ec);p.setStyle(Paint.Style.STROKE);
-        p.setStrokeWidth(Math.max(3f,5f*s));
-        c.drawLine(x+3*s,y-11*s,x+len-3*s,y-24*s,p);
-        color(0xffffe7bc);p.setStyle(Paint.Style.STROKE);
-        p.setStrokeWidth(Math.max(1.5f,2.6f*s));
-        c.drawLine(x+8*s,y-12*s,x+len-9*s,y-22*s,p);
-        p.setStrokeCap(Paint.Cap.BUTT);p.setStyle(Paint.Style.FILL);
+        float x=gx+94f*s,y=gy-4f*s;
+        knifeCutPathV84.reset();
+        knifeCutPathV84.moveTo(x-3*s,y-43*s);
+        knifeCutPathV84.quadTo(x+24*s,y-15*s,x+11*s,y+30*s);
+        knifeCutPathV84.quadTo(x-4*s,y+16*s,x-14*s,y-1*s);
+        knifeCutPathV84.quadTo(x+7*s,y-23*s,x-3*s,y-43*s);
+        knifeCutPathV84.close();
+        color(0xff285958);c.drawPath(knifeCutPathV84,p);
+        knifeCutPathV84.reset();
+        knifeCutPathV84.moveTo(x-1*s,y-37*s);
+        knifeCutPathV84.quadTo(x+17*s,y-13*s,x+7*s,y+23*s);
+        knifeCutPathV84.quadTo(x-2*s,y+11*s,x-9*s,y-1*s);
+        knifeCutPathV84.quadTo(x+8*s,y-17*s,x-1*s,y-37*s);
+        knifeCutPathV84.close();
+        color(0xffe0f7e9);c.drawPath(knifeCutPathV84,p);
     }
     /** Small torso-pivot melee animation with a proper weapon-hand grip. */
     void drawKnifeSwing(Canvas c,float s){
@@ -776,36 +782,44 @@ public final class GameView extends View {
         harvestImpactTimeV81=Math.max(0f,harvestImpactTimeV81-dt);
         if(harvestV81.active){
             ResourceWorldV80.Node target=harvestV81.target;
-            float dx=target.x-playerX,dy=target.y-playerY;
-            // Cancel on player movement, damage (hurt()), threatening bandits,
-            // resource removal, or stepping out of reach; never pay on cancellation.
+            SalvageWorldV84.Node rust=harvestV81.salvageTarget;
+            boolean salvaging=rust!=null;
+            float tx=salvaging?rust.x:target.x,ty=salvaging?rust.y:target.y;
+            float dx=tx-playerX,dy=ty-playerY;
+            float reach=salvaging?SalvageWorldV84.REACH:ResourceWorldV80.USE_RADIUS;
+            boolean depleted=salvaging?
+                salvageWorldV84.exhausted(rust.cx,rust.cy,rust.slot):
+                harvestWorld.exhausted(target.cx,target.cy,target.slot);
             if((float)Math.hypot(stickX,stickY)>.17f||firing||
-               dx*dx+dy*dy>(ResourceWorldV80.USE_RADIUS+8f)*
-                   (ResourceWorldV80.USE_RADIUS+8f)||
-               harvestWorld.exhausted(target.cx,target.cy,target.slot)||
+               dx*dx+dy*dy>(reach+8f)*(reach+8f)||depleted||
                nearest(playerX,playerY,135f)!=null){
                 harvestV81.cancel();
             }else{
                 if(harvestV81.advance(dt)){
                     harvestImpactTimeV81=.18f;
-                    int col=harvestV81.kind==ResourceWorldV80.STONE?0xffa9b3ab:
+                    int color=salvaging?0xffa47e5d:
+                        harvestV81.kind==ResourceWorldV80.STONE?0xffa9b3ab:
                         harvestV81.kind==ResourceWorldV80.FIBER?0xff75985d:0xffb38a56;
-                    particles(target.x,target.y-(harvestV81.kind==ResourceWorldV80.FIBER?18:34),
-                        col,6);
+                    particles(tx,ty-(salvaging?35f:harvestV81.kind==ResourceWorldV80.FIBER?18f:34f),
+                        color,6);
                 }
                 if(harvestV81.finished){
-                    if(harvestV81.canComplete(playerX,playerY,
-                        ResourceWorldV80.USE_RADIUS,
-                        harvestWorld.exhausted(target.cx,target.cy,target.slot))&&
-                        harvestWorld.harvest(target)){
+                    if(salvaging){
+                        if(harvestV81.canCompleteScrap(playerX,playerY,reach,depleted)&&
+                           salvageWorldV84.harvest(rust)){
+                            scrap+=rust.quantity();
+                            gatherFeedback="SALVAGED SCRAP +"+rust.quantity();
+                            gatherFeedbackTime=2.4f;saveProgress();
+                        }
+                    }else if(harvestV81.canComplete(playerX,playerY,reach,depleted)&&
+                             harvestWorld.harvest(target)){
                         switch(target.resource()){
                             case ResourceWorldV80.STONE:stone+=target.quantity();break;
                             case ResourceWorldV80.FIBER:fiber+=target.quantity();break;
                             default:wood+=target.quantity();break;
                         }
                         gatherFeedback="GATHERED "+target.name()+" +"+target.quantity();
-                        gatherFeedbackTime=2.3f;
-                        saveProgress();
+                        gatherFeedbackTime=2.3f;saveProgress();
                     }
                     harvestV81.cancel();
                 }
@@ -1676,6 +1690,17 @@ public final class GameView extends View {
                 drawKnifeBladeV82(c,gx,gy,s*HeadKnifeV82.KNIFE_SIZE);
                 if(harvestV81.phase()==HarvestActionV81.STRIKE)
                     drawShortKnifeTrailV82(c,gx,gy,s);
+            }else if(kind==HarvestActionV81.SCRAP){
+                // Dedicated hooked crowbar with black outline and oxidized shaft.
+                c.save();c.translate(gx,gy);c.scale(s,s);
+                rect(c,-7,-78,16,103,0xff162426);
+                rect(c,-3,-75,8,90,0xff8b5345);
+                rect(c,0,-69,3,72,0xffc08b69);
+                rect(c,-22,-85,32,12,0xff142529);
+                rect(c,-18,-82,26,7,0xff8b9c98);
+                rect(c,-25,-83,8,14,0xff4b6769);
+                rect(c,6,15,10,12,0xff142326);
+                c.restore();
             }
         }
         if(showHands)handAtlas(c,11,2,0,0,s,handScale,0,0);
@@ -2391,14 +2416,23 @@ public final class GameView extends View {
     /** Existing USE keeps loot priority, but harvesting is now an animation. */
     boolean gatherNearestV80(){
         if(harvestV81.active||firing||!playing||paused||gameOver)return false;
+        if(nearest(playerX,playerY,135f)!=null)return false;
         ResourceWorldV80.Node node=harvestWorld.nearest(playerX,playerY,
             ResourceWorldV80.USE_RADIUS,CAMP_X,CAMP_Y,WORLD_W,WORLD_H);
-        if(node==null||nearest(playerX,playerY,135f)!=null)return false;
-        if(!harvestV81.begin(node))return false;
-        // Equipped gun and its ammo remain untouched; axe/pickaxe/knife are
-        // transient, rig-aligned overlays, not a saved equipment switch.
+        SalvageWorldV84.Node salvage=salvageWorldV84.nearest(playerX,playerY,
+            SalvageWorldV84.REACH,CAMP_X,CAMP_Y,WORLD_W,WORLD_H);
+        if(node==null&&salvage==null)return false;
+        boolean useScrap=salvage!=null&&(node==null||
+            distance(playerX,playerY,salvage.x,salvage.y)<
+            distance(playerX,playerY,node.x,node.y));
+        if(useScrap){
+            if(!harvestV81.beginScrap(salvage))return false;
+            face=salvage.x>=playerX?1:-1;
+        }else{
+            if(!harvestV81.begin(node))return false;
+            face=node.x>=playerX?1:-1;
+        }
         stopWalking();knifeDuration=0f;knifeHitPending=false;
-        face=node.x>=playerX?1:-1;
         gatherFeedbackTime=0f;harvestImpactTimeV81=0f;
         return true;
     }
