@@ -784,6 +784,264 @@ public final class GameView extends View {
         }
         return false;
     }
+    /** Clinic is a full separate map; outdoors and its NPC positions are suspended. */
+    boolean enterClinicFromWorldV89(){
+        if(insideClinicV89||!playing||gameOver)return false;
+        ExpeditionSitesV88.Site site=ExpeditionSitesV88.SITES[1];
+        if(distance(playerX,playerY,site.x,site.y+154f)>102f)return false;
+        outsideDoorXv89=site.x;
+        outsideDoorYv89=site.y+167f;
+        insideClinicV89=true;
+        playerX=ClinicInteriorV89.ENTRANCE_X;
+        playerY=ClinicInteriorV89.ENTRANCE_Y;
+        harvestV81.cancel();cancelPlaceV84();
+        releaseControls();shots.clear();sparks.clear();flashes.clear();
+        cameraLookX=0;cameraLookY=0;
+        gatherFeedback="FIELD CLINIC  •  EXPLORE AND SCAVENGE";
+        gatherFeedbackTime=3.5f;
+        saveProgress();invalidate();return true;
+    }
+    void exitClinicV89(){
+        if(!insideClinicV89)return;
+        insideClinicV89=false;
+        playerX=outsideDoorXv89;
+        playerY=outsideDoorYv89;
+        releaseControls();shots.clear();sparks.clear();flashes.clear();
+        cameraLookX=0;cameraLookY=0;
+        gatherFeedback="RETURNED TO THE FIELD CLINIC ENTRANCE";
+        gatherFeedbackTime=2.5f;
+        spawnWave();saveProgress();invalidate();
+    }
+    void interactClinicV89(){
+        if(!insideClinicV89)return;
+        if(distance(playerX,playerY,
+            ClinicInteriorV89.EXIT_X,ClinicInteriorV89.EXIT_Y)<110f){
+            exitClinicV89();return;
+        }
+        ClinicInteriorV89.Storage found=clinicInteriorV89.nearest(
+            playerX,playerY,ClinicInteriorV89.USE_RADIUS);
+        if(found!=null){
+            host.runOnUiThread(()->host.lootClinicStorageV89(found));
+        }else{
+            gatherFeedback="SEARCH CLOSE TO A CABINET OR RETURN TO EXIT";
+            gatherFeedbackTime=1.5f;
+        }
+    }
+    int lootClinicStackV89(ClinicInteriorV89.Storage box,int kind){
+        if(!insideClinicV89||!playing||!clinicInteriorV89.contains(box)||
+           distance(playerX,playerY,box.x,box.y)>ClinicInteriorV89.USE_RADIUS+12f)
+            return 0;
+        int amount=clinicInteriorV89.take(box,kind);
+        if(amount>0){
+            addBanditLootV87(kind,amount); // same item inventories, no duplicate type.
+            gatherFeedback="SCAVENGED "+BanditLootV87.NAMES[kind]+" +"+amount;
+            gatherFeedbackTime=2f;saveProgress();invalidate();
+        }
+        return amount;
+    }
+    int lootClinicAllV89(ClinicInteriorV89.Storage box){
+        if(!insideClinicV89||!playing||!clinicInteriorV89.contains(box)||
+           distance(playerX,playerY,box.x,box.y)>ClinicInteriorV89.USE_RADIUS+12f)
+            return 0;
+        int[] taken=clinicInteriorV89.takeAll(box);
+        int total=0;
+        for(int i=0;i<taken.length;i++){
+            total+=taken[i];addBanditLootV87(i,taken[i]);
+        }
+        if(total>0){
+            gatherFeedback="SCAVENGED "+total+" SUPPLIES";
+            gatherFeedbackTime=2f;saveProgress();invalidate();
+        }
+        return total;
+    }
+    /** Indoor movement uses the approved character gait and the original sticks. */
+    void updateClinicV89(float dt){
+        gatherFeedbackTime=Math.max(0f,gatherFeedbackTime-dt);
+        shotClock=Math.max(0f,shotClock-dt);
+        recoil=Math.max(0f,recoil-dt*5f);
+        float vx=stickX,vy=stickY;
+        float oldX=playerX,oldY=playerY;
+        float len=(float)Math.hypot(vx,vy);
+        if(len>.06f){
+            vx/=Math.max(1f,len);vy/=Math.max(1f,len);
+            float run=runHeld&&stamina>0?1.52f:1f;
+            float speed=PlayerMovementV77.speed(gun==9?169f:236f,
+                walkSpeedMultiplier,run,crouchHeld);
+            float nx=playerX+vx*speed*dt,ny=playerY+vy*speed*dt;
+            if(!clinicInteriorV89.blocked(nx,playerY,19f))playerX=nx;
+            if(!clinicInteriorV89.blocked(playerX,ny,19f))playerY=ny;
+        }
+        moving=distance(playerX,playerY,oldX,oldY)>.001f;
+        playerAnimation.step(moving,dt,
+            PlayerMovementV77.gait(walkSpeedMultiplier,runHeld&&stamina>0)*
+            walkingAnimationMultiplierV79);
+        float rest=RadialAimV65.rest(gun,crosshairRestPercent);
+        boolean aim=rightPointer>=0&&aimDeflection>ClassicAimV71.DEADZONE;
+        aimCursorDistance=aim?ClassicAimV71.distance(rest,
+            Math.max(rest,340f),aimDeflection):rest;
+        cursorWorldX=playerX+aimX*aimCursorDistance;
+        cursorWorldY=playerY-42f+aimY*aimCursorDistance;
+        stamina=clamp(stamina+dt*((moving&&runHeld)?-13f:8f),0,100);
+        if(moving){
+            hunger=Math.max(0,hunger-dt*.012f);
+            thirst=Math.max(0,thirst-dt*.023f);
+        }
+        fatigue=clamp(fatigue+dt*(moving&&runHeld?.20f:-.08f),0,100);
+        knifeCooldown=Math.max(0,knifeCooldown-dt);
+        knifeDuration=Math.max(0,knifeDuration-dt);
+        if(firing){
+            firing=false;firePointer=-1;fireLeftPointer=-1;
+        }
+        cameraLookX=0;cameraLookY=0;
+    }
+    /** Exterior is substantially larger than V88. Entrance remains physically reachable. */
+    void drawFieldClinicExteriorV89(Canvas c,ExpeditionSitesV88.Site site){
+        float x=site.x,y=site.y;
+        rect(c,x-210,y-174,420,365,0xff3c4b43);
+        rect(c,x-204,y-167,408,342,0xff52584b);
+        // Pixelated roof and concrete foundation.
+        rect(c,x-194,y-159,388,292,0xff102122);
+        rect(c,x-184,y-151,368,277,0xff7f9591);
+        rect(c,x-174,y-145,348,267,0xffa4b2aa);
+        for(int i=0;i<6;i++){
+            rect(c,x-166+i*56,y-141,45,12,i%2==0?0xff829b99:0xff78918e);
+            rect(c,x-162+i*56,y+102,43,9,0xff4a6c6a);
+        }
+        // Distinct crossed ambulance insignia and emergency awning.
+        rect(c,x-21,y-106,43,71,0xffa1433d);
+        rect(c,x-42,y-84,85,26,0xffa1433d);
+        rect(c,x-10,y-97,20,55,0xffe8e3c9);
+        rect(c,x-31,y-75,62,9,0xffe8e3c9);
+        rect(c,x-84,y+119,168,14,0xff142826);
+        rect(c,x-78,y+125,156,10,0xff9e7961);
+        rect(c,x-52,y+134,104,17,0xff243533);
+        rect(c,x-25,y+137,50,8,0xff9ab1af);
+        rect(c,x-24,y+147,48,27,0xff1b3031);
+        rect(c,x-2,y+145,5,28,0xff8daca5);
+        // Empty landing strip guides USE interaction.
+        rect(c,x-63,y+171,126,13,0xff968e75);
+        rect(c,x-54,y+183,108,4,0xffb9ae89);
+        label(c,"FIELD CLINIC",x-92,y-155,17,0xffe3ebe1,true);
+        label(c,"USE • ENTER",x-48,y+205,13,0xffe1d4a3,true);
+        // Door furniture, vents, rust and water damage are distinct from V88.
+        rect(c,x-166,y-24,49,59,0xff425d59);
+        rect(c,x+117,y-24,49,59,0xff425d59);
+        for(int i=0;i<4;i++){
+            rect(c,x-159,y-17+i*12,34,5,0xffa1b7ae);
+            rect(c,x+124,y-17+i*12,34,5,0xffa1b7ae);
+        }
+        rect(c,x-172,y+42,83,34,0xff405e5d);
+        rect(c,x+90,y+43,82,31,0xff405e5d);
+        rect(c,x-164,y+49,69,7,0xff658d88);
+        rect(c,x+98,y+49,67,7,0xff658d88);
+    }
+    /** Furniture uses only reusable rectangle primitives, never generated bitmaps. */
+    void drawClinicFurnitureV89(Canvas c,float[] item){
+        int kind=(int)item[0];
+        float x=item[1],y=item[2],w=item[3],h=item[4];
+        int fill=kind==0?0xff697d6f:kind==1?0xff647781:
+            kind==2?0xff806b54:kind==3?0xff9f9e87:
+            kind==4?0xff587b7a:0xff697c61;
+        rect(c,x-3,y-3,w+6,h+6,0xff152a2b);
+        rect(c,x,y,w,h,fill);
+        if(kind==0){
+            rect(c,x+7,y+7,w-14,25,0xffd2d8bd);
+            rect(c,x+8,y+35,w-16,h-43,0xff8eada1);
+            rect(c,x+12,y+42,w-24,5,0xffe1e7d6);
+            rect(c,x+3,y+h-13,w-6,8,0xff425b50);
+        }else if(kind==1||kind==5){
+            for(int i=0;i<3;i++){
+                float top=y+6+i*(h-12)/3f;
+                rect(c,x+5,top,w-10,2,0xffb3b8a5);
+                rect(c,x+w*.55f,top+4,5,5,0xff203c3e);
+            }
+        }else if(kind==2){
+            rect(c,x+8,y+7,w-16,h-14,0xffb49b77);
+            rect(c,x+w*.35f,y+10,w*.32f,18,0xff2b494c);
+            rect(c,x+w*.4f,y+12,w*.22f,11,0xff85b6b1);
+        }else if(kind==3){
+            rect(c,x+8,y+8,w-16,h-16,0xffd2c5a2);
+            rect(c,x+14,y+15,w-28,9,0xff889e98);
+        }else{
+            rect(c,x+8,y+7,w-16,h-14,0xff2a5156);
+            rect(c,x+12,y+12,w-24,6,0xffa0c5b9);
+            rect(c,x+16,y+29,9,10,0xffe0bf79);
+        }
+    }
+    void drawClinicStorageV89(Canvas c,ClinicInteriorV89.Storage box){
+        float x=box.x,y=box.y;
+        boolean empty=box.empty();
+        rect(c,x-23,y-17,47,34,0xff152b2c);
+        rect(c,x-19,y-14,39,27,empty?0xff4b5d59:0xff867c64);
+        rect(c,x-14,y-10,29,10,empty?0xff55645b:0xffc1b18c);
+        rect(c,x+3,y+3,6,5,0xff243d3d);
+        if(!empty){
+            rect(c,x-22,y-20,44,5,0xffd2c18e);
+            if(distance(playerX,playerY,x,y)<148)
+                label(c,"USE  "+box.label,x-51,y-28,10,0xffe8ddad,true);
+        }
+    }
+    /** Indoor render path does not call terrain(), drawWorld(), NPCs or outdoor lights. */
+    void drawClinicInteriorV89(Canvas c){
+        c.save();c.translate(-camX,-camY);
+        rect(c,0,0,ClinicInteriorV89.WIDTH,ClinicInteriorV89.HEIGHT,0xff182f31);
+        rect(c,23,23,1554,1072,0xff747d70);
+        // Six departments have differentiated tile/palette, connected by hall.
+        int[] north={0xff70837e,0xff858a81,0xff6a8987};
+        int[] south={0xff7b8b78,0xff9a927d,0xff778579};
+        for(int i=0;i<3;i++){
+            int sx=23+i*526;int width=(i==2?502:506);
+            rect(c,sx,44,width,442,north[i]);
+            rect(c,sx,642,width,428,south[i]);
+        }
+        rect(c,23,508,1554,112,0xff93998a);
+        // Checker-style grouting with no dynamic bitmaps, loops <160 lines.
+        for(int x=44;x<1575;x+=72)
+            rect(c,x,43,2,1028,0x32404c46);
+        for(int y=45;y<1080;y+=72)
+            rect(c,24,y,1551,2,0x37455851);
+        for(float[] wall:ClinicInteriorV89.WALLS){
+            rect(c,wall[0]-2,wall[1]-2,wall[2]+4,wall[3]+4,0xff162e30);
+            rect(c,wall[0],wall[1],wall[2],wall[3],0xff425d59);
+            rect(c,wall[0]+2,wall[1]+2,Math.max(2,wall[2]-4),5,
+                0xff90a39b);
+        }
+        // Door portal frames face the central corridor.
+        for(float[] door:ClinicInteriorV89.DOOR_SIGNS){
+            rect(c,door[0]-47,door[1],94,9,0xff283e40);
+            rect(c,door[0]-44,door[1]+3,88,4,0xffddc7a2);
+        }
+        for(int i=0;i<ClinicInteriorV89.ROOM_LABELS.length;i++){
+            float x=ClinicInteriorV89.ROOM_LABELS[i][0];
+            float y=ClinicInteriorV89.ROOM_LABELS[i][1];
+            label(c,ClinicInteriorV89.ROOMS[i],x,y,13,0xff213b3b,true);
+        }
+        label(c,"MAIN CORRIDOR  •  FIELD CLINIC",562,559,14,0xff253e3a,true);
+        for(float[] obj:ClinicInteriorV89.FURNITURE){
+            if(!WorldPerfV55.nearView(obj[1],obj[2],camX,camY,
+                viewW,viewH,Math.max(obj[3],obj[4])+30))continue;
+            drawClinicFurnitureV89(c,obj);
+        }
+        for(ClinicInteriorV89.Storage storage:clinicInteriorV89.storages){
+            if(!WorldPerfV55.nearView(storage.x,storage.y,camX,camY,viewW,viewH,80))
+                continue;
+            drawClinicStorageV89(c,storage);
+        }
+        // Real departure point at bottom entrance; not a map-teleport hotspot.
+        rect(c,757,1070,86,30,0xff122a29);
+        rect(c,762,1074,76,21,0xff9d8c68);
+        rect(c,780,1074,39,18,0xff284448);
+        label(c,"EXIT",777,1064,16,0xffe9d8af,true);
+        if(distance(playerX,playerY,ClinicInteriorV89.EXIT_X,
+           ClinicInteriorV89.EXIT_Y)<125f)
+            label(c,"USE TO EXIT TO WORLD",691,1020,13,0xfff0e5bf,true);
+        // Preserve original canonical animated male/female sprite and weapon rigs.
+        float angle=Ballistics.angle(aimX,aimY,face);
+        character(c,playerX,playerY,gun,face,playerAnimation.frame(),
+            playerAnimation.isWalking()?Float.POSITIVE_INFINITY:
+            playerAnimation.breathOffset(),angle,recoil*2.7f,true,false,-1);
+        c.restore();
+    }
     void spawnWave(){
         enemies.clear();enemyCount=5+Math.min(17,wave*2);
         for(int i=0;i<enemyCount;i++){
