@@ -352,7 +352,7 @@ jobs:
           for token in ['LegacyControlsV58.NAMES','"selectedButton"',
                         '"editControls"','"uiEnabled"+control',
                         '"uiSize"+control','"uiAlpha"+control',
-                        '"uiX"+index','"uiY"+index','"showStatusBars"',
+                        '"uiX"+control','"uiY"+control','"showStatusBars"',
                         '"showCrosshair"','"lookAheadEnabled"',
                         '"lookAheadThreshold"','"lookAheadStrength"',
                         'leftRail.setOnTouchListener(railScroll)',
