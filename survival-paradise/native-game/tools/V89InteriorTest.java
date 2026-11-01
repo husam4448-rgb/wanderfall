@@ -8,19 +8,20 @@ public final class V89InteriorTest {
   ok(in.storages.length>=12,"not enough interior storage containers");
   ok(ClinicInteriorV89.WIDTH>=1500&&ClinicInteriorV89.HEIGHT>=1000,
       "building not full-scale");
-  ok(!in.blocked(800,1030,19),"entry is blocked");
-  ok(!in.blocked(800,568,19),"main corridor blocked");
-  ok(!in.blocked(280,300,18),"triage is inaccessible");
-  ok(!in.blocked(790,280,18),"operating theatre inaccessible");
-  ok(!in.blocked(1350,280,18),"laboratory inaccessible");
-  ok(!in.blocked(300,830,18),"pharmacy inaccessible");
-  ok(!in.blocked(1300,970,18),"recovery ward inaccessible");
-  ok(in.blocked(530,215,10),"wall collision absent");
-  ok(in.blocked(12,200,10),"interior perimeter failed");
+  float s=ClinicInteriorV89.EXPANSION_V90;
+  ok(!in.blocked(800*s,1030*s,19),"entry is blocked");
+  ok(!in.blocked(800*s,568*s,19),"main corridor blocked");
+  ok(!in.blocked(280*s,300*s,18),"triage is inaccessible");
+  ok(!in.blocked(790*s,280*s,18),"operating theatre inaccessible");
+  ok(!in.blocked(1350*s,280*s,18),"laboratory inaccessible");
+  ok(!in.blocked(300*s,830*s,18),"pharmacy inaccessible");
+  ok(!in.blocked(1300*s,970*s,18),"recovery ward inaccessible");
+  ok(in.blocked(530*s,215*s,10),"wall collision absent");
+  ok(in.blocked(12*s,200*s,10),"interior perimeter failed");
   // Flood fill verifies the door gaps actually connect all six departments.
   final int grid=20,w=ClinicInteriorV89.WIDTH/grid,h=ClinicInteriorV89.HEIGHT/grid;
   boolean[][] seen=new boolean[w][h];ArrayDeque<int[]> q=new ArrayDeque<>();
-  int startX=800/grid,startY=1030/grid;
+  int startX=(int)(800*s/grid),startY=(int)(1030*s/grid);
   seen[startX][startY]=true;q.add(new int[]{startX,startY});
   while(!q.isEmpty()){
    int[] a=q.removeFirst();
