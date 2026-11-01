@@ -653,6 +653,137 @@ public final class MainActivity extends Activity {
         dialog.setCanceledOnTouchOutside(true);
         resizeSettingsWindow(dialog,94,88);
     }
+    void lootClinicStorageV89(ClinicInteriorV89.Storage box){
+        if(game==null||box==null||!game.insideClinicV89||
+            !game.clinicInteriorV89.contains(box)||!game.isPlaying())return;
+        if(game.clinicInteriorV89.nearest(game.playerX,game.playerY,
+            ClinicInteriorV89.USE_RADIUS)!=box)return;
+        game.menuPause(true);
+        LinearLayout shell=column();
+        shell.setBackgroundColor(0xff212825);
+        section(shell,"FIELD CLINIC  •  "+box.label);
+        shell.addView(text("Tap an item then LOOT, or drag its icon across to PLAYER INVENTORY. LOOT ALL collects everything.",12,false));
+        LinearLayout sides=new LinearLayout(this);
+        sides.setOrientation(LinearLayout.HORIZONTAL);
+        shell.addView(sides,new LinearLayout.LayoutParams(-1,0,1f));
+        LinearLayout source=column(),destination=column();
+        source.setBackgroundColor(0xff34302a);
+        destination.setBackgroundColor(0xff233b34);
+        sides.addView(source,new LinearLayout.LayoutParams(0,-1,1f));
+        sides.addView(destination,new LinearLayout.LayoutParams(0,-1,1f));
+        section(source,"CONTAINER SUPPLIES");
+        section(destination,"PLAYER INVENTORY");
+        ScrollView srcScroll=new ScrollView(this);
+        ScrollView dstScroll=new ScrollView(this);
+        LinearLayout srcItems=column(),dstItems=column();
+        srcScroll.addView(srcItems);dstScroll.addView(dstItems);
+        source.addView(srcScroll,new LinearLayout.LayoutParams(-1,0,1f));
+        destination.addView(dstScroll,new LinearLayout.LayoutParams(-1,0,1f));
+        final int[] selected={-1};
+        final Button[] lootButtons=new Button[BanditLootV87.ITEMS];
+        final Button[] playerButtons=new Button[BanditLootV87.ITEMS];
+        final int height=Math.round(66f*getResources().getDisplayMetrics().density);
+        final LinearLayout[] srcRowsV88=new LinearLayout[2];
+        final LinearLayout[] dstRowsV88=new LinearLayout[2];
+        final AlertDialog[] active={null};
+        final Runnable[] refresh={null};
+        final Runnable[] claimSelected={null};
+        claimSelected[0]=()->{
+            int kind=selected[0];
+            if(kind<0)return;
+            if(game.lootClinicStackV89(box,kind)>0){
+                selected[0]=-1;
+                refresh[0].run();
+                if(box.empty()&&active[0]!=null)
+                    active[0].dismiss();
+            }
+        };
+        for(int i=0;i<BanditLootV87.ITEMS;i++){
+            final int kind=i;
+            int rowIndex=i/4;
+            if(srcRowsV88[rowIndex]==null){
+                LinearLayout a=column();a.setOrientation(LinearLayout.HORIZONTAL);
+                LinearLayout b=column();b.setOrientation(LinearLayout.HORIZONTAL);
+                srcRowsV88[rowIndex]=a;dstRowsV88[rowIndex]=b;
+                srcItems.addView(a);dstItems.addView(b);
+            }
+            SquareItemSlotV88 take=v88SquareSlot(BanditLootV87.NAMES[i],true);
+            take.setCompoundDrawables(null,game.itemIconsV84.drawable(
+                getResources(),kind,32),null,null);
+            take.setCompoundDrawablePadding(2);
+            take.setGravity(Gravity.CENTER);
+            take.setTextSize(11);
+            LinearLayout.LayoutParams srcParams=new LinearLayout.LayoutParams(0,-2,1);
+            srcParams.setMargins(2,2,2,2);srcRowsV88[rowIndex].addView(take,srcParams);
+            lootButtons[i]=take;
+            // A source button retains the touch stream even if dragged outside.
+            take.setOnTouchListener((v,e)->{
+                if(e.getActionMasked()==android.view.MotionEvent.ACTION_DOWN){
+                    selected[0]=kind;
+                    refresh[0].run();
+                    return true;
+                }
+                if(e.getActionMasked()==android.view.MotionEvent.ACTION_UP){
+                    android.graphics.Rect rect=new android.graphics.Rect();
+                    if(destination.getGlobalVisibleRect(rect)&&
+                       rect.contains((int)e.getRawX(),(int)e.getRawY()))
+                        claimSelected[0].run();
+                    return true;
+                }
+                return true;
+            });
+            SquareItemSlotV88 own=v88SquareSlot(BanditLootV87.NAMES[i],false);
+            own.setCompoundDrawables(null,game.itemIconsV84.drawable(
+                getResources(),kind,32),null,null);
+            own.setCompoundDrawablePadding(2);
+            own.setGravity(Gravity.CENTER);
+            own.setTextSize(11);
+            LinearLayout.LayoutParams ownParams=new LinearLayout.LayoutParams(0,-2,1);
+            ownParams.setMargins(2,2,2,2);dstRowsV88[rowIndex].addView(own,ownParams);
+            playerButtons[i]=own;
+        }
+        refresh[0]=()->{
+            int[] playerCounts={game.scrap,game.medkits,game.ammoPacks,
+                game.foodCount,game.waterCount,game.wood,game.stone,game.fiber};
+            for(int i=0;i<BanditLootV87.ITEMS;i++){
+                int count=box.amount[i];
+                Button sourceButton=lootButtons[i];
+                sourceButton.setVisibility(count>0?View.VISIBLE:View.GONE);
+                sourceButton.setText(BanditLootV87.NAMES[i].toUpperCase()+
+                    " ×"+count+(selected[0]==i?"  ✓":""));
+                sourceButton.setTextColor(selected[0]==i?
+                    0xfff8c873:0xffe6d7b7);
+                playerButtons[i].setText(BanditLootV87.NAMES[i].toUpperCase()+
+                    " ×"+playerCounts[i]);
+            }
+        };
+        refresh[0].run();
+        LinearLayout footer=new LinearLayout(this);
+        footer.setOrientation(LinearLayout.HORIZONTAL);
+        shell.addView(footer);
+        Button loot=v62Slot("LOOT",true),all=v62Slot("LOOT ALL",true),
+            close=v62Slot("CLOSE",true);
+        footer.addView(loot,new LinearLayout.LayoutParams(0,-2,1));
+        footer.addView(all,new LinearLayout.LayoutParams(0,-2,1));
+        footer.addView(close,new LinearLayout.LayoutParams(0,-2,1));
+        loot.setOnClickListener(v->claimSelected[0].run());
+        all.setOnClickListener(v->{
+            if(game.lootClinicAllV89(box)>0){
+                refresh[0].run();
+                if(active[0]!=null)active[0].dismiss();
+            }
+        });
+        AlertDialog dialog=new AlertDialog.Builder(this).setView(shell).create();
+        active[0]=dialog;
+        close.setOnClickListener(v->dialog.dismiss());
+        dialog.setOnDismissListener(d->{
+            game.saveProgress();game.menuPause(false);restoreFullscreenAfterShade();
+        });
+        dialog.show();
+        dialog.setCancelable(true);
+        dialog.setCanceledOnTouchOutside(true);
+        resizeSettingsWindow(dialog,94,88);
+    }
     void inventory(){
         if(game==null||!game.isPlaying())return;
         game.menuPause(true);
