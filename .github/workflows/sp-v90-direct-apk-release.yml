@@ -1,0 +1,54 @@
+name: Survival Paradise V90 — Publish Direct APK
+on:
+  push:
+    branches: [sp-native-v90-expanded-clinic-vision-npcs-20261101]
+    paths: ['.github/workflows/sp-v90-direct-apk-release.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish-v90:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Retrieve exact CI-validated V90 native APK and source archive
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/spv90
+          gh run download 41299703117 -R "$GITHUB_REPOSITORY" \
+            -n SP_V90_ExpandedClinic -D /tmp/spv90
+          APK=/tmp/spv90/SurvivalParadise_V90_ExpandedClinic.apk
+          SOURCE=/tmp/spv90/SurvivalParadise_V90_Source.zip
+          test -s "$APK" && test -s "$SOURCE"
+          unzip -t "$APK" >/dev/null
+          unzip -t "$SOURCE" >/dev/null
+          unzip -l "$APK" | grep -q classes.dex
+          for a in body.png approved_v44_walk_palette.png npc_idle_v56.png approved_v29_axe.png gear.png world_props_v74.png; do
+            unzip -l "$APK" | grep -q "assets/$a"
+          done
+          sha256sum "$APK" > /tmp/spv90/V90_APK_SHA256.txt
+          cat /tmp/spv90/V90_APK_SHA256.txt
+      - name: Publish installable APK plus source and signing instructions
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG=survival-paradise-v90-expanded-clinic-vision-npcs
+          APK=/tmp/spv90/SurvivalParadise_V90_ExpandedClinic.apk
+          SOURCE=/tmp/spv90/SurvivalParadise_V90_Source.zip
+          HASH=/tmp/spv90/V90_APK_SHA256.txt
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" "$SOURCE" "$HASH" --clobber -R "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" "$APK" "$SOURCE" "$HASH" \
+              -R "$GITHUB_REPOSITORY" \
+              --target 11a1247f5c940a88355b74974f7f36a5867403dc \
+              --title "Survival Paradise V90 — Expanded Clinic, Vision Cone and Indoor NPCs" \
+              --notes "V90 CI-verified Android APK from commit 11a1247f5c940a88355b74974f7f36a5867403dc; all 49 automated checks passed. The Field Clinic interior expands to 2720 x 1904 world pixels, 1.7x larger rooms, corridors and furnishings. A camera min-zoom tied to device aspect ratio ensures the building fills the entire phone screen even with high player zoom-out; world rendering resumes unchanged outside. Indoor cone of vision follows the aiming stick, darkens spaces behind the player and clips vision against walls, doors and furniture. Clinic actors include persistent zombies, feral animals, raiders, a friendly medic and a survivor; hostiles react and attack, taking weapon/knife damage. Enabled accompanying NPCs enter the building with the player, pathfind through interior room doors, assist combat and return outdoors at exit; indoor save restore migrates old V89 interior coordinates and remembers actor death and clinic loot. Approved original character/weapon art, V76-V89 controls, HUD and 14 storage containers preserved. No outdoor simulation runs while indoors. Native compilation and JVM regressions passed; real-phone vision/FPS acceptance pending. IMPORTANT APK SIGNING: Prior V89/V88 versions were ephemeral debug-signed. In-place upgrades to a different certificate cannot be achieved technically. V90 does NOT claim uninstall-free compatibility with V89. Export the save file from V89 before uninstalling, then import it after installing V90. A secure setup-permanent-android-signing.ps1 is included in source (tools/) to configure a private permanent release keystore in GitHub repository secrets for reliable future in-place upgrades. Keep the keystore and password safe; never commit a private key publicly." \
+              --prerelease
+          fi
+          gh release view "$TAG" -R "$GITHUB_REPOSITORY" \
+            --json url,assets --jq '{url:.url,assets:[.assets[]|{name:.name,url:.url}]}'
