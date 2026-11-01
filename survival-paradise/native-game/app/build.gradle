@@ -6,8 +6,8 @@ android {
   applicationId 'com.survivalparadise.nativegame'
   minSdk 24
   targetSdk 34
-  versionCode 86
-  versionName '0.85-save-transfer-ground-pickups'
+  versionCode 87
+  versionName '0.86-world-pickups-aim-placing-ui'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
