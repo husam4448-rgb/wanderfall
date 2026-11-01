@@ -790,6 +790,27 @@ public final class MainActivity extends Activity {
         dialog.setCanceledOnTouchOutside(true);
         resizeSettingsWindow(dialog,94,88);
     }
+    void npcInteractionV92(int role){
+        if(game==null||!game.isPlaying())return;
+        final String[] roles={"TRADER","MEDIC","GUARD","MECHANIC","SURVIVOR"};
+        int id=Math.max(0,Math.min(role,4));
+        String[] offers={"Trade 2 scrap for 1 medkit",
+            "Trade 1 scrap for 2 food",
+            "Trade 1 scrap for 2 water",
+            "Recruit survivor (4 scrap, reputation 30+)",
+            "Leave conversation"};
+        String message=roles[id]+" • Reputation "+game.relationshipsV92.reputation+
+            "\n\nWe look after people who help the settlement.";
+        new AlertDialog.Builder(this).setTitle(roles[id]+" • TALK / TRADE")
+            .setMessage(message)
+            .setItems(offers,(dialog,selected)->{
+                if(selected==4)return;
+                boolean ok=game.tradeNPCV92(selected);
+                Toast.makeText(this,ok?selected==3?"New companion joined":
+                    "Traded successfully":"Not enough supplies, trust or room",
+                    Toast.LENGTH_SHORT).show();
+            }).show();
+    }
     void inventory(){
         if(game==null||!game.isPlaying())return;
         game.menuPause(true);
@@ -831,7 +852,10 @@ public final class MainActivity extends Activity {
             for(int ec=0;ec<2;ec++){
                 int ix=er*2+ec;
                 String label=equipment[ix];
-                String value=ix==2?"SHIRT":ix==3?"PANTS":ix==4?"BOOTS":
+                int clothesSlot=ix==0?0:ix==2?1:ix==3?2:ix==4?3:-1;
+                String value=clothesSlot>=0?
+                    (game.wardrobeV92.equipped[clothesSlot]<0?"EMPTY":
+                    WardrobeV92.NAMES[clothesSlot][game.wardrobeV92.equipped[clothesSlot]]):
                     ix==6?LOADOUTS[game.gun]:
                     ix==7?(game.dualTorch&&game.lampOn?"FLASHLIGHT":"EMPTY"):
                     ix==5?(game.fieldFindsV91.equipped<0?"EMPTY":
@@ -877,8 +901,26 @@ public final class MainActivity extends Activity {
                                     "EMPTY":FieldFindsV91.BAGS[game.fieldFindsV91.equipped]));
                                 game.saveProgress();avatar.invalidate();
                             }).show();
+                    }else if(clothesSlot>=0){
+                        String[] choices=new String[4];
+                        choices[0]="REMOVE "+WardrobeV92.SLOTS[clothesSlot];
+                        for(int w=0;w<3;w++)
+                            choices[w+1]=WardrobeV92.NAMES[clothesSlot][w]+"  ×"+
+                                game.wardrobeV92.found[clothesSlot][w];
+                        new AlertDialog.Builder(this)
+                            .setTitle("EQUIP "+WardrobeV92.SLOTS[clothesSlot])
+                            .setItems(choices,(d,choice)->{
+                                if(!game.wardrobeV92.equip(clothesSlot,choice-1)){
+                                    Toast.makeText(this,"Find this clothing in building cases",
+                                        Toast.LENGTH_SHORT).show();return;
+                                }
+                                int w=game.wardrobeV92.equipped[clothesSlot];
+                                equipped.setText(label+"\n"+(w<0?"EMPTY":
+                                    WardrobeV92.NAMES[clothesSlot][w]));
+                                game.saveProgress();avatar.invalidate();
+                            }).show();
                     }else Toast.makeText(this,
-                        "Approved "+label+" overlay assets not installed yet",
+                        "Equipment attachment unavailable in this slot",
                         Toast.LENGTH_SHORT).show();
                 });
             }
@@ -888,120 +930,135 @@ public final class MainActivity extends Activity {
             " • ENC "+Math.round(game.encumbranceV91())+"% • Packs appear on the survivor.",12,false));
         section(right,"BACKPACK   •   24 SQUARE SLOTS");
         right.addView(text("Select an item to USE it or assign it to the quick-access bar.",12,false));
-        final int[] itemKinds={0,1,2,6,7}; // old hotbar unchanged; V83 craft items
         final Button[] backpackStackButtonsV83=new Button[14];
         final AlertDialog[] bagDialogV84=new AlertDialog[1];
+        final SquareItemSlotV88[] tilesV92=new SquareItemSlotV88[24];
+        final Runnable[] redrawV92={null};
         final Runnable refreshCraftCountsV83=()->{
-            int[] amounts={game.scrap,game.medkits,game.ammoPacks,game.foodCount,
-                game.waterCount,game.wood,game.stone,game.fiber,
-                game.craftV83.stock[0],game.craftV83.stock[1],
-                game.craftV83.stock[2],game.craftV83.stock[3],
-                game.bandagesV88,game.energyV88};
-            String[] titles={"SCRAP","MEDKIT","AMMO","FOOD","WATER","WOOD","STONE","FIBER",
-                "BARRICADE","LIGHT POST","WATER COLLECTOR","FIELD SHELTER",
-                "BANDAGE","ENERGY RATION"};
-            for(int k=0;k<14;k++)if(backpackStackButtonsV83[k]!=null)
-                backpackStackButtonsV83[k].setText(titles[k]+"\n×"+amounts[k]);
+            if(redrawV92[0]!=null)redrawV92[0].run();
         };
+        if(!game.bagOrderInitializedV92)game.initInventoryOrderV92();
+        right.addView(text("Hold and drag an occupied item to another slot. Empty cells stay visible.",11,false));
         for(int ir=0;ir<6;ir++){
-            LinearLayout slots=new LinearLayout(this);slots.setOrientation(LinearLayout.HORIZONTAL);
+            LinearLayout slots=new LinearLayout(this);
+            slots.setOrientation(LinearLayout.HORIZONTAL);
             for(int ic=0;ic<4;ic++){
-                int idx=ir*4+ic;
-                int kind=idx==0?0:idx==1?1:idx==2?2:idx==3?6:idx==4?7:0;
-                String name=idx==0?"SCRAP":idx==1?"MEDKIT":idx==2?"AMMO":
-                    idx==3?"FOOD":idx==4?"WATER":idx==5?"WOOD":
-                    idx==6?"STONE":idx==7?"FIBER":idx==8?"BARRICADE":idx==9?"LIGHT POST":
-                    idx==10?"WATER COLLECTOR":idx==11?"FIELD SHELTER":
-                    idx==12?"BANDAGE":idx==13?"ENERGY RATION":
-                    FieldFindsV91.NAMES[idx-14];
-                int qty=idx==0?game.scrap:idx==1?game.medkits:
-                    idx==2?game.ammoPacks:idx==3?game.foodCount:
-                    idx==4?game.waterCount:idx==5?game.wood:
-                    idx==6?game.stone:idx==7?game.fiber:idx==8?game.craftV83.stock[0]:
-                    idx==9?game.craftV83.stock[1]:idx==10?game.craftV83.stock[2]:
-                    idx==11?game.craftV83.stock[3]:
-                    idx==12?game.bandagesV88:idx==13?game.energyV88:
-                    game.fieldFindsV91.items[idx-14];
-                SquareItemSlotV88 slot=v88SquareSlot(name.isEmpty()?"":name+"\n×"+qty,qty>0);
-                if(idx<14)backpackStackButtonsV83[idx]=slot;
-                if(idx<24){
-                    android.graphics.drawable.Drawable icon=idx>=14?
-                        FieldItemIconsV91.drawable(getResources(),idx-14,38):
-                        game.itemIconsV84.drawable(
-                            getResources(),idx==10?ItemIconsV84.WATER_COLLECTOR:
-                                idx==11?ItemIconsV84.FIELD_SHELTER:
-                                idx==12?ItemIconsV84.BANDAGE:
-                                idx==13?ItemIconsV84.ENERGY_RATION:idx,38);
-                    slot.setCompoundDrawables(null,icon,null,null);
-                    slot.setCompoundDrawablePadding(2);
-                    slot.setGravity(Gravity.CENTER);
-                    slot.setTextSize(12f);
-                    slot.setPadding(2,3,2,2);
-                }
-                // Measured as a square: width assigned by six equal inventory columns.
+                final int position=ir*4+ic;
+                SquareItemSlotV88 slot=v88SquareSlot("",false);
+                tilesV92[position]=slot;
+                slot.setGravity(Gravity.CENTER);
+                slot.setTextSize(10.5f);
+                slot.setPadding(3,3,3,3);
                 LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(0,-2,1);
-                params.setMargins(3,3,3,3);slots.addView(slot,params);
+                params.setMargins(4,4,4,4);slots.addView(slot,params);
+                slot.setOnLongClickListener(v->{
+                    int type=game.bagOrderV92[position];
+                    if(game.inventoryQuantityV92(type)<=0)return false;
+                    android.content.ClipData data=android.content.ClipData.newPlainText(
+                        "sp-inventory-slot",Integer.toString(position));
+                    return v.startDragAndDrop(data,new View.DragShadowBuilder(v),null,0);
+                });
+                slot.setOnDragListener((v,event)->{
+                    if(event.getAction()==android.view.DragEvent.ACTION_DRAG_STARTED)
+                        return event.getClipDescription()!=null&&
+                            event.getClipDescription().hasMimeType(
+                                android.content.ClipDescription.MIMETYPE_TEXT_PLAIN);
+                    if(event.getAction()==android.view.DragEvent.ACTION_DROP){
+                        try{
+                            int source=Integer.parseInt(event.getClipData()
+                                .getItemAt(0).getText().toString());
+                            if(game.moveBagSlotV92(source,position)){
+                                redrawV92[0].run();
+                                return true;
+                            }
+                        }catch(Exception ignored){}
+                    }
+                    return true;
+                });
                 slot.setOnClickListener(v->{
+                    int idx=game.bagOrderV92[position];
+                    int qty=game.inventoryQuantityV92(idx);
+                    if(qty<=0)return;
+                    String name=GameView.INVENTORY_NAMES_V92[idx];
                     if(idx>=14){
-                        Toast.makeText(this,name+" ×"+game.fieldFindsV91.items[idx-14]+
-                            " • scavenged material",Toast.LENGTH_SHORT).show();
-                        return;
+                        Toast.makeText(this,name+" ×"+qty+" • scavenged material",
+                            Toast.LENGTH_SHORT).show();return;
                     }
                     if(idx>=12){
                         final int utility=idx==12?13:14;
-                        String[] commands={"USE","ASSIGN QUICK SLOT 1","ASSIGN QUICK SLOT 2",
+                        String[] options={"USE","ASSIGN QUICK SLOT 1","ASSIGN QUICK SLOT 2",
                             "ASSIGN QUICK SLOT 3","ASSIGN QUICK SLOT 4",
                             "ASSIGN QUICK SLOT 5","ASSIGN QUICK SLOT 6"};
-                        new AlertDialog.Builder(this).setTitle(name+" ×"+
-                            (idx==12?game.bandagesV88:game.energyV88))
-                            .setItems(commands,(d,choice)->{
+                        new AlertDialog.Builder(this).setTitle(name+" ×"+qty)
+                            .setItems(options,(d,choice)->{
                                 if(choice==0){
-                                    boolean used=game.useBackpackV88(utility);
-                                    if(!used)Toast.makeText(this,"Item not needed or unavailable",
-                                        Toast.LENGTH_SHORT).show();
+                                    if(!game.useBackpackV88(utility))
+                                        Toast.makeText(this,"Cannot use this item now",
+                                            Toast.LENGTH_SHORT).show();
                                     refreshCraftCountsV83.run();
                                 }else game.setHotbarItem(choice-1,utility);
-                            }).show();
-                        return;
+                            }).show();return;
                     }
                     if(idx>=8){
-                        if(game.craftV83.stock[idx-8]<=0){Toast.makeText(this,"Craft it first",Toast.LENGTH_SHORT).show();return;}
-                        String[] place={"PLACE IN WORLD","ASSIGN QUICK SLOT 1",
+                        String[] options={"PLACE IN WORLD","ASSIGN QUICK SLOT 1",
                             "ASSIGN QUICK SLOT 2","ASSIGN QUICK SLOT 3",
-                            "ASSIGN QUICK SLOT 4","ASSIGN QUICK SLOT 5","ASSIGN QUICK SLOT 6"};
+                            "ASSIGN QUICK SLOT 4","ASSIGN QUICK SLOT 5",
+                            "ASSIGN QUICK SLOT 6"};
                         new AlertDialog.Builder(this).setTitle(name+" ×"+qty)
-                            .setItems(place,(d,choice)->{
+                            .setItems(options,(d,choice)->{
                                 if(choice==0){
-                                    if(game.selectPlaceItemV84(idx-8)&&bagDialogV84[0]!=null)
-                                        bagDialogV84[0].dismiss();
+                                    if(game.selectPlaceItemV84(idx-8)&&
+                                        bagDialogV84[0]!=null)bagDialogV84[0].dismiss();
                                 }else game.setHotbarItem(choice-1,idx+1);
-                            }).show();
-                        return;
+                            }).show();return;
                     }
-                    if(idx>=5){
-                        Toast.makeText(this,name+" is a gathering/crafting material",
+                    if(idx==0||idx>=5){
+                        Toast.makeText(this,name+" is a crafting resource",
                             Toast.LENGTH_SHORT).show();return;
                     }
-                    String[] choices={"USE","ASSIGN HOTBAR 1","ASSIGN HOTBAR 2",
-                        "ASSIGN HOTBAR 3","ASSIGN HOTBAR 4","ASSIGN HOTBAR 5","ASSIGN HOTBAR 6"};
+                    int useKind=idx==3?6:idx==4?7:idx;
+                    String[] options={"USE","ASSIGN HOTBAR 1","ASSIGN HOTBAR 2",
+                        "ASSIGN HOTBAR 3","ASSIGN HOTBAR 4",
+                        "ASSIGN HOTBAR 5","ASSIGN HOTBAR 6"};
                     new AlertDialog.Builder(this).setTitle(name+" • "+qty)
-                      .setItems(choices,(d,choice)->{
-                        if(choice==0){
-                            if(kind==0)Toast.makeText(this,
-                                "Scrap is a crafting resource",Toast.LENGTH_SHORT).show();
-                            else{
-                                boolean used=game.useBackpackV88(kind);
-                                if(!used)Toast.makeText(this,"Item not needed or unavailable",
-                                    Toast.LENGTH_SHORT).show();
+                        .setItems(options,(d,choice)->{
+                            if(choice==0){
+                                if(!game.useBackpackV88(useKind))
+                                    Toast.makeText(this,"Cannot use this item now",
+                                        Toast.LENGTH_SHORT).show();
                                 refreshCraftCountsV83.run();
-                            }
-                        }else game.setHotbarItem(choice-1,kind);
-                        avatar.invalidate();
-                      }).show();
+                            }else game.setHotbarItem(choice-1,useKind);
+                            avatar.invalidate();
+                        }).show();
                 });
             }
             right.addView(slots);
         }
+        redrawV92[0]=()->{
+            for(int position=0;position<tilesV92.length;position++){
+                SquareItemSlotV88 tile=tilesV92[position];
+                int kind=game.bagOrderV92[position],qty=game.inventoryQuantityV92(kind);
+                if(qty<=0){
+                    tile.setText("");
+                    tile.setCompoundDrawables(null,null,null,null);
+                    tile.setContentDescription("Empty inventory slot");
+                }else{
+                    String name=GameView.INVENTORY_NAMES_V92[kind];
+                    tile.setText(name+"\n×"+qty);
+                    android.graphics.drawable.Drawable itemIcon=kind>=14?
+                        FieldItemIconsV91.drawable(getResources(),kind-14,25):
+                        game.itemIconsV84.drawable(getResources(),
+                            kind==10?ItemIconsV84.WATER_COLLECTOR:
+                            kind==11?ItemIconsV84.FIELD_SHELTER:
+                            kind==12?ItemIconsV84.BANDAGE:
+                            kind==13?ItemIconsV84.ENERGY_RATION:kind,25);
+                    tile.setCompoundDrawables(null,itemIcon,null,null);
+                    tile.setCompoundDrawablePadding(1);
+                    tile.setContentDescription(name+" "+qty+" items; hold to drag");
+                }
+            }
+        };
+        redrawV92[0].run();
         section(right,"CRAFT & PLACE IN WORLD");
         right.addView(text("CRAFT → BAG. Select a structure, point using AIM, then press USE to place. Press BAG to cancel.",11,false));
         LinearLayout recipesV83=new LinearLayout(this);
@@ -1083,6 +1140,27 @@ public final class MainActivity extends Activity {
                 LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(0,
                     Math.round(74*getResources().getDisplayMetrics().density),1);
                 p.setMargins(2,2,2,2);quickRow.addView(hot,p);
+                hot.setOnDragListener((v,event)->{
+                    if(event.getAction()==android.view.DragEvent.ACTION_DRAG_STARTED)
+                        return event.getClipDescription()!=null&&
+                            event.getClipDescription().hasMimeType(
+                                android.content.ClipDescription.MIMETYPE_TEXT_PLAIN);
+                    if(event.getAction()==android.view.DragEvent.ACTION_DROP){
+                        try{
+                            int from=Integer.parseInt(event.getClipData()
+                                .getItemAt(0).getText().toString());
+                            int type=game.bagOrderV92[from];
+                            int item=type==3?6:type==4?7:
+                                type>=8&&type<=13?type+1:type;
+                            if(game.inventoryQuantityV92(type)>0&&type<=13&&
+                                type!=0&&type!=5&&type!=6&&type!=7){
+                                game.setHotbarItem(slotIndex,item);
+                                refresh[0].run();return true;
+                            }
+                        }catch(Exception ignored){}
+                    }
+                    return true;
+                });
                 hot.setOnClickListener(v->{
                     new AlertDialog.Builder(this).setTitle("ASSIGN QUICK SLOT "+(slotIndex+1))
                       .setItems(GameView.HOTBAR_TYPES,(d,which)->{
@@ -1092,7 +1170,7 @@ public final class MainActivity extends Activity {
             }
         };
         refresh[0].run();
-        root.addView(text("Transmog / cosmetic skins: future equipment layer. Current preview changes with weapons and flashlight.",12,false));
+        root.addView(text("Wearable hats, jackets, trousers, boots and backpacks are found in searchable cases. Equipment overlays retain the original approved survivor pixels.",12,false));
         shell.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
         LinearLayout tools=new LinearLayout(this);tools.setOrientation(LinearLayout.HORIZONTAL);
         Button smaller=v62Slot("WINDOW −",true),larger=v62Slot("WINDOW +",true);
