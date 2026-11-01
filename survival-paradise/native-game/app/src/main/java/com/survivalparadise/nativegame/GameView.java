@@ -32,6 +32,7 @@ public final class GameView extends View {
         android.graphics.Typeface.create("monospace",0);
     final Paint pixel=new Paint(Paint.ANTI_ALIAS_FLAG==0?0:0);
     Bitmap body,approvedWalkColors,stableBody,npcRoleAtlas,npcIdleAtlas,npcWalkV56,npcIdleV56,gear,approvedAxe;
+    Bitmap pickaxeV81;
     Bitmap crosshairReticle;
     Bitmap biomeProps;
     final Paint reticlePaint=new Paint(Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG);
@@ -73,6 +74,8 @@ public final class GameView extends View {
        {2455,1170,LightingV47.NEON_BLUE},{857,1710,LightingV47.NEON_PINK}};
     final ArrayList<float[]> builtCampfires=new ArrayList<>();
     final ResourceWorldV80 harvestWorld=new ResourceWorldV80();
+    final HarvestActionV81 harvestV81=new HarvestActionV81();
+    float harvestImpactTimeV81=0f;
     float playerX=1000,playerY=1060,health=100,stamina=100,shotClock=0,reloadClock=0,recoil=0;
     float aimX=1,aimY=0,stickX=0,stickY=0;
     int face=1,gun=0,ammo=12,kills=0,wave=1,scrap=0,medkits=0,ammoPacks=0,enemyCount=0;
@@ -238,6 +241,7 @@ public final class GameView extends View {
         // Build lossless alpha masks once, not per-bullet on the render thread.
         if(body!=null)bodyMask=packAlpha(body);
         if(approvedWalkColors!=null)walkMask=packAlpha(approvedWalkColors);
+        pickaxeV81=makePixelPickaxeV81();
         initCovers();reloadSettings();hasSave=host.prefs.getBoolean("hasSave",false);
     }
     void initCovers(){
@@ -359,7 +363,8 @@ public final class GameView extends View {
         playerAnimation.reset();moving=false;stickX=0;stickY=0;shotClock=0;
         gun=Math.max(0,Math.min(11,host.setting("gun",0)));ammo=MAG[gun];
         kills=0;wave=1;scrap=0;medkits=1;ammoPacks=2;
-        wood=0;stone=0;fiber=0;harvestWorld.clear();gatherFeedback="";gatherFeedbackTime=0;
+        wood=0;stone=0;fiber=0;harvestWorld.clear();harvestV81.cancel();
+        harvestImpactTimeV81=0;gatherFeedback="";gatherFeedbackTime=0;
         worldTimer=0;autSaveClock=0;
         clock.setClock(night?21*60f:12*60f,1);
         face=1;aimX=1;aimY=0;refreshDaylight();
@@ -394,6 +399,7 @@ public final class GameView extends View {
         scrap=host.setting("scrap",0);medkits=host.setting("medkits",1);ammoPacks=host.setting("ammoPacks",2);
         wood=host.setting("woodV80",0);stone=host.setting("stoneV80",0);fiber=host.setting("fiberV80",0);
         harvestWorld.decode(host.prefs.getString("depleted_resources_v80",""));
+        harvestV81.cancel();harvestImpactTimeV81=0f;
         gatherFeedback="";gatherFeedbackTime=0;
         gun=Math.max(0,Math.min(11,host.setting("gun",0)));
         ammo=Math.max(0,Math.min(MAG[gun],host.setting("ammo",MAG[gun])));
@@ -492,7 +498,7 @@ public final class GameView extends View {
     void stopWalking(){stickX=0;stickY=0;moving=false;playerAnimation.reset();}
     boolean debugTeleport(float dx,float dy){
         if(!playing||gameOver)return false;
-        releaseControls();playerX+=dx;playerY+=dy;
+        harvestV81.cancel();releaseControls();playerX+=dx;playerY+=dy;
         shots.clear();flashes.clear();sparks.clear();
         saveProgress();invalidate();return true;
     }
@@ -519,6 +525,7 @@ public final class GameView extends View {
         cursorMoveX=0;cursorMoveY=0;aimStickX=0;aimStickY=0;
         snapAimToWeaponRest();}
     void switchWeapon(){
+        if(harvestV81.active)return;
         gun=(gun+1)%12;ammo=MAG[gun];reloadClock=0;
         snapAimToWeaponRest();
         host.prefs.edit().putInt("gun",gun).apply();
@@ -544,7 +551,7 @@ public final class GameView extends View {
     // A bullet's visible launch point is exactly the world-transformed barrel anchor.
     // The same grip pivot, left/right mirror and full semicircle are used by rendering.
     void knifeStrike(){
-        if(!playing||paused||knifeCooldown>0)return;
+        if(!playing||paused||knifeCooldown>0||harvestV81.active)return;
         knifeCooldown=.52f;knifeDuration=.26f;knifeHitPending=true;
         knifeTarget=nearest(playerX,playerY,112);
         float dx=knifeTarget==null?aimX:knifeTarget.x-playerX;
@@ -611,6 +618,7 @@ public final class GameView extends View {
         }
     }
     void hurt(float amount){
+        harvestV81.cancel();
         health=Math.max(0,health-amount);shake=.12f;
         particles(playerX,playerY-35,RED,5);
         if(health<=0){gameOver=true;paused=true;saveProgress();}
@@ -629,6 +637,44 @@ public final class GameView extends View {
         dt=Math.min(.04f,dt)*timeSpeed;
         worldTimer+=dt;autSaveClock+=dt;
         gatherFeedbackTime=Math.max(0f,gatherFeedbackTime-dt);
+        harvestImpactTimeV81=Math.max(0f,harvestImpactTimeV81-dt);
+        if(harvestV81.active){
+            ResourceWorldV80.Node target=harvestV81.target;
+            float dx=target.x-playerX,dy=target.y-playerY;
+            // Cancel on player movement, damage (hurt()), threatening bandits,
+            // resource removal, or stepping out of reach; never pay on cancellation.
+            if((float)Math.hypot(stickX,stickY)>.17f||firing||
+               dx*dx+dy*dy>(ResourceWorldV80.USE_RADIUS+8f)*
+                   (ResourceWorldV80.USE_RADIUS+8f)||
+               harvestWorld.exhausted(target.cx,target.cy,target.slot)||
+               nearest(playerX,playerY,135f)!=null){
+                harvestV81.cancel();
+            }else{
+                if(harvestV81.advance(dt)){
+                    harvestImpactTimeV81=.18f;
+                    int col=harvestV81.kind==ResourceWorldV80.STONE?0xffa9b3ab:
+                        harvestV81.kind==ResourceWorldV80.FIBER?0xff75985d:0xffb38a56;
+                    particles(target.x,target.y-(harvestV81.kind==ResourceWorldV80.FIBER?18:34),
+                        col,6);
+                }
+                if(harvestV81.finished){
+                    if(harvestV81.canComplete(playerX,playerY,
+                        ResourceWorldV80.USE_RADIUS,
+                        harvestWorld.exhausted(target.cx,target.cy,target.slot))&&
+                        harvestWorld.harvest(target)){
+                        switch(target.resource()){
+                            case ResourceWorldV80.STONE:stone+=target.quantity();break;
+                            case ResourceWorldV80.FIBER:fiber+=target.quantity();break;
+                            default:wood+=target.quantity();break;
+                        }
+                        gatherFeedback="GATHERED "+target.name()+" +"+target.quantity();
+                        gatherFeedbackTime=2.3f;
+                        saveProgress();
+                    }
+                    harvestV81.cancel();
+                }
+            }
+        }
         if(autSaveClock>9){saveProgress();autSaveClock=0;}
         shotClock=Math.max(0,shotClock-dt);
         recoil=Math.max(0,recoil-dt*5);
@@ -638,7 +684,7 @@ public final class GameView extends View {
         float wasX=playerX,wasY=playerY;
         float vx=stickX,vy=stickY;
         float length=(float)Math.hypot(vx,vy);
-        if(length>.06f){
+        if(length>.06f&&!harvestV81.active){
             vx/=Math.max(1,length);vy/=Math.max(1,length);
             float runMultiplier=runHeld&&stamina>0?1.52f:1f;
             float speed=PlayerMovementV77.speed(gun==9?169f:236f,walkSpeedMultiplier,runMultiplier,crouchHeld);
@@ -718,7 +764,7 @@ public final class GameView extends View {
         }
         // Crosshair range remains the actual projectile endpoint, but
         // offscreen reach is clipped to the edge rather than chasing it.
-        if(firing){
+        if(firing&&!harvestV81.active){
             if(aimX>.025f)face=1;else if(aimX<-.025f)face=-1;
             if(shotClock<=0&&reloadClock==0){
                 if(ammo>0||gun==11||gun==3){
@@ -1044,7 +1090,7 @@ public final class GameView extends View {
             if(WorldPerfV55.nearView(x,872,camX,camY,viewW,viewH,185))
                 lighting.point(x,872,175,.61f,0xffdbd5a0);
         if(lampOn){
-            if(gun==3||(dualTorch&&gun>=0&&gun<=2)){
+            if(!harvestV81.active&&(gun==3||(dualTorch&&gun>=0&&gun<=2))){
                 // Independent off-hand flashlight aims with the same world vector.
                 // The player can fire a one-handed gun without interrupting lighting.
                 float[] tip=Ballistics.rigMuzzle(playerX,playerY,face,aimX,aimY,
@@ -1162,6 +1208,12 @@ public final class GameView extends View {
                 if(x<camX-200||x>camX+viewW+200||
                    y<camY-200||y>camY+viewH+200)continue;
                 int kind=k==3?ResourceWorldV80.BUSH:BiomeWorldV74.prop(x,y,h);
+                boolean shake=harvestImpactTimeV81>0&&harvestV81.matches(cx,cy,k);
+                if(shake){
+                    c.save();
+                    c.translate((float)Math.sin(harvestImpactTimeV81*73f)*
+                        (kind==ResourceWorldV80.BUSH?4f:2.6f),0f);
+                }
                 if(kind==ResourceWorldV80.BUSH){
                     // Low stepped pixel bush; distinct fiber gathering target.
                     int leaf=BiomeWorldV74.detail(BiomeWorldV74.biome(x,y),h);
@@ -1169,6 +1221,7 @@ public final class GameView extends View {
                     rect(c,x-27,y-21,54,13,0xff23372b);
                     rect(c,x-17,y-28,35,15,leaf);
                     rect(c,x-7,y-34,14,12,0xff7b9168);
+                    if(shake)c.restore();
                     continue;
                 }
                 float extent=kind==4?72f:kind==5?84f:kind==3?162f:186f;
@@ -1182,6 +1235,7 @@ public final class GameView extends View {
                     rect(c,x-8,y-14,16,14,0xff24332a);
                     rect(c,x-17,y-28,34,17,tint);
                 }
+                if(shake)c.restore();
             }
     }
     void drawSpawnCamp(Canvas c){
@@ -1336,6 +1390,63 @@ public final class GameView extends View {
                 pivotY+(approvedAxe.getHeight()-138)*k);
         c.drawBitmap(approvedAxe,null,dest,pixel);
     }
+    /** V81 original chunky pixel pickaxe generated once at scene initialization. */
+    Bitmap makePixelPickaxeV81(){
+        Bitmap bm=Bitmap.createBitmap(76,100,Bitmap.Config.ARGB_8888);
+        Canvas tool=new Canvas(bm);
+        Paint ink=new Paint();ink.setAntiAlias(false);
+        // Wooden handle with a thick near-black outline, visible grain and grip.
+        ink.setColor(0xff121c1c);tool.drawRect(34,19,46,96,ink);
+        ink.setColor(0xff806242);tool.drawRect(37,22,43,92,ink);
+        ink.setColor(0xffb18b57);tool.drawRect(37,30,39,81,ink);
+        ink.setColor(0xff473a2d);tool.drawRect(42,48,44,88,ink);
+        ink.setColor(0xff1d282a);tool.drawRect(11,12,68,29,ink);
+        ink.setColor(0xff566b6b);tool.drawRect(17,15,63,25,ink);
+        ink.setColor(0xff98a9a4);tool.drawRect(20,16,53,19,ink);
+        ink.setColor(0xff394d50);tool.drawRect(8,17,17,23,ink);
+        ink.setColor(0xff182527);tool.drawRect(3,19,11,23,ink);
+        ink.setColor(0xff111d1f);tool.drawRect(0,22,7,25,ink);
+        // Stepped downward beak tip, distinct from an axe silhouette.
+        ink.setColor(0xff141e21);tool.drawRect(62,23,72,35,ink);
+        ink.setColor(0xff27383b);tool.drawRect(68,32,75,44,ink);
+        ink.setColor(0xffb5bcb4);tool.drawRect(65,26,68,35,ink);
+        ink.setColor(0xff8a996e);tool.drawRect(36,23,44,27,ink);
+        return bm;
+    }
+    /** One shared torso pivot drives tool, approved V29 fist, and handle. */
+    void drawHarvestRigV81(Canvas c,float s){
+        int kind=harvestV81.kind;
+        float pivotX=(Ballistics.TORSO_X-70f)*s;
+        float pivotY=(Ballistics.TORSO_Y-136f)*s;
+        float offsetX=(Ballistics.GRIP_X-MAIN_X[11])*s;
+        float offsetY=(Ballistics.GRIP_Y-MAIN_Y[11])*s;
+        c.save();
+        c.translate(pivotX,pivotY);
+        c.rotate(harvestV81.swingDegrees());
+        c.translate(-pivotX,-pivotY);
+        c.translate(offsetX,offsetY);
+        float gx=(MAIN_X[11]-70f)*s,gy=(MAIN_Y[11]-136f)*s;
+        if(showWeapons){
+            if(kind==ResourceWorldV80.WOOD&&approvedAxe!=null){
+                drawApprovedAxe(c,gx,gy,scale*(CharacterCollision.BASE_SCALE/.76f));
+            }else if(kind==ResourceWorldV80.STONE&&pickaxeV81!=null){
+                float k=s*.91f;
+                dest.set(gx-40*k,gy-78*k,gx+36*k,gy+22*k);
+                c.drawBitmap(pickaxeV81,null,dest,pixel);
+            }else if(kind==ResourceWorldV80.FIBER){
+                // Same handle/blade pixel forms as the accepted knife slash.
+                c.save();c.translate(gx,gy);c.scale(s,s);
+                rect(c,-6,-5,17,10,0xff201d1a);
+                rect(c,-3,-4,11,8,0xff705744);
+                rect(c,11,-3,29,7,0xff1d2c32);
+                rect(c,11,-2,27,4,0xffa2b7ac);
+                rect(c,15,-3,19,2,0xffe1e5cf);
+                c.restore();
+            }
+        }
+        if(showHands)handAtlas(c,11,2,0,0,s,handScale,0,0);
+        c.restore();
+    }
     void character(Canvas c,float x,float y,int weapon,int facing,int frame,float breath,float aimAng,float kick,
                    boolean player,boolean bandit,int npcVariant){
         float s=CharacterCollision.BASE_SCALE*scale;
@@ -1343,7 +1454,7 @@ public final class GameView extends View {
         color(0x670b1a18);c.drawOval(-26*s,-7*s,26*s,7*s,p);
         // V58 rear-layer hand torch. Draw BEFORE the immutable original body:
         // its silhouette cannot cover the head, eyes, or facial outline.
-        if(!bandit&&dualTorch&&lampOn&&weapon>=0&&weapon<=2&&showWeapons){
+        if(!bandit&&!(player&&harvestV81.active)&&dualTorch&&lampOn&&weapon>=0&&weapon<=2&&showWeapons){
             c.save();
             c.translate(-30*s,-33*s);
             c.rotate(aimRotation?aimAng*180f/(float)Math.PI:0f);
@@ -1355,7 +1466,8 @@ public final class GameView extends View {
         }
         Bitmap atlas=npcVariant>=0?npcWalkV56:approvedWalkColors;
         stablePose(c,atlas,npcVariant<0?0:npcVariant,frame,s,breath);
-        if(!bandit){
+        if(player&&harvestV81.active)drawHarvestRigV81(c,s);
+        else if(!bandit){
             c.save();
             // Keep the accepted V36 torso-centered weapon/hand rig stationary.
             // Parent pivot is the CHARACTER'S torso center (constant across all weapons).
@@ -1797,7 +1909,12 @@ public final class GameView extends View {
             (automaticDayNight?" [AUTO]":" [MANUAL]");
         label(c,footer,14,viewH-15,13,0xff182521,true);
         label(c,footer,13,viewH-16,13,ORANGE,true);
-        if(gatherFeedbackTime>0)
+        if(harvestV81.active){
+            label(c,harvestV81.actionName()+"  "+harvestV81.hitsDone+
+                "/"+harvestV81.hitsRequired,14,viewH-53,13,0xffd3e4a7,true);
+            rect(c,14,viewH-45,152,5,0xaa112520);
+            rect(c,15,viewH-44,150*harvestV81.totalProgress(),3,0xffc2b58c);
+        }else if(gatherFeedbackTime>0)
             label(c,gatherFeedback,14,viewH-54,13,0xffd3e4a7,true);
         else{
             ResourceWorldV80.Node near=harvestWorld.nearest(playerX,playerY,
@@ -1888,6 +2005,7 @@ public final class GameView extends View {
         terrainChunks.release();
         lighting.release();
         if(campStatic!=null){campStatic.recycle();campStatic=null;}
+        if(pickaxeV81!=null){pickaxeV81.recycle();pickaxeV81=null;}
         if(crosshairReticle!=null){crosshairReticle.recycle();crosshairReticle=null;}
         super.onDetachedFromWindow();
     }
@@ -2019,22 +2137,23 @@ public final class GameView extends View {
         if(x<viewW*.37f&&y>viewH*.45f)return;
         if(x>viewW*.61f&&y>viewH*.42f)return;
     }
-    /** Existing USE button retains dropped-loot priority, then gathers nearby resources. */
+    /** Existing USE keeps loot priority, but harvesting is now an animation. */
     boolean gatherNearestV80(){
+        if(harvestV81.active||firing||!playing||paused||gameOver)return false;
         ResourceWorldV80.Node node=harvestWorld.nearest(playerX,playerY,
             ResourceWorldV80.USE_RADIUS,CAMP_X,CAMP_Y,WORLD_W,WORLD_H);
-        if(node==null||!harvestWorld.harvest(node))return false;
-        switch(node.resource()){
-            case ResourceWorldV80.STONE:stone+=node.quantity();break;
-            case ResourceWorldV80.FIBER:fiber+=node.quantity();break;
-            default:wood+=node.quantity();break;
-        }
-        gatherFeedback="GATHERED "+node.name()+" +"+node.quantity();
-        gatherFeedbackTime=2.3f;
-        saveProgress();
+        if(node==null||nearest(playerX,playerY,135f)!=null)return false;
+        if(!harvestV81.begin(node))return false;
+        // Equipped gun and its ammo remain untouched; axe/pickaxe/knife are
+        // transient, rig-aligned overlays, not a saved equipment switch.
+        stopWalking();knifeDuration=0f;knifeHitPending=false;
+        face=node.x>=playerX?1:-1;
+        gatherFeedbackTime=0f;harvestImpactTimeV81=0f;
         return true;
     }
     void activateButton(int ui,int pointer){
+        // No second attack/use while tool strikes are underway.
+        if(harvestV81.active)return;
         if(LegacyControlsV58.isFire(ui)){
             if(ui==LegacyControlsV58.FIRE_L)fireLeftPointer=pointer;
             else firePointer=pointer;
