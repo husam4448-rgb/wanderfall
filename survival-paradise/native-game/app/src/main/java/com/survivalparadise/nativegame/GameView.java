@@ -120,7 +120,7 @@ public final class GameView extends View {
     static final int HOTBAR=HUD_ITEMS,BAG_EDITOR=HOTBAR+1,EDITOR_ITEMS=BAG_EDITOR+1;
     static final String[] HOTBAR_TYPES={
         "EMPTY","MEDKIT","AMMO","PISTOL","SHOTGUN","UZI","FOOD","WATER","TORCH",
-        "BARRICADE","LIGHT POST"};
+        "BARRICADE","LIGHT POST","WATER COLLECTOR","FIELD SHELTER"};
     int foodCount=2,waterCount=2;
     float hotbarGrabX,hotbarGrabY;
     float hunger=100f,thirst=100f,fatigue=0f;
@@ -2306,6 +2306,8 @@ public final class GameView extends View {
         if(item==7)return waterCount;
         if(item==9)return craftV83.stock[0];
         if(item==10)return craftV83.stock[1];
+        if(item==11)return craftV83.stock[2];
+        if(item==12)return craftV83.stock[3];
         return 0;
     }
     void setHotbarItem(int slot,int item){
@@ -2330,7 +2332,7 @@ public final class GameView extends View {
             waterCount--;thirst=Math.min(100f,thirst+35);
         }else if(item==8){
             toggleLamp();
-        }else if(item==9||item==10){
+        }else if(item>=9&&item<=12){
             selectPlaceItemV84(item-9);
         }
         saveProgress();invalidate();
@@ -2351,7 +2353,7 @@ public final class GameView extends View {
                 x+i*size+size*.5f-16f,y+size*.13f,32f);
             label(c,name.length()>6?name.substring(0,6):name,x+i*size+4,y+size-3,
                     8,0xffe7e1c7,true);
-            if(item==1||item==2||item==6||item==7||item==9||item==10)
+            if(item==1||item==2||item==6||item==7||(item>=9&&item<=12))
                 label(c,Integer.toString(hotbarQuantity(item)),x+(i+1)*size-14,
                       y+size-6,10,0xffe6d4aa,true);
         }
