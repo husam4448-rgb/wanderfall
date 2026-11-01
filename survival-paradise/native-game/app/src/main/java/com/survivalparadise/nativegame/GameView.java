@@ -286,7 +286,7 @@ public final class GameView extends View {
         selectedHudControl=Math.min(EDITOR_ITEMS-1,host.setting("selectedButton",0));
         panelX=host.setting("hudPanelX",0);
         panelY=host.setting("hudPanelY",62);
-        panelScale=host.setting("hudPanelSize",100)/100f;
+        panelScale=host.setting("hudPanelSize",120)/100f;
         showStatusBars=host.option("showStatusBars",true);
         showCrosshair=host.option("showCrosshair",true);
         // V71 rollback: old panning preference must not override classic aim.
