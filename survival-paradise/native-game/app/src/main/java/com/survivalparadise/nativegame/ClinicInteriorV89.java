@@ -6,9 +6,10 @@ package com.survivalparadise.nativegame;
  * All geometry uses logical world pixels; only container contents are mutable.
  */
 public final class ClinicInteriorV89 {
-    public static final int WIDTH=1600,HEIGHT=1120;
-    public static final float ENTRANCE_X=800f,ENTRANCE_Y=1034f;
-    public static final float EXIT_X=800f,EXIT_Y=1072f;
+    public static final float EXPANSION_V90=1.7f;
+    public static final int WIDTH=2720,HEIGHT=1904;
+    public static final float ENTRANCE_X=1360f,ENTRANCE_Y=1757.8f;
+    public static final float EXIT_X=1360f,EXIT_Y=1822.4f;
     public static final float USE_RADIUS=122f;
     public static final String[] ROOMS={"TRIAGE","OPERATING THEATRE",
         "DIAGNOSTICS LAB","PHARMACY","RECEPTION","RECOVERY WARD"};
@@ -68,6 +69,19 @@ public final class ClinicInteriorV89 {
         "LAB CHEMICALS","LAB FREEZER","PHARMACY SHELF",
         "DRUG CABINET","BACKSTOCK","RECEPTION DRAWER",
         "WARD SUPPLIES","LINEN CABINET","DIAGNOSTICS LOCKER"};
+    static {
+        for(float[] wall:WALLS)for(int i=0;i<4;i++)wall[i]*=EXPANSION_V90;
+        for(float[] furniture:FURNITURE)for(int i=1;i<5;i++)
+            furniture[i]*=EXPANSION_V90;
+        for(float[] marker:DOOR_SIGNS)for(int i=0;i<2;i++)
+            marker[i]*=EXPANSION_V90;
+        for(float[] marker:ROOM_LABELS)for(int i=0;i<2;i++)
+            marker[i]*=EXPANSION_V90;
+        for(int i=0;i<CACHE_X.length;i++){
+            CACHE_X[i]*=EXPANSION_V90;
+            CACHE_Y[i]*=EXPANSION_V90;
+        }
+    }
     public final Storage[] storages=new Storage[CACHE_NAMES.length];
     public ClinicInteriorV89(){reset();}
     public void reset(){
@@ -85,7 +99,8 @@ public final class ClinicInteriorV89 {
         }
     }
     public boolean blocked(float x,float y,float r){
-        if(x-r<23||x+r>1577||y-r<23||y+r>1095)return true;
+        if(x-r<23*EXPANSION_V90||x+r>1577*EXPANSION_V90||
+           y-r<23*EXPANSION_V90||y+r>1095*EXPANSION_V90)return true;
         for(float[] q:WALLS)
             if(x+r>q[0]&&x-r<q[0]+q[2]&&
                y+r>q[1]&&y-r<q[1]+q[3])return true;
