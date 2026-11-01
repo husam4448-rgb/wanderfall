@@ -425,6 +425,11 @@ public final class MainActivity extends Activity {
                     ix==6?LOADOUTS[game.gun]:
                     ix==7?(game.dualTorch&&game.lampOn?"FLASHLIGHT":"EMPTY"):"EMPTY";
                 Button equipped=v62Slot(label+"\n"+value,true);
+                if(ix==6||ix==7){
+                    equipped.setCompoundDrawables(game.itemIconsV84.drawable(
+                        getResources(),ix==7?ItemIconsV84.TORCH:ItemIconsV84.RIFLE,15),
+                        null,null,null);
+                }
                 LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(0,
                     Math.round(32*getResources().getDisplayMetrics().density),1);
                 p.setMargins(3,3,3,3);gearRow.addView(equipped,p);
@@ -454,12 +459,15 @@ public final class MainActivity extends Activity {
         section(right,"BACKPACK   •   24 SLOTS");
         right.addView(text("Select an item to USE it or assign it to the quick-access bar.",12,false));
         final int[] itemKinds={0,1,2,6,7}; // old hotbar unchanged; V83 craft items
-        final Button[] backpackStackButtonsV83=new Button[8];
+        final Button[] backpackStackButtonsV83=new Button[10];
+        final AlertDialog[] bagDialogV84=new AlertDialog[1];
         final Runnable refreshCraftCountsV83=()->{
             int[] amounts={game.scrap,game.medkits,game.ammoPacks,game.foodCount,
-                game.waterCount,game.wood,game.stone,game.fiber};
-            String[] titles={"SCRAP","MEDKIT","AMMO","FOOD","WATER","WOOD","STONE","FIBER"};
-            for(int k=0;k<8;k++)if(backpackStackButtonsV83[k]!=null)
+                game.waterCount,game.wood,game.stone,game.fiber,
+                game.craftV83.stock[0],game.craftV83.stock[1]};
+            String[] titles={"SCRAP","MEDKIT","AMMO","FOOD","WATER","WOOD","STONE","FIBER",
+                "BARRICADE","LIGHT POST"};
+            for(int k=0;k<10;k++)if(backpackStackButtonsV83[k]!=null)
                 backpackStackButtonsV83[k].setText(titles[k]+"\n×"+amounts[k]);
         };
         for(int ir=0;ir<4;ir++){
@@ -469,18 +477,39 @@ public final class MainActivity extends Activity {
                 int kind=idx==0?0:idx==1?1:idx==2?2:idx==3?6:idx==4?7:0;
                 String name=idx==0?"SCRAP":idx==1?"MEDKIT":idx==2?"AMMO":
                     idx==3?"FOOD":idx==4?"WATER":idx==5?"WOOD":
-                    idx==6?"STONE":idx==7?"FIBER":"";
+                    idx==6?"STONE":idx==7?"FIBER":idx==8?"BARRICADE":idx==9?"LIGHT POST":"";
                 int qty=idx==0?game.scrap:idx==1?game.medkits:
                     idx==2?game.ammoPacks:idx==3?game.foodCount:
                     idx==4?game.waterCount:idx==5?game.wood:
-                    idx==6?game.stone:idx==7?game.fiber:0;
+                    idx==6?game.stone:idx==7?game.fiber:idx==8?game.craftV83.stock[0]:
+                    idx==9?game.craftV83.stock[1]:0;
                 Button slot=v62Slot(name.isEmpty()?"":name+"\n×"+qty,qty>0);
-                if(idx<8)backpackStackButtonsV83[idx]=slot;
+                if(idx<10)backpackStackButtonsV83[idx]=slot;
+                if(idx<10){
+                    android.graphics.drawable.Drawable icon=game.itemIconsV84.drawable(
+                        getResources(),idx,17);
+                    slot.setCompoundDrawables(icon,null,null,null);
+                    slot.setCompoundDrawablePadding(1);
+                }
                 LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(0,
                     Math.round(39*getResources().getDisplayMetrics().density),1);
                 params.setMargins(3,3,3,3);slots.addView(slot,params);
                 slot.setOnClickListener(v->{
-                    if(idx>=8)return;
+                    if(idx>=10)return;
+                    if(idx>=8){
+                        if(qty<=0){Toast.makeText(this,"Craft it first",Toast.LENGTH_SHORT).show();return;}
+                        String[] place={"PLACE IN WORLD","ASSIGN QUICK SLOT 1",
+                            "ASSIGN QUICK SLOT 2","ASSIGN QUICK SLOT 3",
+                            "ASSIGN QUICK SLOT 4","ASSIGN QUICK SLOT 5","ASSIGN QUICK SLOT 6"};
+                        new AlertDialog.Builder(this).setTitle(name+" ×"+qty)
+                            .setItems(place,(d,choice)->{
+                                if(choice==0){
+                                    if(game.selectPlaceItemV84(idx-8)&&bagDialogV84[0]!=null)
+                                        bagDialogV84[0].dismiss();
+                                }else game.setHotbarItem(choice-1,idx==8?9:10);
+                            }).show();
+                        return;
+                    }
                     if(idx>=5){
                         Toast.makeText(this,name+" is a gathering/crafting material",
                             Toast.LENGTH_SHORT).show();return;
@@ -507,7 +536,7 @@ public final class MainActivity extends Activity {
             right.addView(slots);
         }
         section(right,"CRAFT & PLACE IN WORLD");
-        right.addView(text("Craft structures from gathered materials. Builds appear ahead on clear ground.",11,false));
+        right.addView(text("CRAFT → BAG. Select a crafted icon to PLACE; drag over the world and release.",11,false));
         LinearLayout recipesV83=new LinearLayout(this);
         recipesV83.setOrientation(LinearLayout.HORIZONTAL);
         right.addView(recipesV83);
@@ -517,13 +546,13 @@ public final class MainActivity extends Activity {
         recipesV83.addView(craftWall,new LinearLayout.LayoutParams(0,recipeHeight,1));
         recipesV83.addView(craftLight,new LinearLayout.LayoutParams(0,recipeHeight,1));
         craftWall.setOnClickListener(v->{
-            boolean built=game.craftPlaceV83(CampCraftV83.BARRICADE);
-            Toast.makeText(this,built?"Barricade built":game.craftV83.error,Toast.LENGTH_SHORT).show();
+            boolean built=game.craftIntoBagV84(CampCraftV83.BARRICADE);
+            Toast.makeText(this,built?"Barricade added to bag":game.craftV83.error,Toast.LENGTH_SHORT).show();
             if(built){refreshCraftCountsV83.run();avatar.invalidate();}
         });
         craftLight.setOnClickListener(v->{
-            boolean built=game.craftPlaceV83(CampCraftV83.LIGHT_POST);
-            Toast.makeText(this,built?"Light post built":game.craftV83.error,Toast.LENGTH_SHORT).show();
+            boolean built=game.craftIntoBagV84(CampCraftV83.LIGHT_POST);
+            Toast.makeText(this,built?"Light post added to bag":game.craftV83.error,Toast.LENGTH_SHORT).show();
             if(built){refreshCraftCountsV83.run();avatar.invalidate();}
         });
         section(right,"QUICK ACCESS   •   6 SLOTS");
@@ -537,6 +566,9 @@ public final class MainActivity extends Activity {
             for(int i=0;i<6;i++){
                 final int slotIndex=i,item=game.hotbar[i];
                 Button hot=v62Slot((i+1)+"\n"+GameView.hotbarLabel(item),true);
+                hot.setCompoundDrawables(game.itemIconsV84.drawable(getResources(),
+                    ItemIconsV84.hotbarType(item),15),null,null,null);
+                hot.setCompoundDrawablePadding(1);
                 LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(0,
                     Math.round(37*getResources().getDisplayMetrics().density),1);
                 p.setMargins(2,2,2,2);quickRow.addView(hot,p);
@@ -565,6 +597,7 @@ public final class MainActivity extends Activity {
             game.saveProgress();game.menuPause(false);restoreFullscreenAfterShade();
         });
         dialog.show();
+        bagDialogV84[0]=dialog;
         final int[] width={prefs.getInt("bagWindowWidth",94)},
                     height={prefs.getInt("bagWindowHeight",92)};
         makeWindowMovable(dialog,handle,width[0],height[0],"bagWindow");
