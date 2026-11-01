@@ -6,8 +6,8 @@ android {
   applicationId 'com.survivalparadise.nativegame'
   minSdk 24
   targetSdk 34
-  versionCode 87
-  versionName '0.86-world-pickups-aim-placing-ui'
+  versionCode 88
+  versionName '0.87-bandit-loot-bag-hud'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17

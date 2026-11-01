@@ -1,0 +1,5 @@
+# V87 bandit loot and BAG HUD
+
+- Bandits spawn persistent, individually lootable backpacks with deterministic quantities of medkit, ammo, scrap, food, water, wood, fiber. USE nearby opens a two-pane BAG / player inventory dialog. Each loot item has the original approved icon; select + LOOT, drag icon into player side, or LOOT ALL. Each transfer uses existing player counts, saves immediately, and removes only emptied bags. Saves retain partially looted bags; no duplicated rewards after Continue. Max 128 bags.
+- BAG now has editable position, size (60–180%), opacity, enabled/disabled through on-screen HUD editor and dedicated editor BAG selector, using uiX/uiY/uiSize/uiAlpha with a unique id, independent of controls. Default moved 60 logical px higher. All existing control preference IDs preserved.
+- Existing V86 pickup shapes, harvesting, manually placed structures, camera controls, signed APK option, and save import/export retained. No approved V3/V31 source sprites modified. CI tests and real device acceptance separate.
