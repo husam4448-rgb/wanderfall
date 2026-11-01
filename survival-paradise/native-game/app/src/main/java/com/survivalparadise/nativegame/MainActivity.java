@@ -552,6 +552,8 @@ public final class MainActivity extends Activity {
         final Button[] lootButtons=new Button[BanditLootV87.ITEMS];
         final Button[] playerButtons=new Button[BanditLootV87.ITEMS];
         final int height=Math.round(66f*getResources().getDisplayMetrics().density);
+        final LinearLayout[] srcRowsV88=new LinearLayout[2];
+        final LinearLayout[] dstRowsV88=new LinearLayout[2];
         final AlertDialog[] active={null};
         final Runnable[] refresh={null};
         final Runnable[] claimSelected={null};
@@ -567,13 +569,21 @@ public final class MainActivity extends Activity {
         };
         for(int i=0;i<BanditLootV87.ITEMS;i++){
             final int kind=i;
-            Button take=v62Slot(BanditLootV87.NAMES[i],true);
+            int rowIndex=i/4;
+            if(srcRowsV88[rowIndex]==null){
+                LinearLayout a=column();a.setOrientation(LinearLayout.HORIZONTAL);
+                LinearLayout b=column();b.setOrientation(LinearLayout.HORIZONTAL);
+                srcRowsV88[rowIndex]=a;dstRowsV88[rowIndex]=b;
+                srcItems.addView(a);dstItems.addView(b);
+            }
+            SquareItemSlotV88 take=v88SquareSlot(BanditLootV87.NAMES[i],true);
             take.setCompoundDrawables(null,game.itemIconsV84.drawable(
                 getResources(),kind,32),null,null);
             take.setCompoundDrawablePadding(2);
             take.setGravity(Gravity.CENTER);
             take.setTextSize(11);
-            srcItems.addView(take,new LinearLayout.LayoutParams(-1,height));
+            LinearLayout.LayoutParams srcParams=new LinearLayout.LayoutParams(0,-2,1);
+            srcParams.setMargins(2,2,2,2);srcRowsV88[rowIndex].addView(take,srcParams);
             lootButtons[i]=take;
             // A source button retains the touch stream even if dragged outside.
             take.setOnTouchListener((v,e)->{
@@ -591,13 +601,14 @@ public final class MainActivity extends Activity {
                 }
                 return true;
             });
-            Button own=v62Slot(BanditLootV87.NAMES[i],false);
+            SquareItemSlotV88 own=v88SquareSlot(BanditLootV87.NAMES[i],false);
             own.setCompoundDrawables(null,game.itemIconsV84.drawable(
                 getResources(),kind,32),null,null);
             own.setCompoundDrawablePadding(2);
             own.setGravity(Gravity.CENTER);
             own.setTextSize(11);
-            dstItems.addView(own,new LinearLayout.LayoutParams(-1,height));
+            LinearLayout.LayoutParams ownParams=new LinearLayout.LayoutParams(0,-2,1);
+            ownParams.setMargins(2,2,2,2);dstRowsV88[rowIndex].addView(own,ownParams);
             playerButtons[i]=own;
         }
         refresh[0]=()->{
@@ -721,16 +732,18 @@ public final class MainActivity extends Activity {
         section(right,"BACKPACK   •   24 SQUARE SLOTS");
         right.addView(text("Select an item to USE it or assign it to the quick-access bar.",12,false));
         final int[] itemKinds={0,1,2,6,7}; // old hotbar unchanged; V83 craft items
-        final Button[] backpackStackButtonsV83=new Button[12];
+        final Button[] backpackStackButtonsV83=new Button[14];
         final AlertDialog[] bagDialogV84=new AlertDialog[1];
         final Runnable refreshCraftCountsV83=()->{
             int[] amounts={game.scrap,game.medkits,game.ammoPacks,game.foodCount,
                 game.waterCount,game.wood,game.stone,game.fiber,
                 game.craftV83.stock[0],game.craftV83.stock[1],
-                game.craftV83.stock[2],game.craftV83.stock[3]};
+                game.craftV83.stock[2],game.craftV83.stock[3],
+                game.bandagesV88,game.energyV88};
             String[] titles={"SCRAP","MEDKIT","AMMO","FOOD","WATER","WOOD","STONE","FIBER",
-                "BARRICADE","LIGHT POST","WATER COLLECTOR","FIELD SHELTER"};
-            for(int k=0;k<12;k++)if(backpackStackButtonsV83[k]!=null)
+                "BARRICADE","LIGHT POST","WATER COLLECTOR","FIELD SHELTER",
+                "BANDAGE","ENERGY RATION"};
+            for(int k=0;k<14;k++)if(backpackStackButtonsV83[k]!=null)
                 backpackStackButtonsV83[k].setText(titles[k]+"\n×"+amounts[k]);
         };
         for(int ir=0;ir<4;ir++){
@@ -741,19 +754,23 @@ public final class MainActivity extends Activity {
                 String name=idx==0?"SCRAP":idx==1?"MEDKIT":idx==2?"AMMO":
                     idx==3?"FOOD":idx==4?"WATER":idx==5?"WOOD":
                     idx==6?"STONE":idx==7?"FIBER":idx==8?"BARRICADE":idx==9?"LIGHT POST":
-                    idx==10?"WATER COLLECTOR":idx==11?"FIELD SHELTER":"";
+                    idx==10?"WATER COLLECTOR":idx==11?"FIELD SHELTER":
+                    idx==12?"BANDAGE":idx==13?"ENERGY RATION":"";
                 int qty=idx==0?game.scrap:idx==1?game.medkits:
                     idx==2?game.ammoPacks:idx==3?game.foodCount:
                     idx==4?game.waterCount:idx==5?game.wood:
                     idx==6?game.stone:idx==7?game.fiber:idx==8?game.craftV83.stock[0]:
                     idx==9?game.craftV83.stock[1]:idx==10?game.craftV83.stock[2]:
-                    idx==11?game.craftV83.stock[3]:0;
+                    idx==11?game.craftV83.stock[3]:
+                    idx==12?game.bandagesV88:idx==13?game.energyV88:0;
                 SquareItemSlotV88 slot=v88SquareSlot(name.isEmpty()?"":name+"\n×"+qty,qty>0);
-                if(idx<12)backpackStackButtonsV83[idx]=slot;
-                if(idx<12){
+                if(idx<14)backpackStackButtonsV83[idx]=slot;
+                if(idx<14){
                     android.graphics.drawable.Drawable icon=game.itemIconsV84.drawable(
                         getResources(),idx==10?ItemIconsV84.WATER_COLLECTOR:
-                            idx==11?ItemIconsV84.FIELD_SHELTER:idx,35);
+                            idx==11?ItemIconsV84.FIELD_SHELTER:
+                            idx==12?ItemIconsV84.BANDAGE:
+                            idx==13?ItemIconsV84.ENERGY_RATION:idx,35);
                     slot.setCompoundDrawables(null,icon,null,null);
                     slot.setCompoundDrawablePadding(2);
                     slot.setGravity(Gravity.CENTER);
@@ -764,7 +781,23 @@ public final class MainActivity extends Activity {
                 LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(0,-2,1);
                 params.setMargins(3,3,3,3);slots.addView(slot,params);
                 slot.setOnClickListener(v->{
-                    if(idx>=12)return;
+                    if(idx>=14)return;
+                    if(idx>=12){
+                        final int utility=idx==12?13:14;
+                        String[] commands={"USE","ASSIGN QUICK SLOT 1","ASSIGN QUICK SLOT 2",
+                            "ASSIGN QUICK SLOT 3","ASSIGN QUICK SLOT 4",
+                            "ASSIGN QUICK SLOT 5","ASSIGN QUICK SLOT 6"};
+                        new AlertDialog.Builder(this).setTitle(name+" ×"+
+                            (idx==12?game.bandagesV88:game.energyV88))
+                            .setItems(commands,(d,choice)->{
+                                if(choice==0){
+                                    int prior=game.hotbar[0];game.hotbar[0]=utility;
+                                    game.useHotbar(0);game.hotbar[0]=prior;
+                                    refreshCraftCountsV83.run();
+                                }else game.setHotbarItem(choice-1,utility);
+                            }).show();
+                        return;
+                    }
                     if(idx>=8){
                         if(game.craftV83.stock[idx-8]<=0){Toast.makeText(this,"Craft it first",Toast.LENGTH_SHORT).show();return;}
                         String[] place={"PLACE IN WORLD","ASSIGN QUICK SLOT 1",
@@ -843,6 +876,28 @@ public final class MainActivity extends Activity {
             Toast.makeText(this,ok?"Field shelter added to bag":game.craftV83.error,Toast.LENGTH_SHORT).show();
             if(ok){refreshCraftCountsV83.run();avatar.invalidate();}
         });
+        LinearLayout utilityRecipesV88=new LinearLayout(this);
+        utilityRecipesV88.setOrientation(LinearLayout.HORIZONTAL);
+        right.addView(utilityRecipesV88);
+        Button bandageButton=v62Slot("CRAFT BANDAGE\n2 FIBER + 1 SCRAP",true);
+        Button energyButton=v62Slot("CRAFT ENERGY RATION\n1 FOOD + 1 WATER",true);
+        utilityRecipesV88.addView(bandageButton,new LinearLayout.LayoutParams(0,
+            Math.round(57*getResources().getDisplayMetrics().density),1));
+        utilityRecipesV88.addView(energyButton,new LinearLayout.LayoutParams(0,
+            Math.round(57*getResources().getDisplayMetrics().density),1));
+        bandageButton.setOnClickListener(v->{
+            boolean ok=game.craftConsumableV88(0);
+            Toast.makeText(this,ok?"Bandage added to bag":"Need 2 fiber and 1 scrap",
+                Toast.LENGTH_SHORT).show();
+            if(ok){refreshCraftCountsV83.run();avatar.invalidate();}
+        });
+        energyButton.setOnClickListener(v->{
+            boolean ok=game.craftConsumableV88(1);
+            Toast.makeText(this,ok?"Energy ration added to bag":"Need food and water",
+                Toast.LENGTH_SHORT).show();
+            if(ok){refreshCraftCountsV83.run();avatar.invalidate();}
+        });
+
         section(right,"QUICK ACCESS   •   6 SLOTS");
         right.addView(text("Tap a quick slot to choose an item. It appears on the gameplay HUD.",12,false));
         LinearLayout quickRow=new LinearLayout(this);
