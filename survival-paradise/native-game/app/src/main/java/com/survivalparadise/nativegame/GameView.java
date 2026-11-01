@@ -77,11 +77,13 @@ public final class GameView extends View {
     final SalvageWorldV84 salvageWorldV84=new SalvageWorldV84();
     final GroundPickupsV85 groundPickupsV85=new GroundPickupsV85();
     final BanditLootV87 banditLootV87=new BanditLootV87();
+    final FieldFindsV91 fieldFindsV91=new FieldFindsV91();
+    int activeSiteV91=-1; // -1 outdoors, 1 original clinic, all others separate indoor maps
     boolean sitesInitializedV88=false;
-    final ClinicInteriorV89 clinicInteriorV89=new ClinicInteriorV89();
-    final ClinicActorsV90 clinicActorsV90=new ClinicActorsV90(clinicInteriorV89);
+    ClinicInteriorV89 clinicInteriorV89=new ClinicInteriorV89();
+    ClinicActorsV90 clinicActorsV90=new ClinicActorsV90(clinicInteriorV89);
     final ClinicVisionV90 clinicVisionV90=new ClinicVisionV90();
-    final ClinicNavV90 clinicNavV90=new ClinicNavV90(clinicInteriorV89);
+    ClinicNavV90 clinicNavV90=new ClinicNavV90(clinicInteriorV89);
     final ArrayList<float[]> clinicFriendWaypointsV90=new ArrayList<>();
     final Path clinicVisionPathV90=new Path();
     final ArrayList<float[]> outdoorCompanionPositionsV90=new ArrayList<>();
@@ -286,6 +288,66 @@ public final class GameView extends View {
             else covers.add(new Cover(s.x-68,s.y-56,136,120,4));
         }
     }
+    /** Load one independent indoor instance. V90 clinic saves are migrated unchanged. */
+    void configureInteriorV91(int site){
+        if(site<0||site>=ExpeditionSitesV88.SITES.length)site=1;
+        activeSiteV91=site;
+        clinicInteriorV89=site==1?new ClinicInteriorV89():
+            new ExpeditionInteriorV91(ExpeditionSitesV88.SITES[site]);
+        clinicActorsV90=new ClinicActorsV90(clinicInteriorV89);
+        clinicNavV90=new ClinicNavV90(clinicInteriorV89);
+        String loot=host.prefs.getString("site_containers_v91_"+site,
+            site==1?host.prefs.getString("clinic_containers_v89",""):"");
+        String actors=host.prefs.getString("site_actors_v91_"+site,
+            site==1?host.prefs.getString("clinic_actors_v90",""):"");
+        clinicInteriorV89.decode(loot);
+        clinicActorsV90.decode(actors,clinicInteriorV89);
+        clinicFriendWaypointsV90.clear();
+    }
+    void persistCurrentInteriorV91(){
+        if(activeSiteV91<0||activeSiteV91>=ExpeditionSitesV88.SITES.length)return;
+        android.content.SharedPreferences.Editor edit=host.prefs.edit()
+            .putString("site_containers_v91_"+activeSiteV91,clinicInteriorV89.encode())
+            .putString("site_actors_v91_"+activeSiteV91,clinicActorsV90.encode());
+        if(activeSiteV91==1)edit.putString("clinic_containers_v89",clinicInteriorV89.encode())
+            .putString("clinic_actors_v90",clinicActorsV90.encode());
+        edit.apply();
+    }
+    /** Allow a gear-only case to be searched after ordinary supplies are depleted. */
+    ClinicInteriorV89.Storage nearestAnyInteriorStorageV91(float x,float y,float reach){
+        ClinicInteriorV89.Storage best=null;float min=reach*reach;
+        for(int i=0;i<clinicInteriorV89.storages.length;i++){
+            ClinicInteriorV89.Storage box=clinicInteriorV89.storages[i];
+            if(box.empty()&&fieldFindsV91.searched(activeSiteV91,i))continue;
+            float dx=box.x-x,dy=box.y-y,dist=dx*dx+dy*dy;
+            if(dist<min){min=dist;best=box;}
+        }
+        return best;
+    }
+    int storageIndexV91(ClinicInteriorV89.Storage s){
+        for(int i=0;i<clinicInteriorV89.storages.length;i++)
+            if(clinicInteriorV89.storages[i]==s)return i;
+        return -1;
+    }
+    String lootGearV91(ClinicInteriorV89.Storage box){
+        int id=storageIndexV91(box);
+        if(!insideClinicV89||!playing||id<0||
+            distance(playerX,playerY,box.x,box.y)>ClinicInteriorV89.USE_RADIUS+12f)return "";
+        String found=fieldFindsV91.scavenge(activeSiteV91,id);
+        if(!found.isEmpty()){
+            gatherFeedback="GEAR: "+found;gatherFeedbackTime=3.5f;
+            saveProgress();invalidate();
+        }
+        return found;
+    }
+    float encumbranceV91(){
+        float load=scrap*.8f+ammoPacks*5f+medkits*7f+
+            foodCount*1.7f+waterCount*2f+wood*.6f+stone*1.8f+
+            fiber*.3f+bandagesV88*.5f+energyV88*1.3f+
+            fieldFindsV91.weight();
+        return Math.min(100f,Math.max(0f,(load-fieldFindsV91.capacity())*1.7f));
+    }
+    float carrySpeedV91(){return Math.max(.54f,1f-encumbranceV91()*.0046f);}
     boolean isPlaying(){return playing;}
     void reloadSettings(){
         scale=host.setting("scale",100)/100f;
@@ -403,7 +465,14 @@ public final class GameView extends View {
         enemies.clear();friends.clear();campStaff.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();builtCampfires.clear();
         craftV83.clear();banditLootV87.clear();removeBarricadeCoverV83();
         sitesInitializedV88=false;stationUsedV88.clear();
-        clinicInteriorV89.reset();insideClinicV89=false;
+        clinicInteriorV89=new ClinicInteriorV89();
+        clinicActorsV90=new ClinicActorsV90(clinicInteriorV89);
+        clinicNavV90=new ClinicNavV90(clinicInteriorV89);
+        insideClinicV89=false;activeSiteV91=-1;fieldFindsV91.clear();
+        android.content.SharedPreferences.Editor sitesClear=host.prefs.edit();
+        for(int i=0;i<ExpeditionSitesV88.SITES.length;i++)
+            sitesClear.remove("site_containers_v91_"+i).remove("site_actors_v91_"+i);
+        sitesClear.apply();
         clinicActorsV90.reset(clinicInteriorV89);
         outdoorCompanionPositionsV90.clear();
         clinicFriendWaypointsV90.clear();
@@ -455,10 +524,16 @@ public final class GameView extends View {
         sitesInitializedV88=host.prefs.getBoolean("sitesInitializedV88",false);
         if(!sitesInitializedV88)seedExpeditionCachesV88();
         decodeFacilityCooldownV88(host.prefs.getString("facilityCooldownV88",""));
-        clinicInteriorV89.decode(host.prefs.getString("clinic_containers_v89",""));
-        clinicActorsV90.decode(host.prefs.getString("clinic_actors_v90",""),
-            clinicInteriorV89);
+        fieldFindsV91.decode(host.prefs.getString("field_finds_v91",""));
         insideClinicV89=host.prefs.getBoolean("inside_clinic_v89",false);
+        int savedSiteV91=host.prefs.getInt("active_site_v91",1);
+        if(insideClinicV89)configureInteriorV91(savedSiteV91);
+        else {
+            activeSiteV91=-1;
+            clinicInteriorV89=new ClinicInteriorV89();
+            clinicActorsV90=new ClinicActorsV90(clinicInteriorV89);
+            clinicNavV90=new ClinicNavV90(clinicInteriorV89);
+        }
         // V89 indoor saves used a 1600x1120 world. Migrate position once.
         if(insideClinicV89&&!host.prefs.getBoolean("clinic_scaled_v90",false)){
             playerX*=ClinicInteriorV89.EXPANSION_V90;
@@ -795,6 +870,8 @@ public final class GameView extends View {
             rect(c,x+96,y+77,35,22,0xff94714b);
             rect(c,x+100,y+80,27,6,0xffc4a373);
             rect(c,x+110,y+78,5,20,0xff4b4937);
+            rect(c,x-13,y+66,26,11,0xff111d1c);
+            label(c,"ENTER",x-24,y+108,10,0xffe9d49d,true);
         }
     }
     /** Avoid player-built and fixed cover when shooting, independent of FPS. */
@@ -813,33 +890,40 @@ public final class GameView extends View {
         }
         return false;
     }
-    /** Clinic is a full separate map; outdoors and its NPC positions are suspended. */
+    /** All expedition facilities have persistent, full-scale standalone interiors. */
     boolean enterClinicFromWorldV89(){
         if(insideClinicV89||!playing||gameOver)return false;
-        ExpeditionSitesV88.Site site=ExpeditionSitesV88.SITES[1];
-        if(distance(playerX,playerY,site.x,site.y+154f)>102f)return false;
-        outsideDoorXv89=site.x;
-        outsideDoorYv89=site.y+167f;
-        insideClinicV89=true;
-        playerX=ClinicInteriorV89.ENTRANCE_X;
-        playerY=ClinicInteriorV89.ENTRANCE_Y;
-        bringFriendsInsideV90();
-        harvestV81.cancel();cancelPlaceV84();
-        releaseControls();shots.clear();sparks.clear();flashes.clear();
-        cameraLookX=0;cameraLookY=0;
-        gatherFeedback="FIELD CLINIC  •  EXPLORE AND SCAVENGE";
-        gatherFeedbackTime=3.5f;
-        saveProgress();invalidate();return true;
+        for(int i=0;i<ExpeditionSitesV88.SITES.length;i++){
+            ExpeditionSitesV88.Site site=ExpeditionSitesV88.SITES[i];
+            float doorY=site.y+(site.kind==ExpeditionSitesV88.CLINIC?154f:90f);
+            if(distance(playerX,playerY,site.x,doorY)>108f)continue;
+            outsideDoorXv89=site.x;
+            outsideDoorYv89=doorY+20f;
+            configureInteriorV91(i);
+            insideClinicV89=true;
+            playerX=ClinicInteriorV89.ENTRANCE_X;
+            playerY=ClinicInteriorV89.ENTRANCE_Y;
+            bringFriendsInsideV90();
+            harvestV81.cancel();cancelPlaceV84();
+            releaseControls();shots.clear();sparks.clear();flashes.clear();
+            cameraLookX=0;cameraLookY=0;
+            gatherFeedback=site.name+"  •  EXPLORE AND SCAVENGE";
+            gatherFeedbackTime=3.5f;
+            saveProgress();invalidate();return true;
+        }
+        return false;
     }
     void exitClinicV89(){
         if(!insideClinicV89)return;
-        insideClinicV89=false;
-        playerX=outsideDoorXv89;
-        playerY=outsideDoorYv89;
+        String place=activeSiteV91>=0&&activeSiteV91<ExpeditionSitesV88.SITES.length?
+            ExpeditionSitesV88.SITES[activeSiteV91].name:"BUILDING";
+        persistCurrentInteriorV91();
+        insideClinicV89=false;activeSiteV91=-1;
+        playerX=outsideDoorXv89;playerY=outsideDoorYv89;
         returnFriendsOutsideV90();
         releaseControls();shots.clear();sparks.clear();flashes.clear();
         cameraLookX=0;cameraLookY=0;
-        gatherFeedback="RETURNED TO THE FIELD CLINIC ENTRANCE";
+        gatherFeedback="RETURNED TO "+place;
         gatherFeedbackTime=2.5f;
         spawnWave();saveProgress();invalidate();
     }
@@ -849,12 +933,12 @@ public final class GameView extends View {
             ClinicInteriorV89.EXIT_X,ClinicInteriorV89.EXIT_Y)<110f){
             exitClinicV89();return;
         }
-        ClinicInteriorV89.Storage found=clinicInteriorV89.nearest(
+        ClinicInteriorV89.Storage found=nearestAnyInteriorStorageV91(
             playerX,playerY,ClinicInteriorV89.USE_RADIUS);
         if(found!=null){
             host.runOnUiThread(()->host.lootClinicStorageV89(found));
         }else{
-            gatherFeedback="SEARCH CLOSE TO A CABINET OR RETURN TO EXIT";
+            gatherFeedback="SEARCH CLOSE TO A CASE OR RETURN TO EXIT";
             gatherFeedbackTime=1.5f;
         }
     }
@@ -977,7 +1061,7 @@ public final class GameView extends View {
             vx/=Math.max(1f,len);vy/=Math.max(1f,len);
             float run=runHeld&&stamina>0?1.52f:1f;
             float speed=PlayerMovementV77.speed(gun==9?169f:236f,
-                walkSpeedMultiplier,run,crouchHeld);
+                walkSpeedMultiplier,run,crouchHeld)*carrySpeedV91();
             float nx=playerX+vx*speed*dt,ny=playerY+vy*speed*dt;
             if(!clinicInteriorV89.blocked(nx,playerY,19f))playerX=nx;
             if(!clinicInteriorV89.blocked(playerX,ny,19f))playerY=ny;
@@ -1114,7 +1198,11 @@ public final class GameView extends View {
     /** Indoor render path does not call terrain(), drawWorld(), NPCs or outdoor lights. */
     void drawClinicInteriorV89(Canvas c){
         c.save();c.translate(-camX,-camY);
-        rect(c,0,0,ClinicInteriorV89.WIDTH,ClinicInteriorV89.HEIGHT,0xff182f31);
+        int siteKindV91=activeSiteV91>=0?
+            ExpeditionSitesV88.SITES[activeSiteV91].kind:ExpeditionSitesV88.CLINIC;
+        boolean nonClinicV91=clinicInteriorV89 instanceof ExpeditionInteriorV91;
+        rect(c,0,0,ClinicInteriorV89.WIDTH,ClinicInteriorV89.HEIGHT,
+            nonClinicV91?0xff292c2a:0xff182f31);
         // Base layout can be rendered at the same proportions as its V89 art.
         // Physical model, entrances, rooms, furniture and actor positions use
         // expanded actual coordinates, while locked pixel size stays unchanged.
@@ -1123,8 +1211,10 @@ public final class GameView extends View {
             ClinicInteriorV89.EXPANSION_V90);
         rect(c,23,23,1554,1072,0xff747d70);
         // Six departments have differentiated tile/palette, connected by hall.
-        int[] north={0xff70837e,0xff858a81,0xff6a8987};
-        int[] south={0xff7b8b78,0xff9a927d,0xff778579};
+        int[] north=nonClinicV91?new int[]{0xff777667,0xff767a71,0xff7c766b}:
+            new int[]{0xff70837e,0xff858a81,0xff6a8987};
+        int[] south=nonClinicV91?new int[]{0xff8c8978,0xff838a7a,0xff776e60}:
+            new int[]{0xff7b8b78,0xff9a927d,0xff778579};
         for(int i=0;i<3;i++){
             int sx=23+i*526;int width=(i==2?502:506);
             rect(c,sx,44,width,442,north[i]);
@@ -1137,7 +1227,8 @@ public final class GameView extends View {
         for(int y=45;y<1080;y+=72)
             rect(c,24,y,1551,2,0x37455851);
         float inv=1f/ClinicInteriorV89.EXPANSION_V90;
-        for(float[] wall:ClinicInteriorV89.WALLS){
+        for(float[] wall:nonClinicV91?
+            ((ExpeditionInteriorV91)clinicInteriorV89).sceneWalls():ClinicInteriorV89.WALLS){
             float wx=wall[0]*inv,wy=wall[1]*inv,
                 ww=wall[2]*inv,wh=wall[3]*inv;
             rect(c,wx-2,wy-2,ww+4,wh+4,0xff162e30);
@@ -1153,11 +1244,16 @@ public final class GameView extends View {
         for(int i=0;i<ClinicInteriorV89.ROOM_LABELS.length;i++){
             float x=ClinicInteriorV89.ROOM_LABELS[i][0]*inv;
             float y=ClinicInteriorV89.ROOM_LABELS[i][1]*inv;
-            label(c,ClinicInteriorV89.ROOMS[i],x,y,13,0xff213b3b,true);
+            String[] roomsV91=nonClinicV91?
+                ((ExpeditionInteriorV91)clinicInteriorV89).roomNames():ClinicInteriorV89.ROOMS;
+            label(c,roomsV91[i],x,y,13,0xff213b3b,true);
         }
-        label(c,"MAIN CORRIDOR  •  FIELD CLINIC",562,559,14,0xff253e3a,true);
+        label(c,"MAIN CORRIDOR  •  "+(activeSiteV91>=0?
+            ExpeditionSitesV88.SITES[activeSiteV91].name:"FIELD CLINIC"),
+            550,559,14,0xff253e3a,true);
         c.restore();
-        for(float[] obj:ClinicInteriorV89.FURNITURE){
+        for(float[] obj:nonClinicV91?
+            ((ExpeditionInteriorV91)clinicInteriorV89).sceneFurniture():ClinicInteriorV89.FURNITURE){
             if(!WorldPerfV55.nearView(obj[1],obj[2],camX,camY,
                 viewW,viewH,Math.max(obj[3],obj[4])+30))continue;
             drawClinicFurnitureV89(c,obj);
@@ -1273,6 +1369,7 @@ public final class GameView extends View {
     }
     void saveProgress(){
         if(!playing||gameOver)return;
+        if(insideClinicV89)persistCurrentInteriorV91();
         host.prefs.edit().putBoolean("hasSave",true).putFloat("px",playerX).putFloat("py",playerY)
                 .putFloat("hp",health).putFloat("stamina",stamina)
                 .putFloat("hunger",hunger).putFloat("thirst",thirst)
@@ -1291,11 +1388,15 @@ public final class GameView extends View {
                 .putString("bandit_loot_bags_v87",banditLootV87.encode())
                 .putBoolean("sitesInitializedV88",sitesInitializedV88)
                 .putString("facilityCooldownV88",encodeFacilityCooldownV88())
+                .putInt("active_site_v91",insideClinicV89?activeSiteV91:-1)
+                .putString("field_finds_v91",fieldFindsV91.encode())
                 .putBoolean("inside_clinic_v89",insideClinicV89)
                 .putFloat("clinic_return_x_v89",outsideDoorXv89)
                 .putFloat("clinic_return_y_v89",outsideDoorYv89)
-                .putString("clinic_containers_v89",clinicInteriorV89.encode())
-                .putString("clinic_actors_v90",clinicActorsV90.encode())
+                .putString("clinic_containers_v89",activeSiteV91==1?
+                    clinicInteriorV89.encode():host.prefs.getString("clinic_containers_v89",""))
+                .putString("clinic_actors_v90",activeSiteV91==1?
+                    clinicActorsV90.encode():host.prefs.getString("clinic_actors_v90",""))
                 .putBoolean("clinic_scaled_v90",true)
                 .putFloat("clockMinutes",clock.minute()).putInt("clockDay",clock.day())
                 .putFloat("aimX",aimX).putFloat("aimY",aimY).apply();
@@ -1563,7 +1664,7 @@ public final class GameView extends View {
         if(length>.06f&&!harvestV81.active){
             vx/=Math.max(1,length);vy/=Math.max(1,length);
             float runMultiplier=runHeld&&stamina>0?1.52f:1f;
-            float speed=PlayerMovementV77.speed(gun==9?169f:236f,walkSpeedMultiplier,runMultiplier,crouchHeld);
+            float speed=PlayerMovementV77.speed(gun==9?169f:236f,walkSpeedMultiplier,runMultiplier,crouchHeld)*carrySpeedV91();
             float nx=playerX+vx*speed*dt;
             float ny=playerY+vy*speed*dt;
             if(!blocked(nx,playerY,20))playerX=nx;
@@ -2512,6 +2613,8 @@ public final class GameView extends View {
         float s=CharacterCollision.BASE_SCALE*scale;
         c.save();c.translate(x,y);if(facing<0)c.scale(-1,1);
         color(0x670b1a18);c.drawOval(-26*s,-7*s,26*s,7*s,p);
+        if(player&&fieldFindsV91.equipped>=0)
+            drawEquippedPackV91(c,s,fieldFindsV91.equipped);
         // V58 rear-layer hand torch. Draw BEFORE the immutable original body:
         // its silhouette cannot cover the head, eyes, or facial outline.
         if(!bandit&&!(player&&harvestV81.active)&&dualTorch&&lampOn&&weapon>=0&&weapon<=2&&showWeapons){
@@ -2577,6 +2680,20 @@ public final class GameView extends View {
             p.setStyle(Paint.Style.FILL);
         }
         c.restore();
+    }
+    /** Separate rear-layer pixel silhouette, attached to player pose, no body atlas edits. */
+    void drawEquippedPackV91(Canvas c,float s,int kind){
+        int dark=0xff172725,base=kind==0?0xff777255:kind==1?0xff627759:0xff515f54;
+        int light=kind==0?0xffaa9768:kind==1?0xff8c9875:0xff88958b;
+        float top=kind==0?-93f:kind==1?-110f:-117f;
+        float height=kind==0?47f:kind==1?69f:79f;
+        rect(c,-53*s,(top-4)*s,33*s,(height+9)*s,dark);
+        rect(c,-49*s,top*s,25*s,height*s,base);
+        rect(c,-44*s,(top+7)*s,17*s,7*s,light);
+        rect(c,-48*s,(top+height-24)*s,23*s,18*s,0xff3c5145);
+        rect(c,-46*s,(top+height-23)*s,18*s,4*s,light);
+        rect(c,-27*s,(top+6)*s,5*s,(height-15)*s,0xff22332c);
+        rect(c,-30*s,(top+18)*s,7*s,12*s,0xffb9a477);
     }
     /** A grounded pixel-art dropped backpack with zipper, straps and loot count. */
     void drawBanditBagV87(Canvas c,BanditLootV87.Bag bag){
@@ -3171,7 +3288,7 @@ public final class GameView extends View {
             drawStatusBar(c,"HUN TEST",hunger,12,185,0xffb5a06b);
             drawStatusBar(c,"THR TEST",thirst,12,205,0xff608dad);
             drawStatusBar(c,"FAT TEST",fatigue,12,225,0xffa18eaf);
-            float enc=Math.min(100f,scrap*.8f+ammoPacks*5f+medkits*7f);
+            float enc=encumbranceV91();
             drawStatusBar(c,"ENC TEST",enc,12,245,0xffbca36e);
         }
         label(c,"MOVE",lx-39,jy+105,12,0xffb8d4c5,true);
