@@ -453,7 +453,15 @@ public final class MainActivity extends Activity {
         left.addView(text("Appearance uses locked character pixels. Future armor and transmog require approved overlays.",11,false));
         section(right,"BACKPACK   •   24 SLOTS");
         right.addView(text("Select an item to USE it or assign it to the quick-access bar.",12,false));
-        final int[] itemKinds={0,1,2,6,7}; // legacy usable hotbar; V80 resources are crafting stacks
+        final int[] itemKinds={0,1,2,6,7}; // old hotbar unchanged; V83 craft items
+        final Button[] backpackStackButtonsV83=new Button[8];
+        final Runnable refreshCraftCountsV83=()->{
+            int[] amounts={game.scrap,game.medkits,game.ammoPacks,game.foodCount,
+                game.waterCount,game.wood,game.stone,game.fiber};
+            String[] titles={"SCRAP","MEDKIT","AMMO","FOOD","WATER","WOOD","STONE","FIBER"};
+            for(int k=0;k<8;k++)if(backpackStackButtonsV83[k]!=null)
+                backpackStackButtonsV83[k].setText(titles[k]+"\n×"+amounts[k]);
+        };
         for(int ir=0;ir<4;ir++){
             LinearLayout slots=new LinearLayout(this);slots.setOrientation(LinearLayout.HORIZONTAL);
             for(int ic=0;ic<6;ic++){
@@ -467,6 +475,7 @@ public final class MainActivity extends Activity {
                     idx==4?game.waterCount:idx==5?game.wood:
                     idx==6?game.stone:idx==7?game.fiber:0;
                 Button slot=v62Slot(name.isEmpty()?"":name+"\n×"+qty,qty>0);
+                if(idx<8)backpackStackButtonsV83[idx]=slot;
                 LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(0,
                     Math.round(39*getResources().getDisplayMetrics().density),1);
                 params.setMargins(3,3,3,3);slots.addView(slot,params);
@@ -497,6 +506,26 @@ public final class MainActivity extends Activity {
             }
             right.addView(slots);
         }
+        section(right,"CRAFT & PLACE IN WORLD");
+        right.addView(text("Craft structures from gathered materials. Builds appear ahead on clear ground.",11,false));
+        LinearLayout recipesV83=new LinearLayout(this);
+        recipesV83.setOrientation(LinearLayout.HORIZONTAL);
+        right.addView(recipesV83);
+        Button craftWall=v62Slot("BARRICADE\n4 WOOD + 2 STONE",true);
+        Button craftLight=v62Slot("LIGHT POST\n2 WOOD + 2 FIBER + 1 SCRAP",true);
+        int recipeHeight=Math.round(49*getResources().getDisplayMetrics().density);
+        recipesV83.addView(craftWall,new LinearLayout.LayoutParams(0,recipeHeight,1));
+        recipesV83.addView(craftLight,new LinearLayout.LayoutParams(0,recipeHeight,1));
+        craftWall.setOnClickListener(v->{
+            boolean built=game.craftPlaceV83(CampCraftV83.BARRICADE);
+            Toast.makeText(this,built?"Barricade built":game.craftV83.error,Toast.LENGTH_SHORT).show();
+            if(built){refreshCraftCountsV83.run();avatar.invalidate();}
+        });
+        craftLight.setOnClickListener(v->{
+            boolean built=game.craftPlaceV83(CampCraftV83.LIGHT_POST);
+            Toast.makeText(this,built?"Light post built":game.craftV83.error,Toast.LENGTH_SHORT).show();
+            if(built){refreshCraftCountsV83.run();avatar.invalidate();}
+        });
         section(right,"QUICK ACCESS   •   6 SLOTS");
         right.addView(text("Tap a quick slot to choose an item. It appears on the gameplay HUD.",12,false));
         LinearLayout quickRow=new LinearLayout(this);
