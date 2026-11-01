@@ -483,9 +483,9 @@ public final class MainActivity extends Activity {
     /** V88 buttons retain the V62 palette but their measured height equals width. */
     private SquareItemSlotV88 v88SquareSlot(String title,boolean equipped){
         SquareItemSlotV88 button=new SquareItemSlotV88(this);
-        button.setAllCaps(false);button.setText(title);button.setTextSize(9);
+        button.setAllCaps(false);button.setText(title);button.setTextSize(11);
         button.setTextColor(0xffe1cfac);
-        button.setPadding(2,1,2,1);
+        button.setPadding(4,4,4,4);
         button.setMinHeight(0);button.setMinimumHeight(0);
         button.setMinWidth(0);button.setMinimumWidth(0);
         android.graphics.drawable.GradientDrawable bg=
@@ -552,8 +552,8 @@ public final class MainActivity extends Activity {
         final Button[] lootButtons=new Button[BanditLootV87.ITEMS];
         final Button[] playerButtons=new Button[BanditLootV87.ITEMS];
         final int height=Math.round(66f*getResources().getDisplayMetrics().density);
-        final LinearLayout[] srcRowsV88=new LinearLayout[2];
-        final LinearLayout[] dstRowsV88=new LinearLayout[2];
+        final LinearLayout[] srcRowsV88=new LinearLayout[4];
+        final LinearLayout[] dstRowsV88=new LinearLayout[4];
         final AlertDialog[] active={null};
         final Runnable[] refresh={null};
         final Runnable[] claimSelected={null};
@@ -569,7 +569,7 @@ public final class MainActivity extends Activity {
         };
         for(int i=0;i<BanditLootV87.ITEMS;i++){
             final int kind=i;
-            int rowIndex=i/4;
+            int rowIndex=i/2;
             if(srcRowsV88[rowIndex]==null){
                 LinearLayout a=column();a.setOrientation(LinearLayout.HORIZONTAL);
                 LinearLayout b=column();b.setOrientation(LinearLayout.HORIZONTAL);
@@ -656,12 +656,13 @@ public final class MainActivity extends Activity {
     void lootClinicStorageV89(ClinicInteriorV89.Storage box){
         if(game==null||box==null||!game.insideClinicV89||
             !game.clinicInteriorV89.contains(box)||!game.isPlaying())return;
-        if(game.clinicInteriorV89.nearest(game.playerX,game.playerY,
+        if(game.nearestAnyInteriorStorageV91(game.playerX,game.playerY,
             ClinicInteriorV89.USE_RADIUS)!=box)return;
         game.menuPause(true);
         LinearLayout shell=column();
         shell.setBackgroundColor(0xff212825);
-        section(shell,"FIELD CLINIC  •  "+box.label);
+        section(shell,(game.activeSiteV91>=0?
+            ExpeditionSitesV88.SITES[game.activeSiteV91].name:"BUILDING")+" • "+box.label);
         shell.addView(text("Tap an item then LOOT, or drag its icon across to PLAYER INVENTORY. LOOT ALL collects everything.",12,false));
         LinearLayout sides=new LinearLayout(this);
         sides.setOrientation(LinearLayout.HORIZONTAL);
@@ -683,8 +684,8 @@ public final class MainActivity extends Activity {
         final Button[] lootButtons=new Button[BanditLootV87.ITEMS];
         final Button[] playerButtons=new Button[BanditLootV87.ITEMS];
         final int height=Math.round(66f*getResources().getDisplayMetrics().density);
-        final LinearLayout[] srcRowsV88=new LinearLayout[2];
-        final LinearLayout[] dstRowsV88=new LinearLayout[2];
+        final LinearLayout[] srcRowsV88=new LinearLayout[4];
+        final LinearLayout[] dstRowsV88=new LinearLayout[4];
         final AlertDialog[] active={null};
         final Runnable[] refresh={null};
         final Runnable[] claimSelected={null};
@@ -694,13 +695,14 @@ public final class MainActivity extends Activity {
             if(game.lootClinicStackV89(box,kind)>0){
                 selected[0]=-1;
                 refresh[0].run();
-                if(box.empty()&&active[0]!=null)
+                if(box.empty()&&game.fieldFindsV91.searched(game.activeSiteV91,
+                    game.storageIndexV91(box))&&active[0]!=null)
                     active[0].dismiss();
             }
         };
         for(int i=0;i<BanditLootV87.ITEMS;i++){
             final int kind=i;
-            int rowIndex=i/4;
+            int rowIndex=i/2;
             if(srcRowsV88[rowIndex]==null){
                 LinearLayout a=column();a.setOrientation(LinearLayout.HORIZONTAL);
                 LinearLayout b=column();b.setOrientation(LinearLayout.HORIZONTAL);
@@ -762,16 +764,21 @@ public final class MainActivity extends Activity {
         footer.setOrientation(LinearLayout.HORIZONTAL);
         shell.addView(footer);
         Button loot=v62Slot("LOOT",true),all=v62Slot("LOOT ALL",true),
-            close=v62Slot("CLOSE",true);
-        footer.addView(loot,new LinearLayout.LayoutParams(0,-2,1));
-        footer.addView(all,new LinearLayout.LayoutParams(0,-2,1));
-        footer.addView(close,new LinearLayout.LayoutParams(0,-2,1));
+            gear=v62Slot("SEARCH GEAR",true),close=v62Slot("CLOSE",true);
+        int footerHeight=Math.round(53*getResources().getDisplayMetrics().density);
+        footer.addView(loot,new LinearLayout.LayoutParams(0,footerHeight,1));
+        footer.addView(all,new LinearLayout.LayoutParams(0,footerHeight,1));
+        footer.addView(gear,new LinearLayout.LayoutParams(0,footerHeight,1.4f));
+        footer.addView(close,new LinearLayout.LayoutParams(0,footerHeight,1));
         loot.setOnClickListener(v->claimSelected[0].run());
         all.setOnClickListener(v->{
-            if(game.lootClinicAllV89(box)>0){
-                refresh[0].run();
-                if(active[0]!=null)active[0].dismiss();
-            }
+            if(game.lootClinicAllV89(box)>0)refresh[0].run();
+        });
+        gear.setOnClickListener(v->{
+            String found=game.lootGearV91(box);
+            Toast.makeText(this,found.isEmpty()?"This case was already searched":
+                "Found: "+found,Toast.LENGTH_LONG).show();
+            refresh[0].run();
         });
         AlertDialog dialog=new AlertDialog.Builder(this).setView(shell).create();
         active[0]=dialog;
@@ -802,8 +809,8 @@ public final class MainActivity extends Activity {
         LinearLayout left=column(),right=column();
         left.setBackgroundColor(0xff302621);
         right.setBackgroundColor(0xff282321);
-        row.addView(left,new LinearLayout.LayoutParams(0,-2,44f));
-        row.addView(right,new LinearLayout.LayoutParams(0,-2,56f));
+        row.addView(left,new LinearLayout.LayoutParams(0,-2,36f));
+        row.addView(right,new LinearLayout.LayoutParams(0,-2,64f));
         section(left,"SURVIVOR   •   EQUIPMENT");
         V62InventoryPreview avatar=new V62InventoryPreview(this,game);
         left.addView(avatar,new LinearLayout.LayoutParams(-1,
@@ -827,7 +834,9 @@ public final class MainActivity extends Activity {
                 String label=equipment[ix];
                 String value=ix==2?"SHIRT":ix==3?"PANTS":ix==4?"BOOTS":
                     ix==6?LOADOUTS[game.gun]:
-                    ix==7?(game.dualTorch&&game.lampOn?"FLASHLIGHT":"EMPTY"):"EMPTY";
+                    ix==7?(game.dualTorch&&game.lampOn?"FLASHLIGHT":"EMPTY"):
+                    ix==5?(game.fieldFindsV91.equipped<0?"EMPTY":
+                    FieldFindsV91.BAGS[game.fieldFindsV91.equipped]):"EMPTY";
                 Button equipped=v62Slot(label+"\n"+value,true);
                 if(ix==6||ix==7){
                     equipped.setCompoundDrawables(game.itemIconsV84.drawable(
@@ -835,7 +844,7 @@ public final class MainActivity extends Activity {
                         null,null,null);
                 }
                 LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(0,
-                    Math.round(32*getResources().getDisplayMetrics().density),1);
+                    Math.round(52*getResources().getDisplayMetrics().density),1);
                 p.setMargins(3,3,3,3);gearRow.addView(equipped,p);
                 equipped.setOnClickListener(v->{
                     if(ix==6){
@@ -852,6 +861,23 @@ public final class MainActivity extends Activity {
                             .putBoolean("lampOn",enabled).apply();
                         game.reloadSettings();avatar.invalidate();
                         equipped.setText("OFF-HAND\n"+(enabled?"FLASHLIGHT":"EMPTY"));
+                    }else if(ix==5){
+                        String[] options=new String[4];
+                        options[0]="NONE / REMOVE BACKPACK";
+                        for(int b=0;b<3;b++)options[b+1]=FieldFindsV91.BAGS[b]+
+                            "  ×"+game.fieldFindsV91.bags[b]+"  (+"+
+                            FieldFindsV91.CAPACITY_BONUS[b]+" CAPACITY)";
+                        new AlertDialog.Builder(this).setTitle("EQUIP CARRY BAG")
+                            .setItems(options,(d,choice)->{
+                                if(choice==0)game.fieldFindsV91.unequip();
+                                else if(!game.fieldFindsV91.equip(choice-1)){
+                                    Toast.makeText(this,"Find this backpack in a building case first",
+                                        Toast.LENGTH_SHORT).show();return;
+                                }
+                                equipped.setText("BACK\n"+(game.fieldFindsV91.equipped<0?
+                                    "EMPTY":FieldFindsV91.BAGS[game.fieldFindsV91.equipped]));
+                                game.saveProgress();avatar.invalidate();
+                            }).show();
                     }else Toast.makeText(this,
                         "Approved "+label+" overlay assets not installed yet",
                         Toast.LENGTH_SHORT).show();
@@ -859,7 +885,8 @@ public final class MainActivity extends Activity {
             }
             left.addView(gearRow);
         }
-        left.addView(text("Appearance uses locked character pixels. Future armor and transmog require approved overlays.",11,false));
+        left.addView(text("Carry capacity: "+game.fieldFindsV91.capacity()+
+            " • ENC "+Math.round(game.encumbranceV91())+"% • Packs appear on the survivor.",12,false));
         section(right,"BACKPACK   •   24 SQUARE SLOTS");
         right.addView(text("Select an item to USE it or assign it to the quick-access bar.",12,false));
         final int[] itemKinds={0,1,2,6,7}; // old hotbar unchanged; V83 craft items
@@ -877,42 +904,50 @@ public final class MainActivity extends Activity {
             for(int k=0;k<14;k++)if(backpackStackButtonsV83[k]!=null)
                 backpackStackButtonsV83[k].setText(titles[k]+"\n×"+amounts[k]);
         };
-        for(int ir=0;ir<4;ir++){
+        for(int ir=0;ir<6;ir++){
             LinearLayout slots=new LinearLayout(this);slots.setOrientation(LinearLayout.HORIZONTAL);
-            for(int ic=0;ic<6;ic++){
-                int idx=ir*6+ic;
+            for(int ic=0;ic<4;ic++){
+                int idx=ir*4+ic;
                 int kind=idx==0?0:idx==1?1:idx==2?2:idx==3?6:idx==4?7:0;
                 String name=idx==0?"SCRAP":idx==1?"MEDKIT":idx==2?"AMMO":
                     idx==3?"FOOD":idx==4?"WATER":idx==5?"WOOD":
                     idx==6?"STONE":idx==7?"FIBER":idx==8?"BARRICADE":idx==9?"LIGHT POST":
                     idx==10?"WATER COLLECTOR":idx==11?"FIELD SHELTER":
-                    idx==12?"BANDAGE":idx==13?"ENERGY RATION":"";
+                    idx==12?"BANDAGE":idx==13?"ENERGY RATION":
+                    FieldFindsV91.NAMES[idx-14];
                 int qty=idx==0?game.scrap:idx==1?game.medkits:
                     idx==2?game.ammoPacks:idx==3?game.foodCount:
                     idx==4?game.waterCount:idx==5?game.wood:
                     idx==6?game.stone:idx==7?game.fiber:idx==8?game.craftV83.stock[0]:
                     idx==9?game.craftV83.stock[1]:idx==10?game.craftV83.stock[2]:
                     idx==11?game.craftV83.stock[3]:
-                    idx==12?game.bandagesV88:idx==13?game.energyV88:0;
+                    idx==12?game.bandagesV88:idx==13?game.energyV88:
+                    game.fieldFindsV91.items[idx-14];
                 SquareItemSlotV88 slot=v88SquareSlot(name.isEmpty()?"":name+"\n×"+qty,qty>0);
                 if(idx<14)backpackStackButtonsV83[idx]=slot;
-                if(idx<14){
-                    android.graphics.drawable.Drawable icon=game.itemIconsV84.drawable(
-                        getResources(),idx==10?ItemIconsV84.WATER_COLLECTOR:
-                            idx==11?ItemIconsV84.FIELD_SHELTER:
-                            idx==12?ItemIconsV84.BANDAGE:
-                            idx==13?ItemIconsV84.ENERGY_RATION:idx,35);
+                if(idx<24){
+                    android.graphics.drawable.Drawable icon=idx>=14?
+                        FieldItemIconsV91.drawable(getResources(),idx-14,38):
+                        game.itemIconsV84.drawable(
+                            getResources(),idx==10?ItemIconsV84.WATER_COLLECTOR:
+                                idx==11?ItemIconsV84.FIELD_SHELTER:
+                                idx==12?ItemIconsV84.BANDAGE:
+                                idx==13?ItemIconsV84.ENERGY_RATION:idx,38);
                     slot.setCompoundDrawables(null,icon,null,null);
                     slot.setCompoundDrawablePadding(2);
                     slot.setGravity(Gravity.CENTER);
-                    slot.setTextSize(10.5f);
+                    slot.setTextSize(12f);
                     slot.setPadding(2,3,2,2);
                 }
                 // Measured as a square: width assigned by six equal inventory columns.
                 LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(0,-2,1);
                 params.setMargins(3,3,3,3);slots.addView(slot,params);
                 slot.setOnClickListener(v->{
-                    if(idx>=14)return;
+                    if(idx>=14){
+                        Toast.makeText(this,name+" ×"+game.fieldFindsV91.items[idx-14]+
+                            " • scavenged material",Toast.LENGTH_SHORT).show();
+                        return;
+                    }
                     if(idx>=12){
                         final int utility=idx==12?13:14;
                         String[] commands={"USE","ASSIGN QUICK SLOT 1","ASSIGN QUICK SLOT 2",
@@ -1063,9 +1098,10 @@ public final class MainActivity extends Activity {
         LinearLayout tools=new LinearLayout(this);tools.setOrientation(LinearLayout.HORIZONTAL);
         Button smaller=v62Slot("WINDOW −",true),larger=v62Slot("WINDOW +",true);
         Button closeBag=v62Slot("CLOSE BAG",true);
-        tools.addView(smaller,new LinearLayout.LayoutParams(0,-2,1));
-        tools.addView(larger,new LinearLayout.LayoutParams(0,-2,1));
-        tools.addView(closeBag,new LinearLayout.LayoutParams(0,-2,1));
+        int footerDp=Math.round(50*getResources().getDisplayMetrics().density);
+        tools.addView(smaller,new LinearLayout.LayoutParams(0,footerDp,1));
+        tools.addView(larger,new LinearLayout.LayoutParams(0,footerDp,1));
+        tools.addView(closeBag,new LinearLayout.LayoutParams(0,footerDp,1));
         shell.addView(tools);
         // A compact in-panel footer avoids Android AlertDialog’s large button strip.
         AlertDialog dialog=new AlertDialog.Builder(this).setView(shell).create();
