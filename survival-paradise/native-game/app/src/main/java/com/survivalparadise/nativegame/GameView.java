@@ -2058,7 +2058,7 @@ public final class GameView extends View {
         int id=right?AIM_PAD:MOVE_PAD;
         return padBaseY(right)+(editPointer>=0&&editControl==id?editY:host.setting("uiY"+id,0));
     }
-    String controlName(int id){return id==MOVE_PAD?"MOVE JOYSTICK":id==AIM_PAD?"AIM JOYSTICK":
+    String controlName(int id){return id==BAG_EDITOR?"BAG BUTTON":id==MOVE_PAD?"MOVE JOYSTICK":id==AIM_PAD?"AIM JOYSTICK":
         id==HOTBAR?"QUICK ACCESS BAR":LegacyControlsV58.NAMES[id];}
     String controlSizeKey(int id){return id==MOVE_PAD?"movePadSize":id==AIM_PAD?"aimPadSize":"uiSize"+id;}
     int stickEditorAt(float x,float y){
@@ -2212,15 +2212,16 @@ public final class GameView extends View {
                     selectedHudControl=Math.floorMod(i+(j==0?-1:1),EDITOR_ITEMS);
                     host.prefs.edit().putInt("selectedButton",selectedHudControl).apply();
                 }else if(j==6){
-                    if(i<LegacyControlsV58.COUNT)
-                        host.prefs.edit().putBoolean("uiEnabled"+i,!uiEnabled(i)).apply();
+                    if(i<LegacyControlsV58.COUNT||i==BAG_EDITOR)
+                        host.prefs.edit().putBoolean("uiEnabled"+i,
+                            !host.option("uiEnabled"+i,true)).apply();
                 }else{
                     String key=j==2||j==3?controlSizeKey(i):"uiAlpha"+i;
                     int min=j<=3?(i>=MOVE_PAD?70:60):30;
                     int current=host.setting(key,100);
                     int next=Math.round(clamp(current+(j%2==0?-10:10),min,j<=3?180:100));
                     host.prefs.edit().putInt(key,next).apply();
-                    if(i==HOTBAR||(i>=MOVE_PAD&&j<=3))reloadSettings();
+                    if(i==HOTBAR||i==BAG_EDITOR||(i>=MOVE_PAD&&j<=3))reloadSettings();
                 }
                 invalidate();return true;
             }
@@ -2271,8 +2272,28 @@ public final class GameView extends View {
         c.drawBitmap(crosshairReticle,null,dest,reticlePaint);
     }
     /** Larger BAG control directly over right aim stick. */
+    float bagScaleV87(){return host.setting("uiSize"+BAG_EDITOR,100)/100f;}
+    float bagXv87(){
+        return WorldUiV86.bagX(viewW)+
+            (editPointer>=0&&editControl==BAG_EDITOR?editX:host.setting("uiX"+BAG_EDITOR,0));
+    }
+    float bagYv87(){
+        return WorldUiV86.bagY(viewH)+
+            (editPointer>=0&&editControl==BAG_EDITOR?editY:host.setting("uiY"+BAG_EDITOR,0));
+    }
+    boolean bagHitV87(float x,float y){
+        if(!editControls&&!host.option("uiEnabled"+BAG_EDITOR,true))return false;
+        return within(x,y,bagXv87(),bagYv87(),
+            WorldUiV86.BAG_W*bagScaleV87(),WorldUiV86.BAG_H*bagScaleV87());
+    }
     void drawFloatingBagV86(Canvas c){
-        float x=WorldUiV86.bagX(viewW),y=WorldUiV86.bagY(viewH);
+        if(!editControls&&!host.option("uiEnabled"+BAG_EDITOR,true))return;
+        float x=bagXv87(),y=bagYv87(),s=bagScaleV87();
+        int alpha=host.setting("uiAlpha"+BAG_EDITOR,100);
+        c.save();c.translate(x,y);c.scale(s,s);
+        int fade=alpha<100?c.saveLayerAlpha(0,0,WorldUiV86.BAG_W,
+            WorldUiV86.BAG_H,Math.round(Math.max(30,alpha)*2.55f)):0;
+        x=0;y=0;
         rounded(c,x,y,WorldUiV86.BAG_W,WorldUiV86.BAG_H,9,0xd020403b);
         p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(2f);
         color(0xffd6b27b);
@@ -2288,6 +2309,13 @@ public final class GameView extends View {
         rect(c,x+23,y+31,11,5,0xffc0a77d);
         rect(c,x+18,y+16,4,21,0xff243a32);
         label(c,"BAG",x+49,y+34,17,0xfff4ebd5,true);
+        if(editControls){
+            p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(2);
+            color(0xffebc279);c.drawRect(1,1,WorldUiV86.BAG_W-1,WorldUiV86.BAG_H-1,p);
+            p.setStyle(Paint.Style.FILL);
+        }
+        if(fade!=0)c.restoreToCount(fade);
+        c.restore();
     }
     /** Aim direction determines ghost location; use the unchanged aim stick. */
     void updatePlacementTargetV86(){
@@ -2542,7 +2570,7 @@ public final class GameView extends View {
             if(within(x,y,viewW/2-150,viewH/2-38,300,50)){if(gameOver)newGame();else togglePause();return;}
             if(within(x,y,viewW/2-150,viewH/2+28,300,50)){host.settings();return;}
         }
-        if(WorldUiV86.bagHit(x,y,viewW,viewH)){
+        if(!editControls&&bagHitV87(x,y)){
             cancelPlaceV84();host.inventory();return;
         }
         switch(TopHudV76.hit(x,y,viewW)){
@@ -2638,9 +2666,18 @@ public final class GameView extends View {
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_POINTER_DOWN:
                 if(!playing||paused||TopHudV76.hit(x,y,viewW)>=0||
-                    WorldUiV86.bagHit(x,y,viewW,viewH)){tap(x,y);return true;}
+                    (!editControls&&bagHitV87(x,y))){tap(x,y);return true;}
                 if(editControls&&hudEditorTouch(x,y)){
                     if(panelPointer==-2)panelPointer=id;
+                    return true;
+                }
+                if(editControls&&bagHitV87(x,y)){
+                    editPointer=id;editControl=BAG_EDITOR;
+                    selectedHudControl=BAG_EDITOR;
+                    editX=host.setting("uiX"+BAG_EDITOR,0);
+                    editY=host.setting("uiY"+BAG_EDITOR,0);
+                    editGrabX=x-bagXv87();editGrabY=y-bagYv87();
+                    host.prefs.edit().putInt("selectedButton",BAG_EDITOR).apply();
                     return true;
                 }
                 int hotSlot=hotbarAt(x,y);
@@ -2707,16 +2744,23 @@ public final class GameView extends View {
                     }
                     if(pointer==editPointer&&editControl>=0){
                         editX=Math.round(px-editGrabX-
-                                (editControl==HOTBAR?viewW*.5f-6*47f*hotbarScale*.5f:
+                                (editControl==BAG_EDITOR?WorldUiV86.bagX(viewW):
+                                 editControl==HOTBAR?viewW*.5f-6*47f*hotbarScale*.5f:
                                  editControl<LegacyControlsV58.COUNT?
                                  LegacyControlsV58.defaultX(editControl,viewW):
                                  padBaseX(editControl==AIM_PAD)));
                         editY=Math.round(py-editGrabY-
-                                (editControl==HOTBAR?viewH-103f:
+                                (editControl==BAG_EDITOR?WorldUiV86.bagY(viewH):
+                                 editControl==HOTBAR?viewH-103f:
                                  editControl<LegacyControlsV58.COUNT?
                                  LegacyControlsV58.defaultY(editControl,viewH):
                                  padBaseY(editControl==AIM_PAD)));
-                        if(editControl<LegacyControlsV58.COUNT){
+                        if(editControl==BAG_EDITOR){
+                            editX=Math.round(clamp(editX,-WorldUiV86.bagX(viewW),
+                                viewW-WorldUiV86.BAG_W*bagScaleV87()-WorldUiV86.bagX(viewW)));
+                            editY=Math.round(clamp(editY,60-WorldUiV86.bagY(viewH),
+                                viewH-WorldUiV86.BAG_H*bagScaleV87()-WorldUiV86.bagY(viewH)));
+                        }else if(editControl<LegacyControlsV58.COUNT){
                             editX=Math.round(clamp(editX,-LegacyControlsV58.defaultX(editControl,viewW),
                                   viewW-uiWidth(editControl)-LegacyControlsV58.defaultX(editControl,viewW)));
                             editY=Math.round(clamp(editY,-LegacyControlsV58.defaultY(editControl,viewH),
