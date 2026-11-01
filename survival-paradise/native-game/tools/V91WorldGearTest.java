@@ -5,7 +5,7 @@ public final class V91WorldGearTest {
         if(!ok)throw new AssertionError(reason);
     }
     public static void main(String[] args){
-        check(ExpeditionSitesV88.SITES.length>=22,"expanded facility count");
+        check(ExpeditionSitesV88.SITES.length>=26,"expanded facility count");
         check(ExpeditionSitesV88.SITES[1].kind==ExpeditionSitesV88.CLINIC,
             "V90 original clinic index remains stable");
         FieldFindsV91 gear=new FieldFindsV91();
@@ -34,6 +34,9 @@ public final class V91WorldGearTest {
                 check(!restore.storages[0].label.isEmpty(),"site-specific container label");
             }
         }
+        // Twenty-six authored sites + 32 player-built shelters fit persistent loot IDs.
+        check(ExpeditionSitesV88.SITES.length+CampCraftV83.MAX<=64,
+            "crafted shelter save identifiers exceed gear container capacity");
         gear.equip(1);
         check(gear.capacity()==63,"hiking pack load capacity");
         String saved=gear.encode();
