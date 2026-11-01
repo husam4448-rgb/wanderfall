@@ -374,25 +374,35 @@ public final class MainActivity extends Activity {
         root.addView(text("Fades all HUD panels, controls, hotbar and status bars. Aim reticle and HUD editor remain visible.",11,false));
         section(root,"BUTTON SELECTION");
         Spinner picker=new Spinner(this);
+        String[] choicesV87=java.util.Arrays.copyOf(LegacyControlsV58.NAMES,
+            LegacyControlsV58.COUNT+1);
+        choicesV87[LegacyControlsV58.COUNT]="BAG BUTTON";
         picker.setAdapter(new ArrayAdapter<String>(this,
-            android.R.layout.simple_spinner_dropdown_item,LegacyControlsV58.NAMES));
+            android.R.layout.simple_spinner_dropdown_item,choicesV87));
         root.addView(picker);
         LinearLayout options=column();
         root.addView(options);
-        picker.setSelection(Math.max(0,Math.min(LegacyControlsV58.COUNT-1,
-            prefs.getInt("selectedButton",0))));
+        int lastSelectedV87=prefs.getInt("selectedButton",0);
+        picker.setSelection(lastSelectedV87==GameView.BAG_EDITOR?
+            LegacyControlsV58.COUNT:Math.max(0,Math.min(LegacyControlsV58.COUNT-1,
+            lastSelectedV87)));
         picker.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener(){
             public void onNothingSelected(android.widget.AdapterView<?> parent){}
             public void onItemSelected(android.widget.AdapterView<?> parent,View item,int index,long id){
-                prefs.edit().putInt("selectedButton",index).apply();
+                int control=index==LegacyControlsV58.COUNT?GameView.BAG_EDITOR:index;
+                String title=index==LegacyControlsV58.COUNT?
+                    "BAG BUTTON":LegacyControlsV58.NAMES[index];
+                prefs.edit().putInt("selectedButton",control).apply();
                 options.removeAllViews();
-                check(options,"Enable "+LegacyControlsV58.NAMES[index],
-                    "uiEnabled"+index,LegacyControlsV58.defaultEnabled(index));
-                slider(options,"SIZE","uiSize"+index,60,160,
+                check(options,"Enable "+title,
+                    "uiEnabled"+control,index==LegacyControlsV58.COUNT||
+                        LegacyControlsV58.defaultEnabled(index));
+                slider(options,"SIZE","uiSize"+control,60,180,
+                    index==LegacyControlsV58.COUNT?100:
                     LegacyControlsV58.defaultScale(index),"%");
-                slider(options,"OPACITY","uiAlpha"+index,30,100,100,"%");
-                slider(options,"HORIZONTAL POSITION","uiX"+index,-340,340,0,"");
-                slider(options,"VERTICAL POSITION","uiY"+index,-270,270,0,"");
+                slider(options,"OPACITY","uiAlpha"+control,30,100,100,"%");
+                slider(options,"HORIZONTAL POSITION","uiX"+control,-420,420,0,"");
+                slider(options,"VERTICAL POSITION","uiY"+control,-310,310,0,"");
             }
         });
         section(root,"LAYOUT ACTIONS");
@@ -486,6 +496,129 @@ public final class MainActivity extends Activity {
         bg.setStroke(2,equipped?0xffaa854d:0xff665747);
         button.setBackground(bg);
         return button;
+    }
+
+    /**
+     * V87 dual-inventory bandit loot. Tap to select then LOOT, drag its icon
+     * over PLAYER INVENTORY, or LOOT ALL. Only this bag's selected stacks move.
+     */
+    void lootBanditBagV87(BanditLootV87.Bag bag){
+        if(game==null||bag==null||!game.banditLootV87.contains(bag)||!game.isPlaying())return;
+        if(game.nearbyBanditBagV87()!=bag)return; // requires close proximity
+        game.menuPause(true);
+        LinearLayout shell=column();
+        shell.setBackgroundColor(0xff212825);
+        section(shell,"BANDIT BACKPACK  •  SEARCH & TRANSFER");
+        shell.addView(text("Tap an item then LOOT, or drag its icon across to PLAYER INVENTORY. LOOT ALL collects everything.",12,false));
+        LinearLayout sides=new LinearLayout(this);
+        sides.setOrientation(LinearLayout.HORIZONTAL);
+        shell.addView(sides,new LinearLayout.LayoutParams(-1,0,1f));
+        LinearLayout source=column(),destination=column();
+        source.setBackgroundColor(0xff34302a);
+        destination.setBackgroundColor(0xff233b34);
+        sides.addView(source,new LinearLayout.LayoutParams(0,-1,1f));
+        sides.addView(destination,new LinearLayout.LayoutParams(0,-1,1f));
+        section(source,"BANDIT LOOT");
+        section(destination,"PLAYER INVENTORY");
+        ScrollView srcScroll=new ScrollView(this);
+        ScrollView dstScroll=new ScrollView(this);
+        LinearLayout srcItems=column(),dstItems=column();
+        srcScroll.addView(srcItems);dstScroll.addView(dstItems);
+        source.addView(srcScroll,new LinearLayout.LayoutParams(-1,0,1f));
+        destination.addView(dstScroll,new LinearLayout.LayoutParams(-1,0,1f));
+        final int[] selected={-1};
+        final Button[] lootButtons=new Button[BanditLootV87.ITEMS];
+        final Button[] playerButtons=new Button[BanditLootV87.ITEMS];
+        final int height=Math.round(66f*getResources().getDisplayMetrics().density);
+        final AlertDialog[] active={null};
+        final Runnable[] refresh={null};
+        final Runnable[] claimSelected={null};
+        claimSelected[0]=()->{
+            int kind=selected[0];
+            if(kind<0)return;
+            if(game.lootBanditStackV87(bag,kind)>0){
+                selected[0]=-1;
+                refresh[0].run();
+                if(!game.banditLootV87.contains(bag)&&active[0]!=null)
+                    active[0].dismiss();
+            }
+        };
+        for(int i=0;i<BanditLootV87.ITEMS;i++){
+            final int kind=i;
+            Button take=v62Slot(BanditLootV87.NAMES[i],true);
+            take.setCompoundDrawables(null,game.itemIconsV84.drawable(
+                getResources(),kind,32),null,null);
+            take.setCompoundDrawablePadding(2);
+            take.setGravity(Gravity.CENTER);
+            take.setTextSize(11);
+            srcItems.addView(take,new LinearLayout.LayoutParams(-1,height));
+            lootButtons[i]=take;
+            // A source button retains the touch stream even if dragged outside.
+            take.setOnTouchListener((v,e)->{
+                if(e.getActionMasked()==android.view.MotionEvent.ACTION_DOWN){
+                    selected[0]=kind;
+                    refresh[0].run();
+                    return true;
+                }
+                if(e.getActionMasked()==android.view.MotionEvent.ACTION_UP){
+                    android.graphics.Rect rect=new android.graphics.Rect();
+                    if(destination.getGlobalVisibleRect(rect)&&
+                       rect.contains((int)e.getRawX(),(int)e.getRawY()))
+                        claimSelected[0].run();
+                    return true;
+                }
+                return true;
+            });
+            Button own=v62Slot(BanditLootV87.NAMES[i],false);
+            own.setCompoundDrawables(null,game.itemIconsV84.drawable(
+                getResources(),kind,32),null,null);
+            own.setCompoundDrawablePadding(2);
+            own.setGravity(Gravity.CENTER);
+            own.setTextSize(11);
+            dstItems.addView(own,new LinearLayout.LayoutParams(-1,height));
+            playerButtons[i]=own;
+        }
+        refresh[0]=()->{
+            int[] playerCounts={game.scrap,game.medkits,game.ammoPacks,
+                game.foodCount,game.waterCount,game.wood,game.stone,game.fiber};
+            for(int i=0;i<BanditLootV87.ITEMS;i++){
+                int count=bag.count[i];
+                Button sourceButton=lootButtons[i];
+                sourceButton.setVisibility(count>0?View.VISIBLE:View.GONE);
+                sourceButton.setText(BanditLootV87.NAMES[i].toUpperCase()+
+                    " ×"+count+(selected[0]==i?"  ✓":""));
+                sourceButton.setTextColor(selected[0]==i?
+                    0xfff8c873:0xffe6d7b7);
+                playerButtons[i].setText(BanditLootV87.NAMES[i].toUpperCase()+
+                    " ×"+playerCounts[i]);
+            }
+        };
+        refresh[0].run();
+        LinearLayout footer=new LinearLayout(this);
+        footer.setOrientation(LinearLayout.HORIZONTAL);
+        shell.addView(footer);
+        Button loot=v62Slot("LOOT",true),all=v62Slot("LOOT ALL",true),
+            close=v62Slot("CLOSE",true);
+        footer.addView(loot,new LinearLayout.LayoutParams(0,-2,1));
+        footer.addView(all,new LinearLayout.LayoutParams(0,-2,1));
+        footer.addView(close,new LinearLayout.LayoutParams(0,-2,1));
+        loot.setOnClickListener(v->claimSelected[0].run());
+        all.setOnClickListener(v->{
+            if(game.lootAllBanditV87(bag)>0){
+                refresh[0].run();
+                if(active[0]!=null)active[0].dismiss();
+            }
+        });
+        AlertDialog dialog=new AlertDialog.Builder(this).setView(shell).create();
+        active[0]=dialog;
+        close.setOnClickListener(v->dialog.dismiss());
+        dialog.setOnDismissListener(d->{
+            game.saveProgress();game.menuPause(false);restoreFullscreenAfterShade();
+        });
+        dialog.show();
+        dialog.setCancelable(true);
+        dialog.setCanceledOnTouchOutside(true);
+        resizeSettingsWindow(dialog,94,88);
     }
     void inventory(){
         if(game==null||!game.isPlaying())return;
