@@ -350,8 +350,8 @@ jobs:
           assert 'c.translate(WalkAlignmentV48.sourceOffsetX(f)*s,0);' not in g
           assert 'c.translate(-23*s,-48*s);' not in g
           for token in ['LegacyControlsV58.NAMES','"selectedButton"',
-                        '"editControls"','"uiEnabled"+index',
-                        '"uiSize"+index','"uiAlpha"+index',
+                        '"editControls"','"uiEnabled"+control',
+                        '"uiSize"+control','"uiAlpha"+control',
                         '"uiX"+index','"uiY"+index','"showStatusBars"',
                         '"showCrosshair"','"lookAheadEnabled"',
                         '"lookAheadThreshold"','"lookAheadStrength"',
