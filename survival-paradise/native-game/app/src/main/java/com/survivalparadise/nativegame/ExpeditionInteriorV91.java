@@ -59,6 +59,26 @@ public final class ExpeditionInteriorV91 extends ClinicInteriorV89 {
                 return new String[]{"STORAGE","OFFICE","WORK ROOM","BACKROOM","UTILITY","REST AREA"};
         }
     }
+    /** Preserve the site's distinct labels and loot tables while decoding save data. */
+    @Override public void decode(String data){
+        if(data==null||data.isEmpty())return;
+        String[] src=data.split(";",-1);
+        if(src.length!=storages.length)return;
+        int[][] out=new int[storages.length][8];
+        for(int i=0;i<src.length;i++){
+            String[] q=src[i].split(",",-1);
+            if(q.length!=8)return;
+            for(int j=0;j<8;j++){
+                try{
+                    int n=Integer.parseInt(q[j]);
+                    if(n<0||n>999)return;
+                    out[i][j]=n;
+                }catch(NumberFormatException ex){return;}
+            }
+        }
+        for(int i=0;i<out.length;i++)
+            System.arraycopy(out[i],0,storages[i].amount,0,8);
+    }
     @Override public boolean blocked(float x,float y,float r){
         if(x-r<23*EXPANSION_V90||x+r>1577*EXPANSION_V90||
            y-r<23*EXPANSION_V90||y+r>1095*EXPANSION_V90)return true;
