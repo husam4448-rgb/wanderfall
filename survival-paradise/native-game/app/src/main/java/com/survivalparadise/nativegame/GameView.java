@@ -2405,7 +2405,7 @@ public final class GameView extends View {
             case TopHudV76.LAMP:toggleLamp();return;
             case TopHudV76.CAMP:placeCampfire();return;
             case TopHudV76.DAY:toggleNight();return;
-            case TopHudV76.BAG:host.inventory();return;
+            case TopHudV76.BAG:cancelPlaceV84();host.inventory();return;
             default:break;
         }
         if(paused)return;
