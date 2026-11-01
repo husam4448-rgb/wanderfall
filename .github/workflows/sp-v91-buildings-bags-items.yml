@@ -13,6 +13,9 @@ on:
       - 'assets/authored2d/**'
       - '.github/workflows/sp-v91-buildings-bags-items.yml'
   workflow_dispatch:
+concurrency:
+  group: survival-paradise-v91-native-release
+  cancel-in-progress: true
 jobs:
   native-android-game:
     runs-on: ubuntu-latest
@@ -1168,7 +1171,7 @@ jobs:
           mkdir -p /tmp/sp-v91
           javac -d /tmp/sp-v91 "$P/ClinicInteriorV89.java" \
             "$P/ExpeditionSitesV88.java" "$P/ExpeditionInteriorV91.java" \
-            "$P/FieldFindsV91.java" "$R/tools/V91WorldGearTest.java"
+            "$P/FieldFindsV91.java" "$P/CampCraftV83.java" "$R/tools/V91WorldGearTest.java"
           java -cp /tmp/sp-v91 com.survivalparadise.nativegame.V91WorldGearTest
           python3 - <<'PY'
           from pathlib import Path
@@ -1188,7 +1191,7 @@ jobs:
                     "SEARCH GEAR", "for(int ir=0;ir<6;ir++)",
                     "for(int ic=0;ic<4;ic++)"):
               assert t in a,t
-          assert b.count("new Site(")>=22
+          assert b.count("new Site(")>=26
           assert len(list(p.glob("Field*V91.java")))==2
           assert "versionCode 92" in grad
           PY
