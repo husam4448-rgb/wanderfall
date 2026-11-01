@@ -554,6 +554,7 @@ public final class MainActivity extends Activity {
         final int height=Math.round(66f*getResources().getDisplayMetrics().density);
         final LinearLayout[] srcRowsV88=new LinearLayout[4];
         final LinearLayout[] dstRowsV88=new LinearLayout[4];
+        final int cellEdgeV93=Math.round(46f*getResources().getDisplayMetrics().density);
         final AlertDialog[] active={null};
         final Runnable[] refresh={null};
         final Runnable[] claimSelected={null};
@@ -569,7 +570,7 @@ public final class MainActivity extends Activity {
         };
         for(int i=0;i<BanditLootV87.ITEMS;i++){
             final int kind=i;
-            int rowIndex=i/2;
+            int rowIndex=i/6;
             if(srcRowsV88[rowIndex]==null){
                 LinearLayout a=column();a.setOrientation(LinearLayout.HORIZONTAL);
                 LinearLayout b=column();b.setOrientation(LinearLayout.HORIZONTAL);
@@ -578,11 +579,11 @@ public final class MainActivity extends Activity {
             }
             SquareItemSlotV88 take=v88SquareSlot(BanditLootV87.NAMES[i],true);
             take.setCompoundDrawables(null,game.itemIconsV84.drawable(
-                getResources(),kind,32),null,null);
+                getResources(),kind,18),null,null);
             take.setCompoundDrawablePadding(2);
             take.setGravity(Gravity.CENTER);
-            take.setTextSize(11);
-            LinearLayout.LayoutParams srcParams=new LinearLayout.LayoutParams(0,-2,1);
+            take.setTextSize(8);
+            LinearLayout.LayoutParams srcParams=new LinearLayout.LayoutParams(cellEdgeV93,cellEdgeV93);
             srcParams.setMargins(2,2,2,2);srcRowsV88[rowIndex].addView(take,srcParams);
             lootButtons[i]=take;
             // A source button retains the touch stream even if dragged outside.
@@ -603,13 +604,31 @@ public final class MainActivity extends Activity {
             });
             SquareItemSlotV88 own=v88SquareSlot(BanditLootV87.NAMES[i],false);
             own.setCompoundDrawables(null,game.itemIconsV84.drawable(
-                getResources(),kind,32),null,null);
+                getResources(),kind,18),null,null);
             own.setCompoundDrawablePadding(2);
             own.setGravity(Gravity.CENTER);
-            own.setTextSize(11);
-            LinearLayout.LayoutParams ownParams=new LinearLayout.LayoutParams(0,-2,1);
+            own.setTextSize(8);
+            LinearLayout.LayoutParams ownParams=new LinearLayout.LayoutParams(cellEdgeV93,cellEdgeV93);
             ownParams.setMargins(2,2,2,2);dstRowsV88[rowIndex].addView(own,ownParams);
             playerButtons[i]=own;
+        }
+        // Always show every empty inventory cell; never expand occupied stacks.
+        for(int j=BanditLootV87.ITEMS;j<24;j++){
+            int rowIndex=j/6;
+            if(srcRowsV88[rowIndex]==null){
+                LinearLayout a=column();a.setOrientation(LinearLayout.HORIZONTAL);
+                LinearLayout b=column();b.setOrientation(LinearLayout.HORIZONTAL);
+                srcRowsV88[rowIndex]=a;dstRowsV88[rowIndex]=b;
+                srcItems.addView(a);dstItems.addView(b);
+            }
+            for(LinearLayout target:new LinearLayout[]{srcRowsV88[rowIndex],dstRowsV88[rowIndex]}){
+                SquareItemSlotV88 blank=v88SquareSlot("",false);
+                blank.setEnabled(false);
+                blank.setContentDescription("Empty slot");
+                LinearLayout.LayoutParams square=new LinearLayout.LayoutParams(
+                    cellEdgeV93,cellEdgeV93);
+                square.setMargins(2,2,2,2);target.addView(blank,square);
+            }
         }
         refresh[0]=()->{
             int[] playerCounts={game.scrap,game.medkits,game.ammoPacks,
@@ -617,13 +636,15 @@ public final class MainActivity extends Activity {
             for(int i=0;i<BanditLootV87.ITEMS;i++){
                 int count=bag.count[i];
                 Button sourceButton=lootButtons[i];
-                sourceButton.setVisibility(count>0?View.VISIBLE:View.GONE);
-                sourceButton.setText(BanditLootV87.NAMES[i].toUpperCase()+
-                    " ×"+count+(selected[0]==i?"  ✓":""));
+                sourceButton.setVisibility(View.VISIBLE);
+                sourceButton.setEnabled(count>0);
+                sourceButton.setText(count>0?
+                    BanditLootV87.NAMES[i].toUpperCase()+"\n×"+count+
+                    (selected[0]==i?" ✓":""):"");
                 sourceButton.setTextColor(selected[0]==i?
                     0xfff8c873:0xffe6d7b7);
-                playerButtons[i].setText(BanditLootV87.NAMES[i].toUpperCase()+
-                    " ×"+playerCounts[i]);
+                playerButtons[i].setText(playerCounts[i]>0?
+                    BanditLootV87.NAMES[i].toUpperCase()+"\n×"+playerCounts[i]:"");
             }
         };
         refresh[0].run();
@@ -685,6 +706,7 @@ public final class MainActivity extends Activity {
         final int height=Math.round(66f*getResources().getDisplayMetrics().density);
         final LinearLayout[] srcRowsV88=new LinearLayout[4];
         final LinearLayout[] dstRowsV88=new LinearLayout[4];
+        final int cellEdgeV93=Math.round(46f*getResources().getDisplayMetrics().density);
         final AlertDialog[] active={null};
         final Runnable[] refresh={null};
         final Runnable[] claimSelected={null};
@@ -701,7 +723,7 @@ public final class MainActivity extends Activity {
         };
         for(int i=0;i<BanditLootV87.ITEMS;i++){
             final int kind=i;
-            int rowIndex=i/2;
+            int rowIndex=i/6;
             if(srcRowsV88[rowIndex]==null){
                 LinearLayout a=column();a.setOrientation(LinearLayout.HORIZONTAL);
                 LinearLayout b=column();b.setOrientation(LinearLayout.HORIZONTAL);
@@ -710,11 +732,11 @@ public final class MainActivity extends Activity {
             }
             SquareItemSlotV88 take=v88SquareSlot(BanditLootV87.NAMES[i],true);
             take.setCompoundDrawables(null,game.itemIconsV84.drawable(
-                getResources(),kind,32),null,null);
+                getResources(),kind,18),null,null);
             take.setCompoundDrawablePadding(2);
             take.setGravity(Gravity.CENTER);
-            take.setTextSize(11);
-            LinearLayout.LayoutParams srcParams=new LinearLayout.LayoutParams(0,-2,1);
+            take.setTextSize(8);
+            LinearLayout.LayoutParams srcParams=new LinearLayout.LayoutParams(cellEdgeV93,cellEdgeV93);
             srcParams.setMargins(2,2,2,2);srcRowsV88[rowIndex].addView(take,srcParams);
             lootButtons[i]=take;
             // A source button retains the touch stream even if dragged outside.
@@ -735,13 +757,31 @@ public final class MainActivity extends Activity {
             });
             SquareItemSlotV88 own=v88SquareSlot(BanditLootV87.NAMES[i],false);
             own.setCompoundDrawables(null,game.itemIconsV84.drawable(
-                getResources(),kind,32),null,null);
+                getResources(),kind,18),null,null);
             own.setCompoundDrawablePadding(2);
             own.setGravity(Gravity.CENTER);
-            own.setTextSize(11);
-            LinearLayout.LayoutParams ownParams=new LinearLayout.LayoutParams(0,-2,1);
+            own.setTextSize(8);
+            LinearLayout.LayoutParams ownParams=new LinearLayout.LayoutParams(cellEdgeV93,cellEdgeV93);
             ownParams.setMargins(2,2,2,2);dstRowsV88[rowIndex].addView(own,ownParams);
             playerButtons[i]=own;
+        }
+        // Always show every empty inventory cell; never expand occupied stacks.
+        for(int j=BanditLootV87.ITEMS;j<24;j++){
+            int rowIndex=j/6;
+            if(srcRowsV88[rowIndex]==null){
+                LinearLayout a=column();a.setOrientation(LinearLayout.HORIZONTAL);
+                LinearLayout b=column();b.setOrientation(LinearLayout.HORIZONTAL);
+                srcRowsV88[rowIndex]=a;dstRowsV88[rowIndex]=b;
+                srcItems.addView(a);dstItems.addView(b);
+            }
+            for(LinearLayout target:new LinearLayout[]{srcRowsV88[rowIndex],dstRowsV88[rowIndex]}){
+                SquareItemSlotV88 blank=v88SquareSlot("",false);
+                blank.setEnabled(false);
+                blank.setContentDescription("Empty slot");
+                LinearLayout.LayoutParams square=new LinearLayout.LayoutParams(
+                    cellEdgeV93,cellEdgeV93);
+                square.setMargins(2,2,2,2);target.addView(blank,square);
+            }
         }
         refresh[0]=()->{
             int[] playerCounts={game.scrap,game.medkits,game.ammoPacks,
@@ -749,13 +789,15 @@ public final class MainActivity extends Activity {
             for(int i=0;i<BanditLootV87.ITEMS;i++){
                 int count=box.amount[i];
                 Button sourceButton=lootButtons[i];
-                sourceButton.setVisibility(count>0?View.VISIBLE:View.GONE);
-                sourceButton.setText(BanditLootV87.NAMES[i].toUpperCase()+
-                    " ×"+count+(selected[0]==i?"  ✓":""));
+                sourceButton.setVisibility(View.VISIBLE);
+                sourceButton.setEnabled(count>0);
+                sourceButton.setText(count>0?
+                    BanditLootV87.NAMES[i].toUpperCase()+"\n×"+count+
+                    (selected[0]==i?" ✓":""):"");
                 sourceButton.setTextColor(selected[0]==i?
                     0xfff8c873:0xffe6d7b7);
-                playerButtons[i].setText(BanditLootV87.NAMES[i].toUpperCase()+
-                    " ×"+playerCounts[i]);
+                playerButtons[i].setText(playerCounts[i]>0?
+                    BanditLootV87.NAMES[i].toUpperCase()+"\n×"+playerCounts[i]:"");
             }
         };
         refresh[0].run();
@@ -928,7 +970,7 @@ public final class MainActivity extends Activity {
         }
         left.addView(text("Carry capacity: "+game.fieldFindsV91.capacity()+
             " • ENC "+Math.round(game.encumbranceV91())+"% • Packs appear on the survivor.",12,false));
-        section(right,"BACKPACK   •   24 SQUARE SLOTS");
+        section(right,"BACKPACK   •   24 COMPACT SLOTS");
         right.addView(text("Select an item to USE it or assign it to the quick-access bar.",12,false));
         final Button[] backpackStackButtonsV83=new Button[14];
         final AlertDialog[] bagDialogV84=new AlertDialog[1];
@@ -939,18 +981,19 @@ public final class MainActivity extends Activity {
         };
         if(!game.bagOrderInitializedV92)game.initInventoryOrderV92();
         right.addView(text("Hold and drag an occupied item to another slot. Empty cells stay visible.",11,false));
-        for(int ir=0;ir<6;ir++){
+        for(int ir=0;ir<3;ir++){
             LinearLayout slots=new LinearLayout(this);
             slots.setOrientation(LinearLayout.HORIZONTAL);
-            for(int ic=0;ic<4;ic++){
-                final int position=ir*4+ic;
+            for(int ic=0;ic<8;ic++){
+                final int position=ir*8+ic;
                 SquareItemSlotV88 slot=v88SquareSlot("",false);
                 tilesV92[position]=slot;
                 slot.setGravity(Gravity.CENTER);
-                slot.setTextSize(10.5f);
-                slot.setPadding(3,3,3,3);
-                LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(0,-2,1);
-                params.setMargins(4,4,4,4);slots.addView(slot,params);
+                slot.setTextSize(8f);
+                slot.setPadding(1,1,1,1);
+                int edge=Math.round(45*getResources().getDisplayMetrics().density);
+                LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(edge,edge);
+                params.setMargins(2,2,2,2);slots.addView(slot,params);
                 slot.setOnLongClickListener(v->{
                     int type=game.bagOrderV92[position];
                     if(game.inventoryQuantityV92(type)<=0)return false;
@@ -1044,14 +1087,14 @@ public final class MainActivity extends Activity {
                     tile.setContentDescription("Empty inventory slot");
                 }else{
                     String name=GameView.INVENTORY_NAMES_V92[kind];
-                    tile.setText(name+"\n×"+qty);
+                    tile.setText((name.length()>7?name.substring(0,6):name)+"\n×"+qty);
                     android.graphics.drawable.Drawable itemIcon=kind>=14?
-                        FieldItemIconsV91.drawable(getResources(),kind-14,25):
+                        FieldItemIconsV91.drawable(getResources(),kind-14,18):
                         game.itemIconsV84.drawable(getResources(),
                             kind==10?ItemIconsV84.WATER_COLLECTOR:
                             kind==11?ItemIconsV84.FIELD_SHELTER:
                             kind==12?ItemIconsV84.BANDAGE:
-                            kind==13?ItemIconsV84.ENERGY_RATION:kind,25);
+                            kind==13?ItemIconsV84.ENERGY_RATION:kind,18);
                     tile.setCompoundDrawables(null,itemIcon,null,null);
                     tile.setCompoundDrawablePadding(1);
                     tile.setContentDescription(name+" "+qty+" items; hold to drag");
