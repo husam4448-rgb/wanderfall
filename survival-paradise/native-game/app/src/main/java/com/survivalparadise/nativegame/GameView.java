@@ -77,6 +77,7 @@ public final class GameView extends View {
     final SalvageWorldV84 salvageWorldV84=new SalvageWorldV84();
     final GroundPickupsV85 groundPickupsV85=new GroundPickupsV85();
     final BanditLootV87 banditLootV87=new BanditLootV87();
+    boolean sitesInitializedV88=false;
     final ItemIconsV84 itemIconsV84=new ItemIconsV84();
     int placingKindV84=-1,placingPointerV84=-1;
     float placingXv84,placingYv84;
@@ -163,10 +164,10 @@ public final class GameView extends View {
     final Rect src=new Rect();
     final RectF dest=new RectF();
     final float PAD=46;
-    static class Bandit {float x,y,hp=78,cd,hit;int face=1;boolean active=true;
+    static class Bandit {float x,y,hp=78,cd,hit,homeX,homeY,patrolClock;int face=1;boolean active=true;
         final AnimationCycle animation=new AnimationCycle();
         int variant;
-        Bandit(float a,float b,int variant){x=a;y=b;cd=.7f;this.variant=variant;}}
+        Bandit(float a,float b,int variant){x=a;y=b;homeX=a;homeY=b;patrolClock=variant*2.3f;cd=.7f;this.variant=variant;}}
     static class Survivor {float x,y,homeX,homeY,cd,aimX=1,aimY=0;int gun,face=1,variant;
         final AnimationCycle animation=new AnimationCycle();
         Survivor(float a,float b,int g,int variant){x=a;y=b;homeX=a;homeY=b;gun=g;this.variant=variant;}}
@@ -380,6 +381,8 @@ public final class GameView extends View {
         face=1;aimX=1;aimY=0;refreshDaylight();
         enemies.clear();friends.clear();campStaff.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();builtCampfires.clear();
         craftV83.clear();banditLootV87.clear();removeBarricadeCoverV83();
+        sitesInitializedV88=false;
+        seedExpeditionCachesV88();
         initCampStaff();
         playing=true;paused=false;settingsPause=false;gameOver=false;
         adjustFriends();spawnWave();
@@ -421,6 +424,8 @@ public final class GameView extends View {
         salvageWorldV84.decode(host.prefs.getString("salvaged_scrap_v84",""));
         groundPickupsV85.decode(host.prefs.getString("loose_pickups_v85",""));
         banditLootV87.decode(host.prefs.getString("bandit_loot_bags_v87",""));
+        sitesInitializedV88=host.prefs.getBoolean("sitesInitializedV88",false);
+        if(!sitesInitializedV88)seedExpeditionCachesV88();
         placingKindV84=-1;placingPointerV84=-1;
         removeBarricadeCoverV83();restoreBarricadeCoverV83();
         campStaff.clear();initCampStaff();
@@ -567,6 +572,92 @@ public final class GameView extends View {
         campStaff.add(new Survivor(CAMP_X+156,CAMP_Y+84,2,ROLE_GUARD+1));
         campStaff.add(new Survivor(CAMP_X-180,CAMP_Y+96,3,ROLE_CIVILIAN));
     }
+    /** Seed ten permanent scavenging caches once per save, never again after looting. */
+    void seedExpeditionCachesV88(){
+        if(sitesInitializedV88)return;
+        for(int i=0;i<ExpeditionSitesV88.SITES.length;i++){
+            ExpeditionSitesV88.Site s=ExpeditionSitesV88.SITES[i];
+            BanditLootV87.Bag bag=banditLootV87.spawn(s.x+115,s.y+91,i+3,wave,i%2);
+            if(bag==null)continue;
+            int[] items=ExpeditionSitesV88.supplies(i);
+            System.arraycopy(items,0,bag.count,0,BanditLootV87.ITEMS);
+        }
+        sitesInitializedV88=true;
+    }
+    /** 10 visitable silhouettes: each contains distinct features and real loot cache. */
+    void drawExpeditionSitesV88(Canvas c){
+        for(ExpeditionSitesV88.Site s:ExpeditionSitesV88.SITES){
+            if(!WorldPerfV55.nearView(s.x,s.y,camX,camY,viewW,viewH,240))continue;
+            float x=s.x,y=s.y;
+            // Dirt lot and entrance path ensure readable traversal.
+            rect(c,x-105,y-79,210,186,0xff44544a);
+            rect(c,x-97,y-73,194,156,0xff54574b);
+            rect(c,x-10,y+72,20,58,0xff79765d);
+            int roof=s.kind==ExpeditionSitesV88.CLINIC?0xffa2afa2:
+                s.kind==ExpeditionSitesV88.RELAY?0xff456771:
+                s.kind==ExpeditionSitesV88.FARM?0xff886548:
+                s.kind==ExpeditionSitesV88.CHECKPOINT?0xff4a5555:
+                s.kind==ExpeditionSitesV88.GARAGE?0xff786352:0xff656f61;
+            if(s.kind==ExpeditionSitesV88.RELAY||s.kind==ExpeditionSitesV88.TOWER){
+                rect(c,x-52,y-57,104,120,0xff182628);
+                rect(c,x-46,y-53,92,111,0xff565e51);
+                rect(c,x-29,y-80,58,50,0xff253e3e);
+                rect(c,x-6,y-146,12,67,0xff172729);
+                rect(c,x-3,y-140,6,55,0xff9ba79c);
+                rect(c,x-34,y-119,69,7,0xff263b3e);
+                rect(c,x-20,y-106,42,4,0xffb6baa0);
+                rect(c,x-19,y+38,38,19,0xff172a2b);
+            }else{
+                rect(c,x-78,y-66,160,145,0xff142626);
+                rect(c,x-71,y-60,145,130,roof);
+                rect(c,x-64,y-54,130,20,0xffa19b7a);
+                rect(c,x-63,y-29,125,80,0xff4a5b51);
+                rect(c,x-15,y+44,31,30,0xff172d2c);
+                rect(c,x-61,y-19,27,24,0xff142f32);
+                rect(c,x+32,y-19,27,24,0xff142f32);
+                rect(c,x-57,y-16,19,15,0xff8d9f9c);
+                rect(c,x+36,y-16,19,15,0xff8d9f9c);
+                if(s.kind==ExpeditionSitesV88.GARAGE||s.kind==ExpeditionSitesV88.WORKSHOP){
+                    rect(c,x-65,y+7,54,55,0xff1a2a2a);
+                    rect(c,x-60,y+12,44,46,0xff876a4b);
+                    for(int q=0;q<3;q++)rect(c,x-57,y+16+q*13,38,3,0xff263637);
+                }else if(s.kind==ExpeditionSitesV88.CLINIC){
+                    rect(c,x-8,y-52,16,27,0xffb94845);
+                    rect(c,x-17,y-44,34,11,0xffb94845);
+                }else if(s.kind==ExpeditionSitesV88.FARM){
+                    rect(c,x-93,y+45,50,10,0xff2d4c36);
+                    rect(c,x-91,y+55,49,13,0xff72905c);
+                }else if(s.kind==ExpeditionSitesV88.MOTEL){
+                    rect(c,x-62,y+26,30,26,0xff29373b);
+                    rect(c,x+35,y+26,25,26,0xff29373b);
+                }
+            }
+            rect(c,x-84,y-82,168,19,0xff1b2b2b);
+            rect(c,x-81,y-78,162,12,0xffa2a18a);
+            label(c,s.name,x-75,y-68,11,0xff1c2928,true);
+            // Stenciled crate near entry; remaining loot bag is drawn separately.
+            rect(c,x+91,y+73,44,30,0xff1a2926);
+            rect(c,x+96,y+77,35,22,0xff94714b);
+            rect(c,x+100,y+80,27,6,0xffc4a373);
+            rect(c,x+110,y+78,5,20,0xff4b4937);
+        }
+    }
+    /** Avoid player-built and fixed cover when shooting, independent of FPS. */
+    boolean banditHasLineOfSightV88(float x,float y,float tx,float ty){
+        for(Cover c:covers){
+            if(Ballistics.segmentBox(x,y,tx,ty,
+                c.x-3,c.y-3,c.x+c.w+3,c.y+c.h+3)<=1f)return false;
+        }
+        return true;
+    }
+    boolean banditNearCoverV88(float x,float y){
+        for(Cover c:covers){
+            float nx=clamp(x,c.x,c.x+c.w),ny=clamp(y,c.y,c.y+c.h);
+            float dx=x-nx,dy=y-ny;
+            if(dx*dx+dy*dy<145f*145f)return true;
+        }
+        return false;
+    }
     void spawnWave(){
         enemies.clear();enemyCount=5+Math.min(17,wave*2);
         for(int i=0;i<enemyCount;i++){
@@ -597,6 +688,7 @@ public final class GameView extends View {
                 .putString("salvaged_scrap_v84",salvageWorldV84.encode())
                 .putString("loose_pickups_v85",groundPickupsV85.encode())
                 .putString("bandit_loot_bags_v87",banditLootV87.encode())
+                .putBoolean("sitesInitializedV88",sitesInitializedV88)
                 .putFloat("clockMinutes",clock.minute()).putInt("clockDay",clock.day())
                 .putFloat("aimX",aimX).putFloat("aimY",aimY).apply();
         hasSave=true;
@@ -1003,26 +1095,44 @@ public final class GameView extends View {
         if(enemyAI)for(Bandit e:enemies){
             if(!e.active)continue;
             if(WorldPerfV55.distantFrom(e.x,e.y,playerX,playerY,npcSleepRadius)){
-                // Combat and HP remain persistent; only distant animation/ticks sleep.
-                e.animation.reset();continue;
+                e.animation.reset();continue; // dormant actors stay off simulation
             }
-            float beforeEnemyX=e.x,beforeEnemyY=e.y;
-            e.cd-=dt;e.hit=Math.max(0,e.hit-dt);
+            float oldX=e.x,oldY=e.y;
+            e.cd-=dt;e.hit=Math.max(0,e.hit-dt);e.patrolClock+=dt;
             float d=distance(e.x,e.y,playerX,playerY);
-            if(d<520){
-                float dx=(playerX-e.x)/Math.max(1,d),dy=(playerY-e.y)/Math.max(1,d);
-                e.face=dx>=0?1:-1;
-                if(d>240){
-                    float nx=e.x+dx*120*dt,ny=e.y+dy*120*dt;
-                    if(!blocked(nx,e.y,18))e.x=nx;
-                    if(!blocked(e.x,ny,18))e.y=ny;
-                    // Animation is driven by displacement, not historical walking time.
-                }else if(e.cd<=0){
-                    shoot(e.x,e.y,dx,dy,0,true,e.face);
-                    e.cd=1.1f+rng.nextFloat()*.7f;
+            float dx=(playerX-e.x)/Math.max(1,d),dy=(playerY-e.y)/Math.max(1,d);
+            boolean clear=banditHasLineOfSightV88(e.x,e.y-30,playerX,playerY-32);
+            int state=BanditBrainV88.state(d,e.hp,banditNearCoverV88(e.x,e.y));
+            if(!clear&&state==BanditBrainV88.GUARD)state=BanditBrainV88.STRAFE;
+            int side=(e.variant%2==0?1:-1);
+            float mx=BanditBrainV88.moveX(state,dx,dy,side),
+                my=BanditBrainV88.moveY(state,dx,dy,side);
+            if(state==BanditBrainV88.PATROL){
+                // Wanders a short arc near its original spawn, instead of freezing.
+                float homeDistance=distance(e.x,e.y,e.homeX,e.homeY);
+                if(homeDistance>125){
+                    float heading=(float)Math.atan2(e.homeY-e.y,e.homeX-e.x);
+                    mx=(float)Math.cos(heading);my=(float)Math.sin(heading);
+                }else{
+                    mx=(float)Math.cos(e.patrolClock*.68f+e.variant*2.3f);
+                    my=(float)Math.sin(e.patrolClock*.68f+e.variant*2.3f);
                 }
             }
-            e.animation.step(distance(e.x,e.y,beforeEnemyX,beforeEnemyY)>.001f,dt,7.2f);
+            // Obstacle-aware slide is stable at different render frame rates.
+            float speed=BanditBrainV88.speed(state)*dt;
+            float nx=e.x+mx*speed,ny=e.y+my*speed;
+            if(!blocked(nx,e.y,18))e.x=nx;
+            else if(!blocked(e.x-my*speed,e.y,18))e.x-=my*speed;
+            if(!blocked(e.x,ny,18))e.y=ny;
+            else if(!blocked(e.x,e.y+mx*speed,18))e.y+=mx*speed;
+            if(d<BanditBrainV88.ALERT_RANGE)e.face=dx>=0?1:-1;
+            else if(Math.abs(e.x-oldX)>.001f)e.face=e.x>oldX?1:-1;
+            if(BanditBrainV88.shouldShoot(state,d,e.cd,clear)){
+                shoot(e.x,e.y,dx,dy,0,true,e.face);
+                e.cd=.95f+(e.variant%3)*.19f;
+            }
+            e.animation.step(distance(e.x,e.y,oldX,oldY)>.001f,dt,
+                state==BanditBrainV88.CHASE?8.5f:6.6f);
         }
         if(!enemyAI)for(Bandit e:enemies)e.animation.reset();
         // Continuous collision detection: no tunneling through actors or cover at 4000 px/s.
@@ -1346,6 +1456,7 @@ public final class GameView extends View {
             }
         }
         drawBiomePropsV74(c);
+        drawExpeditionSitesV88(c);
         drawSalvageWorldV84(c);
         drawLooseGroundPickupsV85(c);
         if(placingKindV84>=0){
