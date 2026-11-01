@@ -913,10 +913,10 @@ jobs:
           gradle-version: '8.9'
       - name: Enable permanent signing when secret-managed keystore is available
         env:
-          SP_KEYSTORE_BASE64: \${{ secrets.SP_SIGNING_KEYSTORE_BASE64 }}
-          SP_SIGNING_PASSWORD: \${{ secrets.SP_SIGNING_PASSWORD }}
-          SP_SIGNING_KEY_PASSWORD: \${{ secrets.SP_SIGNING_KEY_PASSWORD }}
-          SP_SIGNING_ALIAS: \${{ secrets.SP_SIGNING_ALIAS }}
+          SP_KEYSTORE_BASE64: ${{ secrets.SP_SIGNING_KEYSTORE_BASE64 }}
+          SP_SIGNING_PASSWORD: ${{ secrets.SP_SIGNING_PASSWORD }}
+          SP_SIGNING_KEY_PASSWORD: ${{ secrets.SP_SIGNING_KEY_PASSWORD }}
+          SP_SIGNING_ALIAS: ${{ secrets.SP_SIGNING_ALIAS }}
         run: |
           set -euo pipefail
           if [ -n "$SP_KEYSTORE_BASE64" ] && [ -n "$SP_SIGNING_PASSWORD" ]; then
