@@ -22,7 +22,19 @@ public final class ExpeditionSitesV88 {
       new Site(FARM,1240,1900,"ABANDONED FARM",true),
       new Site(CHECKPOINT,3520,830,"ROAD CHECKPOINT",true),
       new Site(MOTEL,2170,-410,"DESERT MOTEL",true),
-      new Site(WORKSHOP,-850,1470,"FIELD WORKSHOP",true)
+      new Site(WORKSHOP,-850,1470,"FIELD WORKSHOP",true),
+      new Site(CABIN,-1570,510,"FORESTER HUT",true),
+      new Site(DEPOT,4240,1420,"FREIGHT STOREHOUSE",true),
+      new Site(CHECKPOINT,-1880,-730,"BORDER OUTPOST",true),
+      new Site(FARM,3270,2720,"ORCHARD FARMSTEAD",true),
+      new Site(MOTEL,4800,-920,"ROADSIDE INN",true),
+      new Site(GARAGE,-2450,1880,"MOTOR POOL",true),
+      new Site(WORKSHOP,3680,-1800,"METALWORKS",true),
+      new Site(RELAY,-940,-1700,"RADIO SUBSTATION",true),
+      new Site(TOWER,1630,3050,"FOREST WATCH POST",true),
+      new Site(CABIN,-3300,480,"HUNTER'S SHELTER",true),
+      new Site(DEPOT,5530,660,"MILITARY SUPPLIES",true),
+      new Site(FARM,-1710,3230,"RIVERSIDE FARM",true)
     };
     public static Site nearest(float x,float y,float reach){
         Site best=null;float dmin=reach*reach;
