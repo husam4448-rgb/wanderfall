@@ -466,14 +466,15 @@ public final class GameView extends View {
             craftV83.error="No crafted item in backpack";return false;
         }
         placingKindV84=kind;placingPointerV84=-1;
-        placingXv84=playerX+face*130f;placingYv84=playerY+28f;
+        updatePlacementTargetV86();
         invalidate();return true;
     }
     void cancelPlaceV84(){placingKindV84=-1;placingPointerV84=-1;}
     /** Placement consumes one finished item only when valid. */
     boolean placeAtV84(float x,float y){
         if(placingKindV84<0||!playing||paused||editControls)return false;
-        placingXv84=x;placingYv84=y;
+        updatePlacementTargetV86();
+        x=placingXv84;y=placingYv84;
         if(distance(x,y,playerX,playerY)>420f){
             craftV83.error="Move closer to build";return false;
         }
@@ -1345,10 +1346,15 @@ public final class GameView extends View {
         drawSalvageWorldV84(c);
         drawLooseGroundPickupsV85(c);
         if(placingKindV84>=0){
-            rect(c,placingXv84-48,placingYv84-40,96,55,0x6640a688);
-            // Reuse the finished structure geometry in transparent placement preview.
+            updatePlacementTargetV86();
+            c.saveLayerAlpha(placingXv84-72,placingYv84-115,
+                placingXv84+72,placingYv84+50,164);
             drawCraftStructureV83(c,new CampCraftV83.Structure(
                 placingKindV84,placingXv84,placingYv84));
+            c.restore();
+            color(0xffdfbe7e);p.setStyle(Paint.Style.STROKE);
+            p.setStrokeWidth(2.4f);c.drawCircle(placingXv84,placingYv84,15,p);
+            p.setStyle(Paint.Style.FILL);
         }
         for(Cover box:covers)
             if(box.x+box.w>=camX-15&&box.x<=camX+viewW+15&&
@@ -1369,14 +1375,30 @@ public final class GameView extends View {
             float x=GroundPickupsV85.worldX(cx,seed),y=GroundPickupsV85.worldY(cy,seed);
             if(x<camX-60||x>camX+viewW+60||y<camY-60||y>camY+viewH+60||
                !GroundPickupsV85.placed(kind,seed,x,y,CAMP_X,CAMP_Y))continue;
-            color(0x990e231f);c.drawOval(x-13,y-5,x+13,y+6,p);
-            itemIconsV84.draw(c,kind==GroundPickupsV85.STONE?ItemIconsV84.STONE:
-                kind==GroundPickupsV85.WOOD?ItemIconsV84.WOOD:ItemIconsV84.SCRAP,
-                x-14f,y-25f,28f);
-            // Distinguishable pale edge on pickup, independent of biome.
-            p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(1.5f);
-            color(0xffc6bda1);c.drawRect(x-14,y-25,x+14,y+3,p);
-            p.setStyle(Paint.Style.FILL);
+            // V86 irregular ground silhouettes; never draw framed inventory icons.
+            color(0x99101c1a);c.drawOval(x-18,y-8,x+18,y+5,p);
+            if(kind==GroundPickupsV85.STONE){
+                rect(c,x-17,y-11,30,13,0xff182628);
+                rect(c,x-12,y-17,23,15,0xff516a70);
+                rect(c,x-5,y-22,10,7,0xffa3b0a7);
+                rect(c,x-15,y-6,10,6,0xff384d4f);
+                rect(c,x+5,y-14,7,8,0xff83988e);
+            }else if(kind==GroundPickupsV85.WOOD){
+                rect(c,x-24,y-10,47,15,0xff15251f);
+                rect(c,x-21,y-8,42,11,0xff6d5139);
+                rect(c,x-16,y-7,29,3,0xffb48e58);
+                rect(c,x+14,y-7,5,10,0xffcfaa71);
+                rect(c,x-4,y-15,7,10,0xff293627);
+                rect(c,x-2,y-12,4,7,0xffa47a4e);
+            }else{
+                rect(c,x-20,y-11,42,16,0xff17272a);
+                rect(c,x-17,y-12,30,11,0xff865740);
+                rect(c,x-14,y-10,22,3,0xffb48154);
+                rect(c,x+10,y-20,10,20,0xff2b4042);
+                rect(c,x+13,y-17,5,12,0xffa5b3a8);
+                rect(c,x-13,y-7,4,4,0xffc0ab80);
+                rect(c,x+3,y-6,4,4,0xff44595d);
+            }
         }
     }
     /** USE immediately picks up small items, unlike axe/pick/crowbar resources. */
@@ -2181,6 +2203,24 @@ public final class GameView extends View {
         dest.set(x-half,y-half,x+half,y+half);
         c.drawBitmap(crosshairReticle,null,dest,reticlePaint);
     }
+    /** Larger BAG control directly over right aim stick. */
+    void drawFloatingBagV86(Canvas c){
+        float x=WorldUiV86.bagX(viewW),y=WorldUiV86.bagY(viewH);
+        rounded(c,x,y,WorldUiV86.BAG_W,WorldUiV86.BAG_H,9,0xd020403b);
+        p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(2f);
+        color(0xffd6b27b);
+        c.drawRoundRect(x+1,y+1,x+WorldUiV86.BAG_W-1,
+            y+WorldUiV86.BAG_H-1,9,9,p);
+        p.setStyle(Paint.Style.FILL);
+        itemIconsV84.draw(c,ItemIconsV84.BARRICADE,x+10,y+10,30);
+        label(c,"BAG",x+47,y+34,17,0xfff4ebd5,true);
+    }
+    /** Aim direction determines ghost location; use the unchanged aim stick. */
+    void updatePlacementTargetV86(){
+        if(placingKindV84<0)return;
+        placingXv84=WorldUiV86.targetX(playerX,aimX,aimCursorDistance);
+        placingYv84=WorldUiV86.targetY(playerY,aimY,aimCursorDistance);
+    }
     void topHudButton(Canvas c,int id,String title,boolean active){
         float x=TopHudV76.x(id,viewW),width=TopHudV76.buttonWidth(id,viewW);
         int alpha=Math.round(topButtonOpacityV76*255f/100f);
@@ -2209,7 +2249,7 @@ public final class GameView extends View {
         topHudButton(c,TopHudV76.DAY,lightAlpha>nightDarkness*.5f?"NOON":"NIGHT",false);
         topHudButton(c,TopHudV76.CAMP,"CAMP",false);
         topHudButton(c,TopHudV76.LAMP,lampOn?"LAMP ON":"LAMP OFF",lampOn);
-        topHudButton(c,TopHudV76.BAG,"BAG",false);
+        drawFloatingBagV86(c);
         topHudButton(c,TopHudV76.PAUSE,paused?"RESUME":"PAUSE",paused);
         topHudButton(c,TopHudV76.SET,"SET",false);
         String footer="SCRAP "+scrap+"  WOOD "+wood+"  STONE "+stone+
@@ -2287,8 +2327,8 @@ public final class GameView extends View {
             }
         }
         if(placingKindV84>=0){
-            label(c,"PLACE "+(placingKindV84==0?"BARRICADE":"LIGHT POST")+
-                " • DRAG / RELEASE ON GROUND",viewW*.5f-205f,66,13,0xfff4d5a1,true);
+            label(c,"AIM "+(placingKindV84==0?"BARRICADE":"LIGHT POST")+
+                "  •  PRESS USE TO PLACE",viewW*.5f-205f,66,13,0xfff4d5a1,true);
             label(c,"Tap BAG to cancel placement",viewW*.5f-117f,86,11,0xffdfd6c2,false);
         }
         if(hudLayer!=0)c.restoreToCount(hudLayer);
@@ -2407,6 +2447,7 @@ public final class GameView extends View {
             cursorInitialized=true;
             cursorWorldX=playerX+aimX*aimCursorDistance;
             cursorWorldY=playerY-42f+aimY*aimCursorDistance;
+            updatePlacementTargetV86();
         }else {stickX=dx;stickY=dy;}
     }
     float fireWidth(){return 105f*fireButtonSize;}
@@ -2427,6 +2468,9 @@ public final class GameView extends View {
             if(within(x,y,viewW/2-150,viewH/2-38,300,50)){if(gameOver)newGame();else togglePause();return;}
             if(within(x,y,viewW/2-150,viewH/2+28,300,50)){host.settings();return;}
         }
+        if(WorldUiV86.bagHit(x,y,viewW,viewH)){
+            cancelPlaceV84();host.inventory();return;
+        }
         switch(TopHudV76.hit(x,y,viewW)){
             case TopHudV76.FORM:
                 followMode=(followMode+1)%FollowFormationV61.NAMES.length;
@@ -2443,7 +2487,7 @@ public final class GameView extends View {
             case TopHudV76.LAMP:toggleLamp();return;
             case TopHudV76.CAMP:placeCampfire();return;
             case TopHudV76.DAY:toggleNight();return;
-            case TopHudV76.BAG:cancelPlaceV84();host.inventory();return;
+            case TopHudV76.BAG:return; // top BAG moved above aiming stick
             default:break;
         }
         if(paused)return;
@@ -2492,6 +2536,12 @@ public final class GameView extends View {
             zoom=clamp(zoom+delta,.45f,1.8f);
             host.prefs.edit().putInt("cameraZoom",Math.round(zoom*100f)).apply();
         }else if(ui==LegacyControlsV58.USE){
+            if(placingKindV84>=0){
+                if(!placeAtV84(placingXv84,placingYv84)){
+                    gatherFeedback=craftV83.error;gatherFeedbackTime=1.8f;
+                }
+                invalidate();return;
+            }
             for(Iterator<Drop> it=drops.iterator();it.hasNext();){
                 Drop drop=it.next();
                 if(distance(playerX,playerY,drop.x,drop.y)<100f){
@@ -2508,7 +2558,8 @@ public final class GameView extends View {
         switch(action){
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_POINTER_DOWN:
-                if(!playing||paused||TopHudV76.hit(x,y,viewW)>=0){tap(x,y);return true;}
+                if(!playing||paused||TopHudV76.hit(x,y,viewW)>=0||
+                    WorldUiV86.bagHit(x,y,viewW,viewH)){tap(x,y);return true;}
                 if(editControls&&hudEditorTouch(x,y)){
                     if(panelPointer==-2)panelPointer=id;
                     return true;
@@ -2549,12 +2600,7 @@ public final class GameView extends View {
                     }
                     return true;
                 }
-                if(placingKindV84>=0&&!editControls){
-                    placingPointerV84=id;
-                    placingXv84=camX+x/Math.max(.01f,zoom);
-                    placingYv84=camY+y/Math.max(.01f,zoom);
-                    invalidate();return true;
-                }
+                // Aim-stick placement does not capture ordinary world touches.
                 // Joystick hit tests follow their EDITED positions; the old
                 // fixed screen zones broke input after moving the controls.
                 float moveDistance=(float)Math.hypot(x-padCenterX(false),y-padCenterY(false));
@@ -2572,11 +2618,7 @@ public final class GameView extends View {
                     int pointer=e.getPointerId(j);
                     float px=e.getX(j)/Math.max(.01f,drawScale);
                     float py=e.getY(j)/Math.max(.01f,drawScale);
-                    if(pointer==placingPointerV84){
-                        placingXv84=camX+px/Math.max(.01f,zoom);
-                        placingYv84=camY+py/Math.max(.01f,zoom);
-                        invalidate();
-                    }
+                    // Preview follows right thumbstick, never arbitrary finger drags.
                     if(pointer==leftPointer)updateStick(px,py,false);
                     if(pointer==rightPointer)updateStick(px,py,true);
                     if(pointer==panelPointer){
@@ -2618,13 +2660,7 @@ public final class GameView extends View {
             case MotionEvent.ACTION_POINTER_UP:
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
-                if(id==placingPointerV84){
-                    placingPointerV84=-1;
-                    if(action!=MotionEvent.ACTION_CANCEL)
-                        placeAtV84(camX+x/Math.max(.01f,zoom),
-                            camY+y/Math.max(.01f,zoom));
-                    invalidate();return true;
-                }
+                // Lifting a finger does not place anything; only USE can confirm.
                 if(id==leftPointer||action==MotionEvent.ACTION_CANCEL){
                     leftPointer=-1;stopWalking();
                 }
