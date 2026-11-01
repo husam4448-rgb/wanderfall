@@ -460,8 +460,16 @@ public final class GameView extends View {
         removeBarricadeCoverV83();restoreBarricadeCoverV83();
         campStaff.clear();initCampStaff();
         playing=true;paused=false;gameOver=false;
-        adjustFriends();
-        if(!insideClinicV89)spawnWave();else enemies.clear();
+        // Companion spawn anchors stay outdoors even if Continue loads indoors.
+        if(insideClinicV89){
+            float localX=playerX,localY=playerY;
+            playerX=outsideDoorXv89;playerY=outsideDoorYv89;
+            adjustFriends();
+            playerX=localX;playerY=localY;
+            enemies.clear();
+        }else{
+            adjustFriends();spawnWave();
+        }
         invalidate();
     }
     String encodeCampfires(){
