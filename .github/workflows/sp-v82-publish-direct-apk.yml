@@ -1,0 +1,54 @@
+name: Survival Paradise V82 — Publish direct APK
+on:
+  push:
+    branches: [sp-native-v82-head-scale-knife-polish-20261101]
+    paths: ['.github/workflows/sp-v82-publish-direct-apk.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  release-v82:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Retrieve verified V82 Android artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/spv82
+          gh run download 41256409173 -R "$GITHUB_REPOSITORY" \
+            -n SP_V82_HeadKnife -D /tmp/spv82
+          APK=/tmp/spv82/SurvivalParadise_V82_HeadKnife.apk
+          SOURCE=/tmp/spv82/SurvivalParadise_V82_Source.zip
+          test -s "$APK"
+          test -s "$SOURCE"
+          unzip -t "$APK" >/dev/null
+          unzip -l "$APK" | grep -q 'classes.dex'
+          for a in body.png approved_v44_walk_palette.png npc_idle_v56.png approved_v29_axe.png gear.png world_props_v74.png; do
+            unzip -l "$APK" | grep -q "assets/$a"
+          done
+          sha256sum "$APK" > /tmp/spv82/V82_APK_SHA256.txt
+          cat /tmp/spv82/V82_APK_SHA256.txt
+      - name: Publish public V82 direct APK and source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG=survival-paradise-v82-head-size-knife
+          APK=/tmp/spv82/SurvivalParadise_V82_HeadKnife.apk
+          SOURCE=/tmp/spv82/SurvivalParadise_V82_Source.zip
+          HASH=/tmp/spv82/V82_APK_SHA256.txt
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" "$SOURCE" "$HASH" --clobber -R "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" "$APK" "$SOURCE" "$HASH" \
+              -R "$GITHUB_REPOSITORY" \
+              --target d2984bfc9090af08260a8c4ab5924e866ae5825e \
+              --title "Survival Paradise V82 — Head Size and Knife Polish" \
+              --notes "V82 Android release tested from commit d2984bfc9090af08260a8c4ab5924e866ae5825e. New character head size slider 75–160% (100% reproduces original approved atlas exactly); applies visually to player and NPCs without editing the source sprites. Melee knife is about 1.55x larger, connected to approved main hand and chest pivot. Swing is shortened to 54 degrees with a 22px short blade-tip slash trail instead of the original 144-degree half-circle arc. Fiber harvesting uses the larger knife and a short compact cut, while V81 harvesting rewards, V79 locomotion, V78 lighting and all approved assets remain intact. On-device visual evaluation remains pending." \
+              --prerelease
+          fi
+          gh release view "$TAG" -R "$GITHUB_REPOSITORY" \
+            --json url,assets --jq '{url:.url,assets:[.assets[]|{name:.name,url:.url}]}'
