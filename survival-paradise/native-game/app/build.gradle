@@ -6,8 +6,8 @@ android {
   applicationId 'com.survivalparadise.nativegame'
   minSdk 24
   targetSdk 34
-  versionCode 83
-  versionName '0.82-head-size-and-knife-slash'
+  versionCode 84
+  versionName '0.83-camp-crafting-melee'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
