@@ -871,7 +871,7 @@ jobs:
           R=survival-paradise/native-game
           P="$R/app/src/main/java/com/survivalparadise/nativegame"
           mkdir -p /tmp/sp-v85
-          javac -d /tmp/sp-v85 "$P/WorldChunkModel.java" "$P/GroundPickupsV85.java" \
+          javac -d /tmp/sp-v85 "$P/WorldChunkModel.java" "$P/BiomeWorldV74.java" "$P/GroundPickupsV85.java" \
             "$R/tools/V85GroundPickupTest.java"
           java -cp /tmp/sp-v85 com.survivalparadise.nativegame.V85GroundPickupTest
           python3 - <<'PY'
