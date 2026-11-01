@@ -813,7 +813,7 @@ jobs:
                     'covers.add(new Cover(x-39,y-15,78,27,3))',
                     'drawCraftStructureV83(c,node)',
                     'lighting.point(node.x,node.y-85,185,.83f,0xffffda82)',
-                    'if(box.kind==3)return',
+                    'if(box.kind==3||box.kind==4)return',
                     'knifeCooldown=MeleeSlashV83.COOLDOWN',
                     'knifeDuration=MeleeSlashV83.DURATION',
                     'MeleeSlashV83.angle(t)',
