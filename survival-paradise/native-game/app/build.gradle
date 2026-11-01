@@ -6,8 +6,8 @@ android {
   applicationId 'com.survivalparadise.nativegame'
   minSdk 24
   targetSdk 34
-  versionCode 88
-  versionName '0.87-bandit-loot-bag-hud'
+  versionCode 89
+  versionName '0.88-expedition-world-tactical-ai'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
