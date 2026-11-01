@@ -68,8 +68,8 @@ public final class HarvestActionV81 {
     }
     public float swingDegrees(){
         float t=cycleProgress();
-        float lift=kind==FIBER?-65f:-92f;
-        float end=kind==FIBER?82f:kind==STONE?70f:62f;
+        float lift=kind==FIBER?-32f:-92f;
+        float end=kind==FIBER?28f:kind==STONE?70f:62f;
         if(t<.30f)return -22f+(lift+22f)*(t/.30f);
         if(t<.66f){
             float u=(t-.30f)/.36f;

@@ -6,8 +6,8 @@ android {
   applicationId 'com.survivalparadise.nativegame'
   minSdk 24
   targetSdk 34
-  versionCode 82
-  versionName '0.81-animated-harvesting'
+  versionCode 83
+  versionName '0.82-head-size-and-knife-slash'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17

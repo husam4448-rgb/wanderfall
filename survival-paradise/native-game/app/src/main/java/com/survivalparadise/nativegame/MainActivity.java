@@ -642,6 +642,8 @@ public final class MainActivity extends Activity {
         final int playerSection=root.getChildCount();
         section(root,"PLAYER AND COMBAT");
         slider(root,"Character display size","scale",65,135,100,"%");
+        slider(root,"Character head size","headSizeV82",75,160,100,"%");
+        root.addView(text("Visual head size for player and NPCs. 100% matches approved original sprites.",11,false));
         slider(root,"Hand size (independent)","hand",60,145,100,"%");
         slider(root,"Support hand horizontal reach","support",-12,24,0," px");
         slider(root,"Support hand vertical offset","supportY",-24,24,0," px");
@@ -801,7 +803,7 @@ public final class MainActivity extends Activity {
               .putInt("crosshairRestPercent",100).putInt("cursorSpeedV68",650)
               .putInt("aimDeadzoneV68",17).putInt("aimCurveV68",175)
               .putInt("aimSteeringV68",100).putInt("cameraPanSpeedV68",350)
-              .putInt("reticleSize",100).putBoolean("staticLightCache",true)
+              .putInt("reticleSize",100).putInt("headSizeV82",100).putBoolean("staticLightCache",true)
               .putBoolean("fastPointLights",true).putInt("lightResolution",220)
               .putBoolean("editControls",false).apply();
             wSize.setProgress(96-65);hSize.setProgress(94-65);

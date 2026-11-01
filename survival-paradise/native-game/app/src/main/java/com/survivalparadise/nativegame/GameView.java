@@ -56,7 +56,7 @@ public final class GameView extends View {
     static final float[] OFF_Y={0,0,0,0,77,75,72,75,73,71,74,0};
     static final int DK=0xff101b1a,WHITE=0xffedf2e6,OLIVE=0xff8ab397,ORANGE=0xffe8bc72,RED=0xffce766b;
 
-    float scale=1,handScale=1,support=0,supportVertical=0,timeSpeed=1,zoom=1,walkSpeedMultiplier=1.30f,walkingAnimationMultiplierV79=1f;
+    float scale=1,headScaleV82=1f,handScale=1,support=0,supportVertical=0,timeSpeed=1,zoom=1,walkSpeedMultiplier=1.30f,walkingAnimationMultiplierV79=1f;
     boolean showHands=true,showWeapons=true,anchors=false,hitboxes=false,enemyAI=true,
             aimRotation=true,recoilFX=true,lootEnabled=true,night=true;
     boolean playing=false,paused=false,settingsPause=false,wasPaused=false,hasSave=false,gameOver=false;
@@ -259,6 +259,7 @@ public final class GameView extends View {
     boolean isPlaying(){return playing;}
     void reloadSettings(){
         scale=host.setting("scale",100)/100f;
+        headScaleV82=HeadKnifeV82.headMultiplier(host.setting("headSizeV82",HeadKnifeV82.HEAD_DEFAULT));
         handScale=host.setting("hand",100)/100f;
         support=host.setting("support",0);
         supportVertical=host.setting("supportY",0);
@@ -560,25 +561,48 @@ public final class GameView extends View {
         if(LegacyControlsV58.knifeX(knifeDirection)>.01f)face=1;
         else if(LegacyControlsV58.knifeX(knifeDirection)<-.01f)face=-1;
     }
-    void drawKnifeSwing(Canvas c){
-        if(knifeDuration<=0)return;
-        // 4-phase pixel-step knife sweep; 8 world directions. Body is unchanged.
-        float t=1f-knifeDuration/.26f;
-        float bearing=knifeDirection*45f;
-        float sweep=-72f+t*144f;
-        float px=playerX+LegacyControlsV58.knifeX(knifeDirection)*29f;
-        float py=playerY-48f+LegacyControlsV58.knifeY(knifeDirection)*29f;
-        c.save();c.translate(px,py);
-        c.rotate(bearing+sweep);
-        rect(c,-6,-5,17,10,0xff201d1a);
-        rect(c,-3,-4,11,8,0xff705744);
-        rect(c,11,-3,29,7,0xff1d2c32);
-        rect(c,11,-2,27,4,0xffa2b7ac);
-        rect(c,15,-3,19,2,0xffe1e5cf);
+    /** Larger knife component, consistently anchored to the approved weapon hand. */
+    void drawKnifeBladeV82(Canvas c,float gx,float gy,float k){
+        c.save();
+        c.translate(gx,gy);
+        c.scale(k,k);
+        // Chunky stepped near-black outline, simplified hilt and brighter blade.
+        rect(c,-8,-7,28,14,0xff13201f);
+        rect(c,-5,-5,22,10,0xff77583e);
+        rect(c,-4,-5,7,2,0xffb28d62);
+        rect(c,14,-9,5,18,0xff172725);
+        rect(c,19,-7,42,13,0xff16272c);
+        rect(c,21,-5,33,9,0xff859b98);
+        rect(c,23,-4,31,4,0xffc4d3c6);
+        rect(c,51,-4,8,4,0xffe3e8dc);
+        rect(c,60,-2,5,2,0xff324447);
         c.restore();
-        color(0x99c7d4bb);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(2f);
-        c.drawArc(px-58,py-58,px+58,py+58,bearing-74f,Math.max(6f,t*138f),false,p);
-        p.setStyle(Paint.Style.FILL);
+    }
+    /** A 22px stroke near the tip, not a 140-degree sweeping circle. */
+    void drawShortKnifeTrailV82(Canvas c,float gx,float gy,float s){
+        color(0x9bd6e3d8);
+        p.setStrokeWidth(Math.max(1f,2.5f*s));
+        c.drawLine(gx+49*s,gy-13*s,
+                   gx+(49+HeadKnifeV82.KNIFE_TRAIL_LENGTH)*s,gy-19*s,p);
+    }
+    /** Small torso-pivot melee animation with a proper weapon-hand grip. */
+    void drawKnifeSwing(Canvas c,float s){
+        if(knifeDuration<=0f)return;
+        float t=1f-knifeDuration/.26f;
+        float pivotX=(Ballistics.TORSO_X-70f)*s;
+        float pivotY=(Ballistics.TORSO_Y-136f)*s;
+        float offsetX=(Ballistics.GRIP_X-MAIN_X[11])*s;
+        float offsetY=(Ballistics.GRIP_Y-MAIN_Y[11])*s;
+        c.save();
+        c.translate(pivotX,pivotY);
+        c.rotate(HeadKnifeV82.localBearing(knifeDirection,face)+HeadKnifeV82.sweep(t));
+        c.translate(-pivotX,-pivotY);
+        c.translate(offsetX,offsetY);
+        float gx=(MAIN_X[11]-70f)*s,gy=(MAIN_Y[11]-136f)*s;
+        if(showWeapons)drawKnifeBladeV82(c,gx,gy,s*HeadKnifeV82.KNIFE_SIZE);
+        if(t>.22f&&t<.78f&&showWeapons)drawShortKnifeTrailV82(c,gx,gy,s);
+        if(showHands)handAtlas(c,11,2,0,0,s,handScale,0,0);
+        c.restore();
     }
     void shoot(float x,float y,float dx,float dy,int weapon,boolean hostile,int facing){
         float length=(float)Math.hypot(dx,dy);
@@ -1329,9 +1353,41 @@ public final class GameView extends View {
     static final int APPROVED_PLANTED_IDLE_FRAME=2;
     static final int IDLE_HEAD_BODY_SPLIT=92;
     static final int IDLE_HEAD_OVERLAP=101;
+    /**
+     * Exact V40/V56 head pixels only (atlas x24..109, y20..91).
+     * Pivot at the neckline, no edits to the torso, legs, face or idle atlas.
+     */
+    void drawScaledHeadV82(Canvas c,Bitmap atlas,int sx,int sy,float s,float breath){
+        float bob=breath*s;
+        src.set(sx+HeadKnifeV82.HEAD_LEFT,sy+HeadKnifeV82.HEAD_TOP,
+                sx+HeadKnifeV82.HEAD_RIGHT,sy+HeadKnifeV82.HEAD_BOTTOM);
+        dest.set(HeadKnifeV82.headLeft(s,headScaleV82),
+                 HeadKnifeV82.headTop(s,headScaleV82,bob),
+                 HeadKnifeV82.headRight(s,headScaleV82),
+                 HeadKnifeV82.headBottom(s,bob));
+        c.drawBitmap(atlas,src,dest,pixel);
+    }
     void stablePose(Canvas c,Bitmap walkingAtlas,int variant,int frame,float s,float breath){
         if(breath==Float.POSITIVE_INFINITY){
             if(walkingAtlas==null)return;
+            if(!HeadKnifeV82.defaultHead(headScaleV82)){
+                int row=Math.max(0,variant)*160;
+                int f=Math.max(0,Math.min(3,frame));
+                src.set(f*260,row+110,f*260+260,row+160);
+                dest.set(-70*s,(110-136)*s,190*s,24*s);
+                c.drawBitmap(walkingAtlas,src,dest,pixel);
+                boolean npc=variant>=0;
+                Bitmap locked=npc?npcIdleV56:body;
+                if(locked==null)return;
+                int sx=npc?0:APPROVED_PLANTED_IDLE_FRAME*260;
+                int sy=npc?Math.min(11,variant)*160:0;
+                // The original shirt starts on row 92.
+                src.set(sx,sy+HeadKnifeV82.HEAD_BOTTOM,sx+260,sy+110);
+                dest.set(-70*s,(HeadKnifeV82.HEAD_BOTTOM-136)*s,190*s,(110-136)*s);
+                c.drawBitmap(locked,src,dest,pixel);
+                drawScaledHeadV82(c,locked,sx,sy,s,0f);
+                return;
+            }
             int row=Math.max(0,variant)*160;
             int f=Math.max(0,Math.min(3,frame));
             // V59 locked identity compositor: use the approved walking frame
@@ -1359,6 +1415,13 @@ public final class GameView extends View {
         if(idleSource==null)return;
         int sx=npc?0:APPROVED_PLANTED_IDLE_FRAME*260;
         int sy=npc?Math.min(11,variant)*160:0;
+        if(!HeadKnifeV82.defaultHead(headScaleV82)){
+            src.set(sx,sy+HeadKnifeV82.HEAD_BOTTOM,sx+260,sy+160);
+            dest.set(-70*s,(HeadKnifeV82.HEAD_BOTTOM-136)*s,190*s,24*s);
+            c.drawBitmap(idleSource,src,dest,pixel);
+            drawScaledHeadV82(c,idleSource,sx,sy,s,breath);
+            return;
+        }
         src.set(sx,sy+IDLE_HEAD_BODY_SPLIT,sx+260,sy+160);
         dest.set(-70*s,(IDLE_HEAD_BODY_SPLIT-136)*s,190*s,24*s);
         c.drawBitmap(idleSource,src,dest,pixel);
@@ -1434,14 +1497,9 @@ public final class GameView extends View {
                 dest.set(gx-40*k,gy-78*k,gx+36*k,gy+22*k);
                 c.drawBitmap(pickaxeV81,null,dest,pixel);
             }else if(kind==ResourceWorldV80.FIBER){
-                // Same handle/blade pixel forms as the accepted knife slash.
-                c.save();c.translate(gx,gy);c.scale(s,s);
-                rect(c,-6,-5,17,10,0xff201d1a);
-                rect(c,-3,-4,11,8,0xff705744);
-                rect(c,11,-3,29,7,0xff1d2c32);
-                rect(c,11,-2,27,4,0xffa2b7ac);
-                rect(c,15,-3,19,2,0xffe1e5cf);
-                c.restore();
+                drawKnifeBladeV82(c,gx,gy,s*HeadKnifeV82.KNIFE_SIZE);
+                if(harvestV81.phase()==HarvestActionV81.STRIKE)
+                    drawShortKnifeTrailV82(c,gx,gy,s);
             }
         }
         if(showHands)handAtlas(c,11,2,0,0,s,handScale,0,0);
@@ -1467,6 +1525,7 @@ public final class GameView extends View {
         Bitmap atlas=npcVariant>=0?npcWalkV56:approvedWalkColors;
         stablePose(c,atlas,npcVariant<0?0:npcVariant,frame,s,breath);
         if(player&&harvestV81.active)drawHarvestRigV81(c,s);
+        else if(player&&knifeDuration>0f)drawKnifeSwing(c,s);
         else if(!bandit){
             c.save();
             // Keep the accepted V36 torso-centered weapon/hand rig stationary.
@@ -1589,7 +1648,7 @@ public final class GameView extends View {
         }));
         order.sort((a,b)->Float.compare(a.y,b.y));
         for(DrawEntity e:order)e.draw.run();
-        drawKnifeSwing(c);
+        // Melee knife is drawn with the player at the correct world depth.
         for(Shot projectile:shots){
             if(!WorldPerfV55.nearView(projectile.x,projectile.y,
                     camX,camY,viewW,viewH,25))continue;
