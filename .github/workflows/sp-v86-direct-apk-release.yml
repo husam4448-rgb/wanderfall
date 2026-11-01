@@ -1,0 +1,53 @@
+name: Survival Paradise V86 — Direct APK
+on:
+  push:
+    branches: [sp-native-v86-pickups-aim-place-window-ui-20261101]
+    paths: ['.github/workflows/sp-v86-direct-apk-release.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  release-v86:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Retrieve CI-validated Android APK and source archive
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/spv86
+          gh run download 41271184210 -R "$GITHUB_REPOSITORY" \
+            -n SP_V86_WorldUI -D /tmp/spv86
+          APK=/tmp/spv86/SurvivalParadise_V86_WorldUI.apk
+          SOURCE=/tmp/spv86/SurvivalParadise_V86_Source.zip
+          test -s "$APK" && test -s "$SOURCE"
+          unzip -t "$APK" >/dev/null
+          unzip -l "$APK" | grep -q classes.dex
+          for a in body.png approved_v44_walk_palette.png npc_idle_v56.png approved_v29_axe.png gear.png world_props_v74.png; do
+            unzip -l "$APK" | grep -q "assets/$a"
+          done
+          sha256sum "$APK" > /tmp/spv86/V86_APK_SHA256.txt
+          cat /tmp/spv86/V86_APK_SHA256.txt
+      - name: Publish direct V86 APK and source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG=survival-paradise-v86-world-ui
+          APK=/tmp/spv86/SurvivalParadise_V86_WorldUI.apk
+          SOURCE=/tmp/spv86/SurvivalParadise_V86_Source.zip
+          HASH=/tmp/spv86/V86_APK_SHA256.txt
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" "$SOURCE" "$HASH" --clobber -R "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" "$APK" "$SOURCE" "$HASH" \
+              -R "$GITHUB_REPOSITORY" \
+              --target fc53ce764be584b3fa7da79c304e702fa287fe22 \
+              --title "Survival Paradise V86 — Physical Pickups, Aim Placement & HUD Polish" \
+              --notes "Verified Android APK from CI run 41271184210; 45 passing steps. Ground pickups now render irregular stone, fallen wood and bent rusted metal silhouettes instead of white-framed inventory icon squares. Select stored barricade/light post in BAG or quickbar; the world preview follows the original right aiming joystick and only USE confirms placement, never ground touch release. BAG relocated above aim joystick and increased to 130x52 with backpack silhouette. Inventory, settings and HUD customization dialogs allow outside-touch dismissal; HUD customization dialog default 98x96 percent, onscreen editor default 120 percent scale. Preserves V85 save export/import, existing approved character assets, controls, weapon aiming and world save compatibility. IMPORTANT: exact in-place APK upgrade compatibility still requires a stable Android signing key configured via Actions secrets; earlier builds used ephemeral debug keys. Export or back up V85 saves before uninstalling. Real-device appearance/performance acceptance pending." \
+              --prerelease
+          fi
+          gh release view "$TAG" -R "$GITHUB_REPOSITORY" \
+            --json url,assets --jq '{url:.url,assets:[.assets[]|{name:.name,url:.url}]}'
