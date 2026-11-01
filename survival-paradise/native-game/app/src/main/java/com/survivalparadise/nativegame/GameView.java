@@ -76,6 +76,7 @@ public final class GameView extends View {
     final CampCraftV83 craftV83=new CampCraftV83();
     final SalvageWorldV84 salvageWorldV84=new SalvageWorldV84();
     final GroundPickupsV85 groundPickupsV85=new GroundPickupsV85();
+    final BanditLootV87 banditLootV87=new BanditLootV87();
     final ItemIconsV84 itemIconsV84=new ItemIconsV84();
     int placingKindV84=-1,placingPointerV84=-1;
     float placingXv84,placingYv84;
@@ -114,7 +115,7 @@ public final class GameView extends View {
     float hotbarX=0,hotbarY=0,hotbarScale=1f;
     int hotbarOpacity=90,selectedHotbar=0;
     int hotbarPointer=-1;
-    static final int HOTBAR=HUD_ITEMS,EDITOR_ITEMS=HOTBAR+1;
+    static final int HOTBAR=HUD_ITEMS,BAG_EDITOR=HOTBAR+1,EDITOR_ITEMS=BAG_EDITOR+1;
     static final String[] HOTBAR_TYPES={
         "EMPTY","MEDKIT","AMMO","PISTOL","SHOTGUN","UZI","FOOD","WATER","TORCH",
         "BARRICADE","LIGHT POST"};
@@ -378,7 +379,7 @@ public final class GameView extends View {
         clock.setClock(night?21*60f:12*60f,1);
         face=1;aimX=1;aimY=0;refreshDaylight();
         enemies.clear();friends.clear();campStaff.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();builtCampfires.clear();
-        craftV83.clear();removeBarricadeCoverV83();
+        craftV83.clear();banditLootV87.clear();removeBarricadeCoverV83();
         initCampStaff();
         playing=true;paused=false;settingsPause=false;gameOver=false;
         adjustFriends();spawnWave();
@@ -419,6 +420,7 @@ public final class GameView extends View {
         craftV83.decodeStock(host.prefs.getString("camp_stock_v84",""));
         salvageWorldV84.decode(host.prefs.getString("salvaged_scrap_v84",""));
         groundPickupsV85.decode(host.prefs.getString("loose_pickups_v85",""));
+        banditLootV87.decode(host.prefs.getString("bandit_loot_bags_v87",""));
         placingKindV84=-1;placingPointerV84=-1;
         removeBarricadeCoverV83();restoreBarricadeCoverV83();
         campStaff.clear();initCampStaff();
@@ -594,6 +596,7 @@ public final class GameView extends View {
                 .putString("camp_stock_v84",craftV83.encodeStock())
                 .putString("salvaged_scrap_v84",salvageWorldV84.encode())
                 .putString("loose_pickups_v85",groundPickupsV85.encode())
+                .putString("bandit_loot_bags_v87",banditLootV87.encode())
                 .putFloat("clockMinutes",clock.minute()).putInt("clockDay",clock.day())
                 .putFloat("aimX",aimX).putFloat("aimY",aimY).apply();
         hasSave=true;
@@ -759,8 +762,8 @@ public final class GameView extends View {
         if(enemy.hp<=0&&enemy.active){
             enemy.active=false;kills++;particles(enemy.x,enemy.y-24,ORANGE,7);
             if(lootEnabled){
-                int type=kills%7==0?2:kills%3==0?1:0;
-                drops.add(new Drop(enemy.x,enemy.y-3,type));
+                banditLootV87.spawn(enemy.x,enemy.y-3,kills,wave,enemy.variant);
+                saveProgress(); // corpse bag is persistent immediately on bandit death
             }
         }
     }
@@ -1838,10 +1841,74 @@ public final class GameView extends View {
         }
         c.restore();
     }
+    /** A grounded pixel-art dropped backpack with zipper, straps and loot count. */
+    void drawBanditBagV87(Canvas c,BanditLootV87.Bag bag){
+        float x=bag.x,y=bag.y;
+        color(0x990f1a17);c.drawOval(x-23,y-6,x+23,y+8,p);
+        rect(c,x-20,y-21,40,26,0xff142522);
+        rect(c,x-16,y-23,32,25,0xff565b43);
+        rect(c,x-13,y-27,26,8,0xff1e3028);
+        rect(c,x-9,y-25,18,5,0xff8b7955);
+        rect(c,x-13,y-16,26,11,0xff787558);
+        rect(c,x-8,y-14,16,7,0xffaaa078);
+        rect(c,x+12,y-16,5,18,0xff24352b);
+        rect(c,x-17,y-16,5,18,0xff24352b);
+        rect(c,x-2,y-13,5,5,0xffd5ba7e);
+        label(c,"x"+bag.total(),x+14,y-26,10,0xffecd3a4,true);
+    }
+    /** Only a nearby bandit bag can be inspected or transferred to player. */
+    BanditLootV87.Bag nearbyBanditBagV87(){
+        if(!playing||gameOver)return null;
+        return banditLootV87.nearest(playerX,playerY,BanditLootV87.USE_RADIUS);
+    }
+    /** Maps all loot icon types to the existing live inventory counters. */
+    void addBanditLootV87(int type,int count){
+        if(count<=0)return;
+        switch(type){
+            case BanditLootV87.SCRAP:scrap+=count;break;
+            case BanditLootV87.MEDKIT:medkits+=count;break;
+            case BanditLootV87.AMMO:ammoPacks+=count;break;
+            case BanditLootV87.FOOD:foodCount+=count;break;
+            case BanditLootV87.WATER:waterCount+=count;break;
+            case BanditLootV87.WOOD:wood+=count;break;
+            case BanditLootV87.STONE:stone+=count;break;
+            case BanditLootV87.FIBER:fiber+=count;break;
+        }
+    }
+    int lootBanditStackV87(BanditLootV87.Bag bag,int kind){
+        if(!playing||!banditLootV87.contains(bag)||
+            distance(playerX,playerY,bag.x,bag.y)>BanditLootV87.USE_RADIUS+7f)return 0;
+        int count=banditLootV87.take(bag,kind);
+        if(count>0){
+            addBanditLootV87(kind,count);
+            gatherFeedback="LOOTED "+BanditLootV87.NAMES[kind]+" +"+count;
+            gatherFeedbackTime=2.2f;
+            saveProgress();invalidate();
+        }
+        return count;
+    }
+    int lootAllBanditV87(BanditLootV87.Bag bag){
+        if(!playing||!banditLootV87.contains(bag)||
+            distance(playerX,playerY,bag.x,bag.y)>BanditLootV87.USE_RADIUS+7f)return 0;
+        int[] taken=banditLootV87.takeAll(bag);
+        int count=0;
+        for(int i=0;i<taken.length;i++){
+            addBanditLootV87(i,taken[i]);count+=taken[i];
+        }
+        if(count>0){
+            gatherFeedback="LOOTED "+count+" ITEMS";gatherFeedbackTime=2.2f;
+            saveProgress();invalidate();
+        }
+        return count;
+    }
     void drawWorld(Canvas c){
         c.save();c.translate(-camX,-camY);
         terrain(c);
         drawFixtures(c,false);
+        for(BanditLootV87.Bag bag:banditLootV87.bags){
+            if(!WorldPerfV55.nearView(bag.x,bag.y,camX,camY,viewW,viewH,70))continue;
+            drawBanditBagV87(c,bag);
+        }
         for(Drop d:drops){
             if(!WorldPerfV55.nearView(d.x,d.y,camX,camY,viewW,viewH,24))continue;
             float bob=(float)Math.sin(worldTimer*5+d.x)*2;
@@ -2548,6 +2615,11 @@ public final class GameView extends View {
                     gatherFeedback=craftV83.error;gatherFeedbackTime=1.8f;
                 }
                 invalidate();return;
+            }
+            BanditLootV87.Bag banditBag=nearbyBanditBagV87();
+            if(banditBag!=null){
+                host.runOnUiThread(()->host.lootBanditBagV87(banditBag));
+                return;
             }
             for(Iterator<Drop> it=drops.iterator();it.hasNext();){
                 Drop drop=it.next();
