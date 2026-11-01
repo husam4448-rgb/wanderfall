@@ -2931,6 +2931,11 @@ public final class GameView extends View {
         c.restore();
     }
     /** Separate rear-layer pixel silhouette, attached to player pose, no body atlas edits. */
+    /** Retained compatibility entry point; draws authored gear, not rectangles. */
+    void drawEquippedPackV91(Canvas c,float size,int kind){
+        if(kind>=0)drawApprovedGearV93(c,Math.min(2,kind),
+            -58f,-112f,-22f,-23f,size);
+    }
     /** Gear-only layers from prior authored art, never procedural replacements. */
     void drawWardrobeV92(Canvas c,float size,boolean player,boolean bandit,int variant){
         int role=variant<0?0:variant;
