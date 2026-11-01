@@ -480,6 +480,25 @@ public final class MainActivity extends Activity {
             return false;
         });
     }
+    /** V88 buttons retain the V62 palette but their measured height equals width. */
+    private SquareItemSlotV88 v88SquareSlot(String title,boolean equipped){
+        SquareItemSlotV88 button=new SquareItemSlotV88(this);
+        button.setAllCaps(false);button.setText(title);button.setTextSize(9);
+        button.setTextColor(0xffe1cfac);
+        button.setPadding(2,1,2,1);
+        button.setMinHeight(0);button.setMinimumHeight(0);
+        button.setMinWidth(0);button.setMinimumWidth(0);
+        android.graphics.drawable.GradientDrawable bg=
+            new android.graphics.drawable.GradientDrawable(
+                android.graphics.drawable.GradientDrawable.Orientation.TL_BR,
+                equipped?new int[]{0xff554335,0xff2c2521}:
+                new int[]{0xff40342b,0xff201d1c});
+        bg.setCornerRadius(4);
+        bg.setStroke(2,equipped?0xffaa854d:0xff665747);
+        button.setBackground(bg);
+        return button;
+    }
+
     private Button v62Slot(String title,boolean equipped){
         Button button=new Button(this);
         button.setAllCaps(false);button.setText(title);button.setTextSize(9);
@@ -723,7 +742,7 @@ public final class MainActivity extends Activity {
                     idx==4?game.waterCount:idx==5?game.wood:
                     idx==6?game.stone:idx==7?game.fiber:idx==8?game.craftV83.stock[0]:
                     idx==9?game.craftV83.stock[1]:0;
-                Button slot=v62Slot(name.isEmpty()?"":name+"\n×"+qty,qty>0);
+                SquareItemSlotV88 slot=v88SquareSlot(name.isEmpty()?"":name+"\n×"+qty,qty>0);
                 if(idx<10)backpackStackButtonsV83[idx]=slot;
                 if(idx<10){
                     android.graphics.drawable.Drawable icon=game.itemIconsV84.drawable(
@@ -734,8 +753,8 @@ public final class MainActivity extends Activity {
                     slot.setTextSize(10.5f);
                     slot.setPadding(2,3,2,2);
                 }
-                LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(0,
-                    Math.round(78*getResources().getDisplayMetrics().density),1);
+                // Measured as a square: width assigned by six equal inventory columns.
+                LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(0,-2,1);
                 params.setMargins(3,3,3,3);slots.addView(slot,params);
                 slot.setOnClickListener(v->{
                     if(idx>=10)return;
