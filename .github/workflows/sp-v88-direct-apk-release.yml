@@ -1,0 +1,53 @@
+name: Survival Paradise V88 — Direct APK Release
+on:
+  push:
+    branches: [sp-native-v88-expedition-world-ai-inventory-20261101]
+    paths: ['.github/workflows/sp-v88-direct-apk-release.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish-v88:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Retrieve tested V88 native Android APK and complete source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/spv88
+          gh run download 41285972358 -R "$GITHUB_REPOSITORY" \
+            -n SP_V88_ExpeditionWorld -D /tmp/spv88
+          APK=/tmp/spv88/SurvivalParadise_V88_ExpeditionWorld.apk
+          SOURCE=/tmp/spv88/SurvivalParadise_V88_Source.zip
+          test -s "$APK" && test -s "$SOURCE"
+          unzip -t "$APK" >/dev/null
+          unzip -l "$APK" | grep -q classes.dex
+          for a in body.png approved_v44_walk_palette.png npc_idle_v56.png approved_v29_axe.png gear.png world_props_v74.png; do
+            unzip -l "$APK" | grep -q "assets/$a"
+          done
+          sha256sum "$APK" > /tmp/spv88/V88_APK_SHA256.txt
+          cat /tmp/spv88/V88_APK_SHA256.txt
+      - name: Publish direct APK with reproducible source checkpoint
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG=survival-paradise-v88-expedition-world
+          APK=/tmp/spv88/SurvivalParadise_V88_ExpeditionWorld.apk
+          SOURCE=/tmp/spv88/SurvivalParadise_V88_Source.zip
+          HASH=/tmp/spv88/V88_APK_SHA256.txt
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" "$SOURCE" "$HASH" --clobber -R "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" "$APK" "$SOURCE" "$HASH" \
+              -R "$GITHUB_REPOSITORY" \
+              --target 939fed404eb6dd73e57c718a6150501c032b9c12 \
+              --title "Survival Paradise V88 — Expedition World, Tactical Bandits and Square Inventory" \
+              --notes "VERIFIED: Android gameplay commit 939fed404eb6dd73e57c718a6150501c032b9c12, CI run 41285972358; 47 automated steps passed. CONTENT: Square-slot backpack AND two-pane bandit loot inventories with responsive pixel icon grids. 10 new explorable, solid-authored sites (Ranger Cabin, Field Clinic, Rusted Garage, Signal Relay, Supply Depot, Lookout Tower, Abandoned Farm, Road Checkpoint, Desert Motel, Field Workshop); persistent exterior loot caches and HUD landmark bearing. Bandit AI adds patrol, chase, lateral strafe, nearby cover awareness, low-health retreat, line-of-sight gating and obstacle avoidance without changing approved art. Two buildable structures with pixel art: Water Collector (2 water after 360 in-game minutes) and Field Shelter (stamina/fatigue restoration after 180-minute cooldown); construction is crafted to BAG, placed by AIM+USE; old 2-item save stock migrates. Two new consumable items/icons: craftable Bandage (+24 HP) and Energy Ration (+50 stamina, -20 fatigue); new hotbar entries, save persistence, and fixes direct BAG item use while game is paused. All original V31 character artwork, V76–V87 controls and loot systems, world saves, V85 export/import preserved. App versionCode 89. IMPORTANT: Direct in-place upgrade still requires a confirmed stable Android signing certificate, absent from historical ephemeral debug builds; export V87 saves before uninstalling if needed. Physical Android device gameplay/FPS needs user acceptance." \
+              --prerelease
+          fi
+          gh release view "$TAG" -R "$GITHUB_REPOSITORY" \
+            --json url,assets --jq '{url:.url,assets:[.assets[]|{name:.name,url:.url}]}'
