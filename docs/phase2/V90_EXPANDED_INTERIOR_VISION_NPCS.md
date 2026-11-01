@@ -1,0 +1,7 @@
+# V90 widened clinic, first-person field of view and indoor actors
+
+Enlarged clinic logical geometry by 1.7× into a 2720 × 1904 world, raising room and corridor sizes, furniture and storage coordinates. Special indoor camera minimum zoom fills all screen aspect ratios without blank outer margins, while preserving outdoor zoom and HUD adjustments. On old V89 interior saves, x/y coordinates are migrated on first Continue; data for all 14 supply containers remains unchanged.
+
+Indoor view cone follows aim stick and uses 49 collision-aware rays up to 655px, with near-player local visibility and darkened out-of-view rooms. Actor model contains zombies, feral animals, raider, medic and civilian with persistent health/death states. Companion NPCs enter on player entry, get formation following and grid navigation through room doors, fight indoor hostiles, and return outside on exit. While indoors outdoor chunks/NPCs continue to be suspended. Classic character sprites unchanged.
+
+Signing: the app package ID and versionCode are stable, but a shared permanent private signing key must be configured through repository Actions secrets for genuine no-uninstall future upgrades. V89 debug signing certificate was not persistent, therefore in-place V89→V90 update cannot be guaranteed or cryptographically bypassed. Save transfer/export remains available. Do not commit signing private keys to this public repository.
