@@ -289,11 +289,26 @@ public final class GameView extends View {
         }
     }
     /** Load one independent indoor instance. V90 clinic saves are migrated unchanged. */
+    String currentSiteNameV91(){
+        if(activeSiteV91>=0&&activeSiteV91<ExpeditionSitesV88.SITES.length)
+            return ExpeditionSitesV88.SITES[activeSiteV91].name;
+        return activeSiteV91>=ExpeditionSitesV88.SITES.length?"FIELD SHELTER":"FIELD CLINIC";
+    }
     void configureInteriorV91(int site){
-        if(site<0||site>=ExpeditionSitesV88.SITES.length)site=1;
+        int builtIndex=site-ExpeditionSitesV88.SITES.length;
+        boolean shelter=site>=ExpeditionSitesV88.SITES.length&&builtIndex>=0&&
+            builtIndex<craftV83.objects.size()&&
+            craftV83.objects.get(builtIndex).kind==CampCraftV83.FIELD_SHELTER;
+        if(site<0||(site>=ExpeditionSitesV88.SITES.length&&!shelter))site=1;
         activeSiteV91=site;
+        ExpeditionSitesV88.Site loc=site<ExpeditionSitesV88.SITES.length?
+            ExpeditionSitesV88.SITES[site]:
+            new ExpeditionSitesV88.Site(ExpeditionSitesV88.CABIN,
+                craftV83.objects.get(site-ExpeditionSitesV88.SITES.length).x,
+                craftV83.objects.get(site-ExpeditionSitesV88.SITES.length).y,
+                "FIELD SHELTER",true);
         clinicInteriorV89=site==1?new ClinicInteriorV89():
-            new ExpeditionInteriorV91(ExpeditionSitesV88.SITES[site]);
+            new ExpeditionInteriorV91(loc);
         clinicActorsV90=new ClinicActorsV90(clinicInteriorV89);
         clinicNavV90=new ClinicNavV90(clinicInteriorV89);
         String loot=host.prefs.getString("site_containers_v91_"+site,
@@ -305,7 +320,8 @@ public final class GameView extends View {
         clinicFriendWaypointsV90.clear();
     }
     void persistCurrentInteriorV91(){
-        if(activeSiteV91<0||activeSiteV91>=ExpeditionSitesV88.SITES.length)return;
+        if(activeSiteV91<0||activeSiteV91>=ExpeditionSitesV88.SITES.length+
+            CampCraftV83.MAX)return;
         android.content.SharedPreferences.Editor edit=host.prefs.edit()
             .putString("site_containers_v91_"+activeSiteV91,clinicInteriorV89.encode())
             .putString("site_actors_v91_"+activeSiteV91,clinicActorsV90.encode());
@@ -470,7 +486,7 @@ public final class GameView extends View {
         clinicNavV90=new ClinicNavV90(clinicInteriorV89);
         insideClinicV89=false;activeSiteV91=-1;fieldFindsV91.clear();
         android.content.SharedPreferences.Editor sitesClear=host.prefs.edit();
-        for(int i=0;i<ExpeditionSitesV88.SITES.length;i++)
+        for(int i=0;i<ExpeditionSitesV88.SITES.length+CampCraftV83.MAX;i++)
             sitesClear.remove("site_containers_v91_"+i).remove("site_actors_v91_"+i);
         sitesClear.apply();
         clinicActorsV90.reset(clinicInteriorV89);
@@ -766,6 +782,7 @@ public final class GameView extends View {
             rect(c,x-69,y+2,139,11,0xff675844);
             rect(c,x-64,y-36,9,44,0xffb49b6b);
             rect(c,x+55,y-36,9,44,0xffb49b6b);
+            label(c,"ENTER",x-21,y+33,11,0xfff4ddac,true);
         }
     }
     void placeCampfire(){
@@ -890,33 +907,42 @@ public final class GameView extends View {
         }
         return false;
     }
-    /** All expedition facilities have persistent, full-scale standalone interiors. */
+    /** All fixed and player-built shelters use persistent interiors. */
     boolean enterClinicFromWorldV89(){
         if(insideClinicV89||!playing||gameOver)return false;
         for(int i=0;i<ExpeditionSitesV88.SITES.length;i++){
             ExpeditionSitesV88.Site site=ExpeditionSitesV88.SITES[i];
             float doorY=site.y+(site.kind==ExpeditionSitesV88.CLINIC?154f:90f);
             if(distance(playerX,playerY,site.x,doorY)>108f)continue;
-            outsideDoorXv89=site.x;
-            outsideDoorYv89=doorY+20f;
-            configureInteriorV91(i);
-            insideClinicV89=true;
-            playerX=ClinicInteriorV89.ENTRANCE_X;
-            playerY=ClinicInteriorV89.ENTRANCE_Y;
-            bringFriendsInsideV90();
-            harvestV81.cancel();cancelPlaceV84();
-            releaseControls();shots.clear();sparks.clear();flashes.clear();
-            cameraLookX=0;cameraLookY=0;
-            gatherFeedback=site.name+"  •  EXPLORE AND SCAVENGE";
-            gatherFeedbackTime=3.5f;
-            saveProgress();invalidate();return true;
+            return enterIndoorSiteV91(i,site.x,doorY+20f,site.name);
+        }
+        for(int i=0;i<craftV83.objects.size();i++){
+            CampCraftV83.Structure structure=craftV83.objects.get(i);
+            if(structure.kind!=CampCraftV83.FIELD_SHELTER)continue;
+            if(distance(playerX,playerY,structure.x,structure.y+42f)>112f)continue;
+            return enterIndoorSiteV91(ExpeditionSitesV88.SITES.length+i,
+                structure.x,structure.y+67f,"FIELD SHELTER");
         }
         return false;
     }
+    boolean enterIndoorSiteV91(int site,float worldX,float worldY,String name){
+        outsideDoorXv89=worldX;
+        outsideDoorYv89=worldY;
+        configureInteriorV91(site);
+        insideClinicV89=true;
+        playerX=ClinicInteriorV89.ENTRANCE_X;
+        playerY=ClinicInteriorV89.ENTRANCE_Y;
+        bringFriendsInsideV90();
+        harvestV81.cancel();cancelPlaceV84();
+        releaseControls();shots.clear();sparks.clear();flashes.clear();
+        cameraLookX=0;cameraLookY=0;
+        gatherFeedback=name+"  •  EXPLORE AND SCAVENGE";
+        gatherFeedbackTime=3.5f;
+        saveProgress();invalidate();return true;
+    }
     void exitClinicV89(){
         if(!insideClinicV89)return;
-        String place=activeSiteV91>=0&&activeSiteV91<ExpeditionSitesV88.SITES.length?
-            ExpeditionSitesV88.SITES[activeSiteV91].name:"BUILDING";
+        String place=currentSiteNameV91();
         persistCurrentInteriorV91();
         insideClinicV89=false;activeSiteV91=-1;
         playerX=outsideDoorXv89;playerY=outsideDoorYv89;
@@ -1198,8 +1224,8 @@ public final class GameView extends View {
     /** Indoor render path does not call terrain(), drawWorld(), NPCs or outdoor lights. */
     void drawClinicInteriorV89(Canvas c){
         c.save();c.translate(-camX,-camY);
-        int siteKindV91=activeSiteV91>=0?
-            ExpeditionSitesV88.SITES[activeSiteV91].kind:ExpeditionSitesV88.CLINIC;
+        int siteKindV91=activeSiteV91>=0&&activeSiteV91<ExpeditionSitesV88.SITES.length?
+            ExpeditionSitesV88.SITES[activeSiteV91].kind:ExpeditionSitesV88.CABIN;
         boolean nonClinicV91=clinicInteriorV89 instanceof ExpeditionInteriorV91;
         rect(c,0,0,ClinicInteriorV89.WIDTH,ClinicInteriorV89.HEIGHT,
             nonClinicV91?0xff292c2a:0xff182f31);
@@ -1248,8 +1274,7 @@ public final class GameView extends View {
                 ((ExpeditionInteriorV91)clinicInteriorV89).roomNames():ClinicInteriorV89.ROOMS;
             label(c,roomsV91[i],x,y,13,0xff213b3b,true);
         }
-        label(c,"MAIN CORRIDOR  •  "+(activeSiteV91>=0?
-            ExpeditionSitesV88.SITES[activeSiteV91].name:"FIELD CLINIC"),
+        label(c,"MAIN CORRIDOR  •  "+currentSiteNameV91(),
             550,559,14,0xff253e3a,true);
         c.restore();
         for(float[] obj:nonClinicV91?
