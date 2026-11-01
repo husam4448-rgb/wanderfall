@@ -6,12 +6,34 @@ android {
   applicationId 'com.survivalparadise.nativegame'
   minSdk 24
   targetSdk 34
-  versionCode 85
-  versionName '0.84-scrap-bag-icons-slash'
+  versionCode 86
+  versionName '0.85-save-transfer-ground-pickups'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
   targetCompatibility JavaVersion.VERSION_17
  }
- buildTypes { release { minifyEnabled false } }
+ // Production-safe signing support. Configure Android keystore securely as
+ // GH Actions secrets; do NOT commit a private signing key into this public repo.
+ def signStore=System.getenv('SP_SIGNING_STORE')
+ def signPassword=System.getenv('SP_SIGNING_PASSWORD')
+ if(signStore && signPassword) {
+  signingConfigs {
+   stable {
+    storeFile file(signStore)
+    storePassword signPassword
+    keyAlias System.getenv('SP_SIGNING_ALIAS') ?: 'survivalparadise'
+    keyPassword System.getenv('SP_SIGNING_KEY_PASSWORD') ?: signPassword
+   }
+  }
+ }
+ buildTypes {
+  debug {
+   if(signStore && signPassword) signingConfig signingConfigs.stable
+  }
+  release {
+   minifyEnabled false
+   if(signStore && signPassword) signingConfig signingConfigs.stable
+  }
+ }
 }
