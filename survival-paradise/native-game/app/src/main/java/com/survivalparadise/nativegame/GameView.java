@@ -2212,8 +2212,15 @@ public final class GameView extends View {
         c.drawRoundRect(x+1,y+1,x+WorldUiV86.BAG_W-1,
             y+WorldUiV86.BAG_H-1,9,9,p);
         p.setStyle(Paint.Style.FILL);
-        itemIconsV84.draw(c,ItemIconsV84.BARRICADE,x+10,y+10,30);
-        label(c,"BAG",x+47,y+34,17,0xfff4ebd5,true);
+        // Distinct backpack silhouette (not a barricade/structure icon).
+        rect(c,x+13,y+10,30,33,0xff152522);
+        rect(c,x+17,y+6,22,10,0xff172d29);
+        rect(c,x+20,y+10,16,5,0xffa88c61);
+        rect(c,x+16,y+14,24,25,0xff685b42);
+        rect(c,x+20,y+18,17,12,0xff8f7954);
+        rect(c,x+23,y+31,11,5,0xffc0a77d);
+        rect(c,x+18,y+16,4,21,0xff243a32);
+        label(c,"BAG",x+49,y+34,17,0xfff4ebd5,true);
     }
     /** Aim direction determines ghost location; use the unchanged aim stick. */
     void updatePlacementTargetV86(){
