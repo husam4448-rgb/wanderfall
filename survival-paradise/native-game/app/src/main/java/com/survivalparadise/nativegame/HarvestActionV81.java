@@ -8,10 +8,11 @@ public final class HarvestActionV81 {
     public static final int IDLE=0, WINDUP=1, STRIKE=2, RECOVER=3;
     public static final int WOOD=ResourceWorldV80.WOOD;
     public static final int STONE=ResourceWorldV80.STONE;
-    public static final int FIBER=ResourceWorldV80.FIBER;
+    public static final int FIBER=ResourceWorldV80.FIBER, SCRAP=3;
     private static final float WOOD_PERIOD=.42f, STONE_PERIOD=.47f, FIBER_PERIOD=.31f;
 
     public ResourceWorldV80.Node target;
+    public SalvageWorldV84.Node salvageTarget;
     public int kind=IDLE, hitsDone=0, hitsRequired=0;
     public boolean active=false, finished=false;
     private boolean struckThisCycle=false;
@@ -26,8 +27,21 @@ public final class HarvestActionV81 {
         active=true;finished=false;phase=WINDUP;
         return true;
     }
+    public boolean beginScrap(SalvageWorldV84.Node node){
+        if(active||node==null)return false;
+        target=null;salvageTarget=node;kind=SCRAP;
+        hitsRequired=node.type==SalvageWorldV84.CAR?4:3;
+        hitsDone=0;timeInCycle=0;struckThisCycle=false;
+        active=true;finished=false;phase=WINDUP;
+        return true;
+    }
+    public boolean canCompleteScrap(float px,float py,float radius,boolean depleted){
+        if(!finished||salvageTarget==null||depleted)return false;
+        float dx=salvageTarget.x-px,dy=salvageTarget.y-py;
+        return dx*dx+dy*dy<=radius*radius;
+    }
     public void cancel(){
-        active=false;finished=false;target=null;phase=IDLE;
+        active=false;finished=false;target=null;salvageTarget=null;phase=IDLE;
         timeInCycle=0;hitsDone=0;hitsRequired=0;struckThisCycle=false;
     }
     public boolean advance(float dt){
@@ -57,7 +71,7 @@ public final class HarvestActionV81 {
         return impact;
     }
     public float period(){
-        return kind==STONE?STONE_PERIOD:kind==FIBER?FIBER_PERIOD:WOOD_PERIOD;
+        return kind==STONE?STONE_PERIOD:kind==FIBER?FIBER_PERIOD:kind==SCRAP?.37f:WOOD_PERIOD;
     }
     public int phase(){return phase;}
     public float cycleProgress(){return active?timeInCycle/period():0f;}
@@ -68,8 +82,8 @@ public final class HarvestActionV81 {
     }
     public float swingDegrees(){
         float t=cycleProgress();
-        float lift=kind==FIBER?-32f:-92f;
-        float end=kind==FIBER?28f:kind==STONE?70f:62f;
+        float lift=kind==FIBER?-32f:kind==SCRAP?-77f:-92f;
+        float end=kind==FIBER?28f:kind==SCRAP?78f:kind==STONE?70f:62f;
         if(t<.30f)return -22f+(lift+22f)*(t/.30f);
         if(t<.66f){
             float u=(t-.30f)/.36f;
@@ -81,7 +95,7 @@ public final class HarvestActionV81 {
         return target!=null&&target.cx==cx&&target.cy==cy&&target.slot==slot;
     }
     public String actionName(){
-        return kind==STONE?"MINING":kind==FIBER?"CUTTING":"CHOPPING";
+        return kind==SCRAP?"SALVAGING":kind==STONE?"MINING":kind==FIBER?"CUTTING":"CHOPPING";
     }
     public boolean canComplete(float px,float py,float radius,boolean alreadyDepleted){
         if(!finished||target==null||alreadyDepleted)return false;
