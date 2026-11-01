@@ -661,8 +661,7 @@ public final class MainActivity extends Activity {
         game.menuPause(true);
         LinearLayout shell=column();
         shell.setBackgroundColor(0xff212825);
-        section(shell,(game.activeSiteV91>=0?
-            ExpeditionSitesV88.SITES[game.activeSiteV91].name:"BUILDING")+" • "+box.label);
+        section(shell,game.currentSiteNameV91()+" • "+box.label);
         shell.addView(text("Tap an item then LOOT, or drag its icon across to PLAYER INVENTORY. LOOT ALL collects everything.",12,false));
         LinearLayout sides=new LinearLayout(this);
         sides.setOrientation(LinearLayout.HORIZONTAL);
