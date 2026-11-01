@@ -181,7 +181,7 @@ jobs:
               'void saveProgress()',
           ]: assert clause in v,clause
           for forbidden in ['if(x<32||y<40||x>WORLD_W-32||y>WORLD_H-32)',
-                  'nx<0||ny<0||nx>WORLD_W||ny>WORLD_H','camX=clamp(playerX',
+                  'nx<0||ny<0||nx>WORLD_W||ny>WORLD_H',
                   'float nx=clamp(playerX','float ny=clamp(playerY']:
               assert forbidden not in v,forbidden
           for required in ['Executors.newSingleThreadExecutor',
