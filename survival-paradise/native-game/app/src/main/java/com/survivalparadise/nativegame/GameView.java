@@ -88,7 +88,7 @@ public final class GameView extends View {
     float playerX=1000,playerY=1060,health=100,stamina=100,shotClock=0,reloadClock=0,recoil=0;
     float aimX=1,aimY=0,stickX=0,stickY=0;
     int face=1,gun=0,ammo=12,kills=0,wave=1,scrap=0,medkits=0,ammoPacks=0,enemyCount=0;
-    int wood=0,stone=0,fiber=0;
+    int wood=0,stone=0,fiber=0,bandagesV88=0,energyV88=0;
     String gatherFeedback="";float gatherFeedbackTime=0f;
     float worldTimer=0,autSaveClock=0,shake=0;
     long lastFrame=0;
@@ -120,7 +120,8 @@ public final class GameView extends View {
     static final int HOTBAR=HUD_ITEMS,BAG_EDITOR=HOTBAR+1,EDITOR_ITEMS=BAG_EDITOR+1;
     static final String[] HOTBAR_TYPES={
         "EMPTY","MEDKIT","AMMO","PISTOL","SHOTGUN","UZI","FOOD","WATER","TORCH",
-        "BARRICADE","LIGHT POST","WATER COLLECTOR","FIELD SHELTER"};
+        "BARRICADE","LIGHT POST","WATER COLLECTOR","FIELD SHELTER",
+        "BANDAGE","ENERGY RATION"};
     int foodCount=2,waterCount=2;
     float hotbarGrabX,hotbarGrabY;
     float hunger=100f,thirst=100f,fatigue=0f;
@@ -378,7 +379,7 @@ public final class GameView extends View {
         playerAnimation.reset();moving=false;stickX=0;stickY=0;shotClock=0;
         gun=Math.max(0,Math.min(11,host.setting("gun",0)));ammo=MAG[gun];
         kills=0;wave=1;scrap=0;medkits=1;ammoPacks=2;
-        wood=0;stone=0;fiber=0;harvestWorld.clear();salvageWorldV84.clear();groundPickupsV85.clear();
+        wood=0;stone=0;fiber=0;bandagesV88=0;energyV88=0;harvestWorld.clear();salvageWorldV84.clear();groundPickupsV85.clear();
         placingKindV84=-1;placingPointerV84=-1;harvestV81.cancel();
         harvestImpactTimeV81=0;gatherFeedback="";gatherFeedbackTime=0;
         worldTimer=0;autSaveClock=0;
@@ -417,6 +418,7 @@ public final class GameView extends View {
         wave=Math.max(1,host.setting("wave",1));
         scrap=host.setting("scrap",0);medkits=host.setting("medkits",1);ammoPacks=host.setting("ammoPacks",2);
         wood=host.setting("woodV80",0);stone=host.setting("stoneV80",0);fiber=host.setting("fiberV80",0);
+        bandagesV88=host.setting("bandagesV88",0);energyV88=host.setting("energyV88",0);
         harvestWorld.decode(host.prefs.getString("depleted_resources_v80",""));
         harvestV81.cancel();harvestImpactTimeV81=0f;
         gatherFeedback="";gatherFeedbackTime=0;
@@ -464,6 +466,20 @@ public final class GameView extends View {
         for(CampCraftV83.Structure s:craftV83.objects)
             if(s.kind==CampCraftV83.BARRICADE)
                 covers.add(new Cover(s.x-39,s.y-15,78,27,3));
+    }
+    /** Two utility recipes produce usable inventory items, not instant effects. */
+    boolean craftConsumableV88(int type){
+        if(!playing||gameOver)return false;
+        if(type==0){
+            if(fiber<2||scrap<1||bandagesV88>=99)return false;
+            fiber-=2;scrap-=1;bandagesV88++;
+            gatherFeedback="CRAFTED BANDAGE";
+        }else if(type==1){
+            if(foodCount<1||waterCount<1||energyV88>=99)return false;
+            foodCount--;waterCount--;energyV88++;
+            gatherFeedback="CRAFTED ENERGY RATION";
+        }else return false;
+        gatherFeedbackTime=2f;saveProgress();invalidate();return true;
     }
     static String craftNameV88(int kind){
         switch(kind){
@@ -763,6 +779,7 @@ public final class GameView extends View {
                 .putInt("scrap",scrap).putInt("medkits",medkits)
                 .putInt("ammoPacks",ammoPacks).putInt("ammo",ammo)
                 .putInt("woodV80",wood).putInt("stoneV80",stone).putInt("fiberV80",fiber)
+                .putInt("bandagesV88",bandagesV88).putInt("energyV88",energyV88)
                 .putString("depleted_resources_v80",harvestWorld.encode())
                 .putString("campfire_locations",encodeCampfires())
                 .putString("camp_buildings_v83",craftV83.encode())
@@ -2312,6 +2329,8 @@ public final class GameView extends View {
         if(item==10)return craftV83.stock[1];
         if(item==11)return craftV83.stock[2];
         if(item==12)return craftV83.stock[3];
+        if(item==13)return bandagesV88;
+        if(item==14)return energyV88;
         return 0;
     }
     void setHotbarItem(int slot,int item){
@@ -2338,6 +2357,11 @@ public final class GameView extends View {
             toggleLamp();
         }else if(item>=9&&item<=12){
             selectPlaceItemV84(item-9);
+        }else if(item==13&&bandagesV88>0&&health<100f){
+            bandagesV88--;health=Math.min(100f,health+24f);
+        }else if(item==14&&energyV88>0&&stamina<100f){
+            energyV88--;stamina=Math.min(100f,stamina+50f);
+            fatigue=Math.max(0f,fatigue-20f);
         }
         saveProgress();invalidate();
     }
@@ -2357,7 +2381,7 @@ public final class GameView extends View {
                 x+i*size+size*.5f-16f,y+size*.13f,32f);
             label(c,name.length()>6?name.substring(0,6):name,x+i*size+4,y+size-3,
                     8,0xffe7e1c7,true);
-            if(item==1||item==2||item==6||item==7||(item>=9&&item<=12))
+            if(item==1||item==2||item==6||item==7||(item>=9&&item<=14))
                 label(c,Integer.toString(hotbarQuantity(item)),x+(i+1)*size-14,
                       y+size-6,10,0xffe6d4aa,true);
         }
