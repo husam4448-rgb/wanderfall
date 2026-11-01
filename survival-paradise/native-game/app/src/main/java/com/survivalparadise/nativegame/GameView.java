@@ -2960,36 +2960,74 @@ public final class GameView extends View {
         label(c,message,left+9,top+18,12,
             attitude==NPCRelationshipsV92.HOSTILE?0xffef9e91:0xffe6e3c4,true);
     }
-    void drawIndoorLightsV92(Canvas c){
-        float z=ClinicInteriorV89.EXPANSION_V90;
-        boolean clinic=activeSiteV91==1;
-        boolean electric=clinic||(activeSiteV91>=0&&activeSiteV91<
-            ExpeditionSitesV88.SITES.length&&
-            (ExpeditionSitesV88.SITES[activeSiteV91].kind==ExpeditionSitesV88.RELAY||
-             ExpeditionSitesV88.SITES[activeSiteV91].kind==ExpeditionSitesV88.MOTEL));
-        int core=electric?0xffc5eaff:0xffffcf79;
-        int faint=electric?0x2d68a8b9:0x35efba69;
+    /** Each luminaire illuminates the FLOOR, not the characters or equipment.
+      * Clip by individual rooms so falloff cannot shine through interior walls. */
+    void drawIndoorFloorIlluminationV93(Canvas c){
         final int[][] lamps={{260,225},{790,225},{1310,225},
             {260,845},{790,845},{1310,845},{800,562}};
+        boolean electric=activeSiteV91==1||(activeSiteV91>=0&&
+            activeSiteV91<ExpeditionSitesV88.SITES.length&&
+            (ExpeditionSitesV88.SITES[activeSiteV91].kind==ExpeditionSitesV88.RELAY||
+             ExpeditionSitesV88.SITES[activeSiteV91].kind==ExpeditionSitesV88.MOTEL));
+        int tint=electric?0x226b9c9d:0x267d6044;
         for(int i=0;i<lamps.length;i++){
-            float lx=lamps[i][0]*z,ly=lamps[i][1]*z;
-            if(!WorldPerfV55.nearView(lx,ly,camX,camY,viewW,viewH,280))continue;
-            float x0=i==6?23*z:(i%3==0?23*z:i%3==1?551*z:1071*z);
-            float x1=i==6?1577*z:(i%3==0?530*z:i%3==1?1050*z:1577*z);
-            float y0=i==6?508*z:i<3?44*z:642*z;
-            float y1=i==6?620*z:i<3?486*z:1070*z;
+            float x=lamps[i][0],y=lamps[i][1];
+            if(!WorldPerfV55.nearView(x*ClinicInteriorV89.EXPANSION_V90,
+                y*ClinicInteriorV89.EXPANSION_V90,
+                camX,camY,viewW,viewH,530f))continue;
+            float x0=i==6?23f:(i%3==0?23f:i%3==1?551f:1071f);
+            float x1=i==6?1577f:(i%3==0?530f:i%3==1?1050f:1577f);
+            float y0=i==6?508f:i<3?44f:642f;
+            float y1=i==6?620f:i<3?486f:1070f;
             c.save();c.clipRect(x0,y0,x1,y1);
-            color(faint);c.drawCircle(lx,ly,235*z/1.7f,p);
-            color(electric?0x2c9ccedc:0x39f1c37b);
-            c.drawCircle(lx,ly,142*z/1.7f,p);
-            color(electric?0x3fc1e9f6:0x4dffd18a);
-            c.drawCircle(lx,ly,66*z/1.7f,p);
+            float range=i==6?125f:260f;
+            p.setColor(0xffffffff);
+            p.setShader(new android.graphics.RadialGradient(x,y,range,
+                new int[]{tint,electric?0x126c9196:0x12796346,0x00000000},
+                new float[]{0f,.45f,1f},android.graphics.Shader.TileMode.CLAMP));
+            c.drawCircle(x,y,range,p);
+            p.setShader(null);
             c.restore();
-            rect(c,lx-15,ly-9,30,18,0xff17282a);
-            rect(c,lx-11,ly-6,22,12,electric?0xff88b9bd:0xff8e6843);
-            rect(c,lx-8,ly-4,16,8,core);
-            rect(c,lx-3,ly-7,6,14,0xffe4e4c0);
         }
+    }
+    /** Scene fixture is a solid object, NOT an additive circle rendered over actors. */
+    void drawIndoorLightFixturesV93(Canvas c){
+        float z=ClinicInteriorV89.EXPANSION_V90;
+        final int[][] lamps={{260,225},{790,225},{1310,225},
+            {260,845},{790,845},{1310,845},{800,562}};
+        boolean electric=activeSiteV91==1||(activeSiteV91>=0&&
+            activeSiteV91<ExpeditionSitesV88.SITES.length&&
+            (ExpeditionSitesV88.SITES[activeSiteV91].kind==ExpeditionSitesV88.RELAY||
+             ExpeditionSitesV88.SITES[activeSiteV91].kind==ExpeditionSitesV88.MOTEL));
+        for(int[] l:lamps){
+            float x=l[0]*z,y=l[1]*z;
+            if(!WorldPerfV55.nearView(x,y,camX,camY,viewW,viewH,50f))continue;
+            rect(c,x-15,y-9,30,18,0xff172c2c);
+            rect(c,x-12,y-6,24,12,electric?0xff5d9296:0xff795c3e);
+            rect(c,x-9,y-4,18,8,electric?0xffb2d8d1:0xffd4ad76);
+            rect(c,x-3,y-2,6,4,electric?0xffe3faed:0xffffdda0);
+        }
+    }
+    /** All speech draws after terrain light masks, indoor vision, and actors. */
+    void drawIndoorSpeechAfterLightingV93(Canvas c){
+        for(ClinicActorsV90.Actor a:clinicActorsV90.actors){
+            if(!a.active||a.type==ClinicActorsV90.FERAL)continue;
+            drawSpeechV92(c,a.x,a.y,a.type,
+                a.hostile()?NPCRelationshipsV92.HOSTILE:NPCRelationshipsV92.FRIENDLY,
+                distance(playerX,playerY,a.x,a.y)<255f);
+        }
+        for(Survivor f:friends)drawSpeechV92(c,f.x,f.y,f.variant+30,
+            NPCRelationshipsV92.FRIENDLY,false);
+    }
+    void drawOutdoorSpeechAfterLightingV93(Canvas c){
+        for(Bandit e:enemies)if(e.active)drawSpeechV92(c,e.x,e.y,
+            e.variant+20,NPCRelationshipsV92.HOSTILE,
+            distance(e.x,e.y,playerX,playerY)<420f);
+        for(Survivor f:friends)drawSpeechV92(c,f.x,f.y,f.variant+30,
+            NPCRelationshipsV92.FRIENDLY,nearest(f.x,f.y,430f)!=null);
+        for(Survivor npc:campStaff)drawSpeechV92(c,npc.x,npc.y,npc.variant,
+            npc.variant==ROLE_GUARD+1?NPCRelationshipsV92.FRIENDLY:
+            NPCRelationshipsV92.NEUTRAL,nearest(npc.x,npc.y,400f)!=null);
     }
     /** A grounded pixel-art dropped backpack with zipper, straps and loot count. */
     void drawBanditBagV87(Canvas c,BanditLootV87.Bag bag){
