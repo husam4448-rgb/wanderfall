@@ -431,7 +431,9 @@ public final class MainActivity extends Activity {
             game.menuPause(false);restoreFullscreenAfterShade();
         });
         dialog.show();
-        resizeSettingsWindow(dialog,92,90);
+        dialog.setCancelable(true);
+        dialog.setCanceledOnTouchOutside(true);
+        resizeSettingsWindow(dialog,98,96);
     }
 
     private void makeWindowMovable(AlertDialog dialog,View handle,
@@ -644,7 +646,7 @@ public final class MainActivity extends Activity {
             right.addView(slots);
         }
         section(right,"CRAFT & PLACE IN WORLD");
-        right.addView(text("CRAFT → BAG. Select a crafted icon to PLACE; drag over the world and release.",11,false));
+        right.addView(text("CRAFT → BAG. Select a structure, point using AIM, then press USE to place. Press BAG to cancel.",11,false));
         LinearLayout recipesV83=new LinearLayout(this);
         recipesV83.setOrientation(LinearLayout.HORIZONTAL);
         right.addView(recipesV83);
@@ -708,6 +710,8 @@ public final class MainActivity extends Activity {
             game.saveProgress();game.menuPause(false);restoreFullscreenAfterShade();
         });
         dialog.show();
+        dialog.setCancelable(true);
+        dialog.setCanceledOnTouchOutside(true);
         bagDialogV84[0]=dialog;
         final int[] width={prefs.getInt("bagWindowWidth",94)},
                     height={prefs.getInt("bagWindowHeight",92)};
@@ -1053,6 +1057,8 @@ public final class MainActivity extends Activity {
         activeDialog[0]=dialog;
         dialog.setOnDismissListener(d->{game.menuPause(false);restoreFullscreenAfterShade();});
         dialog.show();
+        dialog.setCancelable(true);
+        dialog.setCanceledOnTouchOutside(true);
         makeWindowMovable(dialog,dragTitle,windowW,windowH,"settingsWindow");
     }
     void captureGame(){
