@@ -638,11 +638,15 @@ public final class MainActivity extends Activity {
                 Button sourceButton=lootButtons[i];
                 sourceButton.setVisibility(View.VISIBLE);
                 sourceButton.setEnabled(count>0);
+                sourceButton.setCompoundDrawables(null,count>0?
+                    game.itemIconsV84.drawable(getResources(),i,18):null,null,null);
                 sourceButton.setText(count>0?
                     BanditLootV87.NAMES[i].toUpperCase()+"\n×"+count+
                     (selected[0]==i?" ✓":""):"");
                 sourceButton.setTextColor(selected[0]==i?
                     0xfff8c873:0xffe6d7b7);
+                playerButtons[i].setCompoundDrawables(null,playerCounts[i]>0?
+                    game.itemIconsV84.drawable(getResources(),i,18):null,null,null);
                 playerButtons[i].setText(playerCounts[i]>0?
                     BanditLootV87.NAMES[i].toUpperCase()+"\n×"+playerCounts[i]:"");
             }
@@ -791,11 +795,15 @@ public final class MainActivity extends Activity {
                 Button sourceButton=lootButtons[i];
                 sourceButton.setVisibility(View.VISIBLE);
                 sourceButton.setEnabled(count>0);
+                sourceButton.setCompoundDrawables(null,count>0?
+                    game.itemIconsV84.drawable(getResources(),i,18):null,null,null);
                 sourceButton.setText(count>0?
                     BanditLootV87.NAMES[i].toUpperCase()+"\n×"+count+
                     (selected[0]==i?" ✓":""):"");
                 sourceButton.setTextColor(selected[0]==i?
                     0xfff8c873:0xffe6d7b7);
+                playerButtons[i].setCompoundDrawables(null,playerCounts[i]>0?
+                    game.itemIconsV84.drawable(getResources(),i,18):null,null,null);
                 playerButtons[i].setText(playerCounts[i]>0?
                     BanditLootV87.NAMES[i].toUpperCase()+"\n×"+playerCounts[i]:"");
             }
