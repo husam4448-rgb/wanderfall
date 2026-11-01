@@ -74,6 +74,10 @@ public final class GameView extends View {
        {2455,1170,LightingV47.NEON_BLUE},{857,1710,LightingV47.NEON_PINK}};
     final ArrayList<float[]> builtCampfires=new ArrayList<>();
     final CampCraftV83 craftV83=new CampCraftV83();
+    final SalvageWorldV84 salvageWorldV84=new SalvageWorldV84();
+    final ItemIconsV84 itemIconsV84=new ItemIconsV84();
+    int placingKindV84=-1,placingPointerV84=-1;
+    float placingXv84,placingYv84;
     final ResourceWorldV80 harvestWorld=new ResourceWorldV80();
     final HarvestActionV81 harvestV81=new HarvestActionV81();
     float harvestImpactTimeV81=0f;
@@ -365,7 +369,8 @@ public final class GameView extends View {
         playerAnimation.reset();moving=false;stickX=0;stickY=0;shotClock=0;
         gun=Math.max(0,Math.min(11,host.setting("gun",0)));ammo=MAG[gun];
         kills=0;wave=1;scrap=0;medkits=1;ammoPacks=2;
-        wood=0;stone=0;fiber=0;harvestWorld.clear();harvestV81.cancel();
+        wood=0;stone=0;fiber=0;harvestWorld.clear();salvageWorldV84.clear();
+        placingKindV84=-1;placingPointerV84=-1;harvestV81.cancel();
         harvestImpactTimeV81=0;gatherFeedback="";gatherFeedbackTime=0;
         worldTimer=0;autSaveClock=0;
         clock.setClock(night?21*60f:12*60f,1);
@@ -409,6 +414,9 @@ public final class GameView extends View {
         enemies.clear();friends.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();
         restoreCampfires();
         craftV83.decode(host.prefs.getString("camp_buildings_v83",""));
+        craftV83.decodeStock(host.prefs.getString("camp_stock_v84",""));
+        salvageWorldV84.decode(host.prefs.getString("salvaged_scrap_v84",""));
+        placingKindV84=-1;placingPointerV84=-1;
         removeBarricadeCoverV83();restoreBarricadeCoverV83();
         campStaff.clear();initCampStaff();
         playing=true;paused=false;gameOver=false;
@@ -441,7 +449,46 @@ public final class GameView extends View {
             if(s.kind==CampCraftV83.BARRICADE)
                 covers.add(new Cover(s.x-39,s.y-15,78,27,3));
     }
-    /** Craft using gathered resources, while the inventory is paused. */
+    /** Crafting yields a storable backpack item; no immediate construction. */
+    boolean craftIntoBagV84(int kind){
+        if(!playing||gameOver){craftV83.error="Start a game first";return false;}
+        int[] resources={wood,stone,fiber,scrap};
+        if(!craftV83.craftToBag(kind,resources))return false;
+        wood=resources[0];stone=resources[1];fiber=resources[2];scrap=resources[3];
+        gatherFeedback="CRAFTED "+(kind==0?"BARRICADE":"LIGHT POST")+" (BAG)";
+        gatherFeedbackTime=2.2f;saveProgress();invalidate();return true;
+    }
+    boolean selectPlaceItemV84(int kind){
+        if(!playing||gameOver||kind<0||kind>1||craftV83.stock[kind]<1){
+            craftV83.error="No crafted item in backpack";return false;
+        }
+        placingKindV84=kind;placingPointerV84=-1;
+        placingXv84=playerX+face*130f;placingYv84=playerY+28f;
+        invalidate();return true;
+    }
+    void cancelPlaceV84(){placingKindV84=-1;placingPointerV84=-1;}
+    /** Placement consumes one finished item only when valid. */
+    boolean placeAtV84(float x,float y){
+        if(placingKindV84<0||!playing||paused||editControls)return false;
+        placingXv84=x;placingYv84=y;
+        if(distance(x,y,playerX,playerY)>420f){
+            craftV83.error="Move closer to build";return false;
+        }
+        if(blocked(x,y,48f)){craftV83.error="Clear ground needed";return false;}
+        for(float[] f:FIXED_CAMPFIRES)if(distance(x,y,f[0],f[1])<115f){
+            craftV83.error="Too close to campfire";return false;
+        }
+        for(float[] f:builtCampfires)if(distance(x,y,f[0],f[1])<115f){
+            craftV83.error="Too close to campfire";return false;
+        }
+        int kind=placingKindV84;
+        if(!craftV83.placeFromBag(kind,x,y))return false;
+        if(kind==CampCraftV83.BARRICADE)
+            covers.add(new Cover(x-39,y-15,78,27,3));
+        gatherFeedback=kind==0?"BARRICADE PLACED":"LIGHT POST PLACED";
+        gatherFeedbackTime=2.7f;cancelPlaceV84();saveProgress();invalidate();return true;
+    }
+    /** Legacy direct placement, not exposed by V84 UI. */
     boolean craftPlaceV83(int kind){
         if(!playing||gameOver){craftV83.error="Start a game first";return false;}
         if(harvestV81.active){craftV83.error="Finish harvesting first";return false;}
@@ -540,6 +587,8 @@ public final class GameView extends View {
                 .putString("depleted_resources_v80",harvestWorld.encode())
                 .putString("campfire_locations",encodeCampfires())
                 .putString("camp_buildings_v83",craftV83.encode())
+                .putString("camp_stock_v84",craftV83.encodeStock())
+                .putString("salvaged_scrap_v84",salvageWorldV84.encode())
                 .putFloat("clockMinutes",clock.minute()).putInt("clockDay",clock.day())
                 .putFloat("aimX",aimX).putFloat("aimY",aimY).apply();
         hasSave=true;
@@ -555,7 +604,7 @@ public final class GameView extends View {
     void stopWalking(){stickX=0;stickY=0;moving=false;playerAnimation.reset();}
     boolean debugTeleport(float dx,float dy){
         if(!playing||gameOver)return false;
-        harvestV81.cancel();releaseControls();playerX+=dx;playerY+=dy;
+        cancelPlaceV84();harvestV81.cancel();releaseControls();playerX+=dx;playerY+=dy;
         shots.clear();flashes.clear();sparks.clear();
         saveProgress();invalidate();return true;
     }
@@ -2136,6 +2185,7 @@ public final class GameView extends View {
         terrainChunks.release();
         lighting.release();
         if(campStatic!=null){campStatic.recycle();campStatic=null;}
+        itemIconsV84.release();
         if(pickaxeV81!=null){pickaxeV81.recycle();pickaxeV81=null;}
         if(crosshairReticle!=null){crosshairReticle.recycle();crosshairReticle=null;}
         super.onDetachedFromWindow();
