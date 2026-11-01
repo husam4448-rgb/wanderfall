@@ -1,0 +1,54 @@
+name: Survival Paradise V81 — Publish direct APK
+on:
+  push:
+    branches: [sp-native-v81-animated-harvesting-20261101]
+    paths: ['.github/workflows/sp-v81-publish-direct-apk.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  release-v81:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Retrieve complete successful V81 APK artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/spv81
+          gh run download 41255426228 -R "$GITHUB_REPOSITORY" \
+            -n SP_V81_HarvestAnimations -D /tmp/spv81
+          APK=/tmp/spv81/SurvivalParadise_V81_HarvestAnimations.apk
+          SOURCE=/tmp/spv81/SurvivalParadise_V81_Source.zip
+          test -s "$APK"
+          test -s "$SOURCE"
+          unzip -t "$APK" >/dev/null
+          unzip -l "$APK" | grep -q 'classes.dex'
+          for a in body.png approved_v44_walk_palette.png approved_v29_axe.png gear.png world_props_v74.png; do
+            unzip -l "$APK" | grep -q "assets/$a"
+          done
+          sha256sum "$APK" > /tmp/spv81/V81_APK_SHA256.txt
+          cat /tmp/spv81/V81_APK_SHA256.txt
+      - name: Publish publicly accessible GitHub Release with individual APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG=survival-paradise-v81-animated-harvesting
+          APK=/tmp/spv81/SurvivalParadise_V81_HarvestAnimations.apk
+          SOURCE=/tmp/spv81/SurvivalParadise_V81_Source.zip
+          HASH=/tmp/spv81/V81_APK_SHA256.txt
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" "$SOURCE" "$HASH" --clobber -R "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" "$APK" "$SOURCE" "$HASH" \
+              -R "$GITHUB_REPOSITORY" \
+              --target 9fe7381719e8f48e0825b80d0db072ad5d6864ed \
+              --title "Survival Paradise V81 — Animated Harvesting (Experimental)" \
+              --notes "Verified native Android APK built and tested from commit 9fe7381719e8f48e0825b80d0db072ad5d6864ed. Original approved V29 axe, new matching pickaxe and original knife pixel forms swing with the player's hand rig. USE now plays 2–3 timed chops/mining strikes or 2 cuts, with resource shake, impact particles, progress indicator, and reward only after successful final recovery. Moving, damage, nearby hostiles or out-of-range cancels safely; original gun stays equipped. V80 resource depletion and V76–V80 HUD and gameplay preserved. Android on-device visual and FPS testing pending." \
+              --prerelease
+          fi
+          gh release view "$TAG" -R "$GITHUB_REPOSITORY" \
+            --json url,assets --jq '{url:.url,assets:[.assets[]|{name:.name,url:.url}]}'
