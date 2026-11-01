@@ -1110,6 +1110,12 @@ public final class GameView extends View {
     void drawClinicInteriorV89(Canvas c){
         c.save();c.translate(-camX,-camY);
         rect(c,0,0,ClinicInteriorV89.WIDTH,ClinicInteriorV89.HEIGHT,0xff182f31);
+        // Base layout can be rendered at the same proportions as its V89 art.
+        // Physical model, entrances, rooms, furniture and actor positions use
+        // expanded actual coordinates, while locked pixel size stays unchanged.
+        c.save();
+        c.scale(ClinicInteriorV89.EXPANSION_V90,
+            ClinicInteriorV89.EXPANSION_V90);
         rect(c,23,23,1554,1072,0xff747d70);
         // Six departments have differentiated tile/palette, connected by hall.
         int[] north={0xff70837e,0xff858a81,0xff6a8987};
@@ -1125,23 +1131,27 @@ public final class GameView extends View {
             rect(c,x,43,2,1028,0x32404c46);
         for(int y=45;y<1080;y+=72)
             rect(c,24,y,1551,2,0x37455851);
+        float inv=1f/ClinicInteriorV89.EXPANSION_V90;
         for(float[] wall:ClinicInteriorV89.WALLS){
-            rect(c,wall[0]-2,wall[1]-2,wall[2]+4,wall[3]+4,0xff162e30);
-            rect(c,wall[0],wall[1],wall[2],wall[3],0xff425d59);
-            rect(c,wall[0]+2,wall[1]+2,Math.max(2,wall[2]-4),5,
-                0xff90a39b);
+            float wx=wall[0]*inv,wy=wall[1]*inv,
+                ww=wall[2]*inv,wh=wall[3]*inv;
+            rect(c,wx-2,wy-2,ww+4,wh+4,0xff162e30);
+            rect(c,wx,wy,ww,wh,0xff425d59);
+            rect(c,wx+2,wy+2,Math.max(2,ww-4),5,0xff90a39b);
         }
         // Door portal frames face the central corridor.
         for(float[] door:ClinicInteriorV89.DOOR_SIGNS){
-            rect(c,door[0]-47,door[1],94,9,0xff283e40);
-            rect(c,door[0]-44,door[1]+3,88,4,0xffddc7a2);
+            float dx=door[0]*inv,dy=door[1]*inv;
+            rect(c,dx-47,dy,94,9,0xff283e40);
+            rect(c,dx-44,dy+3,88,4,0xffddc7a2);
         }
         for(int i=0;i<ClinicInteriorV89.ROOM_LABELS.length;i++){
-            float x=ClinicInteriorV89.ROOM_LABELS[i][0];
-            float y=ClinicInteriorV89.ROOM_LABELS[i][1];
+            float x=ClinicInteriorV89.ROOM_LABELS[i][0]*inv;
+            float y=ClinicInteriorV89.ROOM_LABELS[i][1]*inv;
             label(c,ClinicInteriorV89.ROOMS[i],x,y,13,0xff213b3b,true);
         }
         label(c,"MAIN CORRIDOR  •  FIELD CLINIC",562,559,14,0xff253e3a,true);
+        c.restore();
         for(float[] obj:ClinicInteriorV89.FURNITURE){
             if(!WorldPerfV55.nearView(obj[1],obj[2],camX,camY,
                 viewW,viewH,Math.max(obj[3],obj[4])+30))continue;
@@ -1153,19 +1163,95 @@ public final class GameView extends View {
             drawClinicStorageV89(c,storage);
         }
         // Real departure point at bottom entrance; not a map-teleport hotspot.
-        rect(c,757,1070,86,30,0xff122a29);
-        rect(c,762,1074,76,21,0xff9d8c68);
-        rect(c,780,1074,39,18,0xff284448);
-        label(c,"EXIT",777,1064,16,0xffe9d8af,true);
+        float s=ClinicInteriorV89.EXPANSION_V90;
+        rect(c,757*s,1070*s,86*s,30*s,0xff122a29);
+        rect(c,762*s,1074*s,76*s,21*s,0xff9d8c68);
+        rect(c,780*s,1074*s,39*s,18*s,0xff284448);
+        label(c,"EXIT",777*s,1064*s,22,0xffe9d8af,true);
         if(distance(playerX,playerY,ClinicInteriorV89.EXIT_X,
            ClinicInteriorV89.EXIT_Y)<125f)
-            label(c,"USE TO EXIT TO WORLD",691,1020,13,0xfff0e5bf,true);
-        // Preserve original canonical animated male/female sprite and weapon rigs.
+            label(c,"USE TO EXIT TO WORLD",691*s,1020*s,18,0xfff0e5bf,true);
+        // Room threats and allies are depth-sorted with the player, reusing the
+        // original approved character sprites rather than regenerating artwork.
+        for(ClinicActorsV90.Actor a:clinicActorsV90.actors){
+            if(!a.active)continue;
+            if(!WorldPerfV55.nearView(a.x,a.y,camX,camY,viewW,viewH,160))
+                continue;
+            drawClinicActorV90(c,a);
+        }
+        for(Survivor friend:friends){
+            if(!WorldPerfV55.nearView(friend.x,friend.y,camX,camY,viewW,viewH,145))
+                continue;
+            float friendAim=Ballistics.angle(friend.aimX,friend.aimY,friend.face);
+            character(c,friend.x,friend.y,friend.gun,friend.face,
+                friend.animation.frame(),
+                friend.animation.isWalking()?Float.POSITIVE_INFINITY:
+                friend.animation.breathOffset(),friendAim,0,false,false,
+                friend.variant);
+            rect(c,friend.x-6,friend.y-117,13,4,OLIVE);
+        }
         float angle=Ballistics.angle(aimX,aimY,face);
         character(c,playerX,playerY,gun,face,playerAnimation.frame(),
             playerAnimation.isWalking()?Float.POSITIVE_INFINITY:
             playerAnimation.breathOffset(),angle,recoil*2.7f,true,false,-1);
+        drawClinicVisionV90(c);
         c.restore();
+    }
+    void drawClinicActorV90(Canvas c,ClinicActorsV90.Actor a){
+        if(a.type==ClinicActorsV90.FERAL){
+            // Side-view infected canine: recognizable muzzle, ears and tail.
+            rect(c,a.x-28,a.y-28,55,21,0xff172925);
+            rect(c,a.x-23,a.y-34,41,19,0xff665e47);
+            rect(c,a.x+12,a.y-43,20,20,0xff263d34);
+            rect(c,a.x+15,a.y-41,14,13,0xff8c7c53);
+            rect(c,a.x+27,a.y-30,14,9,0xff7f674c);
+            rect(c,a.x+23,a.y-35,4,4,0xffda9b6b);
+            rect(c,a.x-22,a.y-7,8,13,0xff222e28);
+            rect(c,a.x+13,a.y-7,8,13,0xff222e28);
+            rect(c,a.x-37,a.y-29,12,5,0xff665e47);
+            return;
+        }
+        boolean hostile=a.hostile();
+        int variant=a.type==ClinicActorsV90.MEDIC?ROLE_MEDIC:
+            a.type==ClinicActorsV90.SURVIVOR?ROLE_CIVILIAN:0;
+        int facing=a.x<=playerX?1:-1;
+        character(c,a.x,a.y,hostile?0:3,facing,0,
+            (float)Math.sin(worldTimer*2+a.type)*.22f,0,0,
+            false,hostile,variant);
+        if(a.type==ClinicActorsV90.ZOMBIE){
+            // Greenish face + torn sleeves over original character atlas.
+            rect(c,a.x-9,a.y-103,17,8,0xff718361);
+            rect(c,a.x-6,a.y-101,4,3,0xffac4a44);
+            rect(c,a.x+3,a.y-101,4,3,0xffac4a44);
+            rect(c,a.x-17,a.y-56,6,11,0xff44563e);
+        }else if(a.type==ClinicActorsV90.RAIDER)
+            rect(c,a.x-9,a.y-107,18,5,0xff9d514c);
+        else if(!hostile)
+            rect(c,a.x-6,a.y-118,12,4,0xff7cc9b0);
+        if(hostile){
+            rect(c,a.x-21,a.y-126,42,4,0xff172827);
+            rect(c,a.x-20,a.y-125,40*a.hp/85f,3,
+                a.type==ClinicActorsV90.ZOMBIE?0xff77955c:0xffa66b58);
+        }
+    }
+    void drawClinicVisionV90(Canvas c){
+        float ox=playerX,oy=playerY-35;
+        clinicVisionV90.trace(ox,oy,aimX,aimY,clinicInteriorV89);
+        clinicVisionPathV90.reset();
+        clinicVisionPathV90.moveTo(ox,oy);
+        for(int i=0;i<ClinicVisionV90.RAYS;i++)
+            clinicVisionPathV90.lineTo(clinicVisionV90.xs[i],
+                clinicVisionV90.ys[i]);
+        clinicVisionPathV90.close();
+        clinicVisionPathV90.addCircle(ox,oy,ClinicVisionV90.NEAR,
+            Path.Direction.CW);
+        c.save();
+        c.clipPath(clinicVisionPathV90,android.graphics.Region.Op.DIFFERENCE);
+        rect(c,camX-10,camY-10,viewW+20,viewH+20,0xdc071516);
+        c.restore();
+        // Soft normal lighting inside visible cone (avoids pure white floors).
+        color(0x180b1c1d);
+        c.drawCircle(ox,oy,ClinicVisionV90.NEAR,p);
     }
     void spawnWave(){
         enemies.clear();enemyCount=5+Math.min(17,wave*2);
