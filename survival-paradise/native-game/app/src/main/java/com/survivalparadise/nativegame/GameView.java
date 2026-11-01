@@ -2069,8 +2069,8 @@ public final class GameView extends View {
             label(c,Integer.toString(i+1),x+i*size+5,y+12,9,0xffc2c5ad,true);
             String name=hotbarLabel(item);
             itemIconsV84.draw(c,ItemIconsV84.hotbarType(item),
-                x+i*size+size*.5f-11f,y+size*.24f,22f);
-            label(c,name.length()>6?name.substring(0,6):name,x+i*size+5,y+size-7,
+                x+i*size+size*.5f-16f,y+size*.13f,32f);
+            label(c,name.length()>6?name.substring(0,6):name,x+i*size+4,y+size-3,
                     8,0xffe7e1c7,true);
             if(item==1||item==2||item==6||item==7||item==9||item==10)
                 label(c,Integer.toString(hotbarQuantity(item)),x+(i+1)*size-14,
