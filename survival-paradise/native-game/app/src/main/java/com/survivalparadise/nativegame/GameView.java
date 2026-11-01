@@ -1458,7 +1458,8 @@ public final class GameView extends View {
                        CAMP_X,CAMP_Y,WORLD_W,WORLD_H))continue;
                 if(x<camX-200||x>camX+viewW+200||
                    y<camY-200||y>camY+viewH+200)continue;
-                int kind=k==3?ResourceWorldV80.BUSH:BiomeWorldV74.prop(x,y,h);
+                int kind=k==3?ResourceWorldV80.BUSH:k==2&&
+                    x>=0&&x<=WORLD_W&&y>=0&&y<=WORLD_H?4:BiomeWorldV74.prop(x,y,h);
                 boolean shake=harvestImpactTimeV81>0&&harvestV81.matches(cx,cy,k);
                 if(shake){
                     c.save();
