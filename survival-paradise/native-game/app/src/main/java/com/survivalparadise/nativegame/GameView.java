@@ -81,6 +81,8 @@ public final class GameView extends View {
     final ClinicInteriorV89 clinicInteriorV89=new ClinicInteriorV89();
     final ClinicActorsV90 clinicActorsV90=new ClinicActorsV90(clinicInteriorV89);
     final ClinicVisionV90 clinicVisionV90=new ClinicVisionV90();
+    final ClinicNavV90 clinicNavV90=new ClinicNavV90(clinicInteriorV89);
+    final ArrayList<float[]> clinicFriendWaypointsV90=new ArrayList<>();
     final Path clinicVisionPathV90=new Path();
     final ArrayList<float[]> outdoorCompanionPositionsV90=new ArrayList<>();
     float indoorShotCooldownV90=0f;
@@ -403,6 +405,7 @@ public final class GameView extends View {
         clinicInteriorV89.reset();insideClinicV89=false;
         clinicActorsV90.reset(clinicInteriorV89);
         outdoorCompanionPositionsV90.clear();
+        clinicFriendWaypointsV90.clear();
         indoorShotCooldownV90=0f;indoorCompanionNavClockV90=0f;
         outsideDoorXv89=0f;outsideDoorYv89=0f;
         seedExpeditionCachesV88();
@@ -881,11 +884,87 @@ public final class GameView extends View {
         }
         return total;
     }
+    void bringFriendsInsideV90(){
+        outdoorCompanionPositionsV90.clear();
+        clinicFriendWaypointsV90.clear();
+        for(int i=0;i<friends.size();i++){
+            Survivor friend=friends.get(i);
+            outdoorCompanionPositionsV90.add(new float[]{friend.x,friend.y});
+            float x=playerX+(i%2==0?-48f:48f),y=playerY-56f-25f*i;
+            if(clinicInteriorV89.blocked(x,y,19f)){
+                x=playerX+(i%2==0?-34:34);y=playerY-35;
+            }
+            friend.x=x;friend.y=y;
+            clinicFriendWaypointsV90.add(new float[]{x,y});
+        }
+    }
+    void returnFriendsOutsideV90(){
+        for(int i=0;i<friends.size();i++){
+            Survivor friend=friends.get(i);
+            float[] prev=i<outdoorCompanionPositionsV90.size()?
+                outdoorCompanionPositionsV90.get(i):null;
+            friend.x=prev==null?playerX+(i%2==0?-35:35):
+                prev[0];
+            friend.y=prev==null?playerY+38:prev[1];
+        }
+        outdoorCompanionPositionsV90.clear();
+        clinicFriendWaypointsV90.clear();
+    }
+    void updateClinicFriendsV90(float dt){
+        indoorCompanionNavClockV90-=dt;
+        boolean updatePath=indoorCompanionNavClockV90<=0f;
+        if(updatePath)indoorCompanionNavClockV90=.34f;
+        for(int i=0;i<friends.size();i++){
+            Survivor friend=friends.get(i);
+            while(clinicFriendWaypointsV90.size()<=i)
+                clinicFriendWaypointsV90.add(new float[]{friend.x,friend.y});
+            float tx=playerX+(i%2==0?-45f:45f),
+                ty=playerY+58f+(i/2)*44f;
+            if(clinicInteriorV89.blocked(tx,ty,18)){
+                tx=playerX;ty=playerY;
+            }
+            float[] wp=clinicFriendWaypointsV90.get(i);
+            if(updatePath||Math.hypot(wp[0]-friend.x,wp[1]-friend.y)<25f){
+                float[] next=ClinicActorsV90.lineOfSight(clinicInteriorV89,
+                    friend.x,friend.y,tx,ty)?
+                    new float[]{tx,ty}:clinicNavV90.next(friend.x,friend.y,tx,ty);
+                wp[0]=next[0];wp[1]=next[1];
+            }
+            float dx=wp[0]-friend.x,dy=wp[1]-friend.y;
+            float d=(float)Math.hypot(dx,dy);
+            boolean walked=false;
+            if(d>21f){
+                float nx=friend.x+dx/Math.max(1,d)*170f*dt,
+                      ny=friend.y+dy/Math.max(1,d)*170f*dt;
+                if(!clinicInteriorV89.blocked(nx,friend.y,16)){friend.x=nx;walked=true;}
+                if(!clinicInteriorV89.blocked(friend.x,ny,16)){friend.y=ny;walked=true;}
+                friend.face=dx>=0?1:-1;
+            }
+            friend.animation.step(walked,dt,7.8f);
+            friend.cd=Math.max(0f,friend.cd-dt);
+            if(friend.cd<=0){
+                for(ClinicActorsV90.Actor a:clinicActorsV90.actors){
+                    if(!a.active||!a.hostile())continue;
+                    if(distance(friend.x,friend.y,a.x,a.y)>300f)continue;
+                    if(!ClinicActorsV90.lineOfSight(clinicInteriorV89,
+                            friend.x,friend.y,a.x,a.y))continue;
+                    friend.face=a.x>=friend.x?1:-1;
+                    friend.aimX=a.x-friend.x;friend.aimY=a.y-friend.y;
+                    float len=(float)Math.hypot(friend.aimX,friend.aimY);
+                    friend.aimX/=Math.max(1,len);friend.aimY/=Math.max(1,len);
+                    clinicActorsV90.hit(a,17f);
+                    friend.cd=.9f+(i%3)*.17f;
+                    break;
+                }
+            }
+        }
+    }
     /** Indoor movement uses the approved character gait and the original sticks. */
     void updateClinicV89(float dt){
         gatherFeedbackTime=Math.max(0f,gatherFeedbackTime-dt);
         shotClock=Math.max(0f,shotClock-dt);
         recoil=Math.max(0f,recoil-dt*5f);
+        indoorShotCooldownV90=Math.max(0f,indoorShotCooldownV90-dt);
         float vx=stickX,vy=stickY;
         float oldX=playerX,oldY=playerY;
         float len=(float)Math.hypot(vx,vy);
@@ -916,8 +995,27 @@ public final class GameView extends View {
         fatigue=clamp(fatigue+dt*(moving&&runHeld?.20f:-.08f),0,100);
         knifeCooldown=Math.max(0,knifeCooldown-dt);
         knifeDuration=Math.max(0,knifeDuration-dt);
-        if(firing){
-            firing=false;firePointer=-1;fireLeftPointer=-1;
+        updateClinicFriendsV90(dt);
+        float threat=clinicActorsV90.tick(dt,playerX,playerY,clinicInteriorV89);
+        if(threat>0f)hurt(threat);
+        if(firing&&indoorShotCooldownV90<=0f&&
+            gun!=3&&gun!=11&&!gameOver){
+            if(ammo>0){
+                ammo--;
+                ClinicActorsV90.Actor target=clinicActorsV90.target(
+                    playerX,playerY-27,aimX,aimY,Math.min(700f,
+                        Ballistics.unobstructedTravel(gun)),clinicInteriorV89);
+                if(target!=null){
+                    clinicActorsV90.hit(target,gun==0?24f:gun==4?41f:32f);
+                    particles(target.x,target.y-33,0xffa44b45,5);
+                }
+                recoil=recoilFX?1:0;
+                indoorShotCooldownV90=Math.max(.13f,RATES[gun]);
+                saveProgress();
+            }else if(ammoPacks>0){
+                ammoPacks--;ammo=MAG[gun];
+                indoorShotCooldownV90=1.1f;
+            }else indoorShotCooldownV90=.4f;
         }
         cameraLookX=0;cameraLookY=0;
     }
