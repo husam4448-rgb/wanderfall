@@ -725,7 +725,7 @@ jobs:
           P="$ROOT/app/src/main/java/com/survivalparadise/nativegame"
           mkdir -p /tmp/sp-v81
           javac -d /tmp/sp-v81 "$P/WorldChunkModel.java" "$P/BiomeWorldV74.java" \
-            "$P/ResourceWorldV80.java" "$P/HarvestActionV81.java" \
+            "$P/ResourceWorldV80.java" "$P/SalvageWorldV84.java" "$P/HarvestActionV81.java" \
             "$ROOT/tools/V81HarvestTest.java"
           java -cp /tmp/sp-v81 com.survivalparadise.nativegame.V81HarvestTest
           python3 - <<'PY'
@@ -764,7 +764,7 @@ jobs:
           javac -d /tmp/sp-v82 "$P/HeadKnifeV82.java" "$R/tools/V82HeadKnifeTest.java"
           java -cp /tmp/sp-v82 com.survivalparadise.nativegame.V82HeadKnifeTest
           javac -d /tmp/sp-v82 "$P/WorldChunkModel.java" "$P/BiomeWorldV74.java" \
-            "$P/ResourceWorldV80.java" "$P/HarvestActionV81.java" "$R/tools/V81HarvestTest.java"
+            "$P/ResourceWorldV80.java" "$P/SalvageWorldV84.java" "$P/HarvestActionV81.java" "$R/tools/V81HarvestTest.java"
           java -cp /tmp/sp-v82 com.survivalparadise.nativegame.V81HarvestTest
           python3 - <<'PY'
           from pathlib import Path
