@@ -19,7 +19,7 @@ public final class CampCraftV83 {
   if(kind<0||kind>=COST.length){error="Unknown recipe";return false;}
   if(!Float.isFinite(x)||!Float.isFinite(y)||Math.abs(x)>2000000f||Math.abs(y)>2000000f){
    error="Invalid position";return false;}
-  if(objects.size()>=MAX){error="Maximum 24 structures";return false;}
+  if(objects.size()>=MAX){error="Maximum 32 structures";return false;}
   if(near(x,y)){error="Too close to another structure";return false;}
   if(inv==null||inv.length<4){error="Missing inventory";return false;}
   for(int i=0;i<4;i++)if(inv[i]<COST[kind][i]){error="Insufficient materials";return false;}
@@ -42,7 +42,7 @@ public final class CampCraftV83 {
  public boolean placeFromBag(int kind,float x,float y){
   if(kind<0||kind>=COST.length||stock[kind]<1){error="No crafted item in backpack";return false;}
   if(!Float.isFinite(x)||!Float.isFinite(y)){error="Invalid position";return false;}
-  if(objects.size()>=MAX){error="Maximum 24 structures";return false;}
+  if(objects.size()>=MAX){error="Maximum 32 structures";return false;}
   if(near(x,y)){error="Too close to another structure";return false;}
   objects.add(new Structure(kind,x,y));stock[kind]--;error="";return true;
  }
