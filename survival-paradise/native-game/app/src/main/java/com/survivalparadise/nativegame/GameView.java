@@ -2338,6 +2338,27 @@ public final class GameView extends View {
         hotbar[slot]=item;
         host.prefs.edit().putInt("hotbar"+slot,item).apply();
     }
+    /** Inventory consumes directly while its dialog pauses the world simulation. */
+    boolean useBackpackV88(int item){
+        if(!playing||gameOver)return false;
+        boolean used=false;
+        if(item==1&&medkits>0&&health<100f){
+            medkits--;health=Math.min(100f,health+40f);used=true;
+        }else if(item==2&&ammoPacks>0&&ammo<MAG[gun]){
+            ammoPacks--;ammo=MAG[gun];used=true;
+        }else if(item==6&&foodCount>0&&hunger<100f){
+            foodCount--;hunger=Math.min(100f,hunger+30f);used=true;
+        }else if(item==7&&waterCount>0&&thirst<100f){
+            waterCount--;thirst=Math.min(100f,thirst+35f);used=true;
+        }else if(item==13&&bandagesV88>0&&health<100f){
+            bandagesV88--;health=Math.min(100f,health+24f);used=true;
+        }else if(item==14&&energyV88>0&&(stamina<100f||fatigue>0f)){
+            energyV88--;stamina=Math.min(100f,stamina+50f);
+            fatigue=Math.max(0f,fatigue-20f);used=true;
+        }
+        if(used){saveProgress();invalidate();}
+        return used;
+    }
     void useHotbar(int slot){
         if(slot<0||slot>=6||!playing||paused)return;
         selectedHotbar=slot;int item=hotbar[slot];
