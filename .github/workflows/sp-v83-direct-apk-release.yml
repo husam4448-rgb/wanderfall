@@ -1,0 +1,54 @@
+name: Survival Paradise V83 — Direct APK Release
+on:
+  push:
+    branches: [sp-native-v83-craft-camp-melee-20261101]
+    paths: ['.github/workflows/sp-v83-direct-apk-release.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish-v83:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Retrieve and validate completed V83 Android artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/spv83
+          gh run download 41257458322 -R "$GITHUB_REPOSITORY" \
+            -n SP_V83_CampCraft_Melee -D /tmp/spv83
+          APK=/tmp/spv83/SurvivalParadise_V83_CampCraft_Melee.apk
+          SOURCE=/tmp/spv83/SurvivalParadise_V83_Source.zip
+          test -s "$APK"
+          test -s "$SOURCE"
+          unzip -t "$APK" >/dev/null
+          unzip -l "$APK" | grep -q 'classes.dex'
+          for a in body.png approved_v44_walk_palette.png npc_idle_v56.png approved_v29_axe.png gear.png world_props_v74.png; do
+            unzip -l "$APK" | grep -q "assets/$a"
+          done
+          sha256sum "$APK" > /tmp/spv83/V83_APK_SHA256.txt
+          cat /tmp/spv83/V83_APK_SHA256.txt
+      - name: Release public direct downloadable APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG=survival-paradise-v83-camp-crafting-melee
+          APK=/tmp/spv83/SurvivalParadise_V83_CampCraft_Melee.apk
+          SOURCE=/tmp/spv83/SurvivalParadise_V83_Source.zip
+          HASH=/tmp/spv83/V83_APK_SHA256.txt
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" "$SOURCE" "$HASH" --clobber -R "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" "$APK" "$SOURCE" "$HASH" \
+              -R "$GITHUB_REPOSITORY" \
+              --target 5e7e4f05e84c78f7ab3aff4213ef3f23bfca2c76 \
+              --title "Survival Paradise V83 — Camp Crafting & Aggressive Melee" \
+              --notes "Android test build from successful commit 5e7e4f05e84c78f7ab3aff4213ef3f23bfca2c76. Features two useful, persistent field-crafted camp structures accessible under BAG: wooden barricade consumes 4 wood + 2 stone and blocks movement/projectiles; light post consumes 2 wood + 2 fiber + 1 scrap and provides real nighttime light. Materials persist, structures survive Continue and clear on New Game. Knife melee now has 104° aggressive fast .18s stroke, .34s cooldown, reach 155 world pixels, and bright three-layer 43px slash trail at the knife tip, no giant semicircle. V82 head slider, V81 harvest, legacy controls/approved sprites intact. Full automated Android CI passed. Device visuals/FPS unverified." \
+              --prerelease
+          fi
+          gh release view "$TAG" -R "$GITHUB_REPOSITORY" \
+            --json url,assets --jq '{url:.url,assets:[.assets[]|{name:.name,url:.url}]}'
