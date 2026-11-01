@@ -78,6 +78,7 @@ public final class GameView extends View {
     final GroundPickupsV85 groundPickupsV85=new GroundPickupsV85();
     final BanditLootV87 banditLootV87=new BanditLootV87();
     boolean sitesInitializedV88=false;
+    final java.util.HashMap<Long,Float> stationUsedV88=new java.util.HashMap<>();
     final ItemIconsV84 itemIconsV84=new ItemIconsV84();
     int placingKindV84=-1,placingPointerV84=-1;
     float placingXv84,placingYv84;
@@ -381,7 +382,7 @@ public final class GameView extends View {
         face=1;aimX=1;aimY=0;refreshDaylight();
         enemies.clear();friends.clear();campStaff.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();builtCampfires.clear();
         craftV83.clear();banditLootV87.clear();removeBarricadeCoverV83();
-        sitesInitializedV88=false;
+        sitesInitializedV88=false;stationUsedV88.clear();
         seedExpeditionCachesV88();
         initCampStaff();
         playing=true;paused=false;settingsPause=false;gameOver=false;
@@ -426,6 +427,7 @@ public final class GameView extends View {
         banditLootV87.decode(host.prefs.getString("bandit_loot_bags_v87",""));
         sitesInitializedV88=host.prefs.getBoolean("sitesInitializedV88",false);
         if(!sitesInitializedV88)seedExpeditionCachesV88();
+        decodeFacilityCooldownV88(host.prefs.getString("facilityCooldownV88",""));
         placingKindV84=-1;placingPointerV84=-1;
         removeBarricadeCoverV83();restoreBarricadeCoverV83();
         campStaff.clear();initCampStaff();
@@ -459,17 +461,73 @@ public final class GameView extends View {
             if(s.kind==CampCraftV83.BARRICADE)
                 covers.add(new Cover(s.x-39,s.y-15,78,27,3));
     }
+    static String craftNameV88(int kind){
+        switch(kind){
+            case CampCraftV83.BARRICADE:return "BARRICADE";
+            case CampCraftV83.LIGHT_POST:return "LIGHT POST";
+            case CampCraftV83.WATER_COLLECTOR:return "RAIN COLLECTOR";
+            case CampCraftV83.FIELD_SHELTER:return "FIELD SHELTER";
+            default:return "UNKNOWN";
+        }
+    }
+    long facilityKeyV88(float x,float y){
+        return (((long)Math.round(x))<<32)|((long)Math.round(y)&0xffffffffL);
+    }
+    String encodeFacilityCooldownV88(){
+        StringBuilder sb=new StringBuilder();
+        for(java.util.Map.Entry<Long,Float> e:stationUsedV88.entrySet()){
+            if(sb.length()>0)sb.append(';');
+            sb.append(e.getKey()).append(',').append(e.getValue());
+        }
+        return sb.toString();
+    }
+    void decodeFacilityCooldownV88(String raw){
+        stationUsedV88.clear();if(raw==null||raw.isEmpty())return;
+        for(String token:raw.split(";")){
+            String[] part=token.split(",");if(part.length!=2)continue;
+            try{
+                long k=Long.parseLong(part[0]);float time=Float.parseFloat(part[1]);
+                if(Float.isFinite(time)&&time>=0&&time<2000000000f)
+                    stationUsedV88.put(k,time);
+            }catch(NumberFormatException ignored){}
+        }
+    }
+    /** Return true when USE interacts with a utility instead of harvesting. */
+    boolean useFacilityV88(){
+        for(CampCraftV83.Structure s:craftV83.objects){
+            if(s.kind!=CampCraftV83.WATER_COLLECTOR&&
+               s.kind!=CampCraftV83.FIELD_SHELTER)continue;
+            if(distance(playerX,playerY,s.x,s.y)>135f)continue;
+            float now=clock.day()*1440f+clock.minute();
+            long k=facilityKeyV88(s.x,s.y);
+            float last=stationUsedV88.containsKey(k)?stationUsedV88.get(k):-10000f;
+            float required=s.kind==CampCraftV83.WATER_COLLECTOR?360f:180f;
+            if(now-last<required){
+                gatherFeedback="STATION RECOVERING";gatherFeedbackTime=1.8f;
+                return true;
+            }
+            stationUsedV88.put(k,now);
+            if(s.kind==CampCraftV83.WATER_COLLECTOR){
+                waterCount+=2;gatherFeedback="COLLECTED WATER +2";
+            }else{
+                stamina=100f;fatigue=Math.max(0,fatigue-30f);
+                gatherFeedback="RESTED • STAMINA RECOVERED";
+            }
+            gatherFeedbackTime=2.5f;saveProgress();return true;
+        }
+        return false;
+    }
     /** Crafting yields a storable backpack item; no immediate construction. */
     boolean craftIntoBagV84(int kind){
         if(!playing||gameOver){craftV83.error="Start a game first";return false;}
         int[] resources={wood,stone,fiber,scrap};
         if(!craftV83.craftToBag(kind,resources))return false;
         wood=resources[0];stone=resources[1];fiber=resources[2];scrap=resources[3];
-        gatherFeedback="CRAFTED "+(kind==0?"BARRICADE":"LIGHT POST")+" (BAG)";
+        gatherFeedback="CRAFTED "+craftNameV88(kind)+" (BAG)";
         gatherFeedbackTime=2.2f;saveProgress();invalidate();return true;
     }
     boolean selectPlaceItemV84(int kind){
-        if(!playing||gameOver||kind<0||kind>1||craftV83.stock[kind]<1){
+        if(!playing||gameOver||kind<0||kind>=CampCraftV83.COST.length||craftV83.stock[kind]<1){
             craftV83.error="No crafted item in backpack";return false;
         }
         placingKindV84=kind;placingPointerV84=-1;
@@ -496,7 +554,7 @@ public final class GameView extends View {
         if(!craftV83.placeFromBag(kind,x,y))return false;
         if(kind==CampCraftV83.BARRICADE)
             covers.add(new Cover(x-39,y-15,78,27,3));
-        gatherFeedback=kind==0?"BARRICADE PLACED":"LIGHT POST PLACED";
+        gatherFeedback=craftNameV88(kind)+" PLACED";
         gatherFeedbackTime=2.7f;cancelPlaceV84();saveProgress();invalidate();return true;
     }
     /** Legacy direct placement, not exposed by V84 UI. */
@@ -531,7 +589,7 @@ public final class GameView extends View {
             rect(c,x-31,y-27,9,43,0xff28372e);
             rect(c,x+22,y-27,9,43,0xff28372e);
             for(int i=-29;i<27;i+=18)rect(c,x+i,y-18,5,3,0xffc2a276);
-        }else{
+        }else if(node.kind==CampCraftV83.LIGHT_POST){
             rect(c,x-10,y-92,20,94,0xff16241f);
             rect(c,x-5,y-88,10,86,0xff786043);
             rect(c,x-21,y-99,42,12,0xff2a3f39);
@@ -539,6 +597,26 @@ public final class GameView extends View {
             rect(c,x-13,y-87,26,13,0xffd5ae69);
             rect(c,x-8,y-83,16,8,0xffffdf8f);
             rect(c,x-9,y-3,18,6,0xff394d40);
+        }else if(node.kind==CampCraftV83.WATER_COLLECTOR){
+            // Low covered rain / condensation barrel; interact with USE for water.
+            rect(c,x-35,y-41,71,50,0xff17282a);
+            rect(c,x-31,y-37,63,43,0xff477584);
+            rect(c,x-37,y-44,75,12,0xff1a3031);
+            rect(c,x-33,y-41,67,7,0xffa0b6a6);
+            rect(c,x-19,y-29,41,6,0xff7eaba6);
+            rect(c,x-26,y-15,54,5,0xff213d47);
+            rect(c,x+26,y-24,8,20,0xff6e5140);
+        }else{
+            // Canvas field shelter with timber frame, narrow entrance.
+            rect(c,x-66,y-35,132,45,0xff172625);
+            rect(c,x-60,y-63,121,56,0xff435b46);
+            rect(c,x-40,y-77,81,26,0xff688165);
+            rect(c,x-21,y-43,42,49,0xff192a26);
+            rect(c,x-16,y-40,32,42,0xff8b7957);
+            rect(c,x-8,y-36,16,36,0xff25342b);
+            rect(c,x-69,y+2,139,11,0xff675844);
+            rect(c,x-64,y-36,9,44,0xffb49b6b);
+            rect(c,x+55,y-36,9,44,0xffb49b6b);
         }
     }
     void placeCampfire(){
@@ -689,6 +767,7 @@ public final class GameView extends View {
                 .putString("loose_pickups_v85",groundPickupsV85.encode())
                 .putString("bandit_loot_bags_v87",banditLootV87.encode())
                 .putBoolean("sitesInitializedV88",sitesInitializedV88)
+                .putString("facilityCooldownV88",encodeFacilityCooldownV88())
                 .putFloat("clockMinutes",clock.minute()).putInt("clockDay",clock.day())
                 .putFloat("aimX",aimX).putFloat("aimY",aimY).apply();
         hasSave=true;
@@ -2540,7 +2619,7 @@ public final class GameView extends View {
             }
         }
         if(placingKindV84>=0){
-            label(c,"AIM "+(placingKindV84==0?"BARRICADE":"LIGHT POST")+
+            label(c,"AIM "+craftNameV88(placingKindV84)+
                 "  •  PRESS USE TO PLACE",viewW*.5f-205f,66,13,0xfff4d5a1,true);
             label(c,"Tap BAG to cancel placement",viewW*.5f-117f,86,11,0xffdfd6c2,false);
         }
@@ -2755,6 +2834,7 @@ public final class GameView extends View {
                 }
                 invalidate();return;
             }
+            if(useFacilityV88())return;
             BanditLootV87.Bag banditBag=nearbyBanditBagV87();
             if(banditBag!=null){
                 host.runOnUiThread(()->host.lootBanditBagV87(banditBag));
