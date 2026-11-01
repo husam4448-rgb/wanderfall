@@ -77,6 +77,111 @@ public final class MainActivity extends Activity {
         game=new GameView(this);
         setContentView(game);
     }
+    static final int EXPORT_SAVE_V85=851,IMPORT_SAVE_V85=852;
+    /** Android system file picker stores a portable save outside app-private data. */
+    void exportGameSaveV85(){
+        game.saveProgress();
+        android.content.Intent pick=new android.content.Intent(
+            android.content.Intent.ACTION_CREATE_DOCUMENT);
+        pick.addCategory(android.content.Intent.CATEGORY_OPENABLE);
+        pick.setType("application/json");
+        pick.putExtra(android.content.Intent.EXTRA_TITLE,"SurvivalParadise_Save_V85.json");
+        startActivityForResult(pick,EXPORT_SAVE_V85);
+    }
+    void importGameSaveV85(){
+        new AlertDialog.Builder(this).setTitle("Restore game save")
+            .setMessage("This replaces the current save and settings with the chosen backup. Continue?")
+            .setNegativeButton("Cancel",null)
+            .setPositiveButton("Choose backup",(d,w)->{
+                android.content.Intent pick=new android.content.Intent(
+                    android.content.Intent.ACTION_OPEN_DOCUMENT);
+                pick.addCategory(android.content.Intent.CATEGORY_OPENABLE);
+                pick.setType("application/json");
+                startActivityForResult(pick,IMPORT_SAVE_V85);
+            }).show();
+    }
+    /** Lossless typed SharedPreferences format with explicit app/version marker. */
+    String encodeSaveV85() throws org.json.JSONException{
+        org.json.JSONObject object=new org.json.JSONObject();
+        object.put("format","survival-paradise-save-v85");
+        object.put("package","com.survivalparadise.nativegame");
+        org.json.JSONObject data=new org.json.JSONObject();
+        for(java.util.Map.Entry<String,?> item:prefs.getAll().entrySet()){
+            Object value=item.getValue();
+            if(value==null)continue;
+            org.json.JSONObject typed=new org.json.JSONObject();
+            if(value instanceof String)typed.put("kind","s");
+            else if(value instanceof Boolean)typed.put("kind","b");
+            else if(value instanceof Integer)typed.put("kind","i");
+            else if(value instanceof Long)typed.put("kind","l");
+            else if(value instanceof Float)typed.put("kind","f");
+            else continue;
+            typed.put("value",value);
+            data.put(item.getKey(),typed);
+        }
+        object.put("prefs",data);
+        return object.toString();
+    }
+    void restoreSaveV85(String content) throws Exception{
+        org.json.JSONObject object=new org.json.JSONObject(content);
+        if(!"survival-paradise-save-v85".equals(object.getString("format"))||
+           !"com.survivalparadise.nativegame".equals(object.getString("package")))
+            throw new IllegalArgumentException("Unsupported game-save format");
+        org.json.JSONObject data=object.getJSONObject("prefs");
+        if(!data.has("hasSave"))throw new IllegalArgumentException("No game save in backup");
+        SharedPreferences.Editor ed=prefs.edit().clear();
+        java.util.Iterator<String> keys=data.keys();
+        while(keys.hasNext()){
+            String key=keys.next();
+            org.json.JSONObject typed=data.getJSONObject(key);
+            String t=typed.getString("kind");
+            if("s".equals(t))ed.putString(key,typed.getString("value"));
+            else if("b".equals(t))ed.putBoolean(key,typed.getBoolean("value"));
+            else if("i".equals(t))ed.putInt(key,typed.getInt("value"));
+            else if("l".equals(t))ed.putLong(key,typed.getLong("value"));
+            else if("f".equals(t))ed.putFloat(key,(float)typed.getDouble("value"));
+        }
+        if(!ed.commit())throw new IllegalStateException("Save write failed");
+        game.hasSave=prefs.getBoolean("hasSave",false);
+        game.reloadSettings();
+        if(game.hasSave)game.continueGame();
+        else game.newGame();
+        game.invalidate();
+    }
+    @Override protected void onActivityResult(int request,int result,android.content.Intent data){
+        super.onActivityResult(request,result,data);
+        if(result!=RESULT_OK||data==null||data.getData()==null)return;
+        if(request!=EXPORT_SAVE_V85&&request!=IMPORT_SAVE_V85)return;
+        try{
+            if(request==EXPORT_SAVE_V85){
+                try(java.io.OutputStream stream=getContentResolver().openOutputStream(
+                    data.getData(),"w")){
+                    if(stream==null)throw new java.io.IOException("Storage unavailable");
+                    stream.write(encodeSaveV85().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                    stream.flush();
+                }
+                Toast.makeText(this,"Save exported outside the game",Toast.LENGTH_LONG).show();
+            }else{
+                byte[] resultBytes;
+                try(java.io.InputStream stream=getContentResolver().openInputStream(data.getData());
+                    java.io.ByteArrayOutputStream buffer=new java.io.ByteArrayOutputStream()){
+                    if(stream==null)throw new java.io.IOException("Backup unavailable");
+                    byte[] chunk=new byte[8192];int n;
+                    while((n=stream.read(chunk))!=-1){
+                        if(buffer.size()+n>1500000)throw new java.io.IOException("Backup exceeds size limit");
+                        buffer.write(chunk,0,n);
+                    }
+                    resultBytes=buffer.toByteArray();
+                }
+                restoreSaveV85(new String(resultBytes,java.nio.charset.StandardCharsets.UTF_8));
+                Toast.makeText(this,"Game save restored",Toast.LENGTH_LONG).show();
+            }
+        }catch(Exception ex){
+            Toast.makeText(this,"Save transfer failed: "+ex.getMessage(),
+                Toast.LENGTH_LONG).show();
+        }
+    }
+
     void applyImmersive(){
         immersive=prefs==null||prefs.getBoolean("fullscreen",true);
         View decor=getWindow().getDecorView();
@@ -487,12 +592,15 @@ public final class MainActivity extends Activity {
                 if(idx<10)backpackStackButtonsV83[idx]=slot;
                 if(idx<10){
                     android.graphics.drawable.Drawable icon=game.itemIconsV84.drawable(
-                        getResources(),idx,17);
-                    slot.setCompoundDrawables(icon,null,null,null);
-                    slot.setCompoundDrawablePadding(1);
+                        getResources(),idx,35);
+                    slot.setCompoundDrawables(null,icon,null,null);
+                    slot.setCompoundDrawablePadding(2);
+                    slot.setGravity(Gravity.CENTER);
+                    slot.setTextSize(10.5f);
+                    slot.setPadding(2,3,2,2);
                 }
                 LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(0,
-                    Math.round(39*getResources().getDisplayMetrics().density),1);
+                    Math.round(78*getResources().getDisplayMetrics().density),1);
                 params.setMargins(3,3,3,3);slots.addView(slot,params);
                 slot.setOnClickListener(v->{
                     if(idx>=10)return;
@@ -566,11 +674,14 @@ public final class MainActivity extends Activity {
             for(int i=0;i<6;i++){
                 final int slotIndex=i,item=game.hotbar[i];
                 Button hot=v62Slot((i+1)+"\n"+GameView.hotbarLabel(item),true);
-                hot.setCompoundDrawables(game.itemIconsV84.drawable(getResources(),
-                    ItemIconsV84.hotbarType(item),15),null,null,null);
-                hot.setCompoundDrawablePadding(1);
+                hot.setCompoundDrawables(null,game.itemIconsV84.drawable(getResources(),
+                    ItemIconsV84.hotbarType(item),31),null,null);
+                hot.setCompoundDrawablePadding(2);
+                hot.setGravity(Gravity.CENTER);
+                hot.setTextSize(10f);
+                hot.setPadding(1,2,1,1);
                 LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(0,
-                    Math.round(37*getResources().getDisplayMetrics().density),1);
+                    Math.round(74*getResources().getDisplayMetrics().density),1);
                 p.setMargins(2,2,2,2);quickRow.addView(hot,p);
                 hot.setOnClickListener(v->{
                     new AlertDialog.Builder(this).setTitle("ASSIGN QUICK SLOT "+(slotIndex+1))
@@ -832,6 +943,10 @@ public final class MainActivity extends Activity {
         final int actionSection=root.getChildCount();
         section(root,"GAME ACTIONS");
         action(root,"Save game now",()->{game.saveProgress();Toast.makeText(this,"Game saved",Toast.LENGTH_SHORT).show();});
+        section(root,"SAVE TRANSFER AND BACKUP");
+        root.addView(text("Uninstalling deletes Android private data. Export a save file before uninstalling; use IMPORT after reinstalling. Installing over a prior APK requires the same signing certificate.",12,false));
+        action(root,"EXPORT GAME SAVE TO FILE",()->exportGameSaveV85());
+        action(root,"IMPORT GAME SAVE FROM FILE",()->importGameSaveV85());
         action(root,"Take screenshot",()->captureGame());
         action(root,"Restore default settings",()->{
             prefs.edit().putInt("scale",100).putInt("hand",100).putInt("support",0).putInt("supportY",0)
