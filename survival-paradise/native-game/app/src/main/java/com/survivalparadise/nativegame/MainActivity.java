@@ -1150,11 +1150,11 @@ public final class MainActivity extends Activity {
                             int from=Integer.parseInt(event.getClipData()
                                 .getItemAt(0).getText().toString());
                             int type=game.bagOrderV92[from];
-                            int item=type==3?6:type==4?7:
+                            int draggedItem=type==3?6:type==4?7:
                                 type>=8&&type<=13?type+1:type;
                             if(game.inventoryQuantityV92(type)>0&&type<=13&&
                                 type!=0&&type!=5&&type!=6&&type!=7){
-                                game.setHotbarItem(slotIndex,item);
+                                game.setHotbarItem(slotIndex,draggedItem);
                                 refresh[0].run();return true;
                             }
                         }catch(Exception ignored){}
