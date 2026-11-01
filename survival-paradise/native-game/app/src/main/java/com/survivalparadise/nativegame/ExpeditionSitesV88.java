@@ -34,7 +34,12 @@ public final class ExpeditionSitesV88 {
       new Site(TOWER,1630,3050,"FOREST WATCH POST",true),
       new Site(CABIN,-3300,480,"HUNTER'S SHELTER",true),
       new Site(DEPOT,5530,660,"MILITARY SUPPLIES",true),
-      new Site(FARM,-1710,3230,"RIVERSIDE FARM",true)
+      new Site(FARM,-1710,3230,"RIVERSIDE FARM",true),
+      // Originally non-enterable fixed buildings; now independent full interiors.
+      new Site(DEPOT,475,327,"ADMINISTRATION BLOCK",true),
+      new Site(MOTEL,1810,393,"COMMUNITY STORE",true),
+      new Site(WORKSHOP,2380,1240,"WAREHOUSE ANNEX",true),
+      new Site(FARM,894,1770,"DERELICT BARN",true)
     };
     public static Site nearest(float x,float y,float reach){
         Site best=null;float dmin=reach*reach;
