@@ -79,6 +79,12 @@ public final class GameView extends View {
     final BanditLootV87 banditLootV87=new BanditLootV87();
     boolean sitesInitializedV88=false;
     final ClinicInteriorV89 clinicInteriorV89=new ClinicInteriorV89();
+    final ClinicActorsV90 clinicActorsV90=new ClinicActorsV90(clinicInteriorV89);
+    final ClinicVisionV90 clinicVisionV90=new ClinicVisionV90();
+    final Path clinicVisionPathV90=new Path();
+    final ArrayList<float[]> outdoorCompanionPositionsV90=new ArrayList<>();
+    float indoorShotCooldownV90=0f;
+    float indoorCompanionNavClockV90=0f;
     boolean insideClinicV89=false;
     float outsideDoorXv89=0f,outsideDoorYv89=0f;
     final java.util.HashMap<Long,Float> stationUsedV88=new java.util.HashMap<>();
@@ -395,6 +401,9 @@ public final class GameView extends View {
         craftV83.clear();banditLootV87.clear();removeBarricadeCoverV83();
         sitesInitializedV88=false;stationUsedV88.clear();
         clinicInteriorV89.reset();insideClinicV89=false;
+        clinicActorsV90.reset(clinicInteriorV89);
+        outdoorCompanionPositionsV90.clear();
+        indoorShotCooldownV90=0f;indoorCompanionNavClockV90=0f;
         outsideDoorXv89=0f;outsideDoorYv89=0f;
         seedExpeditionCachesV88();
         initCampStaff();
@@ -443,7 +452,14 @@ public final class GameView extends View {
         if(!sitesInitializedV88)seedExpeditionCachesV88();
         decodeFacilityCooldownV88(host.prefs.getString("facilityCooldownV88",""));
         clinicInteriorV89.decode(host.prefs.getString("clinic_containers_v89",""));
+        clinicActorsV90.decode(host.prefs.getString("clinic_actors_v90",""),
+            clinicInteriorV89);
         insideClinicV89=host.prefs.getBoolean("inside_clinic_v89",false);
+        // V89 indoor saves used a 1600x1120 world. Migrate position once.
+        if(insideClinicV89&&!host.prefs.getBoolean("clinic_scaled_v90",false)){
+            playerX*=ClinicInteriorV89.EXPANSION_V90;
+            playerY*=ClinicInteriorV89.EXPANSION_V90;
+        }
         outsideDoorXv89=host.prefs.getFloat("clinic_return_x_v89",
             ExpeditionSitesV88.SITES[1].x);
         outsideDoorYv89=host.prefs.getFloat("clinic_return_y_v89",
@@ -466,6 +482,7 @@ public final class GameView extends View {
             playerX=outsideDoorXv89;playerY=outsideDoorYv89;
             adjustFriends();
             playerX=localX;playerY=localY;
+            bringFriendsInsideV90();
             enemies.clear();
         }else{
             adjustFriends();spawnWave();
@@ -802,6 +819,7 @@ public final class GameView extends View {
         insideClinicV89=true;
         playerX=ClinicInteriorV89.ENTRANCE_X;
         playerY=ClinicInteriorV89.ENTRANCE_Y;
+        bringFriendsInsideV90();
         harvestV81.cancel();cancelPlaceV84();
         releaseControls();shots.clear();sparks.clear();flashes.clear();
         cameraLookX=0;cameraLookY=0;
@@ -814,6 +832,7 @@ public final class GameView extends View {
         insideClinicV89=false;
         playerX=outsideDoorXv89;
         playerY=outsideDoorYv89;
+        returnFriendsOutsideV90();
         releaseControls();shots.clear();sparks.clear();flashes.clear();
         cameraLookX=0;cameraLookY=0;
         gatherFeedback="RETURNED TO THE FIELD CLINIC ENTRANCE";
@@ -1087,6 +1106,8 @@ public final class GameView extends View {
                 .putFloat("clinic_return_x_v89",outsideDoorXv89)
                 .putFloat("clinic_return_y_v89",outsideDoorYv89)
                 .putString("clinic_containers_v89",clinicInteriorV89.encode())
+                .putString("clinic_actors_v90",clinicActorsV90.encode())
+                .putBoolean("clinic_scaled_v90",true)
                 .putFloat("clockMinutes",clock.minute()).putInt("clockDay",clock.day())
                 .putFloat("aimX",aimX).putFloat("aimY",aimY).apply();
         hasSave=true;
@@ -3040,7 +3061,11 @@ public final class GameView extends View {
         long updateStart=System.nanoTime();
         update(dt);
         updateNs=System.nanoTime()-updateStart;
-        float effectiveZoom=zoom;
+        // Prevent empty margins when a player zooms out inside a finite room
+        // map. Outdoor zoom values remain unchanged.
+        float effectiveZoom=insideClinicV89?
+            Math.max(zoom,Math.max(viewW/ClinicInteriorV89.WIDTH,
+                viewH/ClinicInteriorV89.HEIGHT)):zoom;
         // Camera follow and clamping in world coordinates.
         if(insideClinicV89){
             float frameW=viewW/effectiveZoom,frameH=viewH/effectiveZoom;
@@ -3085,8 +3110,8 @@ public final class GameView extends View {
     private void drawSnapshot(Canvas canvas){
         float s=Math.max(.1f,getHeight()/H);
         viewW=getWidth()/s;viewH=H;drawScale=s;
-        camX=playerX-viewW/2;
-        camY=playerY-viewH/2;
+        camX=insideClinicV89?Math.max(0,playerX-viewW/2):playerX-viewW/2;
+        camY=insideClinicV89?Math.max(0,playerY-viewH/2):playerY-viewH/2;
         canvas.drawColor(0xff101f24);canvas.save();canvas.scale(s,s);
         if(playing){drawWorld(canvas);drawBrightCrosshair(canvas);hud(canvas);}else menu(canvas);
         canvas.restore();
