@@ -1286,7 +1286,7 @@ jobs:
             "android.view.DragEvent.ACTION_DROP",
             "SquareItemSlotV88 slot=v88SquareSlot",
             "void inventory()",
-            "itemIcon=kind>=14",
+            "itemIcon=kind>=24&&kind<39?",
             "WardrobeV92.NAMES[clothesSlot]",
           ]:assert x in a,x
           assert "covers.add(new Cover(350,280,280,180,0))" not in g
