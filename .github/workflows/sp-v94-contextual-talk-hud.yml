@@ -1006,7 +1006,7 @@ jobs:
               'host.lootBanditBagV87(banditBag)',
               'banditLootV87.take(bag,kind)',
               'banditLootV87.takeAll(bag)',
-              'static final int HOTBAR=HUD_ITEMS,BAG_EDITOR=HOTBAR+1,EDITOR_ITEMS=BAG_EDITOR+1;',
+              'static final int HOTBAR=HUD_ITEMS,BAG_EDITOR=HOTBAR+1,',
               'float bagXv87()','float bagYv87()','boolean bagHitV87(',
               'editControl=BAG_EDITOR;',
               'host.setting("uiSize"+BAG_EDITOR,100)',
