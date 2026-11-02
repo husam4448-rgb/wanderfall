@@ -359,7 +359,7 @@ public final class MainActivity extends Activity {
     void hudEditor(){
         game.menuPause(true);
         LinearLayout shell=column();
-        section(shell,"HUD BUTTON EDITOR  •  V59");
+        section(shell,"HUD BUTTON EDITOR  •  V94");
         shell.addView(text("Select a button and adjust its placement, size and opacity. "
             +"Use ON-SCREEN DRAG to fine-tune each button directly in the game.",12,false));
         ScrollView scroll=new ScrollView(this);
@@ -375,8 +375,9 @@ public final class MainActivity extends Activity {
         section(root,"BUTTON SELECTION");
         Spinner picker=new Spinner(this);
         String[] choicesV87=java.util.Arrays.copyOf(LegacyControlsV58.NAMES,
-            LegacyControlsV58.COUNT+1);
+            LegacyControlsV58.COUNT+2);
         choicesV87[LegacyControlsV58.COUNT]="BAG BUTTON";
+        choicesV87[LegacyControlsV58.COUNT+1]="TALK BUTTON";
         picker.setAdapter(new ArrayAdapter<String>(this,
             android.R.layout.simple_spinner_dropdown_item,choicesV87));
         root.addView(picker);
@@ -384,21 +385,24 @@ public final class MainActivity extends Activity {
         root.addView(options);
         int lastSelectedV87=prefs.getInt("selectedButton",0);
         picker.setSelection(lastSelectedV87==GameView.BAG_EDITOR?
-            LegacyControlsV58.COUNT:Math.max(0,Math.min(LegacyControlsV58.COUNT-1,
-            lastSelectedV87)));
+            LegacyControlsV58.COUNT:
+            lastSelectedV87==GameView.TALK_EDITOR?LegacyControlsV58.COUNT+1:
+            Math.max(0,Math.min(LegacyControlsV58.COUNT-1,lastSelectedV87)));
         picker.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener(){
             public void onNothingSelected(android.widget.AdapterView<?> parent){}
             public void onItemSelected(android.widget.AdapterView<?> parent,View item,int index,long id){
-                int control=index==LegacyControlsV58.COUNT?GameView.BAG_EDITOR:index;
-                String title=index==LegacyControlsV58.COUNT?
-                    "BAG BUTTON":LegacyControlsV58.NAMES[index];
+                int control=index==LegacyControlsV58.COUNT?GameView.BAG_EDITOR:
+                    index==LegacyControlsV58.COUNT+1?GameView.TALK_EDITOR:index;
+                String title=index==LegacyControlsV58.COUNT?"BAG BUTTON":
+                    index==LegacyControlsV58.COUNT+1?"TALK BUTTON":
+                    LegacyControlsV58.NAMES[index];
                 prefs.edit().putInt("selectedButton",control).apply();
                 options.removeAllViews();
                 check(options,"Enable "+title,
-                    "uiEnabled"+control,index==LegacyControlsV58.COUNT||
+                    "uiEnabled"+control,index>=LegacyControlsV58.COUNT||
                         LegacyControlsV58.defaultEnabled(index));
                 slider(options,"SIZE","uiSize"+control,60,180,
-                    index==LegacyControlsV58.COUNT?100:
+                    index>=LegacyControlsV58.COUNT?100:
                     LegacyControlsV58.defaultScale(index),"%");
                 slider(options,"OPACITY","uiAlpha"+control,30,100,100,"%");
                 slider(options,"HORIZONTAL POSITION","uiX"+control,-420,420,0,"");
@@ -421,7 +425,7 @@ public final class MainActivity extends Activity {
         });
         action(root,"RESTORE ALL BUTTON DEFAULTS",()->{
             SharedPreferences.Editor edit=prefs.edit();
-            for(int i=0;i<LegacyControlsV58.COUNT+4;i++)
+            for(int i=0;i<GameView.EDITOR_ITEMS;i++)
                 edit.remove("uiX"+i).remove("uiY"+i).remove("uiSize"+i)
                     .remove("uiAlpha"+i).remove("uiEnabled"+i);
             edit.remove("movePadSize").remove("aimPadSize")
