@@ -1416,7 +1416,7 @@ jobs:
           assert g.index("drawOutdoorSpeechAfterLightingV93(c);")>g.index("applyWorldLighting(c)")
           assert "new android.graphics.RadialGradient" in g
           assert "approvedGearV93" in g
-          assert "drawApprovedGearV93(c" in g
+          assert "torsoRecolorV98.frame(baseIdle,npcIdleV56,variant,torsoVariant)" in g
           assert "new LinearLayout.LayoutParams(cellEdgeV93,cellEdgeV93)" in a
           assert "Math.round(46f*getResources().getDisplayMetrics().density)" in a
           assert "Math.round(45*getResources().getDisplayMetrics().density)" in a
