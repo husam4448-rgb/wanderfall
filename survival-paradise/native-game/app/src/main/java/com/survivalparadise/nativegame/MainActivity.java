@@ -667,7 +667,8 @@ public final class MainActivity extends Activity {
             }
             for(LinearLayout target:new LinearLayout[]{srcRowsV88[rowIndex],dstRowsV88[rowIndex]}){
                 SquareItemSlotV88 blank=v88SquareSlot("",false);
-                blank.setEnabled(false);
+                // All destination squares accept drops, including empty ones.
+                blank.setEnabled(target==dstRowsV88[rowIndex]);
                 blank.setContentDescription("Empty slot");
                 LinearLayout.LayoutParams square=new LinearLayout.LayoutParams(
                     cellEdgeV93,cellEdgeV93);
@@ -704,6 +705,15 @@ public final class MainActivity extends Activity {
         dstItems.setOnDragListener(destinationDropV95);
         for(Button receiver:playerButtons)
             if(receiver!=null)receiver.setOnDragListener(destinationDropV95);
+        // Including all vacant cells: the drop target must be the slot,
+        // not a container panel hidden underneath the child views.
+        for(int row=0;row<dstItems.getChildCount();row++){
+            View children=dstItems.getChildAt(row);
+            if(!(children instanceof LinearLayout))continue;
+            LinearLayout line=(LinearLayout)children;
+            for(int col=0;col<line.getChildCount();col++)
+                line.getChildAt(col).setOnDragListener(destinationDropV95);
+        }
         LinearLayout footer=new LinearLayout(this);
         footer.setOrientation(LinearLayout.HORIZONTAL);
         shell.addView(footer);
@@ -823,7 +833,8 @@ public final class MainActivity extends Activity {
             }
             for(LinearLayout target:new LinearLayout[]{srcRowsV88[rowIndex],dstRowsV88[rowIndex]}){
                 SquareItemSlotV88 blank=v88SquareSlot("",false);
-                blank.setEnabled(false);
+                // All destination squares accept drops, including empty ones.
+                blank.setEnabled(target==dstRowsV88[rowIndex]);
                 blank.setContentDescription("Empty slot");
                 LinearLayout.LayoutParams square=new LinearLayout.LayoutParams(
                     cellEdgeV93,cellEdgeV93);
@@ -863,6 +874,15 @@ public final class MainActivity extends Activity {
         dstItems.setOnDragListener(destinationDropV95);
         for(Button receiver:playerButtons)
             if(receiver!=null)receiver.setOnDragListener(destinationDropV95);
+        // Including all vacant cells: the drop target must be the slot,
+        // not a container panel hidden underneath the child views.
+        for(int row=0;row<dstItems.getChildCount();row++){
+            View children=dstItems.getChildAt(row);
+            if(!(children instanceof LinearLayout))continue;
+            LinearLayout line=(LinearLayout)children;
+            for(int col=0;col<line.getChildCount();col++)
+                line.getChildAt(col).setOnDragListener(destinationDropV95);
+        }
         LinearLayout footer=new LinearLayout(this);
         footer.setOrientation(LinearLayout.HORIZONTAL);
         shell.addView(footer);
