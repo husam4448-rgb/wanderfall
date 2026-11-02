@@ -78,6 +78,7 @@ public final class GameView extends View {
     final GroundPickupsV85 groundPickupsV85=new GroundPickupsV85();
     final BanditLootV87 banditLootV87=new BanditLootV87();
     final FieldFindsV91 fieldFindsV91=new FieldFindsV91();
+    final GearLootV95 gearLootV95=new GearLootV95();
     final WardrobeV92 wardrobeV92=new WardrobeV92();
     // Previously authored gear source images, normalized via transparent ROIs.
     // No modification is performed on the locked body/head animation atlas.
@@ -371,7 +372,8 @@ public final class GameView extends View {
         ClinicInteriorV89.Storage best=null;float min=reach*reach;
         for(int i=0;i<clinicInteriorV89.storages.length;i++){
             ClinicInteriorV89.Storage box=clinicInteriorV89.storages[i];
-            if(box.empty()&&fieldFindsV91.searched(activeSiteV91,i))continue;
+            if(box.empty()&&!gearLootV95.hasLoot(activeSiteV91,i,
+                fieldFindsV91.searched(activeSiteV91,i)))continue;
             float dx=box.x-x,dy=box.y-y,dist=dx*dx+dy*dy;
             if(dist<min){min=dist;best=box;}
         }
@@ -381,6 +383,34 @@ public final class GameView extends View {
         for(int i=0;i<clinicInteriorV89.storages.length;i++)
             if(clinicInteriorV89.storages[i]==s)return i;
         return -1;
+    }
+    int remainingGearV95(ClinicInteriorV89.Storage box,int gearType){
+        int id=storageIndexV91(box);
+        return id<0?0:gearLootV95.available(activeSiteV91,id,gearType,
+            fieldFindsV91.searched(activeSiteV91,id))?1:0;
+    }
+    int playerGearQuantityV95(int type){
+        if(type<0||type>=GearLootV95.TYPES)return 0;
+        if(type<3)return fieldFindsV91.bags[type];
+        int slot=(type-3)/3,variant=(type-3)%3;
+        return wardrobeV92.found[slot][variant];
+    }
+    int lootClinicGearV95(ClinicInteriorV89.Storage box,int type){
+        if(!insideClinicV89||!playing||!clinicInteriorV89.contains(box)||
+            distance(playerX,playerY,box.x,box.y)>ClinicInteriorV89.USE_RADIUS+12f)return 0;
+        int id=storageIndexV91(box);
+        if(!gearLootV95.transfer(activeSiteV91,id,type,
+            fieldFindsV91.searched(activeSiteV91,id),fieldFindsV91,wardrobeV92))
+            return 0;
+        gatherFeedback="FOUND "+GearLootV95.NAMES[type];
+        gatherFeedbackTime=2f;saveProgress();invalidate();
+        return 1;
+    }
+    int lootClinicAllGearV95(ClinicInteriorV89.Storage box){
+        int taken=0;
+        for(int type=0;type<GearLootV95.TYPES;type++)
+            taken+=lootClinicGearV95(box,type);
+        return taken;
     }
     String lootGearV91(ClinicInteriorV89.Storage box){
         int id=storageIndexV91(box);
@@ -577,7 +607,7 @@ public final class GameView extends View {
         clinicActorsV90=new ClinicActorsV90(clinicInteriorV89);
         clinicNavV90=new ClinicNavV90(clinicInteriorV89);
         insideClinicV89=false;activeSiteV91=-1;fieldFindsV91.clear();
-        wardrobeV92.clear();relationshipsV92.decode("");
+        wardrobeV92.clear();gearLootV95.clear();relationshipsV92.decode("");
         // Starting clothes are modular overlays, never edits to the locked
         // original character frames. Additional sets are found inside cases.
         for(int slot=1;slot<4;slot++){
@@ -643,6 +673,7 @@ public final class GameView extends View {
         decodeFacilityCooldownV88(host.prefs.getString("facilityCooldownV88",""));
         fieldFindsV91.decode(host.prefs.getString("field_finds_v91",""));
         wardrobeV92.decode(host.prefs.getString("wardrobe_v92",""));
+        gearLootV95.decode(host.prefs.getString("gear_loot_v95",""));
         relationshipsV92.decode(host.prefs.getString("npc_relations_v92",""));
         restoreBagOrderV92(host.prefs.getString("bag_order_v92",""));
         insideClinicV89=host.prefs.getBoolean("inside_clinic_v89",false);
@@ -1163,8 +1194,9 @@ public final class GameView extends View {
         for(int i=0;i<taken.length;i++){
             total+=taken[i];addBanditLootV87(i,taken[i]);
         }
+        total+=lootClinicAllGearV95(box);
         if(total>0){
-            gatherFeedback="SCAVENGED "+total+" SUPPLIES";
+            gatherFeedback="SCAVENGED "+total+" SUPPLIES AND GEAR";
             gatherFeedbackTime=2f;saveProgress();invalidate();
         }
         return total;
@@ -1619,6 +1651,7 @@ public final class GameView extends View {
                 .putInt("active_site_v91",insideClinicV89?activeSiteV91:-1)
                 .putString("field_finds_v91",fieldFindsV91.encode())
                 .putString("wardrobe_v92",wardrobeV92.encode())
+                .putString("gear_loot_v95",gearLootV95.encode())
                 .putString("npc_relations_v92",relationshipsV92.encode())
                 .putString("bag_order_v92",encodeBagOrderV92())
                 .putBoolean("inside_clinic_v89",insideClinicV89)
