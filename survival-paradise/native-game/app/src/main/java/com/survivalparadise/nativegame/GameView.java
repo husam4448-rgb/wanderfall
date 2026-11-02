@@ -82,13 +82,12 @@ public final class GameView extends View {
     final WardrobeV92 wardrobeV92=new WardrobeV92();
     // Previously authored gear source images, normalized via transparent ROIs.
     // No modification is performed on the locked body/head animation atlas.
-    final Bitmap[] approvedGearV93=new Bitmap[7];
-    final Rect[] approvedGearBoundsV93=new Rect[7];
+    final Bitmap[] approvedGearV93=new Bitmap[3];
+    final Rect[] approvedGearBoundsV93=new Rect[3];
     void loadApprovedGearV93(){
-        String[] names={"pack_civilian.png","pack_guard.png","pack_medic.png",
-            "head_generic.png","torso_generic.png","leg_generic.png","boot_generic.png"};
+        String[] names={"backpack.png","headgear.png","vest.png"};
         for(int i=0;i<names.length;i++){
-            try(InputStream in=getResources().getAssets().open("approved_equipment_v93/"+names[i])){
+            try(InputStream in=getResources().getAssets().open("pixel_gear_v95/"+names[i])){
                 Bitmap bitmap=BitmapFactory.decodeStream(in);
                 if(bitmap==null||bitmap.getWidth()>2048||bitmap.getHeight()>2048)continue;
                 int left=bitmap.getWidth(),top=bitmap.getHeight(),right=0,bottom=0;
@@ -2912,10 +2911,9 @@ public final class GameView extends View {
         c.save();c.translate(x,y);if(facing<0)c.scale(-1,1);
         color(0x670b1a18);c.drawOval(-26*s,-7*s,26*s,7*s,p);
         if(player&&fieldFindsV91.equipped>=0)
-            drawApprovedGearV93(c,Math.min(2,fieldFindsV91.equipped),
-                -58f,-112f,-22f,-23f,s);
+            drawApprovedGearV93(c,0,-52f,-103f,-22f,-42f,s);
         else if(!player&&!bandit&&npcVariant>=0&&(npcVariant%3)!=0)
-            drawApprovedGearV93(c,npcVariant%3,-58f,-112f,-22f,-23f,s);
+            drawApprovedGearV93(c,0,-52f,-103f,-22f,-42f,s);
         // V58 rear-layer hand torch. Draw BEFORE the immutable original body:
         // its silhouette cannot cover the head, eyes, or facial outline.
         if(!bandit&&!(player&&harvestV81.active)&&dualTorch&&lampOn&&weapon>=0&&weapon<=2&&showWeapons){
@@ -2986,8 +2984,7 @@ public final class GameView extends View {
     /** Separate rear-layer pixel silhouette, attached to player pose, no body atlas edits. */
     /** Retained compatibility entry point; draws authored gear, not rectangles. */
     void drawEquippedPackV91(Canvas c,float size,int kind){
-        if(kind>=0)drawApprovedGearV93(c,Math.min(2,kind),
-            -58f,-112f,-22f,-23f,size);
+        if(kind>=0)drawApprovedGearV93(c,0,-52f,-103f,-22f,-42f,size);
     }
     /** Gear-only layers from prior authored art, never procedural replacements. */
     void drawWardrobeV92(Canvas c,float size,boolean player,boolean bandit,int variant){
@@ -2996,10 +2993,11 @@ public final class GameView extends View {
         int torso=player?wardrobeV92.equipped[1]:WardrobeV92.npcOutfit(role,1);
         int legs=player?wardrobeV92.equipped[2]:WardrobeV92.npcOutfit(role,2);
         int boots=player?wardrobeV92.equipped[3]:WardrobeV92.npcOutfit(role,3);
-        if(head>=0)drawApprovedGearV93(c,3,-18,-121,18,-100,size);
-        if(torso>=0)drawApprovedGearV93(c,4,-19,-64,19,-31,size);
-        if(legs>=0)drawApprovedGearV93(c,5,-14,-33,14,-12,size);
-        if(boots>=0)drawApprovedGearV93(c,6,-16,-14,16,-3,size);
+        if(head>=0)drawApprovedGearV93(c,1,-18,-121,18,-104,size);
+        if(torso>=0)drawApprovedGearV93(c,2,-17,-66,17,-33,size);
+        // Approved character's leg/boot pixels stay immutable until correctly
+        // registered animation-specific gear sheets are available.
+        // Equipping pants or boots still updates inventory and save data.
     }
     void drawSpeechV92(Canvas c,float x,float y,int code,int attitude,boolean threat){
         if(distance(playerX,playerY,x,y)>445f)return;
