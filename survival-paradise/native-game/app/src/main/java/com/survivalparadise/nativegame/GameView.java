@@ -1173,6 +1173,26 @@ public final class GameView extends View {
         gatherFeedbackTime=3f;saveProgress();invalidate();
         return true;
     }
+    /** A real inventory transfer to the addressed non-hostile nearby NPC.
+     * No synthetic stock; resources leave the player's actual saved counters.
+     */
+    boolean giveNPCV97(int choice){
+        int role=nearbyNPCInteractionV92();
+        if(role<0||!playing||gameOver)return false;
+        switch(choice){
+            case 0: if(foodCount<1)return false;foodCount--;break;
+            case 1: if(waterCount<1)return false;waterCount--;break;
+            case 2: if(medkits<1)return false;medkits--;break;
+            case 3: if(scrap<2)return false;scrap-=2;break;
+            case 4: if(bandagesV88<1)return false;bandagesV88--;break;
+            default:return false;
+        }
+        relationshipsV92.helped();
+        gatherFeedback="SUPPLIES GIVEN • TRUST +2";
+        gatherFeedbackTime=3f;
+        saveProgress();invalidate();
+        return true;
+    }
     void interactClinicV89(){
         if(!insideClinicV89)return;
         if(distance(playerX,playerY,
@@ -3004,7 +3024,7 @@ public final class GameView extends View {
         if(head>=0){
             int artwork=player?headgearStyleV96:Math.floorMod(role*5+1,4);
             float bob=breath==Float.POSITIVE_INFINITY?0f:breath*size;
-            wearableArtV96.drawHead(c,artwork,size,bob,pixel);
+            wearableArtV96.drawHead(c,artwork,size,bob,headScaleV82,pixel);
         }
         if(torso>=0)drawApprovedGearV93(c,2,-17,-66,17,-33,size);
         // Approved character's leg/boot pixels stay immutable until correctly
