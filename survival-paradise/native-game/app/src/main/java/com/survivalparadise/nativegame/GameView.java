@@ -112,7 +112,7 @@ public final class GameView extends View {
         c.drawBitmap(approvedGearV93[index],approvedGearBoundsV93[index],frame,pixel);
     }
     final NPCRelationshipsV92 relationshipsV92=new NPCRelationshipsV92();
-    final int[] bagOrderV92=new int[24];
+    final int[] bagOrderV92=new int[40];
     boolean bagOrderInitializedV92=false;
     float campGuardCooldownV92=0f;
     int activeSiteV91=-1; // -1 outdoors, 1 original clinic, all others separate indoor maps
@@ -539,46 +539,58 @@ public final class GameView extends View {
             case 6:return stone;case 7:return fiber;
             case 8:case 9:case 10:case 11:return craftV83.stock[idx-8];
             case 12:return bandagesV88;case 13:return energyV88;
-            default:return idx>=14&&idx<24?fieldFindsV91.items[idx-14]:0;
+            default:
+                if(idx>=14&&idx<24)return fieldFindsV91.items[idx-14];
+                if(idx>=24&&idx<39)return playerGearQuantityV95(idx-24);
+                return 0;
         }
     }
     static final String[] INVENTORY_NAMES_V92={"SCRAP","MEDKIT","AMMO",
         "FOOD","WATER","WOOD","STONE","FIBER","BARRICADE","LIGHT POST",
         "WATER COLLECTOR","FIELD SHELTER","BANDAGE","ENERGY RATION",
         "CLOTH","BATTERY","WIRING","ANTISEPTIC","FUEL","WATER FILTER",
-        "SEEDS","TOOLKIT","ROPE","SPARE PARTS"};
+        "SEEDS","TOOLKIT","ROPE","SPARE PARTS",
+        "DAYPACK","HIKING PACK","TACTICAL PACK",
+        "CAP","FIELD HAT","TACTICAL HELMET",
+        "WORK JACKET","TRAVEL COAT","BODY ARMOR",
+        "CARGO PANTS","FIELD TROUSERS","ARMORED PANTS",
+        "WORK BOOTS","HIKING BOOTS","TACTICAL BOOTS","EMPTY"};
     void initInventoryOrderV92(){
         int count=0;
-        for(int i=0;i<24;i++)if(inventoryQuantityV92(i)>0)bagOrderV92[count++]=i;
-        for(int i=0;i<24;i++)if(inventoryQuantityV92(i)==0)bagOrderV92[count++]=i;
+        for(int i=0;i<bagOrderV92.length;i++)
+            if(inventoryQuantityV92(i)>0)bagOrderV92[count++]=i;
+        for(int i=0;i<bagOrderV92.length;i++)
+            if(inventoryQuantityV92(i)==0)bagOrderV92[count++]=i;
         bagOrderInitializedV92=true;
     }
     void restoreBagOrderV92(String raw){
         initInventoryOrderV92();
         if(raw==null||raw.isEmpty())return;
         String[] fields=raw.split(",");
-        if(fields.length!=24)return;
-        boolean[] used=new boolean[24];
-        int[] restored=new int[24];
+        // Preserve V92-V94 24-cell player order, append 15 new gear stacks.
+        if(fields.length!=24&&fields.length!=40)return;
+        int[] restored=new int[40];boolean[] seen=new boolean[40];
+        int index=0;
         try{
-            for(int i=0;i<24;i++){
-                int n=Integer.parseInt(fields[i]);
-                if(n<0||n>=24||used[n])return;
-                used[n]=true;restored[i]=n;
+            for(String value:fields){
+                int n=Integer.parseInt(value);
+                if(n<0||n>=40||seen[n])return;
+                restored[index++]=n;seen[n]=true;
             }
-            System.arraycopy(restored,0,bagOrderV92,0,24);
+            for(int i=0;i<40;i++)if(!seen[i])restored[index++]=i;
+            System.arraycopy(restored,0,bagOrderV92,0,40);
         }catch(NumberFormatException ignored){}
     }
     String encodeBagOrderV92(){
         StringBuilder b=new StringBuilder();
-        for(int i=0;i<24;i++){
+        for(int i=0;i<bagOrderV92.length;i++){
             if(i>0)b.append(',');
             b.append(bagOrderV92[i]);
         }
         return b.toString();
     }
     boolean moveBagSlotV92(int source,int dest){
-        if(source<0||dest<0||source>=24||dest>=24||source==dest)return false;
+        if(source<0||dest<0||source>=bagOrderV92.length||dest>=bagOrderV92.length||source==dest)return false;
         int type=bagOrderV92[source];
         System.arraycopy(bagOrderV92,Math.min(source,dest)+(source<dest?1:0),
             bagOrderV92,Math.min(source,dest)+(source<dest?0:1),
