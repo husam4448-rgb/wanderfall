@@ -1038,7 +1038,7 @@ jobs:
               assert s in g,s
           for s in ['void lootBanditBagV87(BanditLootV87.Bag bag)',
                     'sourceButton.setVisibility(',
-                    'destination.getGlobalVisibleRect(rect)',
+                    'v.startDragAndDrop(transfer,',
                     'claimSelected[0].run();',
                     'game.lootAllBanditV87(bag)',
                     'game.lootBanditStackV87(bag,kind)',
