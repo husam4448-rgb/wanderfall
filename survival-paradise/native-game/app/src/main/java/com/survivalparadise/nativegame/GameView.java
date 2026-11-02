@@ -82,6 +82,7 @@ public final class GameView extends View {
     final WardrobeV92 wardrobeV92=new WardrobeV92();
     final WearableArtV96 wearableArtV96=new WearableArtV96();
     final HeadgearNativeV101 nativeHeadgearV101;
+    final GasMaskNativeV102 integratedGasMaskV102=new GasMaskNativeV102();
     final TorsoRecolorV98 torsoRecolorV98=new TorsoRecolorV98();
     int backpackStyleV96=0,headgearStyleV96=0;
     // Previously authored gear source images, normalized via transparent ROIs.
@@ -2786,14 +2787,20 @@ public final class GameView extends View {
                  HeadKnifeV82.headBottom(s,bob));
         c.drawBitmap(atlas,src,dest,pixel);
     }
-    void stablePose(Canvas c,Bitmap walkingAtlas,int variant,int frame,float s,float breath,int torsoVariant){
+    void stablePose(Canvas c,Bitmap walkingAtlas,int variant,int frame,float s,float breath,int torsoVariant,boolean integratedMaskV102){
         final boolean isNpc=variant>=0;
         final Bitmap baseIdle=isNpc?npcIdleV56:body;
         final Bitmap approvedTorso=torsoVariant>=0?
             torsoRecolorV98.frame(baseIdle,npcIdleV56,variant,torsoVariant):null;
-        final int idleX=approvedTorso!=null?0:(isNpc?0:APPROVED_PLANTED_IDLE_FRAME*260);
-        final int idleY=approvedTorso!=null?0:(isNpc?Math.min(11,variant)*160:0);
-        final Bitmap selectedIdle=approvedTorso!=null?approvedTorso:baseIdle;
+        final int sourceX=approvedTorso!=null?0:(isNpc?0:APPROVED_PLANTED_IDLE_FRAME*260);
+        final int sourceY=approvedTorso!=null?0:(isNpc?Math.min(11,variant)*160:0);
+        final Bitmap sourceIdle=approvedTorso!=null?approvedTorso:baseIdle;
+        // V102 substitutes native head CELLS inside the chosen original frame.
+        // Original alpha, white/cyan eyes, torso and lower body stay pixel-exact.
+        final Bitmap selectedIdle=integratedMaskV102?
+            integratedGasMaskV102.headVariant(sourceIdle,sourceX,sourceY):sourceIdle;
+        final int idleX=integratedMaskV102?0:sourceX;
+        final int idleY=integratedMaskV102?0:sourceY;
         if(breath==Float.POSITIVE_INFINITY){
             if(walkingAtlas==null)return;
             if(!HeadKnifeV82.defaultHead(headScaleV82)){
@@ -2967,7 +2974,12 @@ public final class GameView extends View {
         Bitmap atlas=npcVariant>=0?npcWalkV56:approvedWalkColors;
         int torsoVariant=player?wardrobeV92.equipped[1]:
             WardrobeV92.npcOutfit(Math.max(0,npcVariant),1);
-        stablePose(c,atlas,npcVariant,frame,s,breath,torsoVariant);
+        int headSlotV102=player?wardrobeV92.equipped[0]:
+            WardrobeV92.npcOutfit(Math.max(0,npcVariant),0);
+        int roleMaskV102=player?headgearStyleV96:
+            Math.floorMod(Math.max(0,npcVariant)*5+1,4);
+        boolean integratedMaskV102=headSlotV102>=0&&roleMaskV102==0;
+        stablePose(c,atlas,npcVariant,frame,s,breath,torsoVariant,integratedMaskV102);
         drawWardrobeV92(c,s,breath,player,bandit,npcVariant);
         if(player&&harvestV81.active)drawHarvestRigV81(c,s);
         else if(player&&knifeDuration>0f)drawKnifeSwing(c,s);
@@ -3036,7 +3048,10 @@ public final class GameView extends View {
         if(head>=0){
             int artwork=player?headgearStyleV96:Math.floorMod(role*5+1,4);
             float bob=breath==Float.POSITIVE_INFINITY?0f:breath*size;
-            nativeHeadgearV101.draw(c,artwork,size,headScaleV82,bob,pixel);
+            // V102 gas mask is baked into the V31 head at original pixel size.
+            // No overlaid gas-mask sprite; older designs remain experimental.
+            if(artwork!=0)
+                nativeHeadgearV101.draw(c,artwork,size,headScaleV82,bob,pixel);
         }
         // V98: normal jackets recolor original torso interior inside stablePose.
         // There must be NO external torso/vest bitmap overlay.
