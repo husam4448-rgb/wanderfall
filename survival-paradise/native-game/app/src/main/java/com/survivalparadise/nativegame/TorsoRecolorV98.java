@@ -23,7 +23,7 @@ public final class TorsoRecolorV98 {
             int current=pixels[index],reference=approved[index];
             if(!WearableFitV98.torsoPixel(x,y,current))continue;
             // Never copy transparent regions, outlines, or source face pixels.
-            if(!WearableFitV98.torsoPixel(x,y,reference))continue;
+            if(!WearableFitV98.palettePixel(reference))continue;
             pixels[index]=(current&0xff000000)|(reference&0x00ffffff);
         }
         Bitmap updated=Bitmap.createBitmap(260,160,Bitmap.Config.ARGB_8888);
