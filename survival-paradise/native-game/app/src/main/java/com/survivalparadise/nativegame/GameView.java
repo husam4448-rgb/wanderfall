@@ -80,6 +80,8 @@ public final class GameView extends View {
     final FieldFindsV91 fieldFindsV91=new FieldFindsV91();
     final GearLootV95 gearLootV95=new GearLootV95();
     final WardrobeV92 wardrobeV92=new WardrobeV92();
+    final WearableArtV96 wearableArtV96=new WearableArtV96();
+    int backpackStyleV96=0,headgearStyleV96=0;
     // Previously authored gear source images, normalized via transparent ROIs.
     // No modification is performed on the locked body/head animation atlas.
     final Bitmap[] approvedGearV93=new Bitmap[3];
@@ -619,6 +621,7 @@ public final class GameView extends View {
         clinicNavV90=new ClinicNavV90(clinicInteriorV89);
         insideClinicV89=false;activeSiteV91=-1;fieldFindsV91.clear();
         wardrobeV92.clear();gearLootV95.clear();relationshipsV92.decode("");
+        backpackStyleV96=0;headgearStyleV96=0;
         // Starting clothes are modular overlays, never edits to the locked
         // original character frames. Additional sets are found inside cases.
         for(int slot=1;slot<4;slot++){
@@ -684,6 +687,8 @@ public final class GameView extends View {
         decodeFacilityCooldownV88(host.prefs.getString("facilityCooldownV88",""));
         fieldFindsV91.decode(host.prefs.getString("field_finds_v91",""));
         wardrobeV92.decode(host.prefs.getString("wardrobe_v92",""));
+        backpackStyleV96=Math.floorMod(host.prefs.getInt("backpackStyleV96",0),20);
+        headgearStyleV96=Math.floorMod(host.prefs.getInt("headgearStyleV96",0),4);
         gearLootV95.decode(host.prefs.getString("gear_loot_v95",""));
         relationshipsV92.decode(host.prefs.getString("npc_relations_v92",""));
         restoreBagOrderV92(host.prefs.getString("bag_order_v92",""));
@@ -1662,6 +1667,8 @@ public final class GameView extends View {
                 .putInt("active_site_v91",insideClinicV89?activeSiteV91:-1)
                 .putString("field_finds_v91",fieldFindsV91.encode())
                 .putString("wardrobe_v92",wardrobeV92.encode())
+                .putInt("backpackStyleV96",backpackStyleV96)
+                .putInt("headgearStyleV96",headgearStyleV96)
                 .putString("gear_loot_v95",gearLootV95.encode())
                 .putString("npc_relations_v92",relationshipsV92.encode())
                 .putString("bag_order_v92",encodeBagOrderV92())
@@ -2910,10 +2917,11 @@ public final class GameView extends View {
         float s=CharacterCollision.BASE_SCALE*scale;
         c.save();c.translate(x,y);if(facing<0)c.scale(-1,1);
         color(0x670b1a18);c.drawOval(-26*s,-7*s,26*s,7*s,p);
+        // V96: approved backpack-only pixels behind the immutable body atlas.
         if(player&&fieldFindsV91.equipped>=0)
-            drawApprovedGearV93(c,0,-52f,-103f,-22f,-42f,s);
-        else if(!player&&!bandit&&npcVariant>=0&&(npcVariant%3)!=0)
-            drawApprovedGearV93(c,0,-52f,-103f,-22f,-42f,s);
+            wearableArtV96.drawPack(c,backpackStyleV96,s,pixel);
+        else if(!player&&npcVariant>=0&&(npcVariant%3)!=0)
+            wearableArtV96.drawPack(c,Math.floorMod(npcVariant*7+11,20),s,pixel);
         // V58 rear-layer hand torch. Draw BEFORE the immutable original body:
         // its silhouette cannot cover the head, eyes, or facial outline.
         if(!bandit&&!(player&&harvestV81.active)&&dualTorch&&lampOn&&weapon>=0&&weapon<=2&&showWeapons){
@@ -2928,7 +2936,7 @@ public final class GameView extends View {
         }
         Bitmap atlas=npcVariant>=0?npcWalkV56:approvedWalkColors;
         stablePose(c,atlas,npcVariant<0?0:npcVariant,frame,s,breath);
-        drawWardrobeV92(c,s,player,bandit,npcVariant);
+        drawWardrobeV92(c,s,breath,player,bandit,npcVariant);
         if(player&&harvestV81.active)drawHarvestRigV81(c,s);
         else if(player&&knifeDuration>0f)drawKnifeSwing(c,s);
         else if(!bandit){
@@ -2984,16 +2992,20 @@ public final class GameView extends View {
     /** Separate rear-layer pixel silhouette, attached to player pose, no body atlas edits. */
     /** Retained compatibility entry point; draws authored gear, not rectangles. */
     void drawEquippedPackV91(Canvas c,float size,int kind){
-        if(kind>=0)drawApprovedGearV93(c,0,-52f,-103f,-22f,-42f,size);
+        if(kind>=0)wearableArtV96.drawPack(c,backpackStyleV96,size,pixel);
     }
     /** Gear-only layers from prior authored art, never procedural replacements. */
-    void drawWardrobeV92(Canvas c,float size,boolean player,boolean bandit,int variant){
+    void drawWardrobeV92(Canvas c,float size,float breath,boolean player,boolean bandit,int variant){
         int role=variant<0?0:variant;
         int head=player?wardrobeV92.equipped[0]:WardrobeV92.npcOutfit(role,0);
         int torso=player?wardrobeV92.equipped[1]:WardrobeV92.npcOutfit(role,1);
         int legs=player?wardrobeV92.equipped[2]:WardrobeV92.npcOutfit(role,2);
         int boots=player?wardrobeV92.equipped[3]:WardrobeV92.npcOutfit(role,3);
-        if(head>=0)drawApprovedGearV93(c,1,-18,-121,18,-104,size);
+        if(head>=0){
+            int artwork=player?headgearStyleV96:Math.floorMod(role*5+1,4);
+            float bob=breath==Float.POSITIVE_INFINITY?0f:breath*size;
+            wearableArtV96.drawHead(c,artwork,size,bob,pixel);
+        }
         if(torso>=0)drawApprovedGearV93(c,2,-17,-66,17,-33,size);
         // Approved character's leg/boot pixels stay immutable until correctly
         // registered animation-specific gear sheets are available.
