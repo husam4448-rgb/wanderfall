@@ -1,0 +1,61 @@
+name: V102 Gas Mask — SOURCE-ONLY Pixel Art Verification (NO APK)
+on:
+  push:
+    branches: [sp-native-v102-integrated-gasmask-visual-review-20261102]
+    paths:
+      - 'survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/GasMaskPaletteV102.java'
+      - 'survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/GasMaskNativeV102.java'
+      - 'survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/GameView.java'
+      - 'survival-paradise/native-game/app/src/main/assets/gas_mask_head_v102.png.b64'
+      - 'survival-paradise/native-game/tools/V102NativeGasMaskTest.java'
+      - '.github/workflows/sp-v102-native-mask-visual-qa.yml'
+  workflow_dispatch:
+jobs:
+  native-gas-mask-no-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Run head-pixel invariants without compiling Android
+        shell: bash
+        run: |
+          set -euo pipefail
+          P=survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame
+          mkdir -p /tmp/v102
+          javac -d /tmp/v102 "$P/GasMaskPaletteV102.java" \
+            survival-paradise/native-game/tools/V102NativeGasMaskTest.java
+          java -cp /tmp/v102 com.survivalparadise.nativegame.V102NativeGasMaskTest
+          cat > /tmp/v102/Bitmap.java <<'JAVA'
+          package android.graphics;
+          public class Bitmap {
+              public static class Config { public static final Config ARGB_8888=new Config(); }
+              public static Bitmap createBitmap(Bitmap b,int x,int y,int w,int h){return new Bitmap();}
+              public Bitmap copy(Config c,boolean mutable){return this;}
+              public void getPixels(int[] a,int offset,int stride,int x,int y,int w,int h){}
+              public void setPixels(int[] a,int offset,int stride,int x,int y,int w,int h){}
+          }
+          JAVA
+          javac -d /tmp/v102 /tmp/v102/Bitmap.java "$P/GasMaskNativeV102.java" "$P/GasMaskPaletteV102.java"
+          python3 - <<'PY'
+          import re,base64,hashlib,struct
+          from pathlib import Path
+          root=Path("survival-paradise/native-game")
+          data=base64.b64decode((root/"app/src/main/assets/gas_mask_head_v102.png.b64").read_text().strip(),validate=True)
+          assert data[:8]==b'\x89PNG\r\n\x1a\n'
+          assert struct.unpack(">II",data[16:24])==(86,72)
+          assert hashlib.sha256(data).hexdigest()=="4ad3b13b8cf134ac3302f3ebac8e23173482c7557e6913d6219cd7b41083f700"
+          game=(root/"app/src/main/java/com/survivalparadise/nativegame/GameView.java").read_text()
+          assert "integratedGasMaskV102.headVariant(sourceIdle,sourceX,sourceY)" in game
+          assert "if(artwork!=0)" in game
+          assert "stablePose(c,atlas,npcVariant,frame,s,breath,torsoVariant,integratedMaskV102);" in game
+          assert "drawScaledHeadV82(c" in game
+          assert 'getAssets().open("body.png")' in game
+          print("PASS: V102 exact source preview sprite, integrated head not overlay, original V82 scaling")
+          PY
+      - name: Verify no APK was built
+        run: |
+          test ! -d survival-paradise/native-game/app/build/outputs/apk
+          echo "V102 is a visual-review-only source prototype. No Android APK was produced."
