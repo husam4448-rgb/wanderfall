@@ -81,6 +81,7 @@ public final class GameView extends View {
     final GearLootV95 gearLootV95=new GearLootV95();
     final WardrobeV92 wardrobeV92=new WardrobeV92();
     final WearableArtV96 wearableArtV96=new WearableArtV96();
+    final HeadgearApprovedV100 approvedHeadgearV100;
     final TorsoRecolorV98 torsoRecolorV98=new TorsoRecolorV98();
     int backpackStyleV96=0,headgearStyleV96=0;
     // Previously authored gear source images, normalized via transparent ROIs.
@@ -246,6 +247,7 @@ public final class GameView extends View {
         super(activity);host=activity;
         setFocusable(true);setLayerType(View.LAYER_TYPE_HARDWARE,null);
         pixel.setAntiAlias(false);pixel.setFilterBitmap(false);
+        approvedHeadgearV100=new HeadgearApprovedV100(getResources().getAssets());
         try(InputStream ret=getResources().getAssets().open("crosshair_v62.png.b64")){
             ByteArrayOutputStream reticleBytes=new ByteArrayOutputStream();
             byte[] buffer=new byte[4096];int count;
@@ -3034,7 +3036,7 @@ public final class GameView extends View {
         if(head>=0){
             int artwork=player?headgearStyleV96:Math.floorMod(role*5+1,4);
             float bob=breath==Float.POSITIVE_INFINITY?0f:breath*size;
-            wearableArtV96.drawHead(c,artwork,size,bob,headScaleV82,pixel);
+            approvedHeadgearV100.draw(c,artwork,size,headScaleV82,bob,pixel);
         }
         // V98: normal jackets recolor original torso interior inside stablePose.
         // There must be NO external torso/vest bitmap overlay.
