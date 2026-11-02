@@ -20,8 +20,9 @@ public final class V98EquipmentRegression {
             }
         }
         check(WearableFitV98.torsoPixel(65,103,0xff526f5a),"shirt color editable");
+        check(WearableFitV98.torsoPixel(65,103,0xffa75420),"orange shirt editable");
         check(!WearableFitV98.torsoPixel(65,103,0xff182426),"black outline immutable");
-        check(!WearableFitV98.torsoPixel(65,95,0xffc68e63),"skin immutable");
+        check(!WearableFitV98.torsoPixel(65,85,0xffc68e63),"skin immutable");
         check(!WearableFitV98.torsoPixel(65,118,0xff526f5a),"pants not recolored");
         check(!WearableFitV98.torsoPixel(12,105,0xff526f5a),"silhouette not expanded");
         check(WearableFitV98.palettePixel(0xffae3944),"approved red palette usable");
