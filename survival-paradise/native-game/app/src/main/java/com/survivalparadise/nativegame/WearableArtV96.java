@@ -28,7 +28,7 @@ public final class WearableArtV96 {
     private final RectF to=new RectF();
     public WearableArtV96(){
         packs=decode(PACK_DATA,160,160);
-        heads=decode(HEAD_DATA,288,100);
+        heads=prepareTransparentVisors(decode(HEAD_DATA,288,100));
     }
     private static Bitmap decode(String s,int w,int h){
         try {
@@ -52,12 +52,36 @@ public final class WearableArtV96 {
     /** Match the actual adjustable head, pivoting about the immutable neckline.
      * The four masks have independent geometry, all scaled by headMultiplier.
      */
+    /** Remove baked-in eyes from approved visor glazing to reveal live face underneath.
+     * Frames, mask body and helmet outlines keep their original approved pixels.
+     */
+    private static Bitmap prepareTransparentVisors(Bitmap original){
+        if(original==null)return null;
+        Bitmap result=original.copy(Bitmap.Config.ARGB_8888,true);
+        for(int type=0;type<4;type++){
+            if(type==1)continue; // opaque protective helmet is cap-only
+            int left=type==0?15:type==2?17:19;
+            int right=type==0?57:type==2?57:56;
+            int top=type==0?23:type==2?28:33;
+            int bottom=type==0?34:type==2?43:48;
+            for(int y=top;y<=bottom;y++)for(int x=left;x<=right;x++){
+                // Gas-mask and hazmat dual lenses retain center bridge and edges.
+                if(type!=2 && x>29 && x<42)continue;
+                int px=type*72+x,argb=result.getPixel(px,y);
+                if((argb>>>24)<40)continue;
+                // Neutral, translucent glass: face/eyes below remain live pixels.
+                int alpha=type==2?42:62;
+                result.setPixel(px,y,(alpha<<24)|(argb&0x00ffffff));
+            }
+        }
+        return result;
+    }
     public void drawHead(Canvas c,int kind,float s,float bob,float headMultiplier,Paint pixel){
         if(heads==null)return;
         int i=Math.floorMod(kind,4);
         final int[] height={59,28,54,81};
         from.set(i*72,0,(i+1)*72,height[i]);
-        float[] bounds=WearableFitV97.headBounds(i,s,headMultiplier,bob);
+        float[] bounds=WearableFitV98.head(i,s,headMultiplier,bob);
         to.set(bounds[0],bounds[1],bounds[2],bounds[3]);
         c.drawBitmap(heads,from,to,pixel);
     }
