@@ -1025,18 +1025,18 @@ public final class MainActivity extends Activity {
         }
         left.addView(text("Carry capacity: "+game.fieldFindsV91.capacity()+
             " • ENC "+Math.round(game.encumbranceV91())+"% • Packs appear on the survivor.",12,false));
-        section(right,"BACKPACK   •   24 COMPACT SLOTS");
+        section(right,"BACKPACK   •   40 COMPACT SLOTS");
         right.addView(text("Select an item to USE it or assign it to the quick-access bar.",12,false));
         final Button[] backpackStackButtonsV83=new Button[14];
         final AlertDialog[] bagDialogV84=new AlertDialog[1];
-        final SquareItemSlotV88[] tilesV92=new SquareItemSlotV88[24];
+        final SquareItemSlotV88[] tilesV92=new SquareItemSlotV88[40];
         final Runnable[] redrawV92={null};
         final Runnable refreshCraftCountsV83=()->{
             if(redrawV92[0]!=null)redrawV92[0].run();
         };
         if(!game.bagOrderInitializedV92)game.initInventoryOrderV92();
         right.addView(text("Hold and drag an occupied item to another slot. Empty cells stay visible.",11,false));
-        for(int ir=0;ir<3;ir++){
+        for(int ir=0;ir<5;ir++){
             LinearLayout slots=new LinearLayout(this);
             slots.setOrientation(LinearLayout.HORIZONTAL);
             for(int ic=0;ic<8;ic++){
@@ -1078,6 +1078,20 @@ public final class MainActivity extends Activity {
                     int qty=game.inventoryQuantityV92(idx);
                     if(qty<=0)return;
                     String name=GameView.INVENTORY_NAMES_V92[idx];
+                    if(idx>=24&&idx<39){
+                        int gearType=idx-24;
+                        new AlertDialog.Builder(this).setTitle(name+" ×"+qty)
+                            .setItems(new String[]{"EQUIP","CANCEL"},(dialog,choice)->{
+                                if(choice!=0)return;
+                                boolean equipped=gearType<3?
+                                    game.fieldFindsV91.equip(gearType):
+                                    game.wardrobeV92.equip((gearType-3)/3,(gearType-3)%3);
+                                Toast.makeText(this,equipped?"Equipped "+name:
+                                    "Unable to equip",Toast.LENGTH_SHORT).show();
+                                if(equipped){game.saveProgress();avatar.invalidate();}
+                            }).show();
+                        return;
+                    }
                     if(idx>=14){
                         Toast.makeText(this,name+" ×"+qty+" • scavenged material",
                             Toast.LENGTH_SHORT).show();return;
@@ -1143,8 +1157,9 @@ public final class MainActivity extends Activity {
                 }else{
                     String name=GameView.INVENTORY_NAMES_V92[kind];
                     tile.setText((name.length()>7?name.substring(0,6):name)+"\n×"+qty);
-                    android.graphics.drawable.Drawable itemIcon=kind>=14?
-                        FieldItemIconsV91.drawable(getResources(),kind-14,18):
+                    android.graphics.drawable.Drawable itemIcon=kind>=24&&kind<39?
+                        GearItemIconsV95.drawable(this,kind-24,18):
+                        kind>=14?FieldItemIconsV91.drawable(getResources(),kind-14,18):
                         game.itemIconsV84.drawable(getResources(),
                             kind==10?ItemIconsV84.WATER_COLLECTOR:
                             kind==11?ItemIconsV84.FIELD_SHELTER:
