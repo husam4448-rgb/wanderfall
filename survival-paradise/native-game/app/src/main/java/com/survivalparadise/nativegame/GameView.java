@@ -81,6 +81,7 @@ public final class GameView extends View {
     final GearLootV95 gearLootV95=new GearLootV95();
     final WardrobeV92 wardrobeV92=new WardrobeV92();
     final WearableArtV96 wearableArtV96=new WearableArtV96();
+    final TorsoRecolorV98 torsoRecolorV98=new TorsoRecolorV98();
     int backpackStyleV96=0,headgearStyleV96=0;
     // Previously authored gear source images, normalized via transparent ROIs.
     // No modification is performed on the locked body/head animation atlas.
@@ -2783,7 +2784,14 @@ public final class GameView extends View {
                  HeadKnifeV82.headBottom(s,bob));
         c.drawBitmap(atlas,src,dest,pixel);
     }
-    void stablePose(Canvas c,Bitmap walkingAtlas,int variant,int frame,float s,float breath){
+    void stablePose(Canvas c,Bitmap walkingAtlas,int variant,int frame,float s,float breath,int torsoVariant){
+        final boolean isNpc=variant>=0;
+        final Bitmap baseIdle=isNpc?npcIdleV56:body;
+        final Bitmap approvedTorso=torsoVariant>=0?
+            torsoRecolorV98.frame(baseIdle,npcIdleV56,variant,torsoVariant):null;
+        final int idleX=approvedTorso!=null?0:(isNpc?0:APPROVED_PLANTED_IDLE_FRAME*260);
+        final int idleY=approvedTorso!=null?0:(isNpc?Math.min(11,variant)*160:0);
+        final Bitmap selectedIdle=approvedTorso!=null?approvedTorso:baseIdle;
         if(breath==Float.POSITIVE_INFINITY){
             if(walkingAtlas==null)return;
             if(!HeadKnifeV82.defaultHead(headScaleV82)){
@@ -2793,10 +2801,10 @@ public final class GameView extends View {
                 dest.set(-70*s,(110-136)*s,190*s,24*s);
                 c.drawBitmap(walkingAtlas,src,dest,pixel);
                 boolean npc=variant>=0;
-                Bitmap locked=npc?npcIdleV56:body;
+                Bitmap locked=selectedIdle;
                 if(locked==null)return;
-                int sx=npc?0:APPROVED_PLANTED_IDLE_FRAME*260;
-                int sy=npc?Math.min(11,variant)*160:0;
+                int sx=idleX;
+                int sy=idleY;
                 // The original shirt starts on row 92.
                 src.set(sx,sy+HeadKnifeV82.HEAD_BOTTOM,sx+260,sy+110);
                 dest.set(-70*s,(HeadKnifeV82.HEAD_BOTTOM-136)*s,190*s,(110-136)*s);
@@ -2815,10 +2823,10 @@ public final class GameView extends View {
             dest.set(-70*s,(split-136)*s,190*s,24*s);
             c.drawBitmap(walkingAtlas,src,dest,pixel);
             final boolean npc=variant>=0;
-            Bitmap locked=npc?npcIdleV56:body;
+            Bitmap locked=selectedIdle;
             if(locked==null)return;
-            int sx=npc?0:APPROVED_PLANTED_IDLE_FRAME*260;
-            int sy=npc?Math.min(11,variant)*160:0;
+            int sx=idleX;
+            int sy=idleY;
             src.set(sx,sy,sx+260,sy+split);
             dest.set(-70*s,-136*s,190*s,(split-136)*s);
             c.drawBitmap(locked,src,dest,pixel);
@@ -2827,10 +2835,10 @@ public final class GameView extends View {
         // Original planted idle source, NOT a walking pose reconstructed in V51.
         // Approved NPC role colors are applied to an otherwise identical silhouette.
         final boolean npc=variant>=0;
-        Bitmap idleSource=npc?npcIdleV56:body;
+        Bitmap idleSource=selectedIdle;
         if(idleSource==null)return;
-        int sx=npc?0:APPROVED_PLANTED_IDLE_FRAME*260;
-        int sy=npc?Math.min(11,variant)*160:0;
+        int sx=idleX;
+        int sy=idleY;
         if(!HeadKnifeV82.defaultHead(headScaleV82)){
             src.set(sx,sy+HeadKnifeV82.HEAD_BOTTOM,sx+260,sy+160);
             dest.set(-70*s,(HeadKnifeV82.HEAD_BOTTOM-136)*s,190*s,24*s);
@@ -2955,7 +2963,9 @@ public final class GameView extends View {
             c.restore();
         }
         Bitmap atlas=npcVariant>=0?npcWalkV56:approvedWalkColors;
-        stablePose(c,atlas,npcVariant<0?0:npcVariant,frame,s,breath);
+        int torsoVariant=player?wardrobeV92.equipped[1]:
+            WardrobeV92.npcOutfit(Math.max(0,npcVariant),1);
+        stablePose(c,atlas,npcVariant,frame,s,breath,torsoVariant);
         drawWardrobeV92(c,s,breath,player,bandit,npcVariant);
         if(player&&harvestV81.active)drawHarvestRigV81(c,s);
         else if(player&&knifeDuration>0f)drawKnifeSwing(c,s);
@@ -3026,7 +3036,8 @@ public final class GameView extends View {
             float bob=breath==Float.POSITIVE_INFINITY?0f:breath*size;
             wearableArtV96.drawHead(c,artwork,size,bob,headScaleV82,pixel);
         }
-        if(torso>=0)drawApprovedGearV93(c,2,-17,-66,17,-33,size);
+        // V98: normal jackets recolor original torso interior inside stablePose.
+        // There must be NO external torso/vest bitmap overlay.
         // Approved character's leg/boot pixels stay immutable until correctly
         // registered animation-specific gear sheets are available.
         // Equipping pants or boots still updates inventory and save data.
