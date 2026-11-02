@@ -757,8 +757,8 @@ public final class MainActivity extends Activity {
         source.addView(srcScroll,new LinearLayout.LayoutParams(-1,0,1f));
         destination.addView(dstScroll,new LinearLayout.LayoutParams(-1,0,1f));
         final int[] selected={-1};
-        final Button[] lootButtons=new Button[BanditLootV87.ITEMS];
-        final Button[] playerButtons=new Button[BanditLootV87.ITEMS];
+        final Button[] lootButtons=new Button[GearLootV95.TOTAL];
+        final Button[] playerButtons=new Button[GearLootV95.TOTAL];
         final int height=Math.round(66f*getResources().getDisplayMetrics().density);
         final LinearLayout[] srcRowsV88=new LinearLayout[4];
         final LinearLayout[] dstRowsV88=new LinearLayout[4];
@@ -769,15 +769,15 @@ public final class MainActivity extends Activity {
         claimSelected[0]=()->{
             int kind=selected[0];
             if(kind<0)return;
-            if(game.lootClinicStackV89(box,kind)>0){
+            int amount=kind<BanditLootV87.ITEMS?game.lootClinicStackV89(box,kind):
+                game.lootClinicGearV95(box,kind-BanditLootV87.ITEMS);
+            if(amount>0){
                 selected[0]=-1;
                 refresh[0].run();
-                if(box.empty()&&game.fieldFindsV91.searched(game.activeSiteV91,
-                    game.storageIndexV91(box))&&active[0]!=null)
-                    active[0].dismiss();
+                // Keep inventory open for further transfers.
             }
         };
-        for(int i=0;i<BanditLootV87.ITEMS;i++){
+        for(int i=0;i<GearLootV95.TOTAL;i++){
             final int kind=i;
             int rowIndex=i/6;
             if(srcRowsV88[rowIndex]==null){
@@ -786,34 +786,25 @@ public final class MainActivity extends Activity {
                 srcRowsV88[rowIndex]=a;dstRowsV88[rowIndex]=b;
                 srcItems.addView(a);dstItems.addView(b);
             }
-            SquareItemSlotV88 take=v88SquareSlot(BanditLootV87.NAMES[i],true);
-            take.setCompoundDrawables(null,game.itemIconsV84.drawable(
-                getResources(),kind,18),null,null);
+            String name=kind<BanditLootV87.ITEMS?BanditLootV87.NAMES[kind]:
+                GearLootV95.NAMES[kind-BanditLootV87.ITEMS];
+            SquareItemSlotV88 take=v88SquareSlot(name,true);
+            take.setCompoundDrawables(null,kind<BanditLootV87.ITEMS?
+                game.itemIconsV84.drawable(getResources(),kind,18):
+                GearItemIconsV95.drawable(this,kind-BanditLootV87.ITEMS,18),null,null);
             take.setCompoundDrawablePadding(2);
             take.setGravity(Gravity.CENTER);
             take.setTextSize(8);
             LinearLayout.LayoutParams srcParams=new LinearLayout.LayoutParams(cellEdgeV93,cellEdgeV93);
             srcParams.setMargins(2,2,2,2);srcRowsV88[rowIndex].addView(take,srcParams);
             lootButtons[i]=take;
-            // A source button retains the touch stream even if dragged outside.
-            take.setOnTouchListener((v,e)->{
-                if(e.getActionMasked()==android.view.MotionEvent.ACTION_DOWN){
-                    selected[0]=kind;
-                    refresh[0].run();
-                    return true;
-                }
-                if(e.getActionMasked()==android.view.MotionEvent.ACTION_UP){
-                    android.graphics.Rect rect=new android.graphics.Rect();
-                    if(destination.getGlobalVisibleRect(rect)&&
-                       rect.contains((int)e.getRawX(),(int)e.getRawY()))
-                        claimSelected[0].run();
-                    return true;
-                }
-                return true;
-            });
-            SquareItemSlotV88 own=v88SquareSlot(BanditLootV87.NAMES[i],false);
-            own.setCompoundDrawables(null,game.itemIconsV84.drawable(
-                getResources(),kind,18),null,null);
+            attachLootSourceV95(take,kind,selected,refresh,
+                k->k<BanditLootV87.ITEMS?box.amount[k]:
+                game.remainingGearV95(box,k-BanditLootV87.ITEMS));
+            SquareItemSlotV88 own=v88SquareSlot(name,false);
+            own.setCompoundDrawables(null,kind<BanditLootV87.ITEMS?
+                game.itemIconsV84.drawable(getResources(),kind,18):
+                GearItemIconsV95.drawable(this,kind-BanditLootV87.ITEMS,18),null,null);
             own.setCompoundDrawablePadding(2);
             own.setGravity(Gravity.CENTER);
             own.setTextSize(8);
@@ -822,7 +813,7 @@ public final class MainActivity extends Activity {
             playerButtons[i]=own;
         }
         // Always show every empty inventory cell; never expand occupied stacks.
-        for(int j=BanditLootV87.ITEMS;j<24;j++){
+        for(int j=GearLootV95.TOTAL;j<24;j++){
             int rowIndex=j/6;
             if(srcRowsV88[rowIndex]==null){
                 LinearLayout a=column();a.setOrientation(LinearLayout.HORIZONTAL);
@@ -840,24 +831,27 @@ public final class MainActivity extends Activity {
             }
         }
         refresh[0]=()->{
-            int[] playerCounts={game.scrap,game.medkits,game.ammoPacks,
+            int[] oldCounts={game.scrap,game.medkits,game.ammoPacks,
                 game.foodCount,game.waterCount,game.wood,game.stone,game.fiber};
-            for(int i=0;i<BanditLootV87.ITEMS;i++){
-                int count=box.amount[i];
-                Button sourceButton=lootButtons[i];
-                sourceButton.setVisibility(View.VISIBLE);
-                sourceButton.setEnabled(count>0);
-                sourceButton.setCompoundDrawables(null,count>0?
-                    game.itemIconsV84.drawable(getResources(),i,18):null,null,null);
-                sourceButton.setText(count>0?
-                    BanditLootV87.NAMES[i].toUpperCase()+"\n×"+count+
-                    (selected[0]==i?" ✓":""):"");
-                sourceButton.setTextColor(selected[0]==i?
-                    0xfff8c873:0xffe6d7b7);
-                playerButtons[i].setCompoundDrawables(null,playerCounts[i]>0?
-                    game.itemIconsV84.drawable(getResources(),i,18):null,null,null);
-                playerButtons[i].setText(playerCounts[i]>0?
-                    BanditLootV87.NAMES[i].toUpperCase()+"\n×"+playerCounts[i]:"");
+            for(int i=0;i<GearLootV95.TOTAL;i++){
+                boolean gear=i>=BanditLootV87.ITEMS;
+                int kind=i-BanditLootV87.ITEMS;
+                String name=gear?GearLootV95.NAMES[kind]:BanditLootV87.NAMES[i];
+                int count=gear?game.remainingGearV95(box,kind):box.amount[i];
+                int own=gear?game.playerGearQuantityV95(kind):oldCounts[i];
+                Button from=lootButtons[i],to=playerButtons[i];
+                from.setEnabled(count>0);
+                from.setCompoundDrawables(null,count>0?(gear?
+                    GearItemIconsV95.drawable(this,kind,18):
+                    game.itemIconsV84.drawable(getResources(),i,18)):null,null,null);
+                from.setText(count>0?name.substring(0,Math.min(7,name.length()))+
+                    "\n×"+count+(selected[0]==i?" ✓":""):"");
+                from.setTextColor(selected[0]==i?0xfff8c873:0xffe6d7b7);
+                to.setCompoundDrawables(null,own>0?(gear?
+                    GearItemIconsV95.drawable(this,kind,18):
+                    game.itemIconsV84.drawable(getResources(),i,18)):null,null,null);
+                to.setText(own>0?
+                    name.substring(0,Math.min(7,name.length()))+"\n×"+own:"");
             }
         };
         refresh[0].run();
@@ -873,21 +867,14 @@ public final class MainActivity extends Activity {
         footer.setOrientation(LinearLayout.HORIZONTAL);
         shell.addView(footer);
         Button loot=v62Slot("LOOT",true),all=v62Slot("LOOT ALL",true),
-            gear=v62Slot("SEARCH GEAR",true),close=v62Slot("CLOSE",true);
+            close=v62Slot("CLOSE",true);
         int footerHeight=Math.round(53*getResources().getDisplayMetrics().density);
         footer.addView(loot,new LinearLayout.LayoutParams(0,footerHeight,1));
         footer.addView(all,new LinearLayout.LayoutParams(0,footerHeight,1));
-        footer.addView(gear,new LinearLayout.LayoutParams(0,footerHeight,1.4f));
         footer.addView(close,new LinearLayout.LayoutParams(0,footerHeight,1));
         loot.setOnClickListener(v->claimSelected[0].run());
         all.setOnClickListener(v->{
             if(game.lootClinicAllV89(box)>0)refresh[0].run();
-        });
-        gear.setOnClickListener(v->{
-            String found=game.lootGearV91(box);
-            Toast.makeText(this,found.isEmpty()?"This case was already searched":
-                "Found: "+found,Toast.LENGTH_LONG).show();
-            refresh[0].run();
         });
         AlertDialog dialog=new AlertDialog.Builder(this).setView(shell).create();
         active[0]=dialog;
