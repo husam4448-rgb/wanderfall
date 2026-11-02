@@ -1,13 +1,13 @@
 package com.survivalparadise.nativegame;
 
-/** V98 fit geometry in the canonical head frame; original body atlas is untouched. */
+/** V99 visual-review fit geometry. Head and body source pixels stay immutable. */
 public final class WearableFitV98 {
     private WearableFitV98(){}
     // Source HeadKnifeV82 frame: x24..110, y20..92, pivot 70,92; body origin y136.
-    private static final float[] LEFT={-38f,-45f,-43f,-45f};
-    private static final float[] RIGHT={35f,42f,40f,42f};
-    private static final float[] TOP={-117f,-120f,-119f,-120f};
-    private static final float[] BOTTOM={-46f,-93f,-65f,-44f};
+    private static final float[] LEFT={-46f,-46f,-46f,-46f};
+    private static final float[] RIGHT={40f,42f,42f,42f};
+    private static final float[] TOP={-121f,-123f,-120f,-120f};
+    private static final float[] BOTTOM={-44f,-95f,-59f,-42f};
     public static float[] head(int type,float scale,float headMultiplier,float bob){
         int i=Math.floorMod(type,4);
         float h=Math.max(.75f,Math.min(1.60f,headMultiplier));
