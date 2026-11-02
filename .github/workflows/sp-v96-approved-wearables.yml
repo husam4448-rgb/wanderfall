@@ -532,7 +532,7 @@ jobs:
               match=re.search(r'private static final String '+name+r'="([^"]+)";',art)
               assert match,name
               raw=base64.b64decode(match.group(1),validate=True)
-              assert raw[:8]==b'\\x89PNG\\r\\n\\x1a\\n'
+              assert raw[:8]==bytes([137,80,78,71,13,10,26,10])
               assert struct.unpack(">II",raw[16:24])==expected
           assert 'drawPack(c,backpackStyleV96,s,pixel)' in view
           assert 'drawHead(c,artwork,size,bob,pixel)' in view
