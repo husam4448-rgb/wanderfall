@@ -68,7 +68,7 @@ public final class HeadgearNativeV101 {
             tintGlass(result,49,73,49,70,135,164,173,40);
             tintGlass(result,84,108,49,70,135,164,173,40);
             // Cover an exposed hair pixel above the right-hand goggle.
-            for(int y=29;y<47;y++)for(int x=105;x<114;x++)
+            for(int y=29;y<47;y++)for(int x=96;x<114;x++)
                 result.setPixel(x,y,Color.argb(255,20,20,24));
         }else if(index==2){
             tintGlass(result,42,106,49,73,121,140,162,48);
