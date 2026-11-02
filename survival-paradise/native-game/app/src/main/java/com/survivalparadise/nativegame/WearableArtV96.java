@@ -52,35 +52,39 @@ public final class WearableArtV96 {
     /** Match the actual adjustable head, pivoting about the immutable neckline.
      * The four masks have independent geometry, all scaled by headMultiplier.
      */
-    /** Remove baked-in eyes from approved visor glazing to reveal live face underneath.
-     * Frames, mask body and helmet outlines keep their original approved pixels.
+    /** All lens detail is drawn from the live character below; preserve the
+     * approved metal, helmet, hood and filter silhouettes byte-for-byte.
+     * Only INNER LENS pixels become neutral tinted transparency. This prevents
+     * gray/black false eyes from appearing over the character's actual face.
      */
     private static Bitmap prepareTransparentVisors(Bitmap original){
         if(original==null)return null;
         Bitmap result=original.copy(Bitmap.Config.ARGB_8888,true);
-        for(int type=0;type<4;type++){
-            if(type==1)continue; // opaque protective helmet is cap-only
-            int left=type==0?15:type==2?17:19;
-            int right=type==0?57:type==2?57:56;
-            int top=type==0?23:type==2?28:33;
-            int bottom=type==0?34:type==2?43:48;
-            for(int y=top;y<=bottom;y++)for(int x=left;x<=right;x++){
-                // Gas-mask and hazmat dual lenses retain center bridge and edges.
-                if(type!=2 && x>29 && x<42)continue;
-                int px=type*72+x,argb=result.getPixel(px,y);
-                if((argb>>>24)<40)continue;
-                // Neutral, translucent glass: face/eyes below remain live pixels.
-                int alpha=type==2?42:62;
-                result.setPixel(px,y,(alpha<<24)|(argb&0x00ffffff));
-            }
-        }
+        lensV99(result,0,13,26,29,37);
+        lensV99(result,0,43,26,59,37);
+        lensV99(result,2,13,28,60,48);
+        lensV99(result,3,18,35,57,48);
         return result;
+    }
+    private static void lensV99(Bitmap bmp,int kind,int x0,int y0,int x1,int y1){
+        for(int y=y0;y<y1;y++)for(int x=x0;x<x1;x++){
+            int px=kind*72+x,color=bmp.getPixel(px,y);
+            if((color>>>24)==0)continue;
+            int r=(color>>>16)&255,g=(color>>>8)&255,b=color&255;
+            boolean bright=Math.max(r,Math.max(g,b))>160;
+            int alpha=kind==2?(bright?104:57):
+                      kind==0?(bright?94:64):(bright?92:66);
+            int glass=kind==0?0x0086a2ac:kind==2?0x0086a5b5:0x008f9fa7;
+            bmp.setPixel(px,y,(alpha<<24)|glass);
+        }
     }
     public void drawHead(Canvas c,int kind,float s,float bob,float headMultiplier,Paint pixel){
         if(heads==null)return;
         int i=Math.floorMod(kind,4);
-        final int[] height={59,28,54,81};
-        from.set(i*72,0,(i+1)*72,height[i]);
+        // Hazmat's original top atlas row was a detached horizontal artifact;
+        // its low rows contained jacket/body colors rather than headgear.
+        final int[] top={0,0,0,8},bottom={59,28,54,72};
+        from.set(i*72,top[i],(i+1)*72,bottom[i]);
         float[] bounds=WearableFitV98.head(i,s,headMultiplier,bob);
         to.set(bounds[0],bounds[1],bounds[2],bounds[3]);
         c.drawBitmap(heads,from,to,pixel);
