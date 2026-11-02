@@ -549,6 +549,13 @@ jobs:
               return a>=220 and 43<=x<=108 and 92<=y<=109 and max(r,g,b)>=48 and not(r>g*1.13 and g>b*1.08)
           eligible=[(x,y) for y in range(92,110) for x in range(43,109)
               if editable(x,y,*original.getpixel((520+x,y)))]
+          for y in range(75,136,5):
+              vals=[(x,original.getpixel((520+x,y))) for x in range(0,260)
+                    if original.getpixel((520+x,y))[3]>=220]
+              if vals:
+                  rgb=sorted(set(v[1][:3] for v in vals))
+                  print("V98 sprite row",y,"visible",len(vals),"X",min(v[0] for v in vals),
+                        max(v[0] for v in vals),"palette",rgb[:18])
           print("V98 original player torso editable pixel count:",len(eligible))
           assert len(eligible)>=6,"no editable torso colors identified in locked body"
           counts=[]
