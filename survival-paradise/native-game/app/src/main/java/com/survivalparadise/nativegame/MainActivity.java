@@ -1043,6 +1043,27 @@ public final class MainActivity extends Activity {
             }
             left.addView(gearRow);
         }
+        // V96 cosmetic selection: 20 original isolated pack sprites and four
+        // approved headgear designs. Capacity/loot/save game systems unchanged.
+        LinearLayout appearanceV96=new LinearLayout(this);
+        appearanceV96.setOrientation(LinearLayout.HORIZONTAL);
+        Button packLookV96=v62Slot("PACK LOOK\\n"+WearableArtV96.PACK_NAMES[game.backpackStyleV96],true);
+        Button headLookV96=v62Slot("HEADGEAR LOOK\\n"+WearableArtV96.HEAD_NAMES[game.headgearStyleV96],true);
+        packLookV96.setOnClickListener(v->new AlertDialog.Builder(this)
+            .setTitle("BACKPACK APPEARANCE — 20 STYLES")
+            .setSingleChoiceItems(WearableArtV96.PACK_NAMES,game.backpackStyleV96,(d,i)->{
+                game.backpackStyleV96=i;game.saveProgress();avatar.invalidate();
+                packLookV96.setText("PACK LOOK\\n"+WearableArtV96.PACK_NAMES[i]);d.dismiss();
+            }).show());
+        headLookV96.setOnClickListener(v->new AlertDialog.Builder(this)
+            .setTitle("APPROVED HEADGEAR — 4 STYLES")
+            .setSingleChoiceItems(WearableArtV96.HEAD_NAMES,game.headgearStyleV96,(d,i)->{
+                game.headgearStyleV96=i;game.saveProgress();avatar.invalidate();
+                headLookV96.setText("HEADGEAR LOOK\\n"+WearableArtV96.HEAD_NAMES[i]);d.dismiss();
+            }).show());
+        appearanceV96.addView(packLookV96,new LinearLayout.LayoutParams(0,-2,1));
+        appearanceV96.addView(headLookV96,new LinearLayout.LayoutParams(0,-2,1));
+        left.addView(appearanceV96);
         left.addView(text("Carry capacity: "+game.fieldFindsV91.capacity()+
             " • ENC "+Math.round(game.encumbranceV91())+"% • Packs appear on the survivor.",12,false));
         section(right,"BACKPACK   •   40 COMPACT SLOTS");
