@@ -20,12 +20,13 @@ public final class WearableFitV98 {
             pivot+(BOTTOM[i]+44f)*s*h};
     }
     public static boolean torsoPixel(int x,int y,int pixel){
-        if(x<43||x>108||y<92||y>109||(pixel>>>24)<220)return false;
+        if(x<33||x>104||y<92||y>109||(pixel>>>24)<220)return false;
         int r=(pixel>>>16)&255,g=(pixel>>>8)&255,b=pixel&255;
-        // Protect near-black pixel outlines and skin/face/pants shades.
-        if(Math.max(r,Math.max(g,b))<48)return false;
-        if(r>g*1.13f && g>b*1.08f)return false;
-        return true;
+        // The approved V31 body has the whole shirt between rows 92–109.
+        // Skin ends above it and trousers begin at row 110. Color is NOT an
+        // exclusion criterion: several approved shirts are orange/red.
+        // All original near-black outline pixels remain immutable.
+        return Math.max(r,Math.max(g,b))>=48;
     }
     public static boolean palettePixel(int pixel){
         return (pixel>>>24)>=220 &&
