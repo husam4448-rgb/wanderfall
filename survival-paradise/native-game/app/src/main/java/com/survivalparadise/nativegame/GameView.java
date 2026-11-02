@@ -167,7 +167,9 @@ public final class GameView extends View {
     float hotbarX=0,hotbarY=0,hotbarScale=1f;
     int hotbarOpacity=90,selectedHotbar=0;
     int hotbarPointer=-1;
-    static final int HOTBAR=HUD_ITEMS,BAG_EDITOR=HOTBAR+1,EDITOR_ITEMS=BAG_EDITOR+1;
+    // TALK is appended AFTER all existing controls: HUD preference IDs stay stable.
+    static final int HOTBAR=HUD_ITEMS,BAG_EDITOR=HOTBAR+1,
+        TALK_EDITOR=BAG_EDITOR+1,EDITOR_ITEMS=TALK_EDITOR+1;
     static final String[] HOTBAR_TYPES={
         "EMPTY","MEDKIT","AMMO","PISTOL","SHOTGUN","UZI","FOOD","WATER","TORCH",
         "BARRICADE","LIGHT POST","WATER COLLECTOR","FIELD SHELTER",
@@ -1063,24 +1065,30 @@ public final class GameView extends View {
         spawnWave();saveProgress();invalidate();
     }
     /** Non-hostile NPCs have affiliations, dialogue, trading and recruitment. */
+    /** The closest friendly NPC owns the contextual TALK button. */
     int nearbyNPCInteractionV92(){
+        int role=-1;
+        float nearest=148f;
         if(insideClinicV89){
-            for(ClinicActorsV90.Actor a:clinicActorsV90.actors){
-                if(!a.active||a.hostile())continue;
-                if(distance(playerX,playerY,a.x,a.y)<145f)
-                    return a.type==ClinicActorsV90.MEDIC?1:4;
+            for(ClinicActorsV90.Actor npc:clinicActorsV90.actors){
+                if(!npc.active||npc.hostile())continue;
+                float d=distance(playerX,playerY,npc.x,npc.y);
+                if(d>=nearest)continue;
+                nearest=d;
+                role=npc.type==ClinicActorsV90.MEDIC?1:4;
             }
-            return -1;
+            return role;
         }
         for(Survivor npc:campStaff){
-            if(distance(playerX,playerY,npc.x,npc.y)>=148f)continue;
-            if(npc.variant==ROLE_TRADER)return 0;
-            if(npc.variant==ROLE_MEDIC||npc.variant==ROLE_MEDIC+1)return 1;
-            if(npc.variant==ROLE_GUARD||npc.variant==ROLE_GUARD+1)return 2;
-            if(npc.variant==ROLE_MECHANIC||npc.variant==ROLE_MECHANIC+1)return 3;
-            return 4;
+            float d=distance(playerX,playerY,npc.x,npc.y);
+            if(d>=nearest)continue;
+            nearest=d;
+            role=npc.variant==ROLE_TRADER?0:
+                npc.variant==ROLE_MEDIC||npc.variant==ROLE_MEDIC+1?1:
+                npc.variant==ROLE_GUARD||npc.variant==ROLE_GUARD+1?2:
+                npc.variant==ROLE_MECHANIC||npc.variant==ROLE_MECHANIC+1?3:4;
         }
-        return -1;
+        return role;
     }
     boolean interactNearbyNPCV92(){
         int role=nearbyNPCInteractionV92();
@@ -1124,7 +1132,7 @@ public final class GameView extends View {
             ClinicInteriorV89.EXIT_X,ClinicInteriorV89.EXIT_Y)<110f){
             exitClinicV89();return;
         }
-        if(interactNearbyNPCV92())return;
+        // USE is reserved for container/exit interactions even beside NPCs.
         ClinicInteriorV89.Storage found=nearestAnyInteriorStorageV91(
             playerX,playerY,ClinicInteriorV89.USE_RADIUS);
         if(found!=null){
@@ -3233,8 +3241,35 @@ public final class GameView extends View {
             host.setting("uiY"+id,0);
         return LegacyControlsV58.defaultY(id,viewH)+delta;
     }
-    boolean uiEnabled(int id){return host.option("uiEnabled"+id,LegacyControlsV58.defaultEnabled(id));}
+    boolean uiEnabled(int id){
+        return host.option("uiEnabled"+id,id==TALK_EDITOR?true:
+            LegacyControlsV58.defaultEnabled(id));
+    }
+    float talkDefaultX(){return Math.round(viewW*.64f);}
+    float talkDefaultY(){return Math.round(viewH*.28f);}
+    float talkSizeV94(){return host.setting("uiSize"+TALK_EDITOR,100)/100f;}
+    float talkLeftV94(){
+        return talkDefaultX()+(editPointer>=0&&editControl==TALK_EDITOR?
+            editX:host.setting("uiX"+TALK_EDITOR,0));
+    }
+    float talkTopV94(){
+        return talkDefaultY()+(editPointer>=0&&editControl==TALK_EDITOR?
+            editY:host.setting("uiY"+TALK_EDITOR,0));
+    }
+    float talkWidthV94(){return 105f*talkSizeV94();}
+    float talkHeightV94(){return 44f*talkSizeV94();}
+    boolean talkVisibleV94(){
+        // Deliberately visible in editor without requiring an NPC nearby.
+        return editControls||(playing&&!paused&&!gameOver&&
+            uiEnabled(TALK_EDITOR)&&nearbyNPCInteractionV92()>=0);
+    }
+    boolean talkButtonAtV94(float x,float y){
+        return talkVisibleV94()&&
+            LegacyControlsV58.hit(x,y,talkLeftV94(),talkTopV94(),
+                talkWidthV94(),talkHeightV94());
+    }
     int actionAt(float x,float y){
+        if(talkButtonAtV94(x,y))return TALK_EDITOR;
         for(int i=0;i<LegacyControlsV58.COUNT;i++)
             if((uiEnabled(i)||editControls)&&
                 LegacyControlsV58.hit(x,y,uiX(i),uiY(i),uiWidth(i),uiHeight(i)))
@@ -3251,7 +3286,9 @@ public final class GameView extends View {
         int id=right?AIM_PAD:MOVE_PAD;
         return padBaseY(right)+(editPointer>=0&&editControl==id?editY:host.setting("uiY"+id,0));
     }
-    String controlName(int id){return id==BAG_EDITOR?"BAG BUTTON":id==MOVE_PAD?"MOVE JOYSTICK":id==AIM_PAD?"AIM JOYSTICK":
+    String controlName(int id){return id==TALK_EDITOR?"TALK BUTTON":
+        id==BAG_EDITOR?"BAG BUTTON":id==MOVE_PAD?"MOVE JOYSTICK":
+        id==AIM_PAD?"AIM JOYSTICK":
         id==HOTBAR?"QUICK ACCESS BAR":LegacyControlsV58.NAMES[id];}
     String controlSizeKey(int id){return id==MOVE_PAD?"movePadSize":id==AIM_PAD?"aimPadSize":"uiSize"+id;}
     int stickEditorAt(float x,float y){
@@ -3274,6 +3311,19 @@ public final class GameView extends View {
         btn(c,x,y,w,h,LegacyControlsV58.LABELS[id],(alpha<<24)|fill);
         if(editControls){
             color(uiEnabled(id)?0xffc4dcbb:0xffe29b80);
+            p.setStrokeWidth(2f);p.setStyle(Paint.Style.STROKE);
+            c.drawRect(x,y,x+w,y+h,p);p.setStyle(Paint.Style.FILL);
+        }
+    }
+    void drawTalkButtonV94(Canvas c){
+        if(!talkVisibleV94())return;
+        float x=talkLeftV94(),y=talkTopV94(),
+            w=talkWidthV94(),h=talkHeightV94();
+        int alpha=Math.max(36,Math.min(255,
+            host.setting("uiAlpha"+TALK_EDITOR,100)*255/100));
+        btn(c,x,y,w,h,"TALK",(alpha<<24)|0x00426a59);
+        if(editControls){
+            color(uiEnabled(TALK_EDITOR)?0xffc4dcbb:0xffe29b80);
             p.setStrokeWidth(2f);p.setStyle(Paint.Style.STROKE);
             c.drawRect(x,y,x+w,y+h,p);p.setStyle(Paint.Style.FILL);
         }
@@ -3435,7 +3485,7 @@ public final class GameView extends View {
                     selectedHudControl=Math.floorMod(i+(j==0?-1:1),EDITOR_ITEMS);
                     host.prefs.edit().putInt("selectedButton",selectedHudControl).apply();
                 }else if(j==6){
-                    if(i<LegacyControlsV58.COUNT||i==BAG_EDITOR)
+                    if(i<LegacyControlsV58.COUNT||i==BAG_EDITOR||i==TALK_EDITOR)
                         host.prefs.edit().putBoolean("uiEnabled"+i,
                             !host.option("uiEnabled"+i,true)).apply();
                 }else{
@@ -3619,6 +3669,7 @@ public final class GameView extends View {
             ry+aimStickY*59*aimPadScale,13*aimPadScale,p);
         label(c,"AIM",rx-20,ry+6,17,WHITE,true);
         for(int ui=0;ui<LegacyControlsV58.COUNT;ui++)drawAction(c,ui);
+        drawTalkButtonV94(c);
         drawHotbar(c);
         if(showStatusBars){
             drawStatusBar(c,"HP",health,12,145,0xffc76b65);
@@ -3891,6 +3942,10 @@ public final class GameView extends View {
             float delta=ui==LegacyControlsV58.ZOOM_IN?.12f:-.12f;
             zoom=clamp(zoom+delta,.45f,1.8f);
             host.prefs.edit().putInt("cameraZoom",Math.round(zoom*100f)).apply();
+        }else if(ui==TALK_EDITOR){
+            // TALK is a separate contextual interaction: never steals USE.
+            if(!editControls&&nearbyNPCInteractionV92()>=0)
+                interactNearbyNPCV92();
         }else if(ui==LegacyControlsV58.USE){
             if(placingKindV84>=0){
                 if(!placeAtV84(placingXv84,placingYv84)){
@@ -3900,7 +3955,6 @@ public final class GameView extends View {
             }
             if(insideClinicV89){interactClinicV89();return;}
             if(enterClinicFromWorldV89())return;
-            if(interactNearbyNPCV92())return;
             if(useFacilityV88())return;
             BanditLootV87.Bag banditBag=nearbyBanditBagV87();
             if(banditBag!=null){
@@ -4004,12 +4058,14 @@ public final class GameView extends View {
                         editX=Math.round(px-editGrabX-
                                 (editControl==BAG_EDITOR?WorldUiV86.bagX(viewW):
                                  editControl==HOTBAR?viewW*.5f-6*47f*hotbarScale*.5f:
+                                 editControl==TALK_EDITOR?talkDefaultX():
                                  editControl<LegacyControlsV58.COUNT?
                                  LegacyControlsV58.defaultX(editControl,viewW):
                                  padBaseX(editControl==AIM_PAD)));
                         editY=Math.round(py-editGrabY-
                                 (editControl==BAG_EDITOR?WorldUiV86.bagY(viewH):
                                  editControl==HOTBAR?viewH-103f:
+                                 editControl==TALK_EDITOR?talkDefaultY():
                                  editControl<LegacyControlsV58.COUNT?
                                  LegacyControlsV58.defaultY(editControl,viewH):
                                  padBaseY(editControl==AIM_PAD)));
@@ -4018,6 +4074,11 @@ public final class GameView extends View {
                                 viewW-WorldUiV86.BAG_W*bagScaleV87()-WorldUiV86.bagX(viewW)));
                             editY=Math.round(clamp(editY,60-WorldUiV86.bagY(viewH),
                                 viewH-WorldUiV86.BAG_H*bagScaleV87()-WorldUiV86.bagY(viewH)));
+                        }else if(editControl==TALK_EDITOR){
+                            editX=Math.round(clamp(editX,-talkDefaultX(),
+                                viewW-talkWidthV94()-talkDefaultX()));
+                            editY=Math.round(clamp(editY,42-talkDefaultY(),
+                                viewH-talkHeightV94()-talkDefaultY()));
                         }else if(editControl<LegacyControlsV58.COUNT){
                             editX=Math.round(clamp(editX,-LegacyControlsV58.defaultX(editControl,viewW),
                                   viewW-uiWidth(editControl)-LegacyControlsV58.defaultX(editControl,viewW)));
