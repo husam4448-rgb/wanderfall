@@ -66,7 +66,7 @@ public final class WearableArtV96 {
         lensV99(result,3,18,35,57,48);
         // Neutral dark inner liner fills only transparent brow gaps, not the
         // approved hood outline or opaque visor rim. Prevents hair leakage.
-        for(int y=29;y<35;y++)for(int x=19;x<55;x++){
+        for(int y=23;y<35;y++)for(int x=17;x<57;x++){
             int px=3*72+x,originalColor=result.getPixel(px,y);
             if((originalColor>>>24)<65)
                 result.setPixel(px,y,0xff1b1e22);
