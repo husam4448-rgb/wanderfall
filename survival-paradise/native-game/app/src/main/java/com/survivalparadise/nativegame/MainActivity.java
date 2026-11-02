@@ -525,6 +525,60 @@ public final class MainActivity extends Activity {
      * V87 dual-inventory bandit loot. Tap to select then LOOT, drag its icon
      * over PLAYER INVENTORY, or LOOT ALL. Only this bag's selected stacks move.
      */
+    interface LootCountV95 { int at(int kind); }
+    /** Android drag-and-drop. A touch MOVE starts a real drag, not a fake UP test. */
+    void attachLootSourceV95(View source,int kind,int[] selected,
+        Runnable[] refresh,LootCountV95 counts){
+        final float[] from=new float[2];
+        final boolean[] dragging={false};
+        float threshold=8f*getResources().getDisplayMetrics().density;
+        source.setOnTouchListener((v,e)->{
+            switch(e.getActionMasked()){
+                case android.view.MotionEvent.ACTION_DOWN:
+                    if(counts.at(kind)<1)return true;
+                    from[0]=e.getRawX();from[1]=e.getRawY();
+                    dragging[0]=false;selected[0]=kind;
+                    if(refresh[0]!=null)refresh[0].run();
+                    return true;
+                case android.view.MotionEvent.ACTION_MOVE:
+                    if(!dragging[0]&&counts.at(kind)>0&&
+                        Math.hypot(e.getRawX()-from[0],e.getRawY()-from[1])>threshold){
+                        android.content.ClipData transfer=android.content.ClipData
+                            .newPlainText("sp-loot-v95",Integer.toString(kind));
+                        dragging[0]=v.startDragAndDrop(transfer,
+                            new View.DragShadowBuilder(v),null,0);
+                    }
+                    return true;
+                case android.view.MotionEvent.ACTION_UP:
+                case android.view.MotionEvent.ACTION_CANCEL:
+                    dragging[0]=false;return true;
+                default:return true;
+            }
+        });
+    }
+    /** Attach to EACH receiving cell and its scroll frame for reliable drops. */
+    View.OnDragListener lootDropV95(int[] selected,Runnable[] claim,int limit){
+        return (target,event)->{
+            int action=event.getAction();
+            if(action==android.view.DragEvent.ACTION_DRAG_STARTED){
+                return event.getClipDescription()!=null&&
+                    event.getClipDescription().hasMimeType(
+                        android.content.ClipDescription.MIMETYPE_TEXT_PLAIN);
+            }
+            if(action==android.view.DragEvent.ACTION_DROP){
+                try{
+                    String content=event.getClipData().getItemAt(0).getText().toString();
+                    int type=Integer.parseInt(content);
+                    if(type>=0&&type<limit){
+                        selected[0]=type;
+                        claim[0].run();return true;
+                    }
+                }catch(Exception ignored){}
+                return false;
+            }
+            return true;
+        };
+    }
     void lootBanditBagV87(BanditLootV87.Bag bag){
         if(game==null||bag==null||!game.banditLootV87.contains(bag)||!game.isPlaying())return;
         if(game.nearbyBanditBagV87()!=bag)return; // requires close proximity
@@ -590,22 +644,8 @@ public final class MainActivity extends Activity {
             LinearLayout.LayoutParams srcParams=new LinearLayout.LayoutParams(cellEdgeV93,cellEdgeV93);
             srcParams.setMargins(2,2,2,2);srcRowsV88[rowIndex].addView(take,srcParams);
             lootButtons[i]=take;
-            // A source button retains the touch stream even if dragged outside.
-            take.setOnTouchListener((v,e)->{
-                if(e.getActionMasked()==android.view.MotionEvent.ACTION_DOWN){
-                    selected[0]=kind;
-                    refresh[0].run();
-                    return true;
-                }
-                if(e.getActionMasked()==android.view.MotionEvent.ACTION_UP){
-                    android.graphics.Rect rect=new android.graphics.Rect();
-                    if(destination.getGlobalVisibleRect(rect)&&
-                       rect.contains((int)e.getRawX(),(int)e.getRawY()))
-                        claimSelected[0].run();
-                    return true;
-                }
-                return true;
-            });
+            attachLootSourceV95(take,kind,selected,refresh,
+                k->k<BanditLootV87.ITEMS?bag.count[k]:0);
             SquareItemSlotV88 own=v88SquareSlot(BanditLootV87.NAMES[i],false);
             own.setCompoundDrawables(null,game.itemIconsV84.drawable(
                 getResources(),kind,18),null,null);
@@ -656,6 +696,14 @@ public final class MainActivity extends Activity {
             }
         };
         refresh[0].run();
+        // Drop onto an occupied OR empty player cell; both accept items.
+        View.OnDragListener destinationDropV95=lootDropV95(selected,
+            claimSelected,lootButtons.length);
+        destination.setOnDragListener(destinationDropV95);
+        dstScroll.setOnDragListener(destinationDropV95);
+        dstItems.setOnDragListener(destinationDropV95);
+        for(Button receiver:playerButtons)
+            if(receiver!=null)receiver.setOnDragListener(destinationDropV95);
         LinearLayout footer=new LinearLayout(this);
         footer.setOrientation(LinearLayout.HORIZONTAL);
         shell.addView(footer);
@@ -813,6 +861,14 @@ public final class MainActivity extends Activity {
             }
         };
         refresh[0].run();
+        // Drop onto an occupied OR empty player cell; both accept items.
+        View.OnDragListener destinationDropV95=lootDropV95(selected,
+            claimSelected,lootButtons.length);
+        destination.setOnDragListener(destinationDropV95);
+        dstScroll.setOnDragListener(destinationDropV95);
+        dstItems.setOnDragListener(destinationDropV95);
+        for(Button receiver:playerButtons)
+            if(receiver!=null)receiver.setOnDragListener(destinationDropV95);
         LinearLayout footer=new LinearLayout(this);
         footer.setOrientation(LinearLayout.HORIZONTAL);
         shell.addView(footer);
