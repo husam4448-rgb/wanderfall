@@ -18,7 +18,7 @@ public final class TorsoRecolorV98 {
         int[] approved=new int[260*160];
         approvedNpcPalette.getPixels(approved,0,260,0,
                 WearableFitV98.sourceRole(outfit)*160,260,160);
-        for(int y=92;y<=109;y++)for(int x=43;x<=108;x++){
+        for(int y=92;y<=109;y++)for(int x=33;x<=104;x++){
             int index=y*260+x;
             int current=pixels[index],reference=approved[index];
             if(!WearableFitV98.torsoPixel(x,y,current))continue;
