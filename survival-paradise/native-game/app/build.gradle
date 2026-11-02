@@ -6,8 +6,8 @@ android {
   applicationId 'com.survivalparadise.nativegame'
   minSdk 24
   targetSdk 34
-  versionCode 95
-  versionName '0.94-contextual-talk-hud'
+  versionCode 96
+  versionName '0.95-visible-gear-drag-loot'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
