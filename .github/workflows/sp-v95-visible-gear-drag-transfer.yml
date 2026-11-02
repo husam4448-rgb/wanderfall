@@ -1164,7 +1164,7 @@ jobs:
                     'game.lootClinicAllV89(box)',
                     'box.amount[i]',
                     'SquareItemSlotV88 take=v88SquareSlot(',
-                    'destination.getGlobalVisibleRect(rect)']:
+                    'attachLootSourceV95(take,kind,selected,refresh,']:
               assert s in m,s
           assert 'WIDTH=2720,HEIGHT=1904' in model
           assert 'STORAGE_NAMES' not in model or 'CACHE_NAMES' in model
@@ -1242,7 +1242,7 @@ jobs:
                     "if(insideClinicV89){drawClinicInteriorV89(c);return;}"):
               assert t in g,t
           for t in ('"EQUIP CARRY BAG"', "FieldItemIconsV91.drawable",
-                    "SEARCH GEAR", "for(int ir=0;ir<5;ir++)",
+                    "GearLootV95.TOTAL", "for(int ir=0;ir<5;ir++)",
                     "for(int ic=0;ic<8;ic++)"):
               assert t in a,t
           assert b.count("new Site(")>=26
