@@ -3260,8 +3260,8 @@ public final class GameView extends View {
     float talkHeightV94(){return 44f*talkSizeV94();}
     boolean talkVisibleV94(){
         // Deliberately visible in editor without requiring an NPC nearby.
-        return editControls||(playing&&!paused&&!gameOver&&
-            uiEnabled(TALK_EDITOR)&&nearbyNPCInteractionV92()>=0);
+        return ContextualTalkV94.visible(editControls,playing,paused,gameOver,
+            uiEnabled(TALK_EDITOR),nearbyNPCInteractionV92());
     }
     boolean talkButtonAtV94(float x,float y){
         return talkVisibleV94()&&
@@ -3944,7 +3944,8 @@ public final class GameView extends View {
             host.prefs.edit().putInt("cameraZoom",Math.round(zoom*100f)).apply();
         }else if(ui==TALK_EDITOR){
             // TALK is a separate contextual interaction: never steals USE.
-            if(!editControls&&nearbyNPCInteractionV92()>=0)
+            if(ContextualTalkV94.canTalk(editControls,playing,paused,gameOver,
+                    uiEnabled(TALK_EDITOR),nearbyNPCInteractionV92()))
                 interactNearbyNPCV92();
         }else if(ui==LegacyControlsV58.USE){
             if(placingKindV84>=0){
