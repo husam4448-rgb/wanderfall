@@ -546,8 +546,8 @@ jobs:
           npc=Image.open(root/"npc_idle_v56.png").convert("RGBA")
           assert original.size==(1040,160) and npc.size==(260,1920)
           def editable(x,y,r,g,b,a):
-              return a>=220 and 43<=x<=108 and 92<=y<=109 and max(r,g,b)>=48 and not(r>g*1.13 and g>b*1.08)
-          eligible=[(x,y) for y in range(92,110) for x in range(43,109)
+              return a>=220 and 33<=x<=104 and 92<=y<=109 and max(r,g,b)>=48
+          eligible=[(x,y) for y in range(92,110) for x in range(33,105)
               if editable(x,y,*original.getpixel((520+x,y)))]
           for y in range(75,136,5):
               vals=[(x,original.getpixel((520+x,y))) for x in range(0,260)
