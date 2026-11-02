@@ -125,8 +125,8 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           p=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/GameView.java').read_text()
-          assert 'Bitmap idleSource=npc?npcIdleV56:body;' in p
-          assert 'int sx=npc?0:APPROVED_PLANTED_IDLE_FRAME*260;' in p
+          assert 'Bitmap idleSource=selectedIdle;' in p
+          assert 'int sx=idleX;' in p
           assert 'static final int APPROVED_PLANTED_IDLE_FRAME=2;' in p
           assert 'static final int IDLE_HEAD_BODY_SPLIT=92;' in p
           assert 'static final int IDLE_HEAD_OVERLAP=101;' in p
@@ -307,7 +307,7 @@ jobs:
           collision=(root/'CharacterCollision.java').read_text()
           activity=(root/'MainActivity.java').read_text()
           assert 'Bitmap atlas=npcVariant>=0?npcWalkV56:approvedWalkColors;' in view
-          assert 'Bitmap idleSource=npc?npcIdleV56:body;' in view
+          assert 'Bitmap idleSource=selectedIdle;' in view
           assert 'getAssets().open("npc_walk_v56.png")' in view
           assert 'c.drawBitmap(walkingAtlas,src,dest,pixel);' in view
           assert 'final float visibleX=actorX;' in collision
@@ -346,7 +346,7 @@ jobs:
             'LegacyControlsV58.COUNT','editPointer=id',
             'getAssets().open("npc_walk_v56.png")',
             'Bitmap atlas=npcVariant>=0?npcWalkV56:approvedWalkColors;',
-            'Bitmap idleSource=npc?npcIdleV56:body;',
+            'Bitmap idleSource=selectedIdle;',
             'c.drawBitmap(walkingAtlas,src,dest,pixel);'
           ]: assert token in g,token
           assert 'firing=gun!=3' not in g
@@ -417,7 +417,7 @@ jobs:
             'new V62InventoryPreview' if False else 'drawBrightCrosshair(canvas);',
             'PlayerMovementV77.gait(walkSpeedMultiplier,runHeld&&stamina>0)*',
             'final int split=110',
-            'Bitmap locked=npc?npcIdleV56:body;',
+            'Bitmap locked=selectedIdle;',
             'postInvalidateOnAnimation();',
           ]
           for token in checks: assert token in g,token
@@ -703,7 +703,7 @@ jobs:
               assert im.crop((128*i,0,128*(i+1),128)).getchannel("A").getbbox(),i
           g=Path("survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/GameView.java").read_text()
           assert "drawBiomePropsV74(c);" in g
-          assert 'Bitmap idleSource=npc?npcIdleV56:body;' in g
+          assert 'Bitmap idleSource=selectedIdle;' in g
           assert 'ClassicAimV71.distance(rest,maxAim,aimDeflection)' in g
           print("V74 asset and locked V73 controller checks PASS")
           PY
@@ -730,7 +730,7 @@ jobs:
           assert "c.scale(1.48f,1.48f);" in g
           assert "enemies.stream().noneMatch" not in g
           assert "ClassicAimV71.distance(rest,maxAim,aimDeflection)" in g
-          assert "Bitmap idleSource=npc?npcIdleV56:body;" in g
+          assert "Bitmap idleSource=selectedIdle;" in g
           print("V75 gameplay, hit and asset regression PASS")
           PY
       - name: V76 transparent compact mobile HUD and touch tests
@@ -753,7 +753,7 @@ jobs:
           assert 'host.option("compactDebugV76",true)' in g
           assert '"topButtonOpacityV76",0,65,22' in m
           assert 'ClassicAimV71.distance(rest,maxAim,aimDeflection)' in g
-          assert 'Bitmap idleSource=npc?npcIdleV56:body;' in g
+          assert 'Bitmap idleSource=selectedIdle;' in g
           print("V76 PASS transparent bars, aligned top taps, optional diagnostics, V75 sprites/aim")
           PY
       - name: V77 independent player walking speed and left/right settings layout
@@ -786,7 +786,7 @@ jobs:
           assert 'shell.addView(jumpBar2);' not in m
           assert 'shell.addView(track);' not in m
           assert 'ClassicAimV71.distance(rest,maxAim,aimDeflection)' in g
-          assert 'Bitmap idleSource=npc?npcIdleV56:body;' in g
+          assert 'Bitmap idleSource=selectedIdle;' in g
           print("V77 PASS: independent walk-speed, left-hand section menu, right-hand scrolling list")
           PY
       - name: V78 dynamic flashlight source cache and smooth follower arrival tests
@@ -811,7 +811,7 @@ jobs:
           assert "lighting.flashlight(tip[0],tip[1],f.aimX,f.aimY,flashlightReach)" in g
           assert "CharacterCollision.BASE_SCALE*scale" in g
           assert 'ClassicAimV71.distance(rest,maxAim,aimDeflection)' in g
-          assert 'Bitmap idleSource=npc?npcIdleV56:body;' in g
+          assert 'Bitmap idleSource=selectedIdle;' in g
           assert "TopHudV76.hit(x,y,viewW)" in g
           print("V78 PASS: unchanged original graphics, aiming, UI and new light motion freshness")
           PY
@@ -838,7 +838,7 @@ jobs:
           assert 'PlayerMovementV77.speed(gun==9?169f:236f,walkSpeedMultiplier,runMultiplier,crouchHeld)' in g
           assert 'friend.animation.step(' in g and 'npc.animation.step(' in g
           assert 'ClassicAimV71.distance(rest,maxAim,aimDeflection)' in g
-          assert 'Bitmap idleSource=npc?npcIdleV56:body;' in g
+          assert 'Bitmap idleSource=selectedIdle;' in g
           assert 'TopHudV76.hit(x,y,viewW)' in g
           assert 'LightCacheV78.canReuse' in (p/"LightingV47.java").read_text()
           print("V79 PASS: live player gait adjustment, linked default, intact NPCs/HUD/lighting")
@@ -868,7 +868,7 @@ jobs:
           assert 'PlayerMovementV77.speed(gun==9?169f:236f,walkSpeedMultiplier,runMultiplier,crouchHeld)' in g
           assert 'walkingAnimationMultiplierV79' in g
           assert 'TopHudV76.hit(x,y,viewW)' in g
-          assert 'Bitmap idleSource=npc?npcIdleV56:body;' in g
+          assert 'Bitmap idleSource=selectedIdle;' in g
           print("V80 PASS new gathered world objects and bag slots, old V79 game intact")
           PY
       - name: V81 harvest state machine, swing overlay and impact regression
@@ -903,7 +903,7 @@ jobs:
           assert "harvestV81.totalProgress()" in g
           assert "if(!harvestV81.active&&(gun==3" in g
           assert "TopHudV76.hit(x,y,viewW)" in g
-          assert "Bitmap idleSource=npc?npcIdleV56:body;" in g
+          assert "Bitmap idleSource=selectedIdle;" in g
           assert "walkingAnimationMultiplierV79" in g
           assert "LightCacheV78.canReuse" in (root/"LightingV47.java").read_text()
           print("V81 PASS rig/tools/progress/impact/cancel, V80 rewards persisted at end")
@@ -928,7 +928,7 @@ jobs:
           assert 'HeadKnifeV82.defaultHead(headScaleV82)' in g
           assert 'drawScaledHeadV82(c,locked,sx,sy,s,0f)' in g
           assert 'drawScaledHeadV82(c,idleSource,sx,sy,s,breath)' in g
-          assert 'Bitmap idleSource=npc?npcIdleV56:body;' in g
+          assert 'Bitmap idleSource=selectedIdle;' in g
           assert 'slider(root,"Character head size","headSizeV82",75,160,100,"%");' in m
           assert '.putInt("headSizeV82",100)' in m
           assert 'drawKnifeSwing(c,s)' in g
