@@ -1039,7 +1039,7 @@ jobs:
           for s in ['void lootBanditBagV87(BanditLootV87.Bag bag)',
                     'sourceButton.setVisibility(',
                     'v.startDragAndDrop(transfer,',
-                    'claimSelected[0].run();',
+                    'loot.setOnClickListener(v->claimSelected[0].run());',
                     'game.lootAllBanditV87(bag)',
                     'game.lootBanditStackV87(bag,kind)',
                     'choicesV87[LegacyControlsV58.COUNT]="BAG BUTTON"',
