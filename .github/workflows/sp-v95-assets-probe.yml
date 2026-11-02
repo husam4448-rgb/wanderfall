@@ -1,0 +1,23 @@
+name: Survival Paradise V95 Review Original Compact Gear Artwork
+on:
+  push:
+    branches: [sp-native-v95-gear-loot-transfer-20261102]
+    paths:
+      - '.github/workflows/sp-v95-assets-probe.yml'
+  workflow_dispatch:
+jobs:
+  verify-original-art:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify legacy pixel-art equipment scale and print tiny originals
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64,struct
+          for path in sorted(Path('assets/authored2d/gear').glob('*.png')):
+              data=path.read_bytes()
+              assert data.startswith(b'\x89PNG\r\n\x1a\n')
+              w,h=struct.unpack('>II',data[16:24])
+              print('V95_ASSET',path.name,'size',w,h,'bytes',len(data),'base64',base64.b64encode(data).decode())
+          PY
