@@ -39,25 +39,26 @@ public final class WearableArtV96 {
         } catch(Exception ignored){}
         return null;
     }
+    /** Gear sprite stays behind the torso. Upper-back anchor independent of head zoom. */
     public void drawPack(Canvas c,int kind,float s,Paint pixel){
         if(packs==null)return;
         int i=Math.floorMod(kind,20);
         int x=(i%5)*32,y=(i/5)*40;
         from.set(x,y,x+32,y+40);
-        // High upper-back attachment. Ends above the character's belt/legs.
-        to.set(-61*s,-119*s,-24*s,-52*s);
+        float[] bounds=WearableFitV97.packBounds(s);
+        to.set(bounds[0],bounds[1],bounds[2],bounds[3]);
         c.drawBitmap(packs,from,to,pixel);
     }
-    public void drawHead(Canvas c,int kind,float s,float bob,Paint pixel){
+    /** Match the actual adjustable head, pivoting about the immutable neckline.
+     * The four masks have independent geometry, all scaled by headMultiplier.
+     */
+    public void drawHead(Canvas c,int kind,float s,float bob,float headMultiplier,Paint pixel){
         if(heads==null)return;
         int i=Math.floorMod(kind,4);
-        final int[] top={-137,-150,-145,-147};
-        final int[] bottom={-44,-89,-44,-39};
         final int[] height={59,28,54,81};
-        final int[] halfWidth={53,58,57,58};
         from.set(i*72,0,(i+1)*72,height[i]);
-        to.set(-halfWidth[i]*s,top[i]*s+bob,
-                 halfWidth[i]*s,bottom[i]*s+bob);
+        float[] bounds=WearableFitV97.headBounds(i,s,headMultiplier,bob);
+        to.set(bounds[0],bounds[1],bounds[2],bounds[3]);
         c.drawBitmap(heads,from,to,pixel);
     }
 }
