@@ -23,9 +23,13 @@ public final class WearableFitV98 {
         if(x<43||x>108||y<92||y>109||(pixel>>>24)<220)return false;
         int r=(pixel>>>16)&255,g=(pixel>>>8)&255,b=pixel&255;
         // Protect near-black pixel outlines and skin/face/pants shades.
-        if(Math.max(r,Math.max(g,b))<80)return false;
+        if(Math.max(r,Math.max(g,b))<48)return false;
         if(r>g*1.13f && g>b*1.08f)return false;
         return true;
+    }
+    public static boolean palettePixel(int pixel){
+        return (pixel>>>24)>=220 &&
+            Math.max((pixel>>>16)&255,Math.max((pixel>>>8)&255,pixel&255))>=48;
     }
     /** Approved clothing colors are copied from existing V56 NPC role color atlases. */
     public static int sourceRole(int outfit){return new int[]{2,7,10}[Math.floorMod(outfit,3)];}
