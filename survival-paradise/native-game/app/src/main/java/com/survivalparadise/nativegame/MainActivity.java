@@ -907,26 +907,95 @@ public final class MainActivity extends Activity {
         dialog.setCanceledOnTouchOutside(true);
         resizeSettingsWindow(dialog,94,88);
     }
+    /** V97 dedicated responsive NPC interface. Never combine setMessage and
+     * setItems on one AlertDialog: on Android one can hide the other.
+     */
     void npcInteractionV92(int role){
-        if(game==null||!game.isPlaying())return;
-        final String[] roles={"TRADER","MEDIC","GUARD","MECHANIC","SURVIVOR"};
-        int id=Math.max(0,Math.min(role,4));
-        String[] offers={"Trade 2 scrap for 1 medkit",
-            "Trade 1 scrap for 2 food",
-            "Trade 1 scrap for 2 water",
-            "Recruit survivor (4 scrap, reputation 30+)",
-            "Leave conversation"};
-        String message=roles[id]+" • Reputation "+game.relationshipsV92.reputation+
-            "\n\nWe look after people who help the settlement.";
-        new AlertDialog.Builder(this).setTitle(roles[id]+" • TALK / TRADE")
-            .setMessage(message)
-            .setItems(offers,(dialog,selected)->{
-                if(selected==4)return;
-                boolean ok=game.tradeNPCV92(selected);
-                Toast.makeText(this,ok?selected==3?"New companion joined":
-                    "Traded successfully":"Not enough supplies, trust or room",
-                    Toast.LENGTH_SHORT).show();
-            }).show();
+        if(game==null||!game.isPlaying()||game.nearbyNPCInteractionV92()<0)return;
+        final int npc=Math.max(0,Math.min(4,role));
+        game.menuPause(true);
+        LinearLayout panel=column();
+        panel.setPadding(14,10,14,10);
+        panel.setBackgroundColor(0xff20302f);
+        TextView header=text(NPCDialogueV97.ROLES[npc]+" • TALK / TRADE",19,true);
+        header.setTextColor(0xffe5d3a7);panel.addView(header);
+        TextView reputation=text("",13,false);panel.addView(reputation);
+        Runnable refresh=()->reputation.setText("REPUTATION "+
+            game.relationshipsV92.reputation+"  •  SCRAP "+game.scrap+
+            "  •  ALLIES "+game.friends.size()+"/6");
+        refresh.run();
+        panel.addView(text(NPCDialogueV97.answer(npc,0),13,false));
+        ScrollView scroll=new ScrollView(this);
+        LinearLayout actions=column();
+        scroll.addView(actions);
+        panel.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
+        final AlertDialog[] shell={null};
+        action(actions,"TALK  •  Ask questions",()->{
+            new AlertDialog.Builder(this).setTitle(NPCDialogueV97.ROLES[npc]+" • QUESTIONS")
+                .setItems(NPCDialogueV97.QUESTIONS,(d,question)->
+                    new AlertDialog.Builder(this).setTitle(
+                        NPCDialogueV97.QUESTIONS[question])
+                        .setMessage(NPCDialogueV97.answer(npc,question))
+                        .setPositiveButton("BACK",(reply,which)->{})
+                        .show())
+                .setNegativeButton("BACK",(d,which)->{})
+                .show();
+        });
+        action(actions,"TRADE  •  Exchange real inventory",()->{
+            String[] offers={"2 SCRAP → 1 MEDKIT","1 SCRAP → 2 FOOD",
+                "1 SCRAP → 2 WATER"};
+            new AlertDialog.Builder(this).setTitle("TRADE WITH "+
+                NPCDialogueV97.ROLES[npc]).setItems(offers,(d,choice)->{
+                    boolean ok=game.tradeNPCV92(choice);
+                    refresh.run();
+                    Toast.makeText(this,ok?"TRADE COMPLETED — "+offers[choice]:
+                        "INSUFFICIENT SCRAP OR NPC OUT OF RANGE",Toast.LENGTH_SHORT).show();
+                }).setNegativeButton("BACK",(d,w)->{}).show();
+        });
+        action(actions,"RECRUIT / FOLLOW  •  4 scrap, reputation 30+",()->{
+            if(!NPCDialogueV97.recruitable(npc)){
+                Toast.makeText(this,"This NPC cannot be recruited",
+                    Toast.LENGTH_SHORT).show();return;
+            }
+            new AlertDialog.Builder(this).setTitle("RECRUIT COMPANION")
+                .setMessage("Spend 4 scrap to recruit this friendly survivor? "+
+                    "The companion will follow you outdoors and inside buildings. "+
+                    "Requires reputation 30 or higher and an available ally slot.")
+                .setPositiveButton("RECRUIT",(d,which)->{
+                    boolean ok=game.tradeNPCV92(3);
+                    refresh.run();
+                    Toast.makeText(this,ok?"COMPANION RECRUITED — FOLLOWING":
+                        "NEED 4 SCRAP, REPUTATION 30+, OR A FREE SLOT",
+                        Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("CANCEL",(d,w)->{}).show();
+        });
+        action(actions,"GIVE ITEM  •  Transfer supplies",()->{
+            String[] gifts={
+                "FOOD  ×1 (you have "+game.foodCount+")",
+                "WATER  ×1 (you have "+game.waterCount+")",
+                "MEDKIT  ×1 (you have "+game.medkits+")",
+                "SCRAP  ×2 (you have "+game.scrap+")",
+                "BANDAGE  ×1 (you have "+game.bandagesV88+")"};
+            new AlertDialog.Builder(this).setTitle("GIVE SUPPLIES TO "+
+                NPCDialogueV97.ROLES[npc]).setItems(gifts,(d,which)->{
+                    boolean ok=game.giveNPCV97(which);
+                    refresh.run();
+                    Toast.makeText(this,ok?"ITEM TRANSFERRED — TRUST +2":
+                        "ITEM UNAVAILABLE OR NPC OUT OF RANGE",Toast.LENGTH_SHORT).show();
+                }).setNegativeButton("BACK",(d,w)->{}).show();
+        });
+        action(actions,"LEAVE  •  Return to game",()->{
+            if(shell[0]!=null)shell[0].dismiss();
+        });
+        AlertDialog dialog=new AlertDialog.Builder(this).setView(panel).create();
+        shell[0]=dialog;
+        dialog.setOnDismissListener(d->{
+            game.menuPause(false);restoreFullscreenAfterShade();
+        });
+        dialog.show();
+        dialog.setCancelable(true);
+        resizeSettingsWindow(dialog,76,87);
     }
     void inventory(){
         if(game==null||!game.isPlaying())return;
