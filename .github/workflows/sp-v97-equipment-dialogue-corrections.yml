@@ -547,7 +547,7 @@ jobs:
           assert "setMessage(message)\n            .setItems(offers" not in a
           assert "WearableFitV97.headBounds" in art and "WearableFitV97.packBounds" in art
           for original in ["body.png","npc_walk_v56.png","npc_idle_v56.png"]:
-              assert (p.parent.parent.parent/"assets"/original).is_file()
+              assert (p.parents[3]/"assets"/original).is_file()
           print("V97 PASS: responsive action wiring, inventory mutation, preserved body sprite sources")
           PY
       - name: Validate V96 approved wearable atlas bytes and integration
