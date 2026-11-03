@@ -1,0 +1,35 @@
+name: V105 Design C role palette reference — no APK
+on:
+  push:
+    branches:
+      - sp-native-v105-design-c-all-characters-review-20261103
+    paths:
+      - .github/workflows/sp-v105-role-palettes.yml
+  workflow_dispatch:
+jobs:
+  palette:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -q Pillow numpy
+      - name: Export approved 12 character role palette values
+        run: |
+          python3 - <<'PY'
+          import sys,json
+          sys.path.insert(0,"survival-paradise/native-game/tools")
+          from build_v51_assets import ROLES,SEXES,role_palette
+          rows=[]
+          for role in ROLES:
+              for sex in SEXES:
+                  palettes=role_palette(role,sex)
+                  row=dict(role=role,sex=sex)
+                  row.update({name:list(map(int,c)) for name,c in palettes.items()})
+                  rows.append(row)
+          print("V105_APPROVED_PALETTES_BEGIN")
+          print(json.dumps(rows,separators=(",",":")))
+          print("V105_APPROVED_PALETTES_END")
+          print("ROLE VARIANTS:",len(rows))
+          PY
