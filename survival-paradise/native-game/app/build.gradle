@@ -6,8 +6,8 @@ android {
   applicationId 'com.survivalparadise.nativegame'
   minSdk 24
   targetSdk 34
-  versionCode 99
-  versionName '0.98-fitted-gear-torso-recolors'
+  versionCode 108
+  versionName '0.108-character-fit-calibration'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
