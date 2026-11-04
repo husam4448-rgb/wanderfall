@@ -1,0 +1,110 @@
+name: Survival Paradise V108 Character Fitting Lab (review build)
+on:
+  push:
+    branches: [sp-native-v108-character-fit-controls-json-20261104]
+    paths:
+      - 'survival-paradise/native-game/**'
+      - '.github/workflows/sp-v108-character-fit-lab.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: survival-paradise-v108-fit-lab
+  cancel-in-progress: true
+
+jobs:
+  verify-native-character-fit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            survival-paradise
+            assets/authored2d
+            assets/world
+          sparse-checkout-cone-mode: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Generate the exact locked V31/V56 source art
+        run: |
+          set -euo pipefail
+          python3 -m pip install --user -q Pillow numpy
+          python3 survival-paradise/native-game/tools/extract_locked_atlases.py
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64,hashlib
+          r=Path("survival-paradise/native-game")
+          for encoded,dest,sha in [
+             ("approved_v29_axe.png.b64","approved_v29_axe.png","f0d146757318e620024cae0c2a34243bdd9339a939a7f51e5428ae8250620dee"),
+             ("approved_v44_walk_palette.png.b64","approved_v44_walk_palette.png","fd01230e9c13ffd3087e933abe976a2179d80e9adc9b0710f899a7bef7fc3d71")
+          ]:
+              data=base64.b64decode((r/"tools"/encoded).read_text().strip(),validate=True)
+              assert hashlib.sha256(data).hexdigest()==sha,encoded
+              (r/"app/src/main/assets"/dest).write_bytes(data)
+          PY
+          python3 survival-paradise/native-game/tools/build_v51_assets.py
+          python3 survival-paradise/native-game/tools/build_v52_idle.py
+          python3 survival-paradise/native-game/tools/fix_v53_skin_palette.py
+          python3 survival-paradise/native-game/tools/build_v56_approved_character_atlases.py
+          python3 survival-paradise/native-game/tools/build_v74_biome_assets.py
+          test "$(sha256sum survival-paradise/native-game/app/src/main/assets/body.png | cut -d' ' -f1)" = "141878713a6880d05879b7102c728581dddb55730434bcac8e050fe44b3d82ad"
+      - name: Verify neutral legacy rendering and fitting export logic
+        run: python3 survival-paradise/native-game/tools/test_v108_character_fit.py
+      - name: Test four-frame original gait and planted idle (pure JVM)
+        run: |
+          set -e
+          R=survival-paradise/native-game
+          mkdir -p /tmp/sp-v108-jvm
+          javac -d /tmp/sp-v108-jvm "$R/app/src/main/java/com/survivalparadise/nativegame/AnimationCycle.java" "$R/tools/AnimationCycleTest.java"
+          java -cp /tmp/sp-v108-jvm com.survivalparadise.nativegame.AnimationCycleTest
+      - name: Prepare Android 35 SDK
+        run: |
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -path '*/bin/sdkmanager' | sort -V | tail -1)"
+          test -x "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Use stable key when already configured
+        env:
+          SP_KEYSTORE_BASE64: ${{ secrets.SP_SIGNING_KEYSTORE_BASE64 }}
+          SP_SIGNING_PASSWORD: ${{ secrets.SP_SIGNING_PASSWORD }}
+          SP_SIGNING_KEY_PASSWORD: ${{ secrets.SP_SIGNING_KEY_PASSWORD }}
+          SP_SIGNING_ALIAS: ${{ secrets.SP_SIGNING_ALIAS }}
+        run: |
+          if [ -n "$SP_KEYSTORE_BASE64" ] && [ -n "$SP_SIGNING_PASSWORD" ]; then
+            echo "$SP_KEYSTORE_BASE64" | base64 --decode > /tmp/sp_native_stable_keystore.jks
+            echo "SP_SIGNING_STORE=/tmp/sp_native_stable_keystore.jks" >> "$GITHUB_ENV"
+            echo "SP_SIGNING_PASSWORD=$SP_SIGNING_PASSWORD" >> "$GITHUB_ENV"
+            echo "SP_SIGNING_KEY_PASSWORD=$SP_SIGNING_KEY_PASSWORD" >> "$GITHUB_ENV"
+            echo "SP_SIGNING_ALIAS=$SP_SIGNING_ALIAS" >> "$GITHUB_ENV"
+          else
+            echo "::warning::No stable signing configured; resulting debug build might not upgrade existing installation."
+          fi
+      - name: Compile Android debug APK
+        working-directory: survival-paradise/native-game
+        run: gradle --no-daemon :app:assembleDebug
+      - name: Verify APK payload and version
+        run: |
+          set -e
+          APK=survival-paradise/native-game/app/build/outputs/apk/debug/app-debug.apk
+          test -s "$APK"
+          unzip -t "$APK" >/dev/null
+          unzip -l "$APK" | grep -q 'classes.dex'
+          unzip -l "$APK" | grep -q 'assets/body.png'
+          unzip -l "$APK" | grep -q 'assets/npc_idle_v56.png'
+          mkdir -p artifacts
+          cp "$APK" artifacts/SurvivalParadise_V108_Fitting_Review.apk
+          sha256sum artifacts/SurvivalParadise_V108_Fitting_Review.apk > artifacts/SHA256.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: SP_V108_Character_Fit_Review_APK
+          path: artifacts/
+          retention-days: 30
+          if-no-files-found: warn
