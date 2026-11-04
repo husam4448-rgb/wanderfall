@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
-      contents: read
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -108,3 +108,21 @@ jobs:
           path: artifacts/
           retention-days: 30
           if-no-files-found: warn
+      - name: Publish V108 APK as direct GitHub prerelease
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG=survival-paradise-v108-character-fit-review
+          APK=artifacts/SurvivalParadise_V108_Fitting_Review.apk
+          SUM=artifacts/SHA256.txt
+          test -s "$APK" && test -s "$SUM"
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" "$SUM" --clobber -R "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" "$APK" "$SUM" --target "$GITHUB_SHA" \
+              -R "$GITHUB_REPOSITORY" --prerelease \
+              --title "Survival Paradise V108 — Character Fitting Review" \
+              --notes "V108 adds optional in-game head fitting, breathing and walking tempo controls, approved-fit reset and fitting JSON export. Built from V98 base; this is a review APK, not the 50-head game integration. CAUTION: debug signing certificate may differ from earlier installed versions. Back up game saves before replacing an installation."
+          fi
