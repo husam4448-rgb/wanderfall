@@ -57,6 +57,8 @@ public final class GameView extends View {
     static final int DK=0xff101b1a,WHITE=0xffedf2e6,OLIVE=0xff8ab397,ORANGE=0xffe8bc72,RED=0xffce766b;
 
     float scale=1,headScaleV82=1f,handScale=1,support=0,supportVertical=0,timeSpeed=1,zoom=1,walkSpeedMultiplier=1.30f,walkingAnimationMultiplierV79=1f;
+    // V108 head-fitting controls: neutral settings preserve every V98 pixel.
+    int fitHeadXV108=0,fitHeadYV108=0,fitIdleBreathV108=4,fitWalkFpsV108=0;
     boolean showHands=true,showWeapons=true,anchors=false,hitboxes=false,enemyAI=true,
             aimRotation=true,recoilFX=true,lootEnabled=true,night=true;
     boolean playing=false,paused=false,settingsPause=false,wasPaused=false,hasSave=false,gameOver=false;
@@ -439,6 +441,10 @@ public final class GameView extends View {
     void reloadSettings(){
         scale=host.setting("scale",100)/100f;
         headScaleV82=HeadKnifeV82.headMultiplier(host.setting("headSizeV82",HeadKnifeV82.HEAD_DEFAULT));
+        fitHeadXV108=CharacterFitV108.headX(host.prefs);
+        fitHeadYV108=CharacterFitV108.headY(host.prefs);
+        fitIdleBreathV108=CharacterFitV108.breathPixels(host.prefs);
+        fitWalkFpsV108=CharacterFitV108.walkFps(host.prefs);
         handScale=host.setting("hand",100)/100f;
         support=host.setting("support",0);
         supportVertical=host.setting("supportY",0);
@@ -1294,7 +1300,7 @@ public final class GameView extends View {
                 if(!clinicInteriorV89.blocked(friend.x,ny,16)){friend.y=ny;walked=true;}
                 friend.face=dx>=0?1:-1;
             }
-            friend.animation.step(walked,dt,7.8f);
+            friend.animation.step(walked,dt,CharacterFitV108.rate(7.8f,fitWalkFpsV108));
             friend.cd=Math.max(0f,friend.cd-dt);
             if(friend.cd<=0){
                 for(ClinicActorsV90.Actor a:clinicActorsV90.actors){
@@ -1336,9 +1342,9 @@ public final class GameView extends View {
             if(!clinicInteriorV89.blocked(playerX,ny,19f))playerY=ny;
         }
         moving=distance(playerX,playerY,oldX,oldY)>.001f;
-        playerAnimation.step(moving,dt,
+        playerAnimation.step(moving,dt,CharacterFitV108.rate(
             PlayerMovementV77.gait(walkSpeedMultiplier,runHeld&&stamina>0)*
-            walkingAnimationMultiplierV79);
+            walkingAnimationMultiplierV79,fitWalkFpsV108));
         float rest=RadialAimV65.rest(gun,crosshairRestPercent);
         boolean aim=rightPointer>=0&&aimDeflection>ClassicAimV71.DEADZONE;
         aimCursorDistance=aim?ClassicAimV71.distance(rest,
@@ -1978,9 +1984,9 @@ public final class GameView extends View {
         // always restores the original neutral idle frame immediately.
         moving=distance(playerX,playerY,wasX,wasY)>.001f;
         // Adjustable extra gait multiplier, auto-synced to movement at 100%.
-        playerAnimation.step(moving,dt,
+        playerAnimation.step(moving,dt,CharacterFitV108.rate(
             PlayerMovementV77.gait(walkSpeedMultiplier,runHeld&&stamina>0)*
-            walkingAnimationMultiplierV79);
+            walkingAnimationMultiplierV79,fitWalkFpsV108));
         // V65: the character is the stick/crosshair origin. Only distance
         // increases while the right thumb is active. The heading comes DIRECTLY
         // from the stick, so reversing aims instantly without crossing center.
@@ -2065,7 +2071,7 @@ public final class GameView extends View {
                 npc.y=npc.homeY+(float)Math.cos(worldTimer*.41f+i)*11f;
                 npc.face=(float)Math.cos(worldTimer*.41f+i)>=0?1:-1;
             }
-            npc.animation.step(distance(px,py,npc.x,npc.y)>.001f,dt,7.1f);
+            npc.animation.step(distance(px,py,npc.x,npc.y)>.001f,dt,CharacterFitV108.rate(7.1f,fitWalkFpsV108));
         }
         if(moving&&length>.13f){
             followHeadingX=vx;followHeadingY=vy;
@@ -2109,7 +2115,8 @@ public final class GameView extends View {
             }
             friend.aimX=friend.face;friend.aimY=0f;
             friend.animation.step(FollowerArrivalV78.visuallyWalking(
-                distance(friend.x,friend.y,beforeFriendX,beforeFriendY)),dt,8.5f);
+                distance(friend.x,friend.y,beforeFriendX,beforeFriendY)),dt,
+                CharacterFitV108.rate(8.5f,fitWalkFpsV108));
             Bandit target=nearest(friend.x,friend.y,460);
             if(target!=null){
                 float dx=target.x-friend.x,dy=target.y-friend.y;
@@ -2184,7 +2191,7 @@ public final class GameView extends View {
                 e.cd=.95f+(e.variant%3)*.19f;
             }
             e.animation.step(distance(e.x,e.y,oldX,oldY)>.001f,dt,
-                state==BanditBrainV88.CHASE?8.5f:6.6f);
+                CharacterFitV108.rate(state==BanditBrainV88.CHASE?8.5f:6.6f,fitWalkFpsV108));
         }
         if(!enemyAI)for(Bandit e:enemies)e.animation.reset();
         // Continuous collision detection: no tunneling through actors or cover at 4000 px/s.
@@ -2775,13 +2782,15 @@ public final class GameView extends View {
      * Pivot at the neckline, no edits to the torso, legs, face or idle atlas.
      */
     void drawScaledHeadV82(Canvas c,Bitmap atlas,int sx,int sy,float s,float breath){
-        float bob=breath*s;
+        // Fit is applied to the head crop only; torso and planted feet never shift.
+        float bob=CharacterFitV108.breath(breath,fitIdleBreathV108)*s;
+        float dx=fitHeadXV108*s,dy=fitHeadYV108*s;
         src.set(sx+HeadKnifeV82.HEAD_LEFT,sy+HeadKnifeV82.HEAD_TOP,
                 sx+HeadKnifeV82.HEAD_RIGHT,sy+HeadKnifeV82.HEAD_BOTTOM);
-        dest.set(HeadKnifeV82.headLeft(s,headScaleV82),
-                 HeadKnifeV82.headTop(s,headScaleV82,bob),
-                 HeadKnifeV82.headRight(s,headScaleV82),
-                 HeadKnifeV82.headBottom(s,bob));
+        dest.set(HeadKnifeV82.headLeft(s,headScaleV82)+dx,
+                 HeadKnifeV82.headTop(s,headScaleV82,bob)+dy,
+                 HeadKnifeV82.headRight(s,headScaleV82)+dx,
+                 HeadKnifeV82.headBottom(s,bob)+dy);
         c.drawBitmap(atlas,src,dest,pixel);
     }
     void stablePose(Canvas c,Bitmap walkingAtlas,int variant,int frame,float s,float breath,int torsoVariant){
@@ -2794,7 +2803,7 @@ public final class GameView extends View {
         final Bitmap selectedIdle=approvedTorso!=null?approvedTorso:baseIdle;
         if(breath==Float.POSITIVE_INFINITY){
             if(walkingAtlas==null)return;
-            if(!HeadKnifeV82.defaultHead(headScaleV82)){
+            if(CharacterFitV108.separateHead(headScaleV82,fitHeadXV108,fitHeadYV108,fitIdleBreathV108)){
                 int row=Math.max(0,variant)*160;
                 int f=Math.max(0,Math.min(3,frame));
                 src.set(f*260,row+110,f*260+260,row+160);
@@ -2839,7 +2848,7 @@ public final class GameView extends View {
         if(idleSource==null)return;
         int sx=idleX;
         int sy=idleY;
-        if(!HeadKnifeV82.defaultHead(headScaleV82)){
+        if(CharacterFitV108.separateHead(headScaleV82,fitHeadXV108,fitHeadYV108,fitIdleBreathV108)){
             src.set(sx,sy+HeadKnifeV82.HEAD_BOTTOM,sx+260,sy+160);
             dest.set(-70*s,(HeadKnifeV82.HEAD_BOTTOM-136)*s,190*s,24*s);
             c.drawBitmap(idleSource,src,dest,pixel);
@@ -3033,8 +3042,12 @@ public final class GameView extends View {
         int boots=player?wardrobeV92.equipped[3]:WardrobeV92.npcOutfit(role,3);
         if(head>=0){
             int artwork=player?headgearStyleV96:Math.floorMod(role*5+1,4);
-            float bob=breath==Float.POSITIVE_INFINITY?0f:breath*size;
+            float bob=breath==Float.POSITIVE_INFINITY?0f:
+                CharacterFitV108.breath(breath,fitIdleBreathV108)*size;
+            c.save();
+            c.translate(fitHeadXV108*size,fitHeadYV108*size);
             wearableArtV96.drawHead(c,artwork,size,bob,headScaleV82,pixel);
+            c.restore();
         }
         // V98: normal jackets recolor original torso interior inside stablePose.
         // There must be NO external torso/vest bitmap overlay.
