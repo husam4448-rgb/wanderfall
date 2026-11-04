@@ -77,7 +77,7 @@ public final class MainActivity extends Activity {
         game=new GameView(this);
         setContentView(game);
     }
-    static final int EXPORT_SAVE_V85=851,IMPORT_SAVE_V85=852;
+    static final int EXPORT_SAVE_V85=851,IMPORT_SAVE_V85=852,EXPORT_FIT_V108=1081;
     /** Android system file picker stores a portable save outside app-private data. */
     void exportGameSaveV85(){
         game.saveProgress();
@@ -87,6 +87,17 @@ public final class MainActivity extends Activity {
         pick.setType("application/json");
         pick.putExtra(android.content.Intent.EXTRA_TITLE,"SurvivalParadise_Save_V85.json");
         startActivityForResult(pick,EXPORT_SAVE_V85);
+    }
+
+    /** Save the character-only calibration as portable JSON through Android's file picker. */
+    void exportCharacterFittingV108(){
+        android.content.Intent pick=new android.content.Intent(
+            android.content.Intent.ACTION_CREATE_DOCUMENT);
+        pick.addCategory(android.content.Intent.CATEGORY_OPENABLE);
+        pick.setType("application/json");
+        pick.putExtra(android.content.Intent.EXTRA_TITLE,
+            "SurvivalParadise_CharacterFit_V108.json");
+        startActivityForResult(pick,EXPORT_FIT_V108);
     }
     void importGameSaveV85(){
         new AlertDialog.Builder(this).setTitle("Restore game save")
@@ -151,9 +162,20 @@ public final class MainActivity extends Activity {
     @Override protected void onActivityResult(int request,int result,android.content.Intent data){
         super.onActivityResult(request,result,data);
         if(result!=RESULT_OK||data==null||data.getData()==null)return;
-        if(request!=EXPORT_SAVE_V85&&request!=IMPORT_SAVE_V85)return;
+        if(request!=EXPORT_SAVE_V85&&request!=IMPORT_SAVE_V85&&request!=EXPORT_FIT_V108)return;
         try{
-            if(request==EXPORT_SAVE_V85){
+
+            if(request==EXPORT_FIT_V108){
+                try(java.io.OutputStream stream=getContentResolver().openOutputStream(
+                    data.getData(),"w")){
+                    if(stream==null)throw new java.io.IOException("Storage unavailable");
+                    byte[] json=CharacterFitV108.exportJson(prefs).toString(2)
+                        .getBytes(java.nio.charset.StandardCharsets.UTF_8);
+                    stream.write(json);stream.flush();
+                }
+                Toast.makeText(this,"Character fitting JSON exported",
+                    Toast.LENGTH_LONG).show();
+            }else if(request==EXPORT_SAVE_V85){
                 try(java.io.OutputStream stream=getContentResolver().openOutputStream(
                     data.getData(),"w")){
                     if(stream==null)throw new java.io.IOException("Storage unavailable");
@@ -1521,6 +1543,23 @@ public final class MainActivity extends Activity {
         slider(root,"Character display size","scale",65,135,100,"%");
         slider(root,"Character head size","headSizeV82",75,160,100,"%");
         root.addView(text("Visual head size for player and NPCs. 100% matches approved original sprites.",11,false));
+        // V108 experimental head-fit lab: neutral values are pixel-identical to V98.
+        section(root,"CHARACTER FITTING  •  V108 OPTIONAL");
+        root.addView(text("These values affect the live character render, not the approved sprite files. Body, weapons, and feet stay anchored.",12,false));
+        slider(root,"Head horizontal fit","fitHeadXV108",-24,24,0," px");
+        slider(root,"Head vertical fit","fitHeadYV108",-24,24,0," px");
+        slider(root,"Idle breathing amplitude","fitIdleBreathV108",0,12,4," px");
+        slider(root,"Walk frame rate (0 = speed-synced)","fitWalkFpsV108",0,12,0," fps");
+        root.addView(text("0 FPS uses the existing movement-synced gait; nonzero FPS is an experimental fixed-rate override for player and NPCs.",11,false));
+        action(root,"RESET APPROVED CHARACTER FITTING",()->{
+            CharacterFitV108.reset(prefs);
+            prefs.edit().putInt("headSizeV82",HeadKnifeV82.HEAD_DEFAULT)
+                .putInt("walkingAnimationSpeedV79",100).apply();
+            game.reloadSettings();
+            Toast.makeText(this,"Approved character fitting restored. Reopen Settings to refresh sliders.",
+                Toast.LENGTH_LONG).show();
+        });
+        action(root,"EXPORT CHARACTER FITTING JSON",()->exportCharacterFittingV108());
         slider(root,"Hand size (independent)","hand",60,145,100,"%");
         slider(root,"Support hand horizontal reach","support",-12,24,0," px");
         slider(root,"Support hand vertical offset","supportY",-24,24,0," px");
@@ -1684,7 +1723,12 @@ public final class MainActivity extends Activity {
               .putInt("crosshairRestPercent",100).putInt("cursorSpeedV68",650)
               .putInt("aimDeadzoneV68",17).putInt("aimCurveV68",175)
               .putInt("aimSteeringV68",100).putInt("cameraPanSpeedV68",350)
-              .putInt("reticleSize",100).putInt("headSizeV82",100).putBoolean("staticLightCache",true)
+              .putInt("reticleSize",100).putInt("headSizeV82",100)
+              .putInt(CharacterFitV108.X_KEY,CharacterFitV108.HEAD_X_DEFAULT)
+              .putInt(CharacterFitV108.Y_KEY,CharacterFitV108.HEAD_Y_DEFAULT)
+              .putInt(CharacterFitV108.BREATH_KEY,CharacterFitV108.BREATH_DEFAULT)
+              .putInt(CharacterFitV108.WALK_FPS_KEY,CharacterFitV108.WALK_FPS_DEFAULT)
+              .putBoolean("staticLightCache",true)
               .putBoolean("fastPointLights",true).putInt("lightResolution",220)
               .putBoolean("editControls",false).apply();
             wSize.setProgress(96-65);hSize.setProgress(94-65);
