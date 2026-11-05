@@ -4512,8 +4512,10 @@ public final class GameView extends View {
                         // TALK uses independent contextual coordinates; its ID
                         // is outside the legacy button table. Resolve the correct
                         // displayed rectangle before capturing the drag offset.
-                        editGrabX=x-(target==TALK_EDITOR?talkLeftV94():uiX(target));
-                        editGrabY=y-(target==TALK_EDITOR?talkTopV94():uiY(target));
+                        editGrabX=HudDragV119.grabOffset(x,
+                            target==TALK_EDITOR?talkLeftV94():uiX(target));
+                        editGrabY=HudDragV119.grabOffset(y,
+                            target==TALK_EDITOR?talkTopV94():uiY(target));
                     }else activateButton(target,id);
                     return true;
                 }
@@ -4562,6 +4564,16 @@ public final class GameView extends View {
                         editY=Math.round(clamp(py-editGrabY-hudBaseYV118(editControl),
                             -hudBaseYV118(editControl),
                             viewH-hudExtraHeightV118(editControl)-hudBaseYV118(editControl)));
+                        invalidate();
+                    }else if(pointer==editPointer&&editControl==TALK_EDITOR){
+                        // V119: the TALK button is contextual; its ID is outside
+                        // LegacyControlsV58 and must never be sent to defaultX/Y.
+                        // Preserve its exact finger grab point, square size and
+                        // independent X/Y save overrides while dragging.
+                        editX=HudDragV119.horizontalOffset(px,editGrabX,
+                            talkDefaultX(),talkWidthV94(),viewW);
+                        editY=HudDragV119.verticalOffset(py,editGrabY,
+                            talkDefaultY(),talkHeightV94(),viewH);
                         invalidate();
                     }else if(pointer==editPointer&&editControl>=0){
                         editX=Math.round(px-editGrabX-
