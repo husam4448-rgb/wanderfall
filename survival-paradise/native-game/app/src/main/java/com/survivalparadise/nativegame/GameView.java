@@ -4219,6 +4219,20 @@ public final class GameView extends View {
         if(crosshairReticle!=null){crosshairReticle.recycle();crosshairReticle=null;}
         super.onDetachedFromWindow();
     }
+    @Override protected void onSizeChanged(int width,int height,
+                                           int oldWidth,int oldHeight){
+        super.onSizeChanged(width,height,oldWidth,oldHeight);
+        // The screenshot is 1480x720 physical; gameplay draws in logical
+        // 660px-height coordinates. Initialize only after Android supplies
+        // the actual usable display bounds. Preserve explicit user edits.
+        if(width>0&&height>0&&!host.prefs.getBoolean(
+                ScreenshotSettingsV121.HUD_MARKER,false)){
+            float logicalWidth=width*(H/(float)height);
+            ScreenshotSettingsV121.applyHud(host.prefs,logicalWidth,false);
+            reloadSettings();
+        }
+    }
+
     @Override protected void onDraw(Canvas canvas){
         super.onDraw(canvas);
         long now=System.nanoTime();float dt=lastFrame==0?0:(now-lastFrame)/1e9f;lastFrame=now;
