@@ -146,7 +146,7 @@ final class CharacterSkinsV109 {
      */
     void draw(Canvas c,int id,boolean walking,int walkingFrame,float timeSec,float s,Paint pixel,
               float walkingTempo,float breathingTempo,int fixedWalkFps,int breathingAmplitude,
-              float headTiltDegrees,int headOffsetX,int headOffsetY) {
+              float headTiltDegrees,int headOffsetX,int headOffsetY,int headSizePercent) {
         id=range(id,1,COUNT);
         Fit fit=fitting[id];
         // Rendering scale uses 160/260 to match the old native 160px character rig.
@@ -158,7 +158,8 @@ final class CharacterSkinsV109 {
         destination.set(left,top,left+WIDTH*unit,top+HEIGHT*unit);
         c.drawBitmap(body,spriteSource,destination,pixel);
         Bitmap h=head(id);if(h==null)return;
-        float headScale=Math.min(186f/h.getWidth(),192f/h.getHeight())*(fit.headScale/107f);
+        float headScale=Math.min(186f/h.getWidth(),192f/h.getHeight())*(fit.headScale/107f)*
+            CharacterScopeV113.headSizeMultiplier(headSizePercent);
         int hw=Math.round(h.getWidth()*headScale),hh=Math.round(h.getHeight()*headScale);
         // V112: sliders add source-pixel offsets AFTER exact V5 individual fitting.
         int hx=HeadFitOffsetsV112.x(hw,fit.horizontal,headOffsetX);
