@@ -6,8 +6,8 @@ android {
   applicationId 'com.survivalparadise.nativegame.v109test'
   minSdk 24
   targetSdk 34
-  versionCode 109
-  versionName '0.109-approved-200-characters-no-gear'
+  versionCode 110
+  versionName '0.110-approved-200-characters-animation-tempos'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
