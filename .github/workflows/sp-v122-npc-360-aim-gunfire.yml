@@ -220,8 +220,8 @@ jobs:
           assert 'WeaponPivotV117.relocateMuzzle(tip,face,CharacterCollision.BASE_SCALE*scale' in game
           assert 'WeaponPivotV117.relocateMuzzle(tip,f.face,CharacterCollision.BASE_SCALE*scale' in game
           assert 'shoot(playerX,playerY,aimX,aimY,gun,false,face,true);' in game
-          assert 'shoot(friend.x,friend.y,dx,dy,friend.gun,false,friend.face,false);' in game
-          assert 'shoot(e.x,e.y,dx,dy,0,true,e.face,false);' in game
+          assert 'shoot(friend.x,friend.y,friend.aimX,friend.aimY,' in game
+          assert 'shoot(e.x,e.y,e.aimX,e.aimY,0,true,e.face,false);' in game
           assert 'weaponPivotXV117","weaponPivotYV117"' in menu
           assert 'new Fit(base)' in skins and 'characterOverrides' in skins
           assert 'class VerticalSliderV118' in (d/'VerticalSliderV118.java').read_text()
