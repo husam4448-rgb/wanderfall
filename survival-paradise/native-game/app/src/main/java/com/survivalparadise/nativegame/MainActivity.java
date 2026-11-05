@@ -1552,12 +1552,14 @@ public final class MainActivity extends Activity {
         slider(root,"Head horizontal fit","fitHeadXV108",-24,24,0," px");
         slider(root,"Head vertical fit","fitHeadYV108",-24,24,0," px");
         slider(root,"Idle breathing amplitude","fitIdleBreathV108",0,12,4," px");
-        slider(root,"Walk frame rate (0 = speed-synced)","fitWalkFpsV108",0,12,0," fps");
-        root.addView(text("0 FPS uses the existing movement-synced gait; nonzero FPS is an experimental fixed-rate override for player and NPCs.",11,false));
+        slider(root,"Idle breathing animation speed","idleBreathingSpeedV110",25,250,100,"%");
+        slider(root,"Walking base frame rate (0 = fitted V5)","fitWalkFpsV108",0,12,0," fps");
+        root.addView(text("0 keeps the approved V5 per-character walking frame rate. Any fixed FPS is also affected by the Walking animation speed control below.",11,false));
         action(root,"RESET APPROVED CHARACTER FITTING",()->{
             CharacterFitV108.reset(prefs);
             prefs.edit().putInt("headSizeV82",HeadKnifeV82.HEAD_DEFAULT)
-                .putInt("walkingAnimationSpeedV79",100).apply();
+                .putInt("walkingAnimationSpeedV79",100)
+                 .putInt("idleBreathingSpeedV110",100).apply();
             game.reloadSettings();
             Toast.makeText(this,"Approved character fitting restored. Reopen Settings to refresh sliders.",
                 Toast.LENGTH_LONG).show();
@@ -1569,7 +1571,7 @@ public final class MainActivity extends Activity {
         slider(root,"Simulation speed","speed",50,200,100,"%");
         slider(root,"Player walking speed","walkSpeedV77",75,200,130,"%");
         slider(root,"Walking animation speed","walkingAnimationSpeedV79",50,200,100,"%");
-        root.addView(text("100% automatically matches your walking-speed setting; adjust animation tempo without changing movement.",11,false));
+        root.addView(text("100% retains the V5 fitted walking animation pace. Change this independently of actual movement speed. Idle breathing has its own speed control above.",11,false));
         slider(root,"Survivors (including player)","survivors",1,9,1,"");
         root.addView(text("COMPANION FOLLOW FORMATION",13,true));
         Spinner formationPicker=new Spinner(this);
@@ -1696,7 +1698,8 @@ public final class MainActivity extends Activity {
         action(root,"Take screenshot",()->captureGame());
         action(root,"Restore default settings",()->{
             prefs.edit().putInt("scale",100).putInt("hand",100).putInt("support",0).putInt("supportY",0)
-              .putInt("speed",100).putInt("walkSpeedV77",130).putInt("walkingAnimationSpeedV79",100).putInt("survivors",1).putInt("gun",0)
+              .putInt("speed",100).putInt("walkSpeedV77",130).putInt("walkingAnimationSpeedV79",100)
+               .putInt("idleBreathingSpeedV110",100).putInt("survivors",1).putInt("gun",0)
               .putBoolean("hands",true).putBoolean("weapons",true).putBoolean("anchors",false)
               .putBoolean("hitboxes",false).putBoolean("enemyAI",true).putBoolean("aimRotation",true)
                .putBoolean("recoil",true).putBoolean("loot",true).putBoolean("night",true)
