@@ -234,6 +234,20 @@ final class CharacterSkinsV109 {
         final int rearInset=BodyAlignmentV120.rearBootShift(pelvisWidth);
         final int frontInset=BodyAlignmentV120.frontBootShift(
             torsoWidth,pelvisWidth);
+        // If the torso remains wider than an independently narrowed pelvis,
+        // close ONLY the short dark outline gap between the hip bridge and
+        // the correctly placed forward foot. Never widen blue pelvis pixels.
+        // The centered-overlap walking pose has no separate front foot.
+        if(frame!=2&&BodyAlignmentV120.frontBlackConnectorGap(
+                torsoWidth,pelvisWidth)>.01f){
+            float from=left+BodyAlignmentV120.hipBridgeFront(pelvisWidth)*unit;
+            float to=left+BodyAlignmentV120.frontFootStart(
+                torsoWidth,pelvisWidth)*unit;
+            float yy=top+220f*unit;
+            canvas.drawRect(from,yy,to,
+                yy+BodyAlignmentV120.TORSO_OUTLINE_HEIGHT*unit,
+                upperOutlinePaintV120);
+        }
         destination.set(left+rearInset*unit,bandTop,
             left+(WIDTH+rearInset)*unit,bandBottom);
         canvas.drawBitmap(layers.left,pelvisRigSource,destination,pixels);
