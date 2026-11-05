@@ -58,6 +58,13 @@ def render(frame,torso,pelvis):
         out.alpha_composite(band,((200-pw)//2,180))
         rear=max(0,round(edge(pelvis,40)-40))
         front=round(max(edge(torso,180),edge(pelvis,180))-180)
+        if frame!=2:
+            black_bridge=round(edge(pelvis,140))
+            forward_foot=140+front
+            if forward_foot>black_bridge:
+                ImageDraw.Draw(out).rectangle(
+                    (black_bridge,220,forward_foot-1,227),
+                    fill=(0,0,0,255))
         for k,dx in ((1,rear),(2,front),(3,0)):
             if bodyparts[k].getbbox():
                 layer=Image.new("RGBA",(200,260))
@@ -86,6 +93,14 @@ for frame,src in enumerate(poses):
             assert abs((180+right)-max(edge(torso,180),edge(pelvis,180)))<.51
             assert 0<=rear<=27 and -36<=right<=0
             assert rear+39 < 140+right
+            if frame!=2:
+                bridge=round(edge(pelvis,140))
+                foot_start=140+right
+                if foot_start>bridge:
+                    assert all(result.getpixel((xx,224))==(0,0,0,255)
+                        for xx in range(bridge,foot_start)), (
+                            "Visible gap beneath narrower pelvis and wider torso",
+                            frame,torso,pelvis)
             edge_left=round(edge(torso,20))
             assert edge_left < round(edge(torso,180))
             # Top outline exactly bridges the originally unconnected side ink.
