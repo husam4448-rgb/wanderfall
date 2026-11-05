@@ -53,13 +53,25 @@ final class CharacterSkinsV109 {
         @Override protected boolean removeEldestEntry(Map.Entry<Integer,Bitmap> e){return size()>28;}
     };
     private final Rect spriteSource=new Rect(0,0,WIDTH,HEIGHT);
-    // Exact V109 body rows: shirt y160..179, pelvis y180..199,
-    // legs and feet y200..259. Original source PNGs are never edited.
+    // Original V109 20px cells: torso y160..179, full blue pelvis y180..219,
+    // black pelvis underside + rigid foot blocks y220..239; feet reach y259.
     private final Rect torsoSource=new Rect(0,TorsoWidthV114.TORSO_TOP,WIDTH,
         TorsoWidthV114.LOWER_BODY_TOP);
-    private final Rect pelvisSource=new Rect(0,PelvisWidthV115.PELVIS_TOP,WIDTH,
-        PelvisWidthV115.LEGS_TOP);
-    private final Rect originalLegsSource=new Rect(0,PelvisWidthV115.LEGS_TOP,WIDTH,HEIGHT);
+    private final Rect pelvisRigSource=new Rect(0,0,WIDTH,
+        HEIGHT-PelvisLegRigV116.PELVIS_TOP);
+    private static final class FootLayers {
+        final Bitmap pelvis,left,right,overlap;
+        FootLayers(Bitmap pelvis,Bitmap left,Bitmap right,Bitmap overlap) {
+            this.pelvis=pelvis;this.left=left;this.right=right;this.overlap=overlap;
+        }
+    }
+    /** Render masks are derived from existing body bitmaps and never written to source. */
+    private final LinkedHashMap<Integer,FootLayers> footCacheV116=
+        new LinkedHashMap<Integer,FootLayers>(18,.75f,true){
+            @Override protected boolean removeEldestEntry(Map.Entry<Integer,FootLayers> e){
+                return size()>18;
+            }
+        };
     private final Rect headSource=new Rect();
     private final RectF destination=new RectF();
     private JSONObject configuration;
@@ -148,34 +160,64 @@ final class CharacterSkinsV109 {
         blended.put(key,result);
         return result;
     }
-    /** Draw independently narrowed shirt and pelvis, with exact original legs.
-     * Source body pixels are immutable; only the two upper horizontal display
-     * rectangles change. Nearest-neighbor sampling preserves block style.
-     * At 100/100, a single original-bitmap draw preserves exact V114 behavior.
+    /** Cache original pixel masks for the pelvis and each rigid foot in one pose.
+     * Classifies every source pixel without any recoloring, scaling, or redrawing.
+     * Four layers together have exactly the original source pixels; no omissions.
      */
-    private void drawBody(Canvas canvas,Bitmap source,float left,float top,
-                          float unit,int torsoWidth,int pelvisWidth,Paint pixels) {
+    private FootLayers footLayers(Bitmap source,int frame,int blend) {
+        int key=Math.max(0,Math.min(4,frame))*64+
+            Math.max(0,Math.min(40,blend));
+        FootLayers cached=footCacheV116.get(key);
+        if(cached!=null)return cached;
+        final int h=HEIGHT-PelvisLegRigV116.PELVIS_TOP;
+        int[] rgba=new int[WIDTH*h];
+        source.getPixels(rgba,0,WIDTH,0,PelvisLegRigV116.PELVIS_TOP,WIDTH,h);
+        int[][] separated=new int[4][WIDTH*h];
+        for(int row=0;row<h;row++)for(int x=0;x<WIDTH;x++){
+            int index=row*WIDTH+x;
+            int part=PelvisLegRigV116.part(frame,x,row+PelvisLegRigV116.PELVIS_TOP);
+            separated[part][index]=rgba[index];
+        }
+        FootLayers layers=new FootLayers(
+            Bitmap.createBitmap(separated[PelvisLegRigV116.PELVIS],WIDTH,h,Bitmap.Config.ARGB_8888),
+            Bitmap.createBitmap(separated[PelvisLegRigV116.LEFT_FOOT],WIDTH,h,Bitmap.Config.ARGB_8888),
+            Bitmap.createBitmap(separated[PelvisLegRigV116.RIGHT_FOOT],WIDTH,h,Bitmap.Config.ARGB_8888),
+            Bitmap.createBitmap(separated[PelvisLegRigV116.OVERLAP_FOOT],WIDTH,h,Bitmap.Config.ARGB_8888));
+        footCacheV116.put(key,layers);
+        return layers;
+    }
+
+    /** Pelvis shrinks from the center. Each whole black/brown foot is copied
+     * at its original size and translated inward, never cropped or stretched.
+     * The intermediate overlapping gait keeps its one original centered boot.
+     * At neutral 100/100 exactly the original V109 bitmap is drawn.
+     */
+    private void drawBody(Canvas canvas,Bitmap source,int frame,int blend,
+                          float left,float top,float unit,
+                          int torsoWidth,int pelvisWidth,Paint pixels) {
         if(torsoWidth>=TorsoWidthV114.MAX_PERCENT &&
            pelvisWidth>=PelvisWidthV115.MAX_PERCENT) {
             destination.set(left,top,left+WIDTH*unit,top+HEIGHT*unit);
             canvas.drawBitmap(source,spriteSource,destination,pixels);
             return;
         }
-        // In all five original poses, everything from y=200 down (legs and
-        // walking feet) uses the unscaled, unmoved source rectangle.
-        destination.set(left,top+PelvisWidthV115.LEGS_TOP*unit,
-                        left+WIDTH*unit,top+HEIGHT*unit);
-        canvas.drawBitmap(source,originalLegsSource,destination,pixels);
+        FootLayers layers=footLayers(source,frame,blend);
+        float bandTop=top+PelvisLegRigV116.PELVIS_TOP*unit;
+        float bandBottom=top+HEIGHT*unit;
+        destination.set(PelvisWidthV115.left(left,unit,pelvisWidth),
+            bandTop,PelvisWidthV115.right(left,unit,pelvisWidth),bandBottom);
+        canvas.drawBitmap(layers.pelvis,pelvisRigSource,destination,pixels);
+        int inset=PelvisLegRigV116.inwardPixels(pelvisWidth);
+        destination.set(left+inset*unit,bandTop,
+            left+(WIDTH+inset)*unit,bandBottom);
+        canvas.drawBitmap(layers.left,pelvisRigSource,destination,pixels);
+        destination.set(left-inset*unit,bandTop,
+            left+(WIDTH-inset)*unit,bandBottom);
+        canvas.drawBitmap(layers.right,pelvisRigSource,destination,pixels);
+        destination.set(left,bandTop,left+WIDTH*unit,bandBottom);
+        canvas.drawBitmap(layers.overlap,pelvisRigSource,destination,pixels);
 
-        // Independent pelvis (y180..199): symmetric width around body center.
-        destination.set(
-            PelvisWidthV115.left(left,unit,pelvisWidth),
-            top+PelvisWidthV115.PELVIS_TOP*unit,
-            PelvisWidthV115.right(left,unit,pelvisWidth),
-            top+PelvisWidthV115.LEGS_TOP*unit);
-        canvas.drawBitmap(source,pelvisSource,destination,pixels);
-
-        // Existing V114 torso (y160..179) remains independently adjustable.
+        // Retain the exact V114 upper torso width control and its source pixels.
         destination.set(
             TorsoWidthV114.left(left,unit,torsoWidth),
             top+TorsoWidthV114.TORSO_TOP*unit,
@@ -197,9 +239,11 @@ final class CharacterSkinsV109 {
         // The body has 200x260 canonical pixels; NO stretching between axes.
         float unit=(160f/HEIGHT)*s;
         float left=-100f*unit, top=-136f*s;
-        Bitmap body=body(CharacterAnimationV110.bodyFrame(walking,timeSec,fit.fps,
-            fixedWalkFps,walkingTempo),fit.blend);
-        drawBody(c,body,left,top,unit,torsoWidthPercent,pelvisWidthPercent,pixel);
+        int bodyFrame=CharacterAnimationV110.bodyFrame(walking,timeSec,fit.fps,
+            fixedWalkFps,walkingTempo);
+        Bitmap body=body(bodyFrame,fit.blend);
+        drawBody(c,body,bodyFrame,fit.blend,left,top,unit,
+            torsoWidthPercent,pelvisWidthPercent,pixel);
         Bitmap h=head(id);if(h==null)return;
         float headScale=Math.min(186f/h.getWidth(),192f/h.getHeight())*(fit.headScale/107f)*
             CharacterScopeV113.headSizeMultiplier(headSizePercent);
