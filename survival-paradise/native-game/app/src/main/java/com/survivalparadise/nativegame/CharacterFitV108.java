@@ -70,6 +70,7 @@ public final class CharacterFitV108 {
         o.put("idleBreathingPx",breathPixels(p));
         o.put("walkFrameRateFps",walkFps(p));
         o.put("walkFrameRateMode",walkFps(p)==0?"AUTO_GAIT_SYNC":"FIXED_TEST");
+        o.put("idleBreathingSpeedPercent",clamp(p.getInt("idleBreathingSpeedV110",100),25,250));
         o.put("walkingAnimationSpeedPercent",clamp(
             p.getInt("walkingAnimationSpeedV79",100),50,200));
         o.put("characterScalePercent",clamp(p.getInt("scale",100),65,135));
