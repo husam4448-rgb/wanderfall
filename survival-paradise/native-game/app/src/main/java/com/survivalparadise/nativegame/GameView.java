@@ -1656,6 +1656,7 @@ public final class GameView extends View {
         }));
         indoorOrderV92.sort((a,b)->Float.compare(a.y,b.y));
         for(DrawEntity entity:indoorOrderV92)entity.draw.run();
+        drawGunEffectsV118(c);
         drawIndoorSpeechAfterLightingV93(c);
         c.restore();
     }
@@ -1950,6 +1951,53 @@ public final class GameView extends View {
         emitGunEffectsV118(bx,by,dx,dy,weapon);
         particles(bx,by,ORANGE,weapon==10?4:2);
     }
+    /** Each projectile's visible gunfire begins at its V117-fitted muzzle. */
+    void emitGunEffectsV118(float x,float y,float dx,float dy,int weapon){
+        if(!GunEffectsV118.firearm(weapon))return;
+        float length=Math.max(.001f,(float)Math.hypot(dx,dy));
+        float fx=dx/length,fy=dy/length;
+        if(flashes.size()>=64)flashes.remove(0);
+        flashes.add(new Flash(x,y,fx,fy));
+        if(gunTracersV118.size()>=80)gunTracersV118.remove(0);
+        gunTracersV118.add(new GunTracerV118(x,y,fx,fy,weapon));
+    }
+    void updateGunEffectsV118(float dt){
+        for(Iterator<Flash> it=flashes.iterator();it.hasNext();){
+            Flash flash=it.next();flash.ttl-=dt;if(flash.ttl<=0)it.remove();
+        }
+        for(Iterator<GunTracerV118> it=gunTracersV118.iterator();it.hasNext();){
+            GunTracerV118 t=it.next();t.ttl-=dt;if(t.ttl<=0)it.remove();
+        }
+    }
+    /** Visible after darkness so bullets and muzzle fire don't disappear at night. */
+    void drawGunEffectsV118(Canvas c){
+        for(GunTracerV118 fx:gunTracersV118){
+            if(!WorldPerfV55.nearView(fx.x,fx.y,camX,camY,viewW,viewH,205))continue;
+            float progress=1f-GunEffectsV118.lifeFraction(
+                fx.ttl,GunEffectsV118.TRACER_SECONDS);
+            float tip=32f+progress*175f,tail=Math.max(0f,tip-70f);
+            color(GunEffectsV118.muzzleColor(fx.weapon));
+            p.setStrokeWidth(fx.weapon==8?2.5f:1.8f);
+            c.drawLine(fx.x+fx.dx*tail,fx.y+fx.dy*tail,
+                fx.x+fx.dx*tip,fx.y+fx.dy*tip,p);
+            rect(c,fx.x+fx.dx*tip-2,fx.y+fx.dy*tip-2,4,4,0xfffff5d2);
+        }
+        for(Flash flash:flashes){
+            if(!WorldPerfV55.nearView(flash.x,flash.y,camX,camY,viewW,viewH,45))continue;
+            float alpha=GunEffectsV118.lifeFraction(
+                flash.ttl,GunEffectsV118.FLASH_SECONDS);
+            float sx=flash.x,sy=flash.y,dx=flash.dx,dy=flash.dy;
+            float px=-dy,py=dx,length=19f+14f*alpha,spread=8f*alpha;
+            color(0xffffe59d);p.setStrokeWidth(2.8f+3f*alpha);
+            c.drawLine(sx,sy,sx+dx*length,sy+dy*length,p);
+            c.drawLine(sx+px*spread,sy+py*spread,
+                sx+dx*length*.85f,sy+dy*length*.85f,p);
+            c.drawLine(sx-px*spread,sy-py*spread,
+                sx+dx*length*.85f,sy+dy*length*.85f,p);
+            rect(c,sx-2,sy-2,5,5,0xfffff7cf);
+        }
+    }
+
     void damage(Bandit enemy,float amount){
         enemy.hp-=amount;enemy.hit=.14f;
         particles(enemy.x,enemy.y-34,RED,2);
@@ -3108,7 +3156,12 @@ public final class GameView extends View {
             int actorFitY=player?playerGunPivotYV117:npcGunPivotYV117;
             c.translate(pivotX-kick+WeaponPivotV117.localX(actorFitX,s),
                 pivotY+WeaponPivotV117.localY(actorFitY,s));
-            c.rotate(aimRotation?aimAng*180f/(float)Math.PI:0f);
+            float displayedAngleV118=aimRotation?aimAng*180f/(float)Math.PI:0f;
+            if(player&&weapon==11&&axeSwingTimeV118>0f){
+                float phase=1f-axeSwingTimeV118/.25f;
+                displayedAngleV118+=-35f+75f*(float)Math.sin(Math.PI*phase);
+            }
+            c.rotate(displayedAngleV118);
             c.translate(-pivotX,-pivotY);
             c.translate(offsetX,offsetY);
             if(showWeapons){
@@ -3425,6 +3478,7 @@ public final class GameView extends View {
         // Last pass darkens the *entire* world, including all characters,
         // equipment, projectiles and props; real lights punch through this mask.
         if(lightAlpha>0)applyWorldLighting(c);else drawFixtures(c,true);
+        drawGunEffectsV118(c);
         if(showChunkGrid)drawChunkGrid(c);
         drawOutdoorSpeechAfterLightingV93(c);
         c.restore();
