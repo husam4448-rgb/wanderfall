@@ -3,11 +3,11 @@ android {
  namespace 'com.survivalparadise.nativegame'
  compileSdk 35
  defaultConfig {
-  applicationId 'com.survivalparadise.nativegame.v118test'
+  applicationId 'com.survivalparadise.nativegame.v119test'
   minSdk 24
   targetSdk 34
-  versionCode 118
-  versionName '0.118-sectioned-settings-hud-squad-gunfx'
+  versionCode 119
+  versionName '0.119-talk-hud-drag-natural-gunfire'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
