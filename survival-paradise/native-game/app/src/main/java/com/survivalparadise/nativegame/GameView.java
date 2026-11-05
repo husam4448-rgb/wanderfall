@@ -246,7 +246,7 @@ public final class GameView extends View {
     final Rect src=new Rect();
     final RectF dest=new RectF();
     final float PAD=46;
-    static class Bandit {float x,y,hp=78,cd,hit,homeX,homeY,patrolClock;int face=1,skinV109;boolean active=true;
+    static class Bandit {float x,y,hp=78,cd,hit,homeX,homeY,patrolClock,aimX=1f,aimY=0f;int face=1,skinV109;boolean active=true;
         final AnimationCycle animation=new AnimationCycle();
         int variant;
         Bandit(float a,float b,int variant){x=a;y=b;homeX=a;homeY=b;patrolClock=variant*2.3f;cd=.7f;this.variant=variant;
@@ -2217,9 +2217,33 @@ public final class GameView extends View {
             if((i&1)==0){
                 npc.x=npc.homeX+(float)Math.sin(worldTimer*.41f+i)*18f;
                 npc.y=npc.homeY+(float)Math.cos(worldTimer*.41f+i)*11f;
-                npc.face=(float)Math.cos(worldTimer*.41f+i)>=0?1:-1;
             }
-            npc.animation.step(distance(px,py,npc.x,npc.y)>.001f,dt,CharacterFitV108.rate(7.1f,fitWalkFpsV108));
+            // All camp roles scan a full circle instead of holding a
+            // horizontal weapon. Noncombatant NPCs still never fire guns.
+            float desireX=NpcAimV122.scanX(worldTimer,i+4);
+            float desireY=NpcAimV122.scanY(worldTimer,i+4);
+            Bandit threat=nearest(npc.x,npc.y,500f);
+            if(threat!=null) {
+                float[] toward=NpcAimV122.toward(
+                    npc.x,npc.y,threat.x,threat.y);
+                desireX=toward[0];desireY=toward[1];
+            }
+            float[] look=NpcAimV122.turn(npc.aimX,npc.aimY,
+                desireX,desireY,dt);
+            npc.aimX=look[0];npc.aimY=look[1];
+            npc.face=NpcAimV122.facing(npc.aimX,npc.face);
+            // The existing armed camp guard now actually shoots: no more
+            // invisible magic hits on raiders. Use the same physical Shot
+            // bullets and restrained V119 muzzle effects as the player.
+            if(npc.gun!=3&&threat!=null&&npc.cd<=0f&&
+                NpcAimV122.aligned(npc.aimX,npc.aimY,desireX,desireY)&&
+                banditHasLineOfSightV88(npc.x,npc.y-30f,threat.x,threat.y-30f)){
+                shoot(npc.x,npc.y,npc.aimX,npc.aimY,npc.gun,false,npc.face,false);
+                npc.cd=RATES[npc.gun]+.28f;
+            }
+            npc.cd=Math.max(0f,npc.cd-dt);
+            npc.animation.step(distance(px,py,npc.x,npc.y)>.001f,dt,
+                CharacterFitV108.rate(7.1f,fitWalkFpsV108));
         }
         if(moving&&length>.13f){
             followHeadingX=vx;followHeadingY=vy;
@@ -2262,20 +2286,28 @@ public final class GameView extends View {
                 if(FollowerArrivalV78.shouldTurn(gx-beforeFriendX,d))
                     friend.face=ux>=0f?1:-1;
             }
-            friend.aimX=friend.face;friend.aimY=0f;
             friend.animation.step(FollowerArrivalV78.visuallyWalking(
                 distance(friend.x,friend.y,beforeFriendX,beforeFriendY)),dt,
                 CharacterFitV108.rate(8.5f,fitWalkFpsV108));
             Bandit target=nearest(friend.x,friend.y,460);
+            float wantX=NpcAimV122.scanX(worldTimer,fi+17);
+            float wantY=NpcAimV122.scanY(worldTimer,fi+17);
             if(target!=null){
-                float dx=target.x-friend.x,dy=target.y-friend.y;
-                friend.face=dx>=0?1:-1;
-                float aimLen=Math.max(1,(float)Math.hypot(dx,dy));
-                friend.aimX=dx/aimLen;friend.aimY=dy/aimLen;
-                if(friend.cd<=0&&!companionHoldFireV118){
-                    shoot(friend.x,friend.y,dx,dy,friend.gun,false,friend.face,false);
-                    friend.cd=RATES[friend.gun]+.2f;
-                }
+                float[] desired=NpcAimV122.toward(
+                    friend.x,friend.y,target.x,target.y);
+                wantX=desired[0];wantY=desired[1];
+            }
+            float[] heading=NpcAimV122.turn(friend.aimX,friend.aimY,
+                wantX,wantY,dt);
+            friend.aimX=heading[0];friend.aimY=heading[1];
+            friend.face=NpcAimV122.facing(friend.aimX,friend.face);
+            if(target!=null&&friend.cd<=0f&&!companionHoldFireV118&&
+                NpcGunfireV122.firearm(friend.gun)&&
+                NpcAimV122.aligned(friend.aimX,friend.aimY,wantX,wantY)&&
+                banditHasLineOfSightV88(friend.x,friend.y-30f,target.x,target.y-30f)){
+                shoot(friend.x,friend.y,friend.aimX,friend.aimY,
+                    friend.gun,false,friend.face,false);
+                friend.cd=RATES[friend.gun]+.2f;
             }
         }
         if(enemyAI)for(Bandit e:enemies){
@@ -2295,15 +2327,8 @@ public final class GameView extends View {
                 e.x=CAMP_X+rx/rl*safeDist;e.y=CAMP_Y+ry/rl*safeDist;
                 e.animation.reset();continue;
             }
-            // The camp guard protects the settlement and engages approaching raiders.
-            if(distance(playerX,playerY,CAMP_X,CAMP_Y)<600f&&
-                distance(e.x,e.y,CAMP_X,CAMP_Y)<1050f){
-                campGuardCooldownV92=Math.max(0f,campGuardCooldownV92-dt);
-                if(campGuardCooldownV92<=0f){
-                    e.hp=Math.max(0f,e.hp-18f);campGuardCooldownV92=.60f;
-                    if(e.hp<=0){e.active=false;continue;}
-                }
-            }
+            // V122 guard defense uses visible physical shots and muzzle
+            // flashes in the campStaff loop, not invisible damage.
             boolean clear=banditHasLineOfSightV88(e.x,e.y-30,playerX,playerY-32);
             int state=BanditBrainV88.state(d,e.hp,banditNearCoverV88(e.x,e.y));
             if(!clear&&state==BanditBrainV88.GUARD)state=BanditBrainV88.STRAFE;
@@ -2332,11 +2357,18 @@ public final class GameView extends View {
                 !blocked(e.x,ny,18))e.y=ny;
             else if(WorldSafetyV92.hostileAllowed(e.x,e.y+mx*speed,CAMP_X,CAMP_Y)&&
                 !blocked(e.x,e.y+mx*speed,18))e.y+=mx*speed;
-            if(d<BanditBrainV88.ALERT_RANGE)e.face=dx>=0?1:-1;
-            else if(Math.abs(e.x-oldX)>.001f)e.face=e.x>oldX?1:-1;
+            float scanX=NpcAimV122.scanX(worldTimer,e.variant+32);
+            float scanY=NpcAimV122.scanY(worldTimer,e.variant+32);
+            boolean tracking=d<BanditBrainV88.ALERT_RANGE&&clear;
+            float desireX=tracking?dx:scanX,desireY=tracking?dy:scanY;
+            float[] facingAim=NpcAimV122.turn(e.aimX,e.aimY,
+                desireX,desireY,dt);
+            e.aimX=facingAim[0];e.aimY=facingAim[1];
+            e.face=NpcAimV122.facing(e.aimX,e.face);
             if(WorldSafetyV92.hostileAllowed(playerX,playerY,CAMP_X,CAMP_Y)&&
-                BanditBrainV88.shouldShoot(state,d,e.cd,clear)){
-                shoot(e.x,e.y,dx,dy,0,true,e.face,false);
+                BanditBrainV88.shouldShoot(state,d,e.cd,clear)&&
+                NpcAimV122.aligned(e.aimX,e.aimY,dx,dy)){
+                shoot(e.x,e.y,e.aimX,e.aimY,0,true,e.face,false);
                 e.cd=.95f+(e.variant%3)*.19f;
             }
             e.animation.step(distance(e.x,e.y,oldX,oldY)>.001f,dt,
@@ -3423,7 +3455,8 @@ public final class GameView extends View {
             order.add(new DrawEntity(e.y,()->{
             character(c,e.x,e.y,0,e.face,e.animation.frame(),
                     e.animation.isWalking()?Float.POSITIVE_INFINITY:e.animation.breathOffset(),
-                    0,0,false,true,e.variant,e.skinV109);
+                    Ballistics.angle(e.aimX,e.aimY,e.face),
+                    0,false,true,e.variant,e.skinV109);
             rect(c,e.x-23,e.y-114,46,5,DK);rect(c,e.x-22,e.y-113,44*clamp(e.hp/78,0,1),3,RED);
             
         }));
@@ -3449,7 +3482,8 @@ public final class GameView extends View {
             order.add(new DrawEntity(npc.y,()->{
             character(c,npc.x,npc.y,npc.gun,npc.face,npc.animation.frame(),
                 npc.animation.isWalking()?Float.POSITIVE_INFINITY:npc.animation.breathOffset(),
-                0,0,false,false,npc.variant,npc.skinV109);
+                Ballistics.angle(npc.aimX,npc.aimY,npc.face),
+                0,false,false,npc.variant,npc.skinV109);
             
         }));
         }
