@@ -33,6 +33,7 @@ import java.io.FileOutputStream;
 public final class MainActivity extends Activity {
     GameView game;
     SharedPreferences prefs;
+    CharacterPreviewV118 activeCharacterPreviewV118;
     boolean immersive=true;
     static final String[] LOADOUTS={"Pistol","Revolver","UZI","Flashlight","Tactical carbine",
             "AK rifle","Bullpup","Pump shotgun","Sniper rifle","LMG","Grenade launcher","Red axe"};
@@ -268,35 +269,73 @@ public final class MainActivity extends Activity {
     private void section(LinearLayout root,String title){
         TextView t=text(title,15,true);t.setTextColor(ACC);t.setPadding(7,7,7,3);root.addView(t);
     }
+    private int dp118(float value){
+        return Math.round(value*getResources().getDisplayMetrics().density);
+    }
+    private Button stepButton118(String symbol){
+        Button b=new Button(this);b.setText(symbol);b.setAllCaps(false);
+        b.setTextSize(16);b.setPadding(0,0,0,0);
+        b.setMinWidth(0);b.setMinHeight(0);
+        b.setMinimumWidth(0);b.setMinimumHeight(0);
+        return b;
+    }
     private void slider(LinearLayout root,String label,String key,int min,int max,int def,String suffix){
         LinearLayout box=column();
         int density=prefs.getInt("menuRowSpacing",100);
-        box.setPadding(6,Math.max(1,density/35),6,Math.max(1,density/35));
-        TextView value=text("",14,false);
-        box.addView(value);
-        LinearLayout track=new LinearLayout(this);
-        track.setOrientation(LinearLayout.HORIZONTAL);
-        TextView left=text("↕",16,true),right=text("↕",16,true);
-        left.setGravity(Gravity.CENTER);right.setGravity(Gravity.CENTER);
-        int gutter=Math.max(24,Math.round(getResources().getDisplayMetrics().density*28));
-        track.addView(left,new LinearLayout.LayoutParams(gutter,-1));
-        SeekBar bar=new SeekBar(this);bar.setMax(max-min);
-        bar.setMinimumHeight(22);bar.setPadding(0,0,0,0);
-        bar.setScaleY(prefs.getInt("menuSliderSize",100)/100f);
-        bar.setProgress(Math.max(0,Math.min(max-min,prefs.getInt(key,def)-min)));
-        track.addView(bar,new LinearLayout.LayoutParams(0,-2,1));
-        track.addView(right,new LinearLayout.LayoutParams(gutter,-1));
-        value.setText(label+"   "+(min+bar.getProgress())+suffix);
-        box.addView(track);
-        bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
-            public void onProgressChanged(SeekBar s,int progress,boolean fromUser){
-                int number=min+progress;value.setText(label+"   "+number+suffix);
-                if(fromUser){prefs.edit().putInt(key,number).apply();game.reloadSettings();}
-            }
-            public void onStartTrackingTouch(SeekBar s){}
-            public void onStopTrackingTouch(SeekBar s){}
-        });
-        // Touching only the central track edits; wide margins remain free to scroll.
+        box.setPadding(5,Math.max(1,density/38),5,Math.max(1,density/38));
+        TextView caption=text("",13,false);
+        box.addView(caption);
+        int current=Math.max(min,Math.min(max,prefs.getInt(key,def)));
+        caption.setText(label+"  "+current+suffix);
+        boolean vertical=label.toLowerCase(java.util.Locale.US).contains("vertical");
+        final Runnable redraw=()->{if(activeCharacterPreviewV118!=null)
+            activeCharacterPreviewV118.invalidate();};
+        if(vertical){
+            // Y-position sliders physically travel UP/DOWN, not sideways.
+            LinearLayout control=new LinearLayout(this);
+            control.setOrientation(LinearLayout.VERTICAL);
+            control.setGravity(Gravity.CENTER_HORIZONTAL);
+            final VerticalSliderV118 v=new VerticalSliderV118(this,min,max,current,
+                (number,user)->{
+                    caption.setText(label+"  "+number+suffix);
+                    if(user){prefs.edit().putInt(key,number).apply();
+                        game.reloadSettings();redraw.run();}
+                });
+            Button plus=stepButton118("+"),minus=stepButton118("−");
+            control.addView(plus,new LinearLayout.LayoutParams(dp118(48),dp118(30)));
+            control.addView(v,new LinearLayout.LayoutParams(dp118(48),dp118(114)));
+            control.addView(minus,new LinearLayout.LayoutParams(dp118(48),dp118(30)));
+            plus.setOnClickListener(view->v.setValue(v.getValue()+1,true));
+            minus.setOnClickListener(view->v.setValue(v.getValue()-1,true));
+            box.addView(control,new LinearLayout.LayoutParams(dp118(70),-2));
+        }else{
+            LinearLayout control=new LinearLayout(this);
+            control.setOrientation(LinearLayout.HORIZONTAL);
+            control.setGravity(Gravity.CENTER_VERTICAL);
+            Button minus=stepButton118("−"),plus=stepButton118("+");
+            SeekBar bar=new SeekBar(this);bar.setMax(max-min);
+            bar.setMinimumHeight(dp118(22));bar.setPadding(0,0,0,0);
+            bar.setScaleY(prefs.getInt("menuSliderSize",100)/100f);
+            bar.setProgress(current-min);
+            int button=dp118(38);
+            control.addView(minus,new LinearLayout.LayoutParams(button,dp118(35)));
+            control.addView(bar,new LinearLayout.LayoutParams(dp118(145),dp118(35)));
+            control.addView(plus,new LinearLayout.LayoutParams(button,dp118(35)));
+            bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
+                public void onProgressChanged(SeekBar seek,int p,boolean user){
+                    int number=min+p;caption.setText(label+"  "+number+suffix);
+                    if(user){prefs.edit().putInt(key,number).apply();
+                        game.reloadSettings();redraw.run();}
+                }
+                public void onStartTrackingTouch(SeekBar seek){}
+                public void onStopTrackingTouch(SeekBar seek){}
+            });
+            minus.setOnClickListener(view->bar.setProgress(Math.max(0,bar.getProgress()-1)));
+            plus.setOnClickListener(view->bar.setProgress(Math.min(max-min,bar.getProgress()+1)));
+            box.addView(control,new LinearLayout.LayoutParams(
+                Math.min(dp118(230),Math.max(dp118(165),
+                    getResources().getDisplayMetrics().widthPixels/2)),dp118(37)));
+        }
         root.addView(box);
     }
     /** The slider's actual maximum follows the currently equipped weapon.
