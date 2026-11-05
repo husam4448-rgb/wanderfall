@@ -3633,6 +3633,7 @@ public final class GameView extends View {
             (editPointer>=0&&editControl==HOTBAR?editY:host.setting("uiY"+HOTBAR,0));
     }
     int hotbarAt(float x,float y){
+        if(!editControls&&!uiEnabled(HOTBAR))return -1;
         float l=hotbarLeft(),top=hotbarTop(),size=47f*hotbarScale;
         if(y<top||y>top+size||x<l||x>=l+6*size)return -1;
         return Math.min(5,(int)((x-l)/size));
@@ -3708,7 +3709,12 @@ public final class GameView extends View {
         saveProgress();invalidate();
     }
     void drawHotbar(Canvas c){
+        if(!uiEnabled(HOTBAR)&&!editControls)return;
         float x=hotbarLeft(),y=hotbarTop(),size=47f*hotbarScale;
+        int hotbarAlpha=Math.max(25,Math.min(100,
+            host.setting("uiAlpha"+HOTBAR,100)));
+        int hotbarLayer=hotbarAlpha<100?c.saveLayerAlpha(
+            x,y,x+6*size,y+size,Math.round(hotbarAlpha*255f/100f)):0;
         for(int i=0;i<6;i++){
             int item=hotbar[i],alpha=Math.round(255f*hotbarOpacity/100f);
             int bg=((Math.max(35,alpha)&255)<<24)|(i==selectedHotbar?0x0067573c:0x002e3938);
@@ -3727,6 +3733,7 @@ public final class GameView extends View {
                 label(c,Integer.toString(hotbarQuantity(item)),x+(i+1)*size-14,
                       y+size-6,10,0xffe6d4aa,true);
         }
+        if(hotbarLayer!=0)c.restoreToCount(hotbarLayer);
         if(editControls){
             p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(2);
             color(0xffe6bc71);
@@ -4096,8 +4103,10 @@ public final class GameView extends View {
         float lx=padCenterX(false);
         float leftRadius=86*movePadScale,rightRadius=82*aimPadScale;
         int alpha=Math.round(255f*Math.max(25,Math.min(100,controlOpacity))/100f);
-        int leftAlpha=alpha*host.setting("uiAlpha"+MOVE_PAD,100)/100;
-        int rightAlpha=alpha*host.setting("uiAlpha"+AIM_PAD,100)/100;
+        int leftAlpha=(uiEnabled(MOVE_PAD)||editControls)?
+            alpha*host.setting("uiAlpha"+MOVE_PAD,100)/100:0;
+        int rightAlpha=(uiEnabled(AIM_PAD)||editControls)?
+            alpha*host.setting("uiAlpha"+AIM_PAD,100)/100:0;
         color((leftAlpha*0x66/255<<24)|0x003e625a);
         c.drawCircle(lx,jy,leftRadius,p);
         color((leftAlpha*0x9b/255<<24)|0x0096b8a5);
@@ -4116,7 +4125,8 @@ public final class GameView extends View {
         drawTalkButtonV94(c);
         drawHotbar(c);
         drawStatusWindowV118(c);
-        label(c,"MOVE",lx-39,jy+105,12,0xffb8d4c5,true);
+        if(uiEnabled(MOVE_PAD)||editControls)
+            label(c,"MOVE",lx-39,jy+105,12,0xffb8d4c5,true);
         if(reloadClock>0)label(c,"RELOADING...",viewW-235,viewH-227,17,ORANGE,true);
         if((showPerf||editControls)&&(uiEnabled(PERF_EDITOR)||editControls)){
             int perfId=PERF_EDITOR,opacity=host.setting("uiAlpha"+perfId,100);
@@ -4502,10 +4512,10 @@ public final class GameView extends View {
                 float moveDistance=(float)Math.hypot(x-padCenterX(false),y-padCenterY(false));
                 float aimDistance=(float)Math.hypot(x-padCenterX(true),y-padCenterY(true));
                 float moveReach=100f*movePadScale,aimReach=100f*aimPadScale;
-                if(leftPointer<0&&moveDistance<moveReach&&moveDistance<=aimDistance){
+                if(leftPointer<0&&uiEnabled(MOVE_PAD)&&moveDistance<moveReach&&moveDistance<=aimDistance){
                     leftPointer=id;updateStick(x,y,false);return true;
                 }
-                if(rightPointer<0&&aimDistance<aimReach){
+                if(rightPointer<0&&uiEnabled(AIM_PAD)&&aimDistance<aimReach){
                     rightPointer=id;updateStick(x,y,true);return true;
                 }
                 tap(x,y);return true;
