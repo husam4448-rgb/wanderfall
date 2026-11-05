@@ -1,0 +1,48 @@
+name: V114 inspect approved 200-character body geometry
+on:
+  push:
+    branches: [sp-native-v114-torso-width-locked-legs-20261105]
+    paths: ['.github/workflows/sp-v114-body-inspect.yml']
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            survival-paradise/native-game/source_v109
+          sparse-checkout-cone-mode: false
+      - name: Read original V109 approved body pixels
+        run: |
+          python3 -m pip install -q Pillow
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          from io import BytesIO
+          from zipfile import ZipFile
+          from collections import Counter
+          import hashlib
+          p=Path("survival-paradise/native-game/source_v109")
+          parts=sorted(p.glob("part_*.bin"))
+          data=b"".join(f.read_bytes() for f in parts)
+          print("SOURCE_PARTS",len(parts),"sha256",hashlib.sha256(data).hexdigest(),flush=True)
+          with ZipFile(BytesIO(data)) as z:
+              imgs=[Image.open(BytesIO(z.read("body_idle.png"))).convert("RGBA"),
+                    Image.open(BytesIO(z.read("body_walk.png"))).convert("RGBA")]
+          for fi,im in enumerate(imgs):
+            if fi>0:
+              im=im.crop((0,0,200,260))
+            print("FRAME",fi,im.size)
+            for y in range(140,260,5):
+              a=[(x,im.getpixel((x,y))) for x in range(200)]
+              opaque=[(x,p) for x,p in a if p[3]>=100]
+              if not opaque: print("Y",y,"empty");continue
+              x0=min(x for x,p in opaque);x1=max(x for x,p in opaque)
+              c=Counter(p for x,p in opaque)
+              bands=[]
+              for i in range(0,200,10):
+                hits=sum(1 for x,p in opaque if i<=x<i+10)
+                bands.append("█" if hits>=7 else "▓" if hits>=4 else "░" if hits>0 else ".")
+              print("Y",y,"bounds",x0,x1,"opaque",len(opaque),"bands","".join(bands),
+                    "colors",c.most_common(3),flush=True)
+          PY
