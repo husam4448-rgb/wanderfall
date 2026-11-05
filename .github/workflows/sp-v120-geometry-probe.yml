@@ -1,0 +1,72 @@
+name: V120 inspect original approved torso, hip and boot pixels
+on:
+  push:
+    branches: [sp-native-v120-front-foot-body-outline-20261105]
+    paths: ['.github/workflows/sp-v120-geometry-probe.yml']
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            survival-paradise/native-game/source_v109
+          sparse-checkout-cone-mode: false
+      - name: Print original 20-pixel logical body silhouettes and boundaries
+        run: |
+          python3 -m pip install -q Pillow
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          from zipfile import ZipFile
+          from io import BytesIO
+          from collections import Counter
+          from hashlib import sha256
+          root=Path("survival-paradise/native-game/source_v109")
+          blobs=b"".join(f.read_bytes() for f in sorted(root.glob("part_*.bin")))
+          print("LOCKED_SHA",sha256(blobs).hexdigest(),flush=True)
+          with ZipFile(BytesIO(blobs)) as z:
+            idle=Image.open(BytesIO(z.read("body_idle.png"))).convert("RGBA")
+            walk=Image.open(BytesIO(z.read("body_walk.png"))).convert("RGBA")
+          poses=[idle]+[walk.crop((k*200,0,(k+1)*200,260)) for k in range(4)]
+          def part(frame,x,y):
+            if not (0<=x<200 and 180<=y<260):return 0
+            if frame==1:
+              if y>=220 and x<40:return 1
+              if 200<=y<220 and x>=160:return 2
+              if 220<=y<240 and x>=140:return 2
+            elif frame==2:
+              if 220<=y<240 and 60<=x<120:return 3
+            elif frame==3:
+              if 180<=y<240 and x<40:return 1
+              if y>=220 and 140<=x<180:return 2
+            else:
+              if y>=220 and x<40:return 1
+              if y>=220 and 140<=x<180:return 2
+            return 0
+          for k,im in enumerate(poses):
+            print("\n==== POSE",k,"====",flush=True)
+            for y in range(160,260,20):
+              letters=[]
+              for x in range(0,200,20):
+                pixels=[im.getpixel((xx,yy)) for yy in range(y,y+20) for xx in range(x,x+20)]
+                nonzero=[p for p in pixels if p[3]>=128]
+                if not nonzero:letters.append(".");continue
+                c=Counter(nonzero)
+                main=c.most_common(1)[0][0]
+                if main[0]<55 and main[1]<55 and main[2]<55:ch="K"
+                elif main[2]>main[0]*1.3:ch="B"
+                elif main[0]>main[2]*1.5:ch="R"
+                else:ch="b"
+                letters.append(ch)
+              print(f"GRID y={y:03d} {''.join(letters)}",flush=True)
+            for y in (160,161,165,169,170,179,180,189,199,200,210,219,220,230,239,240,250,259):
+              xs=[x for x in range(200) if im.getpixel((x,y))[3]>127]
+              if xs:
+                opaque=Counter(im.getpixel((x,y)) for x in xs)
+                print("ROW",k,y,min(xs),max(xs),"colors",opaque.most_common(5),flush=True)
+            for part_i in (1,2,3):
+              coords=[(x,y) for y in range(180,260) for x in range(200) if part(k,x,y)==part_i and im.getpixel((x,y))[3]>127]
+              if coords:
+                print("BOOT",k,part_i,min(x for x,y in coords),max(x for x,y in coords),min(y for x,y in coords),max(y for x,y in coords),len(coords),flush=True)
+          PY
