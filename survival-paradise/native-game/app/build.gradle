@@ -3,11 +3,11 @@ android {
  namespace 'com.survivalparadise.nativegame'
  compileSdk 35
  defaultConfig {
-  applicationId 'com.survivalparadise.nativegame.v119test'
+  applicationId 'com.survivalparadise.nativegame.v120test'
   minSdk 24
   targetSdk 34
-  versionCode 119
-  versionName '0.119-talk-hud-drag-natural-gunfire'
+  versionCode 120
+  versionName '0.120-front-foot-alignment-black-torso-outline'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
