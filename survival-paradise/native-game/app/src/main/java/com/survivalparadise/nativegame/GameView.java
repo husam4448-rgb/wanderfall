@@ -59,6 +59,7 @@ public final class GameView extends View {
     float scale=1,headScaleV82=1f,handScale=1,support=0,supportVertical=0,timeSpeed=1,zoom=1,walkSpeedMultiplier=1.30f,walkingAnimationMultiplierV79=1f;
     // V108 head-fitting controls: neutral settings preserve every V98 pixel.
     int fitHeadXV108=0,fitHeadYV108=0,fitIdleBreathV108=4,fitWalkFpsV108=0;
+    float idleBreathingTempoV110=1f;
     boolean showHands=true,showWeapons=true,anchors=false,hitboxes=false,enemyAI=true,
             aimRotation=true,recoilFX=true,lootEnabled=true,night=true;
     boolean playing=false,paused=false,settingsPause=false,wasPaused=false,hasSave=false,gameOver=false;
@@ -453,6 +454,8 @@ public final class GameView extends View {
         fitHeadXV108=CharacterFitV108.headX(host.prefs);
         fitHeadYV108=CharacterFitV108.headY(host.prefs);
         fitIdleBreathV108=CharacterFitV108.breathPixels(host.prefs);
+        idleBreathingTempoV110=CharacterAnimationV110.breathingMultiplier(
+            host.setting("idleBreathingSpeedV110",CharacterAnimationV110.BREATH_DEFAULT_PERCENT));
         fitWalkFpsV108=CharacterFitV108.walkFps(host.prefs);
         handScale=host.setting("hand",100)/100f;
         support=host.setting("support",0);
@@ -2989,7 +2992,8 @@ public final class GameView extends View {
         }
         if(characterSkinsV109!=null&&characterSkinsV109.ready()){
             characterSkinsV109.draw(c,skinIdV109,breath==Float.POSITIVE_INFINITY,
-                frame,worldTimer,s,pixel);
+                frame,worldTimer,s,pixel,walkingAnimationMultiplierV79,
+                idleBreathingTempoV110,fitWalkFpsV108,fitIdleBreathV108);
         }else{
             Bitmap atlas=npcVariant>=0?npcWalkV56:approvedWalkColors;
             int torsoVariant=player?wardrobeV92.equipped[1]:
