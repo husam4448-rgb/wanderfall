@@ -1488,6 +1488,43 @@ public final class MainActivity extends Activity {
             makeWindowMovable(dialog,handle,width[0],height[0],"bagWindow");
         });
     }
+    /** Native in-game companion command panel, accessible from the HUD. */
+    void companionCommandsV118(){
+        if(game==null)return;
+        game.menuPause(true);
+        LinearLayout root=column();
+        section(root,"COMPANION COMMANDS");
+        root.addView(text("Orders apply immediately to recruited companions, including inside buildings.",12,false));
+        final Button[] motion=new Button[1],fire=new Button[1],formation=new Button[1];
+        motion[0]=action(root,game.companionStayV118?"FOLLOW ME":"STAY",()->{
+            prefs.edit().putBoolean("companionStayV118",!game.companionStayV118).apply();
+            game.reloadSettings();
+            motion[0].setText(game.companionStayV118?"FOLLOW ME":"STAY");
+        });
+        fire[0]=action(root,game.companionHoldFireV118?"FIRE AT WILL":"HOLD FIRE",()->{
+            prefs.edit().putBoolean("companionHoldFireV118",!game.companionHoldFireV118).apply();
+            game.reloadSettings();
+            fire[0].setText(game.companionHoldFireV118?"FIRE AT WILL":"HOLD FIRE");
+        });
+        formation[0]=action(root,"FORM: "+FollowFormationV61.NAMES[game.followMode],()->{
+            int next=(game.followMode+1)%FollowFormationV61.NAMES.length;
+            prefs.edit().putInt("followMode",next).apply();game.reloadSettings();
+            formation[0].setText("FORM: "+FollowFormationV61.NAMES[game.followMode]);
+        });
+        section(root,"FOLLOW DISTANCE");
+        slider(root,"Companion follow distance","followSpacing",
+            CompanionOrdersV118.MIN_SPACING,CompanionOrdersV118.MAX_SPACING,
+            CompanionOrdersV118.DEFAULT_SPACING," px");
+        root.addView(text("Follow distance controls formation standoff from the player. STAY holds current positions; HOLD FIRE prevents companion gunfire. All orders persist.",11,false));
+        final AlertDialog d=new AlertDialog.Builder(this).setView(root)
+            .setPositiveButton("RETURN TO GAME",(dialog,which)->{}).create();
+        d.setOnDismissListener(dialog->{
+            game.menuPause(false);restoreFullscreenAfterShade();
+        });
+        d.show();
+        d.setCanceledOnTouchOutside(true);
+    }
+
     void settings(){
         game.menuPause(true);
         final AlertDialog[] activeDialog=new AlertDialog[1];
@@ -1581,6 +1618,17 @@ public final class MainActivity extends Activity {
         section(root,"PLAYER AND COMBAT");
         section(root,"V109 • APPROVED 200 CHARACTERS • WEAPONS ON, OLD GEAR HIDDEN");
         slider(root,"Player character (001–200)","playerSkinV109",1,200,124,"");
+        section(root,"LIVE APPROVED CHARACTER PREVIEW");
+        final CharacterPreviewV118 characterPreviewV118=new CharacterPreviewV118(this);
+        activeCharacterPreviewV118=characterPreviewV118;
+        root.addView(characterPreviewV118,new LinearLayout.LayoutParams(-1,dp118(185)));
+        final Button posePreviewV118=stepButton118("TOGGLE IDLE / WALK");
+        root.addView(posePreviewV118,new LinearLayout.LayoutParams(dp118(198),dp118(31)));
+        final boolean[] previewWalkingV118={false};
+        posePreviewV118.setOnClickListener(v->{
+            previewWalkingV118[0]=!previewWalkingV118[0];
+            characterPreviewV118.setWalkingPreview(previewWalkingV118[0]);
+        });
         root.addView(text("Use this selector to test every approved fitted survivor in live play. Headgear, backpacks and legacy torso overlays are visually hidden; inventory items remain usable. Weapons and hands still render.",11,false));
         slider(root,"Character display size","scale",65,135,100,"%");
         section(root,"CHARACTER ADJUSTMENTS • TARGET");
@@ -1647,10 +1695,13 @@ public final class MainActivity extends Activity {
                 prefs.edit().putInt(CharacterScopeV113.SCOPE_KEY,
                     Math.max(0,Math.min(1,position))).apply();
                 rebuildCharacterSlidersV113Holder[0].run();
+                characterPreviewV118.invalidate();
             }
         });
         rebuildCharacterSlidersV113Holder[0].run();
         action(root,"EXPORT PLAYER CHARACTER FITTING JSON",()->exportCharacterFittingV108());
+        final int combatSection=root.getChildCount();
+        section(root,"COMBAT • COMPANIONS • EQUIPMENT");
         slider(root,"Hand size (independent)","hand",60,145,100,"%");
         slider(root,"Support hand horizontal reach","support",-12,24,0," px");
         slider(root,"Support hand vertical offset","supportY",-24,24,0," px");
@@ -1671,7 +1722,8 @@ public final class MainActivity extends Activity {
                 game.reloadSettings();
             }
         });
-        slider(root,"Companion spacing","followSpacing",70,260,125," px");
+        slider(root,"Companion spacing","followSpacing",70,450,125," px");
+        action(root,"OPEN COMPANION COMMANDS",()->companionCommandsV118());
         root.addView(text("Equipped weapon",14,true));
         Spinner spinner=new Spinner(this);
         ArrayAdapter<String> adapter=new ArrayAdapter<>(this,android.R.layout.simple_spinner_dropdown_item,LOADOUTS);
@@ -1810,7 +1862,9 @@ public final class MainActivity extends Activity {
               .putInt("lookAheadThreshold",72)
               .putInt("lookAheadStrength",420).putInt("lookAheadSmooth",8)
               .putInt("cameraPanPercentV72",72)
-              .putInt("followMode",0).putInt("followSpacing",125).putInt("cursorSpeed",400)
+              .putInt("followMode",0).putInt("followSpacing",125)
+              .putBoolean("companionStayV118",false).putBoolean("companionHoldFireV118",false)
+              .putInt("cursorSpeed",400)
               .putInt("crosshairRestPercent",100).putInt("cursorSpeedV68",650)
               .putInt("aimDeadzoneV68",17).putInt("aimCurveV68",175)
               .putInt("aimSteeringV68",100).putInt("cameraPanSpeedV68",350)
@@ -1859,20 +1913,37 @@ public final class MainActivity extends Activity {
             fastScroll.setProgress(pct);
             nav.setText("SCROLL "+pct+"%");
         });
-        sideNavButton(navigation,"CHARACTER",()->
-            scroll.post(()->scroll.smoothScrollTo(0,root.getChildAt(playerSection).getTop())));
-        sideNavButton(navigation,"GAMEPLAY",()->
-            scroll.post(()->scroll.smoothScrollTo(0,root.getChildAt(gameplaySection).getTop())));
-        sideNavButton(navigation,"WORLD",()->
-            scroll.post(()->scroll.smoothScrollTo(0,root.getChildAt(worldSection).getTop())));
-        sideNavButton(navigation,"AIM / CAMERA",()->
-            scroll.post(()->scroll.smoothScrollTo(0,root.getChildAt(aimSection).getTop())));
-        sideNavButton(navigation,"LAYOUT",()->
-            scroll.post(()->scroll.smoothScrollTo(0,root.getChildAt(layoutSection).getTop())));
-        sideNavButton(navigation,"PERFORMANCE",()->
-            scroll.post(()->scroll.smoothScrollTo(0,root.getChildAt(perfSection).getTop())));
-        sideNavButton(navigation,"ACTIONS",()->
-            scroll.post(()->scroll.smoothScrollTo(0,root.getChildAt(actionSection).getTop())));
+        // V118 category pages: only one section is mounted visibly.
+        // Scrolling cannot enter another category or accidentally move its sliders.
+        final java.util.ArrayList<View> allSettingsV118=new java.util.ArrayList<>();
+        for(int k=0;k<root.getChildCount();k++)
+            allSettingsV118.add(root.getChildAt(k));
+        int[] sectionBoundariesV118={0,combatSection,gameplaySection,worldSection,
+            aimSection,layoutSection,perfSection,actionSection,allSettingsV118.size()};
+        final String[] categoryNamesV118={
+            "CHARACTER","COMBAT / SQUAD","GAMEPLAY","WORLD",
+            "AIM / CAMERA","LAYOUT","PERFORMANCE","ACTIONS"};
+        root.removeAllViews();
+        final LinearLayout[] categoryPagesV118=new LinearLayout[categoryNamesV118.length];
+        for(int k=0;k<categoryPagesV118.length;k++){
+            LinearLayout page=column();page.setPadding(3,2,3,5);
+            for(int n=sectionBoundariesV118[k];n<sectionBoundariesV118[k+1];n++)
+                page.addView(allSettingsV118.get(n));
+            page.setVisibility(k==0?View.VISIBLE:View.GONE);
+            categoryPagesV118[k]=page;root.addView(page);
+        }
+        final int[] activePageV118={0};
+        for(int k=0;k<categoryNamesV118.length;k++){
+            final int selected=k;
+            sideNavButton(navigation,categoryNamesV118[k],()->{
+                if(activePageV118[0]==selected)return;
+                categoryPagesV118[activePageV118[0]].setVisibility(View.GONE);
+                categoryPagesV118[selected].setVisibility(View.VISIBLE);
+                activePageV118[0]=selected;
+                scroll.scrollTo(0,0);fastScroll.setProgress(0);
+                scroll.requestLayout();
+            });
+        }
         sideNavButton(navigation,"HUD EDIT",()->{
             if(activeDialog[0]!=null)activeDialog[0].dismiss();
             hudEditor();
@@ -1895,7 +1966,10 @@ public final class MainActivity extends Activity {
           .setOnCancelListener(d->game.menuPause(false)).create();
         returnGame.setOnClickListener(v->dialog.dismiss());
         activeDialog[0]=dialog;
-        dialog.setOnDismissListener(d->{game.menuPause(false);restoreFullscreenAfterShade();});
+        dialog.setOnDismissListener(d->{
+            activeCharacterPreviewV118=null;
+            game.menuPause(false);restoreFullscreenAfterShade();
+        });
         dialog.show();
         dialog.setCancelable(true);
         dialog.setCanceledOnTouchOutside(true);
