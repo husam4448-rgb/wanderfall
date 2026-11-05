@@ -1,0 +1,239 @@
+name: Survival Paradise V115 — Independent Torso and Pelvis Width / Locked Legs
+on:
+  push:
+    branches: [sp-native-v115-independent-pelvis-width-20261105]
+    paths:
+      - 'survival-paradise/native-game/**'
+      - '.github/workflows/sp-v115-independent-pelvis-width.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: survival-paradise-v115-independent-pelvis-width
+  cancel-in-progress: true
+
+jobs:
+  verify-native-character-fit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            survival-paradise
+            assets/authored2d
+            assets/world
+          sparse-checkout-cone-mode: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Generate the exact locked V31/V56 source art
+        run: |
+          set -euo pipefail
+          python3 -m pip install --user -q Pillow numpy
+          python3 survival-paradise/native-game/tools/extract_locked_atlases.py
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64,hashlib
+          r=Path("survival-paradise/native-game")
+          for encoded,dest,sha in [
+             ("approved_v29_axe.png.b64","approved_v29_axe.png","f0d146757318e620024cae0c2a34243bdd9339a939a7f51e5428ae8250620dee"),
+             ("approved_v44_walk_palette.png.b64","approved_v44_walk_palette.png","fd01230e9c13ffd3087e933abe976a2179d80e9adc9b0710f899a7bef7fc3d71")
+          ]:
+              data=base64.b64decode((r/"tools"/encoded).read_text().strip(),validate=True)
+              assert hashlib.sha256(data).hexdigest()==sha,encoded
+              (r/"app/src/main/assets"/dest).write_bytes(data)
+          PY
+          python3 survival-paradise/native-game/tools/build_v51_assets.py
+          python3 survival-paradise/native-game/tools/build_v52_idle.py
+          python3 survival-paradise/native-game/tools/fix_v53_skin_palette.py
+          python3 survival-paradise/native-game/tools/build_v56_approved_character_atlases.py
+          python3 survival-paradise/native-game/tools/build_v74_biome_assets.py
+          test "$(sha256sum survival-paradise/native-game/app/src/main/assets/body.png | cut -d' ' -f1)" = "141878713a6880d05879b7102c728581dddb55730434bcac8e050fe44b3d82ad"
+      - name: Verify V115 torso+pelvis geometry, canonical source and version
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("survival-paradise/native-game")
+          source=(root/"app/src/main/java/com/survivalparadise/nativegame/CharacterSkinsV109.java").read_text()
+          gradle=(root/"app/build.gradle").read_text()
+          assert "versionCode 115" in gradle
+          assert "applicationId 'com.survivalparadise.nativegame.v115test'" in gradle
+          assert "sp_v109_characters.zip" in source
+          assert "CharacterAnimationV110.breathOffset" in source
+          assert "CharacterAnimationV110.bodyFrame" in source
+          assert "new Fit(base)" in source
+          assert "boolean walking" in source
+          print("V115 source and independent pelvis contract: PASS")
+          PY
+      - name: Test V115 independent pelvis width and V114 torso plus V110–V113 controls (pure JVM)
+        run: |
+          set -e
+          R=survival-paradise/native-game
+          mkdir -p /tmp/sp-v112-jvm
+          javac -d /tmp/sp-v112-jvm "$R/app/src/main/java/com/survivalparadise/nativegame/AnimationCycle.java" "$R/tools/AnimationCycleTest.java" "$R/app/src/main/java/com/survivalparadise/nativegame/CharacterAnimationV110.java" "$R/tools/CharacterAnimationV110Test.java" "$R/app/src/main/java/com/survivalparadise/nativegame/Ballistics.java" "$R/app/src/main/java/com/survivalparadise/nativegame/HeadAimV111.java" "$R/tools/HeadAimV111Test.java" "$R/app/src/main/java/com/survivalparadise/nativegame/HeadFitOffsetsV112.java" "$R/tools/HeadFitOffsetsV112Test.java" "$R/app/src/main/java/com/survivalparadise/nativegame/CharacterScopeV113.java" "$R/tools/CharacterScopeV113Test.java" "$R/app/src/main/java/com/survivalparadise/nativegame/TorsoWidthV114.java" "$R/tools/TorsoWidthV114Test.java" "$R/app/src/main/java/com/survivalparadise/nativegame/PelvisWidthV115.java" "$R/tools/PelvisWidthV115Test.java"
+          java -cp /tmp/sp-v112-jvm com.survivalparadise.nativegame.AnimationCycleTest
+          java -cp /tmp/sp-v112-jvm com.survivalparadise.nativegame.CharacterAnimationV110Test
+          java -cp /tmp/sp-v112-jvm com.survivalparadise.nativegame.HeadAimV111Test
+          java -cp /tmp/sp-v112-jvm com.survivalparadise.nativegame.HeadFitOffsetsV112Test
+          java -cp /tmp/sp-v112-jvm com.survivalparadise.nativegame.CharacterScopeV113Test
+          java -cp /tmp/sp-v112-jvm com.survivalparadise.nativegame.TorsoWidthV114Test
+          java -cp /tmp/sp-v112-jvm com.survivalparadise.nativegame.PelvisWidthV115Test
+      - name: Prepare Android 35 SDK
+        run: |
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -path '*/bin/sdkmanager' | sort -V | tail -1)"
+          test -x "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Use stable key when already configured
+        env:
+          SP_KEYSTORE_BASE64: ${{ secrets.SP_SIGNING_KEYSTORE_BASE64 }}
+          SP_SIGNING_PASSWORD: ${{ secrets.SP_SIGNING_PASSWORD }}
+          SP_SIGNING_KEY_PASSWORD: ${{ secrets.SP_SIGNING_KEY_PASSWORD }}
+          SP_SIGNING_ALIAS: ${{ secrets.SP_SIGNING_ALIAS }}
+        run: |
+          if [ -n "$SP_KEYSTORE_BASE64" ] && [ -n "$SP_SIGNING_PASSWORD" ]; then
+            echo "$SP_KEYSTORE_BASE64" | base64 --decode > /tmp/sp_native_stable_keystore.jks
+            echo "SP_SIGNING_STORE=/tmp/sp_native_stable_keystore.jks" >> "$GITHUB_ENV"
+            echo "SP_SIGNING_PASSWORD=$SP_SIGNING_PASSWORD" >> "$GITHUB_ENV"
+            echo "SP_SIGNING_KEY_PASSWORD=$SP_SIGNING_KEY_PASSWORD" >> "$GITHUB_ENV"
+            echo "SP_SIGNING_ALIAS=$SP_SIGNING_ALIAS" >> "$GITHUB_ENV"
+          else
+            echo "::warning::No stable signing configured; resulting debug build might not upgrade existing installation."
+          fi
+      - name: Reconstruct and verify 200 approved character sources + V5 fittings
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import zipfile,io,json,hashlib
+          root=Path("survival-paradise/native-game")
+          parts=sorted((root/"source_v109").glob("part_*.bin"))
+          assert len(parts)==8, f"expected 8 exact lossless source segments, found {len(parts)}"
+          data=b"".join(p.read_bytes() for p in parts)
+          actual=hashlib.sha256(data).hexdigest()
+          expected="c8e364bc1485eb5251fa9494889977038268cbac10f455fa844d7b8a46f6dc3a"
+          assert actual==expected,(actual,expected)
+          with zipfile.ZipFile(io.BytesIO(data)) as z:
+              assert z.testzip() is None,"corrupt source ZIP"
+              for i in range(1,201):
+                  assert f"heads/{i:03}.png" in z.namelist(),f"head {i} missing"
+              pack=json.loads(z.read("v5_fittings.json"))
+              assert pack["totalCharacters"]==200
+              assert pack["animation"]["idleMode"]=="head-only-breathing"
+              assert len(pack["characterOverrides"])==pack["overrideCount"]==51
+              assert len(z.read("body_idle.png"))>100
+              assert len(z.read("body_walk.png"))>100
+          target=root/"app/src/main/assets/sp_v109_characters.zip"
+          target.write_bytes(data)
+          print("VERIFIED: 200 exact heads, 4 walk poses, static idle body, V5 51 overrides",len(data),actual)
+          PY
+      - name: Verify V114 approved source pixels, original pants and feet in all poses
+        run: python3 survival-paradise/native-game/tools/test_v114_torso_source.py
+      - name: Exact V115 V109 source-pixel QA - pelvis separate from walking legs
+        run: python3 survival-paradise/native-game/tools/test_v115_pelvis_source.py
+      - name: V115 independent upper-torso/pelvis layering, player/NPC scope and locked feet
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          d=Path("survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame")
+          game=(d/"GameView.java").read_text()
+          skins=(d/"CharacterSkinsV109.java").read_text()
+          menu=(d/"MainActivity.java").read_text()
+          assert 'characterSkinsV109.draw(c,skinIdV109' in game
+          assert 'else if(characterSkinsV109!=null||!bandit)' in game
+          assert 'if(characterSkinsV109==null){ // legacy equipment is hidden' in game
+          assert 'playerSkinV109' in menu
+          assert 'float breathing=CharacterAnimationV110.breathOffset' in skins
+          assert 'CharacterAnimationV110.bodyFrame' in skins
+          assert 'idleBreathingSpeedV110' in game and 'idleBreathingSpeedV110' in menu
+          assert 'walkingAnimationMultiplierV79,' in game
+          assert 'player?fitWalkFpsV108:npcWalkFpsV113' in game
+          assert 'player?fitIdleBreathV108:npcBreathPixelsV113' in game
+          assert 'HeadAimV111.neckX' in skins and 'HeadAimV111.neckY' in skins
+          assert 'c.rotate(Math.max(-HeadAimV111.MAX_DEGREES' in skins
+          assert 'playerHeadTiltV111=HeadAimV111.follow' in game
+          assert 'headAimTiltV111' in game and 'headAimTiltV111' in menu
+          assert 'player?playerHeadTiltV111:' in game
+          assert 'HeadFitOffsetsV112.x(hw,fit.horizontal,headOffsetX)' in skins
+          assert 'HeadFitOffsetsV112.y(hh,fit.vertical,breathing,headOffsetY)' in skins
+          assert 'player?fitHeadXV108:npcHeadFitXV113' in game
+          assert 'player?fitHeadYV108:npcHeadFitYV113' in game
+          assert 'player?playerHeadSizeV113:npcHeadSizeV113,' in game
+          assert 'player?playerTorsoWidthV114:npcTorsoWidthV114,' in game
+          assert 'player?playerPelvisWidthV115:npcPelvisWidthV115);' in game
+          assert 'PelvisWidthV115.percent(host.setting("pelvisWidthV115",100))' in game
+          assert 'PelvisWidthV115.percent(host.setting("pelvisWidthV115NpcV113",100))' in game
+          assert 'TorsoWidthV114.percent(host.setting("bodyWidthV114",100))' in game
+          assert 'TorsoWidthV114.percent(host.setting("bodyWidthV114NpcV113",100))' in game
+          assert 'drawBody(c,body,left,top,unit,torsoWidthPercent,pelvisWidthPercent,pixel);' in skins
+          assert 'originalLegsSource' in skins
+          assert 'pelvisSource' in skins
+          assert 'PelvisWidthV115.LEGS_TOP' in skins
+          assert 'TorsoWidthV114.LOWER_BODY_TOP' in skins
+          assert 'CharacterScopeV113.key("bodyWidthV114",scope)' in menu
+          assert '"bodyWidthV114"' in menu
+          assert 'CharacterScopeV113.key("pelvisWidthV115",scope)' in menu
+          assert '"pelvisWidthV115"' in menu
+          assert '"bodyWidthV114","pelvisWidthV115"' in menu
+          assert 'CharacterScopeV113.headSizeMultiplier(headSizePercent)' in skins
+          assert 'CharacterScopeV113.key("headSizeV82",scope)' in menu
+          assert 'CharacterScopeV113.key("headAimTiltV111",scope)' in menu
+          assert 'CharacterScopeV113.key("walkingAnimationSpeedV79",scope)' in menu
+          assert 'CharacterScopeV113.SCOPE_KEY' in menu
+          assert 'fitHeadXV108=CharacterFitV108.headX(host.prefs);' in game
+          assert 'fitHeadYV108=CharacterFitV108.headY(host.prefs);' in game
+          assert 'CharacterScopeV113.key("fitHeadXV108",scope)' in menu
+          assert 'CharacterScopeV113.key("fitHeadYV108",scope)' in menu
+          assert 'new Fit(base)' in skins and 'characterOverrides' in skins
+          assert 'fps=2' in skins
+          assert 'void draw(Canvas c,int id,boolean walking' in skins
+          print("V115: independent torso/pelvis width sliders per player/NPC; original leg source y>=200 preserved")
+          PY
+      - name: Compile Android debug APK
+        working-directory: survival-paradise/native-game
+        run: gradle --no-daemon :app:assembleDebug
+      - name: Verify APK payload and version
+        run: |
+          set -e
+          APK=survival-paradise/native-game/app/build/outputs/apk/debug/app-debug.apk
+          test -s "$APK"
+          unzip -t "$APK" >/dev/null
+          unzip -l "$APK" | grep -q 'classes.dex'
+          unzip -l "$APK" | grep -q 'assets/body.png'
+          unzip -l "$APK" | grep -q 'assets/npc_idle_v56.png'
+          unzip -l "$APK" | grep -q 'assets/sp_v109_characters.zip'
+          mkdir -p artifacts
+          cp "$APK" artifacts/SurvivalParadise_V115_200_Characters_Independent_Torso_Pelvis.apk
+          sha256sum artifacts/SurvivalParadise_V115_200_Characters_Independent_Torso_Pelvis.apk > artifacts/SHA256.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: SP_V115_200_Characters_Independent_Torso_Pelvis_APK
+          path: artifacts/
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Publish V115 APK as direct GitHub prerelease
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG=survival-paradise-v115-independent-pelvis-width
+          APK=artifacts/SurvivalParadise_V115_200_Characters_Independent_Torso_Pelvis.apk
+          SUM=artifacts/SHA256.txt
+          test -s "$APK" && test -s "$SUM"
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" "$SUM" --clobber -R "$GITHUB_REPOSITORY"
+            gh release edit "$TAG" -R "$GITHUB_REPOSITORY" \
+              --notes "V115 installs separately to preserve all previous test APKs and saves. It retains the V114 torso-width control (55-100%) and adds an independent pelvis-width control (55-100%) with separate Player and World NPC settings. The pelvis (source rows y180..199) narrows symmetrically, while the original moving legs, pants and feet at y200..259 remain pixel-identical in idle and all four walking poses. Approved 200 heads, V5 general and 51 overrides, head fit/tilt, breathing and walking speed, original weapons and controls remain unchanged. JVM, original-PNG regression and Android APK tests passed."
+          else
+            gh release create "$TAG" "$APK" "$SUM" --target "$GITHUB_SHA" \
+              -R "$GITHUB_REPOSITORY" --prerelease \
+              --title "Survival Paradise V115 — Independent Pelvis and Torso Width / Original Legs" \
+              --notes "V115 has independently adjustable torso and pelvis widths from 55-100%, for Player or World NPCs with separate saved controls. Pelvis row y180-199 narrows from the center, but moving legs/boots/feet y200-259 remain the exact approved pixels in idle plus four walk poses. All 200 fitted heads, 51 V5 overrides, aim tilt, breathing, walking speeds, weapon rigs and hidden equipment preserved. Separately installing test APK preserves V114 and other saves."
+          fi
