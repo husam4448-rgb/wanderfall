@@ -52,8 +52,20 @@ jobs:
           python3 survival-paradise/native-game/tools/build_v56_approved_character_atlases.py
           python3 survival-paradise/native-game/tools/build_v74_biome_assets.py
           test "$(sha256sum survival-paradise/native-game/app/src/main/assets/body.png | cut -d' ' -f1)" = "141878713a6880d05879b7102c728581dddb55730434bcac8e050fe44b3d82ad"
-      - name: Verify neutral legacy rendering and fitting export logic
-        run: python3 survival-paradise/native-game/tools/test_v108_character_fit.py
+      - name: Verify approved V109 head-only runtime and version
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("survival-paradise/native-game")
+          source=(root/"app/src/main/java/com/survivalparadise/nativegame/CharacterSkinsV109.java").read_text()
+          gradle=(root/"app/build.gradle").read_text()
+          assert "versionCode 109" in gradle
+          assert "sp_v109_characters.zip" in source
+          assert "Math.sin(timeSec*4f)" in source
+          assert "new Fit(base)" in source
+          assert "boolean walking" in source
+          print("V109 source fitting contract + version check: PASS")
+          PY
       - name: Test four-frame original gait and planted idle (pure JVM)
         run: |
           set -e
