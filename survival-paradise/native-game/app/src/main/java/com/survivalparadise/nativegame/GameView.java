@@ -254,8 +254,14 @@ public final class GameView extends View {
             this.x=x;this.y=y;this.vx=vx;this.vy=vy;this.damage=damage;this.life=Ballistics.PROJECTILE_LIFE;
             this.hostile=enemy;this.color=enemy?0xffffa88a:0xffeada9e;
         }}
-    static class Flash {float x,y,dx,dy,ttl=.065f;
+    static class Flash {float x,y,dx,dy,ttl=GunEffectsV118.FLASH_SECONDS;
         Flash(float x,float y,float dx,float dy){this.x=x;this.y=y;this.dx=dx;this.dy=dy;}}
+    static class GunTracerV118 {
+        float x,y,dx,dy,ttl=GunEffectsV118.TRACER_SECONDS;int weapon;
+        GunTracerV118(float x,float y,float dx,float dy,int weapon){
+            this.x=x;this.y=y;this.dx=dx;this.dy=dy;this.weapon=weapon;
+        }
+    }
     static class Drop {float x,y,ttl=40;int type;
         Drop(float x,float y,int type){this.x=x;this.y=y;this.type=type;}}
     static class Spark {float x,y,vx,vy,ttl=.3f;int color;
@@ -667,7 +673,7 @@ public final class GameView extends View {
         worldTimer=0;autSaveClock=0;playerHeadTiltV111=0f;
         clock.setClock(night?21*60f:12*60f,1);
         face=1;aimX=1;aimY=0;refreshDaylight();
-        enemies.clear();friends.clear();campStaff.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();builtCampfires.clear();
+        enemies.clear();friends.clear();campStaff.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();gunTracersV118.clear();builtCampfires.clear();
         craftV83.clear();banditLootV87.clear();removeBarricadeCoverV83();
         sitesInitializedV88=false;stationUsedV88.clear();
         clinicInteriorV89=new ClinicInteriorV89();
@@ -729,7 +735,7 @@ public final class GameView extends View {
         gatherFeedback="";gatherFeedbackTime=0;
         gun=Math.max(0,Math.min(11,host.setting("gun",0)));
         ammo=Math.max(0,Math.min(MAG[gun],host.setting("ammo",MAG[gun])));
-        enemies.clear();friends.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();
+        enemies.clear();friends.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();gunTracersV118.clear();
         restoreCampfires();
         craftV83.decode(host.prefs.getString("camp_buildings_v83",""));
         craftV83.decodeStock(host.prefs.getString("camp_stock_v84",""));
@@ -1372,6 +1378,8 @@ public final class GameView extends View {
         shotClock=Math.max(0f,shotClock-dt);
         recoil=Math.max(0f,recoil-dt*5f);
         indoorShotCooldownV90=Math.max(0f,indoorShotCooldownV90-dt);
+        axeSwingTimeV118=Math.max(0f,axeSwingTimeV118-dt);
+        updateGunEffectsV118(dt);
         if(reloadClock>0f){
             reloadClock-=dt;
             if(reloadClock<=0f){ammo=MAG[gun];reloadClock=0f;}
@@ -1433,6 +1441,14 @@ public final class GameView extends View {
                     particles(target.x,target.y-33,0xffa44b45,5);
                 }
                 recoil=recoilFX?1:0;
+                if(GunEffectsV118.firearm(gun)){
+                    float sc=CharacterCollision.BASE_SCALE*scale;
+                    float[] mx=Ballistics.rigMuzzle(playerX,playerY,face,aimX,aimY,
+                        sc,MX[gun],MY[gun],MAIN_X[gun],MAIN_Y[gun],0f);
+                    WeaponPivotV117.relocateMuzzle(mx,face,sc,
+                        playerGunPivotXV117,playerGunPivotYV117);
+                    emitGunEffectsV118(mx[0],mx[1],aimX,aimY,gun);
+                }
                 indoorShotCooldownV90=Math.max(.13f,RATES[gun]);
                 saveProgress();
             }else if(ammoPacks>0){
@@ -1770,7 +1786,7 @@ public final class GameView extends View {
     boolean debugTeleport(float dx,float dy){
         if(!playing||gameOver)return false;
         cancelPlaceV84();harvestV81.cancel();releaseControls();playerX+=dx;playerY+=dy;
-        shots.clear();flashes.clear();sparks.clear();
+        shots.clear();flashes.clear();gunTracersV118.clear();sparks.clear();
         saveProgress();invalidate();return true;
     }
     String testStats(){
@@ -1909,6 +1925,7 @@ public final class GameView extends View {
         dx/=length;dy/=length;
         if(weapon==3)return; // Flashlight does not fire bullets.
         if(weapon==11){
+            if(playerShooter)axeSwingTimeV118=.25f;
             if(hostile){if(distance(x,y,playerX,playerY)<92)hurt(POWER[11]);}
             else for(Bandit e:enemies)if(e.active&&distance(x,y,e.x,e.y)<88)damage(e,POWER[11]);
             particles(x+dx*26,y-35,ORANGE,3);
@@ -1930,7 +1947,7 @@ public final class GameView extends View {
             shots.add(new Shot(bx,by,(float)Math.cos(a)*velocity,
                     (float)Math.sin(a)*velocity,POWER[weapon]/(pellets==5?2f:1f),hostile));
         }
-        if(recoilFX){flashes.add(new Flash(bx,by,dx,dy));}
+        emitGunEffectsV118(bx,by,dx,dy,weapon);
         particles(bx,by,ORANGE,weapon==10?4:2);
     }
     void damage(Bandit enemy,float amount){
@@ -2117,7 +2134,11 @@ public final class GameView extends View {
             if(shotClock<=0&&reloadClock==0){
                 if(ammo>0||gun==11||gun==3){
                     shoot(playerX,playerY,aimX,aimY,gun,false,face,true);
-                    if(gun!=3){shotClock=RATES[gun];ammo=Math.max(0,ammo-1);recoil=recoilFX?1:0;}
+                    if(gun!=3){
+                        shotClock=RATES[gun];
+                        if(GunEffectsV118.firearm(gun))ammo=Math.max(0,ammo-1);
+                        recoil=GunEffectsV118.firearm(gun)&&recoilFX?1:0;
+                    }
                 }else reload();
             }
         }
@@ -2308,9 +2329,7 @@ public final class GameView extends View {
                 iter.remove();
             }else {bullet.x=nx;bullet.y=ny;}
         }
-        for(Iterator<Flash> it=flashes.iterator();it.hasNext();){
-            Flash flash=it.next();flash.ttl-=dt;if(flash.ttl<=0)it.remove();
-        }
+        updateGunEffectsV118(dt);
         for(Iterator<Drop> it=drops.iterator();it.hasNext();){
             Drop d=it.next();d.ttl-=dt;
             if(d.ttl<0){it.remove();continue;}
