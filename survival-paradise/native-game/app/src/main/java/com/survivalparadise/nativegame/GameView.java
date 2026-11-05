@@ -236,7 +236,7 @@ public final class GameView extends View {
     final ArrayList<Drop> drops=new ArrayList<>();
     final ArrayList<Spark> sparks=new ArrayList<>();
     final ArrayList<Flash> flashes=new ArrayList<>();
-    final ArrayList<GunTracerV118> gunTracersV118=new ArrayList<>();
+
     final ArrayList<Cover> covers=new ArrayList<>();
     int allySetting=1,allyCurrent=1;
     int followMode=FollowFormationV61.SCATTER,followSpacing=125;
@@ -260,12 +260,10 @@ public final class GameView extends View {
             this.x=x;this.y=y;this.vx=vx;this.vy=vy;this.damage=damage;this.life=Ballistics.PROJECTILE_LIFE;
             this.hostile=enemy;this.color=enemy?0xffffa88a:0xffeada9e;
         }}
-    static class Flash {float x,y,dx,dy,ttl=GunEffectsV118.FLASH_SECONDS;
-        Flash(float x,float y,float dx,float dy){this.x=x;this.y=y;this.dx=dx;this.dy=dy;}}
-    static class GunTracerV118 {
-        float x,y,dx,dy,ttl=GunEffectsV118.TRACER_SECONDS;int weapon;
-        GunTracerV118(float x,float y,float dx,float dy,int weapon){
-            this.x=x;this.y=y;this.dx=dx;this.dy=dy;this.weapon=weapon;
+    static class Flash {
+        float x,y,dx,dy,ttl=GunEffectsV119.FLASH_SECONDS;
+        Flash(float x,float y,float dx,float dy){
+            this.x=x;this.y=y;this.dx=dx;this.dy=dy;
         }
     }
     static class Drop {float x,y,ttl=40;int type;
@@ -679,7 +677,7 @@ public final class GameView extends View {
         worldTimer=0;autSaveClock=0;playerHeadTiltV111=0f;
         clock.setClock(night?21*60f:12*60f,1);
         face=1;aimX=1;aimY=0;refreshDaylight();
-        enemies.clear();friends.clear();campStaff.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();gunTracersV118.clear();builtCampfires.clear();
+        enemies.clear();friends.clear();campStaff.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();builtCampfires.clear();
         craftV83.clear();banditLootV87.clear();removeBarricadeCoverV83();
         sitesInitializedV88=false;stationUsedV88.clear();
         clinicInteriorV89=new ClinicInteriorV89();
@@ -741,7 +739,7 @@ public final class GameView extends View {
         gatherFeedback="";gatherFeedbackTime=0;
         gun=Math.max(0,Math.min(11,host.setting("gun",0)));
         ammo=Math.max(0,Math.min(MAG[gun],host.setting("ammo",MAG[gun])));
-        enemies.clear();friends.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();gunTracersV118.clear();
+        enemies.clear();friends.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();
         restoreCampfires();
         craftV83.decode(host.prefs.getString("camp_buildings_v83",""));
         craftV83.decodeStock(host.prefs.getString("camp_stock_v84",""));
@@ -1385,7 +1383,7 @@ public final class GameView extends View {
         recoil=Math.max(0f,recoil-dt*5f);
         indoorShotCooldownV90=Math.max(0f,indoorShotCooldownV90-dt);
         axeSwingTimeV118=Math.max(0f,axeSwingTimeV118-dt);
-        updateGunEffectsV118(dt);
+        updateGunEffectsV119(dt);
         if(reloadClock>0f){
             reloadClock-=dt;
             if(reloadClock<=0f){ammo=MAG[gun];reloadClock=0f;}
@@ -1453,7 +1451,7 @@ public final class GameView extends View {
                         sc,MX[gun],MY[gun],MAIN_X[gun],MAIN_Y[gun],0f);
                     WeaponPivotV117.relocateMuzzle(mx,face,sc,
                         playerGunPivotXV117,playerGunPivotYV117);
-                    emitGunEffectsV118(mx[0],mx[1],aimX,aimY,gun);
+                    emitGunEffectsV119(mx[0],mx[1],aimX,aimY,gun);
                 }
                 indoorShotCooldownV90=Math.max(.13f,RATES[gun]);
                 saveProgress();
@@ -1662,7 +1660,7 @@ public final class GameView extends View {
         }));
         indoorOrderV92.sort((a,b)->Float.compare(a.y,b.y));
         for(DrawEntity entity:indoorOrderV92)entity.draw.run();
-        drawGunEffectsV118(c);
+        drawGunEffectsV119(c);
         drawIndoorSpeechAfterLightingV93(c);
         c.restore();
     }
@@ -1793,7 +1791,7 @@ public final class GameView extends View {
     boolean debugTeleport(float dx,float dy){
         if(!playing||gameOver)return false;
         cancelPlaceV84();harvestV81.cancel();releaseControls();playerX+=dx;playerY+=dy;
-        shots.clear();flashes.clear();gunTracersV118.clear();sparks.clear();
+        shots.clear();flashes.clear();sparks.clear();
         saveProgress();invalidate();return true;
     }
     String testStats(){
@@ -1954,53 +1952,66 @@ public final class GameView extends View {
             shots.add(new Shot(bx,by,(float)Math.cos(a)*velocity,
                     (float)Math.sin(a)*velocity,POWER[weapon]/(pellets==5?2f:1f),hostile));
         }
-        emitGunEffectsV118(bx,by,dx,dy,weapon);
+        emitGunEffectsV119(bx,by,dx,dy,weapon);
         particles(bx,by,ORANGE,weapon==10?4:2);
     }
-    /** Each projectile's visible gunfire begins at its V117-fitted muzzle. */
-    void emitGunEffectsV118(float x,float y,float dx,float dy,int weapon){
-        if(!GunEffectsV118.firearm(weapon))return;
+    /** Add only a brief, small gun muzzle flash at the V117-fitted muzzle.
+     * Unlike V118, no synthetic tracers are generated independently of bullets.
+     */
+    void emitGunEffectsV119(float x,float y,float dx,float dy,int weapon){
+        if(!GunEffectsV119.firearm(weapon)||!host.option("gunMuzzleV119",true))return;
         float length=Math.max(.001f,(float)Math.hypot(dx,dy));
-        float fx=dx/length,fy=dy/length;
-        if(flashes.size()>=64)flashes.remove(0);
-        flashes.add(new Flash(x,y,fx,fy));
-        if(gunTracersV118.size()>=80)gunTracersV118.remove(0);
-        gunTracersV118.add(new GunTracerV118(x,y,fx,fy,weapon));
+        float nx=dx/length,ny=dy/length;
+        if(flashes.size()>=48)flashes.remove(0);
+        flashes.add(new Flash(x,y,nx,ny));
     }
-    void updateGunEffectsV118(float dt){
+
+    void updateGunEffectsV119(float dt){
         for(Iterator<Flash> it=flashes.iterator();it.hasNext();){
-            Flash flash=it.next();flash.ttl-=dt;if(flash.ttl<=0)it.remove();
-        }
-        for(Iterator<GunTracerV118> it=gunTracersV118.iterator();it.hasNext();){
-            GunTracerV118 t=it.next();t.ttl-=dt;if(t.ttl<=0)it.remove();
+            Flash flash=it.next();flash.ttl-=dt;
+            if(flash.ttl<=0f)it.remove();
         }
     }
-    /** Visible after darkness so bullets and muzzle fire don't disappear at night. */
-    void drawGunEffectsV118(Canvas c){
-        for(GunTracerV118 fx:gunTracersV118){
-            if(!WorldPerfV55.nearView(fx.x,fx.y,camX,camY,viewW,viewH,205))continue;
-            float progress=1f-GunEffectsV118.lifeFraction(
-                fx.ttl,GunEffectsV118.TRACER_SECONDS);
-            float tip=32f+progress*175f,tail=Math.max(0f,tip-70f);
-            color(GunEffectsV118.muzzleColor(fx.weapon));
-            p.setStrokeWidth(fx.weapon==8?2.5f:1.8f);
-            c.drawLine(fx.x+fx.dx*tail,fx.y+fx.dy*tail,
-                fx.x+fx.dx*tip,fx.y+fx.dy*tip,p);
-            rect(c,fx.x+fx.dx*tip-2,fx.y+fx.dy*tip-2,4,4,0xfffff5d2);
+
+    /** Real traveling bullets and restrained muzzle tip after the night pass.
+     * No large glowing streak, fake traveling projectile, laser or starburst.
+     * Never invoked for the axe (ID 11) or flashlight (ID 3).
+     */
+    void drawGunEffectsV119(Canvas c){
+        if(host.option("gunTrailV119",true)){
+            for(Shot bullet:shots){
+                if(!WorldPerfV55.nearView(bullet.x,bullet.y,camX,camY,
+                    viewW,viewH,24f))continue;
+                float speed=Math.max(1f,(float)Math.hypot(bullet.vx,bullet.vy));
+                float dx=bullet.vx/speed,dy=bullet.vy/speed;
+                color(GunEffectsV119.bulletColor(bullet.hostile));
+                p.setStrokeWidth(1.25f);
+                c.drawLine(bullet.x-dx*GunEffectsV119.BULLET_TRAIL_LENGTH,
+                    bullet.y-dy*GunEffectsV119.BULLET_TRAIL_LENGTH,
+                    bullet.x,bullet.y,p);
+                rect(c,bullet.x-1f,bullet.y-1f,2f,2f,
+                    GunEffectsV119.bulletColor(bullet.hostile));
+            }
         }
-        for(Flash flash:flashes){
-            if(!WorldPerfV55.nearView(flash.x,flash.y,camX,camY,viewW,viewH,45))continue;
-            float alpha=GunEffectsV118.lifeFraction(
-                flash.ttl,GunEffectsV118.FLASH_SECONDS);
-            float sx=flash.x,sy=flash.y,dx=flash.dx,dy=flash.dy;
-            float px=-dy,py=dx,length=19f+14f*alpha,spread=8f*alpha;
-            color(0xffffe59d);p.setStrokeWidth(2.8f+3f*alpha);
-            c.drawLine(sx,sy,sx+dx*length,sy+dy*length,p);
-            c.drawLine(sx+px*spread,sy+py*spread,
-                sx+dx*length*.85f,sy+dy*length*.85f,p);
-            c.drawLine(sx-px*spread,sy-py*spread,
-                sx+dx*length*.85f,sy+dy*length*.85f,p);
-            rect(c,sx-2,sy-2,5,5,0xfffff7cf);
+        if(!host.option("gunMuzzleV119",true))return;
+        for(Flash f:flashes){
+            if(!WorldPerfV55.nearView(f.x,f.y,camX,camY,viewW,viewH,20f))continue;
+            float a=GunEffectsV119.alpha(f.ttl);
+            if(a<=0f)continue;
+            float len=GunEffectsV119.muzzleLength(a,0);
+            float spread=GunEffectsV119.muzzleHalfWidth(a);
+            float px=-f.dy,py=f.dx;
+            // A tiny tapered, warm muzzle cone: 1 short center dash and
+            // two narrow edges. Not a glowing cross or a static giant streak.
+            color(0xffdfbc77);
+            p.setStrokeWidth(1.55f);
+            c.drawLine(f.x,f.y,f.x+f.dx*len,f.y+f.dy*len,p);
+            color(0xffc98d50);
+            p.setStrokeWidth(1.1f);
+            c.drawLine(f.x+px*spread*.7f,f.y+py*spread*.7f,
+                f.x+f.dx*len*.88f,f.y+f.dy*len*.88f,p);
+            c.drawLine(f.x-px*spread*.7f,f.y-py*spread*.7f,
+                f.x+f.dx*len*.88f,f.y+f.dy*len*.88f,p);
         }
     }
 
@@ -2383,7 +2394,7 @@ public final class GameView extends View {
                 iter.remove();
             }else {bullet.x=nx;bullet.y=ny;}
         }
-        updateGunEffectsV118(dt);
+        updateGunEffectsV119(dt);
         for(Iterator<Drop> it=drops.iterator();it.hasNext();){
             Drop d=it.next();d.ttl-=dt;
             if(d.ttl<0){it.remove();continue;}
@@ -3459,32 +3470,15 @@ public final class GameView extends View {
         order.sort((a,b)->Float.compare(a.y,b.y));
         for(DrawEntity e:order)e.draw.run();
         // Melee knife is drawn with the player at the correct world depth.
-        for(Shot projectile:shots){
-            if(!WorldPerfV55.nearView(projectile.x,projectile.y,
-                    camX,camY,viewW,viewH,25))continue;
-            // Short, subtle tracer instead of slow glowing projectile blocks.
-            float inv=1f/Math.max(1f,(float)Math.hypot(projectile.vx,projectile.vy));
-            float vx=projectile.vx*inv,vy=projectile.vy*inv;
-            color(projectile.color);p.setStrokeWidth(1.6f);
-            c.drawLine(projectile.x-vx*19,projectile.y-vy*19,
-                    projectile.x,projectile.y,p);
-            rect(c,projectile.x-1,projectile.y-1,3,3,WHITE);
-        }
-        for(Flash flash:flashes){
-            if(!WorldPerfV55.nearView(flash.x,flash.y,camX,camY,viewW,viewH,32))continue;
-            float alpha=clamp(flash.ttl/.065f,0,1),length=18*alpha;
-            color(0xffffdf95);p.setStrokeWidth(Math.max(1.5f,3f*alpha));
-            c.drawLine(flash.x,flash.y,flash.x+flash.dx*length,
-                    flash.y+flash.dy*length,p);
-            rect(c,flash.x-2,flash.y-2,4,4,0xfffff7cf);
-        }
+        // Bullets + subtle muzzle flashes are drawn ONCE after lighting
+        // in drawGunEffectsV119, using actual projectile positions.
         for(Spark s:sparks)if(
             WorldPerfV55.nearView(s.x,s.y,camX,camY,viewW,viewH,10))
                 rect(c,s.x,s.y,4,4,s.color);
         // Last pass darkens the *entire* world, including all characters,
         // equipment, projectiles and props; real lights punch through this mask.
         if(lightAlpha>0)applyWorldLighting(c);else drawFixtures(c,true);
-        drawGunEffectsV118(c);
+        drawGunEffectsV119(c);
         if(showChunkGrid)drawChunkGrid(c);
         drawOutdoorSpeechAfterLightingV93(c);
         c.restore();
