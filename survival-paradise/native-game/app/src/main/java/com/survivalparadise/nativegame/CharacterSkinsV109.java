@@ -53,6 +53,10 @@ final class CharacterSkinsV109 {
         @Override protected boolean removeEldestEntry(Map.Entry<Integer,Bitmap> e){return size()>28;}
     };
     private final Rect spriteSource=new Rect(0,0,WIDTH,HEIGHT);
+    // The original approved source sheets have shirt y=160..179 and
+    // pants/legs/boots y=180..259. Restrict X scaling to shirt rows only.
+    private final Rect torsoSource=new Rect(0,TorsoWidthV114.TORSO_TOP,WIDTH,TorsoWidthV114.LOWER_BODY_TOP);
+    private final Rect originalLowerBodySource=new Rect(0,TorsoWidthV114.LOWER_BODY_TOP,WIDTH,HEIGHT);
     private final Rect headSource=new Rect();
     private final RectF destination=new RectF();
     private JSONObject configuration;
@@ -141,12 +145,39 @@ final class CharacterSkinsV109 {
         blended.put(key,result);
         return result;
     }
+    /** Draw the original pixels with optional centered upper-torso narrowing.
+     * The entire lower source region (y >= 180) is copied without resizing or
+     * recoloring; only the old shirt row y=160..179 becomes narrower.
+     * Bitmap flags in GameView use NEAREST NEIGHBOR to retain chunky outlines.
+     */
+    private void drawBody(Canvas canvas,Bitmap source,float left,float top,
+                          float unit,int torsoWidth,Paint pixels) {
+        if(torsoWidth>=TorsoWidthV114.MAX_PERCENT) {
+            destination.set(left,top,left+WIDTH*unit,top+HEIGHT*unit);
+            canvas.drawBitmap(source,spriteSource,destination,pixels);
+            return;
+        }
+        // Legs, walking feet, trousers and all black outlines stay 1:1.
+        destination.set(left,top+TorsoWidthV114.LOWER_BODY_TOP*unit,
+                        left+WIDTH*unit,top+HEIGHT*unit);
+        canvas.drawBitmap(source,originalLowerBodySource,destination,pixels);
+
+        // Move only each shoulder inward from its nearest side.
+        destination.set(
+            TorsoWidthV114.left(left,unit,torsoWidth),
+            top+TorsoWidthV114.TORSO_TOP*unit,
+            TorsoWidthV114.right(left,unit,torsoWidth),
+            top+TorsoWidthV114.LOWER_BODY_TOP*unit);
+        canvas.drawBitmap(source,torsoSource,destination,pixels);
+    }
+
     /** Draw at the existing GameView origin: character feet are planted at y+24s.
      * Uses nearest-neighbor source sampling, original silhouettes, unchanged feet.
      */
     void draw(Canvas c,int id,boolean walking,int walkingFrame,float timeSec,float s,Paint pixel,
               float walkingTempo,float breathingTempo,int fixedWalkFps,int breathingAmplitude,
-              float headTiltDegrees,int headOffsetX,int headOffsetY,int headSizePercent) {
+              float headTiltDegrees,int headOffsetX,int headOffsetY,int headSizePercent,
+              int torsoWidthPercent) {
         id=range(id,1,COUNT);
         Fit fit=fitting[id];
         // Rendering scale uses 160/260 to match the old native 160px character rig.
@@ -155,8 +186,7 @@ final class CharacterSkinsV109 {
         float left=-100f*unit, top=-136f*s;
         Bitmap body=body(CharacterAnimationV110.bodyFrame(walking,timeSec,fit.fps,
             fixedWalkFps,walkingTempo),fit.blend);
-        destination.set(left,top,left+WIDTH*unit,top+HEIGHT*unit);
-        c.drawBitmap(body,spriteSource,destination,pixel);
+        drawBody(c,body,left,top,unit,torsoWidthPercent,pixel);
         Bitmap h=head(id);if(h==null)return;
         float headScale=Math.min(186f/h.getWidth(),192f/h.getHeight())*(fit.headScale/107f)*
             CharacterScopeV113.headSizeMultiplier(headSizePercent);
