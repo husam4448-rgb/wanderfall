@@ -146,7 +146,8 @@ jobs:
           assert 'CharacterAnimationV110.bodyFrame' in skins
           assert 'idleBreathingSpeedV110' in game and 'idleBreathingSpeedV110' in menu
           assert 'walkingAnimationMultiplierV79,' in game
-          assert 'fitWalkFpsV108,fitIdleBreathV108' in game
+          assert 'player?fitWalkFpsV108:npcWalkFpsV113' in game
+          assert 'player?fitIdleBreathV108:npcBreathPixelsV113' in game
           assert 'HeadAimV111.neckX' in skins and 'HeadAimV111.neckY' in skins
           assert 'c.rotate(Math.max(-HeadAimV111.MAX_DEGREES' in skins
           assert 'playerHeadTiltV111=HeadAimV111.follow' in game
