@@ -83,6 +83,8 @@ public final class GameView extends View {
     final GearLootV95 gearLootV95=new GearLootV95();
     final WardrobeV92 wardrobeV92=new WardrobeV92();
     final WearableArtV96 wearableArtV96=new WearableArtV96();
+    CharacterSkinsV109 characterSkinsV109; // exact 200 approved head/body sources + V5 fittings
+    int playerSkinV109=124;
     final TorsoRecolorV98 torsoRecolorV98=new TorsoRecolorV98();
     int backpackStyleV96=0,headgearStyleV96=0;
     // Previously authored gear source images, normalized via transparent ROIs.
@@ -223,13 +225,15 @@ public final class GameView extends View {
     final Rect src=new Rect();
     final RectF dest=new RectF();
     final float PAD=46;
-    static class Bandit {float x,y,hp=78,cd,hit,homeX,homeY,patrolClock;int face=1;boolean active=true;
+    static class Bandit {float x,y,hp=78,cd,hit,homeX,homeY,patrolClock;int face=1,skinV109;boolean active=true;
         final AnimationCycle animation=new AnimationCycle();
         int variant;
-        Bandit(float a,float b,int variant){x=a;y=b;homeX=a;homeY=b;patrolClock=variant*2.3f;cd=.7f;this.variant=variant;}}
-    static class Survivor {float x,y,homeX,homeY,cd,aimX=1,aimY=0;int gun,face=1,variant;
+        Bandit(float a,float b,int variant){x=a;y=b;homeX=a;homeY=b;patrolClock=variant*2.3f;cd=.7f;this.variant=variant;
+            skinV109=1+Math.floorMod(Math.round(a*11f+b*17f+variant*73f),200);}}
+    static class Survivor {float x,y,homeX,homeY,cd,aimX=1,aimY=0;int gun,face=1,variant,skinV109;
         final AnimationCycle animation=new AnimationCycle();
-        Survivor(float a,float b,int g,int variant){x=a;y=b;homeX=a;homeY=b;gun=g;this.variant=variant;}}
+        Survivor(float a,float b,int g,int variant){x=a;y=b;homeX=a;homeY=b;gun=g;this.variant=variant;
+            skinV109=1+Math.floorMod(Math.round(a*13f+b*19f+variant*41f),200);}}
     static class Shot {float x,y,vx,vy,life,damage;boolean hostile;int color;
         Shot(float x,float y,float vx,float vy,float damage,boolean enemy){
             this.x=x;this.y=y;this.vx=vx;this.vy=vy;this.damage=damage;this.life=Ballistics.PROJECTILE_LIFE;
@@ -248,6 +252,10 @@ public final class GameView extends View {
         super(activity);host=activity;
         setFocusable(true);setLayerType(View.LAYER_TYPE_HARDWARE,null);
         pixel.setAntiAlias(false);pixel.setFilterBitmap(false);
+        try{characterSkinsV109=new CharacterSkinsV109(activity);}catch(Exception v109Error){
+            android.util.Log.e("SP-V109","Source-locked character pack failed to load",v109Error);
+            characterSkinsV109=null; // legacy renderer only if source fails validation
+        }
         try(InputStream ret=getResources().getAssets().open("crosshair_v62.png.b64")){
             ByteArrayOutputStream reticleBytes=new ByteArrayOutputStream();
             byte[] buffer=new byte[4096];int count;
@@ -440,6 +448,7 @@ public final class GameView extends View {
     boolean isPlaying(){return playing;}
     void reloadSettings(){
         scale=host.setting("scale",100)/100f;
+        playerSkinV109=Math.max(1,Math.min(200,host.setting("playerSkinV109",124)));
         headScaleV82=HeadKnifeV82.headMultiplier(host.setting("headSizeV82",HeadKnifeV82.HEAD_DEFAULT));
         fitHeadXV108=CharacterFitV108.headX(host.prefs);
         fitHeadYV108=CharacterFitV108.headY(host.prefs);
@@ -1580,7 +1589,7 @@ public final class GameView extends View {
                     friend.animation.frame(),
                     friend.animation.isWalking()?Float.POSITIVE_INFINITY:
                     friend.animation.breathOffset(),friendAim,0,false,false,
-                    friend.variant);
+                    friend.variant,friend.skinV109);
                 rect(c,friend.x-6,friend.y-117,13,4,OLIVE);
                 
             }));
@@ -1616,7 +1625,7 @@ public final class GameView extends View {
         int facing=a.x<=playerX?1:-1;
         character(c,a.x,a.y,hostile?0:3,facing,0,
             (float)Math.sin(worldTimer*2+a.type)*.22f,0,0,
-            false,hostile,variant);
+            false,hostile,variant,1+Math.floorMod(a.type*31+37,200));
         if(a.type==ClinicActorsV90.ZOMBIE){
             // Greenish face + torn sleeves over original character atlas.
             rect(c,a.x-9,a.y-103,17,8,0xff718361);
@@ -2951,14 +2960,21 @@ public final class GameView extends View {
     }
     void character(Canvas c,float x,float y,int weapon,int facing,int frame,float breath,float aimAng,float kick,
                    boolean player,boolean bandit,int npcVariant){
+        character(c,x,y,weapon,facing,frame,breath,aimAng,kick,player,bandit,npcVariant,
+            player?playerSkinV109:1+Math.floorMod(npcVariant*17+37,200));
+    }
+    void character(Canvas c,float x,float y,int weapon,int facing,int frame,float breath,float aimAng,float kick,
+                   boolean player,boolean bandit,int npcVariant,int skinIdV109){
         float s=CharacterCollision.BASE_SCALE*scale;
         c.save();c.translate(x,y);if(facing<0)c.scale(-1,1);
         color(0x670b1a18);c.drawOval(-26*s,-7*s,26*s,7*s,p);
         // V96: approved backpack-only pixels behind the immutable body atlas.
-        if(player&&fieldFindsV91.equipped>=0)
-            wearableArtV96.drawPack(c,backpackStyleV96,s,pixel);
-        else if(!player&&npcVariant>=0&&(npcVariant%3)!=0)
-            wearableArtV96.drawPack(c,Math.floorMod(npcVariant*7+11,20),s,pixel);
+        if(characterSkinsV109==null){ // legacy equipment is hidden in the 200-character test
+            if(player&&fieldFindsV91.equipped>=0)
+                wearableArtV96.drawPack(c,backpackStyleV96,s,pixel);
+            else if(!player&&npcVariant>=0&&(npcVariant%3)!=0)
+                wearableArtV96.drawPack(c,Math.floorMod(npcVariant*7+11,20),s,pixel);
+        }
         // V58 rear-layer hand torch. Draw BEFORE the immutable original body:
         // its silhouette cannot cover the head, eyes, or facial outline.
         if(!bandit&&!(player&&harvestV81.active)&&dualTorch&&lampOn&&weapon>=0&&weapon<=2&&showWeapons){
@@ -2971,14 +2987,19 @@ public final class GameView extends View {
             if(showHands)handAtlas(c,3,2,0,0,s,handScale,0,0);
             c.restore();
         }
-        Bitmap atlas=npcVariant>=0?npcWalkV56:approvedWalkColors;
-        int torsoVariant=player?wardrobeV92.equipped[1]:
-            WardrobeV92.npcOutfit(Math.max(0,npcVariant),1);
-        stablePose(c,atlas,npcVariant,frame,s,breath,torsoVariant);
-        drawWardrobeV92(c,s,breath,player,bandit,npcVariant);
+        if(characterSkinsV109!=null&&characterSkinsV109.ready()){
+            characterSkinsV109.draw(c,skinIdV109,breath==Float.POSITIVE_INFINITY,
+                frame,worldTimer,s,pixel);
+        }else{
+            Bitmap atlas=npcVariant>=0?npcWalkV56:approvedWalkColors;
+            int torsoVariant=player?wardrobeV92.equipped[1]:
+                WardrobeV92.npcOutfit(Math.max(0,npcVariant),1);
+            stablePose(c,atlas,npcVariant,frame,s,breath,torsoVariant);
+            drawWardrobeV92(c,s,breath,player,bandit,npcVariant);
+        }
         if(player&&harvestV81.active)drawHarvestRigV81(c,s);
         else if(player&&knifeDuration>0f)drawKnifeSwing(c,s);
-        else if(!bandit){
+        else if(characterSkinsV109!=null||!bandit){
             c.save();
             // Keep the accepted V36 torso-centered weapon/hand rig stationary.
             // Parent pivot is the CHARACTER'S torso center (constant across all weapons).
@@ -3010,8 +3031,8 @@ public final class GameView extends View {
                     (OFF_Y[weapon]-136f+supportVertical)*s-3,6,6,0xffe9cc8c);
             }
             c.restore();
-        }else{
-            // Bandit overlay is NEW independent art. Body pixels are not changed.
+        }else if(characterSkinsV109==null){
+            // Legacy-only bandit body decoration, hidden in V109 test mode.
             rect(c,-16*s,-100*s,27*s,5*s,RED);
             rect(c,-16*s,-90*s,12*s,5*s,0xffad5b52);
         }
@@ -3242,7 +3263,7 @@ public final class GameView extends View {
             order.add(new DrawEntity(e.y,()->{
             character(c,e.x,e.y,0,e.face,e.animation.frame(),
                     e.animation.isWalking()?Float.POSITIVE_INFINITY:e.animation.breathOffset(),
-                    0,0,false,true,e.variant);
+                    0,0,false,true,e.variant,e.skinV109);
             rect(c,e.x-23,e.y-114,46,5,DK);rect(c,e.x-22,e.y-113,44*clamp(e.hp/78,0,1),3,RED);
             
         }));
@@ -3255,7 +3276,7 @@ public final class GameView extends View {
             order.add(new DrawEntity(f.y,()->{
             character(c,f.x,f.y,f.gun,f.face,f.animation.frame(),
                     f.animation.isWalking()?Float.POSITIVE_INFINITY:f.animation.breathOffset(),
-                    Ballistics.angle(f.aimX,f.aimY,f.face),0,false,false,f.variant);
+                    Ballistics.angle(f.aimX,f.aimY,f.face),0,false,false,f.variant,f.skinV109);
             rect(c,f.x-5,f.y-117,10,4,OLIVE);
             
         }));
@@ -3268,7 +3289,7 @@ public final class GameView extends View {
             order.add(new DrawEntity(npc.y,()->{
             character(c,npc.x,npc.y,npc.gun,npc.face,npc.animation.frame(),
                 npc.animation.isWalking()?Float.POSITIVE_INFINITY:npc.animation.breathOffset(),
-                0,0,false,false,npc.variant);
+                0,0,false,false,npc.variant,npc.skinV109);
             
         }));
         }
