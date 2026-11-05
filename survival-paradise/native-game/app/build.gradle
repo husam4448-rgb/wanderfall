@@ -3,11 +3,11 @@ android {
  namespace 'com.survivalparadise.nativegame'
  compileSdk 35
  defaultConfig {
-  applicationId 'com.survivalparadise.nativegame.v115test'
+  applicationId 'com.survivalparadise.nativegame.v116test'
   minSdk 24
   targetSdk 34
-  versionCode 115
-  versionName '0.115-independent-torso-pelvis-widths'
+  versionCode 116
+  versionName '0.116-pelvis-rigid-leg-alignment'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
