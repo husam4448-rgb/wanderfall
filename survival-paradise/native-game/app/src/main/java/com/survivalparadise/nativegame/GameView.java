@@ -187,8 +187,14 @@ public final class GameView extends View {
     int hotbarOpacity=90,selectedHotbar=0;
     int hotbarPointer=-1;
     // TALK is appended AFTER all existing controls: HUD preference IDs stay stable.
-    static final int HOTBAR=HUD_ITEMS,BAG_EDITOR=HOTBAR+1,
-        TALK_EDITOR=BAG_EDITOR+1,EDITOR_ITEMS=TALK_EDITOR+1;
+    static final int HOTBAR=HUD_ITEMS,BAG_EDITOR=HOTBAR+1,TALK_EDITOR=BAG_EDITOR+1,
+        TOP_FORM_EDITOR=TALK_EDITOR+1,TOP_EDIT_EDITOR=TOP_FORM_EDITOR+1,
+        TOP_DAY_EDITOR=TOP_EDIT_EDITOR+1,TOP_CAMP_EDITOR=TOP_DAY_EDITOR+1,
+        TOP_LAMP_EDITOR=TOP_CAMP_EDITOR+1,TOP_PAUSE_EDITOR=TOP_LAMP_EDITOR+1,
+        TOP_SET_EDITOR=TOP_PAUSE_EDITOR+1,STATUS_EDITOR=TOP_SET_EDITOR+1,
+        HEADER_EDITOR=STATUS_EDITOR+1,FOOTER_EDITOR=HEADER_EDITOR+1,
+        PERF_EDITOR=FOOTER_EDITOR+1,COMMAND_EDITOR=PERF_EDITOR+1,
+        EDITOR_ITEMS=COMMAND_EDITOR+1;
     static final String[] HOTBAR_TYPES={
         "EMPTY","MEDKIT","AMMO","PISTOL","SHOTGUN","UZI","FOOD","WATER","TORCH",
         "BARRICADE","LIGHT POST","WATER COLLECTOR","FIELD SHELTER",
@@ -3514,7 +3520,7 @@ public final class GameView extends View {
         return LegacyControlsV58.defaultY(id,viewH)+delta;
     }
     boolean uiEnabled(int id){
-        return host.option("uiEnabled"+id,id==TALK_EDITOR?true:
+        return host.option("uiEnabled"+id,id>=LegacyControlsV58.COUNT||
             LegacyControlsV58.defaultEnabled(id));
     }
     float talkDefaultX(){return Math.round(viewW*.64f);}
@@ -3558,10 +3564,21 @@ public final class GameView extends View {
         int id=right?AIM_PAD:MOVE_PAD;
         return padBaseY(right)+(editPointer>=0&&editControl==id?editY:host.setting("uiY"+id,0));
     }
-    String controlName(int id){return id==TALK_EDITOR?"TALK BUTTON":
-        id==BAG_EDITOR?"BAG BUTTON":id==MOVE_PAD?"MOVE JOYSTICK":
-        id==AIM_PAD?"AIM JOYSTICK":
-        id==HOTBAR?"QUICK ACCESS BAR":LegacyControlsV58.NAMES[id];}
+    String controlName(int id){
+        if(id==TALK_EDITOR)return "TALK BUTTON";
+        if(id==BAG_EDITOR)return "BAG BUTTON";
+        if(id==MOVE_PAD)return "MOVE JOYSTICK";
+        if(id==AIM_PAD)return "AIM JOYSTICK";
+        if(id==HOTBAR)return "QUICK ACCESS BAR";
+        if(id>=TOP_FORM_EDITOR){
+            String[] labels={"FORM BUTTON","HUD EDIT BUTTON","DAY / NIGHT BUTTON",
+                "CAMP BUTTON","LAMP BUTTON","PAUSE BUTTON","SETTINGS BUTTON",
+                "STATUS BARS WINDOW","TOP INFORMATION WINDOW",
+                "BOTTOM RESOURCE WINDOW","FPS STATUS WINDOW","COMPANION COMMAND BUTTON"};
+            return labels[Math.max(0,Math.min(labels.length-1,id-TOP_FORM_EDITOR))];
+        }
+        return LegacyControlsV58.NAMES[id];
+    }
     String controlSizeKey(int id){return id==MOVE_PAD?"movePadSize":id==AIM_PAD?"aimPadSize":"uiSize"+id;}
     int stickEditorAt(float x,float y){
         for(int id=MOVE_PAD;id<=AIM_PAD;id++){
@@ -3757,7 +3774,8 @@ public final class GameView extends View {
                     selectedHudControl=Math.floorMod(i+(j==0?-1:1),EDITOR_ITEMS);
                     host.prefs.edit().putInt("selectedButton",selectedHudControl).apply();
                 }else if(j==6){
-                    if(i<LegacyControlsV58.COUNT||i==BAG_EDITOR||i==TALK_EDITOR)
+                    if(i<LegacyControlsV58.COUNT||i==BAG_EDITOR||
+                       i==TALK_EDITOR||i>=TOP_FORM_EDITOR)
                         host.prefs.edit().putBoolean("uiEnabled"+i,
                             !host.option("uiEnabled"+i,true)).apply();
                 }else{
@@ -3766,7 +3784,8 @@ public final class GameView extends View {
                     int current=host.setting(key,100);
                     int next=Math.round(clamp(current+(j%2==0?-10:10),min,j<=3?180:100));
                     host.prefs.edit().putInt(key,next).apply();
-                    if(i==HOTBAR||i==BAG_EDITOR||(i>=MOVE_PAD&&j<=3))reloadSettings();
+                    if(i==HOTBAR||i==BAG_EDITOR||i>=TOP_FORM_EDITOR||
+                       (i>=MOVE_PAD&&j<=3))reloadSettings();
                 }
                 invalidate();return true;
             }
