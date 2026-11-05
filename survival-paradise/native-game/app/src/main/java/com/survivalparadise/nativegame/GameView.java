@@ -3888,16 +3888,151 @@ public final class GameView extends View {
         placingXv84=WorldUiV86.targetX(playerX,aimX,aimCursorDistance);
         placingYv84=WorldUiV86.targetY(playerY,aimY,aimCursorDistance);
     }
+    /** V118 complete editor geometry: top row, status windows and squad HUD. */
+    static final int[] TOP_EDIT_CONTROLS_V118={
+        TopHudV76.FORM,TopHudV76.EDIT,TopHudV76.DAY,TopHudV76.CAMP,
+        TopHudV76.LAMP,TopHudV76.PAUSE,TopHudV76.SET
+    };
+    int topEditorV118(int topButton){
+        for(int i=0;i<TOP_EDIT_CONTROLS_V118.length;i++)
+            if(TOP_EDIT_CONTROLS_V118[i]==topButton)return TOP_FORM_EDITOR+i;
+        return -1;
+    }
+    int topButtonV118(int editor){
+        int i=editor-TOP_FORM_EDITOR;
+        return i>=0&&i<TOP_EDIT_CONTROLS_V118.length?
+            TOP_EDIT_CONTROLS_V118[i]:-1;
+    }
+    float hudExtraScaleV118(int id){
+        return Math.max(.6f,Math.min(1.8f,
+            host.setting("uiSize"+id,100)/100f));
+    }
+    float hudBaseXV118(int id){
+        int top=topButtonV118(id);
+        if(top>=0)return TopHudV76.x(top,viewW);
+        switch(id){
+            case STATUS_EDITOR:return 12f;
+            case HEADER_EDITOR:return 12f;
+            case FOOTER_EDITOR:return 13f;
+            case PERF_EDITOR:return 10f;
+            case COMMAND_EDITOR:return viewW-195f;
+            default:return 0f;
+        }
+    }
+    float hudBaseYV118(int id){
+        if(topButtonV118(id)>=0)return TopHudV76.Y;
+        switch(id){
+            case STATUS_EDITOR:return 145f;
+            case HEADER_EDITOR:return 0f;
+            case FOOTER_EDITOR:return viewH-37f;
+            case PERF_EDITOR:return 46f;
+            case COMMAND_EDITOR:return 58f;
+            default:return 0f;
+        }
+    }
+    float hudExtraXV118(int id){
+        return hudBaseXV118(id)+(editPointer>=0&&editControl==id?
+            editX:host.setting("uiX"+id,0));
+    }
+    float hudExtraYV118(int id){
+        return hudBaseYV118(id)+(editPointer>=0&&editControl==id?
+            editY:host.setting("uiY"+id,0));
+    }
+    float hudExtraWidthV118(int id){
+        int top=topButtonV118(id);
+        float base=top>=0?TopHudV76.buttonWidth(top,viewW):
+            id==STATUS_EDITOR?244f:id==HEADER_EDITOR?370f:
+            id==FOOTER_EDITOR?650f:id==PERF_EDITOR?348f:
+            id==COMMAND_EDITOR?142f:100f;
+        return base*hudExtraScaleV118(id);
+    }
+    float hudExtraHeightV118(int id){
+        float base=topButtonV118(id)>=0?TopHudV76.HEIGHT:
+            id==STATUS_EDITOR?120f:id==HEADER_EDITOR?42f:
+            id==FOOTER_EDITOR?28f:id==PERF_EDITOR?92f:
+            id==COMMAND_EDITOR?42f:36f;
+        return base*hudExtraScaleV118(id);
+    }
+    int hudExtraAtV118(float x,float y){
+        // Reverse order gives small top buttons precedence over large panels.
+        for(int id=COMMAND_EDITOR;id>=TOP_FORM_EDITOR;id--){
+            if(!editControls&&!uiEnabled(id))continue;
+            if(within(x,y,hudExtraXV118(id),hudExtraYV118(id),
+                hudExtraWidthV118(id),hudExtraHeightV118(id)))return id;
+        }
+        return -1;
+    }
+    int topHudHitV118(float x,float y){
+        for(int i=0;i<TOP_EDIT_CONTROLS_V118.length;i++){
+            int id=TOP_FORM_EDITOR+i;
+            if(uiEnabled(id)&&within(x,y,hudExtraXV118(id),hudExtraYV118(id),
+                hudExtraWidthV118(id),hudExtraHeightV118(id)))
+                return TOP_EDIT_CONTROLS_V118[i];
+        }
+        return -1;
+    }
+    void hudSelectionBorderV118(Canvas c,int id){
+        if(!editControls)return;
+        float x=hudExtraXV118(id),y=hudExtraYV118(id),
+              w=hudExtraWidthV118(id),h=hudExtraHeightV118(id);
+        color(uiEnabled(id)?0xffc5e2c4:0xffdc9579);
+        p.setStrokeWidth(1.9f);p.setStyle(Paint.Style.STROKE);
+        c.drawRect(x,y,x+w,y+h,p);p.setStyle(Paint.Style.FILL);
+    }
     void topHudButton(Canvas c,int id,String title,boolean active){
-        float x=TopHudV76.x(id,viewW),width=TopHudV76.buttonWidth(id,viewW);
-        int alpha=Math.round(topButtonOpacityV76*255f/100f);
-        if(alpha>0)rounded(c,x,TopHudV76.Y,width,TopHudV76.HEIGHT,5,
-            (alpha<<24)|(active?0x003b665b:0x0010262b));
+        int editor=topEditorV118(id);
+        if(editor<0)return;
+        if(!uiEnabled(editor)&&!editControls)return;
+        float x=hudExtraXV118(editor),y=hudExtraYV118(editor),
+              width=hudExtraWidthV118(editor),height=hudExtraHeightV118(editor);
+        int opacity=Math.max(30,Math.min(100,host.setting("uiAlpha"+editor,100)));
+        int layer=opacity<100?c.saveLayerAlpha(x,y,x+width,y+height,
+            Math.round(255f*opacity/100f)):0;
+        int fillAlpha=Math.round(topButtonOpacityV76*255f/100f);
+        if(fillAlpha>0)rounded(c,x,y,width,height,5,
+            (fillAlpha<<24)|(active?0x003b665b:0x0010262b));
         int size=TopHudV76.scale(viewW)<.8f?10:12;
+        size=Math.max(8,Math.round(size*hudExtraScaleV118(editor)));
         p.setTypeface(PIXEL_BOLD);p.setTextSize(size);
         float textX=x+(width-p.measureText(title))*.5f;
-        label(c,title,textX+1f,TopHudV76.Y+21f,size,0xff142526,true);
-        label(c,title,textX,TopHudV76.Y+20f,size,WHITE,true);
+        label(c,title,textX+1f,y+height*.68f+1f,size,0xff142526,true);
+        label(c,title,textX,y+height*.68f,size,WHITE,true);
+        if(layer!=0)c.restoreToCount(layer);
+        hudSelectionBorderV118(c,editor);
+    }
+    /** Editable and always accessible companion command button. */
+    void drawSquadButtonV118(Canvas c){
+        if(!uiEnabled(COMMAND_EDITOR)&&!editControls)return;
+        float x=hudExtraXV118(COMMAND_EDITOR),y=hudExtraYV118(COMMAND_EDITOR),
+              w=hudExtraWidthV118(COMMAND_EDITOR),h=hudExtraHeightV118(COMMAND_EDITOR);
+        int alpha=Math.max(25,Math.min(100,
+            host.setting("uiAlpha"+COMMAND_EDITOR,100)));
+        int layer=alpha<100?c.saveLayerAlpha(x,y,x+w,y+h,
+            Math.round(255f*alpha/100f)):0;
+        btn(c,x,y,w,h,"SQUAD"+(companionStayV118?" [STAY]":""),
+            0x99425a50);
+        if(layer!=0)c.restoreToCount(layer);
+        hudSelectionBorderV118(c,COMMAND_EDITOR);
+    }
+    void drawStatusWindowV118(Canvas c){
+        if(!showStatusBars&&!editControls)return;
+        if(!uiEnabled(STATUS_EDITOR)&&!editControls)return;
+        int id=STATUS_EDITOR,opacity=Math.max(25,Math.min(100,
+            host.setting("uiAlpha"+id,100)));
+        c.save();
+        c.translate(hudExtraXV118(id),hudExtraYV118(id));
+        c.scale(hudExtraScaleV118(id),hudExtraScaleV118(id));
+        int layer=opacity<100?c.saveLayerAlpha(0,0,244,120,
+            Math.round(255f*opacity/100f)):0;
+        drawStatusBar(c,"HP",health,0,0,0xffc76b65);
+        drawStatusBar(c,"STA",stamina,0,20,0xff64ad80);
+        drawStatusBar(c,"HUN TEST",hunger,0,40,0xffb5a06b);
+        drawStatusBar(c,"THR TEST",thirst,0,60,0xff608dad);
+        drawStatusBar(c,"FAT TEST",fatigue,0,80,0xffa18eaf);
+        drawStatusBar(c,"ENC TEST",encumbranceV91(),0,100,0xffbca36e);
+        if(layer!=0)c.restoreToCount(layer);
+        c.restore();
+        hudSelectionBorderV118(c,id);
     }
     void hud(Canvas c){
         // Entire interface fades together; world and targeting reticle are
