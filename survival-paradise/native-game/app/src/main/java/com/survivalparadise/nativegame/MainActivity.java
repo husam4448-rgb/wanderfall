@@ -319,7 +319,7 @@ public final class MainActivity extends Activity {
             bar.setProgress(current-min);
             int button=dp118(38);
             control.addView(minus,new LinearLayout.LayoutParams(button,dp118(35)));
-            control.addView(bar,new LinearLayout.LayoutParams(dp118(145),dp118(35)));
+            control.addView(bar,new LinearLayout.LayoutParams(0,dp118(35),1f));
             control.addView(plus,new LinearLayout.LayoutParams(button,dp118(35)));
             bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
                 public void onProgressChanged(SeekBar seek,int p,boolean user){
@@ -1648,8 +1648,10 @@ public final class MainActivity extends Activity {
             int scope=characterTargetV113.getSelectedItemPosition();
             String label=scope==CharacterScopeV113.NPCS?"WORLD NPCs":"PLAYER";
             section(characterControlsV113,"CHARACTER FITTING • "+label);
+            section(characterControlsV113,"HEAD SIZE AND FIT");
             slider(characterControlsV113,"Character head size",
                 CharacterScopeV113.key("headSizeV82",scope),75,160,100,"%");
+            section(characterControlsV113,"BODY SHAPE • RIGID FEET");
             slider(characterControlsV113,"Upper torso width (legs unchanged)",
                 CharacterScopeV113.key("bodyWidthV114",scope),55,100,100,"%");
             slider(characterControlsV113,"Pelvis / hips width (legs unchanged)",
@@ -1667,6 +1669,7 @@ public final class MainActivity extends Activity {
                 CharacterScopeV113.key("fitHeadXV108",scope),-24,24,0," px");
             slider(characterControlsV113,"Head vertical fit",
                 CharacterScopeV113.key("fitHeadYV108",scope),-24,24,0," px");
+            section(characterControlsV113,"IDLE / WALK ANIMATION");
             slider(characterControlsV113,"Idle breathing amplitude",
                 CharacterScopeV113.key("fitIdleBreathV108",scope),0,12,4," px");
             slider(characterControlsV113,"Idle breathing animation speed",
