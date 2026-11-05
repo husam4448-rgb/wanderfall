@@ -34,10 +34,10 @@ public final class CharacterAnimationV110 {
     }
 
     /** Smooth head-only breathing; returns source pixels, without touching body. */
-    public static float breathOffset(boolean walking,float timeSeconds,int amplitude,
+    public static float breathOffset(boolean walking,float timeSeconds,float amplitude,
                                      float breathingMultiplier) {
         if(walking||amplitude<=0)return 0f;
         float speed=Math.max(.25f,Math.min(2.5f,breathingMultiplier));
-        return (float)Math.sin(timeSeconds*4f*speed)*Math.min(12,amplitude);
+        return (float)Math.sin(timeSeconds*4f*speed)*Math.min(36f,amplitude);
     }
 }
