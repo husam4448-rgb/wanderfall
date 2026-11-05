@@ -3507,14 +3507,34 @@ public final class GameView extends View {
         label(c,label,x+12,y+h*.66f,14,WHITE,true);
     }
     float uiSize(int id){return host.setting("uiSize"+id,LegacyControlsV58.defaultScale(id))/100f;}
-    float uiWidth(int id){return LegacyControlsV58.defaultW(id)*uiSize(id);}
-    float uiHeight(int id){return LegacyControlsV58.defaultH(id)*uiSize(id);}
+    float uiWidth(int id){
+        if(id==TALK_EDITOR)return talkWidthV94();
+        return LegacyControlsV58.defaultW(id)*uiSize(id);
+    }
+    float uiHeight(int id){
+        if(id==TALK_EDITOR)return talkHeightV94();
+        return LegacyControlsV58.defaultH(id)*uiSize(id);
+    }
     float uiX(int id){
+        // TALK is NOT a LegacyControlsV58 action. Never send its ID through
+        // defaultX/defaultY (throws IllegalArgumentException on drag).
+        if(id==TALK_EDITOR)return talkLeftV94();
+        if(id>=TOP_FORM_EDITOR)return hudExtraXV118(id);
+        if(id==BAG_EDITOR)return bagXv87();
+        if(id==HOTBAR)return hotbarLeft();
+        if(id==MOVE_PAD||id==AIM_PAD)return padCenterX(id==AIM_PAD);
+        if(id<0||id>=LegacyControlsV58.COUNT)return 0f;
         int delta=editPointer>=0&&editControl==id?editX:
             host.setting("uiX"+id,0);
         return LegacyControlsV58.defaultX(id,viewW)+delta;
     }
     float uiY(int id){
+        if(id==TALK_EDITOR)return talkTopV94();
+        if(id>=TOP_FORM_EDITOR)return hudExtraYV118(id);
+        if(id==BAG_EDITOR)return bagYv87();
+        if(id==HOTBAR)return hotbarTop();
+        if(id==MOVE_PAD||id==AIM_PAD)return padCenterY(id==AIM_PAD);
+        if(id<0||id>=LegacyControlsV58.COUNT)return 0f;
         int delta=editPointer>=0&&editControl==id?editY:
             host.setting("uiY"+id,0);
         return LegacyControlsV58.defaultY(id,viewH)+delta;
@@ -4489,8 +4509,11 @@ public final class GameView extends View {
                         host.prefs.edit().putInt("selectedButton",target).apply();
                         editX=host.setting("uiX"+target,0);
                         editY=host.setting("uiY"+target,0);
-                        editGrabX=x-uiX(target);
-                        editGrabY=y-uiY(target);
+                        // TALK uses independent contextual coordinates; its ID
+                        // is outside the legacy button table. Resolve the correct
+                        // displayed rectangle before capturing the drag offset.
+                        editGrabX=x-(target==TALK_EDITOR?talkLeftV94():uiX(target));
+                        editGrabY=y-(target==TALK_EDITOR?talkTopV94():uiY(target));
                     }else activateButton(target,id);
                     return true;
                 }
