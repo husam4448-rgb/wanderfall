@@ -1545,6 +1545,8 @@ public final class MainActivity extends Activity {
         root.addView(text("Use this selector to test every approved fitted survivor in live play. Headgear, backpacks and legacy torso overlays are visually hidden; inventory items remain usable. Weapons and hands still render.",11,false));
         slider(root,"Character display size","scale",65,135,100,"%");
         slider(root,"Character head size","headSizeV82",75,160,100,"%");
+        slider(root,"Head follows aim (0 = off)","headAimTiltV111",0,15,10,"°");
+        root.addView(text("Small, smooth upward/downward head tilt around the neck when aiming. Works with either facing direction; original face and body pixels remain unchanged.",11,false));
         root.addView(text("Visual head size for player and NPCs. 100% matches approved original sprites.",11,false));
         // V108 experimental head-fit lab: neutral values are pixel-identical to V98.
         section(root,"CHARACTER FITTING  •  V108 OPTIONAL");
@@ -1699,7 +1701,7 @@ public final class MainActivity extends Activity {
         action(root,"Restore default settings",()->{
             prefs.edit().putInt("scale",100).putInt("hand",100).putInt("support",0).putInt("supportY",0)
               .putInt("speed",100).putInt("walkSpeedV77",130).putInt("walkingAnimationSpeedV79",100)
-               .putInt("idleBreathingSpeedV110",100).putInt("survivors",1).putInt("gun",0)
+               .putInt("idleBreathingSpeedV110",100).putInt("headAimTiltV111",10).putInt("survivors",1).putInt("gun",0)
               .putBoolean("hands",true).putBoolean("weapons",true).putBoolean("anchors",false)
               .putBoolean("hitboxes",false).putBoolean("enemyAI",true).putBoolean("aimRotation",true)
                .putBoolean("recoil",true).putBoolean("loot",true).putBoolean("night",true)
