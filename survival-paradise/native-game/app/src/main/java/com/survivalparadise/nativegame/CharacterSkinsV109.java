@@ -53,10 +53,13 @@ final class CharacterSkinsV109 {
         @Override protected boolean removeEldestEntry(Map.Entry<Integer,Bitmap> e){return size()>28;}
     };
     private final Rect spriteSource=new Rect(0,0,WIDTH,HEIGHT);
-    // The original approved source sheets have shirt y=160..179 and
-    // pants/legs/boots y=180..259. Restrict X scaling to shirt rows only.
-    private final Rect torsoSource=new Rect(0,TorsoWidthV114.TORSO_TOP,WIDTH,TorsoWidthV114.LOWER_BODY_TOP);
-    private final Rect originalLowerBodySource=new Rect(0,TorsoWidthV114.LOWER_BODY_TOP,WIDTH,HEIGHT);
+    // Exact V109 body rows: shirt y160..179, pelvis y180..199,
+    // legs and feet y200..259. Original source PNGs are never edited.
+    private final Rect torsoSource=new Rect(0,TorsoWidthV114.TORSO_TOP,WIDTH,
+        TorsoWidthV114.LOWER_BODY_TOP);
+    private final Rect pelvisSource=new Rect(0,PelvisWidthV115.PELVIS_TOP,WIDTH,
+        PelvisWidthV115.LEGS_TOP);
+    private final Rect originalLegsSource=new Rect(0,PelvisWidthV115.LEGS_TOP,WIDTH,HEIGHT);
     private final Rect headSource=new Rect();
     private final RectF destination=new RectF();
     private JSONObject configuration;
@@ -145,24 +148,34 @@ final class CharacterSkinsV109 {
         blended.put(key,result);
         return result;
     }
-    /** Draw the original pixels with optional centered upper-torso narrowing.
-     * The entire lower source region (y >= 180) is copied without resizing or
-     * recoloring; only the old shirt row y=160..179 becomes narrower.
-     * Bitmap flags in GameView use NEAREST NEIGHBOR to retain chunky outlines.
+    /** Draw independently narrowed shirt and pelvis, with exact original legs.
+     * Source body pixels are immutable; only the two upper horizontal display
+     * rectangles change. Nearest-neighbor sampling preserves block style.
+     * At 100/100, a single original-bitmap draw preserves exact V114 behavior.
      */
     private void drawBody(Canvas canvas,Bitmap source,float left,float top,
-                          float unit,int torsoWidth,Paint pixels) {
-        if(torsoWidth>=TorsoWidthV114.MAX_PERCENT) {
+                          float unit,int torsoWidth,int pelvisWidth,Paint pixels) {
+        if(torsoWidth>=TorsoWidthV114.MAX_PERCENT &&
+           pelvisWidth>=PelvisWidthV115.MAX_PERCENT) {
             destination.set(left,top,left+WIDTH*unit,top+HEIGHT*unit);
             canvas.drawBitmap(source,spriteSource,destination,pixels);
             return;
         }
-        // Legs, walking feet, trousers and all black outlines stay 1:1.
-        destination.set(left,top+TorsoWidthV114.LOWER_BODY_TOP*unit,
+        // In all five original poses, everything from y=200 down (legs and
+        // walking feet) uses the unscaled, unmoved source rectangle.
+        destination.set(left,top+PelvisWidthV115.LEGS_TOP*unit,
                         left+WIDTH*unit,top+HEIGHT*unit);
-        canvas.drawBitmap(source,originalLowerBodySource,destination,pixels);
+        canvas.drawBitmap(source,originalLegsSource,destination,pixels);
 
-        // Move only each shoulder inward from its nearest side.
+        // Independent pelvis (y180..199): symmetric width around body center.
+        destination.set(
+            PelvisWidthV115.left(left,unit,pelvisWidth),
+            top+PelvisWidthV115.PELVIS_TOP*unit,
+            PelvisWidthV115.right(left,unit,pelvisWidth),
+            top+PelvisWidthV115.LEGS_TOP*unit);
+        canvas.drawBitmap(source,pelvisSource,destination,pixels);
+
+        // Existing V114 torso (y160..179) remains independently adjustable.
         destination.set(
             TorsoWidthV114.left(left,unit,torsoWidth),
             top+TorsoWidthV114.TORSO_TOP*unit,
@@ -177,7 +190,7 @@ final class CharacterSkinsV109 {
     void draw(Canvas c,int id,boolean walking,int walkingFrame,float timeSec,float s,Paint pixel,
               float walkingTempo,float breathingTempo,int fixedWalkFps,int breathingAmplitude,
               float headTiltDegrees,int headOffsetX,int headOffsetY,int headSizePercent,
-              int torsoWidthPercent) {
+              int torsoWidthPercent,int pelvisWidthPercent) {
         id=range(id,1,COUNT);
         Fit fit=fitting[id];
         // Rendering scale uses 160/260 to match the old native 160px character rig.
@@ -186,7 +199,7 @@ final class CharacterSkinsV109 {
         float left=-100f*unit, top=-136f*s;
         Bitmap body=body(CharacterAnimationV110.bodyFrame(walking,timeSec,fit.fps,
             fixedWalkFps,walkingTempo),fit.blend);
-        drawBody(c,body,left,top,unit,torsoWidthPercent,pixel);
+        drawBody(c,body,left,top,unit,torsoWidthPercent,pelvisWidthPercent,pixel);
         Bitmap h=head(id);if(h==null)return;
         float headScale=Math.min(186f/h.getWidth(),192f/h.getHeight())*(fit.headScale/107f)*
             CharacterScopeV113.headSizeMultiplier(headSizePercent);
