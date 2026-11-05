@@ -3004,7 +3004,8 @@ public final class GameView extends View {
                 frame,worldTimer,s,pixel,walkingAnimationMultiplierV79,
                 idleBreathingTempoV110,fitWalkFpsV108,fitIdleBreathV108,
                 player?playerHeadTiltV111:
-                    HeadAimV111.targetDegrees(aimAng,headAimMaxDegreesV111));
+                    HeadAimV111.targetDegrees(aimAng,headAimMaxDegreesV111),
+                fitHeadXV108,fitHeadYV108);
         }else{
             Bitmap atlas=npcVariant>=0?npcWalkV56:approvedWalkColors;
             int torsoVariant=player?wardrobeV92.equipped[1]:
