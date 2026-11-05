@@ -330,8 +330,16 @@ public final class MainActivity extends Activity {
                 public void onStartTrackingTouch(SeekBar seek){}
                 public void onStopTrackingTouch(SeekBar seek){}
             });
-            minus.setOnClickListener(view->bar.setProgress(Math.max(0,bar.getProgress()-1)));
-            plus.setOnClickListener(view->bar.setProgress(Math.min(max-min,bar.getProgress()+1)));
+            minus.setOnClickListener(view->{
+                bar.setProgress(Math.max(0,bar.getProgress()-1));
+                int number=min+bar.getProgress();prefs.edit().putInt(key,number).apply();
+                game.reloadSettings();redraw.run();
+            });
+            plus.setOnClickListener(view->{
+                bar.setProgress(Math.min(max-min,bar.getProgress()+1));
+                int number=min+bar.getProgress();prefs.edit().putInt(key,number).apply();
+                game.reloadSettings();redraw.run();
+            });
             box.addView(control,new LinearLayout.LayoutParams(
                 Math.min(dp118(230),Math.max(dp118(165),
                     getResources().getDisplayMetrics().widthPixels/2)),dp118(37)));
@@ -420,9 +428,8 @@ public final class MainActivity extends Activity {
     void hudEditor(){
         game.menuPause(true);
         LinearLayout shell=column();
-        section(shell,"HUD BUTTON EDITOR  •  V94");
-        shell.addView(text("Select a button and adjust its placement, size and opacity. "
-            +"Use ON-SCREEN DRAG to fine-tune each button directly in the game.",12,false));
+        section(shell,"HUD BUTTON EDITOR  •  V118 ALL CONTROLS");
+        shell.addView(text("ALL HUD controls can be edited: top buttons, joysticks, status bars, resource/clock, FPS, squad, inventory and quickbar. Choose one, adjust with +/- or use ON-SCREEN DRAG.",12,false));
         ScrollView scroll=new ScrollView(this);
         scroll.setFillViewport(false);
         LinearLayout root=column();
@@ -435,28 +442,21 @@ public final class MainActivity extends Activity {
         root.addView(text("Fades all HUD panels, controls, hotbar and status bars. Aim reticle and HUD editor remain visible.",11,false));
         section(root,"BUTTON SELECTION");
         Spinner picker=new Spinner(this);
-        String[] choicesV87=java.util.Arrays.copyOf(LegacyControlsV58.NAMES,
-            LegacyControlsV58.COUNT+2);
-        choicesV87[LegacyControlsV58.COUNT]="BAG BUTTON";
-        choicesV87[LegacyControlsV58.COUNT+1]="TALK BUTTON";
+        String[] choicesV87=new String[GameView.EDITOR_ITEMS];
+        for(int item=0;item<choicesV87.length;item++)
+            choicesV87[item]=game.controlName(item);
         picker.setAdapter(new ArrayAdapter<String>(this,
             android.R.layout.simple_spinner_dropdown_item,choicesV87));
         root.addView(picker);
         LinearLayout options=column();
         root.addView(options);
         int lastSelectedV87=prefs.getInt("selectedButton",0);
-        picker.setSelection(lastSelectedV87==GameView.BAG_EDITOR?
-            LegacyControlsV58.COUNT:
-            lastSelectedV87==GameView.TALK_EDITOR?LegacyControlsV58.COUNT+1:
-            Math.max(0,Math.min(LegacyControlsV58.COUNT-1,lastSelectedV87)));
+        picker.setSelection(Math.max(0,Math.min(GameView.EDITOR_ITEMS-1,lastSelectedV87)));
         picker.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener(){
             public void onNothingSelected(android.widget.AdapterView<?> parent){}
             public void onItemSelected(android.widget.AdapterView<?> parent,View item,int index,long id){
-                int control=index==LegacyControlsV58.COUNT?GameView.BAG_EDITOR:
-                    index==LegacyControlsV58.COUNT+1?GameView.TALK_EDITOR:index;
-                String title=index==LegacyControlsV58.COUNT?"BAG BUTTON":
-                    index==LegacyControlsV58.COUNT+1?"TALK BUTTON":
-                    LegacyControlsV58.NAMES[index];
+                int control=index;
+                String title=game.controlName(control);
                 prefs.edit().putInt("selectedButton",control).apply();
                 options.removeAllViews();
                 check(options,"Enable "+title,
