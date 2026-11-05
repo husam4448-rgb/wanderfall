@@ -374,7 +374,25 @@ public final class MainActivity extends Activity {
             public void onStartTrackingTouch(SeekBar v){}
             public void onStopTrackingTouch(SeekBar v){}
         });
-        box.addView(bar);root.addView(box);
+        LinearLayout control=new LinearLayout(this);
+        control.setOrientation(LinearLayout.HORIZONTAL);
+        control.setGravity(Gravity.CENTER_VERTICAL);
+        Button minus=stepButton118("−"),plus=stepButton118("+");
+        control.addView(minus,new LinearLayout.LayoutParams(dp118(38),dp118(35)));
+        control.addView(bar,new LinearLayout.LayoutParams(0,dp118(35),1f));
+        control.addView(plus,new LinearLayout.LayoutParams(dp118(38),dp118(35)));
+        final Runnable persist=()->{
+            int p=bar.getProgress();
+            prefs.edit().putInt("cameraPanPercentV72",
+                maximum>0?Math.round(p*100f/maximum):0).apply();
+            game.reloadSettings();
+        };
+        minus.setOnClickListener(v->{bar.setProgress(Math.max(0,bar.getProgress()-1));
+            persist.run();});
+        plus.setOnClickListener(v->{bar.setProgress(Math.min(maximum,bar.getProgress()+1));
+            persist.run();});
+        box.addView(control,new LinearLayout.LayoutParams(dp118(235),dp118(38)));
+        root.addView(box);
         root.addView(text("Extended camera pan follows your weapon; reopen Settings after swapping. Equal circular range in all directions. Zoom out for wider look-around.",11,false));
     }
     private void check(LinearLayout root,String title,String key,boolean def){
