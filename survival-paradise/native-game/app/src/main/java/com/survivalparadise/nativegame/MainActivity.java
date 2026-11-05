@@ -74,6 +74,9 @@ public final class MainActivity extends Activity {
                 .putInt("cameraPanPercentV72",72)
                 .putBoolean("v72_reference_hud_migrated",true).apply();
         }
+        // V121 screenshot profile, only where preferences are unset.
+        if(!prefs.getBoolean(ScreenshotSettingsV121.CHARACTER_MARKER,false))
+            ScreenshotSettingsV121.applyCharacters(prefs,false);
         applyImmersive();
         game=new GameView(this);
         setContentView(game);
@@ -446,7 +449,7 @@ public final class MainActivity extends Activity {
     void hudEditor(){
         game.menuPause(true);
         LinearLayout shell=column();
-        section(shell,"HUD BUTTON EDITOR  •  V118 ALL CONTROLS");
+        section(shell,"HUD BUTTON EDITOR  •  V121 SCREENSHOT DEFAULTS");
         shell.addView(text("ALL HUD controls can be edited: top buttons, joysticks, status bars, resource/clock, FPS, squad, inventory and quickbar. Choose one, adjust with +/- or use ON-SCREEN DRAG.",12,false));
         ScrollView scroll=new ScrollView(this);
         scroll.setFillViewport(false);
@@ -502,18 +505,11 @@ public final class MainActivity extends Activity {
             game.reloadSettings();
             if(active[0]!=null)active[0].dismiss();
         });
-        action(root,"RESTORE ALL BUTTON DEFAULTS",()->{
-            SharedPreferences.Editor edit=prefs.edit();
-            for(int i=0;i<GameView.EDITOR_ITEMS;i++)
-                edit.remove("uiX"+i).remove("uiY"+i).remove("uiSize"+i)
-                    .remove("uiAlpha"+i).remove("uiEnabled"+i);
-            edit.remove("movePadSize").remove("aimPadSize")
-                .putInt("hudOpacityV73",100).putInt("topButtonOpacityV76",22).putBoolean("compactDebugV76",true);
-            edit.putBoolean("editControls",false).apply();
+        action(root,"RESTORE ALL BUTTON DEFAULTS (SCREENSHOT V121)",()->{
+            ScreenshotSettingsV121.applyHud(prefs,game.viewW,true);
             game.reloadSettings();
             if(active[0]!=null)active[0].dismiss();
-            Toast.makeText(this,"HUD controls restored to approved default layout",
-                    Toast.LENGTH_SHORT).show();
+            Toast.makeText(this,"V121 screenshot HUD restored",Toast.LENGTH_SHORT).show();
         });
         shell.addView(scroll,new LinearLayout.LayoutParams(-1,0,1f));
         AlertDialog dialog=new AlertDialog.Builder(this).setView(shell)
@@ -1648,7 +1644,7 @@ public final class MainActivity extends Activity {
             characterPreviewV118.setWalkingPreview(previewWalkingV118[0]);
         });
         root.addView(text("Use this selector to test every approved fitted survivor in live play. Headgear, backpacks and legacy torso overlays are visually hidden; inventory items remain usable. Weapons and hands still render.",11,false));
-        slider(root,"Character display size","scale",65,135,100,"%");
+        slider(root,"Character display size","scale",65,135,98,"%");
         section(root,"CHARACTER ADJUSTMENTS • TARGET");
         root.addView(text("Choose whether character adjustment sliders affect only your player or only world NPCs. Both settings profiles are saved independently.",12,false));
         Spinner characterTargetV113=new Spinner(this);
@@ -1668,21 +1664,21 @@ public final class MainActivity extends Activity {
             section(characterControlsV113,"CHARACTER FITTING • "+label);
             section(characterControlsV113,"HEAD SIZE AND FIT");
             slider(characterControlsV113,"Character head size",
-                CharacterScopeV113.key("headSizeV82",scope),75,160,100,"%");
+                CharacterScopeV113.key("headSizeV82",scope),75,160,93,"%");
             section(characterControlsV113,"BODY SHAPE • RIGID FEET");
             slider(characterControlsV113,"Upper torso width (legs unchanged)",
-                CharacterScopeV113.key("bodyWidthV114",scope),55,100,100,"%");
+                CharacterScopeV113.key("bodyWidthV114",scope),55,100,71,"%");
             slider(characterControlsV113,"Pelvis / hips width (legs unchanged)",
-                CharacterScopeV113.key("pelvisWidthV115",scope),55,100,100,"%");
+                CharacterScopeV113.key("pelvisWidthV115",scope),55,100,72,"%");
             section(characterControlsV113,"WEAPON + BOTH HANDS • ROTATION AXIS");
             slider(characterControlsV113,"Weapon/hand pivot horizontal",
                 CharacterScopeV113.key("weaponPivotXV117",scope),
-                WeaponPivotV117.MIN,WeaponPivotV117.MAX,0," px");
+                WeaponPivotV117.MIN,WeaponPivotV117.MAX,9," px");
             slider(characterControlsV113,"Weapon/hand pivot vertical",
                 CharacterScopeV113.key("weaponPivotYV117",scope),
-                WeaponPivotV117.MIN,WeaponPivotV117.MAX,0," px");
+                WeaponPivotV117.MIN,WeaponPivotV117.MAX,-5," px");
             slider(characterControlsV113,"Head follows aim (0 = off)",
-                CharacterScopeV113.key("headAimTiltV111",scope),0,15,10,"°");
+                CharacterScopeV113.key("headAimTiltV111",scope),0,15,15,"°");
             slider(characterControlsV113,"Head horizontal fit",
                 CharacterScopeV113.key("fitHeadXV108",scope),-24,24,0," px");
             slider(characterControlsV113,"Head vertical fit",
@@ -1693,7 +1689,7 @@ public final class MainActivity extends Activity {
             slider(characterControlsV113,"Idle breathing animation speed",
                 CharacterScopeV113.key("idleBreathingSpeedV110",scope),25,250,100,"%");
             slider(characterControlsV113,"Walking base frame rate (0 = fitted V5)",
-                CharacterScopeV113.key("fitWalkFpsV108",scope),0,12,0," fps");
+                CharacterScopeV113.key("fitWalkFpsV108",scope),0,12,4," fps");
             slider(characterControlsV113,"Walking animation speed",
                 CharacterScopeV113.key("walkingAnimationSpeedV79",scope),50,200,100,"%");
             characterControlsV113.addView(text("The weapon/hand pivot sliders relocate the entire original weapon, trigger hand and support hand together, retaining recoil, aim angle and bullet/flashlight origins. Zero means original V116 placement. Player / World NPC selection above saves independent pivot locations. Torso and pelvis sliders still work as before.",11,false));
@@ -1702,7 +1698,7 @@ public final class MainActivity extends Activity {
                 String[] keys={"headSizeV82","bodyWidthV114","pelvisWidthV115","weaponPivotXV117","weaponPivotYV117","headAimTiltV111","fitHeadXV108",
                     "fitHeadYV108","fitIdleBreathV108","idleBreathingSpeedV110",
                     "fitWalkFpsV108","walkingAnimationSpeedV79"};
-                int[] defaults={100,100,100,0,0,10,0,0,4,100,0,100};
+                int[] defaults=ScreenshotDefaultsV121.CHARACTER_VALUES;
                 for(int n=0;n<keys.length;n++)
                     edits.putInt(CharacterScopeV113.key(keys[n],scope),defaults[n]);
                 edits.apply();
@@ -1720,6 +1716,14 @@ public final class MainActivity extends Activity {
             }
         });
         rebuildCharacterSlidersV113Holder[0].run();
+        action(root,"APPLY SCREENSHOT FIT TO PLAYER + ALL NPCs",()->{
+            ScreenshotSettingsV121.applyCharacters(prefs,true);
+            game.reloadSettings();
+            rebuildCharacterSlidersV113Holder[0].run();
+            characterPreviewV118.invalidate();
+            Toast.makeText(this,"V121 fitting applied to both profiles",
+                Toast.LENGTH_SHORT).show();
+        });
         action(root,"EXPORT PLAYER CHARACTER FITTING JSON",()->exportCharacterFittingV108());
         final int combatSection=root.getChildCount();
         section(root,"COMBAT • COMPANIONS • EQUIPMENT");
@@ -1857,7 +1861,7 @@ public final class MainActivity extends Activity {
         action(root,"IMPORT GAME SAVE FROM FILE",()->importGameSaveV85());
         action(root,"Take screenshot",()->captureGame());
         action(root,"Restore default settings",()->{
-            prefs.edit().putInt("scale",100).putInt("hand",100).putInt("support",0).putInt("supportY",0)
+            prefs.edit().putInt("scale",ScreenshotDefaultsV121.CHARACTER_SCALE).putInt("hand",100).putInt("support",0).putInt("supportY",0)
               .putInt("speed",100).putInt("walkSpeedV77",130).putInt("walkingAnimationSpeedV79",100)
                .putInt("idleBreathingSpeedV110",100).putInt("headAimTiltV111",10).putInt("survivors",1).putInt("gun",0)
               .putBoolean("hands",true).putBoolean("weapons",true).putBoolean("anchors",false)
@@ -1906,6 +1910,8 @@ public final class MainActivity extends Activity {
               .putBoolean("staticLightCache",true)
               .putBoolean("fastPointLights",true).putInt("lightResolution",220)
               .putBoolean("editControls",false).apply();
+            ScreenshotSettingsV121.applyCharacters(prefs,true);
+            ScreenshotSettingsV121.applyHud(prefs,game.viewW,true);
             wSize.setProgress(96-65);hSize.setProgress(94-65);
             resizeSettingsWindow(activeDialog[0],96,94);
             game.reloadSettings();applyImmersive();
