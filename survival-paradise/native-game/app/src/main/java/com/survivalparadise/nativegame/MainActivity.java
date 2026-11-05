@@ -1767,7 +1767,9 @@ public final class MainActivity extends Activity {
         check(root,"AI hitboxes","hitboxes",false);
         check(root,"Enemy AI","enemyAI",true);
         check(root,"Aiming rotation","aimRotation",true);
-        check(root,"Firing recoil + muzzle flashes","recoil",true);
+        check(root,"Firing recoil","recoil",true);
+        check(root,"Small muzzle flash (gunfire only)","gunMuzzleV119",true);
+        check(root,"Short real-bullet tracers","gunTrailV119",true);
         check(root,"Item drops + inventory","loot",true);
         check(root,"Automatic day / night cycle","autoDayNight",true);
         slider(root,"Real minutes per game day","dayLength",12,120,36," min");
