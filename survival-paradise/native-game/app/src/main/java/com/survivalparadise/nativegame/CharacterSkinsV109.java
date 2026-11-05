@@ -145,7 +145,8 @@ final class CharacterSkinsV109 {
      * Uses nearest-neighbor source sampling, original silhouettes, unchanged feet.
      */
     void draw(Canvas c,int id,boolean walking,int walkingFrame,float timeSec,float s,Paint pixel,
-              float walkingTempo,float breathingTempo,int fixedWalkFps,int breathingAmplitude) {
+              float walkingTempo,float breathingTempo,int fixedWalkFps,int breathingAmplitude,
+              float headTiltDegrees) {
         id=range(id,1,COUNT);
         Fit fit=fitting[id];
         // Rendering scale uses 160/260 to match the old native 160px character rig.
@@ -165,6 +166,14 @@ final class CharacterSkinsV109 {
         int hy=Math.round(200f-hh+fit.vertical-3+breathing);
         headSource.set(0,0,h.getWidth(),h.getHeight());
         destination.set(left+hx*unit,top+hy*unit,left+(hx+hw)*unit,top+(hy+hh)*unit);
+        // Rotate only the approved head bitmap about the fitted lower-neck pivot.
+        // Source pixels, silhouette geometry, body, feet and hands are unchanged.
+        float pivotX=HeadAimV111.neckX(destination.left,destination.width());
+        float pivotY=HeadAimV111.neckY(destination.bottom,unit);
+        c.save();
+        c.rotate(Math.max(-HeadAimV111.MAX_DEGREES,
+            Math.min(HeadAimV111.MAX_DEGREES,headTiltDegrees)),pivotX,pivotY);
         c.drawBitmap(h,headSource,destination,pixel);
+        c.restore();
     }
 }
