@@ -4041,11 +4041,20 @@ public final class GameView extends View {
         int hudLayer=hudOpacityV73<100?
             c.saveLayerAlpha(0f,0f,viewW,viewH,CameraHudV73.alpha(hudOpacityV73)):0;
         // No opaque top or bottom bars: the world fills the entire screen.
-        label(c,"SURVIVAL PARADISE",13,17,15,0xff142326,true);
-        label(c,"SURVIVAL PARADISE",12,16,15,WHITE,true);
-        String meta="HP "+(int)health+"  AMMO "+ammo+"/"+MAG[gun]+"  WAVE "+wave+"  KILLS "+kills;
-        label(c,meta,13,35,11,0xff142326,false);
-        label(c,meta,12,34,11,OLIVE,false);
+        if(uiEnabled(HEADER_EDITOR)||editControls){
+            int id=HEADER_EDITOR,alpha=host.setting("uiAlpha"+id,100);
+            c.save();c.translate(hudExtraXV118(id),hudExtraYV118(id));
+            c.scale(hudExtraScaleV118(id),hudExtraScaleV118(id));
+            int layer=alpha<100?c.saveLayerAlpha(0,0,370,42,alpha*255/100):0;
+            label(c,"SURVIVAL PARADISE",1,17,15,0xff142326,true);
+            label(c,"SURVIVAL PARADISE",0,16,15,WHITE,true);
+            String meta="HP "+(int)health+"  AMMO "+ammo+"/"+MAG[gun]+
+                "  WAVE "+wave+"  KILLS "+kills;
+            label(c,meta,1,35,11,0xff142326,false);
+            label(c,meta,0,34,11,OLIVE,false);
+            if(layer!=0)c.restoreToCount(layer);c.restore();
+            hudSelectionBorderV118(c,id);
+        }
         topHudButton(c,TopHudV76.FORM,"FORM",false);
         topHudButton(c,TopHudV76.EDIT,editControls?"DONE":"EDIT",editControls);
         topHudButton(c,TopHudV76.DAY,lightAlpha>nightDarkness*.5f?"NOON":"NIGHT",false);
@@ -4054,12 +4063,21 @@ public final class GameView extends View {
         drawFloatingBagV86(c);
         topHudButton(c,TopHudV76.PAUSE,paused?"RESUME":"PAUSE",paused);
         topHudButton(c,TopHudV76.SET,"SET",false);
+        drawSquadButtonV118(c);
         String footer="SCRAP "+scrap+"  WOOD "+wood+"  STONE "+stone+
             "  FIBER "+fiber+"  MED "+medkits+"  AMMO "+ammoPacks+
             "   "+MainActivity.LOADOUTS[gun]+"  "+clock.display()+
             (automaticDayNight?" [AUTO]":" [MANUAL]");
-        label(c,footer,14,viewH-15,13,0xff182521,true);
-        label(c,footer,13,viewH-16,13,ORANGE,true);
+        if(uiEnabled(FOOTER_EDITOR)||editControls){
+            int id=FOOTER_EDITOR,alpha=host.setting("uiAlpha"+id,100);
+            c.save();c.translate(hudExtraXV118(id),hudExtraYV118(id));
+            c.scale(hudExtraScaleV118(id),hudExtraScaleV118(id));
+            int layer=alpha<100?c.saveLayerAlpha(0,0,650,28,alpha*255/100):0;
+            label(c,footer,1,22,13,0xff182521,true);
+            label(c,footer,0,21,13,ORANGE,true);
+            if(layer!=0)c.restoreToCount(layer);c.restore();
+            hudSelectionBorderV118(c,id);
+        }
         if(harvestV81.active){
             label(c,harvestV81.actionName()+"  "+harvestV81.hitsDone+
                 "/"+harvestV81.hitsRequired,14,viewH-53,13,0xffd3e4a7,true);
@@ -4097,18 +4115,16 @@ public final class GameView extends View {
         for(int ui=0;ui<LegacyControlsV58.COUNT;ui++)drawAction(c,ui);
         drawTalkButtonV94(c);
         drawHotbar(c);
-        if(showStatusBars){
-            drawStatusBar(c,"HP",health,12,145,0xffc76b65);
-            drawStatusBar(c,"STA",stamina,12,165,0xff64ad80);
-            drawStatusBar(c,"HUN TEST",hunger,12,185,0xffb5a06b);
-            drawStatusBar(c,"THR TEST",thirst,12,205,0xff608dad);
-            drawStatusBar(c,"FAT TEST",fatigue,12,225,0xffa18eaf);
-            float enc=encumbranceV91();
-            drawStatusBar(c,"ENC TEST",enc,12,245,0xffbca36e);
-        }
+        drawStatusWindowV118(c);
         label(c,"MOVE",lx-39,jy+105,12,0xffb8d4c5,true);
         if(reloadClock>0)label(c,"RELOADING...",viewW-235,viewH-227,17,ORANGE,true);
-        if(showPerf){
+        if((showPerf||editControls)&&(uiEnabled(PERF_EDITOR)||editControls)){
+            int perfId=PERF_EDITOR,opacity=host.setting("uiAlpha"+perfId,100);
+            c.save();
+            c.translate(hudExtraXV118(perfId)-10f,hudExtraYV118(perfId)-46f);
+            c.scale(hudExtraScaleV118(perfId),hudExtraScaleV118(perfId),10f,46f);
+            int perfLayer=opacity<100?c.saveLayerAlpha(10,46,360,138,
+                Math.round(opacity*255f/100f)):0;
             if(host.option("compactDebugV76",true)){
                 label(c,String.format(Locale.US,"FPS %.1f | %.1fms | NPC %d | CHUNK %d,%d",
                     1000f/Math.max(1f,smoothedFrameMs),smoothedFrameMs,lastVisibleNpcs,
@@ -4128,6 +4144,9 @@ public final class GameView extends View {
                 label(c,String.format(Locale.US,"CPU UPDATE %.1f  DRAW %.1f  LIGHT %.1f ms",
                     updateNs/1e6f,worldNs/1e6f,lightingNs/1e6f),18,122,11,OLIVE,false);
             }
+            if(perfLayer!=0)c.restoreToCount(perfLayer);
+            c.restore();
+            hudSelectionBorderV118(c,PERF_EDITOR);
         }
         if(playing&&!gameOver&&!insideClinicV89){
             ExpeditionSitesV88.Site nearby=null;
