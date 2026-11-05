@@ -61,6 +61,7 @@ public final class GameView extends View {
     int fitHeadXV108=0,fitHeadYV108=0,fitIdleBreathV108=4,fitWalkFpsV108=0;
     float idleBreathingTempoV110=1f;
     int playerHeadSizeV113=100,npcHeadSizeV113=100;
+    int playerTorsoWidthV114=100,npcTorsoWidthV114=100;
     int npcHeadFitXV113=0,npcHeadFitYV113=0,npcBreathPixelsV113=4,npcWalkFpsV113=0;
     int npcHeadAimMaxDegreesV113=10;
     float npcBreathingTempoV113=1f,npcWalkingAnimationTempoV113=1f;
@@ -457,6 +458,8 @@ public final class GameView extends View {
         scale=host.setting("scale",100)/100f;
         playerSkinV109=Math.max(1,Math.min(200,host.setting("playerSkinV109",124)));
         playerHeadSizeV113=CharacterScopeV113.percent(host.setting("headSizeV82",100),75,160);
+        playerTorsoWidthV114=TorsoWidthV114.percent(host.setting("bodyWidthV114",100));
+        npcTorsoWidthV114=TorsoWidthV114.percent(host.setting("bodyWidthV114NpcV113",100));
         npcHeadSizeV113=CharacterScopeV113.percent(host.setting("headSizeV82NpcV113",100),75,160);
         npcHeadFitXV113=HeadFitOffsetsV112.clampOffset(host.setting("fitHeadXV108NpcV113",0));
         npcHeadFitYV113=HeadFitOffsetsV112.clampOffset(host.setting("fitHeadYV108NpcV113",0));
@@ -3023,7 +3026,8 @@ public final class GameView extends View {
                     HeadAimV111.targetDegrees(aimAng,npcHeadAimMaxDegreesV113),
                 player?fitHeadXV108:npcHeadFitXV113,
                 player?fitHeadYV108:npcHeadFitYV113,
-                player?playerHeadSizeV113:npcHeadSizeV113);
+                player?playerHeadSizeV113:npcHeadSizeV113,
+                player?playerTorsoWidthV114:npcTorsoWidthV114);
         }else{
             Bitmap atlas=npcVariant>=0?npcWalkV56:approvedWalkColors;
             int torsoVariant=player?wardrobeV92.equipped[1]:
