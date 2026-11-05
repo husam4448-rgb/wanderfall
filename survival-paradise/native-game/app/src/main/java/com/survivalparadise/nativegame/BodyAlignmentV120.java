@@ -64,6 +64,24 @@ public final class BodyAlignmentV120 {
         return Math.max(0,Math.round(bridge-REAR_FOOT_END_EXCLUSIVE));
     }
 
+    /** Pelvis bottom-black bridge spans original x40..139 (exclusive 140)
+     * at source y220..239. When torso width is larger than pelvis width,
+     * preserve the forward foot under the torso's last outline without
+     * leaving a transparent gap between the pelvis bridge and front boot.
+     * Only a short BLACK contour connector is added, never colored pelvis
+     * pixels and never any boot pixels.
+     */
+    public static float hipBridgeFront(int pelvisPercent) {
+        return 100f+(140f-100f)*ratio(pelvisPercent);
+    }
+    public static float frontFootStart(int torsoPercent,int pelvisPercent){
+        return 140f+frontBootShift(torsoPercent,pelvisPercent);
+    }
+    public static float frontBlackConnectorGap(int torsoPercent,int pelvisPercent){
+        return Math.max(0f,frontFootStart(torsoPercent,pelvisPercent)-
+            hipBridgeFront(pelvisPercent));
+    }
+
     /** The original 20px black side columns remain; add only a thin
      * top cap between those columns, no new resized body pixels. */
     public static float outlineLeft(int torsoPercent){
