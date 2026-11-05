@@ -177,7 +177,8 @@ jobs:
           assert 'TorsoWidthV114.percent(host.setting("bodyWidthV114NpcV113",100))' in game
           assert 'drawBody(c,body,bodyFrame,fit.blend,left,top,unit,' in skins
           assert 'PelvisLegRigV116.part(frame,x,row+PelvisLegRigV116.PELVIS_TOP)' in skins
-          assert 'PelvisLegRigV116.inwardPixels(pelvisWidth)' in skins
+          assert 'BodyAlignmentV120.rearBootShift(pelvisWidth)' in skins
+          assert 'BodyAlignmentV120.frontBootShift(' in skins
           assert 'Bitmap.createBitmap(separated[PelvisLegRigV116.LEFT_FOOT]' in skins
           assert 'Bitmap.createBitmap(separated[PelvisLegRigV116.RIGHT_FOOT]' in skins
           assert 'canvas.drawBitmap(layers.left,pelvisRigSource,destination,pixels);' in skins
