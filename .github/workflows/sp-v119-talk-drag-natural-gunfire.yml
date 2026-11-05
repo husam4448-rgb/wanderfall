@@ -140,7 +140,7 @@ jobs:
         run: python3 survival-paradise/native-game/tools/test_v114_torso_source.py
       - name: V119 verify exact approved idle and four walking poses (immutable source)
         run: python3 survival-paradise/native-game/tools/test_v116_legs_exact.py
-      - name: V119 regression: TALK editor independent coordinates + natural bullet FX
+      - name: "V119 regression: TALK editor independent coordinates + natural bullet FX"
         run: |
           python3 - <<'PY'
           from pathlib import Path
