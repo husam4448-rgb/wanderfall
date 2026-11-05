@@ -86,7 +86,8 @@ for frame,src in enumerate(poses):
             assert abs((180+right)-max(edge(torso,180),edge(pelvis,180)))<.51
             assert 0<=rear<=27 and -36<=right<=0
             assert rear+39 < 140+right
-            assert edge_left:=round(edge(torso,20)) < round(edge(torso,180))
+            edge_left=round(edge(torso,20))
+            assert edge_left < round(edge(torso,180))
             # Top outline exactly bridges the originally unconnected side ink.
             assert all(result.getpixel((x,162))==(0,0,0,255) for x in range(
                 edge_left,round(edge(torso,180))))
