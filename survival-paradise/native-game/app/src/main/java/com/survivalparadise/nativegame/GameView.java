@@ -236,6 +236,9 @@ public final class GameView extends View {
     final ArrayList<Drop> drops=new ArrayList<>();
     final ArrayList<Spark> sparks=new ArrayList<>();
     final ArrayList<Flash> flashes=new ArrayList<>();
+    // V122 interior damage is intentionally V90 hitscan, but every actual
+    // NPC/player gunshot generates a matching transient traveling bullet.
+    final ArrayList<IndoorRoundV122> indoorRoundsV122=new ArrayList<>();
 
     final ArrayList<Cover> covers=new ArrayList<>();
     int allySetting=1,allyCurrent=1;
@@ -264,6 +267,13 @@ public final class GameView extends View {
         float x,y,dx,dy,ttl=GunEffectsV119.FLASH_SECONDS;
         Flash(float x,float y,float dx,float dy){
             this.x=x;this.y=y;this.dx=dx;this.dy=dy;
+        }
+    }
+    static class IndoorRoundV122 {
+        float x,y,vx,vy,life;boolean hostile;
+        IndoorRoundV122(float x,float y,float vx,float vy,float life,boolean hostile){
+            this.x=x;this.y=y;this.vx=vx;this.vy=vy;
+            this.life=life;this.hostile=hostile;
         }
     }
     static class Drop {float x,y,ttl=40;int type;
@@ -677,7 +687,7 @@ public final class GameView extends View {
         worldTimer=0;autSaveClock=0;playerHeadTiltV111=0f;
         clock.setClock(night?21*60f:12*60f,1);
         face=1;aimX=1;aimY=0;refreshDaylight();
-        enemies.clear();friends.clear();campStaff.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();builtCampfires.clear();
+        enemies.clear();friends.clear();campStaff.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();indoorRoundsV122.clear();builtCampfires.clear();
         craftV83.clear();banditLootV87.clear();removeBarricadeCoverV83();
         sitesInitializedV88=false;stationUsedV88.clear();
         clinicInteriorV89=new ClinicInteriorV89();
@@ -739,7 +749,7 @@ public final class GameView extends View {
         gatherFeedback="";gatherFeedbackTime=0;
         gun=Math.max(0,Math.min(11,host.setting("gun",0)));
         ammo=Math.max(0,Math.min(MAG[gun],host.setting("ammo",MAG[gun])));
-        enemies.clear();friends.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();
+        enemies.clear();friends.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();indoorRoundsV122.clear();
         restoreCampfires();
         craftV83.decode(host.prefs.getString("camp_buildings_v83",""));
         craftV83.decodeStock(host.prefs.getString("camp_stock_v84",""));
@@ -1154,7 +1164,7 @@ public final class GameView extends View {
         playerY=ClinicInteriorV89.ENTRANCE_Y;
         bringFriendsInsideV90();
         harvestV81.cancel();cancelPlaceV84();
-        releaseControls();shots.clear();sparks.clear();flashes.clear();
+        releaseControls();shots.clear();sparks.clear();flashes.clear();indoorRoundsV122.clear();
         cameraLookX=0;cameraLookY=0;
         gatherFeedback=name+"  •  EXPLORE AND SCAVENGE";
         gatherFeedbackTime=3.5f;
@@ -1169,7 +1179,7 @@ public final class GameView extends View {
             outsideDoorXv89,outsideDoorYv89);
         playerX=landingV92[0];playerY=landingV92[1];
         returnFriendsOutsideV90();
-        releaseControls();shots.clear();sparks.clear();flashes.clear();
+        releaseControls();shots.clear();sparks.clear();flashes.clear();indoorRoundsV122.clear();
         cameraLookX=0;cameraLookY=0;
         gatherFeedback="RETURNED TO "+place;
         gatherFeedbackTime=2.5f;
@@ -1359,20 +1369,35 @@ public final class GameView extends View {
             }
             friend.animation.step(walked,dt,CharacterFitV108.rate(7.8f,fitWalkFpsV108));
             friend.cd=Math.max(0f,friend.cd-dt);
-            if(friend.cd<=0&&!companionHoldFireV118){
-                for(ClinicActorsV90.Actor a:clinicActorsV90.actors){
-                    if(!a.active||!a.hostile())continue;
-                    if(distance(friend.x,friend.y,a.x,a.y)>300f)continue;
-                    if(!ClinicActorsV90.lineOfSight(clinicInteriorV89,
-                            friend.x,friend.y,a.x,a.y))continue;
-                    friend.face=a.x>=friend.x?1:-1;
-                    friend.aimX=a.x-friend.x;friend.aimY=a.y-friend.y;
-                    float len=(float)Math.hypot(friend.aimX,friend.aimY);
-                    friend.aimX/=Math.max(1,len);friend.aimY/=Math.max(1,len);
-                    clinicActorsV90.hit(a,17f);
-                    friend.cd=.9f+(i%3)*.17f;
-                    break;
-                }
+            ClinicActorsV90.Actor chosen=null;
+            float nearestDistance=300f;
+            for(ClinicActorsV90.Actor a:clinicActorsV90.actors){
+                if(!a.active||!a.hostile())continue;
+                float distance=distance(friend.x,friend.y,a.x,a.y);
+                if(distance>=nearestDistance)continue;
+                if(!ClinicActorsV90.lineOfSight(clinicInteriorV89,
+                    friend.x,friend.y,a.x,a.y))continue;
+                chosen=a;nearestDistance=distance;
+            }
+            float wantX=NpcAimV122.scanX(worldTimer,i+71);
+            float wantY=NpcAimV122.scanY(worldTimer,i+71);
+            if(chosen!=null){
+                float[] to=NpcAimV122.toward(
+                    friend.x,friend.y,chosen.x,chosen.y);
+                wantX=to[0];wantY=to[1];
+            }
+            float[] heading=NpcAimV122.turn(friend.aimX,friend.aimY,
+                wantX,wantY,dt);
+            friend.aimX=heading[0];friend.aimY=heading[1];
+            friend.face=NpcAimV122.facing(friend.aimX,friend.face);
+            if(chosen!=null&&friend.cd<=0&&!companionHoldFireV118&&
+                NpcGunfireV122.firearm(friend.gun)&&
+                NpcAimV122.aligned(friend.aimX,friend.aimY,wantX,wantY)){
+                clinicActorsV90.hit(chosen,17f);
+                spawnIndoorGunfireV122(friend.x,friend.y,friend.gun,
+                    friend.face,friend.aimX,friend.aimY,
+                    chosen.x,chosen.y,false,false);
+                friend.cd=.9f+(i%3)*.17f;
             }
         }
     }
@@ -1384,6 +1409,7 @@ public final class GameView extends View {
         indoorShotCooldownV90=Math.max(0f,indoorShotCooldownV90-dt);
         axeSwingTimeV118=Math.max(0f,axeSwingTimeV118-dt);
         updateGunEffectsV119(dt);
+        updateIndoorRoundsV122(dt);
         if(reloadClock>0f){
             reloadClock-=dt;
             if(reloadClock<=0f){ammo=MAG[gun];reloadClock=0f;}
@@ -1419,7 +1445,26 @@ public final class GameView extends View {
         knifeCooldown=Math.max(0,knifeCooldown-dt);
         knifeDuration=Math.max(0,knifeDuration-dt);
         updateClinicFriendsV90(dt);
+        float raiderBeforeV122=Float.POSITIVE_INFINITY;
+        for(ClinicActorsV90.Actor a:clinicActorsV90.actors){
+            if(a.active&&a.type==ClinicActorsV90.RAIDER)
+                raiderBeforeV122=a.cooldown;
+        }
         float threat=clinicActorsV90.tick(dt,playerX,playerY,clinicInteriorV89);
+        // Only actual V90 raider gun hits create visible indoor bullets.
+        // Zombies and animals remain melee-only; no fake firing effects.
+        for(ClinicActorsV90.Actor a:clinicActorsV90.actors){
+            if(!a.active||a.type!=ClinicActorsV90.RAIDER)continue;
+            if(raiderBeforeV122<=dt+.0001f&&a.cooldown>=1.64f&&
+                distance(a.x,a.y,playerX,playerY)<245f&&
+                ClinicActorsV90.lineOfSight(clinicInteriorV89,
+                    a.x,a.y,playerX,playerY)){
+                float[] direction=NpcAimV122.toward(a.x,a.y,playerX,playerY);
+                int facing=NpcAimV122.facing(direction[0],1);
+                spawnIndoorGunfireV122(a.x,a.y,0,facing,
+                    direction[0],direction[1],playerX,playerY,true,false);
+            }
+        }
         // Actors never despawn when colliding with allies. Separate their
         // footprints instead of hiding overlapping sprites or mutating 'active'.
         for(ClinicActorsV90.Actor actor:clinicActorsV90.actors)if(actor.active)
@@ -1451,7 +1496,11 @@ public final class GameView extends View {
                         sc,MX[gun],MY[gun],MAIN_X[gun],MAIN_Y[gun],0f);
                     WeaponPivotV117.relocateMuzzle(mx,face,sc,
                         playerGunPivotXV117,playerGunPivotYV117);
-                    emitGunEffectsV119(mx[0],mx[1],aimX,aimY,gun);
+                    spawnIndoorGunfireV122(playerX,playerY,gun,face,
+                        aimX,aimY,
+                        target!=null?target.x:mx[0]+aimX*420f,
+                        target!=null?target.y:mx[1]+aimY*420f,
+                        false,true);
                 }
                 indoorShotCooldownV90=Math.max(.13f,RATES[gun]);
                 saveProgress();
@@ -1661,6 +1710,7 @@ public final class GameView extends View {
         indoorOrderV92.sort((a,b)->Float.compare(a.y,b.y));
         for(DrawEntity entity:indoorOrderV92)entity.draw.run();
         drawGunEffectsV119(c);
+        drawIndoorRoundsV122(c);
         drawIndoorSpeechAfterLightingV93(c);
         c.restore();
     }
@@ -1681,9 +1731,16 @@ public final class GameView extends View {
         boolean hostile=a.hostile();
         int variant=a.type==ClinicActorsV90.MEDIC?ROLE_MEDIC:
             a.type==ClinicActorsV90.SURVIVOR?ROLE_CIVILIAN:0;
-        int facing=a.x<=playerX?1:-1;
+        float lookX=NpcAimV122.scanX(worldTimer,a.type+85);
+        float lookY=NpcAimV122.scanY(worldTimer,a.type+85);
+        if(hostile&&distance(a.x,a.y,playerX,playerY)<500f){
+            float[] toward=NpcAimV122.toward(a.x,a.y,playerX,playerY);
+            lookX=toward[0];lookY=toward[1];
+        }
+        int facing=NpcAimV122.facing(lookX,1);
         character(c,a.x,a.y,hostile?0:3,facing,0,
-            (float)Math.sin(worldTimer*2+a.type)*.22f,0,0,
+            (float)Math.sin(worldTimer*2+a.type)*.22f,
+            Ballistics.angle(lookX,lookY,facing),0,
             false,hostile,variant,1+Math.floorMod(a.type*31+37,200));
         if(a.type==ClinicActorsV90.ZOMBIE){
             // Greenish face + torn sleeves over original character atlas.
@@ -1791,7 +1848,7 @@ public final class GameView extends View {
     boolean debugTeleport(float dx,float dy){
         if(!playing||gameOver)return false;
         cancelPlaceV84();harvestV81.cancel();releaseControls();playerX+=dx;playerY+=dy;
-        shots.clear();flashes.clear();sparks.clear();
+        shots.clear();flashes.clear();indoorRoundsV122.clear();sparks.clear();
         saveProgress();invalidate();return true;
     }
     String testStats(){
@@ -1964,6 +2021,55 @@ public final class GameView extends View {
         float nx=dx/length,ny=dy/length;
         if(flashes.size()>=48)flashes.remove(0);
         flashes.add(new Flash(x,y,nx,ny));
+    }
+
+    /** Visualizes an actual V90 indoor hitscan shot as a tiny moving
+     * physical-looking round, with matching V119 muzzle source. The existing
+     * combat damage/collision is unchanged and applied only once.
+     */
+    void spawnIndoorGunfireV122(float x,float y,int weapon,int facing,
+        float aimX,float aimY,float targetX,float targetY,
+        boolean hostile,boolean playerShooter){
+        if(!NpcGunfireV122.firearm(weapon))return;
+        float size=CharacterCollision.BASE_SCALE*scale;
+        float[] muzzle=Ballistics.rigMuzzle(x,y,facing,aimX,aimY,
+            size,MX[weapon],MY[weapon],MAIN_X[weapon],MAIN_Y[weapon],0f);
+        WeaponPivotV117.relocateMuzzle(muzzle,facing,size,
+            playerShooter?playerGunPivotXV117:npcGunPivotXV117,
+            playerShooter?playerGunPivotYV117:npcGunPivotYV117);
+        emitGunEffectsV119(muzzle[0],muzzle[1],aimX,aimY,weapon);
+        if(!host.option("gunTrailV119",true))return;
+        float[] velocity=NpcGunfireV122.velocity(
+            muzzle[0],muzzle[1],targetX,targetY);
+        float life=NpcGunfireV122.life(muzzle[0],muzzle[1],targetX,targetY);
+        if(indoorRoundsV122.size()>=75)indoorRoundsV122.remove(0);
+        indoorRoundsV122.add(new IndoorRoundV122(
+            muzzle[0],muzzle[1],velocity[0],velocity[1],life,hostile));
+    }
+    void updateIndoorRoundsV122(float dt){
+        for(Iterator<IndoorRoundV122> it=indoorRoundsV122.iterator();it.hasNext();){
+            IndoorRoundV122 round=it.next();
+            float delta=Math.min(dt,round.life);
+            round.x+=round.vx*delta;round.y+=round.vy*delta;
+            round.life-=dt;
+            if(round.life<=0f)it.remove();
+        }
+    }
+    void drawIndoorRoundsV122(Canvas c){
+        if(!host.option("gunTrailV119",true))return;
+        for(IndoorRoundV122 round:indoorRoundsV122){
+            if(!WorldPerfV55.nearView(round.x,round.y,camX,camY,
+                viewW,viewH,24f))continue;
+            float m=Math.max(.001f,(float)Math.hypot(round.vx,round.vy));
+            float dx=round.vx/m,dy=round.vy/m;
+            color(GunEffectsV119.bulletColor(round.hostile));
+            p.setStrokeWidth(1.25f);
+            c.drawLine(round.x-dx*GunEffectsV119.BULLET_TRAIL_LENGTH,
+                round.y-dy*GunEffectsV119.BULLET_TRAIL_LENGTH,
+                round.x,round.y,p);
+            rect(c,round.x-1f,round.y-1f,2f,2f,
+                GunEffectsV119.bulletColor(round.hostile));
+        }
     }
 
     void updateGunEffectsV119(float dt){
