@@ -60,6 +60,7 @@ jobs:
           source=(root/"app/src/main/java/com/survivalparadise/nativegame/CharacterSkinsV109.java").read_text()
           gradle=(root/"app/build.gradle").read_text()
           assert "versionCode 110" in gradle
+          assert "applicationId 'com.survivalparadise.nativegame.v110test'" in gradle
           assert "sp_v109_characters.zip" in source
           assert "CharacterAnimationV110.breathOffset" in source
           assert "CharacterAnimationV110.bodyFrame" in source
@@ -182,9 +183,11 @@ jobs:
           test -s "$APK" && test -s "$SUM"
           if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" "$SUM" --clobber -R "$GITHUB_REPOSITORY"
+            gh release edit "$TAG" -R "$GITHUB_REPOSITORY" \
+              --notes "V110 has a SEPARATE application ID from V109 and the main game, preventing uninstall or data loss when installing the APK from this test release. Walking animation speed 50-200%, idle breathing animation speed 25-250%, breathing amplitude slider, original 200 fitted heads, V5 general fitting plus 51 overrides, unchanged body and walking art, preserved weapon and hands rig, legacy wearables hidden. GitHub Actions regression and Android APK build passed."
           else
             gh release create "$TAG" "$APK" "$SUM" --target "$GITHUB_SHA" \
               -R "$GITHUB_REPOSITORY" --prerelease \
               --title "Survival Paradise V110 — Editable Walking and Idle Breathing Speeds" \
-              --notes "V110 updates the separate V109 test installation with adjustable Walking animation speed (50%-200%), independent Idle breathing animation speed (25%-250%), and functional breathing amplitude while preserving approved 200 fitted heads, 51 overrides, four original walking frames, static idle body and smooth head-only breathing. Existing weapons, hands, firing, aiming, NPCs, HUD and saves are retained; legacy equipment overlays remain hidden. Uses the same application ID as V109 and a higher version code. Android signature must match for installation over V109."
+              --notes "V110 installs alongside V109 as a distinct test app so V109 and main game saves remain untouched. Walking animation speed (50%-200%) and independent idle breathing speed (25%-250%) now control 200 fitted characters. Breathing amplitude also works. Original locked body/sprites, V5 general fit plus 51 overrides, four walking frames, weapons, hands, gunplay and hidden legacy wearables preserved. Builds pass source, JVM and APK validation."
           fi
