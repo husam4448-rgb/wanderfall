@@ -74,10 +74,16 @@ final class CharacterSkinsV109 {
         };
     private final Rect headSource=new Rect();
     private final RectF destination=new RectF();
+    // Separate black-ink paint: never modify approved original PNG pixels,
+    // V5 head colors or caller's reusable bitmap Paint.
+    private final Paint upperOutlinePaintV120=new Paint(0);
     private JSONObject configuration;
     private boolean loaded=false;
 
     CharacterSkinsV109(Context context) throws IOException {
+        upperOutlinePaintV120.setColor(android.graphics.Color.BLACK);
+        upperOutlinePaintV120.setAntiAlias(false);
+        upperOutlinePaintV120.setFilterBitmap(false);
         byte[] idle=null,walk=null,fitFile=null;
         try(InputStream source=context.getAssets().open(SOURCE_ASSET);
             ZipInputStream archive=new ZipInputStream(source)) {
@@ -187,10 +193,25 @@ final class CharacterSkinsV109 {
         return layers;
     }
 
-    /** Pelvis shrinks from the center. Each whole black/brown foot is copied
-     * at its original size and translated inward, never cropped or stretched.
-     * The intermediate overlapping gait keeps its one original centered boot.
-     * At neutral 100/100 exactly the original V109 bitmap is drawn.
+    /** The original red upper torso had side-black x20..39 / x160..179
+     * but no top black contour. Add an 8-source-pixel continuous cap between
+     * those sides, entirely INSIDE the old torso row y160..179.
+     * This is a draw-only outline, source bitmaps are immutable.
+     */
+    private void topBodyOutlineV120(Canvas c,float left,float top,float unit,
+                                    int torsoPercent){
+        float x0=left+BodyAlignmentV120.outlineLeft(torsoPercent)*unit;
+        float x1=left+BodyAlignmentV120.outlineRight(torsoPercent)*unit;
+        float y0=top+BodyAlignmentV120.TORSO_TOP*unit;
+        float y1=y0+BodyAlignmentV120.TORSO_OUTLINE_HEIGHT*unit;
+        c.drawRect(x0,y0,x1,y1,upperOutlinePaintV120);
+    }
+
+    /** V120 source-locked body fitting. Original boots translated as a rigid
+     * pixel block. The forward boot RIGHT edge anchors to the last black
+     * leading contour of the fitted torso/pelvis; rear boot joins the rear
+     * hip bridge and never gets hauled to body center. Existing walk frame
+     * footprints, square block dimensions and source RGBA remain untouched.
      */
     private void drawBody(Canvas canvas,Bitmap source,int frame,int blend,
                           float left,float top,float unit,
@@ -199,6 +220,7 @@ final class CharacterSkinsV109 {
            pelvisWidth>=PelvisWidthV115.MAX_PERCENT) {
             destination.set(left,top,left+WIDTH*unit,top+HEIGHT*unit);
             canvas.drawBitmap(source,spriteSource,destination,pixels);
+            topBodyOutlineV120(canvas,left,top,unit,torsoWidth);
             return;
         }
         FootLayers layers=footLayers(source,frame,blend);
@@ -207,12 +229,16 @@ final class CharacterSkinsV109 {
         destination.set(PelvisWidthV115.left(left,unit,pelvisWidth),
             bandTop,PelvisWidthV115.right(left,unit,pelvisWidth),bandBottom);
         canvas.drawBitmap(layers.pelvis,pelvisRigSource,destination,pixels);
-        int inset=PelvisLegRigV116.inwardPixels(pelvisWidth);
-        destination.set(left+inset*unit,bandTop,
-            left+(WIDTH+inset)*unit,bandBottom);
+        // Source coordinates are local right-facing. The parent canvas flips
+        // both boot layers intact for left-facing actors (no asymmetric art).
+        final int rearInset=BodyAlignmentV120.rearBootShift(pelvisWidth);
+        final int frontInset=BodyAlignmentV120.frontBootShift(
+            torsoWidth,pelvisWidth);
+        destination.set(left+rearInset*unit,bandTop,
+            left+(WIDTH+rearInset)*unit,bandBottom);
         canvas.drawBitmap(layers.left,pelvisRigSource,destination,pixels);
-        destination.set(left-inset*unit,bandTop,
-            left+(WIDTH-inset)*unit,bandBottom);
+        destination.set(left+frontInset*unit,bandTop,
+            left+(WIDTH+frontInset)*unit,bandBottom);
         canvas.drawBitmap(layers.right,pelvisRigSource,destination,pixels);
         destination.set(left,bandTop,left+WIDTH*unit,bandBottom);
         canvas.drawBitmap(layers.overlap,pelvisRigSource,destination,pixels);
@@ -224,6 +250,7 @@ final class CharacterSkinsV109 {
             TorsoWidthV114.right(left,unit,torsoWidth),
             top+TorsoWidthV114.LOWER_BODY_TOP*unit);
         canvas.drawBitmap(source,torsoSource,destination,pixels);
+        topBodyOutlineV120(canvas,left,top,unit,torsoWidth);
     }
 
     /** Draw at the existing GameView origin: character feet are planted at y+24s.
