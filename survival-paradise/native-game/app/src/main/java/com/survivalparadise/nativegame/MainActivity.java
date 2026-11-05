@@ -1544,36 +1544,69 @@ public final class MainActivity extends Activity {
         slider(root,"Player character (001–200)","playerSkinV109",1,200,124,"");
         root.addView(text("Use this selector to test every approved fitted survivor in live play. Headgear, backpacks and legacy torso overlays are visually hidden; inventory items remain usable. Weapons and hands still render.",11,false));
         slider(root,"Character display size","scale",65,135,100,"%");
-        slider(root,"Character head size","headSizeV82",75,160,100,"%");
-        slider(root,"Head follows aim (0 = off)","headAimTiltV111",0,15,10,"°");
-        root.addView(text("Small, smooth upward/downward head tilt around the neck when aiming. Works with either facing direction; original face and body pixels remain unchanged.",11,false));
-        root.addView(text("Visual head size for player and NPCs. 100% matches approved original sprites.",11,false));
-        // V108 experimental head-fit lab: neutral values are pixel-identical to V98.
-        section(root,"CHARACTER FITTING  •  V108 OPTIONAL");
-        root.addView(text("Horizontal and vertical offsets adjust all 200 heads relative to their approved V5 individual fitting. Changes apply in game without changing head sprites, body, weapons, or feet.",12,false));
-        slider(root,"Head horizontal fit","fitHeadXV108",-24,24,0," px");
-        slider(root,"Head vertical fit","fitHeadYV108",-24,24,0," px");
-        slider(root,"Idle breathing amplitude","fitIdleBreathV108",0,12,4," px");
-        slider(root,"Idle breathing animation speed","idleBreathingSpeedV110",25,250,100,"%");
-        slider(root,"Walking base frame rate (0 = fitted V5)","fitWalkFpsV108",0,12,0," fps");
-        root.addView(text("0 keeps the approved V5 per-character walking frame rate. Any fixed FPS is also affected by the Walking animation speed control below.",11,false));
-        action(root,"RESET APPROVED CHARACTER FITTING",()->{
-            CharacterFitV108.reset(prefs);
-            prefs.edit().putInt("headSizeV82",HeadKnifeV82.HEAD_DEFAULT)
-                .putInt("walkingAnimationSpeedV79",100)
-                 .putInt("idleBreathingSpeedV110",100).apply();
-            game.reloadSettings();
-            Toast.makeText(this,"Approved character fitting restored. Reopen Settings to refresh sliders.",
-                Toast.LENGTH_LONG).show();
+        section(root,"CHARACTER ADJUSTMENTS • TARGET");
+        root.addView(text("Choose whether character adjustment sliders affect only your player or only world NPCs. Both settings profiles are saved independently.",12,false));
+        Spinner characterTargetV113=new Spinner(this);
+        characterTargetV113.setAdapter(new ArrayAdapter<String>(this,
+            android.R.layout.simple_spinner_dropdown_item,
+            new String[]{"Player character only","World NPCs only (including companions)"}));
+        characterTargetV113.setSelection(Math.max(0,Math.min(1,
+            prefs.getInt(CharacterScopeV113.SCOPE_KEY,CharacterScopeV113.PLAYER))));
+        root.addView(characterTargetV113);
+        final LinearLayout characterControlsV113=column();
+        root.addView(characterControlsV113);
+        final Runnable[] rebuildCharacterSlidersV113Holder=new Runnable[1];
+        rebuildCharacterSlidersV113Holder[0]=()->{
+            characterControlsV113.removeAllViews();
+            int scope=characterTargetV113.getSelectedItemPosition();
+            String label=scope==CharacterScopeV113.NPCS?"WORLD NPCs":"PLAYER";
+            section(characterControlsV113,"CHARACTER FITTING • "+label);
+            slider(characterControlsV113,"Character head size",
+                CharacterScopeV113.key("headSizeV82",scope),75,160,100,"%");
+            slider(characterControlsV113,"Head follows aim (0 = off)",
+                CharacterScopeV113.key("headAimTiltV111",scope),0,15,10,"°");
+            slider(characterControlsV113,"Head horizontal fit",
+                CharacterScopeV113.key("fitHeadXV108",scope),-24,24,0," px");
+            slider(characterControlsV113,"Head vertical fit",
+                CharacterScopeV113.key("fitHeadYV108",scope),-24,24,0," px");
+            slider(characterControlsV113,"Idle breathing amplitude",
+                CharacterScopeV113.key("fitIdleBreathV108",scope),0,12,4," px");
+            slider(characterControlsV113,"Idle breathing animation speed",
+                CharacterScopeV113.key("idleBreathingSpeedV110",scope),25,250,100,"%");
+            slider(characterControlsV113,"Walking base frame rate (0 = fitted V5)",
+                CharacterScopeV113.key("fitWalkFpsV108",scope),0,12,0," fps");
+            slider(characterControlsV113,"Walking animation speed",
+                CharacterScopeV113.key("walkingAnimationSpeedV79",scope),50,200,100,"%");
+            characterControlsV113.addView(text("Head size is relative to each approved V5 fitting (100% = unchanged). Horizontal and vertical offsets preserve individual fitting and the neck pivot. Body art and movement speed are not modified.",11,false));
+            action(characterControlsV113,"RESET "+label+" CHARACTER ADJUSTMENTS",()->{
+                android.content.SharedPreferences.Editor edits=prefs.edit();
+                String[] keys={"headSizeV82","headAimTiltV111","fitHeadXV108",
+                    "fitHeadYV108","fitIdleBreathV108","idleBreathingSpeedV110",
+                    "fitWalkFpsV108","walkingAnimationSpeedV79"};
+                int[] defaults={100,10,0,0,4,100,0,100};
+                for(int n=0;n<keys.length;n++)
+                    edits.putInt(CharacterScopeV113.key(keys[n],scope),defaults[n]);
+                edits.apply();
+                game.reloadSettings();
+                rebuildCharacterSlidersV113Holder[0].run();
+            });
+        };
+        characterTargetV113.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener(){
+            public void onNothingSelected(android.widget.AdapterView<?> parent){}
+            public void onItemSelected(android.widget.AdapterView<?> parent,View view,int position,long id){
+                prefs.edit().putInt(CharacterScopeV113.SCOPE_KEY,
+                    Math.max(0,Math.min(1,position))).apply();
+                rebuildCharacterSlidersV113Holder[0].run();
+            }
         });
-        action(root,"EXPORT CHARACTER FITTING JSON",()->exportCharacterFittingV108());
+        rebuildCharacterSlidersV113Holder[0].run();
+        action(root,"EXPORT PLAYER CHARACTER FITTING JSON",()->exportCharacterFittingV108());
         slider(root,"Hand size (independent)","hand",60,145,100,"%");
         slider(root,"Support hand horizontal reach","support",-12,24,0," px");
         slider(root,"Support hand vertical offset","supportY",-24,24,0," px");
         slider(root,"Simulation speed","speed",50,200,100,"%");
         slider(root,"Player walking speed","walkSpeedV77",75,200,130,"%");
-        slider(root,"Walking animation speed","walkingAnimationSpeedV79",50,200,100,"%");
-        root.addView(text("100% retains the V5 fitted walking animation pace. Change this independently of actual movement speed. Idle breathing has its own speed control above.",11,false));
+
         slider(root,"Survivors (including player)","survivors",1,9,1,"");
         root.addView(text("COMPANION FOLLOW FORMATION",13,true));
         Spinner formationPicker=new Spinner(this);
@@ -1732,6 +1765,7 @@ public final class MainActivity extends Activity {
               .putInt("aimDeadzoneV68",17).putInt("aimCurveV68",175)
               .putInt("aimSteeringV68",100).putInt("cameraPanSpeedV68",350)
               .putInt("reticleSize",100).putInt("headSizeV82",100)
+              .putInt(CharacterScopeV113.SCOPE_KEY,CharacterScopeV113.PLAYER)
               .putInt(CharacterFitV108.X_KEY,CharacterFitV108.HEAD_X_DEFAULT)
               .putInt(CharacterFitV108.Y_KEY,CharacterFitV108.HEAD_Y_DEFAULT)
               .putInt(CharacterFitV108.BREATH_KEY,CharacterFitV108.BREATH_DEFAULT)
