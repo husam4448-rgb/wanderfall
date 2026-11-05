@@ -3,7 +3,7 @@ android {
  namespace 'com.survivalparadise.nativegame'
  compileSdk 35
  defaultConfig {
-  applicationId 'com.survivalparadise.nativegame'
+  applicationId 'com.survivalparadise.nativegame.v109test'
   minSdk 24
   targetSdk 34
   versionCode 109
