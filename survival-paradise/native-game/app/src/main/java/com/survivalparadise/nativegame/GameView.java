@@ -60,6 +60,8 @@ public final class GameView extends View {
     // V108 head-fitting controls: neutral settings preserve every V98 pixel.
     int fitHeadXV108=0,fitHeadYV108=0,fitIdleBreathV108=4,fitWalkFpsV108=0;
     float idleBreathingTempoV110=1f;
+    int headAimMaxDegreesV111=HeadAimV111.DEFAULT_MAX_DEGREES;
+    float playerHeadTiltV111=0f;
     boolean showHands=true,showWeapons=true,anchors=false,hitboxes=false,enemyAI=true,
             aimRotation=true,recoilFX=true,lootEnabled=true,night=true;
     boolean playing=false,paused=false,settingsPause=false,wasPaused=false,hasSave=false,gameOver=false;
@@ -450,6 +452,8 @@ public final class GameView extends View {
     void reloadSettings(){
         scale=host.setting("scale",100)/100f;
         playerSkinV109=Math.max(1,Math.min(200,host.setting("playerSkinV109",124)));
+        headAimMaxDegreesV111=HeadAimV111.limit(
+            host.setting("headAimTiltV111",HeadAimV111.DEFAULT_MAX_DEGREES));
         headScaleV82=HeadKnifeV82.headMultiplier(host.setting("headSizeV82",HeadKnifeV82.HEAD_DEFAULT));
         fitHeadXV108=CharacterFitV108.headX(host.prefs);
         fitHeadYV108=CharacterFitV108.headY(host.prefs);
@@ -629,7 +633,7 @@ public final class GameView extends View {
         wood=0;stone=0;fiber=0;bandagesV88=0;energyV88=0;harvestWorld.clear();salvageWorldV84.clear();groundPickupsV85.clear();
         placingKindV84=-1;placingPointerV84=-1;harvestV81.cancel();
         harvestImpactTimeV81=0;gatherFeedback="";gatherFeedbackTime=0;
-        worldTimer=0;autSaveClock=0;
+        worldTimer=0;autSaveClock=0;playerHeadTiltV111=0f;
         clock.setClock(night?21*60f:12*60f,1);
         face=1;aimX=1;aimY=0;refreshDaylight();
         enemies.clear();friends.clear();campStaff.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();builtCampfires.clear();
@@ -1921,6 +1925,11 @@ public final class GameView extends View {
         refreshDaylight();
         dt=Math.min(.04f,dt)*timeSpeed;
         worldTimer+=dt;autSaveClock+=dt;
+        // Head alone gently follows aim pitch, same in the world and interiors.
+        // Never alter ballistic angle, aim stick, weapon/hands or character body.
+        playerHeadTiltV111=HeadAimV111.follow(playerHeadTiltV111,
+            HeadAimV111.targetDegrees(Ballistics.angle(aimX,aimY,face),
+                headAimMaxDegreesV111),dt);
         if(insideClinicV89){
             updateClinicV89(dt);
             if(autSaveClock>9f){saveProgress();autSaveClock=0f;}
@@ -2993,7 +3002,9 @@ public final class GameView extends View {
         if(characterSkinsV109!=null&&characterSkinsV109.ready()){
             characterSkinsV109.draw(c,skinIdV109,breath==Float.POSITIVE_INFINITY,
                 frame,worldTimer,s,pixel,walkingAnimationMultiplierV79,
-                idleBreathingTempoV110,fitWalkFpsV108,fitIdleBreathV108);
+                idleBreathingTempoV110,fitWalkFpsV108,fitIdleBreathV108,
+                player?playerHeadTiltV111:
+                    HeadAimV111.targetDegrees(aimAng,headAimMaxDegreesV111));
         }else{
             Bitmap atlas=npcVariant>=0?npcWalkV56:approvedWalkColors;
             int torsoVariant=player?wardrobeV92.equipped[1]:
