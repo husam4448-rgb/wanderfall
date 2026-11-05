@@ -1581,7 +1581,7 @@ public final class MainActivity extends Activity {
                 CharacterScopeV113.key("fitWalkFpsV108",scope),0,12,0," fps");
             slider(characterControlsV113,"Walking animation speed",
                 CharacterScopeV113.key("walkingAnimationSpeedV79",scope),50,200,100,"%");
-            characterControlsV113.addView(text("Independent torso and pelvis widths narrow from the center. The legs and feet stay original size in all walking frames. 100% means unmodified. Approved heads, fitting, weapons and hands are unchanged.",11,false));
+            characterControlsV113.addView(text("Torso width adjusts only the upper torso. Pelvis width narrows the entire blue hip band and moves both original square foot blocks inward without shrinking their pixels or changing their walking poses. At 100% the approved body is unchanged. Player and world NPC settings remain independent.",11,false));
             action(characterControlsV113,"RESET "+label+" CHARACTER ADJUSTMENTS",()->{
                 android.content.SharedPreferences.Editor edits=prefs.edit();
                 String[] keys={"headSizeV82","bodyWidthV114","pelvisWidthV115","headAimTiltV111","fitHeadXV108",
