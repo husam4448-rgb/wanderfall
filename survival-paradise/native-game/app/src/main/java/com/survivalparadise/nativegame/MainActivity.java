@@ -1540,6 +1540,9 @@ public final class MainActivity extends Activity {
         root.addView(text("Controls apply to the playable game, and save automatically.",13,false));
         final int playerSection=root.getChildCount();
         section(root,"PLAYER AND COMBAT");
+        section(root,"V109 • APPROVED 200 CHARACTERS • WEAPONS ON, OLD GEAR HIDDEN");
+        slider(root,"Player character (001–200)","playerSkinV109",1,200,124,"");
+        root.addView(text("Use this selector to test every approved fitted survivor in live play. Headgear, backpacks and legacy torso overlays are visually hidden; inventory items remain usable. Weapons and hands still render.",11,false));
         slider(root,"Character display size","scale",65,135,100,"%");
         slider(root,"Character head size","headSizeV82",75,160,100,"%");
         root.addView(text("Visual head size for player and NPCs. 100% matches approved original sprites.",11,false));
