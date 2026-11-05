@@ -144,21 +144,24 @@ final class CharacterSkinsV109 {
     /** Draw at the existing GameView origin: character feet are planted at y+24s.
      * Uses nearest-neighbor source sampling, original silhouettes, unchanged feet.
      */
-    void draw(Canvas c,int id,boolean walking,int walkingFrame,float timeSec,float s,Paint pixel) {
+    void draw(Canvas c,int id,boolean walking,int walkingFrame,float timeSec,float s,Paint pixel,
+              float walkingTempo,float breathingTempo,int fixedWalkFps,int breathingAmplitude) {
         id=range(id,1,COUNT);
         Fit fit=fitting[id];
         // Rendering scale uses 160/260 to match the old native 160px character rig.
         // The body has 200x260 canonical pixels; NO stretching between axes.
         float unit=(160f/HEIGHT)*s;
         float left=-100f*unit, top=-136f*s;
-        Bitmap body=body(walking?1+Math.floorMod((int)Math.floor(timeSec*fit.fps),4):0,fit.blend);
+        Bitmap body=body(CharacterAnimationV110.bodyFrame(walking,timeSec,fit.fps,
+            fixedWalkFps,walkingTempo),fit.blend);
         destination.set(left,top,left+WIDTH*unit,top+HEIGHT*unit);
         c.drawBitmap(body,spriteSource,destination,pixel);
         Bitmap h=head(id);if(h==null)return;
         float headScale=Math.min(186f/h.getWidth(),192f/h.getHeight())*(fit.headScale/107f);
         int hw=Math.round(h.getWidth()*headScale),hh=Math.round(h.getHeight()*headScale);
         int hx=Math.round((200f-hw)/2+fit.horizontal+10);
-        float breathing=walking?0f:(float)Math.sin(timeSec*4f)*fit.breath;
+        float breathing=CharacterAnimationV110.breathOffset(walking,timeSec,
+            fit.breath*(Math.max(0,Math.min(12,breathingAmplitude))/4f),breathingTempo);
         int hy=Math.round(200f-hh+fit.vertical-3+breathing);
         headSource.set(0,0,h.getWidth(),h.getHeight());
         destination.set(left+hx*unit,top+hy*unit,left+(hx+hw)*unit,top+(hy+hh)*unit);
