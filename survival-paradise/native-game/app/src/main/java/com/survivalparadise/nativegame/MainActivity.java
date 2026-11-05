@@ -1565,6 +1565,8 @@ public final class MainActivity extends Activity {
                 CharacterScopeV113.key("headSizeV82",scope),75,160,100,"%");
             slider(characterControlsV113,"Upper torso width (legs unchanged)",
                 CharacterScopeV113.key("bodyWidthV114",scope),55,100,100,"%");
+            slider(characterControlsV113,"Pelvis / hips width (legs unchanged)",
+                CharacterScopeV113.key("pelvisWidthV115",scope),55,100,100,"%");
             slider(characterControlsV113,"Head follows aim (0 = off)",
                 CharacterScopeV113.key("headAimTiltV111",scope),0,15,10,"°");
             slider(characterControlsV113,"Head horizontal fit",
@@ -1579,13 +1581,13 @@ public final class MainActivity extends Activity {
                 CharacterScopeV113.key("fitWalkFpsV108",scope),0,12,0," fps");
             slider(characterControlsV113,"Walking animation speed",
                 CharacterScopeV113.key("walkingAnimationSpeedV79",scope),50,200,100,"%");
-            characterControlsV113.addView(text("Width affects only the upper torso, symmetrically from its center. All original pants, walking legs and feet remain unchanged. 100% restores original width. Head positions and weapon/hand rig stay independent.",11,false));
+            characterControlsV113.addView(text("Independent torso and pelvis widths narrow from the center. The legs and feet stay original size in all walking frames. 100% means unmodified. Approved heads, fitting, weapons and hands are unchanged.",11,false));
             action(characterControlsV113,"RESET "+label+" CHARACTER ADJUSTMENTS",()->{
                 android.content.SharedPreferences.Editor edits=prefs.edit();
-                String[] keys={"headSizeV82","bodyWidthV114","headAimTiltV111","fitHeadXV108",
+                String[] keys={"headSizeV82","bodyWidthV114","pelvisWidthV115","headAimTiltV111","fitHeadXV108",
                     "fitHeadYV108","fitIdleBreathV108","idleBreathingSpeedV110",
                     "fitWalkFpsV108","walkingAnimationSpeedV79"};
-                int[] defaults={100,100,10,0,0,4,100,0,100};
+                int[] defaults={100,100,100,10,0,0,4,100,0,100};
                 for(int n=0;n<keys.length;n++)
                     edits.putInt(CharacterScopeV113.key(keys[n],scope),defaults[n]);
                 edits.apply();
@@ -1768,6 +1770,7 @@ public final class MainActivity extends Activity {
               .putInt("aimSteeringV68",100).putInt("cameraPanSpeedV68",350)
               .putInt("reticleSize",100).putInt("headSizeV82",100)
               .putInt("bodyWidthV114",100).putInt("bodyWidthV114NpcV113",100)
+              .putInt("pelvisWidthV115",100).putInt("pelvisWidthV115NpcV113",100)
               .putInt(CharacterScopeV113.SCOPE_KEY,CharacterScopeV113.PLAYER)
               .putInt(CharacterFitV108.X_KEY,CharacterFitV108.HEAD_X_DEFAULT)
               .putInt(CharacterFitV108.Y_KEY,CharacterFitV108.HEAD_Y_DEFAULT)
