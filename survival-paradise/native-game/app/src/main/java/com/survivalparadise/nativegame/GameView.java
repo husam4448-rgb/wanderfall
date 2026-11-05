@@ -60,6 +60,9 @@ public final class GameView extends View {
     // V108 head-fitting controls: neutral settings preserve every V98 pixel.
     int fitHeadXV108=0,fitHeadYV108=0,fitIdleBreathV108=4,fitWalkFpsV108=0;
     float idleBreathingTempoV110=1f;
+    // V117: independent player and world-NPC gun/hand rotation-axis fitting.
+    int playerGunPivotXV117=0,playerGunPivotYV117=0;
+    int npcGunPivotXV117=0,npcGunPivotYV117=0;
     int playerHeadSizeV113=100,npcHeadSizeV113=100;
     int playerTorsoWidthV114=100,npcTorsoWidthV114=100;
     int playerPelvisWidthV115=100,npcPelvisWidthV115=100;
@@ -458,6 +461,10 @@ public final class GameView extends View {
     void reloadSettings(){
         scale=host.setting("scale",100)/100f;
         playerSkinV109=Math.max(1,Math.min(200,host.setting("playerSkinV109",124)));
+        playerGunPivotXV117=WeaponPivotV117.clamp(host.setting("weaponPivotXV117",0));
+        playerGunPivotYV117=WeaponPivotV117.clamp(host.setting("weaponPivotYV117",0));
+        npcGunPivotXV117=WeaponPivotV117.clamp(host.setting("weaponPivotXV117NpcV113",0));
+        npcGunPivotYV117=WeaponPivotV117.clamp(host.setting("weaponPivotYV117NpcV113",0));
         playerHeadSizeV113=CharacterScopeV113.percent(host.setting("headSizeV82",100),75,160);
         playerTorsoWidthV114=TorsoWidthV114.percent(host.setting("bodyWidthV114",100));
         npcTorsoWidthV114=TorsoWidthV114.percent(host.setting("bodyWidthV114NpcV113",100));
@@ -1878,6 +1885,8 @@ public final class GameView extends View {
         float offsetX=(Ballistics.GRIP_X-MAIN_X[11])*s;
         float offsetY=(Ballistics.GRIP_Y-MAIN_Y[11])*s;
         c.save();
+        c.translate(WeaponPivotV117.localX(playerGunPivotXV117,s),
+                    WeaponPivotV117.localY(playerGunPivotYV117,s));
         c.translate(pivotX,pivotY);
         c.rotate(HeadKnifeV82.localBearing(knifeDirection,face)+MeleeSlashV83.angle(t));
         c.translate(-pivotX,-pivotY);
@@ -1888,7 +1897,8 @@ public final class GameView extends View {
         if(showHands)handAtlas(c,11,2,0,0,s,handScale,0,0);
         c.restore();
     }
-    void shoot(float x,float y,float dx,float dy,int weapon,boolean hostile,int facing){
+    void shoot(float x,float y,float dx,float dy,int weapon,boolean hostile,int facing,
+               boolean playerShooter){
         float length=(float)Math.hypot(dx,dy);
         if(length<.01f){dx=facing;dy=0;length=1;}
         dx/=length;dy/=length;
@@ -1900,8 +1910,12 @@ public final class GameView extends View {
             return;
         }
         float kick=(!hostile&&x==playerX&&y==playerY&&recoilFX)?2.7f:0f;
-        float[] muzzle=Ballistics.rigMuzzle(x,y,facing,dx,dy,CharacterCollision.BASE_SCALE*scale,
+        float gunScale=CharacterCollision.BASE_SCALE*scale;
+        float[] muzzle=Ballistics.rigMuzzle(x,y,facing,dx,dy,gunScale,
                 MX[weapon],MY[weapon],MAIN_X[weapon],MAIN_Y[weapon],kick);
+        WeaponPivotV117.relocateMuzzle(muzzle,facing,gunScale,
+            playerShooter?playerGunPivotXV117:npcGunPivotXV117,
+            playerShooter?playerGunPivotYV117:npcGunPivotYV117);
         final float bx=muzzle[0],by=muzzle[1];
         int pellets=weapon==7?5:1;
         float theta=(float)Math.atan2(dy,dx);
@@ -2041,8 +2055,11 @@ public final class GameView extends View {
         if(gun==11)maxAim=Math.max(rest,88f); // axe: collision reach, no bullet
         else if(gun==3)maxAim=Math.max(rest,host.setting("beamReach",490)); // torch: light
         else{
+            float rigScale=CharacterCollision.BASE_SCALE*scale;
             float[] muzzle=Ballistics.rigMuzzle(playerX,playerY,face,aimX,aimY,
-                CharacterCollision.BASE_SCALE*scale,MX[gun],MY[gun],MAIN_X[gun],MAIN_Y[gun],0f);
+                rigScale,MX[gun],MY[gun],MAIN_X[gun],MAIN_Y[gun],0f);
+            WeaponPivotV117.relocateMuzzle(muzzle,face,rigScale,
+                playerGunPivotXV117,playerGunPivotYV117);
             float muzzleOffset=(muzzle[0]-playerX)*aimX+
                 (muzzle[1]-(playerY-42f))*aimY;
             maxAim=Math.max(rest,Ballistics.unobstructedTravel(gun)+muzzleOffset);
@@ -2094,7 +2111,7 @@ public final class GameView extends View {
             if(aimX>.025f)face=1;else if(aimX<-.025f)face=-1;
             if(shotClock<=0&&reloadClock==0){
                 if(ammo>0||gun==11||gun==3){
-                    shoot(playerX,playerY,aimX,aimY,gun,false,face);
+                    shoot(playerX,playerY,aimX,aimY,gun,false,face,true);
                     if(gun!=3){shotClock=RATES[gun];ammo=Math.max(0,ammo-1);recoil=recoilFX?1:0;}
                 }else reload();
             }
@@ -2164,7 +2181,7 @@ public final class GameView extends View {
                 float aimLen=Math.max(1,(float)Math.hypot(dx,dy));
                 friend.aimX=dx/aimLen;friend.aimY=dy/aimLen;
                 if(friend.cd<=0){
-                    shoot(friend.x,friend.y,dx,dy,friend.gun,false,friend.face);
+                    shoot(friend.x,friend.y,dx,dy,friend.gun,false,friend.face,false);
                     friend.cd=RATES[friend.gun]+.2f;
                 }
             }
@@ -2227,7 +2244,7 @@ public final class GameView extends View {
             else if(Math.abs(e.x-oldX)>.001f)e.face=e.x>oldX?1:-1;
             if(WorldSafetyV92.hostileAllowed(playerX,playerY,CAMP_X,CAMP_Y)&&
                 BanditBrainV88.shouldShoot(state,d,e.cd,clear)){
-                shoot(e.x,e.y,dx,dy,0,true,e.face);
+                shoot(e.x,e.y,dx,dy,0,true,e.face,false);
                 e.cd=.95f+(e.variant%3)*.19f;
             }
             e.animation.step(distance(e.x,e.y,oldX,oldY)>.001f,dt,
@@ -2466,6 +2483,8 @@ public final class GameView extends View {
                 // The player can fire a one-handed gun without interrupting lighting.
                 float[] tip=Ballistics.rigMuzzle(playerX,playerY,face,aimX,aimY,
                     CharacterCollision.BASE_SCALE*scale,MX[3],MY[3],MAIN_X[3],MAIN_Y[3],0f);
+                WeaponPivotV117.relocateMuzzle(tip,face,CharacterCollision.BASE_SCALE*scale,
+                    playerGunPivotXV117,playerGunPivotYV117);
                 lighting.flashlight(tip[0],tip[1],aimX,aimY,flashlightReach);
             }
             int npcFlashlightBudget=2;
@@ -2475,6 +2494,8 @@ public final class GameView extends View {
                 npcFlashlightBudget--;
                 float[] tip=Ballistics.rigMuzzle(f.x,f.y,f.face,f.aimX,f.aimY,
                     CharacterCollision.BASE_SCALE*scale,MX[3],MY[3],MAIN_X[3],MAIN_Y[3],0f);
+                WeaponPivotV117.relocateMuzzle(tip,f.face,CharacterCollision.BASE_SCALE*scale,
+                    npcGunPivotXV117,npcGunPivotYV117);
                 lighting.flashlight(tip[0],tip[1],f.aimX,f.aimY,flashlightReach);
             }
             // Camp flashlights face their actual NPC walking/facing direction.
@@ -2485,6 +2506,8 @@ public final class GameView extends View {
                 float fx=f.face<0?-1f:1f;
                 float[] tip=Ballistics.rigMuzzle(f.x,f.y,f.face,fx,0f,
                         CharacterCollision.BASE_SCALE*scale,MX[3],MY[3],MAIN_X[3],MAIN_Y[3],0f);
+                WeaponPivotV117.relocateMuzzle(tip,f.face,CharacterCollision.BASE_SCALE*scale,
+                    npcGunPivotXV117,npcGunPivotYV117);
                 if(WorldPerfV55.nearView(tip[0],tip[1],camX,camY,viewW,viewH,flashlightReach))
                     lighting.flashlight(tip[0],tip[1],fx,0f,flashlightReach);
             }
@@ -3010,7 +3033,10 @@ public final class GameView extends View {
         // its silhouette cannot cover the head, eyes, or facial outline.
         if(!bandit&&!(player&&harvestV81.active)&&dualTorch&&lampOn&&weapon>=0&&weapon<=2&&showWeapons){
             c.save();
-            c.translate(-30*s,-33*s);
+            int lightFitX=player?playerGunPivotXV117:npcGunPivotXV117;
+            int lightFitY=player?playerGunPivotYV117:npcGunPivotYV117;
+            c.translate(-30*s+WeaponPivotV117.localX(lightFitX,s),
+                -33*s+WeaponPivotV117.localY(lightFitY,s));
             c.rotate(aimRotation?aimAng*180f/(float)Math.PI:0f);
             c.scale(.50f,.50f);
             atlas(c,gear,3*260,0,0,0,s);
@@ -3051,7 +3077,12 @@ public final class GameView extends View {
             final float pivotY=(Ballistics.TORSO_Y-136f)*s;
             final float offsetX=(Ballistics.GRIP_X-MAIN_X[weapon])*s;
             final float offsetY=(Ballistics.GRIP_Y-MAIN_Y[weapon])*s;
-            c.translate(pivotX-kick,pivotY);
+            // Relocate the entire rotation axis and its weapon/two-hand rig.
+            // Both hands retain original contact points; recoil and aim unchanged.
+            int actorFitX=player?playerGunPivotXV117:npcGunPivotXV117;
+            int actorFitY=player?playerGunPivotYV117:npcGunPivotYV117;
+            c.translate(pivotX-kick+WeaponPivotV117.localX(actorFitX,s),
+                pivotY+WeaponPivotV117.localY(actorFitY,s));
             c.rotate(aimRotation?aimAng*180f/(float)Math.PI:0f);
             c.translate(-pivotX,-pivotY);
             c.translate(offsetX,offsetY);
