@@ -146,7 +146,7 @@ final class CharacterSkinsV109 {
      */
     void draw(Canvas c,int id,boolean walking,int walkingFrame,float timeSec,float s,Paint pixel,
               float walkingTempo,float breathingTempo,int fixedWalkFps,int breathingAmplitude,
-              float headTiltDegrees) {
+              float headTiltDegrees,int headOffsetX,int headOffsetY) {
         id=range(id,1,COUNT);
         Fit fit=fitting[id];
         // Rendering scale uses 160/260 to match the old native 160px character rig.
@@ -160,10 +160,11 @@ final class CharacterSkinsV109 {
         Bitmap h=head(id);if(h==null)return;
         float headScale=Math.min(186f/h.getWidth(),192f/h.getHeight())*(fit.headScale/107f);
         int hw=Math.round(h.getWidth()*headScale),hh=Math.round(h.getHeight()*headScale);
-        int hx=Math.round((200f-hw)/2+fit.horizontal+10);
+        // V112: sliders add source-pixel offsets AFTER exact V5 individual fitting.
+        int hx=HeadFitOffsetsV112.x(hw,fit.horizontal,headOffsetX);
         float breathing=CharacterAnimationV110.breathOffset(walking,timeSec,
             fit.breath*(Math.max(0,Math.min(12,breathingAmplitude))/4f),breathingTempo);
-        int hy=Math.round(200f-hh+fit.vertical-3+breathing);
+        int hy=HeadFitOffsetsV112.y(hh,fit.vertical,breathing,headOffsetY);
         headSource.set(0,0,h.getWidth(),h.getHeight());
         destination.set(left+hx*unit,top+hy*unit,left+(hx+hw)*unit,top+(hy+hh)*unit);
         // Rotate only the approved head bitmap about the fitted lower-neck pivot.
