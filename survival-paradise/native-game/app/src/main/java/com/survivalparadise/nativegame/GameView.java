@@ -2602,21 +2602,13 @@ public final class GameView extends View {
                     lighting.flashlight(tip[0],tip[1],fx,0f,flashlightReach);
             }
         }
-        for(Flash f:flashes)if(f.ttl>0)
-            lighting.point(f.x,f.y,90,Math.min(1f,f.ttl/.065f),0xffffedb3);
-        // Actual traveling projectiles cast moving pools of warm illumination.
-        // Keep an explicit cap so continuous automatic fire does not overwhelm
-        // the mobile CPU lightmap; each pool also respects world occluders.
-        int illuminatedBullets=0;
-        for(Shot projectile:shots){
-            if(illuminatedBullets>=18)break;
-            if(projectile.x<camX-85||projectile.x>camX+viewW+85||
-               projectile.y<camY-85||projectile.y>camY+viewH+85)continue;
-            lighting.point(projectile.x,projectile.y,66,.87f,projectile.color);
-            lighting.point(projectile.x-projectile.vx*.009f,
-                           projectile.y-projectile.vy*.009f,40,.43f,projectile.color);
-            illuminatedBullets++;
-        }
+        // V119 small gunbarrel glint, not V118 90px muzzle light circles or
+        // 66px glowing pools around every individual bullet.
+        // Bullets remain visible in their own short post-lighting draw pass.
+        if(host.option("gunMuzzleV119",true))
+            for(Flash f:flashes)if(f.ttl>0f)
+                lighting.point(f.x,f.y,32f,
+                    .23f*GunEffectsV119.alpha(f.ttl),0xffc4a071);
         lighting.render(c,camX,camY,viewW,viewH,lightAlpha,covers);
         lightingNs=System.nanoTime()-lightStart;
         // Lamps/neon signage are static architecture; campfire flames were
