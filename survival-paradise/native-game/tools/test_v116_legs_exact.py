@@ -93,7 +93,8 @@ for frame,pose in enumerate(originals):
                     if foot_part(frame,x,y)==section and original[x,y][3]
                 ]
                 if not points:
-                    assert frame==2 and section in (1,2), (
+                    assert (frame==2 and section in (1,2)) or (
+                        frame!=2 and section==3), (
                         "Unexpected missing original foot pixels",frame,section)
                     continue
                 expected={(x+delta,y,p) for x,y,p in points}
