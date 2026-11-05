@@ -1550,7 +1550,7 @@ public final class MainActivity extends Activity {
         root.addView(text("Visual head size for player and NPCs. 100% matches approved original sprites.",11,false));
         // V108 experimental head-fit lab: neutral values are pixel-identical to V98.
         section(root,"CHARACTER FITTING  •  V108 OPTIONAL");
-        root.addView(text("These values affect the live character render, not the approved sprite files. Body, weapons, and feet stay anchored.",12,false));
+        root.addView(text("Horizontal and vertical offsets adjust all 200 heads relative to their approved V5 individual fitting. Changes apply in game without changing head sprites, body, weapons, or feet.",12,false));
         slider(root,"Head horizontal fit","fitHeadXV108",-24,24,0," px");
         slider(root,"Head vertical fit","fitHeadYV108",-24,24,0," px");
         slider(root,"Idle breathing amplitude","fitIdleBreathV108",0,12,4," px");
