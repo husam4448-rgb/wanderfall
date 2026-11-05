@@ -4323,7 +4323,12 @@ public final class GameView extends View {
         if(!editControls&&bagHitV87(x,y)){
             cancelPlaceV84();host.inventory();return;
         }
-        switch(TopHudV76.hit(x,y,viewW)){
+        if(uiEnabled(COMMAND_EDITOR)&&!editControls&&
+           within(x,y,hudExtraXV118(COMMAND_EDITOR),hudExtraYV118(COMMAND_EDITOR),
+               hudExtraWidthV118(COMMAND_EDITOR),hudExtraHeightV118(COMMAND_EDITOR))){
+            host.companionCommandsV118();return;
+        }
+        switch(topHudHitV118(x,y)){
             case TopHudV76.FORM:
                 followMode=(followMode+1)%FollowFormationV61.NAMES.length;
                 host.prefs.edit().putInt("followMode",followMode).apply();
@@ -4423,11 +4428,28 @@ public final class GameView extends View {
         switch(action){
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_POINTER_DOWN:
-                if(!playing||paused||TopHudV76.hit(x,y,viewW)>=0||
-                    (!editControls&&bagHitV87(x,y))){tap(x,y);return true;}
+                if(!playing||paused){tap(x,y);return true;}
                 if(editControls&&hudEditorTouch(x,y)){
                     if(panelPointer==-2)panelPointer=id;
                     return true;
+                }
+                if(editControls){
+                    int extra=hudExtraAtV118(x,y);
+                    if(extra>=TOP_FORM_EDITOR){
+                        editPointer=id;editControl=extra;selectedHudControl=extra;
+                        editX=host.setting("uiX"+extra,0);
+                        editY=host.setting("uiY"+extra,0);
+                        editGrabX=x-hudExtraXV118(extra);
+                        editGrabY=y-hudExtraYV118(extra);
+                        host.prefs.edit().putInt("selectedButton",extra).apply();
+                        return true;
+                    }
+                }else if(topHudHitV118(x,y)>=0||
+                         bagHitV87(x,y)||
+                         (uiEnabled(COMMAND_EDITOR)&&within(x,y,
+                            hudExtraXV118(COMMAND_EDITOR),hudExtraYV118(COMMAND_EDITOR),
+                            hudExtraWidthV118(COMMAND_EDITOR),hudExtraHeightV118(COMMAND_EDITOR)))){
+                    tap(x,y);return true;
                 }
                 if(editControls&&bagHitV87(x,y)){
                     editPointer=id;editControl=BAG_EDITOR;
@@ -4500,7 +4522,15 @@ public final class GameView extends View {
                                      -viewW*.5f+355f,viewW*.5f-350f);
                         panelY=clamp(py-panelGrabY,55f,viewH-75f);
                     }
-                    if(pointer==editPointer&&editControl>=0){
+                    if(pointer==editPointer&&editControl>=TOP_FORM_EDITOR){
+                        editX=Math.round(clamp(px-editGrabX-hudBaseXV118(editControl),
+                            -hudBaseXV118(editControl),
+                            viewW-hudExtraWidthV118(editControl)-hudBaseXV118(editControl)));
+                        editY=Math.round(clamp(py-editGrabY-hudBaseYV118(editControl),
+                            -hudBaseYV118(editControl),
+                            viewH-hudExtraHeightV118(editControl)-hudBaseYV118(editControl)));
+                        invalidate();
+                    }else if(pointer==editPointer&&editControl>=0){
                         editX=Math.round(px-editGrabX-
                                 (editControl==BAG_EDITOR?WorldUiV86.bagX(viewW):
                                  editControl==HOTBAR?viewW*.5f-6*47f*hotbarScale*.5f:
