@@ -230,9 +230,12 @@ public final class GameView extends View {
     final ArrayList<Drop> drops=new ArrayList<>();
     final ArrayList<Spark> sparks=new ArrayList<>();
     final ArrayList<Flash> flashes=new ArrayList<>();
+    final ArrayList<GunTracerV118> gunTracersV118=new ArrayList<>();
     final ArrayList<Cover> covers=new ArrayList<>();
     int allySetting=1,allyCurrent=1;
     int followMode=FollowFormationV61.SCATTER,followSpacing=125;
+    boolean companionStayV118=false,companionHoldFireV118=false;
+    float axeSwingTimeV118=0f;
     float followHeadingX=1f,followHeadingY=0f;
     final Rect src=new Rect();
     final RectF dest=new RectF();
@@ -542,7 +545,9 @@ public final class GameView extends View {
         showChunkGrid=host.option("testChunkGrid",false);
         npcSleepRadius=host.setting("npcSleepRadius",1200);
         followMode=Math.max(0,Math.min(4,host.setting("followMode",0)));
-        followSpacing=host.setting("followSpacing",125);
+        followSpacing=CompanionOrdersV118.spacing(host.setting("followSpacing",125));
+        companionStayV118=host.option("companionStayV118",false);
+        companionHoldFireV118=host.option("companionHoldFireV118",false);
         lighting.setPixelScale(host.setting("lightResolution",220)/100f);
         lighting.setFastPointLights(host.option("fastPointLights",true));
         lighting.setStaticCache(host.option("staticLightCache",true));
@@ -1335,7 +1340,7 @@ public final class GameView extends View {
             float dx=wp[0]-friend.x,dy=wp[1]-friend.y;
             float d=(float)Math.hypot(dx,dy);
             boolean walked=false;
-            if(d>21f){
+            if(d>21f&&!companionStayV118){
                 float nx=friend.x+dx/Math.max(1,d)*170f*dt,
                       ny=friend.y+dy/Math.max(1,d)*170f*dt;
                 if(!clinicInteriorV89.blocked(nx,friend.y,16)){friend.x=nx;walked=true;}
@@ -1344,7 +1349,7 @@ public final class GameView extends View {
             }
             friend.animation.step(walked,dt,CharacterFitV108.rate(7.8f,fitWalkFpsV108));
             friend.cd=Math.max(0f,friend.cd-dt);
-            if(friend.cd<=0){
+            if(friend.cd<=0&&!companionHoldFireV118){
                 for(ClinicActorsV90.Actor a:clinicActorsV90.actors){
                     if(!a.active||!a.hostile())continue;
                     if(distance(friend.x,friend.y,a.x,a.y)>300f)continue;
@@ -2137,14 +2142,15 @@ public final class GameView extends View {
             Survivor friend=friends.get(fi);
             float beforeFriendX=friend.x,beforeFriendY=friend.y;
             friend.cd=Math.max(0,friend.cd-dt);
-            float gx=FollowFormationV61.targetX(playerX,followHeadingX,followHeadingY,
+            float gx=CompanionOrdersV118.targetX(playerX,followHeadingX,followHeadingY,
                 followMode,fi,friends.size(),followSpacing);
-            float gy=FollowFormationV61.targetY(playerY,followHeadingX,followHeadingY,
+            float gy=CompanionOrdersV118.targetY(playerY,followHeadingX,followHeadingY,
                 followMode,fi,friends.size(),followSpacing);
+            if(companionStayV118){gx=friend.x;gy=friend.y;}
             // Repel overlapping followers even when multiple follow slots coincide
             // with the same obstacle. No teleport or body/rig alterations.
             float repelX=0f,repelY=0f;
-            for(int other=0;other<friends.size();other++){
+            for(int other=0;other<friends.size()&&!companionStayV118;other++){
                 if(fi==other)continue;
                 Survivor neighbor=friends.get(other);
                 float rx=friend.x-neighbor.x,ry=friend.y-neighbor.y;
@@ -2180,7 +2186,7 @@ public final class GameView extends View {
                 friend.face=dx>=0?1:-1;
                 float aimLen=Math.max(1,(float)Math.hypot(dx,dy));
                 friend.aimX=dx/aimLen;friend.aimY=dy/aimLen;
-                if(friend.cd<=0){
+                if(friend.cd<=0&&!companionHoldFireV118){
                     shoot(friend.x,friend.y,dx,dy,friend.gun,false,friend.face,false);
                     friend.cd=RATES[friend.gun]+.2f;
                 }
