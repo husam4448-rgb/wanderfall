@@ -30,6 +30,12 @@ public final class BodyAlignmentV120Test {
                 "rear boot still joins original black hip bridge");
             check(40+left<140+right,
                 "front and rear boots must remain in correct order");
+            float gap=BodyAlignmentV120.frontBlackConnectorGap(t,p);
+            check(gap>=0f&&gap<=18.1f,
+                "black connector only spans a small original outline gap");
+            check(Math.abs(gap-Math.max(0f,BodyAlignmentV120.frontFootStart(t,p)-
+                BodyAlignmentV120.hipBridgeFront(p)))<.01f,
+                "dark lower outline must join the correct forward boot");
             // All four walking frame boot blocks are translated unchanged:
             // idle/front-right x140..179, walking front x140..199,
             // backwards-side left x0..39, intermediate centered x60..119.
