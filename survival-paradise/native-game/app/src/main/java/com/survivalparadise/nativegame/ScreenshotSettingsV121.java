@@ -23,7 +23,9 @@ final class ScreenshotSettingsV121 {
         }
         if(overwrite||!prefs.contains("scale"))
             out.putInt("scale",ScreenshotDefaultsV121.CHARACTER_SCALE);
-        if(overwrite||!prefs.contains("playerSkinV109"))
+        // The screenshot uses survivor #124 as the initial player only;
+        // reapplying slider calibration must not overwrite a chosen survivor.
+        if(!prefs.contains("playerSkinV109"))
             out.putInt("playerSkinV109",ScreenshotDefaultsV121.PLAYER_CHARACTER);
         out.putBoolean(CHARACTER_MARKER,true).apply();
     }
