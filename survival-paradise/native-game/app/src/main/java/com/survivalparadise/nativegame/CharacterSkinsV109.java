@@ -89,8 +89,12 @@ final class CharacterSkinsV109 {
         if(idleSheet==null||idleSheet.getWidth()!=WIDTH||idleSheet.getHeight()!=HEIGHT||
            walkSheet==null||walkSheet.getWidth()!=WIDTH*4||walkSheet.getHeight()!=HEIGHT)
             throw new IOException("V109 source dimensions incorrect");
-        originals[0]=idleSheet;
-        for(int f=0;f<4;f++) originals[f+1]=Bitmap.createBitmap(walkSheet,f*WIDTH,0,WIDTH,HEIGHT);
+        // V5 source-mask: original heads occupy y=0..159. Remove ONLY those
+        // pixels, leaving all torso, pants and feet below y=160 bit-identical.
+        // Independently verified on the four approved walk poses and idle #1.
+        originals[0]=withoutOldHead(idleSheet);
+        for(int f=0;f<4;f++) originals[f+1]=withoutOldHead(
+            Bitmap.createBitmap(walkSheet,f*WIDTH,0,WIDTH,HEIGHT));
         for(int id=1;id<=COUNT;id++)if(headData[id]==null)throw new IOException("Missing approved head "+id);
         try {
             configuration=new JSONObject(new String(fitFile,java.nio.charset.StandardCharsets.UTF_8));
@@ -104,6 +108,12 @@ final class CharacterSkinsV109 {
             }
         }catch(org.json.JSONException e){throw new IOException("Invalid V5 fitting JSON",e);}
         loaded=true;
+    }
+    private static Bitmap withoutOldHead(Bitmap image){
+        int[] pixels=new int[WIDTH*HEIGHT];
+        image.getPixels(pixels,0,WIDTH,0,0,WIDTH,HEIGHT);
+        java.util.Arrays.fill(pixels,0,WIDTH*160,0);
+        return Bitmap.createBitmap(pixels,WIDTH,HEIGHT,Bitmap.Config.ARGB_8888);
     }
     boolean ready(){return loaded;}
     Fit fit(int id){return fitting[range(id,1,COUNT)];}
