@@ -8,9 +8,9 @@ package com.survivalparadise.nativegame;
 public final class IndustrialCampV125 {
     private IndustrialCampV125(){}
     private static final float[][] START={
-        {425f,930f},{520f,900f},{870f,925f},{875f,1080f},{465f,1150f}
+        {470f,850f},{505f,935f},{890f,865f},{885f,952f},{485f,1135f}
     };
-    public static final float[][] FIRES={{455f,1040f}};
+    public static final float[][] FIRES={{490f,1055f}};
     private static final int NPC_RADIUS=31;
     public static boolean clear(float x,float y,int seed){
         if(IndustrialOpenWorldV124.blocked(x,y,NPC_RADIUS,seed))return false;
