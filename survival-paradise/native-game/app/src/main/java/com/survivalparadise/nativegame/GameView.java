@@ -1673,19 +1673,23 @@ public final class GameView extends View {
         drawClinicVisionV90(c);
         ArrayList<DrawEntity> sorted=new ArrayList<>();
         for(ClinicActorsV90.Actor actor:clinicActorsV90.actors){
-            if(!actor.active||!WorldPerfV55.nearView(actor.x,actor.y,camX,camY,viewW,viewH,155))
+            if(!actor.active||!WorldPerfV55.nearView(actor.x,actor.y,camX,camY,viewW,viewH,155)||
+                    !indoorCharacterVisibleV127(actor.x,actor.y))
                 continue;
-            sorted.add(new DrawEntity(actor.y,()->drawClinicActorV90(c,actor)));
+            sorted.add(new DrawEntity(actor.y,()->drawIndoorVisibleEntityV127(c,
+                ()->drawClinicActorV90(c,actor))));
         }
         for(Survivor friend:friends){
-            if(!WorldPerfV55.nearView(friend.x,friend.y,camX,camY,viewW,viewH,145))
+            if(!WorldPerfV55.nearView(friend.x,friend.y,camX,camY,viewW,viewH,145)||
+                    !indoorCharacterVisibleV127(friend.x,friend.y))
                 continue;
-            sorted.add(new DrawEntity(friend.y,()->character(c,friend.x,friend.y,
+            sorted.add(new DrawEntity(friend.y,()->drawIndoorVisibleEntityV127(c,
+                ()->character(c,friend.x,friend.y,
                 friend.gun,friend.face,friend.animation.frame(),
                 friend.animation.isWalking()?Float.POSITIVE_INFINITY:
                     friend.animation.breathOffset(),
                 Ballistics.angle(friend.aimX,friend.aimY,friend.face),
-                0,false,false,friend.variant,friend.skinV109)));
+                0,false,false,friend.variant,friend.skinV109))));
         }
         sorted.add(new DrawEntity(playerY,()->character(c,playerX,playerY,gun,face,
             playerAnimation.frame(),
@@ -1786,15 +1790,17 @@ public final class GameView extends View {
         ArrayList<DrawEntity> indoorOrderV92=new ArrayList<>();
         for(ClinicActorsV90.Actor actor:clinicActorsV90.actors){
             if(!actor.active)continue;
-            if(!WorldPerfV55.nearView(actor.x,actor.y,camX,camY,viewW,viewH,160))
+            if(!WorldPerfV55.nearView(actor.x,actor.y,camX,camY,viewW,viewH,160)||
+                    !indoorCharacterVisibleV127(actor.x,actor.y))
                 continue;
             indoorOrderV92.add(new DrawEntity(actor.y,
-                ()->drawClinicActorV90(c,actor)));
+                ()->drawIndoorVisibleEntityV127(c,()->drawClinicActorV90(c,actor))));
         }
         for(Survivor friend:friends){
-            if(!WorldPerfV55.nearView(friend.x,friend.y,camX,camY,viewW,viewH,145))
+            if(!WorldPerfV55.nearView(friend.x,friend.y,camX,camY,viewW,viewH,145)||
+                    !indoorCharacterVisibleV127(friend.x,friend.y))
                 continue;
-            indoorOrderV92.add(new DrawEntity(friend.y,()->{
+            indoorOrderV92.add(new DrawEntity(friend.y,()->drawIndoorVisibleEntityV127(c,()->{
                 float friendAim=Ballistics.angle(friend.aimX,friend.aimY,friend.face);
                 character(c,friend.x,friend.y,friend.gun,friend.face,
                     friend.animation.frame(),
@@ -1803,7 +1809,7 @@ public final class GameView extends View {
                     friend.variant,friend.skinV109);
                 rect(c,friend.x-6,friend.y-117,13,4,OLIVE);
                 
-            }));
+            })));
         }
         indoorOrderV92.add(new DrawEntity(playerY,()->{
             float angle=Ballistics.angle(aimX,aimY,face);
@@ -1862,6 +1868,18 @@ public final class GameView extends View {
             rect(c,a.x-20,a.y-125,40*a.hp/85f,3,
                 a.type==ClinicActorsV90.ZOMBIE?0xff77955c:0xffa66b58);
         }
+    }
+    /** All non-player indoor actors obey the existing vision and walls. */
+    boolean indoorCharacterVisibleV127(float x,float feetY){
+        return IndoorCharacterVisionV127.visible(clinicVisionV90,clinicInteriorV89,
+            playerX,playerY-35f,aimX,aimY,x,feetY);
+    }
+    /** Clip character art, hair and weapons precisely to the traced cone. */
+    void drawIndoorVisibleEntityV127(Canvas c,Runnable entityDraw){
+        c.save();
+        c.clipPath(clinicVisionPathV90);
+        entityDraw.run();
+        c.restore();
     }
     void drawClinicVisionV90(Canvas c){
         float ox=playerX,oy=playerY-35;
@@ -3572,14 +3590,21 @@ public final class GameView extends View {
     }
     /** All speech draws after terrain light masks, indoor vision, and actors. */
     void drawIndoorSpeechAfterLightingV93(Canvas c){
+        // Dialogue indicators must not reveal unseen NPCs through walls or fog.
+        c.save();
+        c.clipPath(clinicVisionPathV90);
         for(ClinicActorsV90.Actor a:clinicActorsV90.actors){
-            if(!a.active||a.type==ClinicActorsV90.FERAL)continue;
+            if(!a.active||a.type==ClinicActorsV90.FERAL||
+                    !indoorCharacterVisibleV127(a.x,a.y))continue;
             drawSpeechV92(c,a.x,a.y,a.type,
                 a.hostile()?NPCRelationshipsV92.HOSTILE:NPCRelationshipsV92.FRIENDLY,
                 distance(playerX,playerY,a.x,a.y)<255f);
         }
-        for(Survivor f:friends)drawSpeechV92(c,f.x,f.y,f.variant+30,
-            NPCRelationshipsV92.FRIENDLY,false);
+        for(Survivor f:friends){
+            if(!indoorCharacterVisibleV127(f.x,f.y))continue;
+            drawSpeechV92(c,f.x,f.y,f.variant+30,NPCRelationshipsV92.FRIENDLY,false);
+        }
+        c.restore();
     }
     void drawOutdoorSpeechAfterLightingV93(Canvas c){
         for(Bandit e:enemies)if(e.active)drawSpeechV92(c,e.x,e.y,
