@@ -51,7 +51,7 @@ public final class IndustrialWorldV123 {
         private District(int sx,int sy,int seed) {
             this.sx=sx;this.sy=sy;this.seed=seed;
             x=sx*(float)SECTOR;y=sy*(float)SECTOR;
-            kind=Math.floorMod(hash(sx,sy,seed ^ 73159),FACILITIES.length);
+            kind=IndustrialOpenWorldV124.family(sx,sy,seed);
             name=FACILITIES[kind];id=sx+","+sy;
             buildingX=x+170f;buildingY=y+235f;
             doorX=x+540f;doorY=y+730f;
