@@ -96,8 +96,8 @@ public final class IndustrialArtV123 {
             }
             // Fence sprites only over real physical fence segments; central
             // yard gate is left empty and can be crossed by characters.
-            draw(c,FENCE,x+112,y+1178,325,48);
-            draw(c,PATCHWORK,x+709,y+1178,556,48);
+            draw(c,FENCE,x+112,y+1178,470,48);
+            draw(c,PATCHWORK,x+832,y+1178,433,48);
         }
     }
     public void indoors(Canvas c,IndustrialInteriorV123 room){
