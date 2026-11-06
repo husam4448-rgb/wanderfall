@@ -10,10 +10,10 @@ public final class GearLootV95 {
     public static final int TOTAL=FIRST+TYPES;
     public static final String[] NAMES={
         "DAYPACK","HIKING PACK","TACTICAL PACK",
-        "CAP","FIELD HAT","TACTICAL HELMET",
-        "WORK JACKET","TRAVEL COAT","BODY ARMOR",
-        "CARGO PANTS","FIELD TROUSERS","ARMORED PANTS",
-        "WORK BOOTS","HIKING BOOTS","TACTICAL BOOTS"
+        "CANVAS CAP","SUN-BRIM FIELD HAT","BALLISTIC HELMET",
+        "CANVAS WORK JACKET","WEATHERPROOF FIELD COAT","PLATE CARRIER VEST",
+        "UTILITY CARGO TROUSERS","RIPSTOP FIELD TROUSERS","REINFORCED TACTICAL PANTS",
+        "STEEL-TOE WORK BOOTS","LEATHER TRAIL BOOTS","TACTICAL COMBAT BOOTS"
     };
     private final boolean[][][] claimed=new boolean[64][14][TYPES];
     public void clear(){
