@@ -28,20 +28,43 @@ public final class IndustrialCampV125 {
         }
         return true;
     }
+    // A candidate needs actual clear geometry AND sufficient distance from
+    // all previously chosen NPC homes, not merely an unoccupied wall cell.
+    private static boolean separated(float x,float y,float[][] chosen,int count){
+        for(int j=0;j<count;j++){
+            float dx=x-chosen[j][0],dy=y-chosen[j][1];
+            if(dx*dx+dy*dy<112f*112f)return false;
+        }
+        float dx=x-FIRES[0][0],dy=y-FIRES[0][1];
+        return dx*dx+dy*dy>=98f*98f;
+    }
     public static float[] home(int id,int seed){
         if(id<0||id>=START.length)throw new IllegalArgumentException("role");
-        float x=START[id][0],y=START[id][1];
-        if(clear(x,y,seed))return new float[]{x,y};
-        // Deterministic non-random fallback for future changed lot footprints.
-        for(int radius=35;radius<=350;radius+=35){
-            for(int angle=0;angle<16;angle++){
-                double a=angle*Math.PI/8.0;
-                float px=x+(float)Math.cos(a)*radius;
-                float py=y+(float)Math.sin(a)*radius;
-                if(clear(px,py,seed))return new float[]{px,py};
+        float[][] chosen=new float[id+1][];
+        for(int npc=0;npc<=id;npc++){
+            float x=START[npc][0],y=START[npc][1];
+            if(clear(x,y,seed)&&separated(x,y,chosen,npc)){
+                chosen[npc]=new float[]{x,y};
+                continue;
             }
+            // Stable, bounded placement search. Recompute roles in exact order
+            // so the same seed never moves an NPC when offscreen chunks reload.
+            boolean found=false;
+            for(int radius=35;radius<=525&&!found;radius+=35){
+                for(int angle=0;angle<24;angle++){
+                    double a=angle*Math.PI/12.0;
+                    float px=x+(float)Math.cos(a)*radius;
+                    float py=y+(float)Math.sin(a)*radius;
+                    if(clear(px,py,seed)&&separated(px,py,chosen,npc)){
+                        chosen[npc]=new float[]{px,py};
+                        found=true;break;
+                    }
+                }
+            }
+            if(!found)throw new IllegalStateException(
+                "No separate, collision-free industrial NPC spawn");
         }
-        throw new IllegalStateException("No collision-free industrial spawn");
+        return chosen[id];
     }
     public static boolean patrolAllowed(float x,float y,int seed){
         return clear(x,y,seed);
