@@ -662,7 +662,8 @@ public final class MainActivity extends Activity {
         shell.setBackgroundColor(0xff212825);
         ExpeditionSitesV88.Site siteV88=ExpeditionSitesV88.nearest(
             bag.x-115f,bag.y-91f,12f);
-        section(shell,siteV88==null?"BANDIT BACKPACK  •  SEARCH & TRANSFER":
+        section(shell,bag.corpse?"FALLEN CHARACTER  •  SEARCH POSSESSIONS":
+            siteV88==null?"BANDIT BACKPACK  •  SEARCH & TRANSFER":
             siteV88.name+"  •  SUPPLY CACHE");
         shell.addView(text("Tap an item then LOOT, or drag its icon across to PLAYER INVENTORY. LOOT ALL collects everything.",12,false));
         LinearLayout sides=new LinearLayout(this);
@@ -1134,6 +1135,23 @@ public final class MainActivity extends Activity {
             .setItems(labels.toArray(new String[0]),
                 (dialog,selected)->dropQuantityDialogV129(indexes.get(selected),refresh))
             .setNegativeButton("CANCEL",null).show();
+    }
+    void searchIndoorCorpseDialogV129(int corpseIndex){
+        if(game==null||!game.insideClinicV89||corpseIndex<0||
+            corpseIndex>=game.clinicActorsV90.actors.length)return;
+        ClinicActorsV90.Actor actor=game.clinicActorsV90.actors[corpseIndex];
+        if(actor.active)return;
+        boolean looted=game.indoorCorpseSearchedV129(corpseIndex);
+        new AlertDialog.Builder(this)
+            .setTitle("SEARCH FALLEN CHARACTER")
+            .setMessage(looted?"Already searched; nothing remains.":
+                "Possessions: "+game.indoorCorpseContentsV129(corpseIndex))
+            .setNegativeButton("CLOSE",null)
+            .setPositiveButton("SEARCH",(d,w)->{
+                if(!game.searchIndoorCorpseV129(corpseIndex))
+                    Toast.makeText(this,looted?"Already searched":
+                        "Move closer to search",Toast.LENGTH_SHORT).show();
+            }).show();
     }
     void recoverDroppedV129(DroppedItemsV129.Stack stack){
         if(game==null||stack==null||!game.droppedItemsV129.contains(stack))return;
