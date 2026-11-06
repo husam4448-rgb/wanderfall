@@ -5099,12 +5099,16 @@ public final class GameView extends View {
         label(c,"Approved V31 character and weapons • offline • no WebView",
                 viewW/2-254,viewH/2+173,13,ORANGE,false);
     }
+    float pauseMenuTopV131(){
+        return gameOver?viewH/2f-130f:54f;
+    }
     void pauseOverlay(Canvas c){
         rect(c,0,0,viewW,viewH,0xaa07171d);
-        rounded(c,viewW/2-195,viewH/2-130,390,250,16,0xff20353b);
-        label(c,gameOver?"YOU DIED":"GAME PAUSED",viewW/2-155,viewH/2-66,27,WHITE,true);
-        btn(c,viewW/2-150,viewH/2-38,300,50,gameOver?"NEW GAME":"RESUME",0xff376a5e);
-        btn(c,viewW/2-150,viewH/2+28,300,50,"SETTINGS",0xff344952);
+        float top=pauseMenuTopV131();
+        rounded(c,viewW/2-195,top,390,215,16,0xff20353b);
+        label(c,gameOver?"YOU DIED":"GAME PAUSED",viewW/2-155,top+52,27,WHITE,true);
+        btn(c,viewW/2-150,top+77,300,50,gameOver?"NEW GAME":"RESUME",0xff376a5e);
+        btn(c,viewW/2-150,top+143,300,50,"SETTINGS",0xff344952);
     }
     @Override protected void onDetachedFromWindow(){
         terrainChunks.release();
@@ -5245,8 +5249,12 @@ public final class GameView extends View {
             return;
         }
         if(paused&&!settingsPause){
-            if(within(x,y,viewW/2-150,viewH/2-38,300,50)){if(gameOver)newGame();else togglePause();return;}
-            if(within(x,y,viewW/2-150,viewH/2+28,300,50)){host.settings();return;}
+            if(within(x,y,viewW/2-150,pauseMenuTopV131()+77,300,50)){
+                if(gameOver)newGame();else togglePause();return;
+            }
+            if(within(x,y,viewW/2-150,pauseMenuTopV131()+143,300,50)){
+                host.settings();return;
+            }
         }
         if(!editControls&&bagHitV87(x,y)){
             cancelPlaceV84();host.inventory();return;
