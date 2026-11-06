@@ -7,8 +7,14 @@ mkdir -p artifacts
 adb install -r "$APK"
 adb shell am start -n "$APP"
 sleep 9
-SIZE="$(adb shell wm size | tr -d '\r' | awk -F': ' '/Physical size/{print $2}' | tail -1)"
-W="${SIZE%x*}";H="${SIZE#*x}"
+adb exec-out screencap -p > /tmp/v130_menu_screen.png
+read W H < <(python3 - <<'PY'
+from struct import unpack
+p=open('/tmp/v130_menu_screen.png','rb').read(24)
+assert p[:8]==b'\x89PNG\r\n\x1a\n'
+print(*unpack('>II',p[16:24]))
+PY
+)
 test "$W" -gt "$H"
 NEW_X=$((W/2 - 132*H/660))
 CONT_X=$((W/2 + 132*H/660))
