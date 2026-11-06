@@ -1838,6 +1838,43 @@ public final class MainActivity extends Activity {
         action(root,"View current FPS and chunk statistics",()->{
             Toast.makeText(this,game.testStats(),Toast.LENGTH_LONG).show();
         });
+        section(root,"V123 INDUSTRIAL WORLD • SEED TESTING");
+        root.addView(text("New seed creates a different deterministic industrial world. "+
+            "Factory loot and defeated interior NPCs are saved per seed and facility.",13,false));
+        action(root,"SET INDUSTRIAL WORLD SEED",()->{
+            final android.widget.EditText field=new android.widget.EditText(this);
+            field.setInputType(android.text.InputType.TYPE_CLASS_NUMBER|
+                android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
+            field.setSingleLine(true);
+            field.setText(String.valueOf(game.industrialSeedV123));
+            field.selectAll();
+            new android.app.AlertDialog.Builder(this)
+                .setTitle("Procedural industrial world seed")
+                .setView(field)
+                .setNegativeButton("CANCEL",null)
+                .setPositiveButton("GENERATE",(dialog,which)->{
+                    try{
+                        int next=Integer.parseInt(field.getText().toString().trim());
+                        game.saveProgress();
+                        prefs.edit().putInt(IndustrialWorldV123.SEED_PREF,next).apply();
+                        game.newGame();
+                        if(activeDialog[0]!=null)activeDialog[0].dismiss();
+                        game.menuPause(false);
+                        Toast.makeText(this,"Industrial world seed: "+next,
+                            Toast.LENGTH_LONG).show();
+                    }catch(NumberFormatException ex){
+                        Toast.makeText(this,"Enter a signed whole-number seed",
+                            Toast.LENGTH_LONG).show();
+                    }
+                }).show();
+        });
+        action(root,"RETURN TO INDUSTRIAL STARTING FACTORY",()->{
+            if(game.insideClinicV89)game.exitClinicV89();
+            IndustrialWorldV123.District factory=IndustrialWorldV123.district(
+                0,0,game.industrialSeedV123);
+            testTravel(factory.doorX-game.playerX,
+                factory.doorY+112f-game.playerY,"Returned to starting factory");
+        });
         section(root,"TRAVEL / CONTINUITY TESTS");
         root.addView(text("Teleporting changes only player coordinates. The original camp, " +
             "seed, save file, characters, and inventory remain intact.",13,false));
