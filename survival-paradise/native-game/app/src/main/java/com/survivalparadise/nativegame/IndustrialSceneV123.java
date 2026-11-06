@@ -170,8 +170,8 @@ public final class IndustrialSceneV123 {
             r(c,p,wall[0],wall[1],wall[2],wall[3],0xff68605a);
             r(c,p,wall[0]+4,wall[1]+3,Math.max(3,wall[2]-8),5,0xffad8969);
         }
-        for(int i=0;i<IndustrialInteriorV123.MACHINES.length;i++){
-            float[] q=IndustrialInteriorV123.MACHINES[i];
+        for(int i=0;i<room.machines.length;i++){
+            float[] q=room.machines[i];
             if(i<6)machine(c,p,q[0],q[1],q[2],q[3],kind==2?0xff82563d:0xff4c595c,i);
             else if(i<14)rack(c,p,q[0],q[1],q[2],q[3],seed+i);
             else metal(c,p,q[0],q[1],q[2],q[3]);
