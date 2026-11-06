@@ -12,7 +12,7 @@ public final class LegacyControlsV58 {
         "Left FIRE","Right FIRE","Left MELEE","Right MELEE","RUN",
         "CROUCH","INTERACT","SWAP","RELOAD","ZOOM +","ZOOM -"};
     public static final String[] LABELS={
-        "FIRE","FIRE","MELEE","MELEE","RUN","CROUCH","USE",
+        "FIRE","FIRE","MELEE","MELEE","RUN","CROUCH","INTERACT",
         "SWAP","RELOAD","ZOOM +","ZOOM -"};
     // V72 screenshot-based 1480x720 reference, normalized horizontally
     // for narrower mobile screens. Default joystick and hotbar also move.
