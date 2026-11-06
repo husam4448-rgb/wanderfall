@@ -35,6 +35,11 @@ public final class IndustrialBiomeBridgeV128 {
     public static boolean bounds(float x,float y){
         return x>=WEST-200&&x<=EAST+200&&y>=NORTH-200&&y<=SOUTH+200;
     }
+    /** In deep industry the base forest chunks would be completely hidden. */
+    public static boolean viewportCore(float camX,float camY,float w,float h){
+        return camX>WEST+240&&camX+w<EAST-240&&
+            camY>NORTH+240&&camY+h<SOUTH-240;
+    }
     private static int rand(int n,int seed,int salt){
         return IndustrialWorldV123.hash(n,salt,seed^0x614EA721);
     }
