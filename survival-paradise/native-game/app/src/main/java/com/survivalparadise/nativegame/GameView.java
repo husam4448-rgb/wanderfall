@@ -141,6 +141,7 @@ public final class GameView extends View {
     }
     final NPCRelationshipsV92 relationshipsV92=new NPCRelationshipsV92();
     final int[] bagOrderV92=new int[40];
+    final InventorySplitV130 splitV130=new InventorySplitV130();
     boolean bagOrderInitializedV92=false;
     float campGuardCooldownV92=0f;
     int activeSiteV91=-1; // -1 outdoors, 1 original clinic, all others separate indoor maps
@@ -754,6 +755,31 @@ public final class GameView extends View {
         "WORK JACKET","TRAVEL COAT","BODY ARMOR",
         "CARGO PANTS","FIELD TROUSERS","ARMORED PANTS",
         "WORK BOOTS","HIKING BOOTS","TACTICAL BOOTS","EMPTY"};
+    int[] inventoryTotalsV130(){
+        int[] totals=new int[40];
+        for(int i=0;i<39;i++)totals[i]=inventoryQuantityV92(i);
+        return totals;
+    }
+    void reconcileSplitV130(){splitV130.reconcile(bagOrderV92,inventoryTotalsV130());}
+    int bagSlotItemV130(int position){
+        return splitV130.type(position,bagOrderV92);
+    }
+    int bagSlotCountV130(int position){
+        return splitV130.count(position,bagOrderV92,inventoryTotalsV130());
+    }
+    boolean splitBagSlotV130(int position,int quantity){
+        if(!splitV130.split(position,quantity,bagOrderV92,inventoryTotalsV130()))
+            return false;
+        saveProgress();invalidate();return true;
+    }
+    boolean dropBagSlotV130(int position,int amount){
+        if(position<0||position>=40||amount<=0||
+           bagSlotCountV130(position)<amount)return false;
+        int type=bagSlotItemV130(position);
+        if(!dropInventoryV129(type,amount))return false;
+        splitV130.consumed(position,amount);
+        saveProgress();return true;
+    }
     void initInventoryOrderV92(){
         int count=0;
         for(int i=0;i<bagOrderV92.length;i++)
@@ -794,7 +820,9 @@ public final class GameView extends View {
         System.arraycopy(bagOrderV92,Math.min(source,dest)+(source<dest?1:0),
             bagOrderV92,Math.min(source,dest)+(source<dest?0:1),
             Math.abs(source-dest));
-        bagOrderV92[dest]=type;saveProgress();return true;
+        bagOrderV92[dest]=type;
+        splitV130.moved(source,dest);
+        saveProgress();return true;
     }
     void newGame(){
         industrialSeedV123=host.prefs.getInt(IndustrialWorldV123.SEED_PREF,14901);
@@ -817,7 +845,7 @@ public final class GameView extends View {
         face=1;aimX=1;aimY=0;refreshDaylight();
         enemies.clear();friends.clear();campStaff.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();indoorRoundsV122.clear();builtCampfires.clear();
         craftV83.clear();banditLootV87.clear();removeBarricadeCoverV83();
-        droppedItemsV129.clear();
+        droppedItemsV129.clear();splitV130.clear();
         sitesInitializedV88=false;stationUsedV88.clear();
         clinicInteriorV89=new ClinicInteriorV89();
         clinicActorsV90=new ClinicActorsV90(clinicInteriorV89);
@@ -926,6 +954,8 @@ public final class GameView extends View {
         gearLootV95.decode(host.prefs.getString("gear_loot_v95",""));
         relationshipsV92.decode(host.prefs.getString("npc_relations_v92",""));
         restoreBagOrderV92(host.prefs.getString("bag_order_v92",""));
+        splitV130.decode(host.prefs.getString("inventory_split_v130",""),
+            bagOrderV92,inventoryTotalsV130());
         insideClinicV89=host.prefs.getBoolean("inside_clinic_v89",false);
         int savedSiteV91=host.prefs.getInt("active_site_v91",1);
         if(insideClinicV89)configureInteriorV91(savedSiteV91);
@@ -2110,6 +2140,7 @@ public final class GameView extends View {
                 .putString("gear_loot_v95",gearLootV95.encode())
                 .putString("npc_relations_v92",relationshipsV92.encode())
                 .putString("bag_order_v92",encodeBagOrderV92())
+                .putString("inventory_split_v130",splitV130.encode())
                 .putBoolean("inside_clinic_v89",insideClinicV89)
                 .putFloat("clinic_return_x_v89",outsideDoorXv89)
                 .putFloat("clinic_return_y_v89",outsideDoorYv89)
