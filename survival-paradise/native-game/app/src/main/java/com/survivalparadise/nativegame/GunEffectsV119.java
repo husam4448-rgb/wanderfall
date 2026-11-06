@@ -4,7 +4,7 @@ package com.survivalparadise.nativegame;
  * Side-view muzzle flashes are short-lived and limited to actual firearms.
  */
 public final class GunEffectsV119 {
-    public static final float FLASH_SECONDS=.075f;
+    public static final float FLASH_SECONDS=.155f;
     public static final float BULLET_TRAIL_LENGTH=13f;
     private GunEffectsV119(){}
 
