@@ -4456,7 +4456,7 @@ public final class GameView extends View {
     }
     void menu(Canvas c){
         rounded(c,viewW/2-300,viewH/2-200,600,398,20,0xef14272b);
-        label(c,"SURVIVAL PARADISE V123",viewW/2-254,viewH/2-115,32,WHITE,true);
+        label(c,"SURVIVAL PARADISE V124",viewW/2-254,viewH/2-115,32,WHITE,true);
         label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 57 HYBRID",
                 viewW/2-254,viewH/2-80,15,OLIVE,true);
         label(c,"Move left. Aim right. FIRE with independent button.",viewW/2-254,viewH/2-40,15,WHITE,false);
