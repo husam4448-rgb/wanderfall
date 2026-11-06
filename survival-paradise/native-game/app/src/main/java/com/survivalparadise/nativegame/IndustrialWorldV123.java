@@ -57,13 +57,13 @@ public final class IndustrialWorldV123 {
             doorX=x+540f;doorY=y+730f;
         }
         public float materialX(int i) {
-            switch(i){case 0:return x+990;case 1:return x+290;
-                case 2:return x+770;case 3:return x+440;
+            switch(i){case 0:return x+410;case 1:return x+296;
+                case 2:return x+915;case 3:return x+930;
                 default:throw new IllegalArgumentException("material index");}
         }
         public float materialY(int i) {
-            switch(i){case 0:return y+500;case 1:return y+1000;
-                case 2:return y+1015;case 3:return y+915;
+            switch(i){case 0:return y+970;case 1:return y+1100;
+                case 2:return y+1015;case 3:return y+1110;
                 default:throw new IllegalArgumentException("material index");}
         }
         public String lootKey(int slot,boolean interior) {
