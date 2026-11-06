@@ -3,10 +3,10 @@ package com.survivalparadise.nativegame;
 public final class WardrobeV92 {
     public static final String[] SLOTS={"HEAD","TORSO","LEGS","BOOTS"};
     public static final String[][] NAMES={
-        {"CAP","FIELD HAT","TACTICAL HELMET"},
-        {"WORK JACKET","TRAVEL COAT","BODY ARMOR"},
-        {"CARGO PANTS","FIELD TROUSERS","ARMORED PANTS"},
-        {"WORK BOOTS","HIKING BOOTS","TACTICAL BOOTS"}
+        {"CANVAS CAP","SUN-BRIM FIELD HAT","BALLISTIC HELMET"},
+        {"CANVAS WORK JACKET","WEATHERPROOF FIELD COAT","PLATE CARRIER VEST"},
+        {"UTILITY CARGO TROUSERS","RIPSTOP FIELD TROUSERS","REINFORCED TACTICAL PANTS"},
+        {"STEEL-TOE WORK BOOTS","LEATHER TRAIL BOOTS","TACTICAL COMBAT BOOTS"}
     };
     public final int[][] found=new int[4][3];
     public final int[] equipped={-1,-1,-1,-1};
