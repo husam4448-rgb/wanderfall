@@ -306,9 +306,12 @@ jobs:
           assert 'IndustrialBiomeBridgeV128.nearestEntrance(' in g
           assert 'IndustrialOpenWorldV124.nearestEntrance(' in g
           assert 'ENTER AT THE DOOR' in g and 'EXIT AT THE DOOR' in g
-          assert 'String label=insideClinicV89?' not in g or True  # no display fallback requirement
-          assert 'EDIT' not in '' # isolation
-          assert 'EDIT' not in '' # preserve original control keys
+          assert 'btn(c,x,y,w,h,insideClinicV89?"EXIT":"ENTER",' in g
+          assert 'if(id==ENTER_EDITOR)return "ENTER / EXIT BUTTON";' in g
+          assert 'if(id==ENTER_EDITOR)return enterWidthV132();' in g
+          assert 'if(id==ENTER_EDITOR)return enterHeightV132();' in g
+          assert 'if(id==ENTER_EDITOR)return enterLeftV132();' in g
+          assert 'if(id==ENTER_EDITOR)return enterTopV132();' in g
           assert 'editControl==ENTER_EDITOR' in g
           assert 'HudDragV119.horizontalOffset(px,editGrabX,' in g
           assert 'HudDragV119.verticalOffset(py,editGrabY,' in g
