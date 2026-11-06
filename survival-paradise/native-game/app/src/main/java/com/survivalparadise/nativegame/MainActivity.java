@@ -1838,10 +1838,12 @@ public final class MainActivity extends Activity {
         action(root,"View current FPS and chunk statistics",()->{
             Toast.makeText(this,game.testStats(),Toast.LENGTH_LONG).show();
         });
-        section(root,"V124 INDUSTRIAL OPEN WORLD • SEED TESTING");
-        root.addView(text("New seed creates a different deterministic industrial world. "+
-            "Factory loot and defeated interior NPCs are saved per seed and facility.",13,false));
-        action(root,"SET INDUSTRIAL WORLD SEED",()->{
+        section(root,"V128 JOINED PROCEDURAL WORLD • INDUSTRIAL REGION");
+        root.addView(text("The original camp and main highway now connect without a portal "+
+            "to an industrial region 12 sectors wide and 10 sectors high. "+
+            "Factory locations, interiors, loot and NPCs use the selected industrial seed. "+
+            "The older general terrain keeps its original deterministic seed.",13,false));
+        action(root,"SET INDUSTRIAL REGION SEED (NEW GAME)",()->{
             final android.widget.EditText field=new android.widget.EditText(this);
             field.setInputType(android.text.InputType.TYPE_CLASS_NUMBER|
                 android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
@@ -1855,25 +1857,43 @@ public final class MainActivity extends Activity {
                 .setPositiveButton("GENERATE",(dialog,which)->{
                     try{
                         int next=Integer.parseInt(field.getText().toString().trim());
-                        game.saveProgress();
-                        prefs.edit().putInt(IndustrialWorldV123.SEED_PREF,next).apply();
-                        game.newGame();
-                        if(activeDialog[0]!=null)activeDialog[0].dismiss();
-                        game.menuPause(false);
-                        Toast.makeText(this,"Industrial world seed: "+next,
-                            Toast.LENGTH_LONG).show();
+                        // Changing the seed is a NEW GAME, not a live map
+                        // mutation, and must not silently delete progress.
+                        new AlertDialog.Builder(this)
+                            .setTitle("Start a new seeded world?")
+                            .setMessage("This starts a new game and resets your current progress. "+
+                                "Export your existing save first if you need to keep it.")
+                            .setNegativeButton("CANCEL",null)
+                            .setPositiveButton("START NEW WORLD",(confirmation,accepted)->{
+                                game.saveProgress();
+                                prefs.edit().putInt(IndustrialWorldV123.SEED_PREF,next).apply();
+                                game.newGame();
+                                if(activeDialog[0]!=null)activeDialog[0].dismiss();
+                                game.menuPause(false);
+                                Toast.makeText(this,"Joined world / industrial seed: "+next,
+                                    Toast.LENGTH_LONG).show();
+                            }).show();
                     }catch(NumberFormatException ex){
                         Toast.makeText(this,"Enter a signed whole-number seed",
                             Toast.LENGTH_LONG).show();
                     }
                 }).show();
         });
-        action(root,"RETURN TO INDUSTRIAL STARTING FACTORY",()->{
+        action(root,"TRAVEL TO INDUSTRIAL HIGHWAY ENTRANCE",()->{
+            if(game.insideClinicV89)game.exitClinicV89();
+            float x=IndustrialBiomeBridgeV128.WEST-450f;
+            float y=IndustrialBiomeBridgeV128.ROAD_CENTER_Y;
+            testTravel(x-game.playerX,y-game.playerY,
+                "Highway approach to industrial biome");
+        });
+        action(root,"TRAVEL TO INDUSTRIAL FACTORY GATE",()->{
             if(game.insideClinicV89)game.exitClinicV89();
             IndustrialWorldV123.District factory=IndustrialWorldV123.district(
                 0,0,game.industrialSeedV123);
-            testTravel(factory.doorX-game.playerX,
-                factory.doorY+112f-game.playerY,"Returned to starting factory");
+            float x=IndustrialBiomeBridgeV128.worldX(factory.doorX);
+            float y=IndustrialBiomeBridgeV128.worldY(factory.doorY+112f);
+            testTravel(x-game.playerX,y-game.playerY,
+                "Industrial factory, joined world coordinates");
         });
         section(root,"TRAVEL / CONTINUITY TESTS");
         root.addView(text("Teleporting changes only player coordinates. The original camp, " +
