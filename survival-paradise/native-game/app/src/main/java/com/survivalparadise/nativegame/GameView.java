@@ -1705,6 +1705,7 @@ public final class GameView extends View {
         rect(c,1237,1828,245,31,0xff243638);
         label(c,"EXIT",1308,1847,20,0xffebd5a3,true);
         drawClinicVisionV90(c);
+        drawIndoorMuzzleLightV129(c);
         ArrayList<DrawEntity> sorted=new ArrayList<>();
         for(ClinicActorsV90.Actor actor:clinicActorsV90.actors){
             if(!actor.active||!WorldPerfV55.nearView(actor.x,actor.y,camX,camY,viewW,viewH,155)||
@@ -1819,6 +1820,7 @@ public final class GameView extends View {
             label(c,"USE TO EXIT TO WORLD",691*s,1020*s,18,0xfff0e5bf,true);
         drawIndoorLightFixturesV93(c);
         drawClinicVisionV90(c);
+        drawIndoorMuzzleLightV129(c);
         // Actual world-Y depth sort. NPCs cannot visually disappear beneath
         // accompanying survivors merely because companions render last.
         ArrayList<DrawEntity> indoorOrderV92=new ArrayList<>();
@@ -2233,11 +2235,11 @@ public final class GameView extends View {
             float m=Math.max(.001f,(float)Math.hypot(round.vx,round.vy));
             float dx=round.vx/m,dy=round.vy/m;
             color(GunEffectsV119.bulletColor(round.hostile));
-            p.setStrokeWidth(1.25f);
+            p.setStrokeWidth(1.8f);
             c.drawLine(round.x-dx*GunEffectsV119.BULLET_TRAIL_LENGTH,
                 round.y-dy*GunEffectsV119.BULLET_TRAIL_LENGTH,
                 round.x,round.y,p);
-            rect(c,round.x-1f,round.y-1f,2f,2f,
+            rect(c,round.x-1.5f,round.y-1.5f,3f,3f,
                 GunEffectsV119.bulletColor(round.hostile));
         }
     }
@@ -2261,11 +2263,11 @@ public final class GameView extends View {
                 float speed=Math.max(1f,(float)Math.hypot(bullet.vx,bullet.vy));
                 float dx=bullet.vx/speed,dy=bullet.vy/speed;
                 color(GunEffectsV119.bulletColor(bullet.hostile));
-                p.setStrokeWidth(1.25f);
+                p.setStrokeWidth(1.8f);
                 c.drawLine(bullet.x-dx*GunEffectsV119.BULLET_TRAIL_LENGTH,
                     bullet.y-dy*GunEffectsV119.BULLET_TRAIL_LENGTH,
                     bullet.x,bullet.y,p);
-                rect(c,bullet.x-1f,bullet.y-1f,2f,2f,
+                rect(c,bullet.x-1.5f,bullet.y-1.5f,3f,3f,
                     GunEffectsV119.bulletColor(bullet.hostile));
             }
         }
@@ -2280,10 +2282,10 @@ public final class GameView extends View {
             // A tiny tapered, warm muzzle cone: 1 short center dash and
             // two narrow edges. Not a glowing cross or a static giant streak.
             color(0xffdfbc77);
-            p.setStrokeWidth(1.55f);
+            p.setStrokeWidth(2.1f);
             c.drawLine(f.x,f.y,f.x+f.dx*len,f.y+f.dy*len,p);
             color(0xffc98d50);
-            p.setStrokeWidth(1.1f);
+            p.setStrokeWidth(1.5f);
             c.drawLine(f.x+px*spread*.7f,f.y+py*spread*.7f,
                 f.x+f.dx*len*.88f,f.y+f.dy*len*.88f,p);
             c.drawLine(f.x-px*spread*.7f,f.y-py*spread*.7f,
@@ -2291,13 +2293,56 @@ public final class GameView extends View {
         }
     }
 
+    /** Small directional hit flecks, spawned at the actual damage point. */
+    void hitBloodV129(float x,float y,float impulseX,float impulseY,int amount){
+        float length=Math.max(.001f,(float)Math.hypot(impulseX,impulseY));
+        float dx=impulseX/length,dy=impulseY/length;
+        for(int i=0;i<Math.max(2,Math.min(9,amount));i++){
+            float speed=30f+rng.nextFloat()*115f;
+            float sway=(rng.nextFloat()-.5f)*.85f;
+            Spark drop=new Spark(x,y,
+                (dx-dy*sway)*speed,(dy+dx*sway)*speed,
+                (i&1)==0?0xffa33b37:0xff741e21);
+            drop.ttl=.18f+rng.nextFloat()*.28f;
+            sparks.add(drop);
+        }
+    }
+    void damageDirectionalV129(Bandit enemy,float amount,float dx,float dy){
+        if(enemy==null||!enemy.active)return;
+        hitBloodV129(enemy.x,enemy.y-47,dx,dy,6);
+        damage(enemy,amount);
+    }
+    void hurtDirectionalV129(float amount,float dx,float dy){
+        hitBloodV129(playerX,playerY-47,dx,dy,6);
+        hurt(amount);
+    }
+    /** Brief muzzle illumination of actual indoor floors, never of hidden walls. */
+    void drawIndoorMuzzleLightV129(Canvas c){
+        if(!host.option("gunMuzzleV119",true)||flashes.isEmpty())return;
+        c.save();c.clipPath(clinicVisionPathV90);
+        for(Flash f:flashes){
+            if(f.ttl<=0||!WorldPerfV55.nearView(f.x,f.y,camX,camY,
+                    viewW,viewH,170f))continue;
+            float strength=GunEffectsV119.alpha(f.ttl);
+            int alpha=Math.round(strength*110f);
+            p.setStyle(Paint.Style.FILL);
+            p.setShader(new android.graphics.RadialGradient(f.x,f.y,155f,
+                new int[]{(alpha<<24)|0x00ffd3a1,
+                          ((alpha/3)<<24)|0x00db9f55,0},
+                new float[]{0f,.38f,1f},
+                android.graphics.Shader.TileMode.CLAMP));
+            c.drawCircle(f.x,f.y,155f,p);
+            p.setShader(null);
+        }
+        c.restore();
+    }
     void damage(Bandit enemy,float amount){
         enemy.hp-=amount;enemy.hit=.14f;
         particles(enemy.x,enemy.y-34,RED,2);
         if(enemy.hp<=0&&enemy.active){
             enemy.active=false;kills++;particles(enemy.x,enemy.y-24,ORANGE,7);
             if(lootEnabled){
-                banditLootV87.spawn(enemy.x,enemy.y-3,kills,wave,enemy.variant);
+                banditLootV87.spawnCorpse(enemy.x,enemy.y-3,kills,wave,enemy.variant,enemy.face);
                 saveProgress(); // corpse bag is persistent immediately on bandit death
             }
         }
@@ -2697,8 +2742,9 @@ public final class GameView extends View {
             if(first<=1f){
                 bullet.x+=(nx-bullet.x)*first;
                 bullet.y+=(ny-bullet.y)*first;
-                if(hitPlayer)hurt(bullet.damage);
-                else if(victim!=null)damage(victim,bullet.damage);
+                if(hitPlayer)hurtDirectionalV129(bullet.damage,bullet.vx,bullet.vy);
+                else if(victim!=null)damageDirectionalV129(victim,bullet.damage,
+                    bullet.vx,bullet.vy);
                 else if(hitCover&&recoilFX)particles(bullet.x,bullet.y,0xffc4b58a,2);
                 iter.remove();
             }else if(bullet.life<=0){
@@ -2919,8 +2965,8 @@ public final class GameView extends View {
         // Bullets remain visible in their own short post-lighting draw pass.
         if(host.option("gunMuzzleV119",true))
             for(Flash f:flashes)if(f.ttl>0f)
-                lighting.point(f.x,f.y,32f,
-                    .23f*GunEffectsV119.alpha(f.ttl),0xffc4a071);
+                lighting.point(f.x,f.y,165f,
+                    .82f*GunEffectsV119.alpha(f.ttl),0xffffcc83);
         lighting.render(c,camX,camY,viewW,viewH,lightAlpha,covers);
         lightingNs=System.nanoTime()-lightStart;
         // Lamps/neon signage are static architecture; campfire flames were
