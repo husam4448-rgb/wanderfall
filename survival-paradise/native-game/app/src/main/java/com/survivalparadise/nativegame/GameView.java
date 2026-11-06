@@ -2047,7 +2047,7 @@ public final class GameView extends View {
         if(!empty){
             rect(c,x-22,y-20,44,5,0xffd2c18e);
             if(distance(playerX,playerY,x,y)<148)
-                label(c,"USE  "+box.label,x-51,y-28,10,0xffe8ddad,true);
+                label(c,"INTERACT  "+box.label,x-51,y-28,10,0xffe8ddad,true);
         }
     }
     /** Indoor render path does not call terrain(), drawWorld(), NPCs or outdoor lights. */
@@ -2060,7 +2060,7 @@ public final class GameView extends View {
         for(ClinicInteriorV89.Storage box:clinicInteriorV89.storages){
             if(!WorldPerfV55.nearView(box.x,box.y,camX,camY,viewW,viewH,80))continue;
             if(!box.empty()&&distance(playerX,playerY,box.x,box.y)<145f)
-                label(c,"USE "+box.label,box.x-45,box.y-29,12,0xfff3d9a1,true);
+                label(c,"INTERACT "+box.label,box.x-45,box.y-29,12,0xfff3d9a1,true);
         }
         rect(c,1237,1828,245,31,0xff243638);
         label(c,"EXIT",1308,1847,20,0xffebd5a3,true);
@@ -5531,13 +5531,9 @@ public final class GameView extends View {
                         host.prefs.edit().putInt("selectedButton",target).apply();
                         editX=host.setting("uiX"+target,0);
                         editY=host.setting("uiY"+target,0);
-                        // TALK uses independent contextual coordinates; its ID
-                        // is outside the legacy button table. Resolve the correct
-                        // displayed rectangle before capturing the drag offset.
-                        editGrabX=HudDragV119.grabOffset(x,
-                            target==TALK_EDITOR?talkLeftV94():uiX(target));
-                        editGrabY=HudDragV119.grabOffset(y,
-                            target==TALK_EDITOR?talkTopV94():uiY(target));
+                        // Contextual ENTER/TALK controls use their own positions.
+                        editGrabX=HudDragV119.grabOffset(x,uiX(target));
+                        editGrabY=HudDragV119.grabOffset(y,uiY(target));
                     }else activateButton(target,id);
                     return true;
                 }
@@ -5579,13 +5575,20 @@ public final class GameView extends View {
                                      -viewW*.5f+355f,viewW*.5f-350f);
                         panelY=clamp(py-panelGrabY,55f,viewH-75f);
                     }
-                    if(pointer==editPointer&&editControl>=TOP_FORM_EDITOR){
+                    if(pointer==editPointer&&editControl>=TOP_FORM_EDITOR&&
+                       editControl<ENTER_EDITOR){
                         editX=Math.round(clamp(px-editGrabX-hudBaseXV118(editControl),
                             -hudBaseXV118(editControl),
                             viewW-hudExtraWidthV118(editControl)-hudBaseXV118(editControl)));
                         editY=Math.round(clamp(py-editGrabY-hudBaseYV118(editControl),
                             -hudBaseYV118(editControl),
                             viewH-hudExtraHeightV118(editControl)-hudBaseYV118(editControl)));
+                        invalidate();
+                    }else if(pointer==editPointer&&editControl==ENTER_EDITOR){
+                        editX=HudDragV119.horizontalOffset(px,editGrabX,
+                            enterDefaultX(),enterWidthV132(),viewW);
+                        editY=HudDragV119.verticalOffset(py,editGrabY,
+                            enterDefaultY(),enterHeightV132(),viewH);
                         invalidate();
                     }else if(pointer==editPointer&&editControl==TALK_EDITOR){
                         // V119: the TALK button is contextual; its ID is outside
@@ -5645,7 +5648,7 @@ public final class GameView extends View {
             case MotionEvent.ACTION_POINTER_UP:
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
-                // Lifting a finger does not place anything; only USE can confirm.
+                // Lifting a finger does not place anything; INTERACT confirms placement.
                 if(id==leftPointer||action==MotionEvent.ACTION_CANCEL){
                     leftPointer=-1;stopWalking();
                 }
