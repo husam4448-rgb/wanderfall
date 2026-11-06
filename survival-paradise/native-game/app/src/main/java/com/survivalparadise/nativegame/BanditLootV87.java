@@ -5,13 +5,15 @@ import java.util.ArrayList;
 /** Bandit equipment bags, independent of old timed ground drops. Persistent, no expiry. */
 public final class BanditLootV87 {
     public static final int SCRAP=0,MEDKIT=1,AMMO=2,FOOD=3,WATER=4,
-        WOOD=5,STONE=6,FIBER=7,ITEMS=8,MAX_BAGS=128;
+        WOOD=5,STONE=6,FIBER=7,ITEMS=8,MAX_BAGS=4096;
     public static final float USE_RADIUS=138f;
     public static final String[] NAMES={"Scrap","Medkit","Ammo","Food","Water",
         "Wood","Stone","Fiber"};
     public static final class Bag {
         public final int id;
         public final float x,y;
+        public boolean corpse=false;
+        public int variant=0,face=1;
         public final int[] count=new int[ITEMS];
         Bag(int id,float x,float y){this.id=id;this.x=x;this.y=y;}
         public boolean empty(){for(int n:count)if(n>0)return false;return true;}
@@ -34,6 +36,11 @@ public final class BanditLootV87 {
         if((kills+wave)%5==0)bag.count[WOOD]=2;
         bags.add(bag);return bag;
     }
+    public Bag spawnCorpse(float x,float y,int kills,int wave,int variant,int face){
+        Bag bag=spawn(x,y,kills,wave,variant);
+        if(bag!=null){bag.corpse=true;bag.variant=variant;bag.face=face<0?-1:1;}
+        return bag;
+    }
     public Bag nearest(float x,float y,float range){
         Bag best=null;float dmin=range*range;
         for(Bag bag:bags){
@@ -50,7 +57,7 @@ public final class BanditLootV87 {
         int amount=bag.count[kind];
         if(amount<=0)return 0;
         bag.count[kind]=0;
-        if(bag.empty())bags.remove(bag);
+        if(bag.empty()&&!bag.corpse)bags.remove(bag);
         return amount;
     }
     public int[] takeAll(Bag bag){
@@ -58,17 +65,19 @@ public final class BanditLootV87 {
         if(!contains(bag))return taken;
         System.arraycopy(bag.count,0,taken,0,ITEMS);
         for(int i=0;i<ITEMS;i++)bag.count[i]=0;
-        bags.remove(bag);
+        if(!bag.corpse)bags.remove(bag);
         return taken;
     }
     public String encode(){
         StringBuilder out=new StringBuilder(bags.size()*52);
         for(Bag bag:bags){
-            if(bag.empty())continue;
+            if(bag.empty()&&!bag.corpse)continue;
             if(out.length()>0)out.append(';');
             out.append(bag.id).append(',').append(Math.round(bag.x)).
                 append(',').append(Math.round(bag.y));
             for(int n:bag.count)out.append(',').append(n);
+            out.append(',').append(bag.corpse?1:0).append(',')
+               .append(bag.variant).append(',').append(bag.face);
         }
         return out.toString();
     }
@@ -77,7 +86,7 @@ public final class BanditLootV87 {
         for(String entry:data.split(";")){
             if(bags.size()>=MAX_BAGS)break;
             String[] p=entry.split(",");
-            if(p.length!=ITEMS+3)continue;
+            if(p.length!=ITEMS+3&&p.length!=ITEMS+6)continue;
             try{
                 int id=Integer.parseInt(p[0]);
                 float x=Float.parseFloat(p[1]),y=Float.parseFloat(p[2]);
@@ -93,7 +102,12 @@ public final class BanditLootV87 {
                     if(n<0||n>999){invalid=true;break;}
                     bag.count[i]=n;
                 }
-                if(!invalid&&!bag.empty()){
+                if(p.length==ITEMS+6){
+                    bag.corpse=Integer.parseInt(p[ITEMS+3])==1;
+                    bag.variant=Integer.parseInt(p[ITEMS+4]);
+                    bag.face=Integer.parseInt(p[ITEMS+5])<0?-1:1;
+                }
+                if(!invalid&&(!bag.empty()||bag.corpse)){
                     bags.add(bag);
                     nextId=Math.max(nextId,id+1);
                 }
