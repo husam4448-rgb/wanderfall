@@ -127,12 +127,92 @@ public final class IndustrialBiomeSceneV128 {
             }
         }
     }
+    /**
+     * Truly grade the underlying V54/V74 biome before the industrial
+     * geometry is painted. Samples the real old-world ground-color function,
+     * so this is a surface transition, not translucent PNG stickers.
+     *
+     * The per-40-world-unit cells run only when a camera is within 680 units
+     * of a regional boundary; full-world raster work is never performed.
+     */
+    private static void gradeBorders(Canvas c,Paint p,float camX,float camY,
+                                     float vw,float vh,int seed){
+        final float DIST=640f,CELL=40f;
+        if(!onScreen(WEST-DIST,NORTH-DIST,EAST-WEST+2*DIST,SOUTH-NORTH+2*DIST,
+                    camX,camY,vw,vh))return;
+        int gx0=(int)Math.floor(Math.max(WEST-DIST,camX-45)/CELL);
+        int gx1=(int)Math.ceil(Math.min(EAST+DIST,camX+vw+45)/CELL);
+        int gy0=(int)Math.floor(Math.max(NORTH-DIST,camY-45)/CELL);
+        int gy1=(int)Math.ceil(Math.min(SOUTH+DIST,camY+vh+45)/CELL);
+        c.save();
+        c.clipRect(camX-1,camY-1,camX+vw+1,camY+vh+1);
+        for(int gy=gy0;gy<=gy1;gy++)for(int gx=gx0;gx<=gx1;gx++){
+            float x=gx*CELL,y=gy*CELL;
+            float mx=x+CELL*.5f,my=y+CELL*.5f;
+            if(IndustrialBiomeBridgeV128.contains(mx,my,seed))continue;
+            float left=IndustrialBiomeBridgeV128.westEdge(my,seed);
+            float right=IndustrialBiomeBridgeV128.eastEdge(my,seed);
+            float top=IndustrialBiomeBridgeV128.northEdge(mx,seed);
+            float bottom=IndustrialBiomeBridgeV128.southEdge(mx,seed);
+            float distance=Float.MAX_VALUE;
+            if(mx<left&&my>=NORTH-DIST*.3f&&my<=SOUTH+DIST*.3f)
+                distance=left-mx;
+            if(mx>right&&my>=NORTH-DIST*.3f&&my<=SOUTH+DIST*.3f)
+                distance=Math.min(distance,mx-right);
+            if(my<top&&mx>=WEST-DIST*.3f&&mx<=EAST+DIST*.3f)
+                distance=Math.min(distance,top-my);
+            if(my>bottom&&mx>=WEST-DIST*.3f&&mx<=EAST+DIST*.3f)
+                distance=Math.min(distance,my-bottom);
+            if(distance>=DIST)continue;
+            float t=Math.max(0f,1f-distance/DIST);
+            t=t*t*(3f-2f*t);
+            float localX=Math.max(5f,Math.min(EAST-WEST-5f,
+                IndustrialBiomeBridgeV128.localX(mx)));
+            float localY=Math.max(NORTH-IndustrialBiomeBridgeV128.ORIGIN_Y+5f,
+                Math.min(SOUTH-IndustrialBiomeBridgeV128.ORIGIN_Y-5f,
+                    IndustrialBiomeBridgeV128.localY(my)));
+            IndustrialOpenWorldV124.Plot site=IndustrialOpenWorldV124.at(
+                localX,localY,seed);
+            int target=site.developed()?0xff69675d:0xff514f48;
+            int original=WorldChunkModel.groundColorAt(mx,my,
+                 (int)GameView.CAMP_X,(int)GameView.CAMP_Y);
+            p.setStyle(Paint.Style.FILL);
+            p.setShader(null);
+            p.setColor(shade(original,target,t));
+            c.drawRect(x,y,x+CELL+1,y+CELL+1,p);
+        }
+        c.restore();
+    }
+    /** Other side of the biome connects back into the same global highway. */
+    private static void eastContinuation(Canvas c,Paint p,
+                                          float camX,float camY,float vw,float vh){
+        final float END=EAST+1650f;
+        if(!onScreen(EAST-1,ROAD_Y-160,END-EAST+2,320,camX,camY,vw,vh))
+            return;
+        p.setShader(null);p.setStyle(Paint.Style.FILL);
+        for(int i=0;i<56;i++){
+            float f=i/56f,x=EAST+(END-EAST)*f;
+            float width=(END-EAST)/56f+1.5f;
+            float half=135f-22.5f*f;
+            p.setColor(shade(0xff303638,0xff565b50,f));
+            c.drawRect(x,ROAD_Y-half,x+width,ROAD_Y+half,p);
+        }
+        p.setColor(0xffafa071);
+        for(int i=0;i<15;i++){
+            float x=EAST+65+i*108f;
+            c.drawRect(x,ROAD_Y-3,x+43,ROAD_Y+3,p);
+        }
+    }
     public static void draw(Canvas c,Paint p,IndustrialArtV123 art,
                             float camX,float camY,float vw,float vh,int seed){
         if(!onScreen(ACCESS,ROAD_Y-300,WEST-ACCESS+200,600,camX,camY,vw,vh)
             &&!onScreen(WEST-500,NORTH-500,EAST-WEST+1000,SOUTH-NORTH+1000,
                          camX,camY,vw,vh))return;
+        // Surface grade first; asphalt is then painted over it, ensuring a
+        // connected road with no tinted dirt patches over its drive lanes.
+        gradeBorders(c,p,camX,camY,vw,vh,seed);
         approachRoad(c,p,camX,camY,vw,vh,seed);
+        eastContinuation(c,p,camX,camY,vw,vh);
         if(onScreen(WEST-150,NORTH-150,EAST-WEST+300,SOUTH-NORTH+300,
                     camX,camY,vw,vh)){
             c.save();
