@@ -154,6 +154,15 @@ public final class GearItemIconsV95 {
     }
     /** Unoccupied equipment socket placeholder, by actual body part. */
     public static Drawable silhouette(Context context,int equipmentSlot,int dp){
+        if(equipmentSlot==1){
+            Bitmap mask=Bitmap.createBitmap(48,48,Bitmap.Config.ARGB_8888);
+            Canvas c=new Canvas(mask);
+            poly(c,0xff637470,13,15,18,10,30,10,35,15,35,25,
+                29,34,24,37,18,34,13,25);
+            rect(c,12,21,24,4,0xff374b48);
+            rect(c,18,26,12,4,0xff9ca9a0);
+            return from(context,mask,dp);
+        }
         int kind=equipmentSlot==5?0:equipmentSlot==0?3:
             equipmentSlot==2?6:equipmentSlot==3?9:
             equipmentSlot==4?12:-1;
