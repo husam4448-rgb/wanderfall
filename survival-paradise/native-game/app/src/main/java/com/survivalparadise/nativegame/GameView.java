@@ -78,6 +78,12 @@ public final class GameView extends View {
     int nightDarkness=211,flashlightReach=490;
     final LightingV47 lighting=new LightingV47();
     final WorldChunkCache terrainChunks=new WorldChunkCache((int)CAMP_X,(int)CAMP_Y);
+    // This V123 test APK deliberately boots into the isolated industrial world.
+    // The canonical V122 branch and all 200 approved character sprites stay untouched.
+    final boolean industrialModeV123=true;
+    static final int INDUSTRIAL_SITE_V123=99123;
+    int industrialSeedV123=14901;
+    IndustrialWorldV123.District industrialSiteV123=IndustrialWorldV123.district(0,0,14901);
     // V47: solar clock advances during gameplay, including smooth dawn/dusk.
     final GameClockV47 clock=new GameClockV47(21*60f);
     boolean automaticDayNight=true;
@@ -375,11 +381,24 @@ public final class GameView extends View {
     }
     /** Load one independent indoor instance. V90 clinic saves are migrated unchanged. */
     String currentSiteNameV91(){
+        if(activeSiteV91==INDUSTRIAL_SITE_V123)
+            return industrialSiteV123.name;
         if(activeSiteV91>=0&&activeSiteV91<ExpeditionSitesV88.SITES.length)
             return ExpeditionSitesV88.SITES[activeSiteV91].name;
         return activeSiteV91>=ExpeditionSitesV88.SITES.length?"FIELD SHELTER":"FIELD CLINIC";
     }
     void configureInteriorV91(int site){
+        if(industrialModeV123&&site==INDUSTRIAL_SITE_V123){
+            activeSiteV91=site;
+            clinicInteriorV89=new IndustrialInteriorV123(industrialSiteV123);
+            clinicActorsV90=new ClinicActorsV90(clinicInteriorV89);
+            clinicNavV90=new ClinicNavV90(clinicInteriorV89);
+            String key=IndustrialWorldV123.saveNamespace(industrialSeedV123)+"_"+
+                       industrialSiteV123.id.replace(',','_');
+            clinicInteriorV89.decode(host.prefs.getString(key+"_loot",""));
+            clinicActorsV90.decode(host.prefs.getString(key+"_actors",""),clinicInteriorV89);
+            clinicFriendWaypointsV90.clear();return;
+        }
         int builtIndex=site-ExpeditionSitesV88.SITES.length;
         boolean shelter=site>=ExpeditionSitesV88.SITES.length&&builtIndex>=0&&
             builtIndex<craftV83.objects.size()&&
@@ -405,6 +424,13 @@ public final class GameView extends View {
         clinicFriendWaypointsV90.clear();
     }
     void persistCurrentInteriorV91(){
+        if(activeSiteV91==INDUSTRIAL_SITE_V123){
+            String key=IndustrialWorldV123.saveNamespace(industrialSeedV123)+"_"+
+                       industrialSiteV123.id.replace(',','_');
+            host.prefs.edit().putString(key+"_loot",clinicInteriorV89.encode())
+                .putString(key+"_actors",clinicActorsV90.encode()).apply();
+            return;
+        }
         if(activeSiteV91<0||activeSiteV91>=ExpeditionSitesV88.SITES.length+
             CampCraftV83.MAX)return;
         android.content.SharedPreferences.Editor edit=host.prefs.edit()
@@ -673,7 +699,10 @@ public final class GameView extends View {
         bagOrderV92[dest]=type;saveProgress();return true;
     }
     void newGame(){
-        playerX=CAMP_X;playerY=CAMP_Y;health=100;stamina=100;
+        industrialSeedV123=host.prefs.getInt(IndustrialWorldV123.SEED_PREF,14901);
+        industrialSiteV123=IndustrialWorldV123.district(0,0,industrialSeedV123);
+        playerX=industrialModeV123?industrialSiteV123.doorX:CAMP_X;
+        playerY=industrialModeV123?industrialSiteV123.doorY+112f:CAMP_Y;health=100;stamina=100;
         hunger=100;thirst=100;fatigue=0;foodCount=2;waterCount=2;
         knifeDuration=0;knifeCooldown=0;
         cameraLookX=0;cameraLookY=0;aimDeflection=0;
@@ -685,7 +714,7 @@ public final class GameView extends View {
         placingKindV84=-1;placingPointerV84=-1;harvestV81.cancel();
         harvestImpactTimeV81=0;gatherFeedback="";gatherFeedbackTime=0;
         worldTimer=0;autSaveClock=0;playerHeadTiltV111=0f;
-        clock.setClock(night?21*60f:12*60f,1);
+        clock.setClock(industrialModeV123?12*60f:(night?21*60f:12*60f),1);
         face=1;aimX=1;aimY=0;refreshDaylight();
         enemies.clear();friends.clear();campStaff.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();indoorRoundsV122.clear();builtCampfires.clear();
         craftV83.clear();banditLootV87.clear();removeBarricadeCoverV83();
@@ -721,6 +750,10 @@ public final class GameView extends View {
     }
     void continueGame(){
         if(!hasSave){newGame();return;}
+        industrialSeedV123=host.prefs.getInt(IndustrialWorldV123.SEED_PREF,14901);
+        industrialSiteV123=IndustrialWorldV123.district(
+            host.prefs.getInt("industrial_sx_v123",0),
+            host.prefs.getInt("industrial_sy_v123",0),industrialSeedV123);
         playerAnimation.reset();moving=false;stickX=0;stickY=0;
         clock.setClock(host.prefs.getFloat("clockMinutes",night?21*60f:12*60f),
             host.setting("clockDay",1));
@@ -1139,6 +1172,14 @@ public final class GameView extends View {
     /** All fixed and player-built shelters use persistent interiors. */
     boolean enterClinicFromWorldV89(){
         if(insideClinicV89||!playing||gameOver)return false;
+        if(industrialModeV123){
+            IndustrialWorldV123.District target=IndustrialWorldV123.nearestEntrance(
+                playerX,playerY,152f,industrialSeedV123);
+            if(target==null)return false;
+            industrialSiteV123=target;
+            return enterIndoorSiteV91(INDUSTRIAL_SITE_V123,
+                target.doorX,target.doorY+35f,target.name);
+        }
         for(int i=0;i<ExpeditionSitesV88.SITES.length;i++){
             ExpeditionSitesV88.Site site=ExpeditionSitesV88.SITES[i];
             float doorY=site.y+(site.kind==ExpeditionSitesV88.CLINIC?154f:90f);
@@ -1599,7 +1640,51 @@ public final class GameView extends View {
         }
     }
     /** Indoor render path does not call terrain(), drawWorld(), NPCs or outdoor lights. */
+    /** Actual indoor world coordinates, V122 player/companion/NPC rigs and shooting. */
+    void drawIndustrialInteriorV123(Canvas c){
+        c.save();c.translate(-camX,-camY);
+        IndustrialSceneV123.indoors(c,p,(IndustrialInteriorV123)clinicInteriorV89);
+        for(ClinicInteriorV89.Storage box:clinicInteriorV89.storages){
+            if(!WorldPerfV55.nearView(box.x,box.y,camX,camY,viewW,viewH,80))continue;
+            if(!box.empty()&&distance(playerX,playerY,box.x,box.y)<145f)
+                label(c,"USE "+box.label,box.x-45,box.y-29,12,0xfff3d9a1,true);
+        }
+        rect(c,1237,1828,245,31,0xff243638);
+        label(c,"EXIT",1308,1847,20,0xffebd5a3,true);
+        drawClinicVisionV90(c);
+        ArrayList<DrawEntity> sorted=new ArrayList<>();
+        for(ClinicActorsV90.Actor actor:clinicActorsV90.actors){
+            if(!actor.active||!WorldPerfV55.nearView(actor.x,actor.y,camX,camY,viewW,viewH,155))
+                continue;
+            sorted.add(new DrawEntity(actor.y,()->drawClinicActorV90(c,actor)));
+        }
+        for(Survivor friend:friends){
+            if(!WorldPerfV55.nearView(friend.x,friend.y,camX,camY,viewW,viewH,145))
+                continue;
+            sorted.add(new DrawEntity(friend.y,()->character(c,friend.x,friend.y,
+                friend.gun,friend.face,friend.animation.frame(),
+                friend.animation.isWalking()?Float.POSITIVE_INFINITY:
+                    friend.animation.breathOffset(),
+                Ballistics.angle(friend.aimX,friend.aimY,friend.face),
+                0,false,false,friend.variant,friend.skinV109)));
+        }
+        sorted.add(new DrawEntity(playerY,()->character(c,playerX,playerY,gun,face,
+            playerAnimation.frame(),
+            playerAnimation.isWalking()?Float.POSITIVE_INFINITY:
+                playerAnimation.breathOffset(),
+            Ballistics.angle(aimX,aimY,face),recoil*2.7f,true,false,-1)));
+        sorted.sort((a,b)->Float.compare(a.y,b.y));
+        for(DrawEntity item:sorted)item.draw.run();
+        drawGunEffectsV119(c);
+        drawIndoorRoundsV122(c);
+        drawIndoorSpeechAfterLightingV93(c);
+        c.restore();
+    }
+
     void drawClinicInteriorV89(Canvas c){
+        if(clinicInteriorV89 instanceof IndustrialInteriorV123){
+            drawIndustrialInteriorV123(c);return;
+        }
         c.save();c.translate(-camX,-camY);
         int siteKindV91=activeSiteV91>=0&&activeSiteV91<ExpeditionSitesV88.SITES.length?
             ExpeditionSitesV88.SITES[activeSiteV91].kind:ExpeditionSitesV88.CABIN;
@@ -1779,6 +1864,7 @@ public final class GameView extends View {
         c.drawCircle(ox,oy,ClinicVisionV90.NEAR,p);
     }
     void spawnWave(){
+        if(industrialModeV123){enemies.clear();enemyCount=0;return;}
         enemies.clear();enemyCount=5+Math.min(17,wave*2);
         for(int i=0;i<enemyCount;i++){
             // Camp is an actual protected settlement, never a bandit spawn or patrol target.
@@ -1796,6 +1882,11 @@ public final class GameView extends View {
         }
     }
     void saveProgress(){
+        if(industrialModeV123){
+            host.prefs.edit().putInt(IndustrialWorldV123.SEED_PREF,industrialSeedV123)
+                .putInt("industrial_sx_v123",industrialSiteV123.sx)
+                .putInt("industrial_sy_v123",industrialSiteV123.sy).apply();
+        }
         if(!playing||gameOver)return;
         if(insideClinicV89)persistCurrentInteriorV91();
         host.prefs.edit().putBoolean("hasSave",true).putFloat("px",playerX).putFloat("py",playerY)
@@ -1886,6 +1977,8 @@ public final class GameView extends View {
     }
     float clamp(float x,float min,float max){return Math.max(min,Math.min(max,x));}
     boolean blocked(float x,float y,float r){
+        if(industrialModeV123)return IndustrialSceneV123.outsideBlocked(
+            x,y,r,industrialSeedV123);
         // V53 unbounded world: collisions are against solid structures, never map borders.
         for(Cover c:covers)if(x+r>c.x&&x-r<c.x+c.w&&y+r>c.y&&y-r<c.y+c.h)return true;
         return false;
@@ -2564,6 +2657,7 @@ public final class GameView extends View {
     }
     int hash(int a,int b){int k=a*73856093^b*19349663;k^=k>>>13;k*=0x5bd1e995;return k^(k>>>15);}
     void drawFixtures(Canvas c,boolean emissive){
+        if(industrialModeV123)return;
         // Environmental props are separate from every approved body/weapon asset.
         // Campfires are sorted with characters below; never draw flames
         // in the final emissive pass above every actor again.
@@ -2759,6 +2853,10 @@ public final class GameView extends View {
         lighting.point(x,y-9,205+flicker*9,.89f+flicker*.07f,LightingV47.WARM);
     }
     void terrain(Canvas c){
+        if(industrialModeV123){
+            IndustrialSceneV123.outdoors(c,p,camX,camY,viewW,viewH,industrialSeedV123);
+            return;
+        }
         // V54: render cached, asynchronously prepared 16x16-tile chunk textures.
         // Missing chunks use a deterministic immediate fallback (no blank screen).
         terrainChunks.draw(c,camX,camY,viewW,viewH);
