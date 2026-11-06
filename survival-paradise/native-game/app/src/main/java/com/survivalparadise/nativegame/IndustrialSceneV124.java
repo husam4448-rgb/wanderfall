@@ -151,24 +151,24 @@ public final class IndustrialSceneV124 {
         if(!plot.developed())return;
         float x=plot.x,y=plot.y;
         // No pasted clutter ground sprites; native pads use the same substrate.
-        pad(c,p,x+150,y+900,300,183);
-        pad(c,p,x+860,y+890,316,210);
+        pad(c,p,x+150,y+900,270,183);
+        pad(c,p,x+1025,y+905,182,210);
         if(plot.type==IndustrialOpenWorldV124.YARD){
             pad(c,p,x+210,y+690,255,185);
             pad(c,p,x+885,y+740,275,190);
         }
         // Chain-link fencing with a real 251-unit wide gap facing the road.
-        box(c,p,x+110,y+1204,333,12,0xff4a4d48);
-        box(c,p,x+694,y+1204,574,12,0xff4a4d48);
+        box(c,p,x+110,y+1204,473,12,0xff4a4d48);
+        box(c,p,x+830,y+1204,438,12,0xff4a4d48);
         for(int i=0;i<3;i++){
             float yy=y+1204;
-            stroke(c,p,x+120+i*115,yy,x+140+i*115,yy+9,0xffa39775,2);
-            stroke(c,p,x+710+i*151,yy,x+730+i*151,yy+9,0xffa39775,2);
+            stroke(c,p,x+120+i*145,yy,x+140+i*145,yy+9,0xffa39775,2);
+            stroke(c,p,x+840+i*132,yy,x+860+i*132,yy+9,0xffa39775,2);
         }
         box(c,p,x+98,y+130,12,1086,0xff545951);
         box(c,p,x+1265,y+130,12,1086,0xff545951);
-        box(c,p,x+429,y+1190,14,36,0xffac8538);
-        box(c,p,x+694,y+1190,14,36,0xffac8538);
+        box(c,p,x+570,y+1190,14,36,0xffac8538);
+        box(c,p,x+830,y+1190,14,36,0xffac8538);
     }
     /** World coordinates, called from GameView within its normal drawing stack. */
     public static void outdoors(Canvas c,Paint p,float camX,float camY,
