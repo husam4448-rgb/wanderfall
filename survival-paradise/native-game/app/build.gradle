@@ -3,11 +3,11 @@ android {
  namespace 'com.survivalparadise.nativegame'
  compileSdk 35
  defaultConfig {
-  applicationId 'com.survivalparadise.nativegame.v127indoorvision'
+  applicationId 'com.survivalparadise.nativegame.v128stitchedworld'
   minSdk 24
   targetSdk 34
-  versionCode 127
-  versionName '0.127-indoor-visibility-test'
+  versionCode 128
+  versionName '0.128-industrial-biome-joined-world-test'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
