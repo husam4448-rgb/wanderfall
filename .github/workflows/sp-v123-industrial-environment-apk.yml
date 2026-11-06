@@ -316,7 +316,7 @@ jobs:
         run: python3 survival-paradise/native-game/tools/test_v120_alignment.py
       - uses: actions/upload-artifact@v4
         with:
-          name: SP_V123_Character_Regression
+          name: SP_V122_Character_Regression
           path: survival-paradise/native-game/artifacts/V120_idle_walk_fitted_preview.png
           retention-days: 14
           if-no-files-found: error
@@ -335,44 +335,16 @@ jobs:
           unzip -l "$APK" | grep -q 'assets/sp_v109_characters.zip'
           unzip -l "$APK" | grep -q 'assets/industrial_v123/SP_Industrial_Factory_Double_Bay_01.webp'
           unzip -l "$APK" | grep -q 'assets/industrial_v123/SP_Industrial_Forklift_01.webp'
-          INDUSTRIAL_COUNT="$(unzip -Z1 "$APK" | grep -c '^assets/industrial_v123/.*[.]webp
-          mkdir -p artifacts
-          cp "$APK" artifacts/SurvivalParadise_V123_Industrial_Environment_Test.apk
-          sha256sum artifacts/SurvivalParadise_V123_Industrial_Environment_Test.apk > artifacts/SHA256.txt
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: SP_V123_NPC_360_Aim_Gunfire_APK
-          path: artifacts/
-          retention-days: 30
-          if-no-files-found: warn
-      - name: Publish V123 industrial environment APK as a separate test prerelease
-        if: success()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          TAG=survival-paradise-v123-industrial-environment-test
-          APK=artifacts/SurvivalParadise_V123_Industrial_Environment_Test.apk
-          SUM=artifacts/SHA256.txt
-          test -s "$APK" && test -s "$SUM"
-          NOTE="Isolated V123 Android environment test built from V122 gameplay. Deterministic industrial districts and asphalt roads, manufacturing yards, large enterable interiors with collision geometry, searchable industrial containers, seed-scoped persistent indoor loot and actors. Uses the approved 200 V121-fitted characters and V122 aiming and combat logic. Android package ID deliberately differs from V122 so the existing V122 installation and saves are not overwritten. The supplied 24 industrial props are embedded as optimized WebP artwork and rendered in-game alongside procedural, collision-backed exteriors and interiors. The four generated reference floorplan illustrations remain design references and are not baked into this APK.st APK yet."
-          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release upload "$TAG" "$APK" "$SUM" --clobber -R "$GITHUB_REPOSITORY"
-            gh release edit "$TAG" -R "$GITHUB_REPOSITORY" --notes "$NOTE"
-          else
-            gh release create "$TAG" "$APK" "$SUM" --target "$GITHUB_SHA"               -R "$GITHUB_REPOSITORY" --prerelease               --title "Survival Paradise V123 - Industrial Environment Test" --notes "$NOTE"
-          fi
-)"
+          INDUSTRIAL_COUNT="$(unzip -Z1 "$APK" | grep -c '^assets/industrial_v123/.*[.]webp$')"
           test "$INDUSTRIAL_COUNT" -eq 24
-          echo "Verified $INDUSTRIAL_COUNT V123 industrial sprite assets in native APK"
+          echo "Verified $INDUSTRIAL_COUNT V123 industrial sprites in APK"
           mkdir -p artifacts
           cp "$APK" artifacts/SurvivalParadise_V123_Industrial_Environment_Test.apk
           sha256sum artifacts/SurvivalParadise_V123_Industrial_Environment_Test.apk > artifacts/SHA256.txt
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: SP_V123_NPC_360_Aim_Gunfire_APK
+          name: SP_V123_Industrial_Environment_APK
           path: artifacts/
           retention-days: 30
           if-no-files-found: warn
@@ -386,10 +358,10 @@ jobs:
           APK=artifacts/SurvivalParadise_V123_Industrial_Environment_Test.apk
           SUM=artifacts/SHA256.txt
           test -s "$APK" && test -s "$SUM"
-          NOTE="Isolated V123 Android environment test built from V122 gameplay. Deterministic industrial districts and asphalt roads, manufacturing yards, large enterable interiors with collision geometry, searchable industrial containers, seed-scoped persistent indoor loot and actors. Uses the approved 200 V121-fitted characters and V122 aiming and combat logic. Android package ID deliberately differs from V122 so the existing V122 installation and saves are not overwritten. This is the native procedural geometry integration pass; generated illustrated scene background artwork and the user's 24 individual PNG sources are not embedded in this test APK yet."
+          NOTE="Isolated V123 Android environment test built on V122 gameplay, with 24 industrial sprites embedded as optimized WebP, deterministic industrial districts, roads, manufacturing yards, enterable factories, real collision and doors, searchable industrial loot and seed-scoped interior state. The 200 approved V121-fitted characters and V122 combat are retained. Separate package ID protects existing V122 installations and saves. The four standalone generated full-floorplan illustrations are visual references, not baked map backgrounds in this APK."
           if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" "$SUM" --clobber -R "$GITHUB_REPOSITORY"
             gh release edit "$TAG" -R "$GITHUB_REPOSITORY" --notes "$NOTE"
           else
-            gh release create "$TAG" "$APK" "$SUM" --target "$GITHUB_SHA"               -R "$GITHUB_REPOSITORY" --prerelease               --title "Survival Paradise V123 - Industrial Environment Test" --notes "$NOTE"
+            gh release create "$TAG" "$APK" "$SUM" --target "$GITHUB_SHA" -R "$GITHUB_REPOSITORY" --prerelease --title "Survival Paradise V123 - Industrial Environment Test" --notes "$NOTE"
           fi
