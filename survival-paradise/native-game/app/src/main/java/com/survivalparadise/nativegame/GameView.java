@@ -832,7 +832,9 @@ public final class GameView extends View {
         bagOrderInitializedV92=false;campGuardCooldownV92=0f;
         android.content.SharedPreferences.Editor sitesClear=host.prefs.edit();
         for(int i=0;i<ExpeditionSitesV88.SITES.length+CampCraftV83.MAX;i++)
-            sitesClear.remove("site_containers_v91_"+i).remove("site_actors_v91_"+i);
+            {sitesClear.remove("site_containers_v91_"+i)
+                .remove("site_actors_v91_"+i)
+                .remove("indoor_corpse_v129_site:"+i);}
         // Fresh world of this seed: clear ALL industrial sites. The V127
         // isolated test's persistent per-facility and per-seed keys are reused.
         String industryPrefix=IndustrialWorldV123.saveNamespace(industrialSeedV123)+"_";
@@ -841,7 +843,9 @@ public final class GameView extends View {
             for(int sx=IndustrialBiomeBridgeV128.INDUSTRIAL_MIN_SX;
                     sx<IndustrialBiomeBridgeV128.INDUSTRIAL_MAX_SX;sx++){
                 String key=industryPrefix+sx+"_"+sy;
-                sitesClear.remove(key+"_loot").remove(key+"_actors");
+                sitesClear.remove(key+"_loot").remove(key+"_actors")
+                    .remove("indoor_corpse_v129_industrial:"+industrialSeedV123+
+                        ":"+sx+":"+sy);
             }
         sitesClear.remove("industrial_yard_v123_"+industrialSeedV123);
         sitesClear.apply();
@@ -1462,8 +1466,11 @@ public final class GameView extends View {
             playerX,playerY,ClinicInteriorV89.USE_RADIUS);
         if(found!=null){
             host.runOnUiThread(()->host.lootClinicStorageV89(found));
+        }else if(nearestIndoorCorpseV129()>=0){
+            int corpse=nearestIndoorCorpseV129();
+            host.runOnUiThread(()->host.searchIndoorCorpseDialogV129(corpse));
         }else{
-            gatherFeedback="SEARCH CLOSE TO A CASE OR RETURN TO EXIT";
+            gatherFeedback="SEARCH CLOSE TO A CASE OR FALLEN NPC";
             gatherFeedbackTime=1.5f;
         }
     }
@@ -1799,6 +1806,7 @@ public final class GameView extends View {
         drawClinicVisionV90(c);
         drawIndoorMuzzleLightV129(c);
         drawDroppedItemsV129(c);
+        drawIndoorCorpsesV129(c);
         ArrayList<DrawEntity> sorted=new ArrayList<>();
         for(ClinicActorsV90.Actor actor:clinicActorsV90.actors){
             if(!actor.active||!WorldPerfV55.nearView(actor.x,actor.y,camX,camY,viewW,viewH,155)||
@@ -1914,6 +1922,8 @@ public final class GameView extends View {
         drawIndoorLightFixturesV93(c);
         drawClinicVisionV90(c);
         drawIndoorMuzzleLightV129(c);
+        drawDroppedItemsV129(c);
+        drawIndoorCorpsesV129(c);
         // Actual world-Y depth sort. NPCs cannot visually disappear beneath
         // accompanying survivors merely because companions render last.
         ArrayList<DrawEntity> indoorOrderV92=new ArrayList<>();
@@ -3821,9 +3831,81 @@ public final class GameView extends View {
             npc.variant==ROLE_GUARD+1?NPCRelationshipsV92.FRIENDLY:
             NPCRelationshipsV92.NEUTRAL,nearest(npc.x,npc.y,400f)!=null);
     }
+
+    /** A fallen body is itself the searchable object; approved pixels preserved. */
+    void drawFallenBodyV129(Canvas c,float x,float y,int variant,int skin,int facing){
+        color(0x7c592021);c.drawOval(x-34,y-19,x+35,y+10,p);
+        color(0x9b742427);c.drawOval(x-22,y-14,x+18,y+4,p);
+        c.save();c.rotate(facing<0?-85f:85f,x,y-47f);
+        character(c,x,y,0,facing,0,0f,0f,0f,false,true,variant,skin);
+        c.restore();
+    }
+    void drawIndoorCorpsesV129(Canvas c){
+        for(ClinicActorsV90.Actor actor:clinicActorsV90.actors){
+            if(actor.active||!WorldPerfV55.nearView(actor.x,actor.y,
+                camX,camY,viewW,viewH,150f)||
+                !indoorCharacterVisibleV127(actor.x,actor.y))continue;
+            int skin=1+Math.floorMod(actor.type*31+37,200);
+            drawIndoorVisibleEntityV127(c,()->drawFallenBodyV129(c,
+                actor.x,actor.y,actor.type,skin,(actor.type&1)==0?1:-1));
+        }
+    }
+    int nearestIndoorCorpseV129(){
+        if(!insideClinicV89)return -1;
+        float closest=120f*120f;int found=-1;
+        for(int i=0;i<clinicActorsV90.actors.length;i++){
+            ClinicActorsV90.Actor actor=clinicActorsV90.actors[i];
+            if(actor.active)continue;
+            float dx=actor.x-playerX,dy=actor.y-playerY;
+            float distance=dx*dx+dy*dy;
+            if(distance<closest){closest=distance;found=i;}
+        }
+        return found;
+    }
+    String indoorCorpseKeyV129(){return "indoor_corpse_v129_"+droppedSceneV129();}
+    boolean indoorCorpseSearchedV129(int index){
+        return index<0||index>=clinicActorsV90.actors.length||
+            (host.prefs.getInt(indoorCorpseKeyV129(),0)&(1<<index))!=0;
+    }
+    String indoorCorpseContentsV129(int index){
+        if(index<0||index>=clinicActorsV90.actors.length)return "";
+        switch(clinicActorsV90.actors[index].type){
+            case ClinicActorsV90.RAIDER:return "Ammo ×2, Scrap ×2";
+            case ClinicActorsV90.MEDIC:return "Medkit ×1, Water ×1";
+            case ClinicActorsV90.SURVIVOR:return "Food ×1, Scrap ×1";
+            case ClinicActorsV90.ZOMBIE:return "Scrap ×1";
+            default:return "No usable possessions";
+        }
+    }
+    boolean searchIndoorCorpseV129(int index){
+        if(!insideClinicV89||!playing||index<0||
+            index>=clinicActorsV90.actors.length||
+            indoorCorpseSearchedV129(index))return false;
+        ClinicActorsV90.Actor actor=clinicActorsV90.actors[index];
+        if(actor.active||distance(playerX,playerY,actor.x,actor.y)>128f)
+            return false;
+        switch(actor.type){
+            case ClinicActorsV90.RAIDER:ammoPacks+=2;scrap+=2;break;
+            case ClinicActorsV90.MEDIC:medkits++;waterCount++;break;
+            case ClinicActorsV90.SURVIVOR:foodCount++;scrap++;break;
+            case ClinicActorsV90.ZOMBIE:scrap++;break;
+            default:break;
+        }
+        int old=host.prefs.getInt(indoorCorpseKeyV129(),0);
+        host.prefs.edit().putInt(indoorCorpseKeyV129(),old|(1<<index)).apply();
+        gatherFeedback="SEARCHED FALLEN NPC";gatherFeedbackTime=2f;
+        saveProgress();invalidate();return true;
+    }
     /** A grounded pixel-art dropped backpack with zipper, straps and loot count. */
     void drawBanditBagV87(Canvas c,BanditLootV87.Bag bag){
         float x=bag.x,y=bag.y;
+        if(bag.corpse){
+            int skin=1+Math.floorMod(Math.round(x*11f+(y+3)*17f+
+                bag.variant*73f),200);
+            drawFallenBodyV129(c,x,y,bag.variant,skin,bag.face);
+            if(!bag.empty())label(c,"SEARCH",x-15,y-86,11,0xffe6c99a,true);
+            return;
+        }
         color(0x990f1a17);c.drawOval(x-23,y-6,x+23,y+8,p);
         rect(c,x-20,y-21,40,26,0xff142522);
         rect(c,x-16,y-23,32,25,0xff565b43);
