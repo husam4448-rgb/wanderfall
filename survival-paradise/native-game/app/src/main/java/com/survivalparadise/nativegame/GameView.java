@@ -728,6 +728,7 @@ public final class GameView extends View {
     }
     void drawDroppedItemsV129(Canvas c){
         String scene=droppedSceneV129();
+        if(insideClinicV89){c.save();c.clipPath(clinicVisionPathV90);}
         for(DroppedItemsV129.Stack stack:droppedItemsV129.stacks){
             if(!scene.equals(stack.scene)||!WorldPerfV55.nearView(
                     stack.x,stack.y,camX,camY,viewW,viewH,50f))continue;
@@ -741,6 +742,7 @@ public final class GameView extends View {
             label(c,INVENTORY_NAMES_V92[stack.type]+" ×"+stack.quantity,
                 x-24,y-31,10,0xffe2c58f,true);
         }
+        if(insideClinicV89)c.restore();
     }
     static final String[] INVENTORY_NAMES_V92={"SCRAP","MEDKIT","AMMO",
         "FOOD","WATER","WOOD","STONE","FIBER","BARRICADE","LIGHT POST",
