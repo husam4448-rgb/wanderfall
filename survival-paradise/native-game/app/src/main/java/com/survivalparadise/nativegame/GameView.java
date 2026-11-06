@@ -1817,7 +1817,6 @@ public final class GameView extends View {
         rect(c,1237,1828,245,31,0xff243638);
         label(c,"EXIT",1308,1847,20,0xffebd5a3,true);
         drawClinicVisionV90(c);
-        drawIndoorMuzzleLightV129(c);
         drawDroppedItemsV129(c);
         drawIndoorCorpsesV129(c);
         ArrayList<DrawEntity> sorted=new ArrayList<>();
@@ -1934,7 +1933,6 @@ public final class GameView extends View {
             label(c,"USE TO EXIT TO WORLD",691*s,1020*s,18,0xfff0e5bf,true);
         drawIndoorLightFixturesV93(c);
         drawClinicVisionV90(c);
-        drawIndoorMuzzleLightV129(c);
         drawDroppedItemsV129(c);
         drawIndoorCorpsesV129(c);
         // Actual world-Y depth sort. NPCs cannot visually disappear beneath
@@ -2366,11 +2364,45 @@ public final class GameView extends View {
         }
     }
 
+    /**
+     * Visible warm illumination in DAYLIGHT as well as at night. This is an
+     * additive-looking local reflection, NOT a separate fake projectile.
+     * Lifetime exactly equals the true fired weapon's muzzle flash lifetime.
+     * Indoor reflections stay inside the V130 forward visibility polygon.
+     */
+    void drawFireLightingV130(Canvas c){
+        if(!host.option("gunMuzzleV119",true)||flashes.isEmpty())return;
+        c.save();
+        if(insideClinicV89)c.clipPath(clinicVisionPathV90);
+        for(Flash flash:flashes){
+            if(flash.ttl<=0||!WorldPerfV55.nearView(
+                flash.x,flash.y,camX,camY,viewW,viewH,210f))continue;
+            float strength=GunEffectsV119.alpha(flash.ttl);
+            if(strength<=0)continue;
+            float x=flash.x,y=flash.y;
+            // Bright radius and warm reflection on terrain/buildings.
+            int center=Math.round(158f*strength);
+            int mid=Math.round(72f*strength);
+            color(0xffffffff);
+            p.setShader(new android.graphics.RadialGradient(x,y,190f,
+                new int[]{(center<<24)|0x00ffe3aa,
+                          (mid<<24)|0x00ffb965,0},
+                new float[]{0f,.38f,1f},
+                android.graphics.Shader.TileMode.CLAMP));
+            c.drawCircle(x,y,190f,p);
+            p.setShader(null);
+            // Sharp hot gas immediately beyond the approved gun barrel.
+            color((Math.round(220f*strength)<<24)|0x00fff6c9);
+            c.drawCircle(x+flash.dx*10,y+flash.dy*10,5.8f,p);
+        }
+        p.setShader(null);c.restore();
+    }
     /** Real traveling bullets and restrained muzzle tip after the night pass.
      * No large glowing streak, fake traveling projectile, laser or starburst.
      * Never invoked for the axe (ID 11) or flashlight (ID 3).
      */
     void drawGunEffectsV119(Canvas c){
+        drawFireLightingV130(c);
         if(host.option("gunTrailV119",true)){
             for(Shot bullet:shots){
                 if(!WorldPerfV55.nearView(bullet.x,bullet.y,camX,camY,
@@ -3088,8 +3120,8 @@ public final class GameView extends View {
         // Bullets remain visible in their own short post-lighting draw pass.
         if(host.option("gunMuzzleV119",true))
             for(Flash f:flashes)if(f.ttl>0f)
-                lighting.point(f.x,f.y,165f,
-                    .82f*GunEffectsV119.alpha(f.ttl),0xffffcc83);
+                lighting.point(f.x,f.y,190f,
+                    .98f*GunEffectsV119.alpha(f.ttl),0xffffcd84);
         lighting.render(c,camX,camY,viewW,viewH,lightAlpha,covers);
         lightingNs=System.nanoTime()-lightStart;
         // Lamps/neon signage are static architecture; campfire flames were
