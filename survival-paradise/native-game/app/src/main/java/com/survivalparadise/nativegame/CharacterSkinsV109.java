@@ -72,6 +72,52 @@ final class CharacterSkinsV109 {
                 return size()>18;
             }
         };
+    // Cached nontransparent bounds of each approved V5 head (nothing edited).
+    private final int[][] headOpaqueV131=new int[COUNT+1][];
+    private int[] headOpaqueBoundsV131(int id,Bitmap bitmap){
+        int[] cached=headOpaqueV131[id];if(cached!=null)return cached;
+        int width=bitmap.getWidth(),height=bitmap.getHeight();
+        int[] colors=new int[width*height];
+        bitmap.getPixels(colors,0,width,0,0,width,height);
+        int minX=width,minY=height,maxX=0,maxY=0;
+        for(int y=0;y<height;y++)for(int x=0;x<width;x++){
+            if((colors[y*width+x]>>>24)<72)continue;
+            minX=Math.min(minX,x);minY=Math.min(minY,y);
+            maxX=Math.max(maxX,x+1);maxY=Math.max(maxY,y+1);
+        }
+        cached=minX>=maxX||minY>=maxY?
+            new int[]{0,0,width,height}:new int[]{minX,minY,maxX,maxY};
+        headOpaqueV131[id]=cached;return cached;
+    }
+    /** Exact V109/V5 head transform; local/world collision uses opaque alpha
+     * bounds, independent of the obsolete V31 head rows in body-mask tests.
+     */
+    float[] headBoundsLocalV131(int id,float characterScale,
+          int headOffsetX,int headOffsetY,int headSizePercent,
+          int breathingAmplitude,float breathingTempo,
+          float timeSec,boolean walking){
+        id=range(id,1,COUNT);
+        Bitmap h=head(id);if(h==null)return null;
+        Fit fit=fitting[id];
+        float unit=(160f/HEIGHT)*characterScale;
+        float left=-100f*unit,top=-136f*characterScale;
+        float headScale=Math.min(186f/h.getWidth(),192f/h.getHeight())*
+            (fit.headScale/107f)*
+            CharacterScopeV113.headSizeMultiplier(headSizePercent);
+        int hw=Math.round(h.getWidth()*headScale),
+            hh=Math.round(h.getHeight()*headScale);
+        int hx=HeadFitOffsetsV112.x(hw,fit.horizontal,headOffsetX);
+        float breathing=CharacterAnimationV110.breathOffset(walking,timeSec,
+            fit.breath*(Math.max(0,Math.min(12,breathingAmplitude))/4f),
+            breathingTempo);
+        int hy=HeadFitOffsetsV112.y(hh,fit.vertical,breathing,headOffsetY);
+        int[] bounds=headOpaqueBoundsV131(id,h);
+        float x0=left+(hx+bounds[0]*hw/(float)h.getWidth())*unit;
+        float y0=top+(hy+bounds[1]*hh/(float)h.getHeight())*unit;
+        float x1=left+(hx+bounds[2]*hw/(float)h.getWidth())*unit;
+        float y1=top+(hy+bounds[3]*hh/(float)h.getHeight())*unit;
+        return new float[]{x0,y0,x1,y1};
+    }
     private final Rect headSource=new Rect();
     private final RectF destination=new RectF();
     // Separate black-ink paint: never modify approved original PNG pixels,
