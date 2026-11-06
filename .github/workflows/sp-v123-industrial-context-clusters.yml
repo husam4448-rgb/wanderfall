@@ -1,0 +1,30 @@
+name: V123 Industrial Contextual Clusters
+on:
+  push:
+    branches: [sp-native-v123-industrial-contextual-ground-clusters-20261106]
+    paths:
+      - 'survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/IndustrialClusterPlacementV123.java'
+      - 'survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/IndustrialWorldV123.java'
+      - 'survival-paradise/native-game/tools/IndustrialClusterPlacementV123Test.java'
+      - '.github/workflows/sp-v123-industrial-context-clusters.yml'
+  workflow_dispatch:
+jobs:
+  verify-context:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Validate seeded placement and terrain eligibility
+        run: |
+          set -euo pipefail
+          R=survival-paradise/native-game
+          mkdir -p /tmp/sp-v123-ground
+          javac -d /tmp/sp-v123-ground \
+            "$R/app/src/main/java/com/survivalparadise/nativegame/IndustrialWorldV123.java" \
+            "$R/app/src/main/java/com/survivalparadise/nativegame/IndustrialClusterPlacementV123.java" \
+            "$R/tools/IndustrialClusterPlacementV123Test.java"
+          java -cp /tmp/sp-v123-ground com.survivalparadise.nativegame.IndustrialClusterPlacementV123Test
