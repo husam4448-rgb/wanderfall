@@ -62,38 +62,46 @@ public final class IndustrialArtV123 {
         Bitmap b=sprites[index];if(b==null)return;
         dst.set(x,y,x+w,y+h);c.drawBitmap(b,null,dst,paint);
     }
+    /** V124: genuine industrial props on seeded parcels, not surface decals. */
     public void outdoors(Canvas c,float camX,float camY,float vw,float vh,int seed){
-        int x0=IndustrialWorldV123.sector(camX)-1,x1=IndustrialWorldV123.sector(camX+vw)+1;
-        int y0=IndustrialWorldV123.sector(camY)-1,y1=IndustrialWorldV123.sector(camY+vh)+1;
+        int x0=IndustrialOpenWorldV124.sx(camX)-1;
+        int x1=IndustrialOpenWorldV124.sx(camX+vw)+1;
+        int y0=IndustrialOpenWorldV124.sy(camY)-1;
+        int y1=IndustrialOpenWorldV124.sy(camY+vh)+1;
         for(int iy=y0;iy<=y1;iy++)for(int ix=x0;ix<=x1;ix++){
-            IndustrialWorldV123.District d=IndustrialWorldV123.district(ix,iy,seed);
-            float x=d.x,y=d.y;
-            // This source facade overlays an actual solid collision footprint,
-            // and its front threshold remains freely accessible.
-            int facade=d.kind==3?WAREHOUSE:d.kind%3==0?DOUBLE:
-                        d.kind%3==1?SINGLE:SHED;
-            draw(c,CONCRETE,x+121,y+163,846,580);
-            draw(c,facade,x+146,y+178,791,545);
-            draw(c,SCRAP,x+117,y+974,195,155);
-            draw(c,TRANSFORMER,x+955,y+822,167,165);
-            draw(c,BELT,x+170,y+911,165,145);
-            draw(c,TRUCK,x+960,y+1060,190,155);
-            draw(c,FORKLIFT,x+745,y+969,135,125);
-            draw(c,TANKS,x+990,y+349,166,186);
-            draw(c,PIPE,x+1035,y+592,118,145);
-            draw(c,FENCE,x+100,y+1140,362,104);
-            draw(c,GATE,x+668,y+1140,170,104); // gate slid aside; path stays open
-            draw(c,PATCHWORK,x+654,y+1140,377,104);
-            draw(c,CAR,x+1030,y+1000,149,120);
-            // Hazard-strip outlined click target survives the decorative facade.
-            Paint p=new Paint();p.setColor(0xffbd9e62);
-            c.drawRect(d.doorX-74,d.doorY+8,d.doorX+74,d.doorY+18,p);
-            p.setColor(0xff273a3b);
-            c.drawRect(d.doorX-65,d.doorY+17,d.doorX+65,d.doorY+29,p);
+            IndustrialOpenWorldV124.Plot p=IndustrialOpenWorldV124.plot(ix,iy,seed);
+            if(!p.developed())continue;
+            float x=p.x,y=p.y;
+            if(p.enterable()){
+                int facade=p.kind==3?WAREHOUSE:p.kind==2?DOUBLE:
+                           p.kind==0||p.kind==1?DOUBLE:p.kind==4?
+                           SINGLE:p.kind==5?SHED:p.kind==6?
+                           SINGLE:WAREHOUSE;
+                // Entire approved exterior art scales to the matching roof hull.
+                draw(c,facade,p.buildingX-12,p.buildingY-22,
+                     p.buildingW+24,p.buildingH+46);
+                draw(c,p.kind==2?SILOS:TANKS,x+1000,y+350,175,165);
+                draw(c,TRANSFORMER,x+950,y+845,192,144);
+                draw(c,BELT,x+212,y+897,170,118);
+                draw(c,PIPE,x+990,y+690,146,130);
+                if((p.kind&1)==0)draw(c,FORKLIFT,x+800,y+988,124,94);
+                else draw(c,TRUCK,x+987,y+1044,191,144);
+            }else{
+                // True outdoor material depot: no fake solid roof or fake entrance.
+                draw(c,SCRAP,x+220,y+694,230,171);
+                draw(c,CONVEYOR,x+890,y+774,255,158);
+                draw(c,VERTICAL,x+220,y+902,165,164);
+                draw(c,REINFORCED,x+882,y+950,181,154);
+                draw(c,TRUCK,x+995,y+550,181,135);
+            }
+            // Fence sprites only over real physical fence segments; central
+            // yard gate is left empty and can be crossed by characters.
+            draw(c,FENCE,x+112,y+1178,325,48);
+            draw(c,PATCHWORK,x+709,y+1178,556,48);
         }
     }
     public void indoors(Canvas c,IndustrialInteriorV123 room){
-        float[][] m=IndustrialInteriorV123.MACHINES;
+        float[][] m=room.machines;
         int kind=room.district.kind;
         int[] art=kind==2?new int[]{SILOS,PIPE,CONVEYOR,TANKS,VERTICAL,TRANSFORMER2,
                     BELT,TRANSFORMER,CORRUGATED,SCRAPFENCE,PIPE,TANKS,SHED,CAR,REINFORCED,DOUBLE}:
