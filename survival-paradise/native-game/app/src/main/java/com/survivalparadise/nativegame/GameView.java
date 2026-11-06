@@ -2042,15 +2042,12 @@ public final class GameView extends View {
             clinicVisionPathV90.lineTo(clinicVisionV90.xs[i],
                 clinicVisionV90.ys[i]);
         clinicVisionPathV90.close();
-        clinicVisionPathV90.addCircle(ox,oy,ClinicVisionV90.NEAR,
-            Path.Direction.CW);
         c.save();
         c.clipPath(clinicVisionPathV90,android.graphics.Region.Op.DIFFERENCE);
         rect(c,camX-10,camY-10,viewW+20,viewH+20,0xb9071516);
         c.restore();
-        // Soft normal lighting inside visible cone (avoids pure white floors).
-        color(0x180b1c1d);
-        c.drawCircle(ox,oy,ClinicVisionV90.NEAR,p);
+        // No near-player circular cutout or floor ring. Visibility is defined
+        // exclusively by the wall-traced forward vision cone.
     }
     void spawnWave(){
         if(industrialModeV123){enemies.clear();enemyCount=0;return;}
@@ -3847,12 +3844,25 @@ public final class GameView extends View {
             NPCRelationshipsV92.NEUTRAL,nearest(npc.x,npc.y,400f)!=null);
     }
 
-    /** A fallen body is itself the searchable object; approved pixels preserved. */
+    /** Dead characters reuse only immutable art, without live breathing or weapons. */
     void drawFallenBodyV129(Canvas c,float x,float y,int variant,int skin,int facing){
         color(0x7c592021);c.drawOval(x-34,y-19,x+35,y+10,p);
         color(0x9b742427);c.drawOval(x-22,y-14,x+18,y+4,p);
-        c.save();c.rotate(facing<0?-85f:85f,x,y-47f);
-        character(c,x,y,0,facing,0,0f,0f,0f,false,true,variant,skin);
+        c.save();
+        c.rotate(facing<0?-84f:84f,x,y-47f);
+        c.translate(x,y);
+        if(facing<0)c.scale(-1f,1f);
+        float s=CharacterCollision.BASE_SCALE*scale;
+        if(characterSkinsV109!=null&&characterSkinsV109.ready()){
+            // Fixed idle frame AND fixed animation time; the head never rises.
+            // This renderer also skips every aiming/weapon/torch path.
+            characterSkinsV109.draw(c,skin,false,0,0f,s,pixel,
+                0f,0f,0f,0,0f,
+                npcHeadFitXV113,npcHeadFitYV113,
+                npcHeadSizeV113,npcTorsoWidthV114,npcPelvisWidthV115);
+        }else{
+            stablePose(c,approvedWalkColors,variant,0,s,0f,-1);
+        }
         c.restore();
     }
     void drawIndoorCorpsesV129(Canvas c){
@@ -3861,8 +3871,15 @@ public final class GameView extends View {
                 camX,camY,viewW,viewH,150f)||
                 !indoorCharacterVisibleV127(actor.x,actor.y))continue;
             int skin=1+Math.floorMod(actor.type*31+37,200);
-            drawIndoorVisibleEntityV127(c,()->drawFallenBodyV129(c,
-                actor.x,actor.y,actor.type,skin,(actor.type&1)==0?1:-1));
+            drawIndoorVisibleEntityV127(c,()->{
+                if(actor.type==ClinicActorsV90.FERAL){
+                    // Fallen infected canine retains the original animal silhouette.
+                    color(0x79642225);
+                    c.drawOval(actor.x-38,actor.y-15,actor.x+35,actor.y+6,p);
+                    drawClinicActorV90(c,actor);
+                }else drawFallenBodyV129(c,actor.x,actor.y,actor.type,
+                    skin,(actor.type&1)==0?1:-1);
+            });
         }
     }
     int nearestIndoorCorpseV129(){
