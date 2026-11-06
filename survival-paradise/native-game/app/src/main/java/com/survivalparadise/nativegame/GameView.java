@@ -3928,7 +3928,7 @@ public final class GameView extends View {
             // Fixed idle frame AND fixed animation time; the head never rises.
             // This renderer also skips every aiming/weapon/torch path.
             characterSkinsV109.draw(c,skin,false,0,0f,s,pixel,
-                0f,0f,0f,0,0f,
+                0f,0f,0,0,0f,
                 npcHeadFitXV113,npcHeadFitYV113,
                 npcHeadSizeV113,npcTorsoWidthV114,npcPelvisWidthV115);
         }else{
