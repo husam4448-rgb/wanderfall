@@ -53,17 +53,17 @@ public final class IndustrialWorldV123 {
             x=sx*(float)SECTOR;y=sy*(float)SECTOR;
             kind=IndustrialOpenWorldV124.family(sx,sy,seed);
             name=FACILITIES[kind];id=sx+","+sy;
-            buildingX=x+170f;buildingY=y+235f;
-            doorX=x+540f;doorY=y+730f;
+            buildingX=x+245f;buildingY=y+225f;
+            doorX=x+700f;doorY=y+810f;
         }
         public float materialX(int i) {
-            switch(i){case 0:return x+410;case 1:return x+296;
-                case 2:return x+915;case 3:return x+930;
+            switch(i){case 0:return x+315;case 1:return x+290;
+                case 2:return x+1110;case 3:return x+1140;
                 default:throw new IllegalArgumentException("material index");}
         }
         public float materialY(int i) {
-            switch(i){case 0:return y+970;case 1:return y+1100;
-                case 2:return y+1015;case 3:return y+1110;
+            switch(i){case 0:return y+950;case 1:return y+1110;
+                case 2:return y+1035;case 3:return y+1150;
                 default:throw new IllegalArgumentException("material index");}
         }
         public String lootKey(int slot,boolean interior) {
