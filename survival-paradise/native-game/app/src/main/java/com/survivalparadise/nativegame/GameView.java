@@ -196,7 +196,7 @@ public final class GameView extends View {
     float hotbarX=0,hotbarY=0,hotbarScale=1f;
     int hotbarOpacity=90,selectedHotbar=0;
     int hotbarPointer=-1;
-    // TALK is appended AFTER all existing controls: HUD preference IDs stay stable.
+    // Append new controls after all existing saved IDs: no HUD migration.
     static final int HOTBAR=HUD_ITEMS,BAG_EDITOR=HOTBAR+1,TALK_EDITOR=BAG_EDITOR+1,
         TOP_FORM_EDITOR=TALK_EDITOR+1,TOP_EDIT_EDITOR=TOP_FORM_EDITOR+1,
         TOP_DAY_EDITOR=TOP_EDIT_EDITOR+1,TOP_CAMP_EDITOR=TOP_DAY_EDITOR+1,
@@ -204,7 +204,7 @@ public final class GameView extends View {
         TOP_SET_EDITOR=TOP_PAUSE_EDITOR+1,STATUS_EDITOR=TOP_SET_EDITOR+1,
         HEADER_EDITOR=STATUS_EDITOR+1,FOOTER_EDITOR=HEADER_EDITOR+1,
         PERF_EDITOR=FOOTER_EDITOR+1,COMMAND_EDITOR=PERF_EDITOR+1,
-        EDITOR_ITEMS=COMMAND_EDITOR+1;
+        ENTER_EDITOR=COMMAND_EDITOR+1,EDITOR_ITEMS=ENTER_EDITOR+1;
     static final String[] HOTBAR_TYPES={
         "EMPTY","MEDKIT","AMMO","PISTOL","SHOTGUN","UZI","FOOD","WATER","TORCH",
         "BARRICADE","LIGHT POST","WATER COLLECTOR","FIELD SHELTER",
@@ -1500,37 +1500,68 @@ public final class GameView extends View {
         }
         return false;
     }
-    /** All fixed and player-built shelters use persistent interiors. */
-    boolean enterClinicFromWorldV89(){
-        if(insideClinicV89||!playing||gameOver)return false;
+    /** Canonical hit test for both the door indicator and its action.
+     * Keep all V91/V128 entrance radii and world landing positions unchanged.
+     */
+    static final class DoorV132 {
+        final int site;final float x,y;final String name;
+        final IndustrialWorldV123.District district;
+        DoorV132(int site,float x,float y,String name,
+                 IndustrialWorldV123.District district){
+            this.site=site;this.x=x;this.y=y;this.name=name;this.district=district;
+        }
+    }
+    DoorV132 nearbyDoorV132(){
+        if(!playing||gameOver)return null;
+        if(insideClinicV89){
+            return distance(playerX,playerY,
+                ClinicInteriorV89.EXIT_X,ClinicInteriorV89.EXIT_Y)<110f?
+                new DoorV132(-2,0f,0f,"EXIT BUILDING",null):null;
+        }
         if(industrialModeV123||stitchedIndustrialV128){
-            IndustrialWorldV123.District target=stitchedIndustrialV128?
+            IndustrialWorldV123.District district=stitchedIndustrialV128?
                 IndustrialBiomeBridgeV128.nearestEntrance(
                     playerX,playerY,152f,industrialSeedV123):
                 IndustrialOpenWorldV124.nearestEntrance(
                     playerX,playerY,152f,industrialSeedV123);
-            if(target!=null)industrialSiteV123=target;
-            if(target!=null)return enterIndoorSiteV91(INDUSTRIAL_SITE_V123,
-                stitchedIndustrialV128?IndustrialBiomeBridgeV128.worldX(target.doorX):
-                    target.doorX,
-                stitchedIndustrialV128?IndustrialBiomeBridgeV128.worldY(target.doorY+35f):
-                    target.doorY+35f,target.name);
-            if(industrialModeV123)return false;
+            if(district!=null){
+                float x=stitchedIndustrialV128?
+                    IndustrialBiomeBridgeV128.worldX(district.doorX):
+                    district.doorX;
+                float y=stitchedIndustrialV128?
+                    IndustrialBiomeBridgeV128.worldY(district.doorY+35f):
+                    district.doorY+35f;
+                return new DoorV132(INDUSTRIAL_SITE_V123,x,y,district.name,district);
+            }
+            if(industrialModeV123)return null;
         }
         for(int i=0;i<ExpeditionSitesV88.SITES.length;i++){
             ExpeditionSitesV88.Site site=ExpeditionSitesV88.SITES[i];
             float doorY=site.y+(site.kind==ExpeditionSitesV88.CLINIC?154f:90f);
-            if(distance(playerX,playerY,site.x,doorY)>108f)continue;
-            return enterIndoorSiteV91(i,site.x,doorY+20f,site.name);
+            if(distance(playerX,playerY,site.x,doorY)<=108f)
+                return new DoorV132(i,site.x,doorY+20f,site.name,null);
         }
         for(int i=0;i<craftV83.objects.size();i++){
-            CampCraftV83.Structure structure=craftV83.objects.get(i);
-            if(structure.kind!=CampCraftV83.FIELD_SHELTER)continue;
-            if(distance(playerX,playerY,structure.x,structure.y+42f)>112f)continue;
-            return enterIndoorSiteV91(ExpeditionSitesV88.SITES.length+i,
-                structure.x,structure.y+67f,"FIELD SHELTER");
+            CampCraftV83.Structure shelter=craftV83.objects.get(i);
+            if(shelter.kind==CampCraftV83.FIELD_SHELTER&&
+               distance(playerX,playerY,shelter.x,shelter.y+42f)<=112f)
+                return new DoorV132(ExpeditionSitesV88.SITES.length+i,
+                    shelter.x,shelter.y+67f,"FIELD SHELTER",null);
         }
-        return false;
+        return null;
+    }
+    boolean enterDoorV132(){
+        if(!playing||paused||gameOver)return false;
+        DoorV132 door=nearbyDoorV132();
+        if(door==null)return false;
+        if(door.site==-2){exitClinicV89();return true;}
+        if(door.district!=null)industrialSiteV123=door.district;
+        return enterIndoorSiteV91(door.site,door.x,door.y,door.name);
+    }
+    /** Historical method retained, called by ENTER only. */
+    boolean enterClinicFromWorldV89(){
+        if(insideClinicV89)return false;
+        return enterDoorV132();
     }
     boolean enterIndoorSiteV91(int site,float worldX,float worldY,String name){
         float[] landing=WorldSafetyV92.resolveExit(this::blocked,worldX,worldY);
@@ -1647,11 +1678,8 @@ public final class GameView extends View {
     }
     void interactClinicV89(){
         if(!insideClinicV89)return;
-        if(distance(playerX,playerY,
-            ClinicInteriorV89.EXIT_X,ClinicInteriorV89.EXIT_Y)<110f){
-            exitClinicV89();return;
-        }
-        // USE is reserved for container/exit interactions even beside NPCs.
+        // INTERACT handles containers and corpses; contextual ENTER / EXIT
+        // exclusively handles doorway transitions.
         ClinicInteriorV89.Storage found=nearestAnyInteriorStorageV91(
             playerX,playerY,ClinicInteriorV89.USE_RADIUS);
         if(found!=null){
@@ -1962,7 +1990,7 @@ public final class GameView extends View {
         rect(c,x-63,y+171,126,13,0xff968e75);
         rect(c,x-54,y+183,108,4,0xffb9ae89);
         label(c,"FIELD CLINIC",x-92,y-155,17,0xffe3ebe1,true);
-        label(c,"USE • ENTER",x-48,y+205,13,0xffe1d4a3,true);
+        label(c,"ENTER AT THE DOOR",x-48,y+205,13,0xffe1d4a3,true);
         // Door furniture, vents, rust and water damage are distinct from V88.
         rect(c,x-166,y-24,49,59,0xff425d59);
         rect(c,x+117,y-24,49,59,0xff425d59);
@@ -2151,7 +2179,7 @@ public final class GameView extends View {
         label(c,"EXIT",777*s,1064*s,22,0xffe9d8af,true);
         if(distance(playerX,playerY,ClinicInteriorV89.EXIT_X,
            ClinicInteriorV89.EXIT_Y)<125f)
-            label(c,"USE TO EXIT TO WORLD",691*s,1020*s,18,0xfff0e5bf,true);
+            label(c,"EXIT AT THE DOOR",691*s,1020*s,18,0xfff0e5bf,true);
         drawIndoorLightFixturesV93(c);
         drawClinicVisionV90(c);
         drawIndoorMuzzleLightV129(c);
@@ -4408,10 +4436,12 @@ public final class GameView extends View {
     }
     float uiSize(int id){return host.setting("uiSize"+id,LegacyControlsV58.defaultScale(id))/100f;}
     float uiWidth(int id){
+        if(id==ENTER_EDITOR)return enterWidthV132();
         if(id==TALK_EDITOR)return talkWidthV94();
         return LegacyControlsV58.defaultW(id)*uiSize(id);
     }
     float uiHeight(int id){
+        if(id==ENTER_EDITOR)return enterHeightV132();
         if(id==TALK_EDITOR)return talkHeightV94();
         return LegacyControlsV58.defaultH(id)*uiSize(id);
     }
@@ -4419,7 +4449,8 @@ public final class GameView extends View {
         // TALK is NOT a LegacyControlsV58 action. Never send its ID through
         // defaultX/defaultY (throws IllegalArgumentException on drag).
         if(id==TALK_EDITOR)return talkLeftV94();
-        if(id>=TOP_FORM_EDITOR)return hudExtraXV118(id);
+        if(id==ENTER_EDITOR)return enterLeftV132();
+        if(id>=TOP_FORM_EDITOR&&id<ENTER_EDITOR)return hudExtraXV118(id);
         if(id==BAG_EDITOR)return bagXv87();
         if(id==HOTBAR)return hotbarLeft();
         if(id==MOVE_PAD||id==AIM_PAD)return padCenterX(id==AIM_PAD);
@@ -4430,7 +4461,8 @@ public final class GameView extends View {
     }
     float uiY(int id){
         if(id==TALK_EDITOR)return talkTopV94();
-        if(id>=TOP_FORM_EDITOR)return hudExtraYV118(id);
+        if(id==ENTER_EDITOR)return enterTopV132();
+        if(id>=TOP_FORM_EDITOR&&id<ENTER_EDITOR)return hudExtraYV118(id);
         if(id==BAG_EDITOR)return bagYv87();
         if(id==HOTBAR)return hotbarTop();
         if(id==MOVE_PAD||id==AIM_PAD)return padCenterY(id==AIM_PAD);
@@ -4466,7 +4498,48 @@ public final class GameView extends View {
             LegacyControlsV58.hit(x,y,talkLeftV94(),talkTopV94(),
                 talkWidthV94(),talkHeightV94());
     }
+    float enterDefaultX(){return Math.round(viewW*.64f);}
+    float enterDefaultY(){return Math.round(viewH*.37f);}
+    float enterSizeV132(){
+        return Math.max(.6f,Math.min(1.8f,
+            host.setting("uiSize"+ENTER_EDITOR,100)/100f));
+    }
+    float enterLeftV132(){
+        return enterDefaultX()+(editPointer>=0&&editControl==ENTER_EDITOR?
+            editX:host.setting("uiX"+ENTER_EDITOR,0));
+    }
+    float enterTopV132(){
+        return enterDefaultY()+(editPointer>=0&&editControl==ENTER_EDITOR?
+            editY:host.setting("uiY"+ENTER_EDITOR,0));
+    }
+    float enterWidthV132(){return 105f*enterSizeV132();}
+    float enterHeightV132(){return 44f*enterSizeV132();}
+    boolean enterVisibleV132(){
+        if(editControls)return true;
+        return playing&&!paused&&!gameOver&&uiEnabled(ENTER_EDITOR)&&
+            nearbyDoorV132()!=null;
+    }
+    boolean enterButtonAtV132(float x,float y){
+        return enterVisibleV132()&&
+            LegacyControlsV58.hit(x,y,enterLeftV132(),enterTopV132(),
+                enterWidthV132(),enterHeightV132());
+    }
+    void drawEnterButtonV132(Canvas c){
+        if(!enterVisibleV132())return;
+        float x=enterLeftV132(),y=enterTopV132(),
+            w=enterWidthV132(),h=enterHeightV132();
+        int alpha=Math.max(36,Math.min(255,
+            host.setting("uiAlpha"+ENTER_EDITOR,100)*255/100));
+        btn(c,x,y,w,h,insideClinicV89?"EXIT":"ENTER",
+            (alpha<<24)|0x00436b60);
+        if(editControls){
+            color(uiEnabled(ENTER_EDITOR)?0xffc4dcbb:0xffe29b80);
+            p.setStrokeWidth(2f);p.setStyle(Paint.Style.STROKE);
+            c.drawRect(x,y,x+w,y+h,p);p.setStyle(Paint.Style.FILL);
+        }
+    }
     int actionAt(float x,float y){
+        if(enterButtonAtV132(x,y))return ENTER_EDITOR;
         if(talkButtonAtV94(x,y))return TALK_EDITOR;
         for(int i=0;i<LegacyControlsV58.COUNT;i++)
             if((uiEnabled(i)||editControls)&&
@@ -4485,6 +4558,7 @@ public final class GameView extends View {
         return padBaseY(right)+(editPointer>=0&&editControl==id?editY:host.setting("uiY"+id,0));
     }
     String controlName(int id){
+        if(id==ENTER_EDITOR)return "ENTER / EXIT BUTTON";
         if(id==TALK_EDITOR)return "TALK BUTTON";
         if(id==BAG_EDITOR)return "BAG BUTTON";
         if(id==MOVE_PAD)return "MOVE JOYSTICK";
@@ -5020,13 +5094,13 @@ public final class GameView extends View {
                 stitchedIndustrialV128?IndustrialBiomeBridgeV128.localX(playerX):playerX,
                 stitchedIndustrialV128?IndustrialBiomeBridgeV128.localY(playerY):playerY,
                 industrialSeedV123);
-            if(stock!=null)label(c,"USE: SALVAGE "+stock.name(),
+            if(stock!=null)label(c,"INTERACT: SALVAGE "+stock.name(),
                 14,viewH-54,12,0xffd3e4a7,true);
         }else{
             ResourceWorldV80.Node near=harvestWorld.nearest(playerX,playerY,
                 ResourceWorldV80.USE_RADIUS,CAMP_X,CAMP_Y,WORLD_W,WORLD_H);
             if(near!=null)
-                label(c,"USE: GATHER "+near.name(),14,viewH-54,12,0xffd3e4a7,true);
+                label(c,"INTERACT: GATHER "+near.name(),14,viewH-54,12,0xffd3e4a7,true);
         }
         // Original two virtual sticks, with per-stick size/sensitivity tests.
         float jy=padCenterY(false),rx=padCenterX(true),ry=padCenterY(true);
@@ -5053,6 +5127,7 @@ public final class GameView extends View {
         label(c,"AIM",rx-20,ry+6,17,WHITE,true);
         for(int ui=0;ui<LegacyControlsV58.COUNT;ui++)drawAction(c,ui);
         drawTalkButtonV94(c);
+        drawEnterButtonV132(c);
         drawHotbar(c);
         drawStatusWindowV118(c);
         if(uiEnabled(MOVE_PAD)||editControls)
@@ -5106,7 +5181,7 @@ public final class GameView extends View {
         }
         if(placingKindV84>=0){
             label(c,"AIM "+craftNameV88(placingKindV84)+
-                "  •  PRESS USE TO PLACE",viewW*.5f-205f,66,13,0xfff4d5a1,true);
+                "  •  PRESS INTERACT TO PLACE",viewW*.5f-205f,66,13,0xfff4d5a1,true);
             label(c,"Tap BAG to cancel placement",viewW*.5f-117f,86,11,0xffdfd6c2,false);
         }
         if(hudLayer!=0)c.restoreToCount(hudLayer);
@@ -5355,8 +5430,10 @@ public final class GameView extends View {
             float delta=ui==LegacyControlsV58.ZOOM_IN?.12f:-.12f;
             zoom=clamp(zoom+delta,.45f,1.8f);
             host.prefs.edit().putInt("cameraZoom",Math.round(zoom*100f)).apply();
+        }else if(ui==ENTER_EDITOR){
+            if(!editControls&&enterVisibleV132())enterDoorV132();
         }else if(ui==TALK_EDITOR){
-            // TALK is a separate contextual interaction: never steals USE.
+            // TALK is separate from INTERACT and ENTER.
             if(ContextualTalkV94.canTalk(editControls,playing,paused,gameOver,
                     uiEnabled(TALK_EDITOR),nearbyNPCInteractionV92()))
                 interactNearbyNPCV92();
@@ -5372,7 +5449,7 @@ public final class GameView extends View {
                 if(pile!=null){host.runOnUiThread(()->host.recoverDroppedV129(pile));return;}
                 interactClinicV89();return;
             }
-            if(enterClinicFromWorldV89())return;
+            // Building entrances are controlled only by ENTER.
             DroppedItemsV129.Stack pileV129=nearbyDroppedV129();
             if(pileV129!=null){
                 host.runOnUiThread(()->host.recoverDroppedV129(pileV129));return;
