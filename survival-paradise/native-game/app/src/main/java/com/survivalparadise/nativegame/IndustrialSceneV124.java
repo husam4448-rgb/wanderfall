@@ -151,11 +151,19 @@ public final class IndustrialSceneV124 {
         if(!plot.developed())return;
         float x=plot.x,y=plot.y;
         // No pasted clutter ground sprites; native pads use the same substrate.
-        pad(c,p,x+150,y+900,270,183);
-        pad(c,p,x+1025,y+905,182,210);
-        if(plot.type==IndustrialOpenWorldV124.YARD){
-            pad(c,p,x+210,y+690,255,185);
-            pad(c,p,x+885,y+740,275,190);
+        if(plot.type==IndustrialOpenWorldV124.FACILITY){
+            // Parking and machine pads have the same scale and positions as
+            // the approved machinery source sprites (V126 shared art layout).
+            pad(c,p,x+174,y+888,265,192);
+            pad(c,p,x+998,y+836,214,189);
+            if((plot.kind&1)==0)
+                pad(c,p,x+866,y+1000,279,194);
+            else pad(c,p,x+902,y+1000,306,204);
+        }else{
+            pad(c,p,x+214,y+689,260,194);
+            pad(c,p,x+880,y+761,307,211);
+            pad(c,p,x+200,y+902,258,221);
+            pad(c,p,x+876,y+963,260,204);
         }
         // Chain-link fencing with a real 251-unit wide gap facing the road.
         box(c,p,x+110,y+1204,473,12,0xff4a4d48);
