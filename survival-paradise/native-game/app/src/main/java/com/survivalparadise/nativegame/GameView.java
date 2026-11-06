@@ -81,6 +81,7 @@ public final class GameView extends View {
     // This V123 test APK deliberately boots into the isolated industrial world.
     // The canonical V122 branch and all 200 approved character sprites stay untouched.
     final boolean industrialModeV123=true;
+    final IndustrialArtV123 industrialArtV123=new IndustrialArtV123();
     static final int INDUSTRIAL_SITE_V123=99123;
     int industrialSeedV123=14901;
     IndustrialWorldV123.District industrialSiteV123=IndustrialWorldV123.district(0,0,14901);
@@ -361,6 +362,7 @@ public final class GameView extends View {
         pickaxeV81=makePixelPickaxeV81();
         loadApprovedGearV93();
         initCovers();reloadSettings();hasSave=host.prefs.getBoolean("hasSave",false);
+        if(industrialModeV123)industrialArtV123.load(host.getAssets());
     }
     void initCovers(){
         // Four formerly solid cover buildings have real enterable POI exteriors
@@ -1644,6 +1646,7 @@ public final class GameView extends View {
     void drawIndustrialInteriorV123(Canvas c){
         c.save();c.translate(-camX,-camY);
         IndustrialSceneV123.indoors(c,p,(IndustrialInteriorV123)clinicInteriorV89);
+        industrialArtV123.indoors(c,(IndustrialInteriorV123)clinicInteriorV89);
         for(ClinicInteriorV89.Storage box:clinicInteriorV89.storages){
             if(!WorldPerfV55.nearView(box.x,box.y,camX,camY,viewW,viewH,80))continue;
             if(!box.empty()&&distance(playerX,playerY,box.x,box.y)<145f)
@@ -2855,6 +2858,7 @@ public final class GameView extends View {
     void terrain(Canvas c){
         if(industrialModeV123){
             IndustrialSceneV123.outdoors(c,p,camX,camY,viewW,viewH,industrialSeedV123);
+            industrialArtV123.outdoors(c,camX,camY,viewW,viewH,industrialSeedV123);
             return;
         }
         // V54: render cached, asynchronously prepared 16x16-tile chunk textures.
@@ -4429,7 +4433,7 @@ public final class GameView extends View {
     }
     void menu(Canvas c){
         rounded(c,viewW/2-300,viewH/2-200,600,398,20,0xef14272b);
-        label(c,"SURVIVAL PARADISE",viewW/2-254,viewH/2-115,34,WHITE,true);
+        label(c,"SURVIVAL PARADISE V123",viewW/2-254,viewH/2-115,32,WHITE,true);
         label(c,"NATIVE ANDROID SURVIVAL SHOOTER  •  ALPHA 57 HYBRID",
                 viewW/2-254,viewH/2-80,15,OLIVE,true);
         label(c,"Move left. Aim right. FIRE with independent button.",viewW/2-254,viewH/2-40,15,WHITE,false);
@@ -4449,6 +4453,7 @@ public final class GameView extends View {
     }
     @Override protected void onDetachedFromWindow(){
         terrainChunks.release();
+        industrialArtV123.release();
         lighting.release();
         if(campStatic!=null){campStatic.recycle();campStatic=null;}
         itemIconsV84.release();
