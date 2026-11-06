@@ -26,10 +26,17 @@ public final class SiteExteriorScaleV130 {
             site.x+maxX*z,door+(bottom-(clinic?154f:90f))*z};
     }
     public static boolean blocked(float x,float y,float r){
+        // Allocation-free, bounded world-space actor and ballistics collisions.
         for(ExpeditionSitesV88.Site site:ExpeditionSitesV88.SITES){
-            float[] q=solid(site);
-            if(x+r>q[0]&&x-r<q[2]&&y+r>q[1]&&y-r<q[3])
-                return true;
+            float zoom=scale(site.kind),door=doorY(site);
+            boolean clinic=site.kind==ExpeditionSitesV88.CLINIC;
+            float minX=site.x+(clinic?-194f:-78f)*zoom;
+            float maxX=site.x+(clinic?194f:82f)*zoom;
+            if(x+r<=minX||x-r>=maxX)continue;
+            float origin=clinic?154f:90f;
+            float top=door+((clinic?-159f:-66f)-origin)*zoom;
+            float bottom=door+((clinic?126f:65f)-origin)*zoom;
+            if(y+r>top&&y-r<bottom)return true;
         }
         return false;
     }
