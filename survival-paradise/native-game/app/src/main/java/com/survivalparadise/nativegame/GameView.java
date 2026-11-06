@@ -2660,13 +2660,33 @@ public final class GameView extends View {
         }
         c.restore();
     }
+    /** V131: head damage uses the exact V5-fitted 200-character art, not V31. */
+    float firstHeadImpactV131(float x0,float y0,float x1,float y1,
+            float actorX,float actorY,int facing,int skin,boolean walking,
+            float tilt,boolean player){
+        if(characterSkinsV109==null||!characterSkinsV109.ready())
+            return Float.POSITIVE_INFINITY;
+        float[] local=characterSkinsV109.headBoundsLocalV131(
+            skin,CharacterCollision.BASE_SCALE*scale,
+            player?fitHeadXV108:npcHeadFitXV113,
+            player?fitHeadYV108:npcHeadFitYV113,
+            player?playerHeadSizeV113:npcHeadSizeV113,
+            player?fitIdleBreathV108:npcBreathPixelsV113,
+            player?idleBreathingTempoV110:npcBreathingTempoV113,
+            worldTimer,walking);
+        if(local==null)return Float.POSITIVE_INFINITY;
+        float[] bounds=HeadCollisionV131.worldBounds(
+            actorX,actorY,facing,local[0],local[1],local[2],local[3],tilt);
+        return HeadCollisionV131.firstHit(x0,y0,x1,y1,bounds);
+    }
     void damage(Bandit enemy,float amount){
         enemy.hp-=amount;enemy.hit=.14f;
         particles(enemy.x,enemy.y-34,RED,2);
         if(enemy.hp<=0&&enemy.active){
             enemy.active=false;kills++;particles(enemy.x,enemy.y-24,ORANGE,7);
             BanditLootV87.Bag remains=banditLootV87.spawnCorpse(
-                enemy.x,enemy.y-3,kills,wave,enemy.variant,enemy.face);
+                enemy.x,enemy.y-3,kills,wave,enemy.variant,enemy.face,
+                enemy.skinV109);
             if(remains!=null&&!lootEnabled)
                 java.util.Arrays.fill(remains.count,0);
             saveProgress(); // The body persists even with loot drops disabled.
@@ -3050,24 +3070,34 @@ public final class GameView extends View {
                 if(t<first){first=t;victim=null;hitPlayer=false;hitCover=true;}
             }
             if(bullet.hostile){
-                float t=WorldPerfV55.segmentNearActor(bullet.x,bullet.y,nx,ny,
+                float headT=firstHeadImpactV131(bullet.x,bullet.y,nx,ny,
+                    playerX,playerY,face,playerSkinV109,
+                    playerAnimation.isWalking(),playerHeadTiltV111,true);
+                float oldBodyT=WorldPerfV55.segmentNearActor(bullet.x,bullet.y,nx,ny,
                     playerX,playerY,scale)?
                     CharacterCollision.firstHit(bullet.x,bullet.y,nx,ny,
-                        playerX,
-                        playerY,face,playerAnimation.frame(),
+                        playerX,playerY,face,playerAnimation.frame(),
                         playerAnimation.isWalking(),playerAnimation.breathOffset(),scale,
                         playerAnimation.isWalking()?walkMask:bodyMask):
                     Float.POSITIVE_INFINITY;
+                float t=Math.min(headT,oldBodyT);
                 if(t<first){first=t;victim=null;hitPlayer=true;hitCover=false;}
             }else{
                 for(Bandit e:enemies)if(e.active){
-                    if(!WorldPerfV55.segmentNearActor(bullet.x,bullet.y,nx,ny,
-                            e.x,e.y,scale))continue;
-                    float t=CharacterCollision.firstHit(bullet.x,bullet.y,nx,ny,
-                            e.x,
-                            e.y,e.face,e.animation.frame(),
+                    float tilt=HeadAimV111.targetDegrees(
+                        Ballistics.angle(e.aimX,e.aimY,e.face),
+                        npcHeadAimMaxDegreesV113);
+                    float headT=firstHeadImpactV131(bullet.x,bullet.y,nx,ny,
+                        e.x,e.y,e.face,e.skinV109,e.animation.isWalking(),
+                        tilt,false);
+                    float bodyT=WorldPerfV55.segmentNearActor(
+                            bullet.x,bullet.y,nx,ny,e.x,e.y,scale)?
+                        CharacterCollision.firstHit(bullet.x,bullet.y,nx,ny,
+                            e.x,e.y,e.face,e.animation.frame(),
                             e.animation.isWalking(),e.animation.breathOffset(),scale,
-                            e.animation.isWalking()?walkMask:bodyMask);
+                            e.animation.isWalking()?walkMask:bodyMask):
+                        Float.POSITIVE_INFINITY;
+                    float t=Math.min(headT,bodyT);
                     if(t<first){first=t;victim=e;hitPlayer=false;hitCover=false;}
                 }
             }
@@ -3927,6 +3957,23 @@ public final class GameView extends View {
             rect(c,-16*s,-100*s,27*s,5*s,RED);
             rect(c,-16*s,-90*s,12*s,5*s,0xffad5b52);
         }
+        if(hitboxes&&characterSkinsV109!=null&&characterSkinsV109.ready()){
+            int id=player?playerSkinV109:skinIdV109;
+            float[] hbox=characterSkinsV109.headBoundsLocalV131(
+                id,CharacterCollision.BASE_SCALE*scale,
+                player?fitHeadXV108:npcHeadFitXV113,
+                player?fitHeadYV108:npcHeadFitYV113,
+                player?playerHeadSizeV113:npcHeadSizeV113,
+                player?fitIdleBreathV108:npcBreathPixelsV113,
+                player?idleBreathingTempoV110:npcBreathingTempoV113,
+                worldTimer,breath==Float.POSITIVE_INFINITY);
+            if(hbox!=null){
+                p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(1.3f);
+                color(0xffebc779);
+                c.drawRect(hbox[0]-3f,hbox[1]-3f,hbox[2]+3f,hbox[3]+3f,p);
+                p.setStyle(Paint.Style.FILL);
+            }
+        }
         if(hitboxes){
             // Debug rectangles track the original atlas head and body areas,
             // including the breathing offset; no oversized arbitrary circle.
@@ -4090,8 +4137,12 @@ public final class GameView extends View {
             if(actor.type==ClinicActorsV90.FERAL)
                 drawIndoorVisibleEntityV127(c,()->drawFallenAnimalV130(c,
                     actor.x,actor.y));
-            else drawIndoorVisibleEntityV127(c,()->drawFallenBodyV129(c,
-                actor.x,actor.y,actor.type,skin,(actor.type&1)==0?1:-1));
+            else{
+                int appearance=actor.type==ClinicActorsV90.MEDIC?ROLE_MEDIC:
+                    actor.type==ClinicActorsV90.SURVIVOR?ROLE_CIVILIAN:0;
+                drawIndoorVisibleEntityV127(c,()->drawFallenBodyV129(c,
+                    actor.x,actor.y,appearance,skin,(actor.type&1)==0?1:-1));
+            }
         }
     }
     int nearestIndoorCorpseV129(){
@@ -4144,8 +4195,10 @@ public final class GameView extends View {
     void drawBanditBagV87(Canvas c,BanditLootV87.Bag bag){
         float x=bag.x,y=bag.y;
         if(bag.corpse){
-            int skin=1+Math.floorMod(Math.round(x*11f+(y+3)*17f+
-                bag.variant*73f),200);
+            int skin=bag.skinV109>=1&&bag.skinV109<=200?
+                bag.skinV109:
+                1+Math.floorMod(Math.round(x*11f+(y+3f)*17f+
+                    bag.variant*73f),200);
             drawFallenBodyV129(c,x,y,bag.variant,skin,bag.face);
             if(!bag.empty())label(c,"SEARCH",x-15,y-86,11,0xffe6c99a,true);
             return;
