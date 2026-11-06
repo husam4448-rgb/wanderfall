@@ -32,8 +32,8 @@ public final class V119RegressionTest {
         for(int gun=0;gun<12;gun++)
             check(GunEffectsV119.firearm(gun)==(gun!=3&&gun!=11),
                 "Only guns have muzzle and bullet art, gun="+gun);
-        check(GunEffectsV119.FLASH_SECONDS<.09f,"muzzle flash duration brief");
-        check(GunEffectsV119.BULLET_TRAIL_LENGTH<=14f,"bullet streak is short");
+        check(GunEffectsV119.FLASH_SECONDS>=.12f&&GunEffectsV119.FLASH_SECONDS<=.20f,"V130 muzzle flash visible but brief");
+        check(GunEffectsV119.BULLET_TRAIL_LENGTH>=14f&&GunEffectsV119.BULLET_TRAIL_LENGTH<=18f,"V130 bullet streak visible but short");
         check(GunEffectsV119.muzzleLength(1,0)<=10f,"pistol short flash");
         check(GunEffectsV119.muzzleLength(1,7)<=13f,"shotgun short flash");
         check(GunEffectsV119.muzzleHalfWidth(1)<=4f,"thin natural flash");
