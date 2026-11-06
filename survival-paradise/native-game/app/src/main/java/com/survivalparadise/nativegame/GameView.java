@@ -1585,6 +1585,7 @@ public final class GameView extends View {
                 NpcGunfireV122.firearm(friend.gun)&&
                 NpcAimV122.aligned(friend.aimX,friend.aimY,wantX,wantY)){
                 clinicActorsV90.hit(chosen,17f);
+                hitBloodV129(chosen.x,chosen.y-42f,friend.aimX,friend.aimY,5);
                 spawnIndoorGunfireV122(friend.x,friend.y,friend.gun,
                     friend.face,friend.aimX,friend.aimY,
                     chosen.x,chosen.y,false,false);
@@ -1668,7 +1669,17 @@ public final class GameView extends View {
                 if(!clinicInteriorV89.blocked(nx,actor.y,15f))actor.x=nx;
                 if(!clinicInteriorV89.blocked(actor.x,ny,15f))actor.y=ny;
             }
-        if(threat>0f)hurt(threat);
+        if(threat>0f){
+            ClinicActorsV90.Actor attacker=null;float distance=Float.POSITIVE_INFINITY;
+            for(ClinicActorsV90.Actor actor:clinicActorsV90.actors){
+                if(!actor.active||!actor.hostile())continue;
+                float d=distance(playerX,playerY,actor.x,actor.y);
+                if(d<distance){distance=d;attacker=actor;}
+            }
+            if(attacker!=null)hurtDirectionalV129(threat,
+                playerX-attacker.x,playerY-attacker.y);
+            else hurt(threat);
+        }
         if(firing&&indoorShotCooldownV90<=0f&&reloadClock<=0f&&
             gun!=3&&gun!=11&&!gameOver){
             if(ammo>0){
@@ -1678,7 +1689,7 @@ public final class GameView extends View {
                         Ballistics.unobstructedTravel(gun)),clinicInteriorV89);
                 if(target!=null){
                     clinicActorsV90.hit(target,gun==0?24f:gun==4?41f:32f);
-                    particles(target.x,target.y-33,0xffa44b45,5);
+                    hitBloodV129(target.x,target.y-39f,aimX,aimY,6);
                 }
                 recoil=recoilFX?1:0;
                 if(GunEffectsV118.firearm(gun)){
@@ -2186,6 +2197,7 @@ public final class GameView extends View {
                 clinicInteriorV89);
             if(target!=null){
                 clinicActorsV90.hit(target,40f);
+                hitBloodV129(target.x,target.y-40f,aimX,aimY,4);
                 particles(target.x,target.y-28,0xffa45146,6);
                 saveProgress();
             }
