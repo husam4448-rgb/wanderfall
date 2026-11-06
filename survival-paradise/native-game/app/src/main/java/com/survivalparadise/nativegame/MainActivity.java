@@ -809,6 +809,7 @@ public final class MainActivity extends Activity {
         active[0]=dialog;
         close.setOnClickListener(v->dialog.dismiss());
         dialog.setOnDismissListener(d->{
+            dragScrollV130.stop();
             game.saveProgress();game.menuPause(false);restoreFullscreenAfterShade();
         });
         dialog.show();
@@ -1426,8 +1427,20 @@ public final class MainActivity extends Activity {
             if(redrawV92[0]!=null)redrawV92[0].run();
         };
         if(!game.bagOrderInitializedV92)game.initInventoryOrderV92();
+        game.reconcileSplitV130();
+        final InventoryDragScrollV130 dragScrollV130=
+            new InventoryDragScrollV130(scroll,getResources().getDisplayMetrics().density);
+        final int[] dragSourceV130={-1};
         right.addView(text("Hold and drag items between slots, or onto DROP HERE. "+
             "Use DROP ITEM for a selectable list and quantity slider.",11,false));
+        // Empty panel, scroll pane and slot drag locations all feed the
+        // same edge-autoscroller; it continues while hovering over the edge.
+        View.OnDragListener autoscrollV130=(target,event)->{
+            dragScrollV130.update(target,event);
+            return event.getAction()!=android.view.DragEvent.ACTION_DROP;
+        };
+        right.setOnDragListener(autoscrollV130);
+        scroll.setOnDragListener(autoscrollV130);
         for(int ir=0;ir<5;ir++){
             LinearLayout slots=new LinearLayout(this);
             slots.setOrientation(LinearLayout.HORIZONTAL);
@@ -1442,13 +1455,15 @@ public final class MainActivity extends Activity {
                 LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(edge,edge);
                 params.setMargins(2,2,2,2);slots.addView(slot,params);
                 slot.setOnLongClickListener(v->{
-                    int type=game.bagOrderV92[position];
-                    if(game.inventoryQuantityV92(type)<=0)return false;
+                    int type=game.bagSlotItemV130(position);
+                    if(game.bagSlotCountV130(position)<=0)return false;
+                    dragSourceV130[0]=position;
                     android.content.ClipData data=android.content.ClipData.newPlainText(
                         "sp-inventory-slot",Integer.toString(position));
                     return v.startDragAndDrop(data,new View.DragShadowBuilder(v),null,0);
                 });
                 slot.setOnDragListener((v,event)->{
+                    dragScrollV130.update(v,event);
                     if(event.getAction()==android.view.DragEvent.ACTION_DRAG_STARTED)
                         return event.getClipDescription()!=null&&
                             event.getClipDescription().hasMimeType(
@@ -1465,76 +1480,9 @@ public final class MainActivity extends Activity {
                     }
                     return true;
                 });
-                slot.setOnClickListener(v->{
-                    int idx=game.bagOrderV92[position];
-                    int qty=game.inventoryQuantityV92(idx);
-                    if(qty<=0)return;
-                    String name=GameView.INVENTORY_NAMES_V92[idx];
-                    if(idx>=24&&idx<39){
-                        int gearType=idx-24;
-                        new AlertDialog.Builder(this).setTitle(name+" ×"+qty)
-                            .setItems(new String[]{"EQUIP","CANCEL"},(dialog,choice)->{
-                                if(choice!=0)return;
-                                boolean equipped=gearType<3?
-                                    game.fieldFindsV91.equip(gearType):
-                                    game.wardrobeV92.equip((gearType-3)/3,(gearType-3)%3);
-                                Toast.makeText(this,equipped?"Equipped "+name:
-                                    "Unable to equip",Toast.LENGTH_SHORT).show();
-                                if(equipped){game.saveProgress();avatar.invalidate();}
-                            }).show();
-                        return;
-                    }
-                    if(idx>=14){
-                        Toast.makeText(this,name+" ×"+qty+" • scavenged material",
-                            Toast.LENGTH_SHORT).show();return;
-                    }
-                    if(idx>=12){
-                        final int utility=idx==12?13:14;
-                        String[] options={"USE","ASSIGN QUICK SLOT 1","ASSIGN QUICK SLOT 2",
-                            "ASSIGN QUICK SLOT 3","ASSIGN QUICK SLOT 4",
-                            "ASSIGN QUICK SLOT 5","ASSIGN QUICK SLOT 6"};
-                        new AlertDialog.Builder(this).setTitle(name+" ×"+qty)
-                            .setItems(options,(d,choice)->{
-                                if(choice==0){
-                                    if(!game.useBackpackV88(utility))
-                                        Toast.makeText(this,"Cannot use this item now",
-                                            Toast.LENGTH_SHORT).show();
-                                    refreshCraftCountsV83.run();
-                                }else game.setHotbarItem(choice-1,utility);
-                            }).show();return;
-                    }
-                    if(idx>=8){
-                        String[] options={"PLACE IN WORLD","ASSIGN QUICK SLOT 1",
-                            "ASSIGN QUICK SLOT 2","ASSIGN QUICK SLOT 3",
-                            "ASSIGN QUICK SLOT 4","ASSIGN QUICK SLOT 5",
-                            "ASSIGN QUICK SLOT 6"};
-                        new AlertDialog.Builder(this).setTitle(name+" ×"+qty)
-                            .setItems(options,(d,choice)->{
-                                if(choice==0){
-                                    if(game.selectPlaceItemV84(idx-8)&&
-                                        bagDialogV84[0]!=null)bagDialogV84[0].dismiss();
-                                }else game.setHotbarItem(choice-1,idx+1);
-                            }).show();return;
-                    }
-                    if(idx==0||idx>=5){
-                        Toast.makeText(this,name+" is a crafting resource",
-                            Toast.LENGTH_SHORT).show();return;
-                    }
-                    int useKind=idx==3?6:idx==4?7:idx;
-                    String[] options={"USE","ASSIGN HOTBAR 1","ASSIGN HOTBAR 2",
-                        "ASSIGN HOTBAR 3","ASSIGN HOTBAR 4",
-                        "ASSIGN HOTBAR 5","ASSIGN HOTBAR 6"};
-                    new AlertDialog.Builder(this).setTitle(name+" • "+qty)
-                        .setItems(options,(d,choice)->{
-                            if(choice==0){
-                                if(!game.useBackpackV88(useKind))
-                                    Toast.makeText(this,"Cannot use this item now",
-                                        Toast.LENGTH_SHORT).show();
-                                refreshCraftCountsV83.run();
-                            }else game.setHotbarItem(choice-1,useKind);
-                            avatar.invalidate();
-                        }).show();
-                });
+                slot.setOnClickListener(v->
+                    inventoryItemMenuV130(position,redrawV92[0],
+                        avatar,bagDialogV84));
             }
             right.addView(slots);
         }
@@ -1564,19 +1512,21 @@ public final class MainActivity extends Activity {
                     int source=Integer.parseInt(event.getClipData().getItemAt(0)
                         .getText().toString());
                     if(source<0||source>=game.bagOrderV92.length)return false;
-                    int kind=game.bagOrderV92[source];
+                    int kind=game.bagSlotItemV130(source);
                     if(kind<0||kind>=39||
-                       game.inventoryQuantityV92(kind)<=0)return false;
-                    dropQuantityDialogV129(kind,redrawV92[0]);
+                       game.bagSlotCountV130(source)<=0)return false;
+                    dropBagSlotDialogV130(source,redrawV92[0]);
                     return true;
                 }catch(Exception ignored){return false;}
             }
             return true;
         });
         redrawV92[0]=()->{
+            game.reconcileSplitV130();
             for(int position=0;position<tilesV92.length;position++){
                 SquareItemSlotV88 tile=tilesV92[position];
-                int kind=game.bagOrderV92[position],qty=game.inventoryQuantityV92(kind);
+                int kind=game.bagSlotItemV130(position),
+                    qty=game.bagSlotCountV130(position);
                 if(qty<=0){
                     tile.setText("");
                     tile.setCompoundDrawables(null,null,null,null);
@@ -1730,6 +1680,31 @@ public final class MainActivity extends Activity {
         dialog.setCancelable(true);
         dialog.setCanceledOnTouchOutside(true);
         bagDialogV84[0]=dialog;
+        // Dropping outside the bag window is equivalent to DROP HERE.
+        // A drag crossing individual slots is NOT a discard request.
+        final boolean[] draggedOutsideV130={false};
+        dialog.getWindow().getDecorView().setOnDragListener((view,event)->{
+            switch(event.getAction()){
+                case android.view.DragEvent.ACTION_DRAG_STARTED:
+                    draggedOutsideV130[0]=false;
+                    return event.getClipDescription()!=null&&
+                        event.getClipDescription().hasMimeType(
+                            android.content.ClipDescription.MIMETYPE_TEXT_PLAIN);
+                case android.view.DragEvent.ACTION_DRAG_ENTERED:
+                    draggedOutsideV130[0]=false;return true;
+                case android.view.DragEvent.ACTION_DRAG_EXITED:
+                    draggedOutsideV130[0]=true;dragScrollV130.stop();return true;
+                case android.view.DragEvent.ACTION_DRAG_ENDED:
+                    dragScrollV130.stop();
+                    if(draggedOutsideV130[0]&&!event.getResult()&&
+                        dragSourceV130[0]>=0&&dragSourceV130[0]<40){
+                        dropBagSlotDialogV130(dragSourceV130[0],redrawV92[0]);
+                    }
+                    dragSourceV130[0]=-1;draggedOutsideV130[0]=false;
+                    return true;
+                default:return true;
+            }
+        });
         final int[] width={prefs.getInt("bagWindowWidth",94)},
                     height={prefs.getInt("bagWindowHeight",92)};
         makeWindowMovable(dialog,handle,width[0],height[0],"bagWindow");
