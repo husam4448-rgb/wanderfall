@@ -1514,16 +1514,16 @@ public final class GameView extends View {
     DoorV132 nearbyDoorV132(){
         if(!playing||gameOver)return null;
         if(insideClinicV89){
-            return distance(playerX,playerY,
-                ClinicInteriorV89.EXIT_X,ClinicInteriorV89.EXIT_Y)<110f?
+            return ContextualDoorV132.indoorExit(
+                playerX,playerY,ClinicInteriorV89.EXIT_X,ClinicInteriorV89.EXIT_Y)?
                 new DoorV132(-2,0f,0f,"EXIT BUILDING",null):null;
         }
         if(industrialModeV123||stitchedIndustrialV128){
             IndustrialWorldV123.District district=stitchedIndustrialV128?
                 IndustrialBiomeBridgeV128.nearestEntrance(
-                    playerX,playerY,152f,industrialSeedV123):
+                    playerX,playerY,ContextualDoorV132.INDUSTRIAL_RADIUS,industrialSeedV123):
                 IndustrialOpenWorldV124.nearestEntrance(
-                    playerX,playerY,152f,industrialSeedV123);
+                    playerX,playerY,ContextualDoorV132.INDUSTRIAL_RADIUS,industrialSeedV123);
             if(district!=null){
                 float x=stitchedIndustrialV128?
                     IndustrialBiomeBridgeV128.worldX(district.doorX):
@@ -1538,13 +1538,15 @@ public final class GameView extends View {
         for(int i=0;i<ExpeditionSitesV88.SITES.length;i++){
             ExpeditionSitesV88.Site site=ExpeditionSitesV88.SITES[i];
             float doorY=site.y+(site.kind==ExpeditionSitesV88.CLINIC?154f:90f);
-            if(distance(playerX,playerY,site.x,doorY)<=108f)
+            if(ContextualDoorV132.fixedDoor(playerX,playerY,
+                site.x,site.y,site.kind==ExpeditionSitesV88.CLINIC))
                 return new DoorV132(i,site.x,doorY+20f,site.name,null);
         }
         for(int i=0;i<craftV83.objects.size();i++){
             CampCraftV83.Structure shelter=craftV83.objects.get(i);
             if(shelter.kind==CampCraftV83.FIELD_SHELTER&&
-               distance(playerX,playerY,shelter.x,shelter.y+42f)<=112f)
+               ContextualDoorV132.shelterDoor(
+                   playerX,playerY,shelter.x,shelter.y))
                 return new DoorV132(ExpeditionSitesV88.SITES.length+i,
                     shelter.x,shelter.y+67f,"FIELD SHELTER",null);
         }
@@ -4516,8 +4518,8 @@ public final class GameView extends View {
     float enterHeightV132(){return 44f*enterSizeV132();}
     boolean enterVisibleV132(){
         if(editControls)return true;
-        return playing&&!paused&&!gameOver&&uiEnabled(ENTER_EDITOR)&&
-            nearbyDoorV132()!=null;
+        return ContextualDoorV132.visible(editControls,playing,paused,
+            gameOver,uiEnabled(ENTER_EDITOR),nearbyDoorV132()!=null);
     }
     boolean enterButtonAtV132(float x,float y){
         return enterVisibleV132()&&
