@@ -448,6 +448,10 @@ public final class MainActivity extends Activity {
     // Separate from game settings: the actual HUD has its own layout editor.
     void hudEditor(){
         game.menuPause(true);
+        // Compact newly acquired loot into the first available cells, adjacent
+        // to existing stacks, before opening the inventory window.
+        game.organizeBagV131(Math.max(0,Math.min(3,
+            prefs.getInt("bagSortV131",0))));
         LinearLayout shell=column();
         section(shell,"HUD BUTTON EDITOR  •  V121 SCREENSHOT DEFAULTS");
         shell.addView(text("ALL HUD controls can be edited: top buttons, joysticks, status bars, resource/clock, FPS, squad, inventory and quickbar. Choose one, adjust with +/- or use ON-SCREEN DRAG.",12,false));
@@ -1211,7 +1215,7 @@ public final class MainActivity extends Activity {
             }).show();
     }
     void bagItemMenuV130(int position,Runnable refresh,V62InventoryPreview avatar,
-                         AlertDialog[] bagDialog){
+                         AlertDialog[] bagDialog,Runnable refreshEquipment){
         if(game==null||position<0||position>=40)return;
         game.reconcileBagSplitsV130();
         int kind=game.bagOrderV92[position],quantity=game.bagSlotQuantityV130(position);
@@ -1226,16 +1230,21 @@ public final class MainActivity extends Activity {
         choices.add("DROP");
         choices.add("CANCEL");
         new AlertDialog.Builder(this)
-            .setTitle(GameView.INVENTORY_NAMES_V92[kind]+" ×"+quantity)
+            .setTitle(GameView.INVENTORY_NAMES_V92[kind]+" ×"+quantity+
+                "\nUNIT WT "+InventoryCatalogV131.massLabel(kind,1)+
+                "   STACK WT "+InventoryCatalogV131.massLabel(kind,quantity)+
+                " LOAD")
             .setItems(choices.toArray(new String[0]),(dialog,chosen)->{
                 String action=choices.get(chosen);
                 if(action.equals("DROP")||action.equals("SPLIT STACK")){
                     bagQuantityMenuV130(position,action.equals("SPLIT STACK"),refresh);
                 }else if(action.equals("EQUIP")){
-                    int gear=kind-24;
-                    boolean equipped=gear<3?game.fieldFindsV91.equip(gear):
-                        game.wardrobeV92.equip((gear-3)/3,(gear-3)%3);
-                    if(equipped){game.saveProgress();avatar.invalidate();refresh.run();}
+                    int slot=InventoryCatalogV131.equipmentSlot(kind);
+                    boolean equipped=game.equipInventoryItemV131(kind,slot);
+                    if(equipped){
+                        avatar.invalidate();refresh.run();
+                        if(refreshEquipment!=null)refreshEquipment.run();
+                    }
                     else Toast.makeText(this,"Unable to equip",Toast.LENGTH_SHORT).show();
                 }else if(action.equals("PLACE IN WORLD")){
                     if(game.selectPlaceItemV84(kind-8)&&bagDialog[0]!=null)
@@ -1280,9 +1289,156 @@ public final class MainActivity extends Activity {
         row.addView(left,new LinearLayout.LayoutParams(0,-2,36f));
         row.addView(right,new LinearLayout.LayoutParams(0,-2,64f));
         section(left,"SURVIVOR   •   EQUIPMENT");
+        final Runnable[] redrawV92={null};
+        final Runnable[] refreshEquipmentV131={null};
+        final AlertDialog[] bagDialogV84=new AlertDialog[1];
+        final Button[] equipmentButtonsV131=new Button[8];
+        final String[] equipment={"HEAD","FACE","TORSO","LEGS",
+            "FEET","BACK","PRIMARY","OFF-HAND"};
         V62InventoryPreview avatar=new V62InventoryPreview(this,game);
-        left.addView(avatar,new LinearLayout.LayoutParams(-1,
-            Math.round(142*getResources().getDisplayMetrics().density)));
+        LinearLayout equipmentSurroundV131=new LinearLayout(this);
+        equipmentSurroundV131.setOrientation(LinearLayout.HORIZONTAL);
+        left.addView(equipmentSurroundV131);
+        LinearLayout leftSocketsV131=column(),rightSocketsV131=column();
+        int avatarHeightV131=Math.round(185*getResources().getDisplayMetrics().density);
+        equipmentSurroundV131.addView(leftSocketsV131,
+            new LinearLayout.LayoutParams(0,avatarHeightV131,1.1f));
+        android.widget.FrameLayout avatarFrameV131=new android.widget.FrameLayout(this);
+        avatarFrameV131.addView(avatar,
+            new android.widget.FrameLayout.LayoutParams(-1,-1));
+        equipmentSurroundV131.addView(avatarFrameV131,
+            new LinearLayout.LayoutParams(0,avatarHeightV131,1.75f));
+        equipmentSurroundV131.addView(rightSocketsV131,
+            new LinearLayout.LayoutParams(0,avatarHeightV131,1.1f));
+        for(int rowIndex=0;rowIndex<3;rowIndex++){
+            int[] leftTypes={0,2,4},rightTypes={1,3,5};
+            for(int side=0;side<2;side++){
+                int ix=side==0?leftTypes[rowIndex]:rightTypes[rowIndex];
+                Button socket=v62Slot(equipment[ix]+"\nEMPTY",true);
+                socket.setTextSize(8.5f);
+                LinearLayout holder=side==0?leftSocketsV131:rightSocketsV131;
+                LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,0,1f);
+                lp.setMargins(2,3,2,3);holder.addView(socket,lp);
+                equipmentButtonsV131[ix]=socket;
+            }
+        }
+        LinearLayout handsV131=new LinearLayout(this);
+        handsV131.setOrientation(LinearLayout.HORIZONTAL);
+        left.addView(handsV131);
+        for(int ix=6;ix<8;ix++){
+            Button socket=v62Slot(equipment[ix],true);
+            socket.setTextSize(9f);
+            LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,
+                Math.round(67*getResources().getDisplayMetrics().density),1f);
+            lp.setMargins(2,3,2,3);handsV131.addView(socket,lp);
+            equipmentButtonsV131[ix]=socket;
+        }
+        refreshEquipmentV131[0]=()->{
+            for(int ix=0;ix<equipmentButtonsV131.length;ix++){
+                Button socket=equipmentButtonsV131[ix];
+                if(socket==null)continue;
+                int equippedType=-1;
+                if(ix==5&&game.fieldFindsV91.equipped>=0)
+                    equippedType=24+game.fieldFindsV91.equipped;
+                else if(ix==0||ix==2||ix==3||ix==4){
+                    int clothing=ix==0?0:ix==2?1:ix==3?2:3;
+                    int variant=game.wardrobeV92.equipped[clothing];
+                    if(variant>=0)equippedType=27+clothing*3+variant;
+                }
+                String value=equippedType>=0?
+                    GameView.INVENTORY_NAMES_V92[equippedType]:
+                    ix==6?LOADOUTS[game.gun]:
+                    ix==7?(game.dualTorch&&game.lampOn?"FLASHLIGHT":"EMPTY"):
+                    ix==1?"MASK SLOT":"EMPTY";
+                if(value.length()>19)value=value.substring(0,19);
+                socket.setText(equipment[ix]+"\n"+value);
+                android.graphics.drawable.Drawable icon=
+                    equippedType>=0?GearItemIconsV95.drawable(this,equippedType-24,29):
+                    ix==6||ix==7?game.itemIconsV84.drawable(getResources(),
+                        ix==7?ItemIconsV84.TORCH:ItemIconsV84.RIFLE,29):
+                    GearItemIconsV95.silhouette(this,ix,29);
+                socket.setCompoundDrawables(null,icon,null,null);
+                socket.setCompoundDrawablePadding(1);
+                socket.setContentDescription(equipment[ix]+
+                    " equipment socket. "+value+". Drag compatible equipment here.");
+            }
+            avatar.invalidate();
+        };
+        for(int index=0;index<8;index++){
+            final int socketIndex=index;
+            Button socket=equipmentButtonsV131[index];
+            socket.setOnDragListener((view,event)->{
+                if(event.getAction()==android.view.DragEvent.ACTION_DRAG_STARTED)
+                    return event.getClipDescription()!=null&&
+                        event.getClipDescription().hasMimeType(
+                            android.content.ClipDescription.MIMETYPE_TEXT_PLAIN);
+                if(event.getAction()==android.view.DragEvent.ACTION_DROP){
+                    try{
+                        int position=Integer.parseInt(event.getClipData().
+                            getItemAt(0).getText().toString());
+                        if(position<0||position>=40)return false;
+                        int type=game.bagOrderV92[position];
+                        if(game.bagSlotQuantityV130(position)<1||
+                           !InventoryCatalogV131.compatible(type,socketIndex))
+                            return false;
+                        boolean success=game.equipInventoryItemV131(type,socketIndex);
+                        if(success){
+                            refreshEquipmentV131[0].run();
+                            if(redrawV92[0]!=null)redrawV92[0].run();
+                        }
+                        return success;
+                    }catch(Exception ignored){return false;}
+                }
+                return true;
+            });
+            socket.setOnClickListener(view->{
+                if(socketIndex==6){
+                    new AlertDialog.Builder(this).setTitle("EQUIP PRIMARY WEAPON")
+                        .setItems(LOADOUTS,(d,weapon)->{
+                            prefs.edit().putInt("gun",weapon).apply();
+                            game.reloadSettings();game.saveProgress();
+                            refreshEquipmentV131[0].run();
+                        }).show();
+                    return;
+                }
+                if(socketIndex==7){
+                    boolean enabled=!(game.lampOn&&game.dualTorch);
+                    prefs.edit().putBoolean("dualTorch",enabled)
+                        .putBoolean("lampOn",enabled).apply();
+                    game.reloadSettings();game.saveProgress();
+                    refreshEquipmentV131[0].run();return;
+                }
+                if(socketIndex==1){
+                    Toast.makeText(this,"Face gear will appear here when obtained",
+                        Toast.LENGTH_SHORT).show();return;
+                }
+                java.util.ArrayList<String> choices=new java.util.ArrayList<>();
+                java.util.ArrayList<Integer> kinds=new java.util.ArrayList<>();
+                choices.add("UNEQUIP / REMOVE");kinds.add(-1);
+                for(int kind=24;kind<39;kind++){
+                    if(InventoryCatalogV131.compatible(kind,socketIndex)&&
+                       game.availableInventoryV131(kind)>0){
+                        choices.add(GameView.INVENTORY_NAMES_V92[kind]+" ×"+
+                            game.availableInventoryV131(kind));
+                        kinds.add(kind);
+                    }
+                }
+                new AlertDialog.Builder(this)
+                    .setTitle(equipment[socketIndex]+" EQUIPMENT")
+                    .setItems(choices.toArray(new String[0]),(dialog,which)->{
+                        int kind=kinds.get(which);
+                        boolean success=kind<0?
+                            game.unequipInventorySlotV131(socketIndex):
+                            game.equipInventoryItemV131(kind,socketIndex);
+                        if(success){
+                            refreshEquipmentV131[0].run();
+                            if(redrawV92[0]!=null)redrawV92[0].run();
+                        }else Toast.makeText(this,"Equipment unavailable",
+                            Toast.LENGTH_SHORT).show();
+                    }).show();
+            });
+        }
+        refreshEquipmentV131[0].run();
         LinearLayout vital=new LinearLayout(this);
         vital.setOrientation(LinearLayout.HORIZONTAL);
         vital.addView(text("HP "+Math.round(game.health),12,true),
@@ -1292,88 +1448,6 @@ public final class MainActivity extends Activity {
         vital.addView(text("FOOD "+game.foodCount+"   WATER "+game.waterCount,12,true),
             new LinearLayout.LayoutParams(0,-2,2));
         left.addView(vital);
-        final String[] equipment={
-            "HEAD","FACE","TORSO","LEGS","FEET","BACK","PRIMARY","OFF-HAND"};
-        for(int er=0;er<4;er++){
-            LinearLayout gearRow=new LinearLayout(this);
-            gearRow.setOrientation(LinearLayout.HORIZONTAL);
-            for(int ec=0;ec<2;ec++){
-                int ix=er*2+ec;
-                String label=equipment[ix];
-                int clothesSlot=ix==0?0:ix==2?1:ix==3?2:ix==4?3:-1;
-                String value=clothesSlot>=0?
-                    (game.wardrobeV92.equipped[clothesSlot]<0?"EMPTY":
-                    WardrobeV92.NAMES[clothesSlot][game.wardrobeV92.equipped[clothesSlot]]):
-                    ix==6?LOADOUTS[game.gun]:
-                    ix==7?(game.dualTorch&&game.lampOn?"FLASHLIGHT":"EMPTY"):
-                    ix==5?(game.fieldFindsV91.equipped<0?"EMPTY":
-                    FieldFindsV91.BAGS[game.fieldFindsV91.equipped]):"EMPTY";
-                Button equipped=v62Slot(label+"\n"+value,true);
-                if(ix==6||ix==7){
-                    equipped.setCompoundDrawables(game.itemIconsV84.drawable(
-                        getResources(),ix==7?ItemIconsV84.TORCH:ItemIconsV84.RIFLE,15),
-                        null,null,null);
-                }
-                LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(0,
-                    Math.round(52*getResources().getDisplayMetrics().density),1);
-                p.setMargins(3,3,3,3);gearRow.addView(equipped,p);
-                equipped.setOnClickListener(v->{
-                    if(ix==6){
-                        new AlertDialog.Builder(this).setTitle("EQUIP PRIMARY WEAPON")
-                            .setItems(LOADOUTS,(d,weapon)->{
-                                prefs.edit().putInt("gun",weapon).apply();
-                                game.reloadSettings();game.saveProgress();
-                                equipped.setText("PRIMARY\n"+LOADOUTS[weapon]);
-                                avatar.invalidate();
-                            }).show();
-                    }else if(ix==7){
-                        boolean enabled=!(game.lampOn&&game.dualTorch);
-                        prefs.edit().putBoolean("dualTorch",enabled)
-                            .putBoolean("lampOn",enabled).apply();
-                        game.reloadSettings();avatar.invalidate();
-                        equipped.setText("OFF-HAND\n"+(enabled?"FLASHLIGHT":"EMPTY"));
-                    }else if(ix==5){
-                        String[] options=new String[4];
-                        options[0]="NONE / REMOVE BACKPACK";
-                        for(int b=0;b<3;b++)options[b+1]=FieldFindsV91.BAGS[b]+
-                            "  ×"+game.fieldFindsV91.bags[b]+"  (+"+
-                            FieldFindsV91.CAPACITY_BONUS[b]+" CAPACITY)";
-                        new AlertDialog.Builder(this).setTitle("EQUIP CARRY BAG")
-                            .setItems(options,(d,choice)->{
-                                if(choice==0)game.fieldFindsV91.unequip();
-                                else if(!game.fieldFindsV91.equip(choice-1)){
-                                    Toast.makeText(this,"Find this backpack in a building case first",
-                                        Toast.LENGTH_SHORT).show();return;
-                                }
-                                equipped.setText("BACK\n"+(game.fieldFindsV91.equipped<0?
-                                    "EMPTY":FieldFindsV91.BAGS[game.fieldFindsV91.equipped]));
-                                game.saveProgress();avatar.invalidate();
-                            }).show();
-                    }else if(clothesSlot>=0){
-                        String[] choices=new String[4];
-                        choices[0]="REMOVE "+WardrobeV92.SLOTS[clothesSlot];
-                        for(int w=0;w<3;w++)
-                            choices[w+1]=WardrobeV92.NAMES[clothesSlot][w]+"  ×"+
-                                game.wardrobeV92.found[clothesSlot][w];
-                        new AlertDialog.Builder(this)
-                            .setTitle("EQUIP "+WardrobeV92.SLOTS[clothesSlot])
-                            .setItems(choices,(d,choice)->{
-                                if(!game.wardrobeV92.equip(clothesSlot,choice-1)){
-                                    Toast.makeText(this,"Find this clothing in building cases",
-                                        Toast.LENGTH_SHORT).show();return;
-                                }
-                                int w=game.wardrobeV92.equipped[clothesSlot];
-                                equipped.setText(label+"\n"+(w<0?"EMPTY":
-                                    WardrobeV92.NAMES[clothesSlot][w]));
-                                game.saveProgress();avatar.invalidate();
-                            }).show();
-                    }else Toast.makeText(this,
-                        "Equipment attachment unavailable in this slot",
-                        Toast.LENGTH_SHORT).show();
-                });
-            }
-            left.addView(gearRow);
-        }
         // V96 cosmetic selection: 20 original isolated pack sprites and four
         // approved headgear designs. Capacity/loot/save game systems unchanged.
         LinearLayout appearanceV96=new LinearLayout(this);
@@ -1398,11 +1472,28 @@ public final class MainActivity extends Activity {
         left.addView(text("Carry capacity: "+game.fieldFindsV91.capacity()+
             " • ENC "+Math.round(game.encumbranceV91())+"% • Packs appear on the survivor.",12,false));
         section(right,"BACKPACK   •   40 COMPACT SLOTS");
-        right.addView(text("Select an item to USE it or assign it to the quick-access bar.",12,false));
+        LinearLayout sortBarV131=new LinearLayout(this);
+        sortBarV131.setOrientation(LinearLayout.HORIZONTAL);
+        right.addView(sortBarV131);
+        Button sortV131=v62Slot("SORT ▾",true);
+        TextView sortingV131=text("TYPE  •  WEIGHT  •  NAME",11,false);
+        sortBarV131.addView(sortV131,
+            new LinearLayout.LayoutParams(0,-2,1.3f));
+        sortBarV131.addView(sortingV131,
+            new LinearLayout.LayoutParams(0,-2,2f));
+        sortV131.setOnClickListener(v->new AlertDialog.Builder(this)
+            .setTitle("SORT BACKPACK")
+            .setItems(new String[]{"GROUP & COMPACT","ITEM TYPE",
+                "WEIGHT (HEAVIEST FIRST)","NAME (A–Z)"},(dialog,which)->{
+                game.organizeBagV131(which);
+                sortingV131.setText(new String[]{"GROUPED","BY TYPE",
+                    "BY WEIGHT","A–Z"}[which]);
+                if(redrawV92[0]!=null)redrawV92[0].run();
+                prefs.edit().putInt("bagSortV131",which).apply();
+            }).show());
+        right.addView(text("Tap an item for weight, actions, splitting and dropping.",11,false));
         final Button[] backpackStackButtonsV83=new Button[14];
-        final AlertDialog[] bagDialogV84=new AlertDialog[1];
         final SquareItemSlotV88[] tilesV92=new SquareItemSlotV88[40];
-        final Runnable[] redrawV92={null};
         final int[] currentDragSourceV130={-1};
         final boolean[] dragLeftWindowV130={false};
         final boolean[] dragHandledV130={false};
@@ -1475,7 +1566,7 @@ public final class MainActivity extends Activity {
                     return true;
                 });
                 slot.setOnClickListener(v->bagItemMenuV130(
-                    position,redrawV92[0],avatar,bagDialogV84));
+                    position,redrawV92[0],avatar,bagDialogV84,refreshEquipmentV131[0]));
             }
             right.addView(slots);
         }
