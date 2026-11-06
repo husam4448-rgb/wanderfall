@@ -78,9 +78,11 @@ public final class GameView extends View {
     int nightDarkness=211,flashlightReach=490;
     final LightingV47 lighting=new LightingV47();
     final WorldChunkCache terrainChunks=new WorldChunkCache((int)CAMP_X,(int)CAMP_Y);
-    // This V123 test APK deliberately boots into the isolated industrial world.
-    // The canonical V122 branch and all 200 approved character sprites stay untouched.
-    final boolean industrialModeV123=true;
+    // V128: the original camp, NPCs, and all six V74 outdoor biomes remain.
+    // The industrial biome now occupies a seed-stable connected region east
+    // of the original world; no second world mode or teleport is required.
+    final boolean industrialModeV123=false;
+    final boolean stitchedIndustrialV128=true;
     final IndustrialArtV123 industrialArtV123=new IndustrialArtV123();
     final IndustrialYardV123 industrialYardV123=new IndustrialYardV123();
     static final int INDUSTRIAL_SITE_V123=99123;
@@ -363,7 +365,8 @@ public final class GameView extends View {
         pickaxeV81=makePixelPickaxeV81();
         loadApprovedGearV93();
         initCovers();reloadSettings();hasSave=host.prefs.getBoolean("hasSave",false);
-        if(industrialModeV123)industrialArtV123.load(host.getAssets());
+        if(industrialModeV123||stitchedIndustrialV128)
+            industrialArtV123.load(host.getAssets());
     }
     void initCovers(){
         // Four formerly solid cover buildings have real enterable POI exteriors
@@ -391,7 +394,8 @@ public final class GameView extends View {
         return activeSiteV91>=ExpeditionSitesV88.SITES.length?"FIELD SHELTER":"FIELD CLINIC";
     }
     void configureInteriorV91(int site){
-        if(industrialModeV123&&site==INDUSTRIAL_SITE_V123){
+        if((industrialModeV123||stitchedIndustrialV128)&&
+                site==INDUSTRIAL_SITE_V123){
             activeSiteV91=site;
             clinicInteriorV89=new IndustrialInteriorV123(industrialSiteV123);
             clinicActorsV90=new ClinicActorsV90(clinicInteriorV89);
@@ -704,7 +708,7 @@ public final class GameView extends View {
     void newGame(){
         industrialSeedV123=host.prefs.getInt(IndustrialWorldV123.SEED_PREF,14901);
         industrialSiteV123=IndustrialWorldV123.district(0,0,industrialSeedV123);
-        industrialYardV123.decode(host.prefs.getString("industrial_yard_v123_"+industrialSeedV123,""));
+        industrialYardV123.clear();
         playerX=industrialModeV123?industrialSiteV123.doorX:CAMP_X;
         playerY=industrialModeV123?industrialSiteV123.doorY+112f:CAMP_Y;health=100;stamina=100;
         hunger=100;thirst=100;fatigue=0;foodCount=2;waterCount=2;
@@ -739,6 +743,17 @@ public final class GameView extends View {
         android.content.SharedPreferences.Editor sitesClear=host.prefs.edit();
         for(int i=0;i<ExpeditionSitesV88.SITES.length+CampCraftV83.MAX;i++)
             sitesClear.remove("site_containers_v91_"+i).remove("site_actors_v91_"+i);
+        // Fresh world of this seed: clear ALL industrial sites. The V127
+        // isolated test's persistent per-facility and per-seed keys are reused.
+        String industryPrefix=IndustrialWorldV123.saveNamespace(industrialSeedV123)+"_";
+        for(int sy=IndustrialBiomeBridgeV128.INDUSTRIAL_MIN_SY;
+                sy<IndustrialBiomeBridgeV128.INDUSTRIAL_MAX_SY;sy++)
+            for(int sx=IndustrialBiomeBridgeV128.INDUSTRIAL_MIN_SX;
+                    sx<IndustrialBiomeBridgeV128.INDUSTRIAL_MAX_SX;sx++){
+                String key=industryPrefix+sx+"_"+sy;
+                sitesClear.remove(key+"_loot").remove(key+"_actors");
+            }
+        sitesClear.remove("industrial_yard_v123_"+industrialSeedV123);
         sitesClear.apply();
         clinicActorsV90.reset(clinicInteriorV89);
         outdoorCompanionPositionsV90.clear();
@@ -768,6 +783,15 @@ public final class GameView extends View {
         face=aimX<-.025f?-1:1;
         refreshDaylight();
         playerX=host.prefs.getFloat("px",1000);playerY=host.prefs.getFloat("py",1060);
+        // A save imported from the isolated V123-V127 test has local
+        // industrial coordinates; general-world saves remain world-native.
+        boolean importedIndustrialV128=stitchedIndustrialV128&&
+            host.prefs.contains("industrial_sx_v123")&&
+            !host.prefs.getBoolean("v128_world_coords",false);
+        if(importedIndustrialV128){
+            playerX=IndustrialBiomeBridgeV128.worldX(playerX);
+            playerY=IndustrialBiomeBridgeV128.worldY(playerY);
+        }
         health=host.prefs.getFloat("hp",100);
         stamina=host.prefs.getFloat("stamina",100);
         hunger=host.prefs.getFloat("hunger",100);
@@ -822,6 +846,10 @@ public final class GameView extends View {
             ExpeditionSitesV88.SITES[1].x);
         outsideDoorYv89=host.prefs.getFloat("clinic_return_y_v89",
             ExpeditionSitesV88.SITES[1].y+165f);
+        if(importedIndustrialV128){
+            outsideDoorXv89=IndustrialBiomeBridgeV128.worldX(outsideDoorXv89);
+            outsideDoorYv89=IndustrialBiomeBridgeV128.worldY(outsideDoorYv89);
+        }
         if(!insideClinicV89&&blocked(playerX,playerY,21f)){
             float[] safe=WorldSafetyV92.resolveExit(this::blocked,playerX,playerY);
             playerX=safe[0];playerY=safe[1];
@@ -1189,13 +1217,19 @@ public final class GameView extends View {
     /** All fixed and player-built shelters use persistent interiors. */
     boolean enterClinicFromWorldV89(){
         if(insideClinicV89||!playing||gameOver)return false;
-        if(industrialModeV123){
-            IndustrialWorldV123.District target=IndustrialOpenWorldV124.nearestEntrance(
-                playerX,playerY,152f,industrialSeedV123);
-            if(target==null)return false;
-            industrialSiteV123=target;
-            return enterIndoorSiteV91(INDUSTRIAL_SITE_V123,
-                target.doorX,target.doorY+35f,target.name);
+        if(industrialModeV123||stitchedIndustrialV128){
+            IndustrialWorldV123.District target=stitchedIndustrialV128?
+                IndustrialBiomeBridgeV128.nearestEntrance(
+                    playerX,playerY,152f,industrialSeedV123):
+                IndustrialOpenWorldV124.nearestEntrance(
+                    playerX,playerY,152f,industrialSeedV123);
+            if(target!=null)industrialSiteV123=target;
+            if(target!=null)return enterIndoorSiteV91(INDUSTRIAL_SITE_V123,
+                stitchedIndustrialV128?IndustrialBiomeBridgeV128.worldX(target.doorX):
+                    target.doorX,
+                stitchedIndustrialV128?IndustrialBiomeBridgeV128.worldY(target.doorY+35f):
+                    target.doorY+35f,target.name);
+            if(industrialModeV123)return false;
         }
         for(int i=0;i<ExpeditionSitesV88.SITES.length;i++){
             ExpeditionSitesV88.Site site=ExpeditionSitesV88.SITES[i];
@@ -1919,7 +1953,7 @@ public final class GameView extends View {
         }
     }
     void saveProgress(){
-        if(industrialModeV123){
+        if(industrialModeV123||stitchedIndustrialV128){
             host.prefs.edit().putInt(IndustrialWorldV123.SEED_PREF,industrialSeedV123)
                 .putInt("industrial_sx_v123",industrialSiteV123.sx)
                 .putInt("industrial_sy_v123",industrialSiteV123.sy)
@@ -1928,7 +1962,8 @@ public final class GameView extends View {
         }
         if(!playing||gameOver)return;
         if(insideClinicV89)persistCurrentInteriorV91();
-        host.prefs.edit().putBoolean("hasSave",true).putFloat("px",playerX).putFloat("py",playerY)
+        host.prefs.edit().putBoolean("hasSave",true)
+                .putBoolean("v128_world_coords",true).putFloat("px",playerX).putFloat("py",playerY)
                 .putFloat("hp",health).putFloat("stamina",stamina)
                 .putFloat("hunger",hunger).putFloat("thirst",thirst)
                 .putFloat("fatigue",fatigue).putInt("foodCount",foodCount)
@@ -2016,6 +2051,9 @@ public final class GameView extends View {
     }
     float clamp(float x,float min,float max){return Math.max(min,Math.min(max,x));}
     boolean blocked(float x,float y,float r){
+        if(stitchedIndustrialV128&&
+            IndustrialBiomeBridgeV128.blocked(x,y,r,industrialSeedV123))
+            return true;
         if(industrialModeV123)return IndustrialOpenWorldV124.blocked(
             x,y,r,industrialSeedV123);
         // V53 unbounded world: collisions are against solid structures, never map borders.
@@ -2942,6 +2980,11 @@ public final class GameView extends View {
         drawExpeditionSitesV88(c);
         drawSalvageWorldV84(c);
         drawLooseGroundPickupsV85(c);
+        // One world, no portal: render the industrial terrain into its world
+        // coordinates over the old streamed biome. Render before structures,
+        // characters and effects so their depth/aiming systems remain intact.
+        if(stitchedIndustrialV128)IndustrialBiomeSceneV128.draw(c,p,
+            industrialArtV123,camX,camY,viewW,viewH,industrialSeedV123);
         if(placingKindV84>=0){
             updatePlacementTargetV86();
             c.saveLayerAlpha(placingXv84-72,placingYv84-115,
@@ -3000,9 +3043,18 @@ public final class GameView extends View {
     }
     /** USE immediately picks up small items, unlike axe/pick/crowbar resources. */
     boolean collectIndustrialYardV123(){
-        if(!industrialModeV123||insideClinicV89||!playing||paused)return false;
+        if((!industrialModeV123&&!stitchedIndustrialV128)||insideClinicV89||
+                !playing||paused)return false;
+        if(stitchedIndustrialV128&&
+           !IndustrialBiomeBridgeV128.hasIndustrialLoot(
+                playerX,playerY,industrialSeedV123))return false;
         IndustrialYardV123.Stock found=industrialYardV123.nearest(
-            playerX,playerY,industrialSeedV123);
+            stitchedIndustrialV128?IndustrialBiomeBridgeV128.localX(playerX):playerX,
+            stitchedIndustrialV128?IndustrialBiomeBridgeV128.localY(playerY):playerY,
+            industrialSeedV123);
+        if(found!=null&&stitchedIndustrialV128&&
+           !IndustrialBiomeBridgeV128.industrialPlot(found.district.sx,
+                                                      found.district.sy))return false;
         if(found==null||!industrialYardV123.collect(found))return false;
         int n=found.quantity();
         if(found.slot==2)fieldFindsV91.items[2]+=n;
@@ -4399,9 +4451,14 @@ public final class GameView extends View {
             rect(c,15,viewH-44,150*harvestV81.totalProgress(),3,0xffc2b58c);
         }else if(gatherFeedbackTime>0)
             label(c,gatherFeedback,14,viewH-54,13,0xffd3e4a7,true);
-        else if(industrialModeV123&&!insideClinicV89){
+        else if((industrialModeV123||stitchedIndustrialV128)&&!insideClinicV89&&
+                (!stitchedIndustrialV128||
+                IndustrialBiomeBridgeV128.hasIndustrialLoot(
+                    playerX,playerY,industrialSeedV123))){
             IndustrialYardV123.Stock stock=industrialYardV123.nearest(
-                playerX,playerY,industrialSeedV123);
+                stitchedIndustrialV128?IndustrialBiomeBridgeV128.localX(playerX):playerX,
+                stitchedIndustrialV128?IndustrialBiomeBridgeV128.localY(playerY):playerY,
+                industrialSeedV123);
             if(stock!=null)label(c,"USE: SALVAGE "+stock.name(),
                 14,viewH-54,12,0xffd3e4a7,true);
         }else{
@@ -4746,6 +4803,7 @@ public final class GameView extends View {
             if(industrialModeV123){
                 collectIndustrialYardV123();return;
             }
+            if(stitchedIndustrialV128&&collectIndustrialYardV123())return;
             if(useFacilityV88())return;
             BanditLootV87.Bag banditBag=nearbyBanditBagV87();
             if(banditBag!=null){
