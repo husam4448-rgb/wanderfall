@@ -25,6 +25,8 @@ public final class IndustrialYardV123 {
         Stock result=null;float best=REACH*REACH;
         int sx=IndustrialWorldV123.sector(px),sy=IndustrialWorldV123.sector(py);
         for(int y=sy-1;y<=sy+1;y++)for(int x=sx-1;x<=sx+1;x++){
+            IndustrialOpenWorldV124.Plot plot=IndustrialOpenWorldV124.plot(x,y,seed);
+            if(!plot.developed())continue;
             IndustrialWorldV123.District d=IndustrialWorldV123.district(x,y,seed);
             for(int i=0;i<IndustrialWorldV123.MATERIALS.length;i++){
                 Stock stock=new Stock(d,i);
