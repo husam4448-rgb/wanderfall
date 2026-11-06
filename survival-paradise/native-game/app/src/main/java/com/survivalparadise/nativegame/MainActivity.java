@@ -1072,6 +1072,82 @@ public final class MainActivity extends Activity {
         dialog.setCancelable(true);
         resizeSettingsWindow(dialog,76,87);
     }
+    /** Works for tap-to-drop and for a genuine bag-slot drag to the bin. */
+    void dropQuantityDialogV129(int kind,Runnable refresh){
+        if(game==null||kind<0||kind>=39)return;
+        final int available=game.inventoryQuantityV92(kind);
+        if(available<=0)return;
+        final int[] selected={1};
+        LinearLayout editor=column();
+        editor.setPadding(24,16,24,10);
+        TextView quantity=text("DROP 1 / "+available,16,true);
+        quantity.setGravity(Gravity.CENTER);
+        editor.addView(quantity);
+        SeekBar slider=new SeekBar(this);
+        slider.setMax(available-1);slider.setProgress(0);
+        editor.addView(slider);
+        LinearLayout steps=new LinearLayout(this);
+        steps.setOrientation(LinearLayout.HORIZONTAL);
+        Button minus=v62Slot("−",true),plus=v62Slot("+",true);
+        steps.addView(minus,new LinearLayout.LayoutParams(0,-2,1f));
+        steps.addView(plus,new LinearLayout.LayoutParams(0,-2,1f));
+        editor.addView(steps);
+        slider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
+            public void onProgressChanged(SeekBar s,int progress,boolean fromUser){
+                selected[0]=1+progress;
+                quantity.setText("DROP "+selected[0]+" / "+available);
+            }
+            public void onStartTrackingTouch(SeekBar s){}
+            public void onStopTrackingTouch(SeekBar s){}
+        });
+        minus.setOnClickListener(v->slider.setProgress(Math.max(0,slider.getProgress()-1)));
+        plus.setOnClickListener(v->slider.setProgress(Math.min(
+            slider.getMax(),slider.getProgress()+1)));
+        new AlertDialog.Builder(this)
+            .setTitle("DROP "+GameView.INVENTORY_NAMES_V92[kind])
+            .setMessage("Place the selected quantity on the ground. "+
+                "It remains for "+prefs.getInt("groundDropDaysV129",2)+
+                " in-game day(s) and can be recovered.")
+            .setView(editor)
+            .setNegativeButton("CANCEL",null)
+            .setPositiveButton("DROP",(d,w)->{
+                boolean success=game.dropInventoryV129(kind,selected[0]);
+                if(success&&refresh!=null)refresh.run();
+                Toast.makeText(this,success?"Dropped "+selected[0]+" "+
+                    GameView.INVENTORY_NAMES_V92[kind]:
+                    "Could not drop this stack here",Toast.LENGTH_SHORT).show();
+            }).show();
+    }
+    void dropByListV129(Runnable refresh){
+        java.util.ArrayList<String> labels=new java.util.ArrayList<>();
+        java.util.ArrayList<Integer> indexes=new java.util.ArrayList<>();
+        for(int i=0;i<39;i++){
+            int quantity=game.inventoryQuantityV92(i);
+            if(quantity<=0)continue;
+            indexes.add(i);
+            labels.add(GameView.INVENTORY_NAMES_V92[i]+"  ×"+quantity);
+        }
+        if(labels.isEmpty()){
+            Toast.makeText(this,"Inventory is empty",Toast.LENGTH_SHORT).show();return;
+        }
+        new AlertDialog.Builder(this).setTitle("CHOOSE ITEM TO DROP")
+            .setItems(labels.toArray(new String[0]),
+                (dialog,selected)->dropQuantityDialogV129(indexes.get(selected),refresh))
+            .setNegativeButton("CANCEL",null).show();
+    }
+    void recoverDroppedV129(DroppedItemsV129.Stack stack){
+        if(game==null||stack==null||!game.droppedItemsV129.contains(stack))return;
+        new AlertDialog.Builder(this)
+            .setTitle("PICK UP "+GameView.INVENTORY_NAMES_V92[stack.type])
+            .setMessage("Recover "+stack.quantity+" item(s) from the ground?")
+            .setNegativeButton("LEAVE",null)
+            .setPositiveButton("PICK UP",(d,w)->{
+                boolean taken=game.takeDroppedV129(stack);
+                Toast.makeText(this,taken?"Recovered items":
+                    "Cannot recover items at this location or capacity",
+                    Toast.LENGTH_SHORT).show();
+            }).show();
+    }
     void inventory(){
         if(game==null||!game.isPlaying())return;
         game.menuPause(true);
@@ -1220,7 +1296,8 @@ public final class MainActivity extends Activity {
             if(redrawV92[0]!=null)redrawV92[0].run();
         };
         if(!game.bagOrderInitializedV92)game.initInventoryOrderV92();
-        right.addView(text("Hold and drag an occupied item to another slot. Empty cells stay visible.",11,false));
+        right.addView(text("Hold and drag items between slots, or onto DROP HERE. "+
+            "Use DROP ITEM for a selectable list and quantity slider.",11,false));
         for(int ir=0;ir<5;ir++){
             LinearLayout slots=new LinearLayout(this);
             slots.setOrientation(LinearLayout.HORIZONTAL);
@@ -1331,6 +1408,41 @@ public final class MainActivity extends Activity {
             }
             right.addView(slots);
         }
+        // Dedicated inventory discard area accepts Android drag-and-drop
+        // from ANY of the 40 slots; all deletions require amount confirmation.
+        LinearLayout discardRowV129=new LinearLayout(this);
+        discardRowV129.setOrientation(LinearLayout.HORIZONTAL);
+        right.addView(discardRowV129);
+        Button dropSelectV129=v62Slot("DROP ITEM",true);
+        Button trashV129=v62Slot("DROP HERE",true);
+        trashV129.setCompoundDrawablesWithIntrinsicBounds(
+            android.R.drawable.ic_menu_delete,0,0,0);
+        trashV129.setContentDescription("Drop item here; choose an amount");
+        discardRowV129.addView(dropSelectV129,
+            new LinearLayout.LayoutParams(0,-2,1f));
+        discardRowV129.addView(trashV129,
+            new LinearLayout.LayoutParams(0,-2,1f));
+        dropSelectV129.setOnClickListener(v->dropByListV129(redrawV92[0]));
+        trashV129.setOnClickListener(v->dropByListV129(redrawV92[0]));
+        trashV129.setOnDragListener((v,event)->{
+            if(event.getAction()==android.view.DragEvent.ACTION_DRAG_STARTED)
+                return event.getClipDescription()!=null&&
+                    event.getClipDescription().hasMimeType(
+                        android.content.ClipDescription.MIMETYPE_TEXT_PLAIN);
+            if(event.getAction()==android.view.DragEvent.ACTION_DROP){
+                try{
+                    int source=Integer.parseInt(event.getClipData().getItemAt(0)
+                        .getText().toString());
+                    if(source<0||source>=game.bagOrderV92.length)return false;
+                    int kind=game.bagOrderV92[source];
+                    if(kind<0||kind>=39||
+                       game.inventoryQuantityV92(kind)<=0)return false;
+                    dropQuantityDialogV129(kind,redrawV92[0]);
+                    return true;
+                }catch(Exception ignored){return false;}
+            }
+            return true;
+        });
         redrawV92[0]=()->{
             for(int position=0;position<tilesV92.length;position++){
                 SquareItemSlotV88 tile=tilesV92[position];
@@ -1775,6 +1887,8 @@ public final class MainActivity extends Activity {
         check(root,"Small muzzle flash (gunfire only)","gunMuzzleV119",true);
         check(root,"Short real-bullet tracers","gunTrailV119",true);
         check(root,"Item drops + inventory","loot",true);
+        slider(root,"Discarded items remain on ground",
+            "groundDropDaysV129",1,2,2," game days");
         check(root,"Automatic day / night cycle","autoDayNight",true);
         slider(root,"Real minutes per game day","dayLength",12,120,36," min");
         check(root,"Manual night (when automatic is OFF)","night",true);
