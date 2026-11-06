@@ -39,9 +39,9 @@ public final class V130InventorySiteTest {
                 "building entrance blocked for "+s.name);
             ok(SiteExteriorScaleV130.blocked((a[0]+a[2])/2f,(a[1]+a[3])/2f,10),
                 "building roof not solid for "+s.name);
-            float cx=Math.max(a[0],Math.min(1000f,a[2]));
-            float cy=Math.max(a[1],Math.min(1060f,a[3]));
-            if(Math.hypot(cx-1000,cy-1060)<WorldSafetyV92.CAMP_SAFE_RADIUS)
+            float cx=Math.max(a[0],Math.min(1080f,a[2]));
+            float cy=Math.max(a[1],Math.min(710f,a[3]));
+            if(Math.hypot(cx-1080,cy-710)<WorldSafetyV92.CAMP_SAFE_RADIUS)
                 unsafe++;
             if(a[0]<1720&&a[2]>1500||
                a[1]<1150&&a[3]>925)nearRoad++;
