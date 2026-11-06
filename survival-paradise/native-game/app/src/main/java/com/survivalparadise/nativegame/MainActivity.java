@@ -1166,6 +1166,99 @@ public final class MainActivity extends Activity {
                     Toast.LENGTH_SHORT).show();
             }).show();
     }
+    /** Quantity picker for either a real inventory split or dropping a stack. */
+    void bagQuantityMenuV130(int position,boolean split,Runnable redraw){
+        if(game==null||position<0||position>=40)return;
+        game.reconcileBagSplitsV130();
+        int quantity=game.bagSlotQuantityV130(position);
+        int maximum=split?quantity-1:quantity;
+        if(maximum<1)return;
+        int kind=game.bagOrderV92[position];
+        LinearLayout content=column();content.setPadding(20,14,20,10);
+        TextView count=text("1 / "+maximum,15,true);
+        count.setGravity(Gravity.CENTER);content.addView(count);
+        SeekBar slider=new SeekBar(this);
+        slider.setMax(maximum-1);content.addView(slider);
+        LinearLayout line=new LinearLayout(this);
+        line.setOrientation(LinearLayout.HORIZONTAL);
+        Button minus=v62Slot("−",true),plus=v62Slot("+",true);
+        line.addView(minus,new LinearLayout.LayoutParams(0,-2,1f));
+        line.addView(plus,new LinearLayout.LayoutParams(0,-2,1f));
+        content.addView(line);
+        slider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
+            public void onProgressChanged(SeekBar s,int progress,boolean fromUser){
+                count.setText((progress+1)+" / "+maximum);
+            }
+            public void onStartTrackingTouch(SeekBar s){}
+            public void onStopTrackingTouch(SeekBar s){}
+        });
+        minus.setOnClickListener(v->slider.setProgress(Math.max(0,slider.getProgress()-1)));
+        plus.setOnClickListener(v->slider.setProgress(
+            Math.min(slider.getMax(),slider.getProgress()+1)));
+        new AlertDialog.Builder(this)
+            .setTitle((split?"SPLIT ":"DROP ")+GameView.INVENTORY_NAMES_V92[kind])
+            .setView(content)
+            .setNegativeButton("CANCEL",null)
+            .setPositiveButton(split?"SPLIT STACK":"DROP",(dialog,which)->{
+                int n=slider.getProgress()+1;
+                boolean ok=split?game.splitBagSlotV130(position,n):
+                    game.dropBagSlotV130(position,n);
+                if(ok){
+                    if(redraw!=null)redraw.run();
+                }else Toast.makeText(this,split?
+                    "No empty bag slot is available":"Unable to drop this stack",
+                    Toast.LENGTH_SHORT).show();
+            }).show();
+    }
+    void bagItemMenuV130(int position,Runnable refresh,V62InventoryPreview avatar,
+                         AlertDialog[] bagDialog){
+        if(game==null||position<0||position>=40)return;
+        game.reconcileBagSplitsV130();
+        int kind=game.bagOrderV92[position],quantity=game.bagSlotQuantityV130(position);
+        if(kind<0||kind>=39||quantity<=0)return;
+        java.util.ArrayList<String> choices=new java.util.ArrayList<>();
+        if(kind>=24)choices.add("EQUIP");
+        else if(kind>=8&&kind<=11)choices.add("PLACE IN WORLD");
+        else if(kind==1||kind==3||kind==4||kind==12||kind==13)
+            choices.add("USE");
+        if(kind<14)choices.add("ASSIGN QUICK SLOT");
+        if(quantity>1)choices.add("SPLIT STACK");
+        choices.add("DROP");
+        choices.add("CANCEL");
+        new AlertDialog.Builder(this)
+            .setTitle(GameView.INVENTORY_NAMES_V92[kind]+" ×"+quantity)
+            .setItems(choices.toArray(new String[0]),(dialog,chosen)->{
+                String action=choices.get(chosen);
+                if(action.equals("DROP")||action.equals("SPLIT STACK")){
+                    bagQuantityMenuV130(position,action.equals("SPLIT STACK"),refresh);
+                }else if(action.equals("EQUIP")){
+                    int gear=kind-24;
+                    boolean equipped=gear<3?game.fieldFindsV91.equip(gear):
+                        game.wardrobeV92.equip((gear-3)/3,(gear-3)%3);
+                    if(equipped){game.saveProgress();avatar.invalidate();refresh.run();}
+                    else Toast.makeText(this,"Unable to equip",Toast.LENGTH_SHORT).show();
+                }else if(action.equals("PLACE IN WORLD")){
+                    if(game.selectPlaceItemV84(kind-8)&&bagDialog[0]!=null)
+                        bagDialog[0].dismiss();
+                }else if(action.equals("USE")){
+                    int useKind=kind==3?6:kind==4?7:kind==12?13:
+                        kind==13?14:kind;
+                    boolean ok=game.useBackpackV88(useKind);
+                    if(!ok)Toast.makeText(this,"Cannot use this item now",
+                        Toast.LENGTH_SHORT).show();
+                    game.reconcileBagSplitsV130();
+                    refresh.run();avatar.invalidate();
+                }else if(action.equals("ASSIGN QUICK SLOT")){
+                    String[] numbers={"SLOT 1","SLOT 2","SLOT 3",
+                        "SLOT 4","SLOT 5","SLOT 6"};
+                    new AlertDialog.Builder(this).setTitle("ASSIGN "+GameView.INVENTORY_NAMES_V92[kind])
+                        .setItems(numbers,(d,index)->game.setHotbarItem(index,
+                            kind>=8?kind+1:kind==3?6:kind==4?7:
+                            kind==12?13:kind==13?14:kind))
+                        .show();
+                }
+            }).show();
+    }
     void inventory(){
         if(game==null||!game.isPlaying())return;
         game.menuPause(true);
@@ -1310,10 +1403,14 @@ public final class MainActivity extends Activity {
         final AlertDialog[] bagDialogV84=new AlertDialog[1];
         final SquareItemSlotV88[] tilesV92=new SquareItemSlotV88[40];
         final Runnable[] redrawV92={null};
+        final int[] currentDragSourceV130={-1};
+        final boolean[] dragLeftWindowV130={false};
+        final boolean[] dragHandledV130={false};
         final Runnable refreshCraftCountsV83=()->{
             if(redrawV92[0]!=null)redrawV92[0].run();
         };
         if(!game.bagOrderInitializedV92)game.initInventoryOrderV92();
+        game.reconcileBagSplitsV130();
         right.addView(text("Hold and drag items between slots, or onto DROP HERE. "+
             "Use DROP ITEM for a selectable list and quantity slider.",11,false));
         for(int ir=0;ir<5;ir++){
@@ -1331,12 +1428,35 @@ public final class MainActivity extends Activity {
                 params.setMargins(2,2,2,2);slots.addView(slot,params);
                 slot.setOnLongClickListener(v->{
                     int type=game.bagOrderV92[position];
-                    if(game.inventoryQuantityV92(type)<=0)return false;
+                    if(game.bagSlotQuantityV130(position)<=0)return false;
+                    currentDragSourceV130[0]=position;
+                    dragHandledV130[0]=false;
+                    dragLeftWindowV130[0]=false;
                     android.content.ClipData data=android.content.ClipData.newPlainText(
                         "sp-inventory-slot",Integer.toString(position));
                     return v.startDragAndDrop(data,new View.DragShadowBuilder(v),null,0);
                 });
                 slot.setOnDragListener((v,event)->{
+                    if(event.getAction()==android.view.DragEvent.ACTION_DRAG_LOCATION){
+                        int[] viewPos=new int[2],containerPos=new int[2];
+                        v.getLocationOnScreen(viewPos);
+                        scroll.getLocationOnScreen(containerPos);
+                        float y=viewPos[1]+event.getY();
+                        float upper=containerPos[1],lower=upper+scroll.getHeight();
+                        int step=Math.round(28*getResources().getDisplayMetrics().density);
+                        if(y<upper+72)scroll.smoothScrollBy(0,-step);
+                        else if(y>lower-72)scroll.smoothScrollBy(0,step);
+                        return true;
+                    }
+                    if(event.getAction()==android.view.DragEvent.ACTION_DRAG_ENDED){
+                        if(!event.getResult()&&dragLeftWindowV130[0]&&
+                           !dragHandledV130[0]&&
+                           currentDragSourceV130[0]==position){
+                            dragHandledV130[0]=true;
+                            v.post(()->bagQuantityMenuV130(position,false,redrawV92[0]));
+                        }
+                        return true;
+                    }
                     if(event.getAction()==android.view.DragEvent.ACTION_DRAG_STARTED)
                         return event.getClipDescription()!=null&&
                             event.getClipDescription().hasMimeType(
@@ -1346,6 +1466,7 @@ public final class MainActivity extends Activity {
                             int source=Integer.parseInt(event.getClipData()
                                 .getItemAt(0).getText().toString());
                             if(game.moveBagSlotV92(source,position)){
+                                dragHandledV130[0]=true;
                                 redrawV92[0].run();
                                 return true;
                             }
@@ -1353,76 +1474,8 @@ public final class MainActivity extends Activity {
                     }
                     return true;
                 });
-                slot.setOnClickListener(v->{
-                    int idx=game.bagOrderV92[position];
-                    int qty=game.inventoryQuantityV92(idx);
-                    if(qty<=0)return;
-                    String name=GameView.INVENTORY_NAMES_V92[idx];
-                    if(idx>=24&&idx<39){
-                        int gearType=idx-24;
-                        new AlertDialog.Builder(this).setTitle(name+" ×"+qty)
-                            .setItems(new String[]{"EQUIP","CANCEL"},(dialog,choice)->{
-                                if(choice!=0)return;
-                                boolean equipped=gearType<3?
-                                    game.fieldFindsV91.equip(gearType):
-                                    game.wardrobeV92.equip((gearType-3)/3,(gearType-3)%3);
-                                Toast.makeText(this,equipped?"Equipped "+name:
-                                    "Unable to equip",Toast.LENGTH_SHORT).show();
-                                if(equipped){game.saveProgress();avatar.invalidate();}
-                            }).show();
-                        return;
-                    }
-                    if(idx>=14){
-                        Toast.makeText(this,name+" ×"+qty+" • scavenged material",
-                            Toast.LENGTH_SHORT).show();return;
-                    }
-                    if(idx>=12){
-                        final int utility=idx==12?13:14;
-                        String[] options={"USE","ASSIGN QUICK SLOT 1","ASSIGN QUICK SLOT 2",
-                            "ASSIGN QUICK SLOT 3","ASSIGN QUICK SLOT 4",
-                            "ASSIGN QUICK SLOT 5","ASSIGN QUICK SLOT 6"};
-                        new AlertDialog.Builder(this).setTitle(name+" ×"+qty)
-                            .setItems(options,(d,choice)->{
-                                if(choice==0){
-                                    if(!game.useBackpackV88(utility))
-                                        Toast.makeText(this,"Cannot use this item now",
-                                            Toast.LENGTH_SHORT).show();
-                                    refreshCraftCountsV83.run();
-                                }else game.setHotbarItem(choice-1,utility);
-                            }).show();return;
-                    }
-                    if(idx>=8){
-                        String[] options={"PLACE IN WORLD","ASSIGN QUICK SLOT 1",
-                            "ASSIGN QUICK SLOT 2","ASSIGN QUICK SLOT 3",
-                            "ASSIGN QUICK SLOT 4","ASSIGN QUICK SLOT 5",
-                            "ASSIGN QUICK SLOT 6"};
-                        new AlertDialog.Builder(this).setTitle(name+" ×"+qty)
-                            .setItems(options,(d,choice)->{
-                                if(choice==0){
-                                    if(game.selectPlaceItemV84(idx-8)&&
-                                        bagDialogV84[0]!=null)bagDialogV84[0].dismiss();
-                                }else game.setHotbarItem(choice-1,idx+1);
-                            }).show();return;
-                    }
-                    if(idx==0||idx>=5){
-                        Toast.makeText(this,name+" is a crafting resource",
-                            Toast.LENGTH_SHORT).show();return;
-                    }
-                    int useKind=idx==3?6:idx==4?7:idx;
-                    String[] options={"USE","ASSIGN HOTBAR 1","ASSIGN HOTBAR 2",
-                        "ASSIGN HOTBAR 3","ASSIGN HOTBAR 4",
-                        "ASSIGN HOTBAR 5","ASSIGN HOTBAR 6"};
-                    new AlertDialog.Builder(this).setTitle(name+" • "+qty)
-                        .setItems(options,(d,choice)->{
-                            if(choice==0){
-                                if(!game.useBackpackV88(useKind))
-                                    Toast.makeText(this,"Cannot use this item now",
-                                        Toast.LENGTH_SHORT).show();
-                                refreshCraftCountsV83.run();
-                            }else game.setHotbarItem(choice-1,useKind);
-                            avatar.invalidate();
-                        }).show();
-                });
+                slot.setOnClickListener(v->bagItemMenuV130(
+                    position,redrawV92[0],avatar,bagDialogV84));
             }
             right.addView(slots);
         }
@@ -1452,19 +1505,19 @@ public final class MainActivity extends Activity {
                     int source=Integer.parseInt(event.getClipData().getItemAt(0)
                         .getText().toString());
                     if(source<0||source>=game.bagOrderV92.length)return false;
-                    int kind=game.bagOrderV92[source];
-                    if(kind<0||kind>=39||
-                       game.inventoryQuantityV92(kind)<=0)return false;
-                    dropQuantityDialogV129(kind,redrawV92[0]);
+                    if(game.bagSlotQuantityV130(source)<=0)return false;
+                    dragHandledV130[0]=true;
+                    bagQuantityMenuV130(source,false,redrawV92[0]);
                     return true;
                 }catch(Exception ignored){return false;}
             }
             return true;
         });
         redrawV92[0]=()->{
+            game.reconcileBagSplitsV130();
             for(int position=0;position<tilesV92.length;position++){
                 SquareItemSlotV88 tile=tilesV92[position];
-                int kind=game.bagOrderV92[position],qty=game.inventoryQuantityV92(kind);
+                int kind=game.bagOrderV92[position],qty=game.bagSlotQuantityV130(position);
                 if(qty<=0){
                     tile.setText("");
                     tile.setCompoundDrawables(null,null,null,null);
@@ -1486,6 +1539,33 @@ public final class MainActivity extends Activity {
                 }
             }
         };
+        // A dragged item released outside the slots (or beyond this dialog)
+        // uses the same confirmed quantity picker as the trash icon.
+        View.OnDragListener outsideDropV130=(target,event)->{
+            int action=event.getAction();
+            if(action==android.view.DragEvent.ACTION_DRAG_STARTED)return true;
+            if(action==android.view.DragEvent.ACTION_DRAG_EXITED){
+                dragLeftWindowV130[0]=true;return true;
+            }
+            if(action==android.view.DragEvent.ACTION_DRAG_ENTERED){
+                dragLeftWindowV130[0]=false;return true;
+            }
+            if(action==android.view.DragEvent.ACTION_DROP){
+                if(!dragHandledV130[0]){
+                    int source=currentDragSourceV130[0];
+                    if(source>=0&&game.bagSlotQuantityV130(source)>0){
+                        dragHandledV130[0]=true;
+                        bagQuantityMenuV130(source,false,redrawV92[0]);
+                    }
+                }
+                return true;
+            }
+            return true;
+        };
+        shell.setOnDragListener(outsideDropV130);
+        left.setOnDragListener(outsideDropV130);
+        scroll.setOnDragListener(outsideDropV130);
+        right.setOnDragListener(outsideDropV130);
         redrawV92[0].run();
         section(right,"CRAFT & PLACE IN WORLD");
         right.addView(text("CRAFT → BAG. Select a structure, point using AIM, then press USE to place. Press BAG to cancel.",11,false));
