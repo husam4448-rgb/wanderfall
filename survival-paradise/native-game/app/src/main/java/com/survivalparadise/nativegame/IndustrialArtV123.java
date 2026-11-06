@@ -82,7 +82,7 @@ public final class IndustrialArtV123 {
             draw(c,TANKS,x+990,y+349,166,186);
             draw(c,PIPE,x+1035,y+592,118,145);
             draw(c,FENCE,x+100,y+1140,362,104);
-            draw(c,GATE,x+447,y+1140,209,104);
+            draw(c,GATE,x+668,y+1140,170,104); // gate slid aside; path stays open
             draw(c,PATCHWORK,x+654,y+1140,377,104);
             draw(c,CAR,x+1030,y+1000,149,120);
             // Hazard-strip outlined click target survives the decorative facade.
