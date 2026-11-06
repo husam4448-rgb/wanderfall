@@ -1662,6 +1662,7 @@ public final class GameView extends View {
         c.save();c.translate(-camX,-camY);
         IndustrialSceneV123.indoors(c,p,(IndustrialInteriorV123)clinicInteriorV89);
         industrialArtV123.indoors(c,(IndustrialInteriorV123)clinicInteriorV89);
+        IndustrialInteriorArtV125.details(c,p,(IndustrialInteriorV123)clinicInteriorV89);
         for(ClinicInteriorV89.Storage box:clinicInteriorV89.storages){
             if(!WorldPerfV55.nearView(box.x,box.y,camX,camY,viewW,viewH,80))continue;
             if(!box.empty()&&distance(playerX,playerY,box.x,box.y)<145f)
