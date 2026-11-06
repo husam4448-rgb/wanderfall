@@ -18,7 +18,12 @@ public final class ExteriorFootprintV130 {
     public static float anchor(ExpeditionSitesV88.Site s){
         return clinic(s)?205f:108f;
     }
+    private static final float[] SCALES=new float[ExpeditionSitesV88.SITES.length];
     public static float scale(ExpeditionSitesV88.Site s){
+        int id=-1;
+        for(int i=0;i<ExpeditionSitesV88.SITES.length;i++)
+            if(ExpeditionSitesV88.SITES[i]==s){id=i;break;}
+        if(id>=0&&SCALES[id]>0f)return SCALES[id];
         float ideal=clinic(s)?1.74f:2.30f;
         float nearest=Float.POSITIVE_INFINITY;
         for(ExpeditionSitesV88.Site other:ExpeditionSitesV88.SITES){
@@ -33,7 +38,11 @@ public final class ExteriorFootprintV130 {
             s.x-GameView.CAMP_X,s.y-GameView.CAMP_Y);
         float campAllowed=(campDistance-360f)/(width(s)+175f);
         // Preserve at least the original facade scale in cramped sites.
-        return Math.max(1f,Math.min(ideal,Math.min(nearest,campAllowed)));
+        float result=Math.max(1f,Math.min(ideal,Math.min(nearest,campAllowed)));
+        // At the industrial stitch, the old sites may not grow into factories.
+        if(s.x>5100f)result=Math.min(result,1f);
+        if(id>=0)SCALES[id]=result;
+        return result;
     }
     public static float[] bounds(ExpeditionSitesV88.Site s){
         float zoom=scale(s),anchor=anchor(s);
