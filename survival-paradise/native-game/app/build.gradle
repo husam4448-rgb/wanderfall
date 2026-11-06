@@ -3,11 +3,11 @@ android {
  namespace 'com.survivalparadise.nativegame'
  compileSdk 35
  defaultConfig {
-  applicationId 'com.survivalparadise.nativegame.v125industrialtest'
+  applicationId 'com.survivalparadise.nativegame.v126industrialtest'
   minSdk 24
   targetSdk 34
-  versionCode 125
-  versionName '0.125-industrial-fitting-interiors-test'
+  versionCode 126
+  versionName '0.126-sprite-collision-scale-test'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
