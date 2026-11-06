@@ -14,7 +14,7 @@ public final class ExpeditionSitesV88 {
     }
     public static final Site[] SITES={
       new Site(CABIN,-150,-250,"RANGER CABIN",true),
-      new Site(CLINIC,2080,680,"FIELD CLINIC",true),
+      new Site(CLINIC,2300,680,"FIELD CLINIC",true),
       new Site(GARAGE,2580,1550,"RUSTED GARAGE",true),
       new Site(RELAY,2890,390,"SIGNAL RELAY",true),
       new Site(DEPOT,350,2150,"SUPPLY DEPOT",true),
