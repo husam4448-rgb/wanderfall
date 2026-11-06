@@ -11,10 +11,29 @@ public final class TopHudV76 {
         return Math.max(.55f,Math.min(1f,(width-250f)/TOTAL));
     }
     public static float buttonWidth(int id,float width){return W[id]*scale(width);}
+    /** PAUSE is a physical top-center anchor; the other HUD controls
+     * flow to its left and right without overlapping at mobile widths.
+     */
+    private static final int[] LEFT={CAMP,FORM,DAY,EDIT};
+    private static final int[] RIGHT={LAMP,BAG,SET};
     public static float x(int id,float width){
-        float k=scale(width),left=width-8f-TOTAL*k;
-        for(int n=0;n<id;n++)left+=(W[n]+GAP)*k;
-        return left;
+        float k=scale(width);
+        float center=width*.5f-W[PAUSE]*k*.5f;
+        if(id==PAUSE)return center;
+        float leftWidth=0;
+        for(int q:LEFT)leftWidth+=(W[q]+GAP)*k;
+        leftWidth-=GAP*k;
+        float x=center-GAP*k-leftWidth;
+        for(int q:LEFT){
+            if(id==q)return x;
+            x+=(W[q]+GAP)*k;
+        }
+        x=center+(W[PAUSE]+GAP)*k;
+        for(int q:RIGHT){
+            if(id==q)return x;
+            x+=(W[q]+GAP)*k;
+        }
+        return x;
     }
     public static int hit(float x,float y,float width){
         if(y<Y||y>Y+HEIGHT)return -1;
