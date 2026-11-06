@@ -3,11 +3,11 @@ android {
  namespace 'com.survivalparadise.nativegame'
  compileSdk 35
  defaultConfig {
-  applicationId 'com.survivalparadise.nativegame.v123industrialtest'
+  applicationId 'com.survivalparadise.nativegame.v124industrialworld'
   minSdk 24
   targetSdk 34
-  versionCode 123
-  versionName '0.123-industrial-world-test'
+  versionCode 124
+  versionName '0.124-industrial-open-world-test'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
