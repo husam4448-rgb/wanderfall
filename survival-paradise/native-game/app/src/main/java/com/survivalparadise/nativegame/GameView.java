@@ -1178,7 +1178,7 @@ public final class GameView extends View {
     boolean enterClinicFromWorldV89(){
         if(insideClinicV89||!playing||gameOver)return false;
         if(industrialModeV123){
-            IndustrialWorldV123.District target=IndustrialWorldV123.nearestEntrance(
+            IndustrialWorldV123.District target=IndustrialOpenWorldV124.nearestEntrance(
                 playerX,playerY,152f,industrialSeedV123);
             if(target==null)return false;
             industrialSiteV123=target;
@@ -1985,7 +1985,7 @@ public final class GameView extends View {
     }
     float clamp(float x,float min,float max){return Math.max(min,Math.min(max,x));}
     boolean blocked(float x,float y,float r){
-        if(industrialModeV123)return IndustrialSceneV123.outsideBlocked(
+        if(industrialModeV123)return IndustrialOpenWorldV124.blocked(
             x,y,r,industrialSeedV123);
         // V53 unbounded world: collisions are against solid structures, never map borders.
         for(Cover c:covers)if(x+r>c.x&&x-r<c.x+c.w&&y+r>c.y&&y-r<c.y+c.h)return true;
@@ -2862,7 +2862,7 @@ public final class GameView extends View {
     }
     void terrain(Canvas c){
         if(industrialModeV123){
-            IndustrialSceneV123.outdoors(c,p,camX,camY,viewW,viewH,industrialSeedV123);
+            IndustrialSceneV124.outdoors(c,p,camX,camY,viewW,viewH,industrialSeedV123);
             industrialArtV123.outdoors(c,camX,camY,viewW,viewH,industrialSeedV123);
             return;
         }
