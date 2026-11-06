@@ -82,6 +82,7 @@ public final class GameView extends View {
     // The canonical V122 branch and all 200 approved character sprites stay untouched.
     final boolean industrialModeV123=true;
     final IndustrialArtV123 industrialArtV123=new IndustrialArtV123();
+    final IndustrialYardV123 industrialYardV123=new IndustrialYardV123();
     static final int INDUSTRIAL_SITE_V123=99123;
     int industrialSeedV123=14901;
     IndustrialWorldV123.District industrialSiteV123=IndustrialWorldV123.district(0,0,14901);
@@ -703,6 +704,7 @@ public final class GameView extends View {
     void newGame(){
         industrialSeedV123=host.prefs.getInt(IndustrialWorldV123.SEED_PREF,14901);
         industrialSiteV123=IndustrialWorldV123.district(0,0,industrialSeedV123);
+        industrialYardV123.decode(host.prefs.getString("industrial_yard_v123_"+industrialSeedV123,""));
         playerX=industrialModeV123?industrialSiteV123.doorX:CAMP_X;
         playerY=industrialModeV123?industrialSiteV123.doorY+112f:CAMP_Y;health=100;stamina=100;
         hunger=100;thirst=100;fatigue=0;foodCount=2;waterCount=2;
@@ -756,6 +758,7 @@ public final class GameView extends View {
         industrialSiteV123=IndustrialWorldV123.district(
             host.prefs.getInt("industrial_sx_v123",0),
             host.prefs.getInt("industrial_sy_v123",0),industrialSeedV123);
+        industrialYardV123.decode(host.prefs.getString("industrial_yard_v123_"+industrialSeedV123,""));
         playerAnimation.reset();moving=false;stickX=0;stickY=0;
         clock.setClock(host.prefs.getFloat("clockMinutes",night?21*60f:12*60f),
             host.setting("clockDay",1));
@@ -1888,7 +1891,9 @@ public final class GameView extends View {
         if(industrialModeV123){
             host.prefs.edit().putInt(IndustrialWorldV123.SEED_PREF,industrialSeedV123)
                 .putInt("industrial_sx_v123",industrialSiteV123.sx)
-                .putInt("industrial_sy_v123",industrialSiteV123.sy).apply();
+                .putInt("industrial_sy_v123",industrialSiteV123.sy)
+                .putString("industrial_yard_v123_"+industrialSeedV123,
+                    industrialYardV123.encode()).apply();
         }
         if(!playing||gameOver)return;
         if(insideClinicV89)persistCurrentInteriorV91();
@@ -2960,6 +2965,19 @@ public final class GameView extends View {
         }
     }
     /** USE immediately picks up small items, unlike axe/pick/crowbar resources. */
+    boolean collectIndustrialYardV123(){
+        if(!industrialModeV123||insideClinicV89||!playing||paused)return false;
+        IndustrialYardV123.Stock found=industrialYardV123.nearest(
+            playerX,playerY,industrialSeedV123);
+        if(found==null||!industrialYardV123.collect(found))return false;
+        int n=found.quantity();
+        if(found.slot==2)fieldFindsV91.items[2]+=n;
+        else if(found.slot==3)fieldFindsV91.items[9]+=n;
+        else scrap+=n;
+        gatherFeedback="SALVAGED "+found.name()+" +"+n;
+        gatherFeedbackTime=2.8f;
+        saveProgress();invalidate();return true;
+    }
     boolean pickupGroundV85(){
         GroundPickupsV85.Item item=groundPickupsV85.nearest(playerX,playerY,
             GroundPickupsV85.REACH,CAMP_X,CAMP_Y);
@@ -4340,7 +4358,12 @@ public final class GameView extends View {
             rect(c,15,viewH-44,150*harvestV81.totalProgress(),3,0xffc2b58c);
         }else if(gatherFeedbackTime>0)
             label(c,gatherFeedback,14,viewH-54,13,0xffd3e4a7,true);
-        else{
+        else if(industrialModeV123&&!insideClinicV89){
+            IndustrialYardV123.Stock stock=industrialYardV123.nearest(
+                playerX,playerY,industrialSeedV123);
+            if(stock!=null)label(c,"USE: SALVAGE "+stock.name(),
+                14,viewH-54,12,0xffd3e4a7,true);
+        }else{
             ResourceWorldV80.Node near=harvestWorld.nearest(playerX,playerY,
                 ResourceWorldV80.USE_RADIUS,CAMP_X,CAMP_Y,WORLD_W,WORLD_H);
             if(near!=null)
@@ -4679,6 +4702,9 @@ public final class GameView extends View {
             }
             if(insideClinicV89){interactClinicV89();return;}
             if(enterClinicFromWorldV89())return;
+            if(industrialModeV123){
+                collectIndustrialYardV123();return;
+            }
             if(useFacilityV88())return;
             BanditLootV87.Bag banditBag=nearbyBanditBagV87();
             if(banditBag!=null){
