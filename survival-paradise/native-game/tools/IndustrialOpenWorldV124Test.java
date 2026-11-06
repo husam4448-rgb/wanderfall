@@ -44,7 +44,7 @@ public final class IndustrialOpenWorldV124Test {
             if(Math.floorMod(x,4)==0)
                 check(IndustrialOpenWorldV124.vertical(x,y,seed),"missing arterial V");
             else if(IndustrialOpenWorldV124.vertical(x,y,seed))minor++;
-            if(y%4!=0 && y%4!=3){
+            if(Math.floorMod(y,4)!=3){
                 // All road segments within an arterial cell band agree.
                 check(IndustrialOpenWorldV124.vertical(x,y,seed)==
                     IndustrialOpenWorldV124.vertical(x,y+1,seed),
