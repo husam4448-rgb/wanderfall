@@ -1352,11 +1352,17 @@ public final class GameView extends View {
     /** 10 visitable silhouettes: each contains distinct features and real loot cache. */
     void drawExpeditionSitesV88(Canvas c){
         for(ExpeditionSitesV88.Site s:ExpeditionSitesV88.SITES){
-            if(!WorldPerfV55.nearView(s.x,s.y,camX,camY,viewW,viewH,240))continue;
+            if(!WorldPerfV55.nearView(s.x,s.y,camX,camY,viewW,viewH,630))continue;
             if(s.kind==ExpeditionSitesV88.CLINIC){
                 drawFieldClinicExteriorV89(c,s);continue;
             }
             float x=s.x,y=s.y;
+            // Scale the old structure and its authored decoration together,
+            // around the unchanged world-space interaction doorway.
+            float zoom=ExteriorFootprintV130.scale(s);
+            float pivotY=y+ExteriorFootprintV130.anchor(s);
+            c.save();c.translate(x,pivotY);c.scale(zoom,zoom);
+            c.translate(-x,-pivotY);
             // Dirt lot and entrance path ensure readable traversal.
             rect(c,x-105,y-79,210,186,0xff44544a);
             rect(c,x-97,y-73,194,156,0xff54574b);
@@ -1410,6 +1416,7 @@ public final class GameView extends View {
             rect(c,x+110,y+78,5,20,0xff4b4937);
             rect(c,x-13,y+66,26,11,0xff111d1c);
             label(c,"ENTER",x-24,y+108,10,0xffe9d49d,true);
+            c.restore();
         }
     }
     /** Avoid player-built and fixed cover when shooting, independent of FPS. */
@@ -1834,6 +1841,10 @@ public final class GameView extends View {
     /** Exterior is substantially larger than V88. Entrance remains physically reachable. */
     void drawFieldClinicExteriorV89(Canvas c,ExpeditionSitesV88.Site site){
         float x=site.x,y=site.y;
+        float zoom=ExteriorFootprintV130.scale(site);
+        float pivotY=y+ExteriorFootprintV130.anchor(site);
+        c.save();c.translate(x,pivotY);c.scale(zoom,zoom);
+        c.translate(-x,-pivotY);
         rect(c,x-210,y-174,420,365,0xff3c4b43);
         rect(c,x-204,y-167,408,342,0xff52584b);
         // Pixelated roof and concrete foundation.
@@ -1871,6 +1882,7 @@ public final class GameView extends View {
         rect(c,x+90,y+43,82,31,0xff405e5d);
         rect(c,x-164,y+49,69,7,0xff658d88);
         rect(c,x+98,y+49,67,7,0xff658d88);
+        c.restore();
     }
     /** Furniture uses only reusable rectangle primitives, never generated bitmaps. */
     void drawClinicFurnitureV89(Canvas c,float[] item){
@@ -2287,6 +2299,10 @@ public final class GameView extends View {
             return true;
         if(industrialModeV123)return IndustrialOpenWorldV124.blocked(
             x,y,r,industrialSeedV123);
+        // V130 collision matches the expanded painted roof only, preserving
+        // the original southern doorway and normal NPC navigation lanes.
+        for(ExpeditionSitesV88.Site site:ExpeditionSitesV88.SITES)
+            if(ExteriorFootprintV130.blocked(site,x,y,r))return true;
         // V53 unbounded world: collisions are against solid structures, never map borders.
         for(Cover c:covers)if(x+r>c.x&&x-r<c.x+c.w&&y+r>c.y&&y-r<c.y+c.h)return true;
         return false;
