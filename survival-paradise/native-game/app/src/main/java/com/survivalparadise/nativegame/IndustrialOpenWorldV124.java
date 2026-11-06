@@ -70,10 +70,10 @@ public final class IndustrialOpenWorldV124 {
             int size=Math.floorMod(IndustrialWorldV123.hash(sx+31,sy+17,seed^0x394A),4);
             buildingW=(kind==3||kind==0)?930:size==0?610:size==1?735:size==2?830:930;
             buildingH=(kind==3||kind==0)?555:size==0?385:size==1?445:size==2?495:555;
-            buildingX=x+540-buildingW*.5f;
-            buildingY=y+705-buildingH;
-            doorX=x+540;
-            doorY=y+730;
+            buildingX=x+700-buildingW*.5f;
+            buildingY=y+780-buildingH;
+            doorX=x+700;
+            doorY=y+810;
         }
         public boolean developed(){return type!=VACANT;}
         public boolean enterable(){return type==FACILITY;}
@@ -112,8 +112,8 @@ public final class IndustrialOpenWorldV124 {
             if(!p.developed())continue;
             if(p.enterable()&&touch(x,y,radius,p.buildingX,p.buildingY,p.buildingW,p.buildingH))return true;
             // Perimeter mesh has one true, broad gate in the south.
-            if(touch(x,y,radius,p.x+110,p.y+1206,333,13))return true;
-            if(touch(x,y,radius,p.x+694,p.y+1206,574,13))return true;
+            if(touch(x,y,radius,p.x+110,p.y+1206,473,13))return true;
+            if(touch(x,y,radius,p.x+830,p.y+1206,438,13))return true;
             if(touch(x,y,radius,p.x+101,p.y+128,13,1091))return true;
             if(touch(x,y,radius,p.x+1265,p.y+128,13,1091))return true;
             // These are the same concrete pads used by outdoor machinery art.
