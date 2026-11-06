@@ -87,8 +87,9 @@ public final class IndustrialPropLayoutV126 {
         art(TRUCK,954,543,271,194,true)
     };
 
+    private static final Prop[] EMPTY={};
     public static Prop[] forPlot(IndustrialOpenWorldV124.Plot lot){
-        if(!lot.developed())return new Prop[0];
+        if(!lot.developed())return EMPTY;
         if(lot.type==IndustrialOpenWorldV124.YARD)return STORAGE_YARD;
         if(lot.kind==2)return FACTORY_FOUNDRY;
         return (lot.kind&1)==0?FACTORY_EVEN:FACTORY_ODD;
