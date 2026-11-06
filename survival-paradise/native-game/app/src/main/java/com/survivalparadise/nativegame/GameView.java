@@ -2938,6 +2938,11 @@ public final class GameView extends View {
             industrialArtV123.outdoors(c,camX,camY,viewW,viewH,industrialSeedV123);
             return;
         }
+        boolean industrialCoreV128=stitchedIndustrialV128&&
+            IndustrialBiomeBridgeV128.viewportCore(camX,camY,viewW,viewH);
+        // Deep inside industry the old biome chunks would be fully covered.
+        // Do not stream or paint thousands of invisible woodland tiles there.
+        if(!industrialCoreV128){
         // V54: render cached, asynchronously prepared 16x16-tile chunk textures.
         // Missing chunks use a deterministic immediate fallback (no blank screen).
         terrainChunks.draw(c,camX,camY,viewW,viewH);
@@ -2980,6 +2985,7 @@ public final class GameView extends View {
         drawExpeditionSitesV88(c);
         drawSalvageWorldV84(c);
         drawLooseGroundPickupsV85(c);
+        }
         // One world, no portal: render the industrial terrain into its world
         // coordinates over the old streamed biome. Render before structures,
         // characters and effects so their depth/aiming systems remain intact.
