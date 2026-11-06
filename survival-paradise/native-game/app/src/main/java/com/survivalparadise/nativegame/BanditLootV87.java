@@ -13,7 +13,7 @@ public final class BanditLootV87 {
         public final int id;
         public final float x,y;
         public boolean corpse=false;
-        public int variant=0,face=1;
+        public int variant=0,face=1,skinV109=-1;
         public final int[] count=new int[ITEMS];
         Bag(int id,float x,float y){this.id=id;this.x=x;this.y=y;}
         public boolean empty(){for(int n:count)if(n>0)return false;return true;}
@@ -37,8 +37,15 @@ public final class BanditLootV87 {
         bags.add(bag);return bag;
     }
     public Bag spawnCorpse(float x,float y,int kills,int wave,int variant,int face){
+        return spawnCorpse(x,y,kills,wave,variant,face,-1);
+    }
+    /** Keep the exact original NPC skin ID, never derive a new head on death. */
+    public Bag spawnCorpse(float x,float y,int kills,int wave,int variant,int face,int skinV109){
         Bag bag=spawn(x,y,kills,wave,variant);
-        if(bag!=null){bag.corpse=true;bag.variant=variant;bag.face=face<0?-1:1;}
+        if(bag!=null){
+            bag.corpse=true;bag.variant=variant;bag.face=face<0?-1:1;
+            bag.skinV109=skinV109>=1&&skinV109<=200?skinV109:-1;
+        }
         return bag;
     }
     public Bag nearest(float x,float y,float range){
@@ -77,7 +84,8 @@ public final class BanditLootV87 {
                 append(',').append(Math.round(bag.y));
             for(int n:bag.count)out.append(',').append(n);
             out.append(',').append(bag.corpse?1:0).append(',')
-               .append(bag.variant).append(',').append(bag.face);
+               .append(bag.variant).append(',').append(bag.face)
+               .append(',').append(bag.skinV109);
         }
         return out.toString();
     }
@@ -86,7 +94,7 @@ public final class BanditLootV87 {
         for(String entry:data.split(";")){
             if(bags.size()>=MAX_BAGS)break;
             String[] p=entry.split(",");
-            if(p.length!=ITEMS+3&&p.length!=ITEMS+6)continue;
+            if(p.length!=ITEMS+3&&p.length!=ITEMS+6&&p.length!=ITEMS+7)continue;
             try{
                 int id=Integer.parseInt(p[0]);
                 float x=Float.parseFloat(p[1]),y=Float.parseFloat(p[2]);
@@ -102,10 +110,14 @@ public final class BanditLootV87 {
                     if(n<0||n>999){invalid=true;break;}
                     bag.count[i]=n;
                 }
-                if(p.length==ITEMS+6){
+                if(p.length>=ITEMS+6){
                     bag.corpse=Integer.parseInt(p[ITEMS+3])==1;
                     bag.variant=Integer.parseInt(p[ITEMS+4]);
                     bag.face=Integer.parseInt(p[ITEMS+5])<0?-1:1;
+                    if(p.length==ITEMS+7){
+                        int skin=Integer.parseInt(p[ITEMS+6]);
+                        bag.skinV109=skin>=1&&skin<=200?skin:-1;
+                    }
                 }
                 if(!invalid&&(!bag.empty()||bag.corpse)){
                     bags.add(bag);
