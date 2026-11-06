@@ -8,6 +8,8 @@ package com.survivalparadise.nativegame;
  */
 public final class ExteriorFootprintV130 {
     private ExteriorFootprintV130(){}
+    // Exact existing GameView.CAMP_X/Y, intentionally not moved.
+    public static final float CAMP_X=1080f,CAMP_Y=710f;
     public static final float ROAD_CLEARANCE=24f;
     public static boolean clinic(ExpeditionSitesV88.Site s){
         return s.kind==ExpeditionSitesV88.CLINIC;
@@ -35,7 +37,7 @@ public final class ExteriorFootprintV130 {
         }
         // Camp settlement centre stays clear of new roofs.
         float campDistance=(float)Math.hypot(
-            s.x-GameView.CAMP_X,s.y-GameView.CAMP_Y);
+            s.x-CAMP_X,s.y-CAMP_Y);
         float campAllowed=(campDistance-360f)/(width(s)+175f);
         // Preserve at least the original facade scale in cramped sites.
         float result=Math.max(1f,Math.min(ideal,Math.min(nearest,campAllowed)));
