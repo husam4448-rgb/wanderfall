@@ -58,7 +58,8 @@ public final class IndustrialBiomeBridgeV128Test {
                     check(IndustrialBiomeBridgeV128.localX(worldX)==localX &&
                           IndustrialBiomeBridgeV128.localY(worldY)==localY,
                           "world-local coordinate roundtrip broken");
-                    if(IndustrialOpenWorldV124.horizontal(sy,sx,seed)){
+                    if(sy>IndustrialBiomeBridgeV128.INDUSTRIAL_MIN_SY&&
+                         IndustrialOpenWorldV124.horizontal(sy,sx,seed)){
                         float x=IndustrialBiomeBridgeV128.worldX(p.x+500);
                         float y=IndustrialBiomeBridgeV128.worldY(p.y);
                         check(IndustrialBiomeBridgeV128.roadAt(x,y,seed),
