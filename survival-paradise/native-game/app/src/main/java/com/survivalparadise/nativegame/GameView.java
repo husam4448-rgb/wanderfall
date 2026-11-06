@@ -2042,15 +2042,10 @@ public final class GameView extends View {
             clinicVisionPathV90.lineTo(clinicVisionV90.xs[i],
                 clinicVisionV90.ys[i]);
         clinicVisionPathV90.close();
-        clinicVisionPathV90.addCircle(ox,oy,ClinicVisionV90.NEAR,
-            Path.Direction.CW);
         c.save();
         c.clipPath(clinicVisionPathV90,android.graphics.Region.Op.DIFFERENCE);
         rect(c,camX-10,camY-10,viewW+20,viewH+20,0xb9071516);
         c.restore();
-        // Soft normal lighting inside visible cone (avoids pure white floors).
-        color(0x180b1c1d);
-        c.drawCircle(ox,oy,ClinicVisionV90.NEAR,p);
     }
     void spawnWave(){
         if(industrialModeV123){enemies.clear();enemyCount=0;return;}
@@ -2369,6 +2364,19 @@ public final class GameView extends View {
         }
     }
 
+    void drawWorldMuzzleBloomV130(Canvas c){
+        if(!host.option("gunMuzzleV119",true))return;
+        for(Flash f:flashes){
+            if(f.ttl<=0f||!WorldPerfV55.nearView(
+                    f.x,f.y,camX,camY,viewW,viewH,245f))continue;
+            int alpha=Math.round(155f*GunEffectsV119.alpha(f.ttl));
+            p.setShader(new android.graphics.RadialGradient(f.x,f.y,190f,
+                new int[]{(alpha<<24)|0x00ffe0ae,
+                    ((alpha/3)<<24)|0x00dba66b,0},
+                new float[]{0f,.33f,1f},android.graphics.Shader.TileMode.CLAMP));
+            c.drawCircle(f.x,f.y,190f,p);p.setShader(null);
+        }
+    }
     /** Real traveling bullets and restrained muzzle tip after the night pass.
      * No large glowing streak, fake traveling projectile, laser or starburst.
      * Never invoked for the axe (ID 11) or flashlight (ID 3).
@@ -2442,14 +2450,14 @@ public final class GameView extends View {
             if(f.ttl<=0||!WorldPerfV55.nearView(f.x,f.y,camX,camY,
                     viewW,viewH,170f))continue;
             float strength=GunEffectsV119.alpha(f.ttl);
-            int alpha=Math.round(strength*110f);
+            int alpha=Math.round(strength*205f);
             p.setStyle(Paint.Style.FILL);
-            p.setShader(new android.graphics.RadialGradient(f.x,f.y,155f,
+            p.setShader(new android.graphics.RadialGradient(f.x,f.y,235f,
                 new int[]{(alpha<<24)|0x00ffd3a1,
                           ((alpha/3)<<24)|0x00db9f55,0},
                 new float[]{0f,.38f,1f},
                 android.graphics.Shader.TileMode.CLAMP));
-            c.drawCircle(f.x,f.y,155f,p);
+            c.drawCircle(f.x,f.y,235f,p);
             p.setShader(null);
         }
         c.restore();
@@ -3091,8 +3099,8 @@ public final class GameView extends View {
         // Bullets remain visible in their own short post-lighting draw pass.
         if(host.option("gunMuzzleV119",true))
             for(Flash f:flashes)if(f.ttl>0f)
-                lighting.point(f.x,f.y,165f,
-                    .82f*GunEffectsV119.alpha(f.ttl),0xffffcc83);
+                lighting.point(f.x,f.y,240f,
+                    .98f*GunEffectsV119.alpha(f.ttl),0xffffd591);
         lighting.render(c,camX,camY,viewW,viewH,lightAlpha,covers);
         lightingNs=System.nanoTime()-lightStart;
         // Lamps/neon signage are static architecture; campfire flames were
@@ -3649,14 +3657,16 @@ public final class GameView extends View {
             c.restore();
         }
         if(characterSkinsV109!=null&&characterSkinsV109.ready()){
-            characterSkinsV109.draw(c,skinIdV109,breath==Float.POSITIVE_INFINITY,
-                frame,worldTimer,s,pixel,
+            characterSkinsV109.draw(c,skinIdV109,
+                !renderingCorpseV130&&breath==Float.POSITIVE_INFINITY,
+                renderingCorpseV130?0:frame,
+                renderingCorpseV130?0f:worldTimer,s,pixel,
                 player?walkingAnimationMultiplierV79:npcWalkingAnimationTempoV113,
                 player?idleBreathingTempoV110:npcBreathingTempoV113,
                 player?fitWalkFpsV108:npcWalkFpsV113,
-                player?fitIdleBreathV108:npcBreathPixelsV113,
-                player?playerHeadTiltV111:
-                    HeadAimV111.targetDegrees(aimAng,npcHeadAimMaxDegreesV113),
+                renderingCorpseV130?0:(player?fitIdleBreathV108:npcBreathPixelsV113),
+                renderingCorpseV130?0:(player?playerHeadTiltV111:
+                    HeadAimV111.targetDegrees(aimAng,npcHeadAimMaxDegreesV113)),
                 player?fitHeadXV108:npcHeadFitXV113,
                 player?fitHeadYV108:npcHeadFitYV113,
                 player?playerHeadSizeV113:npcHeadSizeV113,
@@ -3669,6 +3679,7 @@ public final class GameView extends View {
             stablePose(c,atlas,npcVariant,frame,s,breath,torsoVariant);
             drawWardrobeV92(c,s,breath,player,bandit,npcVariant);
         }
+        if(renderingCorpseV130){c.restore();return;}
         if(player&&harvestV81.active)drawHarvestRigV81(c,s);
         else if(player&&knifeDuration>0f)drawKnifeSwing(c,s);
         else if(characterSkinsV109!=null||!bandit){
@@ -3847,13 +3858,30 @@ public final class GameView extends View {
             NPCRelationshipsV92.NEUTRAL,nearest(npc.x,npc.y,400f)!=null);
     }
 
+    /** Fallen sprites are frozen: no animation clock, head movement or breathing. */
+    boolean renderingCorpseV130=false;
+    void drawFallenAnimalV130(Canvas c,float x,float y){
+        // Feral dogs keep their animal form after death, rather than inheriting
+        // the generic human rig. All pieces are static and remain near the ground.
+        color(0x865a2020);c.drawOval(x-32,y-10,x+34,y+9,p);
+        rect(c,x-28,y-24,53,16,0xff172925);
+        rect(c,x-25,y-28,47,15,0xff665e47);
+        rect(c,x+15,y-37,20,19,0xff263d34);
+        rect(c,x+19,y-34,14,13,0xff8c7c53);
+        rect(c,x+30,y-23,14,7,0xff7f674c);
+        rect(c,x-37,y-24,13,5,0xff665e47);
+        rect(c,x-18,y-10,8,6,0xff222e28);
+        rect(c,x+12,y-10,8,6,0xff222e28);
+    }
     /** A fallen body is itself the searchable object; approved pixels preserved. */
     void drawFallenBodyV129(Canvas c,float x,float y,int variant,int skin,int facing){
         color(0x7c592021);c.drawOval(x-34,y-19,x+35,y+10,p);
         color(0x9b742427);c.drawOval(x-22,y-14,x+18,y+4,p);
         c.save();c.rotate(facing<0?-85f:85f,x,y-47f);
-        character(c,x,y,0,facing,0,0f,0f,0f,false,true,variant,skin);
-        c.restore();
+        renderingCorpseV130=true;
+        try {
+            character(c,x,y,0,facing,0,0f,0f,0f,false,true,variant,skin);
+        }finally{renderingCorpseV130=false;c.restore();}
     }
     void drawIndoorCorpsesV129(Canvas c){
         for(ClinicActorsV90.Actor actor:clinicActorsV90.actors){
@@ -3861,7 +3889,10 @@ public final class GameView extends View {
                 camX,camY,viewW,viewH,150f)||
                 !indoorCharacterVisibleV127(actor.x,actor.y))continue;
             int skin=1+Math.floorMod(actor.type*31+37,200);
-            drawIndoorVisibleEntityV127(c,()->drawFallenBodyV129(c,
+            if(actor.type==ClinicActorsV90.FERAL)
+                drawIndoorVisibleEntityV127(c,()->drawFallenAnimalV130(c,
+                    actor.x,actor.y));
+            else drawIndoorVisibleEntityV127(c,()->drawFallenBodyV129(c,
                 actor.x,actor.y,actor.type,skin,(actor.type&1)==0?1:-1));
         }
     }
@@ -4074,6 +4105,7 @@ public final class GameView extends View {
         // Last pass darkens the *entire* world, including all characters,
         // equipment, projectiles and props; real lights punch through this mask.
         if(lightAlpha>0)applyWorldLighting(c);else drawFixtures(c,true);
+        drawWorldMuzzleBloomV130(c);
         drawGunEffectsV119(c);
         if(showChunkGrid)drawChunkGrid(c);
         drawOutdoorSpeechAfterLightingV93(c);
