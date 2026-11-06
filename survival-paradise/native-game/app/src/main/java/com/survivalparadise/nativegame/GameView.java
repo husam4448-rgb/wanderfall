@@ -1718,6 +1718,34 @@ public final class GameView extends View {
         outdoorCompanionPositionsV90.clear();
         clinicFriendWaypointsV90.clear();
     }
+    float indoorHitXV131=0f,indoorHitYV131=0f;
+    /** No feet-anchored target line: the actual visible head and torso count. */
+    ClinicActorsV90.Actor indoorTargetV131(float reach){
+        float startX=playerX,startY=playerY-27f;
+        float endX=startX+aimX*reach,endY=startY+aimY*reach;
+        float best=Float.POSITIVE_INFINITY;
+        ClinicActorsV90.Actor choice=null;
+        for(ClinicActorsV90.Actor actor:clinicActorsV90.actors){
+            if(!actor.active||!actor.hostile())continue;
+            float body=Ballistics.segmentBox(startX,startY,endX,endY,
+                actor.x-(actor.type==ClinicActorsV90.FERAL?33f:22f),
+                actor.y-(actor.type==ClinicActorsV90.FERAL?44f:90f),
+                actor.x+(actor.type==ClinicActorsV90.FERAL?41f:22f),actor.y+5f);
+            float head=actor.type==ClinicActorsV90.FERAL?
+                Float.POSITIVE_INFINITY:firstHeadImpactV131(
+                    startX,startY,endX,endY,actor.x,actor.y,
+                    aimX<0?-1:1,
+                    1+Math.floorMod(actor.type*31+37,200),
+                    false,0f,false);
+            float impact=Math.min(body,head);
+            if(!Float.isFinite(impact)||impact<0f||impact>=best||impact>1f)continue;
+            float x=startX+(endX-startX)*impact,y=startY+(endY-startY)*impact;
+            if(!ClinicActorsV90.lineOfSight(clinicInteriorV89,startX,startY,x,y))
+                continue;
+            choice=actor;best=impact;indoorHitXV131=x;indoorHitYV131=y;
+        }
+        return choice;
+    }
     void updateClinicFriendsV90(float dt){
         indoorCompanionNavClockV90-=dt;
         boolean updatePath=indoorCompanionNavClockV90<=0f;
@@ -1874,9 +1902,8 @@ public final class GameView extends View {
             gun!=3&&gun!=11&&!gameOver){
             if(ammo>0){
                 ammo--;
-                ClinicActorsV90.Actor target=clinicActorsV90.target(
-                    playerX,playerY-27,aimX,aimY,Math.min(700f,
-                        Ballistics.unobstructedTravel(gun)),clinicInteriorV89);
+                ClinicActorsV90.Actor target=indoorTargetV131(
+                    Math.min(700f,Ballistics.unobstructedTravel(gun)));
                 if(target!=null){
                     clinicActorsV90.hit(target,gun==0?24f:gun==4?41f:32f);
                     hitBloodV129(target.x,target.y-39f,aimX,aimY,6);
@@ -1890,8 +1917,8 @@ public final class GameView extends View {
                         playerGunPivotXV117,playerGunPivotYV117);
                     spawnIndoorGunfireV122(playerX,playerY,gun,face,
                         aimX,aimY,
-                        target!=null?target.x:mx[0]+aimX*420f,
-                        target!=null?target.y:mx[1]+aimY*420f,
+                        target!=null?indoorHitXV131:mx[0]+aimX*420f,
+                        target!=null?indoorHitYV131:mx[1]+aimY*420f,
                         false,true);
                 }
                 indoorShotCooldownV90=Math.max(.13f,RATES[gun]);
