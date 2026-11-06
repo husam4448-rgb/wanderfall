@@ -1075,18 +1075,24 @@ public final class MainActivity extends Activity {
     }
     /** Works for tap-to-drop and for a genuine bag-slot drag to the bin. */
     void dropQuantityDialogV129(int kind,Runnable refresh){
+        dropQuantityEditorV130(-1,kind,refresh);
+    }
+    void dropBagSlotDialogV130(int position,Runnable refresh){
+        if(position<0||position>=40)return;
+        dropQuantityEditorV130(position,game.bagSlotItemV130(position),refresh);
+    }
+    void dropQuantityEditorV130(int position,int kind,Runnable refresh){
         if(game==null||kind<0||kind>=39)return;
-        final int available=game.inventoryQuantityV92(kind);
+        final int available=position>=0?game.bagSlotCountV130(position):
+            game.inventoryQuantityV92(kind);
         if(available<=0)return;
         final int[] selected={1};
         LinearLayout editor=column();
         editor.setPadding(24,16,24,10);
         TextView quantity=text("DROP 1 / "+available,16,true);
-        quantity.setGravity(Gravity.CENTER);
-        editor.addView(quantity);
+        quantity.setGravity(Gravity.CENTER);editor.addView(quantity);
         SeekBar slider=new SeekBar(this);
-        slider.setMax(available-1);slider.setProgress(0);
-        editor.addView(slider);
+        slider.setMax(available-1);slider.setProgress(0);editor.addView(slider);
         LinearLayout steps=new LinearLayout(this);
         steps.setOrientation(LinearLayout.HORIZONTAL);
         Button minus=v62Slot("−",true),plus=v62Slot("+",true);
@@ -1102,23 +1108,129 @@ public final class MainActivity extends Activity {
             public void onStopTrackingTouch(SeekBar s){}
         });
         minus.setOnClickListener(v->slider.setProgress(Math.max(0,slider.getProgress()-1)));
-        plus.setOnClickListener(v->slider.setProgress(Math.min(
-            slider.getMax(),slider.getProgress()+1)));
+        plus.setOnClickListener(v->slider.setProgress(Math.min(slider.getMax(),
+            slider.getProgress()+1)));
         new AlertDialog.Builder(this)
             .setTitle("DROP "+GameView.INVENTORY_NAMES_V92[kind])
-            .setMessage("Place the selected quantity on the ground. "+
-                "It remains for "+prefs.getInt("groundDropDaysV129",2)+
-                " in-game day(s) and can be recovered.")
-            .setView(editor)
-            .setNegativeButton("CANCEL",null)
+            .setMessage("Place this stack on the ground for "+
+                prefs.getInt("groundDropDaysV129",2)+" in-game day(s).")
+            .setView(editor).setNegativeButton("CANCEL",null)
             .setPositiveButton("DROP",(d,w)->{
-                boolean success=game.dropInventoryV129(kind,selected[0]);
-                if(success&&refresh!=null)refresh.run();
-                Toast.makeText(this,success?"Dropped "+selected[0]+" "+
+                boolean ok=position>=0?
+                    game.dropBagSlotV130(position,selected[0]):
+                    game.dropInventoryV129(kind,selected[0]);
+                if(ok&&refresh!=null)refresh.run();
+                Toast.makeText(this,ok?"Dropped "+selected[0]+" "+
                     GameView.INVENTORY_NAMES_V92[kind]:
-                    "Could not drop this stack here",Toast.LENGTH_SHORT).show();
+                    "Cannot drop this quantity here",Toast.LENGTH_SHORT).show();
             }).show();
     }
+    void splitQuantityDialogV130(int position,Runnable refresh){
+        if(game==null||position<0||position>=40)return;
+        final int available=game.bagSlotCountV130(position);
+        if(available<=1)return;
+        int kind=game.bagSlotItemV130(position);
+        final int[] amount={1};
+        LinearLayout editor=column();
+        TextView label=text("MOVE 1 / "+(available-1),15,true);
+        editor.addView(label);
+        SeekBar slider=new SeekBar(this);
+        slider.setMax(available-2);editor.addView(slider);
+        LinearLayout controls=new LinearLayout(this);
+        controls.setOrientation(LinearLayout.HORIZONTAL);
+        Button minus=v62Slot("−",true),plus=v62Slot("+",true);
+        controls.addView(minus,new LinearLayout.LayoutParams(0,-2,1f));
+        controls.addView(plus,new LinearLayout.LayoutParams(0,-2,1f));
+        editor.addView(controls);
+        slider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
+            public void onProgressChanged(SeekBar v,int progress,boolean user){
+                amount[0]=progress+1;label.setText("MOVE "+amount[0]+
+                    " / "+(available-1));
+            }
+            public void onStartTrackingTouch(SeekBar v){}
+            public void onStopTrackingTouch(SeekBar v){}
+        });
+        minus.setOnClickListener(v->slider.setProgress(Math.max(0,slider.getProgress()-1)));
+        plus.setOnClickListener(v->slider.setProgress(Math.min(slider.getMax(),
+            slider.getProgress()+1)));
+        new AlertDialog.Builder(this)
+            .setTitle("SPLIT "+GameView.INVENTORY_NAMES_V92[kind])
+            .setMessage("Move a portion into an unused slot without changing "+
+                "your total inventory quantity.")
+            .setView(editor).setNegativeButton("CANCEL",null)
+            .setPositiveButton("SPLIT",(d,w)->{
+                boolean ok=game.splitBagSlotV130(position,amount[0]);
+                if(ok&&refresh!=null)refresh.run();
+                Toast.makeText(this,ok?"Stack split":"No free slot for split",
+                    Toast.LENGTH_SHORT).show();
+            }).show();
+    }
+    boolean unequipBagV130(){game.fieldFindsV91.unequip();return true;}
+    void inventoryItemMenuV130(int position,Runnable refresh,View avatar,
+                                AlertDialog[] bagDialog){
+        if(game==null)return;
+        game.reconcileSplitV130();
+        int kind=game.bagSlotItemV130(position);
+        int qty=game.bagSlotCountV130(position);
+        if(kind<0||kind>=39||qty<=0)return;
+        final String name=GameView.INVENTORY_NAMES_V92[kind];
+        java.util.ArrayList<String> options=new java.util.ArrayList<>();
+        java.util.ArrayList<Runnable> actions=new java.util.ArrayList<>();
+        if(qty>1){
+            options.add("SPLIT STACK");
+            actions.add(()->splitQuantityDialogV130(position,refresh));
+        }
+        options.add("DROP...");
+        actions.add(()->dropBagSlotDialogV130(position,refresh));
+        if(kind>=24){
+            int gear=kind-24;
+            boolean already=gear<3?game.fieldFindsV91.equipped==gear:
+                game.wardrobeV92.equipped[(gear-3)/3]==(gear-3)%3;
+            options.add(already?"UNEQUIP":"EQUIP");
+            actions.add(()->{
+                boolean ok=gear<3?
+                    (already?unequipBagV130():game.fieldFindsV91.equip(gear)):
+                    game.wardrobeV92.equip((gear-3)/3,already?-1:(gear-3)%3);
+                if(ok){game.saveProgress();avatar.invalidate();refresh.run();}
+                Toast.makeText(this,ok?"Equipment updated":"Cannot equip",
+                    Toast.LENGTH_SHORT).show();
+            });
+        }else if(kind>=8&&kind<=11){
+            options.add("PLACE IN WORLD");
+            actions.add(()->{
+                if(game.selectPlaceItemV84(kind-8)&&bagDialog[0]!=null)
+                    bagDialog[0].dismiss();
+            });
+        }else if(kind==1||kind==2||kind==3||kind==4||
+                  kind==12||kind==13){
+            int use=kind==3?6:kind==4?7:kind==12?13:
+                kind==13?14:kind;
+            options.add("USE");
+            actions.add(()->{
+                if(!game.useBackpackV88(use)){
+                    Toast.makeText(this,"Cannot use item",Toast.LENGTH_SHORT).show();
+                }else{
+                    game.splitV130.consumed(position,1);
+                    game.saveProgress();refresh.run();avatar.invalidate();
+                }
+            });
+        }
+        int hot=kind>=8&&kind<=11?kind+1:
+            kind==12?13:kind==13?14:
+            kind==3?6:kind==4?7:kind;
+        if((kind>=1&&kind<=4)||(kind>=8&&kind<=13)){
+            for(int i=0;i<6;i++){
+                final int number=i;
+                options.add("ASSIGN QUICK SLOT "+(i+1));
+                actions.add(()->game.setHotbarItem(number,hot));
+            }
+        }
+        new AlertDialog.Builder(this).setTitle(name+" ×"+qty)
+            .setItems(options.toArray(new String[0]),(d,selected)->
+                actions.get(selected).run())
+            .setNegativeButton("CANCEL",null).show();
+    }
+
     void dropByListV129(Runnable refresh){
         java.util.ArrayList<String> labels=new java.util.ArrayList<>();
         java.util.ArrayList<Integer> indexes=new java.util.ArrayList<>();
