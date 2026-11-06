@@ -815,10 +815,10 @@ public final class GameView extends View {
         "CLOTH","BATTERY","WIRING","ANTISEPTIC","FUEL","WATER FILTER",
         "SEEDS","TOOLKIT","ROPE","SPARE PARTS",
         "DAYPACK","HIKING PACK","TACTICAL PACK",
-        "CAP","FIELD HAT","TACTICAL HELMET",
-        "WORK JACKET","TRAVEL COAT","BODY ARMOR",
-        "CARGO PANTS","FIELD TROUSERS","ARMORED PANTS",
-        "WORK BOOTS","HIKING BOOTS","TACTICAL BOOTS","EMPTY"};
+        "CANVAS CAP","SUN-BRIM FIELD HAT","BALLISTIC HELMET",
+        "CANVAS WORK JACKET","WEATHERPROOF FIELD COAT","PLATE CARRIER VEST",
+        "UTILITY CARGO TROUSERS","RIPSTOP FIELD TROUSERS","REINFORCED TACTICAL PANTS",
+        "STEEL-TOE WORK BOOTS","LEATHER TRAIL BOOTS","TACTICAL COMBAT BOOTS","EMPTY"};
     // Stack-aware bag extension. The underlying totals remain the original
     // save counters; reserved portions are separate draggable inventory stacks.
     final int[] bagSplitAmountV130=new int[40];
