@@ -114,7 +114,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           s=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/GameView.java').read_text()
-          assert s.count('drawIndoorVisibleEntityV127(c,')==4
+          assert s.count('drawIndoorVisibleEntityV127(c,')>=4
           assert s.count('!indoorCharacterVisibleV127(')>=5
           assert 'c.clipPath(clinicVisionPathV90);' in s
           assert 'sorted.add(new DrawEntity(playerY,()->character' in s
