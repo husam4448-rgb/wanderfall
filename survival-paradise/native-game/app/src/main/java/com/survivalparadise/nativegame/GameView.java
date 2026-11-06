@@ -788,7 +788,7 @@ public final class GameView extends View {
         boolean importedIndustrialV128=stitchedIndustrialV128&&
             host.prefs.contains("industrial_sx_v123")&&
             !host.prefs.getBoolean("v128_world_coords",false);
-        if(importedIndustrialV128){
+        if(importedIndustrialV128&&!host.prefs.getBoolean("inside_clinic_v89",false)){
             playerX=IndustrialBiomeBridgeV128.worldX(playerX);
             playerY=IndustrialBiomeBridgeV128.worldY(playerY);
         }
