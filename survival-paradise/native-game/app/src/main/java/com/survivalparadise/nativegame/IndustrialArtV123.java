@@ -73,27 +73,18 @@ public final class IndustrialArtV123 {
             if(!p.developed())continue;
             float x=p.x,y=p.y;
             if(p.enterable()){
-                int facade=p.kind==3?WAREHOUSE:p.kind==2?DOUBLE:
-                           p.kind==0||p.kind==1?DOUBLE:p.kind==4?
-                           SINGLE:p.kind==5?SHED:p.kind==6?
-                           SINGLE:WAREHOUSE;
-                // Entire approved exterior art scales to the matching roof hull.
+                int shape=IndustrialFacadeShapeV126.facade(p.kind);
+                int facade=shape==0?DOUBLE:shape==1?SINGLE:
+                           shape==2?SHED:WAREHOUSE;
+                // The facade and its collision use one approved PNG silhouette
+                // and precisely the same world-to-art transform.
                 draw(c,facade,p.buildingX-12,p.buildingY-22,
                      p.buildingW+24,p.buildingH+46);
-                draw(c,p.kind==2?SILOS:TANKS,x+1000,y+350,175,165);
-                draw(c,TRANSFORMER,x+950,y+845,192,144);
-                draw(c,BELT,x+212,y+897,170,118);
-                draw(c,PIPE,x+990,y+690,146,130);
-                if((p.kind&1)==0)draw(c,FORKLIFT,x+800,y+988,124,94);
-                else draw(c,TRUCK,x+987,y+1044,191,144);
-            }else{
-                // True outdoor material depot: no fake solid roof or fake entrance.
-                draw(c,SCRAP,x+220,y+694,230,171);
-                draw(c,CONVEYOR,x+890,y+774,255,158);
-                draw(c,VERTICAL,x+220,y+902,165,164);
-                draw(c,REINFORCED,x+882,y+950,181,154);
-                draw(c,TRUCK,x+995,y+550,181,135);
             }
+            // Props: physical size and position are shared with collision.
+            for(IndustrialPropLayoutV126.Prop prop:
+                    IndustrialPropLayoutV126.forPlot(p))
+                draw(c,prop.sprite,x+prop.x,y+prop.y,prop.w,prop.h);
             // Fence sprites only over real physical fence segments; central
             // yard gate is left empty and can be crossed by characters.
             draw(c,FENCE,x+112,y+1178,470,48);
