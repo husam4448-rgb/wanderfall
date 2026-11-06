@@ -3,6 +3,7 @@ package com.survivalparadise.nativegame;
 /** V123 full-scale industrial halls, with actual traversable door gaps and collision. */
 public final class IndustrialInteriorV123 extends ClinicInteriorV89 {
     public final IndustrialWorldV123.District district;
+    public final float[][] machines;
     // All dimensions remain V90-compatible for its existing camera, AI and ballistics.
     public static final float[][] WALLS = {
         {0,0,2720,35}, {0,0,35,1904}, {2685,0,35,1904},
@@ -27,6 +28,13 @@ public final class IndustrialInteriorV123 extends ClinicInteriorV89 {
     public IndustrialInteriorV123(IndustrialWorldV123.District site) {
         super();
         district=site;
+        machines=new float[MACHINES.length][4];
+        for(int i=0;i<MACHINES.length;i++){
+            System.arraycopy(MACHINES[i],0,machines[i],0,4);
+            int shift=IndustrialWorldV123.hash(site.sx+i*19,site.sy-i*7,site.seed);
+            machines[i][0]+=(Math.floorMod(shift,5)-2)*9f;
+            machines[i][1]+=(Math.floorMod(shift>>>6,5)-2)*7f;
+        }
         // All 14 original reusable container slots are retained for V122 loot UI.
         float[][] points={
             {230,345},{230,900},{230,1400},{230,1770},
@@ -53,7 +61,7 @@ public final class IndustrialInteriorV123 extends ClinicInteriorV89 {
     }
     @Override public boolean blocked(float x,float y,float radius){
         for(float[] q:WALLS)if(intersects(x,y,radius,q))return true;
-        for(float[] q:MACHINES)if(intersects(x,y,radius,q))return true;
+        for(float[] q:machines)if(intersects(x,y,radius,q))return true;
         return false;
     }
     @Override public void decode(String data){
