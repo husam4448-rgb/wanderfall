@@ -171,7 +171,7 @@ jobs:
           root=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame')
           game=(root/'GameView.java').read_text()
           menu=(root/'MainActivity.java').read_text()
-          assert 'lighting.point(f.x,f.y,165f' in game
+          assert 'lighting.point(f.x,f.y,240f' in game
           assert 'drawIndoorMuzzleLightV129(c)' in game
           assert 'p.setStrokeWidth(1.8f)' in game
           assert 'hitBloodV129(' in game and 'hurtDirectionalV129(' in game
