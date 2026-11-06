@@ -1236,9 +1236,15 @@ public final class GameView extends View {
     /** 10 visitable silhouettes: each contains distinct features and real loot cache. */
     void drawExpeditionSitesV88(Canvas c){
         for(ExpeditionSitesV88.Site s:ExpeditionSitesV88.SITES){
-            if(!WorldPerfV55.nearView(s.x,s.y,camX,camY,viewW,viewH,240))continue;
+            if(!WorldPerfV55.nearView(s.x,s.y,camX,camY,viewW,viewH,850f))continue;
+            float zoom=SiteExteriorScaleV130.scale(s.kind);
+            float door=SiteExteriorScaleV130.doorY(s);
+            c.save();
+            c.translate(s.x,door);
+            c.scale(zoom,zoom);
+            c.translate(-s.x,-door);
             if(s.kind==ExpeditionSitesV88.CLINIC){
-                drawFieldClinicExteriorV89(c,s);continue;
+                drawFieldClinicExteriorV89(c,s);c.restore();continue;
             }
             float x=s.x,y=s.y;
             // Dirt lot and entrance path ensure readable traversal.
@@ -1294,6 +1300,7 @@ public final class GameView extends View {
             rect(c,x+110,y+78,5,20,0xff4b4937);
             rect(c,x-13,y+66,26,11,0xff111d1c);
             label(c,"ENTER",x-24,y+108,10,0xffe9d49d,true);
+            c.restore();
         }
     }
     /** Avoid player-built and fixed cover when shooting, independent of FPS. */
@@ -1331,7 +1338,7 @@ public final class GameView extends View {
         }
         for(int i=0;i<ExpeditionSitesV88.SITES.length;i++){
             ExpeditionSitesV88.Site site=ExpeditionSitesV88.SITES[i];
-            float doorY=site.y+(site.kind==ExpeditionSitesV88.CLINIC?154f:90f);
+            float doorY=SiteExteriorScaleV130.doorY(site);
             if(distance(playerX,playerY,site.x,doorY)>108f)continue;
             return enterIndoorSiteV91(i,site.x,doorY+20f,site.name);
         }
@@ -2165,6 +2172,7 @@ public final class GameView extends View {
     }
     float clamp(float x,float min,float max){return Math.max(min,Math.min(max,x));}
     boolean blocked(float x,float y,float r){
+        if(SiteExteriorScaleV130.blocked(x,y,r))return true;
         if(stitchedIndustrialV128&&
             IndustrialBiomeBridgeV128.blocked(x,y,r,industrialSeedV123))
             return true;
