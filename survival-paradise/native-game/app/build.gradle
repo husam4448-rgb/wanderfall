@@ -3,11 +3,11 @@ android {
  namespace 'com.survivalparadise.nativegame'
  compileSdk 35
  defaultConfig {
-  applicationId 'com.survivalparadise.nativegame.v130worldpolish'
+  applicationId 'com.survivalparadise.nativegame.v131equipment'
   minSdk 24
   targetSdk 34
-  versionCode 130
-  versionName '0.130-inventory-vision-buildings-test'
+  versionCode 131
+  versionName '0.131-equipment-inventory-headshot-test'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
