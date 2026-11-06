@@ -976,7 +976,7 @@ public final class GameView extends View {
             craftV83.error="Move closer to build";return false;
         }
         if(blocked(x,y,48f)){craftV83.error="Clear ground needed";return false;}
-        for(float[] f:FIXED_CAMPFIRES)if(distance(x,y,f[0],f[1])<115f){
+        for(float[] f:activeCampfiresV125())if(distance(x,y,f[0],f[1])<115f){
             craftV83.error="Too close to campfire";return false;
         }
         for(float[] f:builtCampfires)if(distance(x,y,f[0],f[1])<115f){
@@ -995,7 +995,7 @@ public final class GameView extends View {
         if(harvestV81.active){craftV83.error="Finish harvesting first";return false;}
         float x=playerX+face*110f,y=playerY+28f;
         if(blocked(x,y,43)){craftV83.error="Find clear ground";return false;}
-        for(float[] fire:FIXED_CAMPFIRES)if(distance(x,y,fire[0],fire[1])<110){
+        for(float[] fire:activeCampfiresV125())if(distance(x,y,fire[0],fire[1])<110){
             craftV83.error="Move away from campfire";return false;
         }
         for(float[] fire:builtCampfires)if(distance(x,y,fire[0],fire[1])<110){
@@ -1074,9 +1074,21 @@ public final class GameView extends View {
         lampOn=!lampOn;
         host.prefs.edit().putBoolean("lampOn",lampOn).apply();
     }
+    float[][] activeCampfiresV125(){
+        return industrialModeV123?IndustrialCampV125.FIRES:FIXED_CAMPFIRES;
+    }
     void initCampStaff(){
-        // Approved roles and both sexes share the same exact V51 idle/walk geometry.
-        // Distinct NPC identities are sourced from the role art already in the repo.
+        // Character sprite and role identities are unchanged from V122.
+        if(industrialModeV123){
+            int[] guns={3,3,3,2,3};
+            int[] roles={ROLE_TRADER,ROLE_MEDIC+1,ROLE_MECHANIC,
+                         ROLE_GUARD+1,ROLE_CIVILIAN};
+            for(int i=0;i<roles.length;i++){
+                float[] home=IndustrialCampV125.home(i,industrialSeedV123);
+                campStaff.add(new Survivor(home[0],home[1],guns[i],roles[i]));
+            }
+            return;
+        }
         campStaff.add(new Survivor(CAMP_X-175,CAMP_Y-75,3,ROLE_TRADER));
         campStaff.add(new Survivor(CAMP_X-126,CAMP_Y-78,3,ROLE_MEDIC+1));
         campStaff.add(new Survivor(CAMP_X+179,CAMP_Y-67,3,ROLE_MECHANIC));
@@ -2422,8 +2434,11 @@ public final class GameView extends View {
                     npcSleepRadius)){npc.animation.reset();continue;}
             float px=npc.x,py=npc.y;
             if((i&1)==0){
-                npc.x=npc.homeX+(float)Math.sin(worldTimer*.41f+i)*18f;
-                npc.y=npc.homeY+(float)Math.cos(worldTimer*.41f+i)*11f;
+                float tryX=npc.homeX+(float)Math.sin(worldTimer*.41f+i)*18f;
+                float tryY=npc.homeY+(float)Math.cos(worldTimer*.41f+i)*11f;
+                if(!industrialModeV123||IndustrialCampV125.patrolAllowed(
+                    tryX,tryY,industrialSeedV123)){npc.x=tryX;npc.y=tryY;}
+                else {npc.x=npc.homeX;npc.y=npc.homeY;}
             }
             // All camp roles scan a full circle instead of holding a
             // horizontal weapon. Noncombatant NPCs still never fire guns.
@@ -2793,7 +2808,7 @@ public final class GameView extends View {
         lighting.clear();
         populateLightBlockers();
         if(campfiresLit){
-            for(float[] f:FIXED_CAMPFIRES)fireLight(f[0],f[1]);
+            for(float[] f:activeCampfiresV125())fireLight(f[0],f[1]);
             for(float[] f:builtCampfires)fireLight(f[0],f[1]);
         }
         if(neonEnabled)for(float[] n:NEONS)
@@ -3653,7 +3668,7 @@ public final class GameView extends View {
         }
         ArrayList<DrawEntity> order=new ArrayList<>();
         lastVisibleNpcs=0;lastCulledNpcs=0;
-        for(float[] fire:FIXED_CAMPFIRES){
+        for(float[] fire:activeCampfiresV125()){
             if(!WorldPerfV55.nearView(fire[0],fire[1],camX,camY,viewW,viewH,155))continue;
             final float fx=fire[0],fy=fire[1];
             order.add(new DrawEntity(fy,()->{
