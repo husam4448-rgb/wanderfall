@@ -508,10 +508,9 @@ public final class GameView extends View {
         return found;
     }
     float encumbranceV91(){
-        float load=scrap*.8f+ammoPacks*5f+medkits*7f+
-            foodCount*1.7f+waterCount*2f+wood*.6f+stone*1.8f+
-            fiber*.3f+bandagesV88*.5f+energyV88*1.3f+
-            fieldFindsV91.weight();
+        float load=0f;
+        for(int i=0;i<InventoryCatalogV131.COUNT;i++)
+            load+=InventoryCatalogV131.weight(i)*inventoryQuantityV92(i);
         return Math.min(100f,Math.max(0f,(load-fieldFindsV91.capacity())*1.7f));
     }
     float carrySpeedV91(){return Math.max(.54f,1f-encumbranceV91()*.0046f);}
@@ -642,6 +641,70 @@ public final class GameView extends View {
         while(friends.size()>allySetting-1)friends.remove(friends.size()-1);
         allyCurrent=1+friends.size();
     }
+    int equippedReserveV131(int type){
+        int slot=InventoryCatalogV131.equipmentSlot(type);
+        if(slot<0)return 0;
+        if(slot==5)return fieldFindsV91.equipped==type-24?1:0;
+        if(slot==0||slot==2||slot==3||slot==4){
+            int clothing=slot==0?0:slot==2?1:slot==3?2:3;
+            return wardrobeV92.equipped[clothing]==(type-27)%3?1:0;
+        }
+        return 0;
+    }
+    /** Inventory totals include worn gear, bag quantities intentionally exclude it. */
+    int availableInventoryV131(int type){
+        return type<0||type>=InventoryCatalogV131.COUNT?0:
+            Math.max(0,inventoryQuantityV92(type)-equippedReserveV131(type));
+    }
+    boolean equipInventoryItemV131(int type,int targetSlot){
+        if(!InventoryCatalogV131.compatible(type,targetSlot)||
+           availableInventoryV131(type)<1)return false;
+        boolean done=targetSlot==5?fieldFindsV91.equip(type-24):
+            wardrobeV92.equip(targetSlot==0?0:targetSlot==2?1:
+                targetSlot==3?2:3,(type-27)%3);
+        if(done){organizeBagV131(0);saveProgress();invalidate();}
+        return done;
+    }
+    boolean unequipInventorySlotV131(int slot){
+        if(slot==5){fieldFindsV91.unequip();}
+        else if(slot==0||slot==2||slot==3||slot==4){
+            int clothing=slot==0?0:slot==2?1:slot==3?2:3;
+            wardrobeV92.equip(clothing,-1);
+        }else return false;
+        organizeBagV131(0);saveProgress();invalidate();return true;
+    }
+    /** Sort never alters the underlying quantities. Split portions move as a unit. */
+    void organizeBagV131(int mode){
+        reconcileBagSplitsV130();
+        Integer[] places=new Integer[40];
+        int[] count=new int[40],firstIndex=new int[40];
+        java.util.Arrays.fill(firstIndex,40);
+        for(int i=0;i<40;i++){
+            places[i]=i;count[i]=bagSlotQuantityV130(i);
+            if(count[i]>0)
+                firstIndex[bagOrderV92[i]]=Math.min(firstIndex[bagOrderV92[i]],i);
+        }
+        java.util.Arrays.sort(places,(a,b)->{
+            if((count[a]>0)!=(count[b]>0))return count[a]>0?-1:1;
+            if(count[a]==0)return Integer.compare(a,b);
+            int t=bagOrderV92[a],u=bagOrderV92[b];
+            int cmp=mode==0?
+                Integer.compare(firstIndex[t],firstIndex[u]):
+                InventoryCatalogV131.compare(t,u,mode,INVENTORY_NAMES_V92);
+            return cmp!=0?cmp:Integer.compare(a,b);
+        });
+        int[] order=new int[40],splits=new int[40],originals=new int[40];
+        for(int i=0;i<40;i++){
+            int j=places[i];order[i]=bagOrderV92[j];
+            splits[i]=bagSplitAmountV130[j];
+            originals[i]=bagSplitOriginalV130[j];
+        }
+        System.arraycopy(order,0,bagOrderV92,0,40);
+        System.arraycopy(splits,0,bagSplitAmountV130,0,40);
+        System.arraycopy(originals,0,bagSplitOriginalV130,0,40);
+        saveProgress();
+    }
+    float itemMassV131(int kind){return InventoryCatalogV131.weight(kind);}
     int inventoryQuantityV92(int idx){
         switch(idx){
             case 0:return scrap;case 1:return medkits;case 2:return ammoPacks;
@@ -667,6 +730,8 @@ public final class GameView extends View {
     boolean changeInventoryV129(int idx,int delta){
         if(idx<0||idx>=39||delta==0)return false;
         int current=inventoryQuantityV92(idx);
+        int equippedReserved=equippedReserveV131(idx);
+        if(delta<0&&current+delta<equippedReserved)return false;
         long next=(long)current+delta;
         if(next<0||next>(idx>=24?99:9999))return false;
         int value=(int)next;
@@ -697,7 +762,7 @@ public final class GameView extends View {
     /** Save stack before changing the inventory, so failed placement loses nothing. */
     boolean dropInventoryV129(int kind,int quantity){
         if(!playing||gameOver||kind<0||kind>=39||quantity<=0||
-           inventoryQuantityV92(kind)<quantity)return false;
+           availableInventoryV131(kind)<quantity)return false;
         float x=playerX+aimX*44f,y=playerY+aimY*44f;
         if(insideClinicV89){
             if(clinicInteriorV89.blocked(x,y,16f)){x=playerX;y=playerY;}
@@ -762,7 +827,7 @@ public final class GameView extends View {
         if(position<0||position>=40)return 0;
         int kind=bagOrderV92[position];
         if(kind<0||kind>=39)return 0;
-        int total=inventoryQuantityV92(kind);
+        int total=availableInventoryV131(kind);
         if(bagSplitAmountV130[position]>0)
             return Math.min(total,bagSplitAmountV130[position]);
         int reserved=0;
@@ -784,12 +849,12 @@ public final class GameView extends View {
                 bagSplitAmountV130[position]=0;continue;
             }
             // A newly obtained item takes priority over a placeholder slot.
-            if(inventoryQuantityV92(original)>0){
+            if(availableInventoryV131(original)>0){
                 bagOrderV92[position]=original;
                 bagSplitAmountV130[position]=0;
                 bagSplitOriginalV130[position]=-1;continue;
             }
-            int total=inventoryQuantityV92(kind),reserved=0;
+            int total=availableInventoryV131(kind),reserved=0;
             for(int i=0;i<position;i++)
                 if(bagOrderV92[i]==kind)reserved+=bagSplitAmountV130[i];
             bagSplitAmountV130[position]=Math.max(0,
@@ -807,7 +872,7 @@ public final class GameView extends View {
         int target=-1;
         for(int i=39;i>=0;i--){
             if(i==source||bagSplitAmountV130[i]>0)continue;
-            if(inventoryQuantityV92(bagOrderV92[i])==0){
+            if(availableInventoryV131(bagOrderV92[i])==0){
                 target=i;break;
             }
         }
@@ -866,9 +931,9 @@ public final class GameView extends View {
         clearBagSplitsV130();
         int count=0;
         for(int i=0;i<bagOrderV92.length;i++)
-            if(inventoryQuantityV92(i)>0)bagOrderV92[count++]=i;
+            if(availableInventoryV131(i)>0)bagOrderV92[count++]=i;
         for(int i=0;i<bagOrderV92.length;i++)
-            if(inventoryQuantityV92(i)==0)bagOrderV92[count++]=i;
+            if(availableInventoryV131(i)==0)bagOrderV92[count++]=i;
         bagOrderInitializedV92=true;
     }
     void restoreBagOrderV92(String raw){
