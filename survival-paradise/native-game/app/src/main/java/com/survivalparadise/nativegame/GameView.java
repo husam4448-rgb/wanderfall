@@ -2457,10 +2457,11 @@ public final class GameView extends View {
         particles(enemy.x,enemy.y-34,RED,2);
         if(enemy.hp<=0&&enemy.active){
             enemy.active=false;kills++;particles(enemy.x,enemy.y-24,ORANGE,7);
-            if(lootEnabled){
-                banditLootV87.spawnCorpse(enemy.x,enemy.y-3,kills,wave,enemy.variant,enemy.face);
-                saveProgress(); // corpse bag is persistent immediately on bandit death
-            }
+            BanditLootV87.Bag remains=banditLootV87.spawnCorpse(
+                enemy.x,enemy.y-3,kills,wave,enemy.variant,enemy.face);
+            if(remains!=null&&!lootEnabled)
+                java.util.Arrays.fill(remains.count,0);
+            saveProgress(); // The body persists even with loot drops disabled.
         }
     }
     void hurt(float amount){
