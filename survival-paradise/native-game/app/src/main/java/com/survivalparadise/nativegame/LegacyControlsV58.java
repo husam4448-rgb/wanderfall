@@ -10,7 +10,7 @@ public final class LegacyControlsV58 {
     public static final int COUNT=11;
     public static final String[] NAMES={
         "Left FIRE","Right FIRE","Left MELEE","Right MELEE","RUN",
-        "CROUCH","USE","SWAP","RELOAD","ZOOM +","ZOOM -"};
+        "CROUCH","INTERACT","SWAP","RELOAD","ZOOM +","ZOOM -"};
     public static final String[] LABELS={
         "FIRE","FIRE","MELEE","MELEE","RUN","CROUCH","USE",
         "SWAP","RELOAD","ZOOM +","ZOOM -"};
