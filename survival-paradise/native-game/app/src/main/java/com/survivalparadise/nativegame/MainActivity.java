@@ -1838,7 +1838,7 @@ public final class MainActivity extends Activity {
         action(root,"View current FPS and chunk statistics",()->{
             Toast.makeText(this,game.testStats(),Toast.LENGTH_LONG).show();
         });
-        section(root,"V123 INDUSTRIAL WORLD • SEED TESTING");
+        section(root,"V124 INDUSTRIAL OPEN WORLD • SEED TESTING");
         root.addView(text("New seed creates a different deterministic industrial world. "+
             "Factory loot and defeated interior NPCs are saved per seed and facility.",13,false));
         action(root,"SET INDUSTRIAL WORLD SEED",()->{
