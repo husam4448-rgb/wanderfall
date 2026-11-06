@@ -246,6 +246,8 @@ public final class GameView extends View {
     final ArrayList<Drop> drops=new ArrayList<>();
     final ArrayList<Spark> sparks=new ArrayList<>();
     final ArrayList<Flash> flashes=new ArrayList<>();
+    final DroppedItemsV129 droppedItemsV129=new DroppedItemsV129();
+    float droppedExpiryClockV129=0f;
     // V122 interior damage is intentionally V90 hitscan, but every actual
     // NPC/player gunshot generates a matching transient traveling bullet.
     final ArrayList<IndoorRoundV122> indoorRoundsV122=new ArrayList<>();
@@ -653,6 +655,93 @@ public final class GameView extends View {
                 return 0;
         }
     }
+
+    String droppedSceneV129(){
+        if(!insideClinicV89)return "world";
+        if(activeSiteV91==INDUSTRIAL_SITE_V123)
+            return "industrial:"+industrialSeedV123+":"+industrialSiteV123.sx+
+                ":"+industrialSiteV123.sy;
+        return "site:"+activeSiteV91;
+    }
+    float gameTimeV129(){return DroppedItemsV129.time(clock.day(),clock.minute());}
+    boolean changeInventoryV129(int idx,int delta){
+        if(idx<0||idx>=39||delta==0)return false;
+        int current=inventoryQuantityV92(idx);
+        long next=(long)current+delta;
+        if(next<0||next>(idx>=24?99:9999))return false;
+        int value=(int)next;
+        switch(idx){
+            case 0:scrap=value;break;case 1:medkits=value;break;
+            case 2:ammoPacks=value;break;case 3:foodCount=value;break;
+            case 4:waterCount=value;break;case 5:wood=value;break;
+            case 6:stone=value;break;case 7:fiber=value;break;
+            case 8:case 9:case 10:case 11:craftV83.stock[idx-8]=value;break;
+            case 12:bandagesV88=value;break;case 13:energyV88=value;break;
+            default:
+                if(idx>=14&&idx<24){fieldFindsV91.items[idx-14]=value;break;}
+                int gear=idx-24;
+                if(gear<0||gear>=GearLootV95.TYPES)return false;
+                if(gear<3){
+                    fieldFindsV91.bags[gear]=value;
+                    if(value==0&&fieldFindsV91.equipped==gear)
+                        fieldFindsV91.unequip();
+                }else{
+                    int slot=(gear-3)/3,style=(gear-3)%3;
+                    wardrobeV92.found[slot][style]=value;
+                    if(value==0&&wardrobeV92.equipped[slot]==style)
+                        wardrobeV92.equip(slot,-1);
+                }
+        }
+        return true;
+    }
+    /** Save stack before changing the inventory, so failed placement loses nothing. */
+    boolean dropInventoryV129(int kind,int quantity){
+        if(!playing||gameOver||kind<0||kind>=39||quantity<=0||
+           inventoryQuantityV92(kind)<quantity)return false;
+        float x=playerX+aimX*44f,y=playerY+aimY*44f;
+        if(insideClinicV89){
+            if(clinicInteriorV89.blocked(x,y,16f)){x=playerX;y=playerY;}
+        }else if(blocked(x,y,16f)){x=playerX;y=playerY;}
+        DroppedItemsV129.Stack stack=droppedItemsV129.drop(kind,quantity,x,y,
+            droppedSceneV129(),gameTimeV129(),host.setting("groundDropDaysV129",2));
+        if(stack==null)return false;
+        if(!changeInventoryV129(kind,-quantity)){
+            droppedItemsV129.take(stack);return false;
+        }
+        gatherFeedback="DROPPED "+INVENTORY_NAMES_V92[kind]+" ×"+quantity;
+        gatherFeedbackTime=2.2f;saveProgress();invalidate();return true;
+    }
+    DroppedItemsV129.Stack nearbyDroppedV129(){
+        if(!playing||gameOver)return null;
+        return droppedItemsV129.nearest(playerX,playerY,
+            droppedSceneV129(),DroppedItemsV129.USE_RADIUS);
+    }
+    boolean takeDroppedV129(DroppedItemsV129.Stack stack){
+        if(stack==null||!droppedItemsV129.contains(stack)||
+           !stack.scene.equals(droppedSceneV129())||
+           distance(playerX,playerY,stack.x,stack.y)>DroppedItemsV129.USE_RADIUS+8f)
+            return false;
+        if(!changeInventoryV129(stack.type,stack.quantity))return false;
+        droppedItemsV129.take(stack);
+        gatherFeedback="RECOVERED "+INVENTORY_NAMES_V92[stack.type]+" ×"+stack.quantity;
+        gatherFeedbackTime=2f;saveProgress();invalidate();return true;
+    }
+    void drawDroppedItemsV129(Canvas c){
+        String scene=droppedSceneV129();
+        for(DroppedItemsV129.Stack stack:droppedItemsV129.stacks){
+            if(!scene.equals(stack.scene)||!WorldPerfV55.nearView(
+                    stack.x,stack.y,camX,camY,viewW,viewH,50f))continue;
+            float x=stack.x,y=stack.y;
+            color(0x8c151e1d);c.drawOval(x-26,y-8,x+26,y+9,p);
+            rect(c,x-23,y-19,46,22,0xff283a39);
+            rect(c,x-20,y-22,40,20,0xff796348);
+            rect(c,x-16,y-18,32,12,0xffa28d63);
+            rect(c,x-14,y-14,28,3,0xff453f35);
+            rect(c,x+12,y-16,5,13,0xff243f3e);
+            label(c,INVENTORY_NAMES_V92[stack.type]+" ×"+stack.quantity,
+                x-24,y-31,10,0xffe2c58f,true);
+        }
+    }
     static final String[] INVENTORY_NAMES_V92={"SCRAP","MEDKIT","AMMO",
         "FOOD","WATER","WOOD","STONE","FIBER","BARRICADE","LIGHT POST",
         "WATER COLLECTOR","FIELD SHELTER","BANDAGE","ENERGY RATION",
@@ -726,6 +815,7 @@ public final class GameView extends View {
         face=1;aimX=1;aimY=0;refreshDaylight();
         enemies.clear();friends.clear();campStaff.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();indoorRoundsV122.clear();builtCampfires.clear();
         craftV83.clear();banditLootV87.clear();removeBarricadeCoverV83();
+        droppedItemsV129.clear();
         sitesInitializedV88=false;stationUsedV88.clear();
         clinicInteriorV89=new ClinicInteriorV89();
         clinicActorsV90=new ClinicActorsV90(clinicInteriorV89);
@@ -818,6 +908,8 @@ public final class GameView extends View {
         salvageWorldV84.decode(host.prefs.getString("salvaged_scrap_v84",""));
         groundPickupsV85.decode(host.prefs.getString("loose_pickups_v85",""));
         banditLootV87.decode(host.prefs.getString("bandit_loot_bags_v87",""));
+        droppedItemsV129.decode(host.prefs.getString("ground_drops_v129",""));
+        droppedItemsV129.expire(gameTimeV129());
         sitesInitializedV88=host.prefs.getBoolean("sitesInitializedV88",false);
         if(!sitesInitializedV88)seedExpeditionCachesV88();
         decodeFacilityCooldownV88(host.prefs.getString("facilityCooldownV88",""));
@@ -1706,6 +1798,7 @@ public final class GameView extends View {
         label(c,"EXIT",1308,1847,20,0xffebd5a3,true);
         drawClinicVisionV90(c);
         drawIndoorMuzzleLightV129(c);
+        drawDroppedItemsV129(c);
         ArrayList<DrawEntity> sorted=new ArrayList<>();
         for(ClinicActorsV90.Actor actor:clinicActorsV90.actors){
             if(!actor.active||!WorldPerfV55.nearView(actor.x,actor.y,camX,camY,viewW,viewH,155)||
@@ -1981,6 +2074,7 @@ public final class GameView extends View {
                 .putString("salvaged_scrap_v84",salvageWorldV84.encode())
                 .putString("loose_pickups_v85",groundPickupsV85.encode())
                 .putString("bandit_loot_bags_v87",banditLootV87.encode())
+                .putString("ground_drops_v129",droppedItemsV129.encode())
                 .putBoolean("sitesInitializedV88",sitesInitializedV88)
                 .putString("facilityCooldownV88",encodeFacilityCooldownV88())
                 .putInt("active_site_v91",insideClinicV89?activeSiteV91:-1)
@@ -2363,6 +2457,13 @@ public final class GameView extends View {
         if(!playing||paused||editControls)return;
         // Clock is real-world-time based and independent of enemy simulation speed.
         clock.advance(Math.min(.04f,dt));
+        droppedExpiryClockV129+=dt;
+        if(droppedExpiryClockV129>=1f){
+            droppedExpiryClockV129=0f;
+            int before=droppedItemsV129.stacks.size();
+            droppedItemsV129.expire(gameTimeV129());
+            if(before!=droppedItemsV129.stacks.size())saveProgress();
+        }
         refreshDaylight();
         dt=Math.min(.04f,dt)*timeSpeed;
         worldTimer+=dt;autSaveClock+=dt;
@@ -3784,6 +3885,7 @@ public final class GameView extends View {
         if(insideClinicV89){drawClinicInteriorV89(c);return;}
         c.save();c.translate(-camX,-camY);
         terrain(c);
+        drawDroppedItemsV129(c);
         drawFixtures(c,false);
         for(BanditLootV87.Bag bag:banditLootV87.bags){
             if(!WorldPerfV55.nearView(bag.x,bag.y,camX,camY,viewW,viewH,70))continue;
@@ -4850,8 +4952,16 @@ public final class GameView extends View {
                 }
                 invalidate();return;
             }
-            if(insideClinicV89){interactClinicV89();return;}
+            if(insideClinicV89){
+                DroppedItemsV129.Stack pile=nearbyDroppedV129();
+                if(pile!=null){host.runOnUiThread(()->host.recoverDroppedV129(pile));return;}
+                interactClinicV89();return;
+            }
             if(enterClinicFromWorldV89())return;
+            DroppedItemsV129.Stack pileV129=nearbyDroppedV129();
+            if(pileV129!=null){
+                host.runOnUiThread(()->host.recoverDroppedV129(pileV129));return;
+            }
             if(industrialModeV123){
                 collectIndustrialYardV123();return;
             }
