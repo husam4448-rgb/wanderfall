@@ -3,11 +3,11 @@ android {
  namespace 'com.survivalparadise.nativegame'
  compileSdk 35
  defaultConfig {
-  applicationId 'com.survivalparadise.nativegame.v126industrialtest'
+  applicationId 'com.survivalparadise.nativegame.v127indoorvision'
   minSdk 24
   targetSdk 34
-  versionCode 126
-  versionName '0.126-sprite-collision-scale-test'
+  versionCode 127
+  versionName '0.127-indoor-visibility-test'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
