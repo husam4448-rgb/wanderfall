@@ -809,7 +809,6 @@ public final class MainActivity extends Activity {
         active[0]=dialog;
         close.setOnClickListener(v->dialog.dismiss());
         dialog.setOnDismissListener(d->{
-            dragScrollV130.stop();
             game.saveProgress();game.menuPause(false);restoreFullscreenAfterShade();
         });
         dialog.show();
@@ -1674,6 +1673,7 @@ public final class MainActivity extends Activity {
         AlertDialog dialog=new AlertDialog.Builder(this).setView(shell).create();
         closeBag.setOnClickListener(v->dialog.dismiss());
         dialog.setOnDismissListener(d->{
+            dragScrollV130.stop();
             game.saveProgress();game.menuPause(false);restoreFullscreenAfterShade();
         });
         dialog.show();
