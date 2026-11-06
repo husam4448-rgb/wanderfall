@@ -754,7 +754,116 @@ public final class GameView extends View {
         "WORK JACKET","TRAVEL COAT","BODY ARMOR",
         "CARGO PANTS","FIELD TROUSERS","ARMORED PANTS",
         "WORK BOOTS","HIKING BOOTS","TACTICAL BOOTS","EMPTY"};
+    // Stack-aware bag extension. The underlying totals remain the original
+    // save counters; reserved portions are separate draggable inventory stacks.
+    final int[] bagSplitAmountV130=new int[40];
+    final int[] bagSplitOriginalV130=new int[40];
+    int bagSlotQuantityV130(int position){
+        if(position<0||position>=40)return 0;
+        int kind=bagOrderV92[position];
+        if(kind<0||kind>=39)return 0;
+        int total=inventoryQuantityV92(kind);
+        if(bagSplitAmountV130[position]>0)
+            return Math.min(total,bagSplitAmountV130[position]);
+        int reserved=0;
+        for(int i=0;i<40;i++)
+            if(i!=position&&bagOrderV92[i]==kind&&bagSplitAmountV130[i]>0)
+                reserved+=bagSplitAmountV130[i];
+        return Math.max(0,total-reserved);
+    }
+    void clearBagSplitsV130(){
+        java.util.Arrays.fill(bagSplitAmountV130,0);
+        java.util.Arrays.fill(bagSplitOriginalV130,-1);
+    }
+    void reconcileBagSplitsV130(){
+        for(int position=0;position<40;position++){
+            if(bagSplitAmountV130[position]<=0)continue;
+            int kind=bagOrderV92[position];
+            int original=bagSplitOriginalV130[position];
+            if(kind<0||kind>=39||original<0||original>=40){
+                bagSplitAmountV130[position]=0;continue;
+            }
+            // A newly obtained item takes priority over a placeholder slot.
+            if(inventoryQuantityV92(original)>0){
+                bagOrderV92[position]=original;
+                bagSplitAmountV130[position]=0;
+                bagSplitOriginalV130[position]=-1;continue;
+            }
+            int total=inventoryQuantityV92(kind),reserved=0;
+            for(int i=0;i<position;i++)
+                if(bagOrderV92[i]==kind)reserved+=bagSplitAmountV130[i];
+            bagSplitAmountV130[position]=Math.max(0,
+                Math.min(bagSplitAmountV130[position],total-reserved));
+            if(bagSplitAmountV130[position]==0){
+                bagOrderV92[position]=original;
+                bagSplitOriginalV130[position]=-1;
+            }
+        }
+    }
+    boolean splitBagSlotV130(int source,int quantity){
+        reconcileBagSplitsV130();
+        if(source<0||source>=40||quantity<1||
+           quantity>=bagSlotQuantityV130(source))return false;
+        int target=-1;
+        for(int i=39;i>=0;i--){
+            if(i==source||bagSplitAmountV130[i]>0)continue;
+            if(inventoryQuantityV92(bagOrderV92[i])==0){
+                target=i;break;
+            }
+        }
+        if(target<0)return false;
+        int kind=bagOrderV92[source],displaced=bagOrderV92[target];
+        bagOrderV92[target]=kind;
+        bagSplitAmountV130[target]=quantity;
+        bagSplitOriginalV130[target]=displaced;
+        if(bagSplitAmountV130[source]>0)bagSplitAmountV130[source]-=quantity;
+        saveProgress();invalidate();return true;
+    }
+    boolean dropBagSlotV130(int position,int quantity){
+        reconcileBagSplitsV130();
+        if(position<0||position>=40||quantity<1||
+           quantity>bagSlotQuantityV130(position))return false;
+        int type=bagOrderV92[position];
+        if(!dropInventoryV129(type,quantity))return false;
+        if(bagSplitAmountV130[position]>0)
+            bagSplitAmountV130[position]-=quantity;
+        reconcileBagSplitsV130();saveProgress();return true;
+    }
+    String encodeBagSplitsV130(){
+        StringBuilder sb=new StringBuilder();
+        for(int i=0;i<40;i++){
+            if(i>0)sb.append(',');
+            sb.append(bagOrderV92[i]).append(':')
+                .append(bagSplitAmountV130[i]).append(':')
+                .append(bagSplitOriginalV130[i]);
+        }
+        return sb.toString();
+    }
+    void restoreBagSplitsV130(String raw){
+        clearBagSplitsV130();
+        if(raw==null||raw.isEmpty())return;
+        String[] fields=raw.split(",",-1);
+        if(fields.length!=40)return;
+        int[] order=new int[40],pieces=new int[40],originals=new int[40];
+        try{
+            for(int i=0;i<40;i++){
+                String[] parts=fields[i].split(":",-1);
+                if(parts.length!=3)return;
+                order[i]=Integer.parseInt(parts[0]);
+                pieces[i]=Integer.parseInt(parts[1]);
+                originals[i]=Integer.parseInt(parts[2]);
+                if(order[i]<0||order[i]>=40||pieces[i]<0||pieces[i]>9999||
+                   originals[i]<-1||originals[i]>=40)return;
+                if((pieces[i]>0)!=(originals[i]>=0))return;
+            }
+            System.arraycopy(order,0,bagOrderV92,0,40);
+            System.arraycopy(pieces,0,bagSplitAmountV130,0,40);
+            System.arraycopy(originals,0,bagSplitOriginalV130,0,40);
+            reconcileBagSplitsV130();
+        }catch(NumberFormatException ignored){clearBagSplitsV130();}
+    }
     void initInventoryOrderV92(){
+        clearBagSplitsV130();
         int count=0;
         for(int i=0;i<bagOrderV92.length;i++)
             if(inventoryQuantityV92(i)>0)bagOrderV92[count++]=i;
@@ -791,10 +900,16 @@ public final class GameView extends View {
     boolean moveBagSlotV92(int source,int dest){
         if(source<0||dest<0||source>=bagOrderV92.length||dest>=bagOrderV92.length||source==dest)return false;
         int type=bagOrderV92[source];
-        System.arraycopy(bagOrderV92,Math.min(source,dest)+(source<dest?1:0),
-            bagOrderV92,Math.min(source,dest)+(source<dest?0:1),
-            Math.abs(source-dest));
-        bagOrderV92[dest]=type;saveProgress();return true;
+        int split=bagSplitAmountV130[source],original=bagSplitOriginalV130[source];
+        int from=Math.min(source,dest)+(source<dest?1:0);
+        int to=Math.min(source,dest)+(source<dest?0:1);
+        int length=Math.abs(source-dest);
+        System.arraycopy(bagOrderV92,from,bagOrderV92,to,length);
+        System.arraycopy(bagSplitAmountV130,from,bagSplitAmountV130,to,length);
+        System.arraycopy(bagSplitOriginalV130,from,bagSplitOriginalV130,to,length);
+        bagOrderV92[dest]=type;
+        bagSplitAmountV130[dest]=split;bagSplitOriginalV130[dest]=original;
+        saveProgress();return true;
     }
     void newGame(){
         industrialSeedV123=host.prefs.getInt(IndustrialWorldV123.SEED_PREF,14901);
@@ -926,6 +1041,7 @@ public final class GameView extends View {
         gearLootV95.decode(host.prefs.getString("gear_loot_v95",""));
         relationshipsV92.decode(host.prefs.getString("npc_relations_v92",""));
         restoreBagOrderV92(host.prefs.getString("bag_order_v92",""));
+        restoreBagSplitsV130(host.prefs.getString("bag_splits_v130",""));
         insideClinicV89=host.prefs.getBoolean("inside_clinic_v89",false);
         int savedSiteV91=host.prefs.getInt("active_site_v91",1);
         if(insideClinicV89)configureInteriorV91(savedSiteV91);
@@ -2103,6 +2219,7 @@ public final class GameView extends View {
                 .putString("gear_loot_v95",gearLootV95.encode())
                 .putString("npc_relations_v92",relationshipsV92.encode())
                 .putString("bag_order_v92",encodeBagOrderV92())
+                .putString("bag_splits_v130",encodeBagSplitsV130())
                 .putBoolean("inside_clinic_v89",insideClinicV89)
                 .putFloat("clinic_return_x_v89",outsideDoorXv89)
                 .putFloat("clinic_return_y_v89",outsideDoorYv89)
