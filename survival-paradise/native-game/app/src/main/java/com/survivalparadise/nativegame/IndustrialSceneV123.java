@@ -107,10 +107,10 @@ public final class IndustrialSceneV123 {
         machine(c,p,x+970,y+1080,170,120,0xff805c43,d.kind+2);
         rack(c,p,x+745,y+945,190,83,d.kind);
         // Industrial yard chainlink fence with real wide gates in the south wall.
-        r(c,p,x+90,y+1220,400,12,0xff364345);
-        r(c,p,x+590,y+1220,685,12,0xff364345);
+        r(c,p,x+90,y+1220,350,12,0xff364345);
+        r(c,p,x+665,y+1220,610,12,0xff364345);
         for(int i=0;i<11;i++){
-            if(i==4||i==5)continue;
+            if(i>=3&&i<=5)continue;
             r(c,p,x+120+i*107,y+1212,9,31,0xffa38757);
         }
         r(c,p,x+90,y+165,14,1065,0xff4b5758);
@@ -132,6 +132,20 @@ public final class IndustrialSceneV123 {
             float by=sy*(float)IndustrialWorldV123.SECTOR;
             if(x+radius>bx+170 && x-radius<bx+911 &&
                y+radius>by+205 && y-radius<by+706)return true;
+            // Real fence collision leaves a 225-unit-wide unobstructed gate.
+            if(x+radius>bx+90&&x-radius<bx+440 &&
+               y+radius>by+1214&&y-radius<by+1234)return true;
+            if(x+radius>bx+665&&x-radius<bx+1275 &&
+               y+radius>by+1214&&y-radius<by+1234)return true;
+            if(y+radius>by+165&&y-radius<by+1230 &&
+                ((x+radius>bx+90&&x-radius<bx+104)||
+                 (x+radius>bx+1274&&x-radius<bx+1288)))return true;
+            for(int i=0;i<4;i++){
+                IndustrialWorldV123.District d=IndustrialWorldV123.district(sx,sy,seed);
+                float mx=d.materialX(i),my=d.materialY(i);
+                if(x+radius>mx-65&&x-radius<mx+65&&
+                   y+radius>my-30&&y-radius<my+30)return true;
+            }
             // Machinery and steel stacks are physically solid. Yard paths are free.
             if(x+radius>bx+175 && x-radius<bx+325 &&
                y+radius>by+930 && y-radius<by+1040)return true;
