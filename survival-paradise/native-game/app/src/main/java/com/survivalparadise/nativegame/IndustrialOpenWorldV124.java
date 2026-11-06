@@ -110,21 +110,17 @@ public final class IndustrialOpenWorldV124 {
         for(int iy=cy-1;iy<=cy+1;iy++)for(int ix=cx-1;ix<=cx+1;ix++){
             Plot p=plot(ix,iy,seed);
             if(!p.developed())continue;
-            if(p.enterable()&&touch(x,y,radius,p.buildingX,p.buildingY,p.buildingW,p.buildingH))return true;
+            // Collision is traced from the actual opaque facade image. The
+            // transparent roof corners and empty source-art margins are walkable.
+            if(IndustrialFacadeShapeV126.buildingBlocks(p,x,y,radius))return true;
             // Perimeter mesh has one true, broad gate in the south.
             if(touch(x,y,radius,p.x+110,p.y+1206,473,13))return true;
             if(touch(x,y,radius,p.x+830,p.y+1206,438,13))return true;
             if(touch(x,y,radius,p.x+101,p.y+128,13,1091))return true;
             if(touch(x,y,radius,p.x+1265,p.y+128,13,1091))return true;
-            // These are the same concrete pads used by outdoor machinery art.
-            if(p.type==FACILITY){
-                if(touch(x,y,radius,p.x+220,p.y+895,165,115))return true;
-                if(touch(x,y,radius,p.x+965,p.y+855,175,126))return true;
-            }
-            if(p.type==YARD){
-                if(touch(x,y,radius,p.x+220,p.y+700,230,170))return true;
-                if(touch(x,y,radius,p.x+890,p.y+775,255,160))return true;
-            }
+            // Machines, forklifts and industrial trucks use their actual
+            // source-art alpha bounds at the SAME scale and location as drawing.
+            if(IndustrialPropLayoutV126.blocks(p,x,y,radius))return true;
         }
         return false;
     }
