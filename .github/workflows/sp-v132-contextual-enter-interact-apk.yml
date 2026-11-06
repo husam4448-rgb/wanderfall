@@ -485,8 +485,8 @@ jobs:
           assert 'HudDragV119.verticalOffset(py,editGrabY,' in game
           assert 'if(id==TALK_EDITOR)return talkLeftV94();' in game
           assert 'if(id==TALK_EDITOR)return talkTopV94();' in game
-          assert 'target==TALK_EDITOR?talkLeftV94():uiX(target)' in game
-          assert 'target==TALK_EDITOR?talkTopV94():uiY(target)' in game
+          assert 'editGrabX=HudDragV119.grabOffset(x,uiX(target));' in game
+          assert 'editGrabY=HudDragV119.grabOffset(y,uiY(target));' in game
           assert 'drawGunEffectsV119' in game and 'GunEffectsV119.BULLET_TRAIL_LENGTH' in game
           assert 'gunMuzzleV119' in game and 'gunTrailV119' in game
           assert '"gunMuzzleV119"' in menu and '"gunTrailV119"' in menu
