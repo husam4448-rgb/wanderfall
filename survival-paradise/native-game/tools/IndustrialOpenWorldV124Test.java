@@ -29,7 +29,7 @@ public final class IndustrialOpenWorldV124Test {
             if(p.developed()){
                 check(p.gateSide>=0,"site without road access");
                 check(!IndustrialOpenWorldV124.blocked(
-                    p.x+558,p.y+1240,18,seed),"yard gate blocked");
+                    p.x+700,p.y+1240,18,seed),"yard gate blocked");
             }
             if(IndustrialOpenWorldV124.horizontal(y,x,seed))
                 check(IndustrialOpenWorldV124.roadAt(
