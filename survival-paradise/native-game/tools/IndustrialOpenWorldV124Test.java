@@ -21,7 +21,7 @@ public final class IndustrialOpenWorldV124Test {
                 check(IndustrialOpenWorldV124.nearestEntrance(
                     p.doorX,p.doorY,110,seed)!=null,"portal missing");
                 check(IndustrialOpenWorldV124.blocked(
-                    p.buildingX+120,p.buildingY+120,16,seed),"roof not solid");
+                    p.buildingX+p.buildingW*.5f,p.buildingY+p.buildingH*.55f,16,seed),"roof not solid");
                 check(!IndustrialOpenWorldV124.blocked(
                     p.doorX,p.doorY+55,18,seed),"entrance blocked");
             }else if(p.type==IndustrialOpenWorldV124.YARD)yards++;
