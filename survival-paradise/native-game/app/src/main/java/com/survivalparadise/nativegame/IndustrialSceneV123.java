@@ -157,18 +157,12 @@ public final class IndustrialSceneV123 {
     public static void indoors(Canvas c,Paint p,IndustrialInteriorV123 room){
         int seed=room.district.seed;
         int kind=room.district.kind;
-        r(c,p,0,0,2720,1904,0xff253137);
-        r(c,p,36,36,2648,1825,kind==2?0xff605e57:0xff5e6969);
-        for(int i=0;i<40;i++)r(c,p,36+i*68,38,2,1820,0x33515a58);
-        for(int i=0;i<27;i++)r(c,p,36,36+i*68,2648,2,0x33515a58);
-        // Cross-shaped main avenues and room access are always left open.
-        r(c,p,1080,38,560,1822,0xff80817a);
-        r(c,p,536,820,1644,210,0xff777b77);
-        for(int y=160;y<1700;y+=135)r(c,p,1354,y,12,61,0xffc1a365);
+        // Complete styled floor under every functional collision and room wall.
+        IndustrialInteriorArtV125.ground(c,p,room);
         for(float[] wall:IndustrialInteriorV123.WALLS){
             r(c,p,wall[0]-4,wall[1]-4,wall[2]+8,wall[3]+8,0xff17252a);
-            r(c,p,wall[0],wall[1],wall[2],wall[3],0xff68605a);
-            r(c,p,wall[0]+4,wall[1]+3,Math.max(3,wall[2]-8),5,0xffad8969);
+            r(c,p,wall[0],wall[1],wall[2],wall[3],0xff64564b);
+            r(c,p,wall[0]+4,wall[1]+3,Math.max(3,wall[2]-8),5,0xffbf8c56);
         }
         for(int i=0;i<room.machines.length;i++){
             float[] q=room.machines[i];
