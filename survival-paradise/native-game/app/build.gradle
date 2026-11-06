@@ -3,11 +3,11 @@ android {
  namespace 'com.survivalparadise.nativegame'
  compileSdk 35
  defaultConfig {
-  applicationId 'com.survivalparadise.nativegame.v128stitchedworld'
+  applicationId 'com.survivalparadise.nativegame.v129survivalitems'
   minSdk 24
   targetSdk 34
-  versionCode 128
-  versionName '0.128-industrial-biome-joined-world-test'
+  versionCode 129
+  versionName '0.129-loot-drops-blood-muzzle-test'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
