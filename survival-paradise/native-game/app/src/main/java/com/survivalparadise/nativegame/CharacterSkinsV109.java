@@ -43,6 +43,10 @@ final class CharacterSkinsV109 {
     private final Fit[] fitting=new Fit[COUNT+1];
     private final Bitmap[] originals=new Bitmap[5]; // 0 idle, 1..4 walk
     private final BootArtV133 bootArtV133;
+    // Source-derived Walk 2 bodies with the corrected, centered 8px underline.
+    private final LinkedHashMap<Integer,Bitmap> centeredBodyV135=new LinkedHashMap<Integer,Bitmap>(18,.75f,true){
+        @Override protected boolean removeEldestEntry(Map.Entry<Integer,Bitmap> e){return size()>24;}
+    };
     private final LinkedHashMap<Integer,Bitmap> heads=new LinkedHashMap<Integer,Bitmap>(36,.75f,true){
         @Override protected boolean removeEldestEntry(Map.Entry<Integer,Bitmap> e){
             if(size()<=36)return false;
@@ -315,15 +319,30 @@ final class CharacterSkinsV109 {
         topBodyOutlineV120(canvas,left,top,unit,torsoWidth);
     }
 
-    /** V134: pixel-exact missing right end of the APPROVED V6 Walk 2
-     * lower horizontal black line. The original x60..119 pixels remain;
-     * the canonical V6 silhouette extends only through x128 at y220..239.
-     * No added pixels touch the torso, pelvis colors, head, hands or boots.
+    /** V135: source-pixel exact Walk 2 torso with a thin, centered underside.
+     * Original black x60..119,y220..239 is 60x20, offset to the rear.
+     * Replace only that original rectangle with x80..119,y220..227
+     * (40x8, symmetrical about the 200px body's x100 centre).
+     * No new geometry changes the head, blue band, hands, or walking boots.
+     * Derived bitmaps are cached per original V5 outfit-blend value.
      */
-    private void lowerOutlineV134(Canvas c,float left,float top,float unit,
-                                  int torsoWidth,int pelvisWidth){
-        c.drawRect(left+120f*unit,top+220f*unit,
-            left+129f*unit,top+240f*unit,upperOutlinePaintV120);
+    private Bitmap thinCenteredUnderbodyV135(Bitmap source,int blend) {
+        int key=range(blend,0,40);
+        Bitmap cached=centeredBodyV135.get(key);
+        if(cached!=null)return cached;
+        int[] rgba=new int[WIDTH*HEIGHT];
+        source.getPixels(rgba,0,WIDTH,0,0,WIDTH,HEIGHT);
+        // Clear ONLY the original solid black underbody block.
+        for(int y=220;y<240;y++)for(int x=60;x<120;x++){
+            int index=y*WIDTH+x;
+            if(rgba[index]==android.graphics.Color.BLACK)rgba[index]=0;
+        }
+        // One 8-pixel-high horizontal black underline centered on x=100.
+        for(int y=220;y<228;y++)for(int x=80;x<120;x++)
+            rgba[y*WIDTH+x]=android.graphics.Color.BLACK;
+        Bitmap result=Bitmap.createBitmap(rgba,WIDTH,HEIGHT,Bitmap.Config.ARGB_8888);
+        centeredBodyV135.put(key,result);
+        return result;
     }
 
     /** Draw at the existing GameView origin: character feet are planted at y+24s.
@@ -344,9 +363,9 @@ final class CharacterSkinsV109 {
         // User-approved V133 standard: exact Walk 2 body is static in idle and
         // every walking frame. Only the independent boots animate with bodyFrame.
         Bitmap body=body(2,fit.blend);
+        body=thinCenteredUnderbodyV135(body,fit.blend);
         drawBody(c,body,2,fit.blend,left,top,unit,
             torsoWidthPercent,pelvisWidthPercent,pixel);
-        lowerOutlineV134(c,left,top,unit,torsoWidthPercent,pelvisWidthPercent);
         bootArtV133.draw(c,bodyFrame,bootStyleV133,left,top,unit,pixel);
         Bitmap h=head(id);if(h==null)return;
         float headScale=Math.min(186f/h.getWidth(),192f/h.getHeight())*(fit.headScale/107f)*
