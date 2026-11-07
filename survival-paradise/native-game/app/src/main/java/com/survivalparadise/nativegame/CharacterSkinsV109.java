@@ -319,26 +319,21 @@ final class CharacterSkinsV109 {
         topBodyOutlineV120(canvas,left,top,unit,torsoWidth);
     }
 
-    /** V135: source-pixel exact Walk 2 torso with a thin, centered underside.
-     * Original black x60..119,y220..239 is 60x20, offset to the rear.
-     * Replace only that original rectangle with x80..119,y220..227
-     * (40x8, symmetrical about the 200px body's x100 centre).
-     * No new geometry changes the head, blue band, hands, or walking boots.
-     * Derived bitmaps are cached per original V5 outfit-blend value.
+    /** V136: match user's approved character reference exactly at the black
+     * underside. Its black region is the full 80-source-pixel width of the blue
+     * band above (x60..139), centered on x100, with the same 20px row height.
+     * Never change a head, torso, hand, boot, or any other original body pixels.
+     * Keep per-fit outfit blending untouched; derive result from Walk 2 only.
      */
-    private Bitmap thinCenteredUnderbodyV135(Bitmap source,int blend) {
+    private Bitmap referenceUnderbodyV136(Bitmap source,int blend) {
         int key=range(blend,0,40);
         Bitmap cached=centeredBodyV135.get(key);
         if(cached!=null)return cached;
         int[] rgba=new int[WIDTH*HEIGHT];
         source.getPixels(rgba,0,WIDTH,0,0,WIDTH,HEIGHT);
-        // Clear ONLY the original solid black underbody block.
-        for(int y=220;y<240;y++)for(int x=60;x<120;x++){
-            int index=y*WIDTH+x;
-            if(rgba[index]==android.graphics.Color.BLACK)rgba[index]=0;
-        }
-        // One 8-pixel-high horizontal black underline centered on x=100.
-        for(int y=220;y<228;y++)for(int x=80;x<120;x++)
+        // The V109 Walk 2 source underbody was 60px wide; fill only
+        // its transparent right extension, through x139, at y220..239.
+        for(int y=220;y<240;y++)for(int x=60;x<140;x++)
             rgba[y*WIDTH+x]=android.graphics.Color.BLACK;
         Bitmap result=Bitmap.createBitmap(rgba,WIDTH,HEIGHT,Bitmap.Config.ARGB_8888);
         centeredBodyV135.put(key,result);
@@ -363,7 +358,7 @@ final class CharacterSkinsV109 {
         // User-approved V133 standard: exact Walk 2 body is static in idle and
         // every walking frame. Only the independent boots animate with bodyFrame.
         Bitmap body=body(2,fit.blend);
-        body=thinCenteredUnderbodyV135(body,fit.blend);
+        body=referenceUnderbodyV136(body,fit.blend);
         drawBody(c,body,2,fit.blend,left,top,unit,
             torsoWidthPercent,pelvisWidthPercent,pixel);
         bootArtV133.draw(c,bodyFrame,bootStyleV133,left,top,unit,pixel);
