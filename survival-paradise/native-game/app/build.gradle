@@ -3,11 +3,11 @@ android {
  namespace 'com.survivalparadise.nativegame'
  compileSdk 35
  defaultConfig {
-  applicationId 'com.survivalparadise.nativegame.v133boots'
+  applicationId 'com.survivalparadise.nativegame.v134loot'
   minSdk 24
   targetSdk 34
-  versionCode 133
-  versionName '0.133-animated-boots'
+  versionCode 134
+  versionName '0.134-compact-loot-grid'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
