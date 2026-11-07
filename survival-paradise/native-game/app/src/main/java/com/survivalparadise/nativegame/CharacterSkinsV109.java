@@ -315,6 +315,22 @@ final class CharacterSkinsV109 {
         topBodyOutlineV120(canvas,left,top,unit,torsoWidth);
     }
 
+    /** V134: restore ONLY the missing lower horizontal black contour when the
+     * independently narrowed pelvis leaves a gap toward the front boot.
+     * Walk 2 remains the source body for every frame. Nothing at y<220 is drawn.
+     * At 100% scale this is a no-op to preserve the approved exact sprite.
+     */
+    private void lowerOutlineV134(Canvas c,float left,float top,float unit,
+                                  int torsoWidth,int pelvisWidth){
+        if(pelvisWidth>=PelvisWidthV115.MAX_PERCENT)return;
+        float from=120f; // exclusive end of the Walk 2 lower black source block
+        float to=Math.min(BodyAlignmentV120.bodyFrontExclusive(torsoWidth),
+            BodyAlignmentV120.bodyFrontExclusive(pelvisWidth));
+        if(to<=from)return;
+        c.drawRect(left+from*unit,top+220f*unit,
+            left+to*unit,top+228f*unit,upperOutlinePaintV120);
+    }
+
     /** Draw at the existing GameView origin: character feet are planted at y+24s.
      * Uses nearest-neighbor source sampling, original silhouettes, unchanged feet.
      */
@@ -335,6 +351,7 @@ final class CharacterSkinsV109 {
         Bitmap body=body(2,fit.blend);
         drawBody(c,body,2,fit.blend,left,top,unit,
             torsoWidthPercent,pelvisWidthPercent,pixel);
+        lowerOutlineV134(c,left,top,unit,torsoWidthPercent,pelvisWidthPercent);
         bootArtV133.draw(c,bodyFrame,bootStyleV133,left,top,unit,pixel);
         Bitmap h=head(id);if(h==null)return;
         float headScale=Math.min(186f/h.getWidth(),192f/h.getHeight())*(fit.headScale/107f)*
