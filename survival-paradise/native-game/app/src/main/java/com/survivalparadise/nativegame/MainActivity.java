@@ -578,6 +578,8 @@ public final class MainActivity extends Activity {
         bg.setCornerRadius(0);
         bg.setStroke(Math.max(1,Math.round(getResources().
             getDisplayMetrics().density)),0xff687b72);
+        button.setStateListAnimator(null);
+        button.setElevation(0f);
         button.setBackground(bg);
         return button;
     }
