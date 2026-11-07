@@ -1466,8 +1466,19 @@ public final class MainActivity extends Activity {
                 game.headgearStyleV96=i;game.saveProgress();avatar.invalidate();
                 headLookV96.setText("HEADGEAR LOOK\n"+WearableArtV96.HEAD_NAMES[i]);d.dismiss();
             }).show());
+        Button bootLookV133=v62Slot("BOOTS LOOK\n"+
+            BootArtV133.NAMES[game.bootStyleV133],true);
+        bootLookV133.setOnClickListener(v->new AlertDialog.Builder(this)
+            .setTitle("V133 APPROVED BOOTS — 5 ANIMATED DESIGNS")
+            .setSingleChoiceItems(BootArtV133.NAMES,game.bootStyleV133,(d,i)->{
+                game.bootStyleV133=BootArtV133.clampStyle(i);
+                game.saveProgress();avatar.invalidate();
+                bootLookV133.setText("BOOTS LOOK\n"+BootArtV133.NAMES[i]);
+                d.dismiss();
+            }).show());
         appearanceV96.addView(packLookV96,new LinearLayout.LayoutParams(0,-2,1));
         appearanceV96.addView(headLookV96,new LinearLayout.LayoutParams(0,-2,1));
+        appearanceV96.addView(bootLookV133,new LinearLayout.LayoutParams(0,-2,1));
         left.addView(appearanceV96);
         left.addView(text("Carry capacity: "+game.fieldFindsV91.capacity()+
             " • ENC "+Math.round(game.encumbranceV91())+"% • Packs appear on the survivor.",12,false));
