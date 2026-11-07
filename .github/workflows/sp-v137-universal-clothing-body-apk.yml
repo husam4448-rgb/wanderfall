@@ -578,7 +578,7 @@ jobs:
           game=(native/'GameView.java').read_text()
           menu=(native/'MainActivity.java').read_text()
           assert 'sp_v133_boots.zip' in boot
-          assert 'Bitmap body=body(2,fit.blend);' in char
+          assert 'Bitmap body=outfittedBodyV137(torsoStyleV137,pantsStyleV137);' in char
           assert 'bootArtV133.draw(c,bodyFrame,bootStyleV133' in char
           assert 'wardrobeV92.equipped[3]>=0?bootStyleV133:0' in game
           assert '.putInt("bootStyleV133",bootStyleV133)' in game
