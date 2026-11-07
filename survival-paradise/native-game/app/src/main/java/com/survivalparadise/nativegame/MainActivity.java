@@ -564,20 +564,20 @@ public final class MainActivity extends Activity {
         });
     }
     /** V88 buttons retain the V62 palette but their measured height equals width. */
+    /** V134 universal flat square cell: no gradients, lift or inconsistent inset. */
     private SquareItemSlotV88 v88SquareSlot(String title,boolean equipped){
         SquareItemSlotV88 button=new SquareItemSlotV88(this);
-        button.setAllCaps(false);button.setText(title);button.setTextSize(11);
-        button.setTextColor(0xffe1cfac);
-        button.setPadding(4,4,4,4);
+        button.setAllCaps(false);button.setText(title);button.setTextSize(9);
+        button.setTextColor(0xffe5d9bd);
+        button.setPadding(1,1,1,1);
         button.setMinHeight(0);button.setMinimumHeight(0);
         button.setMinWidth(0);button.setMinimumWidth(0);
         android.graphics.drawable.GradientDrawable bg=
-            new android.graphics.drawable.GradientDrawable(
-                android.graphics.drawable.GradientDrawable.Orientation.TL_BR,
-                equipped?new int[]{0xff554335,0xff2c2521}:
-                new int[]{0xff40342b,0xff201d1c});
-        bg.setCornerRadius(4);
-        bg.setStroke(2,equipped?0xffaa854d:0xff665747);
+            new android.graphics.drawable.GradientDrawable();
+        bg.setColor(0xff293633);
+        bg.setCornerRadius(0);
+        bg.setStroke(Math.max(1,Math.round(getResources().
+            getDisplayMetrics().density)),0xff687b72);
         button.setBackground(bg);
         return button;
     }
@@ -658,155 +658,209 @@ public final class MainActivity extends Activity {
             return true;
         };
     }
-    void lootBanditBagV87(BanditLootV87.Bag bag){
-        if(game==null||bag==null||!game.banditLootV87.contains(bag)||!game.isPlaying())return;
-        if(game.nearbyBanditBagV87()!=bag)return; // requires close proximity
+    /** V134: identical flat, edge-to-edge square slot geometry for both loot panes. */
+    private SquareItemSlotV88[] lootGridV134(LinearLayout target,int total){
+        final int columns=5;
+        SquareItemSlotV88[] slots=new SquareItemSlotV88[total];
+        for(int row=0;row<(total+columns-1)/columns;row++){
+            LinearLayout line=new LinearLayout(this);
+            line.setOrientation(LinearLayout.HORIZONTAL);
+            target.addView(line,new LinearLayout.LayoutParams(-1,-2));
+            for(int col=0;col<columns&&row*columns+col<total;col++){
+                int position=row*columns+col;
+                SquareItemSlotV88 tile=v88SquareSlot("",false);
+                tile.setGravity(Gravity.CENTER);
+                tile.setTextSize(8f);
+                tile.setPadding(1,1,1,1);
+                tile.setTag(-1);
+                LinearLayout.LayoutParams params=
+                    new LinearLayout.LayoutParams(0,-2,1f);
+                int margin=Math.max(1,Math.round(getResources().
+                    getDisplayMetrics().density));
+                params.setMargins(margin,margin,margin,margin);
+                line.addView(tile,params);
+                slots[position]=tile;
+            }
+        }
+        return slots;
+    }
+    /** V134: source and destination tiles draw the same item icon and label. */
+    private android.graphics.drawable.Drawable lootIconV134(int type){
+        if(type>=24&&type<39)
+            return GearItemIconsV95.drawable(this,type-24,18);
+        if(type>=14&&type<24)
+            return FieldItemIconsV91.drawable(getResources(),type-14,18);
+        return game.itemIconsV84.drawable(getResources(),
+            type==10?ItemIconsV84.WATER_COLLECTOR:
+            type==11?ItemIconsV84.FIELD_SHELTER:
+            type==12?ItemIconsV84.BANDAGE:
+            type==13?ItemIconsV84.ENERGY_RATION:type,18);
+    }
+    private void showLootTileV134(SquareItemSlotV88 cell,int type,int amount,
+                                  boolean chosen){
+        if(type<0||type>=39||amount<=0){
+            cell.setText("");
+            cell.setCompoundDrawables(null,null,null,null);
+            cell.setContentDescription("Empty inventory slot");
+            return;
+        }
+        String name=GameView.INVENTORY_NAMES_V92[type];
+        cell.setText(name.substring(0,Math.min(7,name.length()))+
+            "\n×"+amount+(chosen?" ✓":""));
+        cell.setCompoundDrawables(null,lootIconV134(type),null,null);
+        cell.setCompoundDrawablePadding(1);
+        cell.setTextColor(chosen?0xfff6d37c:0xffe6d7b7);
+        cell.setContentDescription(name+" ×"+amount);
+    }
+    /** A single, stable listener reads the current compacted source kind. */
+    private void attachCompactLootTouchV134(SquareItemSlotV88 cell,int[] selected,
+                                             Runnable[] refresh,LootCountV95 counts){
+        final float[] first={0f,0f};
+        final int[] pressed={-1};
+        final boolean[] dragging={false};
+        final float threshold=8f*getResources().getDisplayMetrics().density;
+        cell.setOnClickListener(v->{
+            Object tag=v.getTag();
+            if(!(tag instanceof Integer))return;
+            int kind=(Integer)tag;
+            if(kind>=0&&counts.at(kind)>0){
+                selected[0]=kind;
+                if(refresh[0]!=null)refresh[0].run();
+            }
+        });
+        cell.setOnTouchListener((v,e)->{
+            int action=e.getActionMasked();
+            if(action==android.view.MotionEvent.ACTION_DOWN){
+                Object tag=v.getTag();
+                pressed[0]=tag instanceof Integer?(Integer)tag:-1;
+                if(pressed[0]<0||counts.at(pressed[0])<=0)return true;
+                first[0]=e.getRawX();first[1]=e.getRawY();
+                dragging[0]=false;selected[0]=pressed[0];
+                if(refresh[0]!=null)refresh[0].run();
+                return true;
+            }
+            if(action==android.view.MotionEvent.ACTION_MOVE){
+                int kind=pressed[0];
+                if(kind>=0&&counts.at(kind)>0&&!dragging[0]&&
+                    Math.hypot(e.getRawX()-first[0],
+                        e.getRawY()-first[1])>threshold){
+                    android.content.ClipData data=android.content.ClipData.
+                        newPlainText("sp-loot-v134",Integer.toString(kind));
+                    dragging[0]=v.startDragAndDrop(data,
+                        new View.DragShadowBuilder(v),null,0);
+                }
+                return true;
+            }
+            if(action==android.view.MotionEvent.ACTION_UP){
+                if(!dragging[0]&&pressed[0]>=0)v.performClick();
+                pressed[0]=-1;dragging[0]=false;return true;
+            }
+            if(action==android.view.MotionEvent.ACTION_CANCEL){
+                pressed[0]=-1;dragging[0]=false;return true;
+            }
+            return true;
+        });
+    }
+    interface LootTakeV134 { int take(int kind); }
+    interface LootAllV134 { int take(); }
+    /** V134 single grid layout for corpses, caches and indoor containers.
+     * Neither destination nor source uses fixed item-type coordinates.
+     */
+    private void compactLootDialogV134(String title,String sourceTitle,int kinds,
+                                       LootCountV95 counts,LootTakeV134 take,
+                                       LootAllV134 takeAll,boolean closeWhenEmpty){
         game.menuPause(true);
+        if(!game.bagOrderInitializedV92)game.initInventoryOrderV92();
+        game.organizeBagV131(0);
         LinearLayout shell=column();
         shell.setBackgroundColor(0xff212825);
-        ExpeditionSitesV88.Site siteV88=ExpeditionSitesV88.nearest(
-            bag.x-115f,bag.y-91f,12f);
-        section(shell,bag.corpse?"FALLEN CHARACTER  •  SEARCH POSSESSIONS":
-            siteV88==null?"BANDIT BACKPACK  •  SEARCH & TRANSFER":
-            siteV88.name+"  •  SUPPLY CACHE");
-        shell.addView(text("Tap an item then LOOT, or drag its icon across to PLAYER INVENTORY. LOOT ALL collects everything.",12,false));
+        section(shell,title);
+        shell.addView(text("Select an item or drag it into PLAYER INVENTORY. "+
+            "New items fill the next available slot.",11,false));
         LinearLayout sides=new LinearLayout(this);
         sides.setOrientation(LinearLayout.HORIZONTAL);
         shell.addView(sides,new LinearLayout.LayoutParams(-1,0,1f));
         LinearLayout source=column(),destination=column();
-        source.setBackgroundColor(0xff34302a);
+        source.setBackgroundColor(0xff29312e);
         destination.setBackgroundColor(0xff233b34);
         sides.addView(source,new LinearLayout.LayoutParams(0,-1,1f));
         sides.addView(destination,new LinearLayout.LayoutParams(0,-1,1f));
-        section(source,siteV88==null?"BANDIT LOOT":"SCAVENGE SUPPLIES");
+        section(source,sourceTitle);
         section(destination,"PLAYER INVENTORY");
-        ScrollView srcScroll=new ScrollView(this);
-        ScrollView dstScroll=new ScrollView(this);
+        ScrollView srcScroll=new ScrollView(this),dstScroll=new ScrollView(this);
         LinearLayout srcItems=column(),dstItems=column();
+        srcScroll.setFillViewport(false);dstScroll.setFillViewport(false);
         srcScroll.addView(srcItems);dstScroll.addView(dstItems);
         source.addView(srcScroll,new LinearLayout.LayoutParams(-1,0,1f));
         destination.addView(dstScroll,new LinearLayout.LayoutParams(-1,0,1f));
+        final SquareItemSlotV88[] sourceCells=lootGridV134(srcItems,25);
+        final SquareItemSlotV88[] playerCells=lootGridV134(dstItems,40);
         final int[] selected={-1};
-        final Button[] lootButtons=new Button[BanditLootV87.ITEMS];
-        final Button[] playerButtons=new Button[BanditLootV87.ITEMS];
-        final int height=Math.round(66f*getResources().getDisplayMetrics().density);
-        final LinearLayout[] srcRowsV88=new LinearLayout[4];
-        final LinearLayout[] dstRowsV88=new LinearLayout[4];
-        final int cellEdgeV93=Math.round(46f*getResources().getDisplayMetrics().density);
+        final Runnable[] refresh={null},claim={null};
         final AlertDialog[] active={null};
-        final Runnable[] refresh={null};
-        final Runnable[] claimSelected={null};
-        claimSelected[0]=()->{
-            int kind=selected[0];
-            if(kind<0)return;
-            if(game.lootBanditStackV87(bag,kind)>0){
-                selected[0]=-1;
-                refresh[0].run();
-                if(!game.banditLootV87.contains(bag)&&active[0]!=null)
-                    active[0].dismiss();
-            }
-        };
-        for(int i=0;i<BanditLootV87.ITEMS;i++){
-            final int kind=i;
-            int rowIndex=i/6;
-            if(srcRowsV88[rowIndex]==null){
-                LinearLayout a=column();a.setOrientation(LinearLayout.HORIZONTAL);
-                LinearLayout b=column();b.setOrientation(LinearLayout.HORIZONTAL);
-                srcRowsV88[rowIndex]=a;dstRowsV88[rowIndex]=b;
-                srcItems.addView(a);dstItems.addView(b);
-            }
-            SquareItemSlotV88 take=v88SquareSlot(BanditLootV87.NAMES[i],true);
-            take.setCompoundDrawables(null,game.itemIconsV84.drawable(
-                getResources(),kind,18),null,null);
-            take.setCompoundDrawablePadding(2);
-            take.setGravity(Gravity.CENTER);
-            take.setTextSize(8);
-            LinearLayout.LayoutParams srcParams=new LinearLayout.LayoutParams(cellEdgeV93,cellEdgeV93);
-            srcParams.setMargins(2,2,2,2);srcRowsV88[rowIndex].addView(take,srcParams);
-            lootButtons[i]=take;
-            attachLootSourceV95(take,kind,selected,refresh,
-                k->k<BanditLootV87.ITEMS?bag.count[k]:0);
-            SquareItemSlotV88 own=v88SquareSlot(BanditLootV87.NAMES[i],false);
-            own.setCompoundDrawables(null,game.itemIconsV84.drawable(
-                getResources(),kind,18),null,null);
-            own.setCompoundDrawablePadding(2);
-            own.setGravity(Gravity.CENTER);
-            own.setTextSize(8);
-            LinearLayout.LayoutParams ownParams=new LinearLayout.LayoutParams(cellEdgeV93,cellEdgeV93);
-            ownParams.setMargins(2,2,2,2);dstRowsV88[rowIndex].addView(own,ownParams);
-            playerButtons[i]=own;
-        }
-        // Always show every empty inventory cell; never expand occupied stacks.
-        for(int j=BanditLootV87.ITEMS;j<24;j++){
-            int rowIndex=j/6;
-            if(srcRowsV88[rowIndex]==null){
-                LinearLayout a=column();a.setOrientation(LinearLayout.HORIZONTAL);
-                LinearLayout b=column();b.setOrientation(LinearLayout.HORIZONTAL);
-                srcRowsV88[rowIndex]=a;dstRowsV88[rowIndex]=b;
-                srcItems.addView(a);dstItems.addView(b);
-            }
-            for(LinearLayout target:new LinearLayout[]{srcRowsV88[rowIndex],dstRowsV88[rowIndex]}){
-                SquareItemSlotV88 blank=v88SquareSlot("",false);
-                // All destination squares accept drops, including empty ones.
-                blank.setEnabled(target==dstRowsV88[rowIndex]);
-                blank.setContentDescription("Empty slot");
-                LinearLayout.LayoutParams square=new LinearLayout.LayoutParams(
-                    cellEdgeV93,cellEdgeV93);
-                square.setMargins(2,2,2,2);target.addView(blank,square);
-            }
-        }
         refresh[0]=()->{
-            int[] playerCounts={game.scrap,game.medkits,game.ammoPacks,
-                game.foodCount,game.waterCount,game.wood,game.stone,game.fiber};
-            for(int i=0;i<BanditLootV87.ITEMS;i++){
-                int count=bag.count[i];
-                Button sourceButton=lootButtons[i];
-                sourceButton.setVisibility(View.VISIBLE);
-                sourceButton.setEnabled(count>0);
-                sourceButton.setCompoundDrawables(null,count>0?
-                    game.itemIconsV84.drawable(getResources(),i,18):null,null,null);
-                sourceButton.setText(count>0?
-                    BanditLootV87.NAMES[i].toUpperCase()+"\n×"+count+
-                    (selected[0]==i?" ✓":""):"");
-                sourceButton.setTextColor(selected[0]==i?
-                    0xfff8c873:0xffe6d7b7);
-                playerButtons[i].setCompoundDrawables(null,playerCounts[i]>0?
-                    game.itemIconsV84.drawable(getResources(),i,18):null,null,null);
-                playerButtons[i].setText(playerCounts[i]>0?
-                    BanditLootV87.NAMES[i].toUpperCase()+"\n×"+playerCounts[i]:"");
+            int index=0;
+            for(int kind=0;kind<kinds;kind++){
+                int amount=counts.at(kind);
+                if(amount<=0)continue;
+                if(index>=sourceCells.length)break;
+                SquareItemSlotV88 cell=sourceCells[index++];
+                int inventoryType=kind<BanditLootV87.ITEMS?kind:
+                    24+(kind-BanditLootV87.ITEMS);
+                cell.setTag(kind);
+                showLootTileV134(cell,inventoryType,amount,selected[0]==kind);
+            }
+            while(index<sourceCells.length){
+                SquareItemSlotV88 cell=sourceCells[index++];
+                cell.setTag(-1);showLootTileV134(cell,-1,0,false);
+            }
+            game.reconcileBagSplitsV130();
+            for(int i=0;i<playerCells.length;i++){
+                int type=game.bagOrderV92[i];
+                int amount=game.bagSlotQuantityV130(i);
+                showLootTileV134(playerCells[i],type,amount,false);
             }
         };
+        claim[0]=()->{
+            int kind=selected[0];
+            if(kind<0||kind>=kinds||counts.at(kind)<=0)return;
+            if(take.take(kind)>0){
+                selected[0]=-1;
+                game.organizeBagV131(0);
+                refresh[0].run();
+                if(closeWhenEmpty&&active[0]!=null){
+                    boolean any=false;
+                    for(int k=0;k<kinds;k++)if(counts.at(k)>0){any=true;break;}
+                    if(!any)active[0].dismiss();
+                }
+            }
+        };
+        for(SquareItemSlotV88 cell:sourceCells)
+            attachCompactLootTouchV134(cell,selected,refresh,counts);
+        View.OnDragListener drop=lootDropV95(selected,claim,kinds);
+        destination.setOnDragListener(drop);
+        dstScroll.setOnDragListener(drop);
+        dstItems.setOnDragListener(drop);
+        for(SquareItemSlotV88 cell:playerCells)cell.setOnDragListener(drop);
         refresh[0].run();
-        // Drop onto an occupied OR empty player cell; both accept items.
-        View.OnDragListener destinationDropV95=lootDropV95(selected,
-            claimSelected,lootButtons.length);
-        destination.setOnDragListener(destinationDropV95);
-        dstScroll.setOnDragListener(destinationDropV95);
-        dstItems.setOnDragListener(destinationDropV95);
-        for(Button receiver:playerButtons)
-            if(receiver!=null)receiver.setOnDragListener(destinationDropV95);
-        // Including all vacant cells: the drop target must be the slot,
-        // not a container panel hidden underneath the child views.
-        for(int row=0;row<dstItems.getChildCount();row++){
-            View children=dstItems.getChildAt(row);
-            if(!(children instanceof LinearLayout))continue;
-            LinearLayout line=(LinearLayout)children;
-            for(int col=0;col<line.getChildCount();col++)
-                line.getChildAt(col).setOnDragListener(destinationDropV95);
-        }
         LinearLayout footer=new LinearLayout(this);
         footer.setOrientation(LinearLayout.HORIZONTAL);
-        shell.addView(footer);
+        shell.addView(footer,new LinearLayout.LayoutParams(-1,-2));
         Button loot=v62Slot("LOOT",true),all=v62Slot("LOOT ALL",true),
             close=v62Slot("CLOSE",true);
-        footer.addView(loot,new LinearLayout.LayoutParams(0,-2,1));
-        footer.addView(all,new LinearLayout.LayoutParams(0,-2,1));
-        footer.addView(close,new LinearLayout.LayoutParams(0,-2,1));
-        loot.setOnClickListener(v->claimSelected[0].run());
+        int footerHeight=Math.round(58f*getResources().getDisplayMetrics().density);
+        for(Button button:new Button[]{loot,all,close}){
+            button.setTextSize(12f);
+            button.setGravity(Gravity.CENTER);
+            LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,footerHeight,1f);
+            lp.setMargins(2,4,2,3);footer.addView(button,lp);
+        }
+        loot.setOnClickListener(v->claim[0].run());
         all.setOnClickListener(v->{
-            if(game.lootAllBanditV87(bag)>0){
+            if(takeAll.take()>0){
+                game.organizeBagV131(0);
                 refresh[0].run();
-                if(active[0]!=null)active[0].dismiss();
+                if(closeWhenEmpty&&active[0]!=null)active[0].dismiss();
             }
         });
         AlertDialog dialog=new AlertDialog.Builder(this).setView(shell).create();
@@ -820,172 +874,34 @@ public final class MainActivity extends Activity {
         dialog.setCanceledOnTouchOutside(true);
         resizeSettingsWindow(dialog,94,88);
     }
+    void lootBanditBagV87(BanditLootV87.Bag bag){
+        if(game==null||bag==null||!game.banditLootV87.contains(bag)||
+            !game.isPlaying()||game.nearbyBanditBagV87()!=bag)return;
+        ExpeditionSitesV88.Site site=ExpeditionSitesV88.nearest(
+            bag.x-115f,bag.y-91f,12f);
+        compactLootDialogV134(
+            bag.corpse?"FALLEN CHARACTER  •  SEARCH POSSESSIONS":
+                site==null?"BANDIT BACKPACK  •  SEARCH & TRANSFER":
+                site.name+"  •  SUPPLY CACHE",
+            site==null?"BANDIT LOOT":"SCAVENGE SUPPLIES",
+            BanditLootV87.ITEMS,
+            kind->bag.count[kind],
+            kind->game.lootBanditStackV87(bag,kind),
+            ()->game.lootAllBanditV87(bag),true);
+    }
     void lootClinicStorageV89(ClinicInteriorV89.Storage box){
         if(game==null||box==null||!game.insideClinicV89||
-            !game.clinicInteriorV89.contains(box)||!game.isPlaying())return;
-        if(game.nearestAnyInteriorStorageV91(game.playerX,game.playerY,
-            ClinicInteriorV89.USE_RADIUS)!=box)return;
-        game.menuPause(true);
-        LinearLayout shell=column();
-        shell.setBackgroundColor(0xff212825);
-        section(shell,game.currentSiteNameV91()+" • "+box.label);
-        shell.addView(text("Tap an item then LOOT, or drag its icon across to PLAYER INVENTORY. LOOT ALL collects everything.",12,false));
-        LinearLayout sides=new LinearLayout(this);
-        sides.setOrientation(LinearLayout.HORIZONTAL);
-        shell.addView(sides,new LinearLayout.LayoutParams(-1,0,1f));
-        LinearLayout source=column(),destination=column();
-        source.setBackgroundColor(0xff34302a);
-        destination.setBackgroundColor(0xff233b34);
-        sides.addView(source,new LinearLayout.LayoutParams(0,-1,1f));
-        sides.addView(destination,new LinearLayout.LayoutParams(0,-1,1f));
-        section(source,"CONTAINER SUPPLIES");
-        section(destination,"PLAYER INVENTORY");
-        ScrollView srcScroll=new ScrollView(this);
-        ScrollView dstScroll=new ScrollView(this);
-        LinearLayout srcItems=column(),dstItems=column();
-        srcScroll.addView(srcItems);dstScroll.addView(dstItems);
-        source.addView(srcScroll,new LinearLayout.LayoutParams(-1,0,1f));
-        destination.addView(dstScroll,new LinearLayout.LayoutParams(-1,0,1f));
-        final int[] selected={-1};
-        final Button[] lootButtons=new Button[GearLootV95.TOTAL];
-        final Button[] playerButtons=new Button[GearLootV95.TOTAL];
-        final int height=Math.round(66f*getResources().getDisplayMetrics().density);
-        final LinearLayout[] srcRowsV88=new LinearLayout[4];
-        final LinearLayout[] dstRowsV88=new LinearLayout[4];
-        final int cellEdgeV93=Math.round(46f*getResources().getDisplayMetrics().density);
-        final AlertDialog[] active={null};
-        final Runnable[] refresh={null};
-        final Runnable[] claimSelected={null};
-        claimSelected[0]=()->{
-            int kind=selected[0];
-            if(kind<0)return;
-            int amount=kind<BanditLootV87.ITEMS?game.lootClinicStackV89(box,kind):
-                game.lootClinicGearV95(box,kind-BanditLootV87.ITEMS);
-            if(amount>0){
-                selected[0]=-1;
-                refresh[0].run();
-                // Keep inventory open for further transfers.
-            }
-        };
-        for(int i=0;i<GearLootV95.TOTAL;i++){
-            final int kind=i;
-            int rowIndex=i/6;
-            if(srcRowsV88[rowIndex]==null){
-                LinearLayout a=column();a.setOrientation(LinearLayout.HORIZONTAL);
-                LinearLayout b=column();b.setOrientation(LinearLayout.HORIZONTAL);
-                srcRowsV88[rowIndex]=a;dstRowsV88[rowIndex]=b;
-                srcItems.addView(a);dstItems.addView(b);
-            }
-            String name=kind<BanditLootV87.ITEMS?BanditLootV87.NAMES[kind]:
-                GearLootV95.NAMES[kind-BanditLootV87.ITEMS];
-            SquareItemSlotV88 take=v88SquareSlot(name,true);
-            take.setCompoundDrawables(null,kind<BanditLootV87.ITEMS?
-                game.itemIconsV84.drawable(getResources(),kind,18):
-                GearItemIconsV95.drawable(this,kind-BanditLootV87.ITEMS,18),null,null);
-            take.setCompoundDrawablePadding(2);
-            take.setGravity(Gravity.CENTER);
-            take.setTextSize(8);
-            LinearLayout.LayoutParams srcParams=new LinearLayout.LayoutParams(cellEdgeV93,cellEdgeV93);
-            srcParams.setMargins(2,2,2,2);srcRowsV88[rowIndex].addView(take,srcParams);
-            lootButtons[i]=take;
-            attachLootSourceV95(take,kind,selected,refresh,
-                k->k<BanditLootV87.ITEMS?box.amount[k]:
-                game.remainingGearV95(box,k-BanditLootV87.ITEMS));
-            SquareItemSlotV88 own=v88SquareSlot(name,false);
-            own.setCompoundDrawables(null,kind<BanditLootV87.ITEMS?
-                game.itemIconsV84.drawable(getResources(),kind,18):
-                GearItemIconsV95.drawable(this,kind-BanditLootV87.ITEMS,18),null,null);
-            own.setCompoundDrawablePadding(2);
-            own.setGravity(Gravity.CENTER);
-            own.setTextSize(8);
-            LinearLayout.LayoutParams ownParams=new LinearLayout.LayoutParams(cellEdgeV93,cellEdgeV93);
-            ownParams.setMargins(2,2,2,2);dstRowsV88[rowIndex].addView(own,ownParams);
-            playerButtons[i]=own;
-        }
-        // Always show every empty inventory cell; never expand occupied stacks.
-        for(int j=GearLootV95.TOTAL;j<24;j++){
-            int rowIndex=j/6;
-            if(srcRowsV88[rowIndex]==null){
-                LinearLayout a=column();a.setOrientation(LinearLayout.HORIZONTAL);
-                LinearLayout b=column();b.setOrientation(LinearLayout.HORIZONTAL);
-                srcRowsV88[rowIndex]=a;dstRowsV88[rowIndex]=b;
-                srcItems.addView(a);dstItems.addView(b);
-            }
-            for(LinearLayout target:new LinearLayout[]{srcRowsV88[rowIndex],dstRowsV88[rowIndex]}){
-                SquareItemSlotV88 blank=v88SquareSlot("",false);
-                // All destination squares accept drops, including empty ones.
-                blank.setEnabled(target==dstRowsV88[rowIndex]);
-                blank.setContentDescription("Empty slot");
-                LinearLayout.LayoutParams square=new LinearLayout.LayoutParams(
-                    cellEdgeV93,cellEdgeV93);
-                square.setMargins(2,2,2,2);target.addView(blank,square);
-            }
-        }
-        refresh[0]=()->{
-            int[] oldCounts={game.scrap,game.medkits,game.ammoPacks,
-                game.foodCount,game.waterCount,game.wood,game.stone,game.fiber};
-            for(int i=0;i<GearLootV95.TOTAL;i++){
-                boolean gear=i>=BanditLootV87.ITEMS;
-                int kind=i-BanditLootV87.ITEMS;
-                String name=gear?GearLootV95.NAMES[kind]:BanditLootV87.NAMES[i];
-                int count=gear?game.remainingGearV95(box,kind):box.amount[i];
-                int own=gear?game.playerGearQuantityV95(kind):oldCounts[i];
-                Button from=lootButtons[i],to=playerButtons[i];
-                from.setEnabled(count>0);
-                from.setCompoundDrawables(null,count>0?(gear?
-                    GearItemIconsV95.drawable(this,kind,18):
-                    game.itemIconsV84.drawable(getResources(),i,18)):null,null,null);
-                from.setText(count>0?name.substring(0,Math.min(7,name.length()))+
-                    "\n×"+count+(selected[0]==i?" ✓":""):"");
-                from.setTextColor(selected[0]==i?0xfff8c873:0xffe6d7b7);
-                to.setCompoundDrawables(null,own>0?(gear?
-                    GearItemIconsV95.drawable(this,kind,18):
-                    game.itemIconsV84.drawable(getResources(),i,18)):null,null,null);
-                to.setText(own>0?
-                    name.substring(0,Math.min(7,name.length()))+"\n×"+own:"");
-            }
-        };
-        refresh[0].run();
-        // Drop onto an occupied OR empty player cell; both accept items.
-        View.OnDragListener destinationDropV95=lootDropV95(selected,
-            claimSelected,lootButtons.length);
-        destination.setOnDragListener(destinationDropV95);
-        dstScroll.setOnDragListener(destinationDropV95);
-        dstItems.setOnDragListener(destinationDropV95);
-        for(Button receiver:playerButtons)
-            if(receiver!=null)receiver.setOnDragListener(destinationDropV95);
-        // Including all vacant cells: the drop target must be the slot,
-        // not a container panel hidden underneath the child views.
-        for(int row=0;row<dstItems.getChildCount();row++){
-            View children=dstItems.getChildAt(row);
-            if(!(children instanceof LinearLayout))continue;
-            LinearLayout line=(LinearLayout)children;
-            for(int col=0;col<line.getChildCount();col++)
-                line.getChildAt(col).setOnDragListener(destinationDropV95);
-        }
-        LinearLayout footer=new LinearLayout(this);
-        footer.setOrientation(LinearLayout.HORIZONTAL);
-        shell.addView(footer);
-        Button loot=v62Slot("LOOT",true),all=v62Slot("LOOT ALL",true),
-            close=v62Slot("CLOSE",true);
-        int footerHeight=Math.round(53*getResources().getDisplayMetrics().density);
-        footer.addView(loot,new LinearLayout.LayoutParams(0,footerHeight,1));
-        footer.addView(all,new LinearLayout.LayoutParams(0,footerHeight,1));
-        footer.addView(close,new LinearLayout.LayoutParams(0,footerHeight,1));
-        loot.setOnClickListener(v->claimSelected[0].run());
-        all.setOnClickListener(v->{
-            if(game.lootClinicAllV89(box)>0)refresh[0].run();
-        });
-        AlertDialog dialog=new AlertDialog.Builder(this).setView(shell).create();
-        active[0]=dialog;
-        close.setOnClickListener(v->dialog.dismiss());
-        dialog.setOnDismissListener(d->{
-            game.saveProgress();game.menuPause(false);restoreFullscreenAfterShade();
-        });
-        dialog.show();
-        dialog.setCancelable(true);
-        dialog.setCanceledOnTouchOutside(true);
-        resizeSettingsWindow(dialog,94,88);
+           !game.clinicInteriorV89.contains(box)||!game.isPlaying()||
+            game.nearestAnyInteriorStorageV91(game.playerX,game.playerY,
+                ClinicInteriorV89.USE_RADIUS)!=box)return;
+        compactLootDialogV134(game.currentSiteNameV91()+" • "+box.label,
+            "CONTAINER SUPPLIES",GearLootV95.TOTAL,
+            kind->kind<BanditLootV87.ITEMS?box.amount[kind]:
+                game.remainingGearV95(box,kind-BanditLootV87.ITEMS),
+            kind->kind<BanditLootV87.ITEMS?
+                game.lootClinicStackV89(box,kind):
+                game.lootClinicGearV95(box,kind-BanditLootV87.ITEMS),
+            ()->game.lootClinicAllV89(box),false);
     }
     /** V97 dedicated responsive NPC interface. Never combine setMessage and
      * setItems on one AlertDialog: on Android one can hide the other.
@@ -1512,6 +1428,7 @@ public final class MainActivity extends Activity {
             if(redrawV92[0]!=null)redrawV92[0].run();
         };
         if(!game.bagOrderInitializedV92)game.initInventoryOrderV92();
+        game.organizeBagV131(0); // V134: first row starts at the first slot.
         game.reconcileBagSplitsV130();
         right.addView(text("Hold and drag items between slots, or onto DROP HERE. "+
             "Use DROP ITEM for a selectable list and quantity slider.",11,false));
@@ -1525,9 +1442,12 @@ public final class MainActivity extends Activity {
                 slot.setGravity(Gravity.CENTER);
                 slot.setTextSize(8f);
                 slot.setPadding(1,1,1,1);
-                int edge=Math.round(45*getResources().getDisplayMetrics().density);
-                LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(edge,edge);
-                params.setMargins(2,2,2,2);slots.addView(slot,params);
+                // V134 weighted cells occupy the entire row, never clip horizontally.
+                LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(0,-2,1f);
+                int margin=Math.max(1,Math.round(getResources().
+                    getDisplayMetrics().density));
+                params.setMargins(margin,margin,margin,margin);
+                slots.addView(slot,params);
                 slot.setOnLongClickListener(v->{
                     int type=game.bagOrderV92[position];
                     if(game.bagSlotQuantityV130(position)<=0)return false;
