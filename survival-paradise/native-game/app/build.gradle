@@ -3,11 +3,11 @@ android {
  namespace 'com.survivalparadise.nativegame'
  compileSdk 35
  defaultConfig {
-  applicationId 'com.survivalparadise.nativegame.v135line'
+  applicationId 'com.survivalparadise.nativegame.v136body'
   minSdk 24
   targetSdk 34
-  versionCode 135
-  versionName '0.135-thin-centered-underside'
+  versionCode 136
+  versionName '0.136-reference-underbody'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
