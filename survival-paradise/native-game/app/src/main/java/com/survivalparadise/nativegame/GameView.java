@@ -109,6 +109,7 @@ public final class GameView extends View {
     int playerSkinV109=124;
     final TorsoRecolorV98 torsoRecolorV98=new TorsoRecolorV98();
     int backpackStyleV96=0,headgearStyleV96=0;
+    int bootStyleV133=0; // cosmetic selection; existing FEET equipment remains saved
     // Previously authored gear source images, normalized via transparent ROIs.
     // No modification is performed on the locked body/head animation atlas.
     final Bitmap[] approvedGearV93=new Bitmap[3];
@@ -1004,7 +1005,7 @@ public final class GameView extends View {
         clinicNavV90=new ClinicNavV90(clinicInteriorV89);
         insideClinicV89=false;activeSiteV91=-1;fieldFindsV91.clear();
         wardrobeV92.clear();gearLootV95.clear();relationshipsV92.decode("");
-        backpackStyleV96=0;headgearStyleV96=0;
+        backpackStyleV96=0;headgearStyleV96=0;bootStyleV133=0;
         // Starting clothes are modular overlays, never edits to the locked
         // original character frames. Additional sets are found inside cases.
         for(int slot=1;slot<4;slot++){
@@ -1103,6 +1104,7 @@ public final class GameView extends View {
         wardrobeV92.decode(host.prefs.getString("wardrobe_v92",""));
         backpackStyleV96=Math.floorMod(host.prefs.getInt("backpackStyleV96",0),20);
         headgearStyleV96=Math.floorMod(host.prefs.getInt("headgearStyleV96",0),4);
+        bootStyleV133=BootArtV133.clampStyle(host.prefs.getInt("bootStyleV133",0));
         gearLootV95.decode(host.prefs.getString("gear_loot_v95",""));
         relationshipsV92.decode(host.prefs.getString("npc_relations_v92",""));
         restoreBagOrderV92(host.prefs.getString("bag_order_v92",""));
@@ -2350,6 +2352,7 @@ public final class GameView extends View {
                 .putString("wardrobe_v92",wardrobeV92.encode())
                 .putInt("backpackStyleV96",backpackStyleV96)
                 .putInt("headgearStyleV96",headgearStyleV96)
+                .putInt("bootStyleV133",bootStyleV133)
                 .putString("gear_loot_v95",gearLootV95.encode())
                 .putString("npc_relations_v92",relationshipsV92.encode())
                 .putString("bag_order_v92",encodeBagOrderV92())
@@ -3956,7 +3959,9 @@ public final class GameView extends View {
                 player?fitHeadYV108:npcHeadFitYV113,
                 player?playerHeadSizeV113:npcHeadSizeV113,
                 player?playerTorsoWidthV114:npcTorsoWidthV114,
-                player?playerPelvisWidthV115:npcPelvisWidthV115);
+                player?playerPelvisWidthV115:npcPelvisWidthV115,
+                player?(wardrobeV92.equipped[3]>=0?bootStyleV133:0):
+                    Math.floorMod(npcVariant*3+skinIdV109,BootArtV133.COUNT));
         }else{
             Bitmap atlas=npcVariant>=0?npcWalkV56:approvedWalkColors;
             int torsoVariant=player?wardrobeV92.equipped[1]:
