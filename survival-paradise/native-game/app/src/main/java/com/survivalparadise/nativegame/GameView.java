@@ -3961,7 +3961,11 @@ public final class GameView extends View {
                 player?playerTorsoWidthV114:npcTorsoWidthV114,
                 player?playerPelvisWidthV115:npcPelvisWidthV115,
                 player?(wardrobeV92.equipped[3]>=0?bootStyleV133:0):
-                    Math.floorMod(npcVariant*3+skinIdV109,BootArtV133.COUNT));
+                    Math.floorMod(npcVariant*3+skinIdV109,BootArtV133.COUNT),
+                player?wardrobeV92.equipped[1]:
+                    WardrobeV92.npcOutfit(Math.max(0,npcVariant),1),
+                player?wardrobeV92.equipped[2]:
+                    WardrobeV92.npcOutfit(Math.max(0,npcVariant),2));
         }else{
             Bitmap atlas=npcVariant>=0?npcWalkV56:approvedWalkColors;
             int torsoVariant=player?wardrobeV92.equipped[1]:
