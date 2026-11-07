@@ -54,7 +54,7 @@ public final class BodyClothingV137Test {
                 int expected=y<236?BLACK:0;
                 check(rgba[y*W+x]==expected,"underside height/width");
             }
-            check(rgba[165*W+100]==(torso<0?BodyClothingV137.RED:
+            check(rgba[165*W+110]==(torso<0?BodyClothingV137.RED:
                 BodyClothingV137.TOP[torso])||torso==2,"torso visible");
             check(rgba[205*W+100]==(pants<0?BodyClothingV137.BLUE:
                 BodyClothingV137.PANTS[pants])||pants==1,"pants visible");
