@@ -570,7 +570,7 @@ jobs:
             assert sorted(z.namelist())==sorted(names)
             for name in names:
               data=z.read(name)
-              assert data[:8]==b'\\x89PNG\\r\\n\\x1a\\n'
+              assert data[:8]==bytes([137,80,78,71,13,10,26,10])
               assert struct.unpack('>II',data[16:24])==(68,52)
           native=root/'app/src/main/java/com/survivalparadise/nativegame'
           boot=(native/'BootArtV133.java').read_text()
