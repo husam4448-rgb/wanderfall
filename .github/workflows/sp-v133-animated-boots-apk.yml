@@ -60,7 +60,7 @@ jobs:
           source=(root/"app/src/main/java/com/survivalparadise/nativegame/CharacterSkinsV109.java").read_text()
           gradle=(root/"app/build.gradle").read_text()
           assert "versionCode 133" in gradle
-          assert "applicationId 'com.survivalparadise.nativegame.v132doors'" in gradle
+          assert "applicationId 'com.survivalparadise.nativegame.v133boots'" in gradle
           assert "sp_v109_characters.zip" in source
           assert "CharacterAnimationV110.breathOffset" in source
           assert "CharacterAnimationV110.bodyFrame" in source
@@ -626,7 +626,7 @@ jobs:
           APK=artifacts/SurvivalParadise_V133_Animated_Boots.apk
           SUM=artifacts/SHA256.txt
           test -s "$APK" && test -s "$SUM"
-          NOTE="Survival Paradise V133 adds five transparent 68x52 right-facing boot sprites (original + four new designs), exact approved X/Y/rotation for idle and four walking frames, one unchanged Walk 2 body pose for every frame, NPC and player render integration, and a persistent BOOTS LOOK selection in the V131 inventory equipment screen. Original 200 fitted heads, hands, weapons, world, indoor gameplay, inventory counts, and V132 contextual ENTER and INTERACT remain. VersionCode is 133 and package ID remains com.survivalparadise.nativegame.v132doors; Android update compatibility requires matching APK signing certificate. Device testing is still required; this is a V133 test prerelease."
+          NOTE="Survival Paradise V133 adds five transparent 68x52 right-facing boot sprites (original + four new designs), exact approved X/Y/rotation for idle and four walking frames, one unchanged Walk 2 body pose for every frame, NPC and player render integration, and a persistent BOOTS LOOK selection in the V131 inventory equipment screen. Original 200 fitted heads, hands, weapons, world, indoor gameplay, inventory counts, and V132 contextual ENTER and INTERACT remain. VersionCode is 133 and package ID remains com.survivalparadise.nativegame.v133boots; V133 is a separate test install because V132 was signed with a newly generated debug certificate; the installed V132 APK and its saves remain untouched. Device testing is required before adoption."
           if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" "$SUM" --clobber -R "$GITHUB_REPOSITORY"
             gh release edit "$TAG" -R "$GITHUB_REPOSITORY" --notes "$NOTE"
