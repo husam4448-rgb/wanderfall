@@ -43,10 +43,13 @@ final class CharacterSkinsV109 {
     private final Fit[] fitting=new Fit[COUNT+1];
     private final Bitmap[] originals=new Bitmap[5]; // 0 idle, 1..4 walk
     private final BootArtV133 bootArtV133;
-    // Source-derived Walk 2 bodies with the corrected, centered 8px underline.
-    private final LinkedHashMap<Integer,Bitmap> centeredBodyV135=new LinkedHashMap<Integer,Bitmap>(18,.75f,true){
-        @Override protected boolean removeEldestEntry(Map.Entry<Integer,Bitmap> e){return size()>24;}
-    };
+    // One immutable cached body per equipment combination, shared by all 200 heads.
+    private final LinkedHashMap<Integer,Bitmap> outfitBodiesV137=
+        new LinkedHashMap<Integer,Bitmap>(16,.75f,true){
+            @Override protected boolean removeEldestEntry(Map.Entry<Integer,Bitmap> e){
+                return size()>16;
+            }
+        };
     private final LinkedHashMap<Integer,Bitmap> heads=new LinkedHashMap<Integer,Bitmap>(36,.75f,true){
         @Override protected boolean removeEldestEntry(Map.Entry<Integer,Bitmap> e){
             if(size()<=36)return false;
@@ -222,9 +225,10 @@ final class CharacterSkinsV109 {
      * Classifies every source pixel without any recoloring, scaling, or redrawing.
      * Four layers together have exactly the original source pixels; no omissions.
      */
-    private FootLayers footLayers(Bitmap source,int frame,int blend) {
-        int key=Math.max(0,Math.min(4,frame))*64+
-            Math.max(0,Math.min(40,blend));
+    private FootLayers footLayers(Bitmap source,int frame,int blend,int clothingKey) {
+        // Never reuse a pelvis layer generated with another uniform's colors.
+        int key=(Math.max(0,Math.min(4,frame))*64+
+            Math.max(0,Math.min(40,blend)))*16+clothingKey;
         FootLayers cached=footCacheV116.get(key);
         if(cached!=null)return cached;
         final int h=HEIGHT-PelvisLegRigV116.PELVIS_TOP;
@@ -273,7 +277,7 @@ final class CharacterSkinsV109 {
      */
     private void drawBody(Canvas canvas,Bitmap source,int frame,int blend,
                           float left,float top,float unit,
-                          int torsoWidth,int pelvisWidth,Paint pixels) {
+                          int torsoWidth,int pelvisWidth,Paint pixels,int clothingKey) {
         if(torsoWidth>=TorsoWidthV114.MAX_PERCENT &&
            pelvisWidth>=PelvisWidthV115.MAX_PERCENT) {
             destination.set(left,top,left+WIDTH*unit,top+HEIGHT*unit);
@@ -281,7 +285,7 @@ final class CharacterSkinsV109 {
             topBodyOutlineV120(canvas,left,top,unit,torsoWidth);
             return;
         }
-        FootLayers layers=footLayers(source,frame,blend);
+        FootLayers layers=footLayers(source,frame,blend,clothingKey);
         float bandTop=top+PelvisLegRigV116.PELVIS_TOP*unit;
         float bandBottom=top+HEIGHT*unit;
         destination.set(PelvisWidthV115.left(left,unit,pelvisWidth),
@@ -325,24 +329,19 @@ final class CharacterSkinsV109 {
         topBodyOutlineV120(canvas,left,top,unit,torsoWidth);
     }
 
-    /** V136: match user's approved character reference exactly at the black
-     * underside. Its black region is the full 80-source-pixel width of the blue
-     * band above (x60..139), centered on x100, with the same 20px row height.
-     * Never change a head, torso, hand, boot, or any other original body pixels.
-     * Keep per-fit outfit blending untouched; derive result from Walk 2 only.
+    /** The same original Walk 2 body across heads, idle, walking and NPCs.
+     * Recolor pixels ONLY within torso/pants regions. Cached by equipment.
      */
-    private Bitmap referenceUnderbodyV136(Bitmap source,int blend) {
-        int key=range(blend,0,40);
-        Bitmap cached=centeredBodyV135.get(key);
+    private Bitmap outfittedBodyV137(int torsoStyle,int pantsStyle){
+        int key=BodyClothingV137.styleKey(torsoStyle,pantsStyle);
+        Bitmap cached=outfitBodiesV137.get(key);
         if(cached!=null)return cached;
+        Bitmap source=body(2,0);
         int[] rgba=new int[WIDTH*HEIGHT];
         source.getPixels(rgba,0,WIDTH,0,0,WIDTH,HEIGHT);
-        // The V109 Walk 2 source underbody was 60px wide; fill only
-        // its transparent right extension, through x139, at y220..239.
-        for(int y=220;y<240;y++)for(int x=60;x<140;x++)
-            rgba[y*WIDTH+x]=android.graphics.Color.BLACK;
+        BodyClothingV137.apply(rgba,WIDTH,HEIGHT,torsoStyle,pantsStyle);
         Bitmap result=Bitmap.createBitmap(rgba,WIDTH,HEIGHT,Bitmap.Config.ARGB_8888);
-        centeredBodyV135.put(key,result);
+        outfitBodiesV137.put(key,result);
         return result;
     }
 
@@ -352,7 +351,8 @@ final class CharacterSkinsV109 {
     void draw(Canvas c,int id,boolean walking,int walkingFrame,float timeSec,float s,Paint pixel,
               float walkingTempo,float breathingTempo,int fixedWalkFps,int breathingAmplitude,
               float headTiltDegrees,int headOffsetX,int headOffsetY,int headSizePercent,
-              int torsoWidthPercent,int pelvisWidthPercent,int bootStyleV133) {
+              int torsoWidthPercent,int pelvisWidthPercent,int bootStyleV133,
+              int torsoStyleV137,int pantsStyleV137) {
         id=range(id,1,COUNT);
         Fit fit=fitting[id];
         // Rendering scale uses 160/260 to match the old native 160px character rig.
@@ -361,12 +361,12 @@ final class CharacterSkinsV109 {
         float left=-100f*unit, top=-136f*s;
         int bodyFrame=CharacterAnimationV110.bodyFrame(walking,timeSec,fit.fps,
             fixedWalkFps,walkingTempo);
-        // User-approved V133 standard: exact Walk 2 body is static in idle and
-        // every walking frame. Only the independent boots animate with bodyFrame.
-        Bitmap body=body(2,fit.blend);
-        body=referenceUnderbodyV136(body,fit.blend);
-        drawBody(c,body,2,fit.blend,left,top,unit,
-            torsoWidthPercent,pelvisWidthPercent,pixel);
+        // V137: universal static body, changing only interior equipment colors.
+        Bitmap body=outfittedBodyV137(torsoStyleV137,pantsStyleV137);
+        int clothingKey=BodyClothingV137.styleKey(torsoStyleV137,pantsStyleV137);
+        drawBody(c,body,2,0,left,top,unit,
+            torsoWidthPercent,pelvisWidthPercent,pixel,clothingKey);
+        // Boots still animate independently for idle and Walk 1-4.
         bootArtV133.draw(c,bodyFrame,bootStyleV133,left,top,unit,pixel);
         Bitmap h=head(id);if(h==null)return;
         float headScale=Math.min(186f/h.getWidth(),192f/h.getHeight())*(fit.headScale/107f)*
