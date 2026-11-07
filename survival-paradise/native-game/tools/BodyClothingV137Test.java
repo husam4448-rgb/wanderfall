@@ -56,7 +56,7 @@ public final class BodyClothingV137Test {
             }
             check(rgba[165*W+110]==(torso<0?BodyClothingV137.RED:
                 BodyClothingV137.TOP[torso])||torso==2,"torso visible");
-            check(rgba[205*W+100]==(pants<0?BodyClothingV137.BLUE:
+            check(rgba[205*W+110]==(pants<0?BodyClothingV137.BLUE:
                 BodyClothingV137.PANTS[pants])||pants==1,"pants visible");
             int[] same=original.clone();BodyClothingV137.apply(same,W,H,torso,pants);
             check(Arrays.equals(same,rgba),"unstable frame result");
