@@ -606,7 +606,7 @@ jobs:
           assert "game.organizeBagV131(0)" in ui
           assert "organizeBagV131(0);invalidate();" in game
           assert "lowerOutlineV134(c,left,top,unit" in skins
-          assert "top+220f*unit" in skins and "top+228f*unit" in skins
+          assert "left+120f*unit" in skins and "left+129f*unit" in skins\n          assert "top+220f*unit" in skins and "top+240f*unit" in skins
           assert "Bitmap body=body(2,fit.blend)" in skins
           assert "bootArtV133.draw(c,bodyFrame" in skins
           print("V134 compact inventory + preserved Walk 2 anchor body and boots: PASS")
