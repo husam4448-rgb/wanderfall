@@ -608,6 +608,8 @@ jobs:
           assert "thinCenteredUnderbodyV135(" not in skins
           assert "referenceUnderbodyV136(body,fit.blend)" in skins
           assert "for(int y=220;y<240;y++)for(int x=60;x<140;x++)" in skins
+          assert "if(frame==2&&sourceY>=220&&sourceY<240&&x>=60&&x<140)" in skins
+          assert "part=PelvisLegRigV116.PELVIS;" in skins
           assert "Bitmap body=body(2,fit.blend)" in skins
           assert "bootArtV133.draw(c,bodyFrame" in skins
           print("V136: original head, standard body, five fitted boots and V134 inventory retained")
