@@ -315,20 +315,15 @@ final class CharacterSkinsV109 {
         topBodyOutlineV120(canvas,left,top,unit,torsoWidth);
     }
 
-    /** V134: restore ONLY the missing lower horizontal black contour when the
-     * independently narrowed pelvis leaves a gap toward the front boot.
-     * Walk 2 remains the source body for every frame. Nothing at y<220 is drawn.
-     * At 100% scale this is a no-op to preserve the approved exact sprite.
+    /** V134: pixel-exact missing right end of the APPROVED V6 Walk 2
+     * lower horizontal black line. The original x60..119 pixels remain;
+     * the canonical V6 silhouette extends only through x128 at y220..239.
+     * No added pixels touch the torso, pelvis colors, head, hands or boots.
      */
     private void lowerOutlineV134(Canvas c,float left,float top,float unit,
                                   int torsoWidth,int pelvisWidth){
-        if(pelvisWidth>=PelvisWidthV115.MAX_PERCENT)return;
-        float from=120f; // exclusive end of the Walk 2 lower black source block
-        float to=Math.min(BodyAlignmentV120.bodyFrontExclusive(torsoWidth),
-            BodyAlignmentV120.bodyFrontExclusive(pelvisWidth));
-        if(to<=from)return;
-        c.drawRect(left+from*unit,top+220f*unit,
-            left+to*unit,top+228f*unit,upperOutlinePaintV120);
+        c.drawRect(left+120f*unit,top+220f*unit,
+            left+129f*unit,top+240f*unit,upperOutlinePaintV120);
     }
 
     /** Draw at the existing GameView origin: character feet are planted at y+24s.
