@@ -42,6 +42,7 @@ final class CharacterSkinsV109 {
     private final byte[][] headData=new byte[COUNT+1][];
     private final Fit[] fitting=new Fit[COUNT+1];
     private final Bitmap[] originals=new Bitmap[5]; // 0 idle, 1..4 walk
+    private final BootArtV133 bootArtV133;
     private final LinkedHashMap<Integer,Bitmap> heads=new LinkedHashMap<Integer,Bitmap>(36,.75f,true){
         @Override protected boolean removeEldestEntry(Map.Entry<Integer,Bitmap> e){
             if(size()<=36)return false;
@@ -127,6 +128,7 @@ final class CharacterSkinsV109 {
     private boolean loaded=false;
 
     CharacterSkinsV109(Context context) throws IOException {
+        bootArtV133=new BootArtV133(context);
         upperOutlinePaintV120.setColor(android.graphics.Color.BLACK);
         upperOutlinePaintV120.setAntiAlias(false);
         upperOutlinePaintV120.setFilterBitmap(false);
@@ -319,7 +321,7 @@ final class CharacterSkinsV109 {
     void draw(Canvas c,int id,boolean walking,int walkingFrame,float timeSec,float s,Paint pixel,
               float walkingTempo,float breathingTempo,int fixedWalkFps,int breathingAmplitude,
               float headTiltDegrees,int headOffsetX,int headOffsetY,int headSizePercent,
-              int torsoWidthPercent,int pelvisWidthPercent) {
+              int torsoWidthPercent,int pelvisWidthPercent,int bootStyleV133) {
         id=range(id,1,COUNT);
         Fit fit=fitting[id];
         // Rendering scale uses 160/260 to match the old native 160px character rig.
@@ -328,9 +330,12 @@ final class CharacterSkinsV109 {
         float left=-100f*unit, top=-136f*s;
         int bodyFrame=CharacterAnimationV110.bodyFrame(walking,timeSec,fit.fps,
             fixedWalkFps,walkingTempo);
-        Bitmap body=body(bodyFrame,fit.blend);
-        drawBody(c,body,bodyFrame,fit.blend,left,top,unit,
+        // User-approved V133 standard: exact Walk 2 body is static in idle and
+        // every walking frame. Only the independent boots animate with bodyFrame.
+        Bitmap body=body(2,fit.blend);
+        drawBody(c,body,2,fit.blend,left,top,unit,
             torsoWidthPercent,pelvisWidthPercent,pixel);
+        bootArtV133.draw(c,bodyFrame,bootStyleV133,left,top,unit,pixel);
         Bitmap h=head(id);if(h==null)return;
         float headScale=Math.min(186f/h.getWidth(),192f/h.getHeight())*(fit.headScale/107f)*
             CharacterScopeV113.headSizeMultiplier(headSizePercent);
