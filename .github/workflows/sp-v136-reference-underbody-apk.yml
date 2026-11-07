@@ -419,7 +419,7 @@ jobs:
           assert 'TorsoWidthV114.percent(host.setting("bodyWidthV114",100))' in game
           assert 'TorsoWidthV114.percent(host.setting("bodyWidthV114NpcV113",100))' in game
           assert 'drawBody(c,body,2,fit.blend,left,top,unit,' in skins
-          assert 'PelvisLegRigV116.part(frame,x,row+PelvisLegRigV116.PELVIS_TOP)' in skins
+          assert 'PelvisLegRigV116.part(frame,x,sourceY)' in skins
           assert 'BodyAlignmentV120.rearBootShift(pelvisWidth)' in skins
           assert 'BodyAlignmentV120.frontBootShift(' in skins
           assert 'Bitmap.createBitmap(separated[PelvisLegRigV116.LEFT_FOOT]' in skins
@@ -500,7 +500,7 @@ jobs:
           assert 'final int frontInset=BodyAlignmentV120.frontBootShift(' in skins
           assert 'topBodyOutlineV120(canvas,left,top,unit,torsoWidth)' in skins
           assert 'upperOutlinePaintV120.setColor(android.graphics.Color.BLACK)' in skins
-          assert 'PelvisLegRigV116.part(frame,x,row+PelvisLegRigV116.PELVIS_TOP)' in skins
+          assert 'PelvisLegRigV116.part(frame,x,sourceY)' in skins
           defaults=(d/"ScreenshotDefaultsV121.java").read_text()
           preset=(d/"ScreenshotSettingsV121.java").read_text()
           assert 'ScreenshotSettingsV121.applyCharacters(prefs,false)' in menu
