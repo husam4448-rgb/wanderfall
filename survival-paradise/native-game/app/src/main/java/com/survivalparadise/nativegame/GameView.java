@@ -486,7 +486,7 @@ public final class GameView extends View {
             fieldFindsV91.searched(activeSiteV91,id),fieldFindsV91,wardrobeV92))
             return 0;
         gatherFeedback="FOUND "+GearLootV95.NAMES[type];
-        gatherFeedbackTime=2f;saveProgress();invalidate();
+        gatherFeedbackTime=2f;organizeBagV131(0);invalidate();
         return 1;
     }
     int lootClinicAllGearV95(ClinicInteriorV89.Storage box){
@@ -1704,7 +1704,7 @@ public final class GameView extends View {
         if(amount>0){
             addBanditLootV87(kind,amount); // same item inventories, no duplicate type.
             gatherFeedback="SCAVENGED "+BanditLootV87.NAMES[kind]+" +"+amount;
-            gatherFeedbackTime=2f;saveProgress();invalidate();
+            gatherFeedbackTime=2f;organizeBagV131(0);invalidate();
         }
         return amount;
     }
@@ -1720,7 +1720,7 @@ public final class GameView extends View {
         total+=lootClinicAllGearV95(box);
         if(total>0){
             gatherFeedback="SCAVENGED "+total+" SUPPLIES AND GEAR";
-            gatherFeedbackTime=2f;saveProgress();invalidate();
+            gatherFeedbackTime=2f;organizeBagV131(0);invalidate();
         }
         return total;
     }
@@ -4304,7 +4304,7 @@ public final class GameView extends View {
             addBanditLootV87(kind,count);
             gatherFeedback="LOOTED "+BanditLootV87.NAMES[kind]+" +"+count;
             gatherFeedbackTime=2.2f;
-            saveProgress();invalidate();
+            organizeBagV131(0);invalidate();
         }
         return count;
     }
@@ -4318,7 +4318,7 @@ public final class GameView extends View {
         }
         if(count>0){
             gatherFeedback="LOOTED "+count+" ITEMS";gatherFeedbackTime=2.2f;
-            saveProgress();invalidate();
+            organizeBagV131(0);invalidate();
         }
         return count;
     }
