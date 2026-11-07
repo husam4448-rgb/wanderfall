@@ -1,0 +1,687 @@
+name: Survival Paradise V136 - Reference-Matched Centered Underbody APK
+on:
+  push:
+    branches: [sp-native-v136-reference-underbody-20261107]
+    paths:
+      - 'survival-paradise/native-game/**'
+      - '.github/workflows/sp-v136-reference-underbody-apk.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: survival-paradise-v136-reference-underbody
+  cancel-in-progress: true
+
+jobs:
+  verify-native-character-fit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            survival-paradise
+            assets/authored2d
+            assets/world
+          sparse-checkout-cone-mode: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Generate the exact locked V31/V56 source art
+        run: |
+          set -euo pipefail
+          python3 -m pip install --user -q Pillow numpy
+          python3 survival-paradise/native-game/tools/extract_locked_atlases.py
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64,hashlib
+          r=Path("survival-paradise/native-game")
+          for encoded,dest,sha in [
+             ("approved_v29_axe.png.b64","approved_v29_axe.png","f0d146757318e620024cae0c2a34243bdd9339a939a7f51e5428ae8250620dee"),
+             ("approved_v44_walk_palette.png.b64","approved_v44_walk_palette.png","fd01230e9c13ffd3087e933abe976a2179d80e9adc9b0710f899a7bef7fc3d71")
+          ]:
+              data=base64.b64decode((r/"tools"/encoded).read_text().strip(),validate=True)
+              assert hashlib.sha256(data).hexdigest()==sha,encoded
+              (r/"app/src/main/assets"/dest).write_bytes(data)
+          PY
+          python3 survival-paradise/native-game/tools/build_v51_assets.py
+          python3 survival-paradise/native-game/tools/build_v52_idle.py
+          python3 survival-paradise/native-game/tools/fix_v53_skin_palette.py
+          python3 survival-paradise/native-game/tools/build_v56_approved_character_atlases.py
+          python3 survival-paradise/native-game/tools/build_v74_biome_assets.py
+          test "$(sha256sum survival-paradise/native-game/app/src/main/assets/body.png | cut -d' ' -f1)" = "141878713a6880d05879b7102c728581dddb55730434bcac8e050fe44b3d82ad"
+      - name: Verify V122 approved art and isolated APK package identity
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("survival-paradise/native-game")
+          source=(root/"app/src/main/java/com/survivalparadise/nativegame/CharacterSkinsV109.java").read_text()
+          gradle=(root/"app/build.gradle").read_text()
+          assert "versionCode 136" in gradle
+          assert "applicationId 'com.survivalparadise.nativegame.v136body'" in gradle
+          assert "sp_v109_characters.zip" in source
+          assert "CharacterAnimationV110.breathOffset" in source
+          assert "CharacterAnimationV110.bodyFrame" in source
+          assert "new Fit(base)" in source
+          assert "boolean walking" in source
+          print("V122 immutable 200 original characters/V5 fitting + isolated test APK: PASS")
+          PY
+      - name: Test V122 all original regressions, NPC 360-degree aiming and gunfire geometry (pure JVM)
+        run: |
+          set -e
+          R=survival-paradise/native-game
+          mkdir -p /tmp/sp-v112-jvm
+          javac -d /tmp/sp-v112-jvm "$R/app/src/main/java/com/survivalparadise/nativegame/AnimationCycle.java" "$R/tools/AnimationCycleTest.java" "$R/app/src/main/java/com/survivalparadise/nativegame/CharacterAnimationV110.java" "$R/tools/CharacterAnimationV110Test.java" "$R/app/src/main/java/com/survivalparadise/nativegame/Ballistics.java" "$R/app/src/main/java/com/survivalparadise/nativegame/HeadAimV111.java" "$R/tools/HeadAimV111Test.java" "$R/app/src/main/java/com/survivalparadise/nativegame/HeadFitOffsetsV112.java" "$R/tools/HeadFitOffsetsV112Test.java" "$R/app/src/main/java/com/survivalparadise/nativegame/CharacterScopeV113.java" "$R/tools/CharacterScopeV113Test.java" "$R/app/src/main/java/com/survivalparadise/nativegame/TorsoWidthV114.java" "$R/tools/TorsoWidthV114Test.java" "$R/app/src/main/java/com/survivalparadise/nativegame/PelvisWidthV115.java" "$R/tools/PelvisWidthV115Test.java" "$R/app/src/main/java/com/survivalparadise/nativegame/PelvisLegRigV116.java" "$R/tools/PelvisLegRigV116Test.java" "$R/app/src/main/java/com/survivalparadise/nativegame/WeaponPivotV117.java" "$R/tools/WeaponPivotV117Test.java" "$R/app/src/main/java/com/survivalparadise/nativegame/FollowFormationV61.java" "$R/app/src/main/java/com/survivalparadise/nativegame/CompanionOrdersV118.java" "$R/app/src/main/java/com/survivalparadise/nativegame/GunEffectsV118.java" "$R/tools/V118RegressionTest.java" "$R/app/src/main/java/com/survivalparadise/nativegame/HudDragV119.java" "$R/app/src/main/java/com/survivalparadise/nativegame/GunEffectsV119.java" "$R/tools/V119RegressionTest.java" "$R/app/src/main/java/com/survivalparadise/nativegame/BodyAlignmentV120.java" "$R/tools/BodyAlignmentV120Test.java" "$R/app/src/main/java/com/survivalparadise/nativegame/LegacyControlsV58.java" "$R/app/src/main/java/com/survivalparadise/nativegame/TopHudV76.java" "$R/app/src/main/java/com/survivalparadise/nativegame/WorldUiV86.java" "$R/app/src/main/java/com/survivalparadise/nativegame/ScreenshotDefaultsV121.java" "$R/tools/ScreenshotDefaultsV121Test.java" "$R/app/src/main/java/com/survivalparadise/nativegame/NpcAimV122.java" "$R/app/src/main/java/com/survivalparadise/nativegame/NpcGunfireV122.java" "$R/tools/NpcAimV122Test.java"
+          java -cp /tmp/sp-v112-jvm com.survivalparadise.nativegame.AnimationCycleTest
+          java -cp /tmp/sp-v112-jvm com.survivalparadise.nativegame.CharacterAnimationV110Test
+          java -cp /tmp/sp-v112-jvm com.survivalparadise.nativegame.HeadAimV111Test
+          java -cp /tmp/sp-v112-jvm com.survivalparadise.nativegame.HeadFitOffsetsV112Test
+          java -cp /tmp/sp-v112-jvm com.survivalparadise.nativegame.CharacterScopeV113Test
+          java -cp /tmp/sp-v112-jvm com.survivalparadise.nativegame.TorsoWidthV114Test
+          java -cp /tmp/sp-v112-jvm com.survivalparadise.nativegame.PelvisWidthV115Test
+          java -cp /tmp/sp-v112-jvm com.survivalparadise.nativegame.PelvisLegRigV116Test
+          java -cp /tmp/sp-v112-jvm com.survivalparadise.nativegame.WeaponPivotV117Test
+          java -cp /tmp/sp-v112-jvm com.survivalparadise.nativegame.V118RegressionTest
+          java -cp /tmp/sp-v112-jvm com.survivalparadise.nativegame.V119RegressionTest
+          java -cp /tmp/sp-v112-jvm com.survivalparadise.nativegame.BodyAlignmentV120Test
+          java -cp /tmp/sp-v112-jvm com.survivalparadise.nativegame.ScreenshotDefaultsV121Test
+          java -cp /tmp/sp-v112-jvm com.survivalparadise.nativegame.NpcAimV122Test
+      - name: Test V126 traced source-alpha roof contours, world-scale props, safe camp and old V124 roads
+        run: |
+          set -euo pipefail
+          R=survival-paradise/native-game
+          mkdir -p /tmp/sp-v123-jvm
+          javac -d /tmp/sp-v123-jvm "$R/app/src/main/java/com/survivalparadise/nativegame/IndustrialWorldV123.java" "$R/app/src/main/java/com/survivalparadise/nativegame/IndustrialOpenWorldV124.java" "$R/tools/IndustrialWorldV123Test.java" "$R/tools/IndustrialOpenWorldV124Test.java" "$R/app/src/main/java/com/survivalparadise/nativegame/IndustrialCampV125.java" "$R/tools/IndustrialFitV125Test.java" "$R/app/src/main/java/com/survivalparadise/nativegame/IndustrialFacadeShapeV126.java" "$R/app/src/main/java/com/survivalparadise/nativegame/IndustrialPropLayoutV126.java" "$R/tools/IndustrialGeometryV126Test.java"
+          java -cp /tmp/sp-v123-jvm com.survivalparadise.nativegame.IndustrialWorldV123Test
+          java -cp /tmp/sp-v123-jvm com.survivalparadise.nativegame.IndustrialOpenWorldV124Test
+          java -cp /tmp/sp-v123-jvm com.survivalparadise.nativegame.IndustrialFitV125Test
+          java -cp /tmp/sp-v123-jvm com.survivalparadise.nativegame.IndustrialGeometryV126Test
+      - name: Verify V127 NPC visibility, wall occlusion and cone masking
+        run: |
+          set -euo pipefail
+          R=survival-paradise/native-game
+          P="$R/app/src/main/java/com/survivalparadise/nativegame"
+          mkdir -p /tmp/sp-v127-vision
+          javac -d /tmp/sp-v127-vision \
+            "$P/ClinicInteriorV89.java" \
+            "$P/ClinicActorsV90.java" \
+            "$P/ClinicVisionV90.java" \
+            "$P/IndoorCharacterVisionV127.java" \
+            "$R/tools/IndoorCharacterVisionV127Test.java"
+          java -cp /tmp/sp-v127-vision com.survivalparadise.nativegame.IndoorCharacterVisionV127Test
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/GameView.java').read_text()
+          assert s.count('drawIndoorVisibleEntityV127(c,')>=4
+          assert s.count('!indoorCharacterVisibleV127(')>=5
+          assert 'c.clipPath(clinicVisionPathV90);' in s
+          assert 'sorted.add(new DrawEntity(playerY,()->character' in s
+          assert 'indoorOrderV92.add(new DrawEntity(playerY,()->{' in s
+          print('PASS: NPC, companion, speech clipping in both indoor paths; player preserved')
+          PY
+      - name: Validate V128 connected road, seed-stable biome, doors and save coordinates
+        run: |
+          set -euo pipefail
+          R=survival-paradise/native-game
+          P="$R/app/src/main/java/com/survivalparadise/nativegame"
+          mkdir -p /tmp/sp-v128-stitch
+          javac -d /tmp/sp-v128-stitch \
+            "$P/IndustrialWorldV123.java" \
+            "$P/IndustrialOpenWorldV124.java" \
+            "$P/IndustrialFacadeShapeV126.java" \
+            "$P/IndustrialPropLayoutV126.java" \
+            "$P/IndustrialBiomeBridgeV128.java" \
+            "$R/tools/IndustrialBiomeBridgeV128Test.java"
+          java -cp /tmp/sp-v128-stitch com.survivalparadise.nativegame.IndustrialBiomeBridgeV128Test
+          python3 - <<'PY'
+          from pathlib import Path
+          d=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame')
+          g=(d/'GameView.java').read_text()
+          m=(d/'MainActivity.java').read_text()
+          assert 'final boolean industrialModeV123=false;' in g
+          assert 'final boolean stitchedIndustrialV128=true;' in g
+          assert 'IndustrialBiomeSceneV128.draw' in g
+          assert 'IndustrialBiomeBridgeV128.nearestEntrance' in g
+          assert 'IndustrialBiomeBridgeV128.worldX(district.doorX)' in g
+          assert 'IndustrialBiomeBridgeV128.blocked' in g
+          assert 'IndustrialBiomeBridgeV128.localX(playerX)' in g
+          assert '.putBoolean("v128_world_coords",true)' in g
+          assert 'drawBiomePropsV74(c)' in g
+          assert 'drawExpeditionSitesV88(c)' in g
+          assert 'drawSpawnCamp(c)' in g
+          assert 'TRAVEL TO INDUSTRIAL HIGHWAY ENTRANCE' in m
+          assert 'Start a new seeded world?' in m
+          print('PASS V128 integrated native old-world+industrial rendering, save keys, interactions, and UI travel')
+          PY
+      - name: Verify V129 persistent item drops and permanent corpse saves
+        run: |
+          set -euo pipefail
+          R=survival-paradise/native-game
+          P="$R/app/src/main/java/com/survivalparadise/nativegame"
+          mkdir -p /tmp/sp-v129-tests
+          javac -d /tmp/sp-v129-tests \
+            "$P/DroppedItemsV129.java" \
+            "$P/BanditLootV87.java" \
+            "$R/tools/V129DropsCorpsesTest.java"
+          java -cp /tmp/sp-v129-tests com.survivalparadise.nativegame.V129DropsCorpsesTest
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame')
+          game=(root/'GameView.java').read_text()
+          menu=(root/'MainActivity.java').read_text()
+          assert 'lighting.point(f.x,f.y,240f' in game
+          assert 'drawIndoorMuzzleLightV129(c)' in game
+          assert 'p.setStrokeWidth(1.8f)' in game
+          assert 'hitBloodV129(' in game and 'hurtDirectionalV129(' in game
+          assert 'banditLootV87.spawnCorpse(' in game
+          assert 'drawFallenBodyV129(' in game and 'drawIndoorCorpsesV129(c)' in game
+          assert 'searchIndoorCorpseV129(' in game
+          assert 'ground_drops_v129' in game
+          assert 'droppedItemsV129.expire(gameTimeV129())' in game
+          assert 'drawDroppedItemsV129(c)' in game
+          assert 'dropInventoryV129(' in game and 'takeDroppedV129(' in game
+          assert 'dropQuantityDialogV129(' in menu
+          assert 'android.R.drawable.ic_menu_delete' in menu
+          assert 'dropByListV129(' in menu
+          assert 'groundDropDaysV129' in menu
+          assert 'searchIndoorCorpseDialogV129(' in menu
+          assert 'v128_world_coords' in game and 'IndustrialBiomeSceneV128.draw' in game
+          assert 'drawIndoorVisibleEntityV127(c,' in game
+          print('PASS V129 native render, directional damage, interactive drop, corpse and V128 preservation')
+          PY
+      - name: Verify V130 enlarged exteriors, camp, items and renderer
+        run: |
+          set -euo pipefail
+          R=survival-paradise/native-game
+          P="$R/app/src/main/java/com/survivalparadise/nativegame"
+          mkdir -p /tmp/sp-v130-test
+          javac -d /tmp/sp-v130-test \
+            "$P/ExpeditionSitesV88.java" \
+            "$P/ExteriorFootprintV130.java" \
+            "$R/tools/ExteriorFootprintV130Test.java"
+          java -cp /tmp/sp-v130-test com.survivalparadise.nativegame.ExteriorFootprintV130Test
+          python3 - <<'PY'
+          from pathlib import Path
+          d=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame')
+          game=(d/'GameView.java').read_text()
+          ui=(d/'MainActivity.java').read_text()
+          effects=(d/'GunEffectsV119.java').read_text()
+          assert 'drawFallenAnimalV130' in game
+          assert 'renderingCorpseV130?0f:worldTimer' in game
+          assert 'renderingCorpseV130?0:' in game
+          assert 'clinicVisionPathV90.addCircle' not in game
+          assert 'c.drawCircle(ox,oy,ClinicVisionV90.NEAR,p)' not in game
+          assert 'drawWorldMuzzleBloomV130(c)' in game
+          assert 'lighting.point(f.x,f.y,240f' in game
+          assert 'FLASH_SECONDS=.16f' in effects
+          assert 'ExteriorFootprintV130.blocked(site,x,y,r)' in game
+          assert 'ExteriorFootprintV130.scale(s)' in game
+          assert 'bagSlotQuantityV130' in game
+          assert 'splitBagSlotV130' in game and 'dropBagSlotV130' in game
+          assert 'bag_splits_v130' in game
+          assert 'bagItemMenuV130(' in ui
+          assert 'SPLIT STACK' in ui
+          assert 'ACTION_DRAG_LOCATION' in ui and 'smoothScrollBy' in ui
+          assert 'dragLeftWindowV130' in ui
+          assert 'bagQuantityMenuV130(' in ui
+          assert 'drawIndoorVisibleEntityV127(c,' in game
+          assert 'IndustrialBiomeSceneV128.draw' in game
+          print('PASS V130 item split, bag persistence, muzzle lamp, static corpses, animal art, vision cone and world continuity')
+          PY
+      - name: Verify V131 item weights, equipment binding, headshot geometry and identities
+        run: |
+          set -euo pipefail
+          R=survival-paradise/native-game
+          P="$R/app/src/main/java/com/survivalparadise/nativegame"
+          mkdir -p /tmp/sp-v131-test
+          javac -d /tmp/sp-v131-test \
+            "$P/Ballistics.java" \
+            "$P/InventoryCatalogV131.java" \
+            "$P/TopHudV76.java" \
+            "$P/HeadCollisionV131.java" \
+            "$P/BanditLootV87.java" \
+            "$R/tools/V131InventoryHeadTest.java"
+          java -cp /tmp/sp-v131-test com.survivalparadise.nativegame.V131InventoryHeadTest
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame')
+          g=(root/'GameView.java').read_text()
+          u=(root/'MainActivity.java').read_text()
+          skins=(root/'CharacterSkinsV109.java').read_text()
+          wardrobe=(root/'WardrobeV92.java').read_text()
+          gear=(root/'GearItemIconsV95.java').read_text()
+          loot=(root/'GearLootV95.java').read_text()
+          assert 'organizeBagV131(' in g
+          assert 'equippedReserveV131(' in g and 'availableInventoryV131(' in g
+          assert 'bagSortV131' in u and 'SORT BACKPACK' in u
+          assert 'InventoryCatalogV131.massLabel(kind,1)' in u
+          assert 'refreshEquipmentV131' in u and 'equipmentSurroundV131' in u
+          assert 'InventoryCatalogV131.compatible(type,socketIndex)' in u
+          assert 'drawFallenBodyV129(c,x,y,bag.variant,skin,bag.face)' in g
+          assert 'bag.skinV109>=1' in g
+          assert 'spawnCorpse(' in g and 'enemy.skinV109' in g
+          assert 'headOpaqueBoundsV131' in skins
+          assert 'CharacterScopeV113.headSizeMultiplier(headSizePercent)' in skins
+          assert 'headBoundsLocalV131(' in skins
+          assert 'firstHeadImpactV131' in g and 'indoorTargetV131(' in g
+          assert 'HeadCollisionV131.worldBounds' in g
+          assert 'pauseMenuTopV131()' in g
+          assert 'CANVAS WORK JACKET' in wardrobe and 'CANVAS WORK JACKET' in loot
+          assert 'drawTorso(canvas,variant,primary,accent)' in gear
+          assert 'drawBoots(canvas,variant,primary,accent)' in gear
+          assert 'IndustrialBiomeSceneV128.draw' in g
+          assert 'drawIndoorVisibleEntityV127(c,' in g
+          print('PASS V131 source integration: reliable head-hit detection, exact corpse skin, 8 gear sockets, 3 sorts, real load weights, clothing icons, V128 world preserved')
+          PY
+      - name: Verify V132 contextual ENTER and rebranded INTERACT controls
+        run: |
+          set -euo pipefail
+          R=survival-paradise/native-game
+          P="$R/app/src/main/java/com/survivalparadise/nativegame"
+          mkdir -p /tmp/sp-v132-test
+          javac -d /tmp/sp-v132-test \
+            "$P/LegacyControlsV58.java" \
+            "$P/ExpeditionSitesV88.java" \
+            "$P/ContextualDoorV132.java" \
+            "$R/tools/V132DoorInteractionTest.java"
+          java -cp /tmp/sp-v132-test com.survivalparadise.nativegame.V132DoorInteractionTest
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame')
+          g=(root/'GameView.java').read_text()
+          controls=(root/'LegacyControlsV58.java').read_text()
+          menu=(root/'MainActivity.java').read_text()
+          assert 'ENTER_EDITOR=COMMAND_EDITOR+1,EDITOR_ITEMS=ENTER_EDITOR+1' in g
+          assert 'if(enterButtonAtV132(x,y))return ENTER_EDITOR;' in g
+          assert 'if(!editControls&&enterVisibleV132())enterDoorV132();' in g
+          assert 'nearbyDoorV132()!=null' in g
+          assert 'drawEnterButtonV132(c);' in g
+          assert 'drawTalkButtonV94(c);' in g
+          assert 'return enterDoorV132();' in g
+          assert 'ContextualDoorV132.fixedDoor(' in g
+          assert 'ContextualDoorV132.shelterDoor(' in g
+          assert 'ContextualDoorV132.indoorExit(' in g
+          assert 'IndustrialBiomeBridgeV128.nearestEntrance(' in g
+          assert 'IndustrialOpenWorldV124.nearestEntrance(' in g
+          assert 'ENTER AT THE DOOR' in g and 'EXIT AT THE DOOR' in g
+          assert 'btn(c,x,y,w,h,insideClinicV89?"EXIT":"ENTER",' in g
+          assert 'if(id==ENTER_EDITOR)return "ENTER / EXIT BUTTON";' in g
+          assert 'if(id==ENTER_EDITOR)return enterWidthV132();' in g
+          assert 'if(id==ENTER_EDITOR)return enterHeightV132();' in g
+          assert 'if(id==ENTER_EDITOR)return enterLeftV132();' in g
+          assert 'if(id==ENTER_EDITOR)return enterTopV132();' in g
+          assert 'editControl==ENTER_EDITOR' in g
+          assert 'HudDragV119.horizontalOffset(px,editGrabX,' in g
+          assert 'HudDragV119.verticalOffset(py,editGrabY,' in g
+          assert 'String[] choicesV87=new String[GameView.EDITOR_ITEMS]' in menu
+          assert '"INTERACT"' in controls and 'USE=6' in controls
+          interact=g.split('}else if(ui==LegacyControlsV58.USE){',1)[1].split('\n    }\n    @Override public boolean onTouchEvent',1)[0]
+          assert 'enterClinicFromWorldV89()' not in interact
+          assert 'enterDoorV132()' not in interact
+          assert 'interactClinicV89();return;' in interact
+          assert 'useFacilityV88()' in interact
+          assert 'pickupGroundV85()' in interact and 'gatherNearestV80()' in interact
+          assert 'placeAtV84(' in interact
+          assert 'INDUSTRIAL_SITE_V123' in g
+          assert 'IndustrialBiomeSceneV128.draw' in g
+          assert 'banditLootV87.spawnCorpse(' in g
+          print('PASS V132: separate dynamic ENTER/EXIT, preserved INTERACT (loot/harvest/place), independent HUD editor and seed-based factory doors')
+          PY
+      - name: Prepare Android 35 SDK
+        run: |
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -path '*/bin/sdkmanager' | sort -V | tail -1)"
+          test -x "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Use stable key when already configured
+        env:
+          SP_KEYSTORE_BASE64: ${{ secrets.SP_SIGNING_KEYSTORE_BASE64 }}
+          SP_SIGNING_PASSWORD: ${{ secrets.SP_SIGNING_PASSWORD }}
+          SP_SIGNING_KEY_PASSWORD: ${{ secrets.SP_SIGNING_KEY_PASSWORD }}
+          SP_SIGNING_ALIAS: ${{ secrets.SP_SIGNING_ALIAS }}
+        run: |
+          if [ -n "$SP_KEYSTORE_BASE64" ] && [ -n "$SP_SIGNING_PASSWORD" ]; then
+            echo "$SP_KEYSTORE_BASE64" | base64 --decode > /tmp/sp_native_stable_keystore.jks
+            echo "SP_SIGNING_STORE=/tmp/sp_native_stable_keystore.jks" >> "$GITHUB_ENV"
+            echo "SP_SIGNING_PASSWORD=$SP_SIGNING_PASSWORD" >> "$GITHUB_ENV"
+            echo "SP_SIGNING_KEY_PASSWORD=$SP_SIGNING_KEY_PASSWORD" >> "$GITHUB_ENV"
+            echo "SP_SIGNING_ALIAS=$SP_SIGNING_ALIAS" >> "$GITHUB_ENV"
+          else
+            echo "::warning::No stable signing configured; resulting debug build might not upgrade existing installation."
+          fi
+      - name: Reconstruct and verify 200 approved character sources + V5 fittings
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import zipfile,io,json,hashlib
+          root=Path("survival-paradise/native-game")
+          parts=sorted((root/"source_v109").glob("part_*.bin"))
+          assert len(parts)==8, f"expected 8 exact lossless source segments, found {len(parts)}"
+          data=b"".join(p.read_bytes() for p in parts)
+          actual=hashlib.sha256(data).hexdigest()
+          expected="c8e364bc1485eb5251fa9494889977038268cbac10f455fa844d7b8a46f6dc3a"
+          assert actual==expected,(actual,expected)
+          with zipfile.ZipFile(io.BytesIO(data)) as z:
+              assert z.testzip() is None,"corrupt source ZIP"
+              for i in range(1,201):
+                  assert f"heads/{i:03}.png" in z.namelist(),f"head {i} missing"
+              pack=json.loads(z.read("v5_fittings.json"))
+              assert pack["totalCharacters"]==200
+              assert pack["animation"]["idleMode"]=="head-only-breathing"
+              assert len(pack["characterOverrides"])==pack["overrideCount"]==51
+              assert len(z.read("body_idle.png"))>100
+              assert len(z.read("body_walk.png"))>100
+          target=root/"app/src/main/assets/sp_v109_characters.zip"
+          target.write_bytes(data)
+          print("VERIFIED: 200 exact heads, 4 walk poses, static idle body, V5 51 overrides",len(data),actual)
+          PY
+      - name: Verify V114 approved source pixels, original pants and feet in all poses
+        run: python3 survival-paradise/native-game/tools/test_v114_torso_source.py
+      - name: V122 verify original five idle/walk poses and original foot pixels
+        run: python3 survival-paradise/native-game/tools/test_v116_legs_exact.py
+      - name: "V122 verify all gameplay, original fittings and world+indoor NPC gunfire integration"
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          d=Path("survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame")
+          game=(d/"GameView.java").read_text()
+          skins=(d/"CharacterSkinsV109.java").read_text()
+          menu=(d/"MainActivity.java").read_text()
+          assert 'characterSkinsV109.draw(c,skinIdV109' in game
+          assert 'else if(characterSkinsV109!=null||!bandit)' in game
+          assert 'if(characterSkinsV109==null){ // legacy equipment is hidden' in game
+          assert 'playerSkinV109' in menu
+          assert 'float breathing=CharacterAnimationV110.breathOffset' in skins
+          assert 'CharacterAnimationV110.bodyFrame' in skins
+          assert 'idleBreathingSpeedV110' in game and 'idleBreathingSpeedV110' in menu
+          assert 'walkingAnimationMultiplierV79,' in game
+          assert 'player?fitWalkFpsV108:npcWalkFpsV113' in game
+          assert 'player?fitIdleBreathV108:npcBreathPixelsV113' in game
+          assert 'HeadAimV111.neckX' in skins and 'HeadAimV111.neckY' in skins
+          assert 'c.rotate(Math.max(-HeadAimV111.MAX_DEGREES' in skins
+          assert 'playerHeadTiltV111=HeadAimV111.follow' in game
+          assert 'headAimTiltV111' in game and 'headAimTiltV111' in menu
+          assert 'player?playerHeadTiltV111:' in game
+          assert 'HeadFitOffsetsV112.x(hw,fit.horizontal,headOffsetX)' in skins
+          assert 'HeadFitOffsetsV112.y(hh,fit.vertical,breathing,headOffsetY)' in skins
+          assert 'player?fitHeadXV108:npcHeadFitXV113' in game
+          assert 'player?fitHeadYV108:npcHeadFitYV113' in game
+          assert 'player?playerHeadSizeV113:npcHeadSizeV113,' in game
+          assert 'player?playerTorsoWidthV114:npcTorsoWidthV114,' in game
+          assert 'player?playerPelvisWidthV115:npcPelvisWidthV115,' in game
+          assert 'PelvisWidthV115.percent(host.setting("pelvisWidthV115",100))' in game
+          assert 'PelvisWidthV115.percent(host.setting("pelvisWidthV115NpcV113",100))' in game
+          assert 'TorsoWidthV114.percent(host.setting("bodyWidthV114",100))' in game
+          assert 'TorsoWidthV114.percent(host.setting("bodyWidthV114NpcV113",100))' in game
+          assert 'drawBody(c,body,2,fit.blend,left,top,unit,' in skins
+          assert 'PelvisLegRigV116.part(frame,x,row+PelvisLegRigV116.PELVIS_TOP)' in skins
+          assert 'BodyAlignmentV120.rearBootShift(pelvisWidth)' in skins
+          assert 'BodyAlignmentV120.frontBootShift(' in skins
+          assert 'Bitmap.createBitmap(separated[PelvisLegRigV116.LEFT_FOOT]' in skins
+          assert 'Bitmap.createBitmap(separated[PelvisLegRigV116.RIGHT_FOOT]' in skins
+          assert 'canvas.drawBitmap(layers.left,pelvisRigSource,destination,pixels);' in skins
+          assert 'canvas.drawBitmap(layers.right,pelvisRigSource,destination,pixels);' in skins
+          assert 'canvas.drawBitmap(layers.overlap,pelvisRigSource,destination,pixels);' in skins
+          assert 'PELVIS_BAND_BOTTOM=240' in (d/'PelvisLegRigV116.java').read_text()
+          assert 'PelvisWidthV115.LEGS_TOP' not in skins
+          assert 'TorsoWidthV114.LOWER_BODY_TOP' in skins
+          assert 'CharacterScopeV113.key("bodyWidthV114",scope)' in menu
+          assert '"bodyWidthV114"' in menu
+          assert 'CharacterScopeV113.key("pelvisWidthV115",scope)' in menu
+          assert '"pelvisWidthV115"' in menu
+          assert '"bodyWidthV114","pelvisWidthV115"' in menu
+          assert 'CharacterScopeV113.headSizeMultiplier(headSizePercent)' in skins
+          assert 'CharacterScopeV113.key("headSizeV82",scope)' in menu
+          assert 'CharacterScopeV113.key("headAimTiltV111",scope)' in menu
+          assert 'CharacterScopeV113.key("walkingAnimationSpeedV79",scope)' in menu
+          assert 'CharacterScopeV113.SCOPE_KEY' in menu
+          assert 'fitHeadXV108=CharacterFitV108.headX(host.prefs);' in game
+          assert 'fitHeadYV108=CharacterFitV108.headY(host.prefs);' in game
+          assert 'CharacterScopeV113.key("fitHeadXV108",scope)' in menu
+          assert 'CharacterScopeV113.key("fitHeadYV108",scope)' in menu
+          assert 'new Fit(base)' in skins and 'characterOverrides' in skins
+          assert 'fps=2' in skins
+          assert 'void draw(Canvas c,int id,boolean walking' in skins
+          assert 'playerGunPivotXV117=WeaponPivotV117.clamp(host.setting("weaponPivotXV117",0))' in game
+          assert 'playerGunPivotYV117=WeaponPivotV117.clamp(host.setting("weaponPivotYV117",0))' in game
+          assert 'npcGunPivotXV117=WeaponPivotV117.clamp(host.setting("weaponPivotXV117NpcV113",0))' in game
+          assert 'npcGunPivotYV117=WeaponPivotV117.clamp(host.setting("weaponPivotYV117NpcV113",0))' in game
+          assert 'CharacterScopeV113.key("weaponPivotXV117",scope)' in menu
+          assert 'CharacterScopeV113.key("weaponPivotYV117",scope)' in menu
+          assert 'player?playerGunPivotXV117:npcGunPivotXV117' in game
+          assert 'player?playerGunPivotYV117:npcGunPivotYV117' in game
+          assert 'c.translate(pivotX-kick+WeaponPivotV117.localX(actorFitX,s)' in game
+          assert 'WeaponPivotV117.relocateMuzzle(muzzle,facing,gunScale' in game
+          assert 'WeaponPivotV117.relocateMuzzle(muzzle,face,rigScale' in game
+          assert 'WeaponPivotV117.relocateMuzzle(tip,face,CharacterCollision.BASE_SCALE*scale' in game
+          assert 'WeaponPivotV117.relocateMuzzle(tip,f.face,CharacterCollision.BASE_SCALE*scale' in game
+          assert 'shoot(playerX,playerY,aimX,aimY,gun,false,face,true);' in game
+          assert 'shoot(friend.x,friend.y,friend.aimX,friend.aimY,' in game
+          assert 'shoot(e.x,e.y,e.aimX,e.aimY,0,true,e.face,false);' in game
+          assert 'weaponPivotXV117","weaponPivotYV117"' in menu
+          assert 'new Fit(base)' in skins and 'characterOverrides' in skins
+          assert 'class VerticalSliderV118' in (d/'VerticalSliderV118.java').read_text()
+          assert 'class CharacterPreviewV118' in (d/'CharacterPreviewV118.java').read_text()
+          assert 'sectionBoundariesV118' in menu and 'categoryPagesV118' in menu
+          assert 'characterPreviewV118' in menu and 'activeCharacterPreviewV118' in menu
+          assert 'void companionCommandsV118()' in menu
+          assert 'CompanionOrdersV118.targetX' in game
+          assert 'companionStayV118' in game and 'companionHoldFireV118' in game
+          assert 'followSpacing=CompanionOrdersV118.spacing' in game
+          assert 'TOP_FORM_EDITOR' in game and 'TOP_SET_EDITOR' in game
+          assert 'COMMAND_EDITOR' in game and 'STATUS_EDITOR' in game
+          assert 'HEADER_EDITOR' in game and 'PERF_EDITOR' in game
+          assert 'hudExtraAtV118' in game and 'drawStatusWindowV118' in game
+          assert 'drawSquadButtonV118' in game and 'topHudHitV118' in game
+          assert 'drawGunEffectsV119(c)' in game and 'emitGunEffectsV119' in game
+          assert 'GunEffectsV118.firearm(gun)' in game
+          assert 'GunTracerV118' not in game and 'axeSwingTimeV118' in game
+          assert 'HudDragV119.horizontalOffset(px,editGrabX,' in game
+          assert 'HudDragV119.verticalOffset(py,editGrabY,' in game
+          assert 'if(id==TALK_EDITOR)return talkLeftV94();' in game
+          assert 'if(id==TALK_EDITOR)return talkTopV94();' in game
+          assert 'editGrabX=HudDragV119.grabOffset(x,uiX(target));' in game
+          assert 'editGrabY=HudDragV119.grabOffset(y,uiY(target));' in game
+          assert 'drawGunEffectsV119' in game and 'GunEffectsV119.BULLET_TRAIL_LENGTH' in game
+          assert 'gunMuzzleV119' in game and 'gunTrailV119' in game
+          assert '"gunMuzzleV119"' in menu and '"gunTrailV119"' in menu
+          assert 'GunEffectsV119.firearm(weapon)' in game
+          assert 'gunTracersV118' not in game
+          assert 'float tip=32f+progress*175f' not in game
+          assert 'weapon==11' in game and 'axeSwingTimeV118' in game
+          assert 'WeaponPivotV117.relocateMuzzle(muzzle,facing,gunScale' in game
+          assert 'c.translate(pivotX-kick+WeaponPivotV117.localX(actorFitX,s)' in game
+          assert 'final int rearInset=BodyAlignmentV120.rearBootShift(pelvisWidth)' in skins
+          assert 'final int frontInset=BodyAlignmentV120.frontBootShift(' in skins
+          assert 'topBodyOutlineV120(canvas,left,top,unit,torsoWidth)' in skins
+          assert 'upperOutlinePaintV120.setColor(android.graphics.Color.BLACK)' in skins
+          assert 'PelvisLegRigV116.part(frame,x,row+PelvisLegRigV116.PELVIS_TOP)' in skins
+          defaults=(d/"ScreenshotDefaultsV121.java").read_text()
+          preset=(d/"ScreenshotSettingsV121.java").read_text()
+          assert 'ScreenshotSettingsV121.applyCharacters(prefs,false)' in menu
+          assert 'ScreenshotSettingsV121.applyCharacters(prefs,true)' in menu
+          assert 'ScreenshotSettingsV121.applyHud(prefs,game.viewW,true)' in menu
+          assert 'ScreenshotSettingsV121.applyHud(host.prefs,logicalWidth,false)' in game
+          assert 'onSizeChanged(int width,int height' in game
+          assert 'ScreenshotDefaultsV121.CHARACTER_VALUES' in menu
+          assert 'ScreenshotDefaultsV121.MOVED' in preset
+          assert 'for(int scope=CharacterScopeV113.PLAYER;scope<=CharacterScopeV113.NPCS;scope++)' in preset
+          assert 'if(overwrite||!prefs.contains(key))' in preset
+          assert 'if(!prefs.contains("playerSkinV109"))' in preset
+          assert 'CharacterScopeV113.key(' in preset
+          assert 'public static final int CHARACTER_SCALE=98,PLAYER_CHARACTER=124' in defaults
+          assert '93,71,72,9,-5,15,0,0,4,100,4,100' in defaults
+          assert 'form' not in ''  # screenshot UI sizes verified by JVM test
+          assert 'NpcAimV122.scanX(worldTimer,i+4)' in game
+          assert 'NpcAimV122.scanY(worldTimer,i+4)' in game
+          assert 'NpcAimV122.scanX(worldTimer,fi+17)' in game
+          assert 'NpcAimV122.scanX(worldTimer,e.variant+32)' in game
+          assert 'NpcAimV122.scanX(worldTimer,i+71)' in game
+          assert 'NpcAimV122.scanX(worldTimer,a.type+85)' in game
+          assert 'NpcAimV122.turn(' in game
+          assert 'NpcAimV122.aligned(' in game
+          assert 'friend.aimX=friend.face;friend.aimY=0f;' not in game
+          assert 'Ballistics.angle(e.aimX,e.aimY,e.face)' in game
+          assert 'Ballistics.angle(npc.aimX,npc.aimY,npc.face)' in game
+          assert 'Ballistics.angle(f.aimX,f.aimY,f.face)' in game
+          assert 'shoot(e.x,e.y,e.aimX,e.aimY,0,true,e.face,false)' in game
+          assert 'shoot(npc.x,npc.y,npc.aimX,npc.aimY,npc.gun,false,npc.face,false)' in game
+          assert 'campGuardCooldownV92<=0f' not in game
+          assert 'spawnIndoorGunfireV122(friend.x,friend.y,friend.gun' in game
+          assert 'spawnIndoorGunfireV122(a.x,a.y,0,facing' in game
+          assert 'spawnIndoorGunfireV122(playerX,playerY,gun,face' in game
+          assert 'NpcGunfireV122.firearm(weapon)' in game
+          assert 'NpcGunfireV122.velocity(' in game
+          assert 'drawIndoorRoundsV122(c)' in game
+          assert 'updateIndoorRoundsV122(dt)' in game
+          assert 'NpcGunfireV122.firearm(friend.gun)' in game
+          assert 'companionHoldFireV118' in game
+          assert 'GunEffectsV119.BULLET_TRAIL_LENGTH' in game
+          assert 'weapon==11' in game and 'if(weapon==3)return;' in game
+          assert 'bodyWidthV114NpcV113' in game and 'pelvisWidthV115NpcV113' in game
+          print("V122: NPC look vectors 360 degrees; independent bandit/friend/guard aim; physical outdoor gunfire and indoor synchronized rounds; old 200-head V121 visual defaults unchanged")
+          PY
+      - name: Verify V122 original 200-character and front foot exact source pixel regression
+        run: python3 survival-paradise/native-game/tools/test_v120_alignment.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SP_V122_Character_Regression
+          path: survival-paradise/native-game/artifacts/V120_idle_walk_fitted_preview.png
+          retention-days: 14
+          if-no-files-found: error
+      - name: Verify approved V133 5-boot payload, fit, and source integration
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from io import BytesIO
+          from zipfile import ZipFile
+          import hashlib,struct
+          root=Path('survival-paradise/native-game')
+          art=root/'app/src/main/assets/sp_v133_boots.zip'
+          assert art.is_file()
+          assert hashlib.sha256(art.read_bytes()).hexdigest()=='d7c782e48d1b4c698d64d5e77a948beaaf1cb9f2e6a72c990c87f3e9f9a1283c'
+          with ZipFile(art) as z:
+            names=['00_Classic_Brown.png','01_Combat.png','02_Desert.png','03_Reinforced_Work.png','04_Trail.png']
+            assert sorted(z.namelist())==sorted(names)
+            for name in names:
+              data=z.read(name)
+              assert data[:8]==bytes([137,80,78,71,13,10,26,10])
+              assert struct.unpack('>II',data[16:24])==(68,52)
+          native=root/'app/src/main/java/com/survivalparadise/nativegame'
+          boot=(native/'BootArtV133.java').read_text()
+          char=(native/'CharacterSkinsV109.java').read_text()
+          game=(native/'GameView.java').read_text()
+          menu=(native/'MainActivity.java').read_text()
+          assert 'sp_v133_boots.zip' in boot
+          assert 'Bitmap body=body(2,fit.blend);' in char
+          assert 'bootArtV133.draw(c,bodyFrame,bootStyleV133' in char
+          assert 'wardrobeV92.equipped[3]>=0?bootStyleV133:0' in game
+          assert '.putInt("bootStyleV133",bootStyleV133)' in game
+          assert 'BOOT LOOK' in menu or 'BOOTS LOOK' in menu
+          assert 'bootLookV133.setOnClickListener' in menu
+          assert 'sp_v109_characters.zip' in char
+          print('PASS V133 five-frame boot assets, original 200 heads, UI selection and persisted boot style')
+          PY
+      - name: V136 verify preserved inventory grid, approved heads and footwear
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame")
+          ui=(root/"MainActivity.java").read_text()
+          game=(root/"GameView.java").read_text()
+          skins=(root/"CharacterSkinsV109.java").read_text()
+          assert "compactLootDialogV134(" in ui
+          assert "lootGridV134(srcItems,25)" in ui
+          assert "lootGridV134(dstItems,40)" in ui
+          assert "bg.setCornerRadius(0)" in ui
+          assert "Math.round(58f*" in ui
+          assert "game.bagOrderV92[i]" in ui
+          assert "game.bagSlotQuantityV130(i)" in ui
+          assert "game.organizeBagV131(0)" in ui
+          assert "organizeBagV131(0);invalidate();" in game
+          assert "lowerOutlineV134(" not in skins
+          assert "thinCenteredUnderbodyV135(" not in skins
+          assert "referenceUnderbodyV136(body,fit.blend)" in skins
+          assert "for(int y=220;y<240;y++)for(int x=60;x<140;x++)" in skins
+          assert "Bitmap body=body(2,fit.blend)" in skins
+          assert "bootArtV133.draw(c,bodyFrame" in skins
+          print("V136: original head, standard body, five fitted boots and V134 inventory retained")
+          PY
+      - name: V136 pixel-exact comparison with user's centered blue-band reference
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          from io import BytesIO
+          import numpy as np
+          from PIL import Image
+          asset=Path("survival-paradise/native-game/app/src/main/assets/sp_v109_characters.zip")
+          assert asset.is_file()
+          with ZipFile(asset) as z:
+              original=Image.open(BytesIO(z.read("body_walk.png"))).convert("RGBA")
+          src=np.asarray(original.crop((200,0,400,260))).copy()
+          assert src.shape==(260,200,4)
+          assert np.all(src[220:240,60:120] == [0,0,0,255])
+          assert not src[220:240,120:140,3].any(), "Intended right extension must be transparent"
+          corrected=src.copy()
+          corrected[220:240,60:140]=[0,0,0,255]
+          changed=np.any(corrected!=src,axis=2)
+          y,x=np.where(changed)
+          assert len(x)==400 and x.min()==120 and x.max()==139 and y.min()==220 and y.max()==239
+          assert np.array_equal(corrected[:220],src[:220])
+          assert np.array_equal(corrected[240:],src[240:])
+          assert np.all(corrected[220:240,60:140]==[0,0,0,255])
+          assert np.all(corrected[200:220,60:140,:3]==[0,74,161]) or np.all(corrected[200:220,60:140,3]>0)
+          print("V136 PASS: centered black x60..139 matches the blue band's 80px width; only 400 new black pixels under body")
+          PY
+      - name: Compile Android debug APK
+        working-directory: survival-paradise/native-game
+        run: gradle --no-daemon :app:assembleDebug
+      - name: Verify APK payload and version
+        run: |
+          set -e
+          APK=survival-paradise/native-game/app/build/outputs/apk/debug/app-debug.apk
+          test -s "$APK"
+          unzip -t "$APK" >/dev/null
+          unzip -l "$APK" | grep -q 'classes.dex'
+          unzip -l "$APK" | grep -q 'assets/body.png'
+          unzip -l "$APK" | grep -q 'assets/npc_idle_v56.png'
+          unzip -l "$APK" | grep -q 'assets/sp_v109_characters.zip'
+          unzip -l "$APK" | grep -q 'assets/sp_v133_boots.zip'
+          unzip -l "$APK" | grep -q 'assets/industrial_v123/SP_Industrial_Factory_Double_Bay_01.webp'
+          unzip -l "$APK" | grep -q 'assets/industrial_v123/SP_Industrial_Forklift_01.webp'
+          INDUSTRIAL_COUNT="$(unzip -Z1 "$APK" | grep -c '^assets/industrial_v123/.*[.]webp$')"
+          test "$INDUSTRIAL_COUNT" -eq 24
+          echo "Verified $INDUSTRIAL_COUNT V132 industrial sprites in APK"
+          mkdir -p artifacts
+          cp "$APK" artifacts/SurvivalParadise_V136_Reference_Underbody.apk
+          sha256sum artifacts/SurvivalParadise_V136_Reference_Underbody.apk > artifacts/SHA256.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: SP_V136_Reference_Underbody_APK
+          path: artifacts/
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Publish V132 contextual ENTER and INTERACT APK as a separate test prerelease
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG=survival-paradise-v136-reference-underbody-test
+          APK=artifacts/SurvivalParadise_V136_Reference_Underbody.apk
+          SUM=artifacts/SHA256.txt
+          test -s "$APK" && test -s "$SUM"
+          NOTE="Survival Paradise V136 matches the user-provided character reference: the lower black body block is centered and exactly aligned to the blue band above, x60..139 and y220..239 (80 by 20 source pixels). The incorrect V135 thin 40 by 8 underside is removed. All original 200 fitted heads, standard Walk 2 body, V133 right-facing boot designs and independent five-frame boot animations remain unchanged outside the lower underside region. V134 flat compact corpse and backpack inventory grids, adjacent loot stacking, larger loot action buttons, the connected world, and V132 gameplay all remain. V136 is an isolated test app so older V135/V134 installations and saved games remain untouched. Automated pixel comparisons, native tests, Android compile, APK integrity and payload checks pass; device gameplay still needs verification."
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" "$SUM" --clobber -R "$GITHUB_REPOSITORY"
+            gh release edit "$TAG" -R "$GITHUB_REPOSITORY" --notes "$NOTE"
+          else
+            gh release create "$TAG" "$APK" "$SUM" --target "$GITHUB_SHA" -R "$GITHUB_REPOSITORY" --prerelease --title "Survival Paradise V136 - Reference-Matched Centered Underbody Test" --notes "$NOTE"
+          fi
