@@ -6,8 +6,8 @@ android {
   applicationId 'com.survivalparadise.nativegame.v132doors'
   minSdk 24
   targetSdk 34
-  versionCode 132
-  versionName '0.132-contextual-enter-interact-test'
+  versionCode 133
+  versionName '0.133-animated-boots'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
