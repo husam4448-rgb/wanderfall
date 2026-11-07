@@ -233,7 +233,13 @@ final class CharacterSkinsV109 {
         int[][] separated=new int[4][WIDTH*h];
         for(int row=0;row<h;row++)for(int x=0;x<WIDTH;x++){
             int index=row*WIDTH+x;
-            int part=PelvisLegRigV116.part(frame,x,row+PelvisLegRigV116.PELVIS_TOP);
+            int sourceY=row+PelvisLegRigV116.PELVIS_TOP;
+            int part=PelvisLegRigV116.part(frame,x,sourceY);
+            // V136: now that boots animate as independent sprites, the black
+            // x60..139,y220..239 underside is BODY, not a walking foot.
+            // All of it must follow the same width transform as the blue band.
+            if(frame==2&&sourceY>=220&&sourceY<240&&x>=60&&x<140)
+                part=PelvisLegRigV116.PELVIS;
             separated[part][index]=rgba[index];
         }
         FootLayers layers=new FootLayers(
