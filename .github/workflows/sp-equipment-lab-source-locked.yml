@@ -1,0 +1,42 @@
+name: SP Modular Equipment Lab Verified Original Offline Bundle
+on:
+  push:
+    branches: [sp-modular-equipment-lab-v1-20261108]
+    paths:
+      - 'tools/sp-equipment-lab/**'
+      - '.github/workflows/sp-equipment-lab-source-locked.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  verified-original-bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            survival-paradise/native-game/source_v109
+            tools/sp-equipment-lab
+            assets/authored2d/unified_character/generic/helmet.png
+          sparse-checkout-cone-mode: false
+      - name: Verify SHA-256 and package 200 exact original heads with offline fitting lab
+        run: python3 tools/sp-equipment-lab/build_source_locked_bundle.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SP_Modular_Equipment_200_Original_Heads_Prototype_v1
+          path: artifacts/SurvivalParadise_Modular_Equipment_Originals_Prototype_v1.zip
+          if-no-files-found: error
+          retention-days: 30
+      - name: Publish direct ZIP prerelease (no APK)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG=sp-equipment-lab-original-200-prototype-v1
+          ZIP=artifacts/SurvivalParadise_Modular_Equipment_Originals_Prototype_v1.zip
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$ZIP" --clobber -R "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" "$ZIP" --target "$GITHUB_SHA" -R "$GITHUB_REPOSITORY" --prerelease --title "Survival Paradise: Source-Locked 200-Head Equipment Lab" --notes "Verified original 200 heads, V5 fitting, idle body and 4 walk frames, with offline HTML fitting lab and no generated characters. Equipment PNGs remain subject to approval. No APK changes."
+          fi
