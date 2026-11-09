@@ -1,0 +1,47 @@
+name: SP Headgear Original Head Extraction
+on:
+  push:
+    branches: [assets/headgear-individual-20261109]
+    paths: ['.github/workflows/sp-headgear-extract-originals.yml']
+permissions:
+  contents: write
+jobs:
+  extract-original-heads:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            survival-paradise/native-game/source_v109
+            tools/headgear-original
+          sparse-checkout-cone-mode: false
+      - name: Extract exactly the locked V132 head source sprites
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import zipfile, io, hashlib, json
+          src=Path('survival-paradise/native-game/source_v109')
+          data=b''.join((src/f'part_{i:02}.bin').read_bytes() for i in range(8))
+          expected='c8e364bc1485eb5251fa9494889977038268cbac10f455fa844d7b8a46f6dc3a'
+          assert hashlib.sha256(data).hexdigest()==expected, 'Wrong sprite source'
+          out=Path('tools/headgear-original/heads');out.mkdir(parents=True,exist_ok=True)
+          info={'sourceSHA256':expected,'headCount':200,'selected':{}}
+          with zipfile.ZipFile(io.BytesIO(data)) as z:
+            assert z.testzip() is None
+            for n in (124,125):
+              path=f'heads/{n:03}.png'
+              b=z.read(path)
+              assert b[:8]==b'\x89PNG\r\n\x1a\n'
+              (out/f'{n:03}.png').write_bytes(b)
+              info['selected'][str(n)]={'sha256':hashlib.sha256(b).hexdigest(),'bytes':len(b)}
+          Path('tools/headgear-original/source_manifest.json').write_text(json.dumps(info,indent=2))
+          print(info)
+          PY
+      - name: Commit exact original source PNGs only to production branch
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add tools/headgear-original/
+          git diff --cached --quiet && exit 0
+          git commit -m "assets: extract original Head 124 and 125 PNGs for visual QA"
+          git push
