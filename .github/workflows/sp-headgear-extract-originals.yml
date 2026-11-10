@@ -1,7 +1,7 @@
 name: SP Headgear Original Head Extraction
 on:
   push:
-    branches: [assets/headgear-individual-20261109]
+    branches: [asset-head133-fidelity-retry-20261111]
     paths: ['.github/workflows/sp-headgear-extract-originals.yml']
 permissions:
   contents: write
@@ -28,7 +28,7 @@ jobs:
           info={'sourceSHA256':expected,'headCount':200,'selected':{}}
           with zipfile.ZipFile(io.BytesIO(data)) as z:
             assert z.testzip() is None
-            for n in (124,125):
+            for n in (124,125,133):
               path=f'heads/{n:03}.png'
               b=z.read(path)
               assert b[:8]==b'\x89PNG\r\n\x1a\n'
