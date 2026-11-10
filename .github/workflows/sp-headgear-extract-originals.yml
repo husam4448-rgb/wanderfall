@@ -2,7 +2,7 @@ name: SP Headgear Original Head Extraction
 on:
   push:
     branches: [asset-head133-fidelity-retry-20261111]
-    paths: ['.github/workflows/sp-headgear-extract-originals.yml']
+    paths: ['.github/workflows/sp-headgear-extract-originals.yml', 'tools/headgear-original/draw_head133.py']
 permissions:
   contents: write
 jobs:
