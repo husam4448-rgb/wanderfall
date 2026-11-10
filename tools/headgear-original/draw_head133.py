@@ -10,12 +10,19 @@ W,H=original.size
 assert (W,H)==(124,135), (W,H)
 INK='#0e0d0c'; DARK='#292820'; O1='#746c51'; O2='#978b65'; O3='#b9a77d'; HIGHLIGHT='#d1c49e'
 BLACK='#0b0c0f'; SHADOW='#202127'; GRAPH='#36383f'; GREY='#52555d'; STEEL='#96989a'; LIGHT='#c3c1b7'
-def new():return Image.new('RGBA',(W,H),(0,0,0,0))
+CW,CH=138,145
+PX,PY=10,8
+OW,OH=150,157
+def new():return Image.new('RGBA',(CW,CH),(0,0,0,0))
 def shape(im,pts,fill,stroke=INK,width=2):
  d=ImageDraw.Draw(im);d.polygon(pts,fill=fill);d.line(pts+[pts[0]],fill=stroke,width=width,joint='curve')
 def line(im,pts,color,width=1):ImageDraw.Draw(im).line(pts,fill=color,width=width,joint='curve')
 def rect(im,xy,fill,outline=None,width=1):ImageDraw.Draw(im).rectangle(xy,fill=fill,outline=outline,width=width)
 helmet=new()
+# Extended rear shell covers bald scalp without changing the underlying head.
+shape(helmet,[(1,64),(2,41),(10,25),(26,11),(50,2),(75,0),(96,7),(115,21),(128,41),(131,55),(106,59),(65,60),(39,68),(8,75)],'#26251f')
+shape(helmet,[(4,59),(7,41),(15,28),(29,17),(51,7),(73,5),(90,10),(110,21),(121,38),(123,54),(105,56),(65,57),(39,65),(8,70)],'#7d7558',stroke='#171612')
+line(helmet,[(9,40),(17,27),(31,16),(51,8)],'#bcaf88',width=2)
 shape(helmet,[(11,60),(13,41),(21,25),(34,11),(50,4),(72,2),(92,8),(109,18),(123,33),(130,48),(129,58),(110,60),(92,57),(73,59),(57,65),(33,70),(17,68)],'#4c4635')
 shape(helmet,[(16,58),(18,40),(27,25),(37,15),(53,8),(70,6),(89,11),(107,21),(120,34),(126,49),(108,54),(91,52),(73,53),(57,59),(34,65),(20,63)],O2,stroke='#1b1914')
 shape(helmet,[(28,41),(36,26),(49,16),(65,11),(86,12),(103,23),(111,34),(93,32),(71,35),(49,46)],O1,stroke='#544e3e',width=1)
@@ -56,10 +63,14 @@ rect(chin,(61,94,66,101),'#2a2826','#141414')
 line(chin,[(65,110),(75,122),(90,130),(110,130),(121,120)],'#171611',width=5)
 line(chin,[(67,111),(78,123),(91,128),(107,128),(119,119)],'#797159',width=3)
 mask_rear=new()
-line(mask_rear,[(30,74),(40,72),(54,75),(76,79)],'#111116',width=7)
-line(mask_rear,[(30,74),(40,72),(54,75),(76,79)],'#383b42',width=4)
-line(mask_rear,[(38,103),(57,109),(72,108)],'#17171b',width=5)
-line(mask_rear,[(39,103),(56,107),(72,107)],'#45464b',width=2)
+# Upper headband lies above the ear and meets the goggle corner naturally.
+shape(mask_rear,[(3,63),(17,61),(34,61),(51,64),(65,70),(63,80),(47,75),(30,71),(12,71),(2,72)],'#1a1b20',stroke='#0d0e11')
+line(mask_rear,[(4,65),(19,63),(37,64),(54,68)],'#414249',width=2)
+rect(mask_rear,(46,64,52,73),'#5a5d62','#0d0e11')
+rect(mask_rear,(48,66,50,71),'#262830')
+# Separate lower retention strap follows cheek/beard boundary.
+line(mask_rear,[(31,100),(44,100),(59,102),(77,106)],'#121317',width=8)
+line(mask_rear,[(32,100),(44,100),(59,102),(75,105)],'#44464e',width=4)
 goggle=new()
 shape(goggle,[(72,67),(83,60),(104,59),(118,61),(130,68),(130,96),(123,101),(109,100),(102,93),(95,96),(81,96),(72,91)],'#141519',stroke='#0b0b0e')
 shape(goggle,[(76,71),(85,65),(103,64),(118,66),(126,72),(127,91),(122,96),(110,95),(102,89),(96,91),(81,91),(76,86)],'#42434a',stroke='#9c9ea0',width=1)
@@ -82,29 +93,41 @@ rect(buckle,(67,86,71,92),'#22242a','#08090a')
 # Fit gear overlays to 124x135 source; never resize or repaint original.
 # Helmet is scaled from the standard 131x138 template, with mask goggles
 # adjusted only in horizontal fit to preserve the source eyes.
-original.save(OUT/'original.png')
+# The approved standard goggle silhouette is fitted left to include both source eyes.
+# Resample only equipment, never any original head pixels.
+gog_fit=new()
+gog_crop=goggle.crop((71,57,132,102))
+gog_fit.alpha_composite(gog_crop.resize((75,45),Image.Resampling.NEAREST),(57,57))
+goggle=gog_fit
+# Clean separation between the mask and helmet retention hardware.
+original.save(OUT/'original_exact.png')
+
 for name,im in [('helmet_shell',helmet),('helmet_chin',chin),('mask_rear',mask_rear),('mask_goggles',goggle),('mask_shell',mask_shell),('mask_buckle',buckle)]:im.save(OUT/(name+'.png'))
 def render(which):
- out=new()
- if which in ('mask','both'):out.alpha_composite(mask_rear)
- out.alpha_composite(original)
- if which in ('helmet','both'):out.alpha_composite(helmet)
+ out=Image.new('RGBA',(OW,OH),(0,0,0,0))
+ out.alpha_composite(original,(PX,PY))
+ if which in ('mask','both'):out.alpha_composite(mask_rear,(PX,PY))
+ if which in ('helmet','both'):out.alpha_composite(helmet,(PX,PY))
+ if which in ('helmet','both'):out.alpha_composite(chin,(PX,PY))
  if which in ('mask','both'):
-  out.alpha_composite(mask_shell);out.alpha_composite(goggle);out.alpha_composite(buckle)
- if which in ('helmet','both'):out.alpha_composite(chin)
+  out.alpha_composite(mask_shell,(PX,PY))
+  out.alpha_composite(goggle,(PX,PY))
+  out.alpha_composite(buckle,(PX,PY))
  return out
 names=['original','helmet','mask','both']
 for n in names:render(n).save(OUT/(n+'.png'))
 scale=4;pad=16;headroom=30
-review=Image.new('RGB',(4*W*scale+5*pad,H*scale+headroom+20),'#1b2532');dr=ImageDraw.Draw(review)
+review=Image.new('RGB',(4*OW*scale+5*pad,OH*scale+headroom+20),'#1b2532');dr=ImageDraw.Draw(review)
 for i,n in enumerate(names):
- bg=Image.new('RGBA',(W,H),'#2d3d4e');bg.alpha_composite(render(n))
- x=pad+i*(W*scale+pad)
- review.paste(bg.resize((W*scale,H*scale),Image.Resampling.NEAREST).convert('RGB'),(x,headroom))
+ bg=Image.new('RGBA',(OW,OH),'#2d3d4e');bg.alpha_composite(render(n))
+ x=pad+i*(OW*scale+pad)
+ review.paste(bg.resize((OW*scale,OH*scale),Image.Resampling.NEAREST).convert('RGB'),(x,headroom))
  dr.text((x+6,8),n.upper(),fill='white')
 review.save(OUT/'review.png')
-assert render('original').tobytes()==original.tobytes()
-(OUT/'qa.json').write_text(json.dumps({'character':133,'source_sha256':hashlib.sha256(SRC.read_bytes()).hexdigest(),'source_pixels_preserved':True,'approved':False,'visual_status':'review_candidate'},indent=2))
+actual=render('original').crop((PX,PY,PX+W,PY+H))
+assert actual.tobytes()==original.tobytes(), 'Source head pixels must remain exact'
+assert all(render(n).size==(OW,OH) for n in names)
+(OUT/'qa.json').write_text(json.dumps({'character':133,'source_sha256':hashlib.sha256(SRC.read_bytes()).hexdigest(),'source_pixels_preserved':True,'fit_canvas':[OW,OH],'exact_source_size':[W,H],'approved':False,'visual_status':'review_candidate'},indent=2))
 with zipfile.ZipFile(OUT/'Head133_ExactSource_Gear_Review.zip','w',zipfile.ZIP_DEFLATED) as z:
  for f in OUT.glob('*.png'):z.write(f,f.name)
  z.write(OUT/'qa.json','qa.json')
