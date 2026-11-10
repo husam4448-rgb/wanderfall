@@ -37,6 +37,8 @@ jobs:
           Path('tools/headgear-original/source_manifest.json').write_text(json.dumps(info,indent=2))
           print(info)
           PY
+      - name: Install Pillow renderer
+        run: python3 -m pip install --quiet pillow
       - name: Render pixel-preserving Head 133 four-state review
         run: python3 tools/headgear-original/draw_head133.py
       - name: Commit exact-source Head 133 review assets to isolated branch
