@@ -394,7 +394,8 @@ jobs:
           menu=(d/"MainActivity.java").read_text()
           assert 'characterSkinsV109.draw(c,skinIdV109' in game
           assert 'else if(characterSkinsV109!=null||!bandit)' in game
-          assert 'if(characterSkinsV109==null){ // legacy equipment is hidden' in game
+          assert 'if(characterSkinsV109==null){ // legacy equipment is hidden' not in game
+          assert 'wearableArtV96.drawPack(c,backpackStyleV96,s,pixel)' in game
           assert 'playerSkinV109' in menu
           assert 'float breathing=CharacterAnimationV110.breathOffset' in skins
           assert 'CharacterAnimationV110.bodyFrame' in skins
