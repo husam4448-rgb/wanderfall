@@ -43,6 +43,7 @@ final class CharacterSkinsV109 {
     private final Fit[] fitting=new Fit[COUNT+1];
     private final Bitmap[] originals=new Bitmap[5]; // 0 idle, 1..4 walk
     private final BootArtV133 bootArtV133;
+    private final ApprovedOutfitArtV139 approvedOutfitArtV139;
     // One immutable cached body per equipment combination, shared by all 200 heads.
     private final LinkedHashMap<Integer,Bitmap> outfitBodiesV137=
         new LinkedHashMap<Integer,Bitmap>(16,.75f,true){
@@ -136,6 +137,7 @@ final class CharacterSkinsV109 {
 
     CharacterSkinsV109(Context context) throws IOException {
         bootArtV133=new BootArtV133(context);
+        approvedOutfitArtV139=new ApprovedOutfitArtV139(context);
         upperOutlinePaintV120.setColor(android.graphics.Color.BLACK);
         upperOutlinePaintV120.setAntiAlias(false);
         upperOutlinePaintV120.setFilterBitmap(false);
@@ -228,7 +230,7 @@ final class CharacterSkinsV109 {
     private FootLayers footLayers(Bitmap source,int frame,int blend,int clothingKey) {
         // Never reuse a pelvis layer generated with another uniform's colors.
         int key=(Math.max(0,Math.min(4,frame))*64+
-            Math.max(0,Math.min(40,blend)))*16+clothingKey;
+            Math.max(0,Math.min(40,blend)))*512+clothingKey;
         FootLayers cached=footCacheV116.get(key);
         if(cached!=null)return cached;
         final int h=HEIGHT-PelvisLegRigV116.PELVIS_TOP;
@@ -339,7 +341,9 @@ final class CharacterSkinsV109 {
         Bitmap source=body(2,0);
         int[] rgba=new int[WIDTH*HEIGHT];
         source.getPixels(rgba,0,WIDTH,0,0,WIDTH,HEIGHT);
+        int[] original=approvedOutfitArtV139.ready()?rgba.clone():null;
         BodyClothingV137.apply(rgba,WIDTH,HEIGHT,torsoStyle,pantsStyle);
+        if(original!=null)approvedOutfitArtV139.apply(rgba,original,torsoStyle,pantsStyle);
         Bitmap result=Bitmap.createBitmap(rgba,WIDTH,HEIGHT,Bitmap.Config.ARGB_8888);
         outfitBodiesV137.put(key,result);
         return result;
