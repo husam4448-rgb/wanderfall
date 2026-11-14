@@ -198,6 +198,7 @@ final class CharacterSkinsV109 {
         return Bitmap.createBitmap(pixels,WIDTH,HEIGHT,Bitmap.Config.ARGB_8888);
     }
     boolean ready(){return loaded;}
+    boolean approvedOutfitsReadyV139(){return approvedOutfitArtV139.ready();}
     Fit fit(int id){return fitting[range(id,1,COUNT)];}
     private Bitmap head(int id){
         synchronized(heads){
