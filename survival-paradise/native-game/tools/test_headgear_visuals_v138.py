@@ -35,6 +35,11 @@ assert "characterSkinsV109.draw(c,skinIdV109," in g
 assert "BootArtV133.COUNT" in g
 assert "wardrobeV92.equipped[1]" in g and "wardrobeV92.equipped[2]" in g
 assert "wearableArtV96.drawPack(" in g
+# Backpacks are visible for fitted V109 player and NPC actors, behind the body.
+assert "if(characterSkinsV109==null){ // legacy equipment is hidden" not in g
+pack_draw = g.index("wearableArtV96.drawPack(c,backpackStyleV96,s,pixel);")
+fitted_draw = g.index("characterSkinsV109.draw(c,skinIdV109,")
+assert pack_draw < fitted_draw
 assert "void draw(" in skins and "head(id)" in skins
 assert "packLookV96" in ui and "bootLookV133" in ui
 
