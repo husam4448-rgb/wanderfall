@@ -76,13 +76,11 @@ public final class WearableArtV96 {
         }
         return result;
     }
+    /** V138: hard-disabled for every character and preview.
+     * The item can still be equipped; its icon, gameplay effects and save entry
+     * are preserved. Cosmetic headgear is never painted over source head art.
+     */
     public void drawHead(Canvas c,int kind,float s,float bob,float headMultiplier,Paint pixel){
-        if(heads==null)return;
-        int i=Math.floorMod(kind,4);
-        final int[] height={59,28,54,81};
-        from.set(i*72,0,(i+1)*72,height[i]);
-        float[] bounds=WearableFitV98.head(i,s,headMultiplier,bob);
-        to.set(bounds[0],bounds[1],bounds[2],bounds[3]);
-        c.drawBitmap(heads,from,to,pixel);
+        // Intentionally empty. Do not re-enable for helmets, masks, hats or visors.
     }
 }
