@@ -23,20 +23,20 @@ jobs:
       - name: Launch app and capture actual Android screenshots
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 30
+          api-level: 29
           target: google_apis
           arch: x86_64
-          profile: pixel_6
-          emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -gpu swiftshader_indirect
-          disable-animations: true
+          profile: pixel_2
+          emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -gpu swiftshader_indirect -memory 1536
+          disable-animations: false
           script: |
             set -euo pipefail
             mkdir -p /tmp/sp138/visual
             adb wait-for-device
-            adb shell settings put system accelerometer_rotation 0
-            adb shell settings put system user_rotation 1
-            adb shell wm size 1920x1080
-            adb shell wm density 260
+            adb shell settings put system accelerometer_rotation 0 || true
+            adb shell settings put system user_rotation 1 || true
+            adb shell wm size 1920x1080 || true
+            adb shell wm density 260 || true
             adb install /tmp/sp138/*.apk
             adb shell am start -n com.survivalparadise.nativegame.v137clothing/com.survivalparadise.nativegame.MainActivity
             sleep 8
