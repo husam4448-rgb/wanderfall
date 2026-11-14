@@ -16,10 +16,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          mkdir -p /tmp/sp138
+          mkdir -p /tmp/sp139
           gh release download survival-paradise-v139-approved-outfits-run-gait-test \
-            --repo "$GITHUB_REPOSITORY" --pattern '*.apk' --dir /tmp/sp138
-          test -s /tmp/sp138/*.apk
+            --repo "$GITHUB_REPOSITORY" --pattern '*.apk' --dir /tmp/sp139
+          test -s /tmp/sp139/*.apk
       - name: Enable Android emulator KVM access
         run: |
           if [ -c /dev/kvm ]; then
@@ -39,7 +39,7 @@ jobs:
           disable-animations: false
           script: |
             set -eu
-            mkdir -p /tmp/sp138/visual
+            mkdir -p /tmp/sp139/visual
             adb wait-for-device
             # Avoid the Android first-run immersive-mode help overlay obscuring character art.
             adb shell settings put secure immersive_mode_confirmations confirmed || true
@@ -47,7 +47,7 @@ jobs:
             adb shell settings put system user_rotation 1 || true
             adb shell wm size 1920x1080 || true
             adb shell wm density 260 || true
-            adb install /tmp/sp138/*.apk
+            adb install /tmp/sp139/*.apk
             adb shell am start -n com.survivalparadise.nativegame.v139rungaittest/com.survivalparadise.nativegame.MainActivity
             sleep 8
             # Android's first immersive-mode launch can display a blue
@@ -56,8 +56,8 @@ jobs:
             adb shell input tap 1130 330
             adb shell input tap 1140 335
             sleep 2
-            adb shell screencap -p /sdcard/sp138_menu.png
-            adb pull /sdcard/sp138_menu.png /tmp/sp138/visual/01_menu.png
+            adb shell screencap -p /sdcard/sp139_menu.png
+            adb pull /sdcard/sp139_menu.png /tmp/sp139/visual/01_menu.png
             # The canvas menu is drawn with logical height 660. At 1920x1080,
             # its NEW GAME button center is approximately (744, 618).
             adb shell input tap 744 618
@@ -67,17 +67,24 @@ jobs:
             adb shell input tap 1130 330
             adb shell input tap 1140 335
             sleep 2
-            adb shell screencap -p /sdcard/sp138_gameplay.png
-            adb pull /sdcard/sp138_gameplay.png /tmp/sp138/visual/02_gameplay.png
-            adb logcat -d -t 1000 > /tmp/sp138/visual/logcat_tail.txt
-            test -s /tmp/sp138/visual/01_menu.png
-            test -s /tmp/sp138/visual/02_gameplay.png
+            adb shell screencap -p /sdcard/sp139_gameplay.png
+            adb pull /sdcard/sp139_gameplay.png /tmp/sp139/visual/02_gameplay.png
+            # Magnify the actual game character and nearby NPCs for closer art QA.
+            adb shell input tap 1840 170
+            adb shell input tap 1840 170
+            sleep 2
+            adb shell screencap -p /sdcard/sp139_gameplay_zoom.png
+            adb pull /sdcard/sp139_gameplay_zoom.png /tmp/sp139/visual/03_gameplay_zoom.png
+            adb logcat -d -t 1000 > /tmp/sp139/visual/logcat_tail.txt
+            test -s /tmp/sp139/visual/01_menu.png
+            test -s /tmp/sp139/visual/02_gameplay.png
+            test -s /tmp/sp139/visual/03_gameplay_zoom.png
       - name: Upload emulator QA evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: SP_V139_Outfit_Emulator_Visual_QA
-          path: /tmp/sp138/visual/
+          path: /tmp/sp139/visual/
           retention-days: 30
           if-no-files-found: warn
       - name: Publish screenshots alongside test APK
@@ -86,5 +93,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release upload survival-paradise-v139-approved-outfits-run-gait-test \
-            /tmp/sp138/visual/01_menu.png /tmp/sp138/visual/02_gameplay.png \
+            /tmp/sp139/visual/01_menu.png /tmp/sp139/visual/02_gameplay.png /tmp/sp139/visual/03_gameplay_zoom.png \
             --clobber --repo "$GITHUB_REPOSITORY"
