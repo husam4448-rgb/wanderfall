@@ -3,11 +3,11 @@ android {
  namespace 'com.survivalparadise.nativegame'
  compileSdk 35
  defaultConfig {
-  applicationId 'com.survivalparadise.nativegame.v138headgearofftest'
+  applicationId 'com.survivalparadise.nativegame.v139rungaittest'
   minSdk 24
   targetSdk 34
-  versionCode 138
-  versionName '0.138-headgear-invisible'
+  versionCode 139
+  versionName '0.139-run-gait-test'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
