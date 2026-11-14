@@ -30,7 +30,7 @@ jobs:
           emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -gpu swiftshader_indirect -memory 1536
           disable-animations: false
           script: |
-            set -euo pipefail
+            set -eu
             mkdir -p /tmp/sp138/visual
             adb wait-for-device
             adb shell settings put system accelerometer_rotation 0 || true
