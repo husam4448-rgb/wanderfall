@@ -41,6 +41,8 @@ jobs:
             set -eu
             mkdir -p /tmp/sp138/visual
             adb wait-for-device
+            # Avoid the Android first-run immersive-mode help overlay obscuring character art.
+            adb shell settings put secure immersive_mode_confirmations confirmed || true
             adb shell settings put system accelerometer_rotation 0 || true
             adb shell settings put system user_rotation 1 || true
             adb shell wm size 1920x1080 || true
@@ -52,6 +54,7 @@ jobs:
             # "Viewing full screen" coach mark over the character preview.
             # Dismiss its safe-area "Got it" button before taking evidence.
             adb shell input tap 1130 330
+            adb shell input tap 1140 335
             sleep 2
             adb shell screencap -p /sdcard/sp138_menu.png
             adb pull /sdcard/sp138_menu.png /tmp/sp138/visual/01_menu.png
@@ -62,6 +65,7 @@ jobs:
             # Android may show the fullscreen coach mark only after gameplay
             # enters immersive mode; dismiss it a second time before capture.
             adb shell input tap 1130 330
+            adb shell input tap 1140 335
             sleep 2
             adb shell screencap -p /sdcard/sp138_gameplay.png
             adb pull /sdcard/sp138_gameplay.png /tmp/sp138/visual/02_gameplay.png
