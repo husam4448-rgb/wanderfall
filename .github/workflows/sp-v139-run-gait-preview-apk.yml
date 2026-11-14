@@ -588,7 +588,7 @@ jobs:
           assert 'sp_v109_characters.zip' in char
           print('PASS V133 five-frame boot assets, original 200 heads, UI selection and persisted boot style')
           PY
-      - name: V137 regression - universal body source and 16 equipment palettes
+      - name: V139 regression - universal body source and expanded cosmetic palettes
         run: |
           set -euo pipefail
           R=survival-paradise/native-game
@@ -612,7 +612,10 @@ jobs:
           assert "player?wardrobeV92.equipped[1]:" in game
           assert "player?wardrobeV92.equipped[2]:" in game
           assert "WardrobeV92.npcOutfit(Math.max(0,npcVariant),1)" in game
-          assert "WardrobeV92.npcOutfit(Math.max(0,npcVariant),2)" in game
+          assert "Math.floorMod(Math.max(0,npcVariant)*7+skinIdV109*3,20)" in game
+          assert "Math.floorMod(Math.max(0,npcVariant)*11+skinIdV109*7,20)" in game
+          assert "approvedOutfitArtV139.apply(" in skins
+          assert "torsoAppearanceV139" in ui and "pantsAppearanceV139" in ui
           assert "compactLootDialogV134(" in ui
           assert "lootGridV134(srcItems,25)" in ui
           assert "lootGridV134(dstItems,40)" in ui
