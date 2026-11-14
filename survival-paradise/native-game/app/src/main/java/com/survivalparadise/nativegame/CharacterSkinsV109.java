@@ -41,6 +41,7 @@ final class CharacterSkinsV109 {
     static int range(int a,int min,int max){return Math.max(min,Math.min(max,a));}
     private final byte[][] headData=new byte[COUNT+1][];
     private final Fit[] fitting=new Fit[COUNT+1];
+    private Fit referenceFitV139;
     private final Bitmap[] originals=new Bitmap[5]; // 0 idle, 1..4 walk
     private final BootArtV133 bootArtV133;
     private final ApprovedOutfitArtV139 approvedOutfitArtV139;
@@ -98,6 +99,60 @@ final class CharacterSkinsV109 {
             new int[]{0,0,width,height}:new int[]{minX,minY,maxX,maxY};
         headOpaqueV131[id]=cached;return cached;
     }
+    /**
+     * Original approved 300x355 modular preset transformed into V133 native
+     * body coordinates by the same (-50,-45) displacement used by the five
+     * independent boot frames. Source heads are never edited or replaced.
+     */
+    private static final class ApprovedHeadFitV139 {
+        final int x,y,width,height;
+        ApprovedHeadFitV139(int x,int y,int w,int h){
+            this.x=x;this.y=y;this.width=w;this.height=h;
+        }
+    }
+    private ApprovedHeadFitV139 approvedHeadFitV139(int id,Bitmap head,
+               int headOffsetX,int headOffsetY,int headSizePercent,
+               int breathingAmplitude,float breathingTempo,
+               float timeSec,boolean walking){
+        Fit fit=fitting[id],base=referenceFitV139;
+        float headSize=CharacterScopeV113.headSizeMultiplier(headSizePercent);
+        float defaultHeadSize=CharacterScopeV113.headSizeMultiplier(93);
+        float relative=fit.headScale/(float)Math.max(1,base.headScale)*
+            headSize/Math.max(.01f,defaultHeadSize);
+        int width=Math.max(1,Math.round(145f*relative));
+        int height=Math.max(1,Math.round(head.getHeight()*
+            (width/(float)head.getWidth())));
+        // The simulator's fixed approved head anchor is x=63,y=-5,
+        // shared by all styles. V5 per-head overrides and user sliders remain
+        // additive, while the source pixels and their aspect ratio never change.
+        int x=Math.round(13f+(145f-width)*.5f+
+            fit.horizontal-base.horizontal+headOffsetX);
+        float breath=CharacterAnimationV110.breathOffset(walking,timeSec,
+            fit.breath*(Math.max(0,Math.min(12,breathingAmplitude))/4f),
+            breathingTempo);
+        int y=Math.round(-50f+fit.vertical-base.vertical+headOffsetY+breath);
+        return new ApprovedHeadFitV139(x,y,width,height);
+    }
+    private void drawApprovedHeadV139(Canvas c,int id,Bitmap h,
+             float left,float top,float unit,Paint pixel,float tilt,
+             int headOffsetX,int headOffsetY,int headSizePercent,
+             int breathingAmplitude,float breathingTempo,float timeSec,
+             boolean walking){
+        ApprovedHeadFitV139 f=approvedHeadFitV139(id,h,
+            headOffsetX,headOffsetY,headSizePercent,breathingAmplitude,
+            breathingTempo,timeSec,walking);
+        headSource.set(0,0,h.getWidth(),h.getHeight());
+        destination.set(left+f.x*unit,top+f.y*unit,
+            left+(f.x+f.width)*unit,top+(f.y+f.height)*unit);
+        float pivotX=HeadAimV111.neckX(destination.left,destination.width());
+        float pivotY=HeadAimV111.neckY(destination.bottom,unit);
+        c.save();
+        c.rotate(Math.max(-HeadAimV111.MAX_DEGREES,
+            Math.min(HeadAimV111.MAX_DEGREES,tilt)),pivotX,pivotY);
+        c.drawBitmap(h,headSource,destination,pixel);
+        c.restore();
+    }
+
     /** Exact V109/V5 head transform; local/world collision uses opaque alpha
      * bounds, independent of the obsolete V31 head rows in body-mask tests.
      */
@@ -107,6 +162,20 @@ final class CharacterSkinsV109 {
           float timeSec,boolean walking){
         id=range(id,1,COUNT);
         Bitmap h=head(id);if(h==null)return null;
+        if(approvedOutfitArtV139.ready()){
+            ApprovedHeadFitV139 f=approvedHeadFitV139(id,h,
+                headOffsetX,headOffsetY,headSizePercent,breathingAmplitude,
+                breathingTempo,timeSec,walking);
+            int[] b=headOpaqueBoundsV131(id,h);
+            float u=(160f/HEIGHT)*characterScale;
+            float lx=-100f*u,ty=-136f*characterScale;
+            return new float[]{
+                lx+(f.x+b[0]*f.width/(float)h.getWidth())*u,
+                ty+(f.y+b[1]*f.height/(float)h.getHeight())*u,
+                lx+(f.x+b[2]*f.width/(float)h.getWidth())*u,
+                ty+(f.y+b[3]*f.height/(float)h.getHeight())*u
+            };
+        }
         Fit fit=fitting[id];
         float unit=(160f/HEIGHT)*characterScale;
         float left=-100f*unit,top=-136f*characterScale;
@@ -184,6 +253,7 @@ final class CharacterSkinsV109 {
             JSONObject general=configuration.getJSONObject("generalFitting");
             JSONObject exceptions=configuration.getJSONObject("characterOverrides");
             Fit base=new Fit();base.read(general);
+            referenceFitV139=new Fit(base);
             for(int id=1;id<=COUNT;id++){
                 fitting[id]=new Fit(base);
                 fitting[id].read(exceptions.optJSONObject(Integer.toString(id)));
@@ -342,9 +412,7 @@ final class CharacterSkinsV109 {
         Bitmap source=body(2,0);
         int[] rgba=new int[WIDTH*HEIGHT];
         source.getPixels(rgba,0,WIDTH,0,0,WIDTH,HEIGHT);
-        int[] original=approvedOutfitArtV139.ready()?rgba.clone():null;
         BodyClothingV137.apply(rgba,WIDTH,HEIGHT,torsoStyle,pantsStyle);
-        if(original!=null)approvedOutfitArtV139.apply(rgba,original,torsoStyle,pantsStyle);
         Bitmap result=Bitmap.createBitmap(rgba,WIDTH,HEIGHT,Bitmap.Config.ARGB_8888);
         outfitBodiesV137.put(key,result);
         return result;
@@ -366,6 +434,22 @@ final class CharacterSkinsV109 {
         float left=-100f*unit, top=-136f*s;
         int bodyFrame=CharacterAnimationV110.bodyFrame(walking,walkClockSecondsV139,fit.fps,
             fixedWalkFps,walkingTempo);
+        // V139: use the complete approved torso, pants and head components
+        // with the very same source anchors already used by V133 walking boots.
+        // No rejected V137 compressed/mask-projection artwork is used.
+        if(approvedOutfitArtV139.ready()){
+            approvedOutfitArtV139.drawApprovedRig(c,left,top,unit,
+                torsoStyleV137,pantsStyleV137,
+                torsoWidthPercent,pelvisWidthPercent,pixel);
+            Bitmap approvedHead=head(id);
+            if(approvedHead!=null)drawApprovedHeadV139(c,id,approvedHead,
+                left,top,unit,pixel,headTiltDegrees,headOffsetX,headOffsetY,
+                headSizePercent,breathingAmplitude,breathingTempo,timeSec,
+                walking);
+            bootArtV133.draw(c,bodyFrame,bootStyleV133,left,top,unit,pixel);
+            return;
+        }
+        // V137 fallback when the exact forty original PNGs are absent.
         // V137: universal static body, changing only interior equipment colors.
         Bitmap body=outfittedBodyV137(torsoStyleV137,pantsStyleV137);
         int clothingKey=BodyClothingV137.styleKey(torsoStyleV137,pantsStyleV137);
