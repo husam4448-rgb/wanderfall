@@ -46,7 +46,7 @@ jobs:
             adb shell wm size 1920x1080 || true
             adb shell wm density 260 || true
             adb install /tmp/sp138/*.apk
-            adb shell am start -n com.survivalparadise.nativegame.v137clothing/com.survivalparadise.nativegame.MainActivity
+            adb shell am start -n com.survivalparadise.nativegame.v138headgearofftest/com.survivalparadise.nativegame.MainActivity
             sleep 8
             adb shell screencap -p /sdcard/sp138_menu.png
             adb pull /sdcard/sp138_menu.png /tmp/sp138/visual/01_menu.png
