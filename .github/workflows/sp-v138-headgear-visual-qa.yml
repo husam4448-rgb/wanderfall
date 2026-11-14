@@ -59,6 +59,10 @@ jobs:
             # its NEW GAME button center is approximately (744, 618).
             adb shell input tap 744 618
             sleep 8
+            # Android may show the fullscreen coach mark only after gameplay
+            # enters immersive mode; dismiss it a second time before capture.
+            adb shell input tap 1130 330
+            sleep 2
             adb shell screencap -p /sdcard/sp138_gameplay.png
             adb pull /sdcard/sp138_gameplay.png /tmp/sp138/visual/02_gameplay.png
             adb logcat -d -t 1000 > /tmp/sp138/visual/logcat_tail.txt
