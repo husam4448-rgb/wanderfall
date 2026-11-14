@@ -3925,13 +3925,13 @@ public final class GameView extends View {
         float s=CharacterCollision.BASE_SCALE*scale;
         c.save();c.translate(x,y);if(facing<0)c.scale(-1,1);
         color(0x670b1a18);c.drawOval(-26*s,-7*s,26*s,7*s,p);
-        // V96: approved backpack-only pixels behind the immutable body atlas.
-        if(characterSkinsV109==null){ // legacy equipment is hidden in the 200-character test
-            if(player&&fieldFindsV91.equipped>=0)
-                wearableArtV96.drawPack(c,backpackStyleV96,s,pixel);
-            else if(!player&&npcVariant>=0&&(npcVariant%3)!=0)
-                wearableArtV96.drawPack(c,Math.floorMod(npcVariant*7+11,20),s,pixel);
-        }
+        // V138: backpacks are an approved rear-body equipment layer even with
+        // the original 200 fitted head/body sprites. Draw before the character
+        // body so neither head pixels nor the body silhouette are overwritten.
+        if(player&&fieldFindsV91.equipped>=0)
+            wearableArtV96.drawPack(c,backpackStyleV96,s,pixel);
+        else if(!player&&npcVariant>=0&&(npcVariant%3)!=0)
+            wearableArtV96.drawPack(c,Math.floorMod(npcVariant*7+11,20),s,pixel);
         // V58 rear-layer hand torch. Draw BEFORE the immutable original body:
         // its silhouette cannot cover the head, eyes, or facial outline.
         if(!bandit&&!(player&&harvestV81.active)&&dualTorch&&lampOn&&weapon>=0&&weapon<=2&&showWeapons){
