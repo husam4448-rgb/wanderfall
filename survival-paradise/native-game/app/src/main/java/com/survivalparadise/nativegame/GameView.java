@@ -134,6 +134,9 @@ public final class GameView extends View {
     }
     void drawApprovedGearV93(Canvas c,int index,float left,float top,
         float right,float bottom,float scale){
+        // V138: index 1 is headgear. Do not render head equipment even through
+        // this legacy generic-gear entry point.
+        if(index==1)return;
         if(index<0||index>=approvedGearV93.length||
             approvedGearV93[index]==null||approvedGearBoundsV93[index]==null)return;
         // Preserve native-pixel silhouette; scale through nearest-neighbor.
@@ -4061,19 +4064,12 @@ public final class GameView extends View {
     /** Gear-only layers from prior authored art, never procedural replacements. */
     void drawWardrobeV92(Canvas c,float size,float breath,boolean player,boolean bandit,int variant){
         int role=variant<0?0:variant;
-        int head=player?wardrobeV92.equipped[0]:WardrobeV92.npcOutfit(role,0);
+        // V138 permanent visual policy: equipped headwear never changes the
+        // original head sprite. Keep inventory, armor effects, and save fields.
+        // Torso, pants, backpacks and boots remain handled by their own paths.
         int torso=player?wardrobeV92.equipped[1]:WardrobeV92.npcOutfit(role,1);
         int legs=player?wardrobeV92.equipped[2]:WardrobeV92.npcOutfit(role,2);
         int boots=player?wardrobeV92.equipped[3]:WardrobeV92.npcOutfit(role,3);
-        if(head>=0){
-            int artwork=player?headgearStyleV96:Math.floorMod(role*5+1,4);
-            float bob=breath==Float.POSITIVE_INFINITY?0f:
-                CharacterFitV108.breath(breath,fitIdleBreathV108)*size;
-            c.save();
-            c.translate(fitHeadXV108*size,fitHeadYV108*size);
-            wearableArtV96.drawHead(c,artwork,size,bob,headScaleV82,pixel);
-            c.restore();
-        }
         // V98: normal jackets recolor original torso interior inside stablePose.
         // There must be NO external torso/vest bitmap overlay.
         // Approved character's leg/boot pixels stay immutable until correctly
