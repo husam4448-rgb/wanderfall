@@ -1873,6 +1873,41 @@ public final class MainActivity extends Activity {
         });
         root.addView(text("Equipped headgear is hidden on all characters. Torso clothing, pants, backpacks and boots remain visible; headgear inventory slots and gameplay effects are unchanged.",11,false));
         slider(root,"Character display size","scale",65,135,98,"%");
+        section(root,"V139 • 20 APPROVED TORSO AND PANTS TEXTURES");
+        final String[] approvedStyleNamesV139={
+            "01 T-Shirt","02 Hoodie","03 Jacket","04 Denim","05 Flannel",
+            "06 Tactical Vest","07 Armor","08 Hazmat","09 Medical","10 Workwear",
+            "11 Military","12 Desert","13 Snow","14 Forest","15 Urban",
+            "16 Leather","17 Winter","18 Survivor","19 Ranger","20 Civilian"};
+        root.addView(text("Torso appearance (inventory armor/equipment bonuses unchanged)",12,false));
+        Spinner torsoPickerV139=new Spinner(this);
+        torsoPickerV139.setAdapter(new ArrayAdapter<String>(this,
+            android.R.layout.simple_spinner_dropdown_item,approvedStyleNamesV139));
+        torsoPickerV139.setSelection(Math.max(0,Math.min(19,prefs.getInt("torsoAppearanceV139",1)-1)));
+        root.addView(torsoPickerV139);
+        torsoPickerV139.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener(){
+            public void onNothingSelected(android.widget.AdapterView<?> parent){}
+            public void onItemSelected(android.widget.AdapterView<?> parent,View view,int pos,long id){
+                prefs.edit().putInt("torsoAppearanceV139",pos+1).apply();
+                if(game!=null)game.reloadSettings();
+                characterPreviewV118.invalidate();
+            }
+        });
+        root.addView(text("Pants appearance (inventory protection/equipment values unchanged)",12,false));
+        Spinner pantsPickerV139=new Spinner(this);
+        pantsPickerV139.setAdapter(new ArrayAdapter<String>(this,
+            android.R.layout.simple_spinner_dropdown_item,approvedStyleNamesV139));
+        pantsPickerV139.setSelection(Math.max(0,Math.min(19,prefs.getInt("pantsAppearanceV139",1)-1)));
+        root.addView(pantsPickerV139);
+        pantsPickerV139.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener(){
+            public void onNothingSelected(android.widget.AdapterView<?> parent){}
+            public void onItemSelected(android.widget.AdapterView<?> parent,View view,int pos,long id){
+                prefs.edit().putInt("pantsAppearanceV139",pos+1).apply();
+                if(game!=null)game.reloadSettings();
+                characterPreviewV118.invalidate();
+            }
+        });
+
         section(root,"CHARACTER ADJUSTMENTS • TARGET");
         root.addView(text("Choose whether character adjustment sliders affect only your player or only world NPCs. Both settings profiles are saved independently.",12,false));
         Spinner characterTargetV113=new Spinner(this);
