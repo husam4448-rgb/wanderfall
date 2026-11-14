@@ -110,6 +110,7 @@ public final class GameView extends View {
     final TorsoRecolorV98 torsoRecolorV98=new TorsoRecolorV98();
     int backpackStyleV96=0,headgearStyleV96=0;
     int bootStyleV133=0; // cosmetic selection; existing FEET equipment remains saved
+    int torsoStyleV139=0,pantsStyleV139=0; // source-art appearance; items/stats unchanged
     // Previously authored gear source images, normalized via transparent ROIs.
     // No modification is performed on the locked body/head animation atlas.
     final Bitmap[] approvedGearV93=new Bitmap[3];
@@ -523,6 +524,8 @@ public final class GameView extends View {
     void reloadSettings(){
         scale=host.setting("scale",100)/100f;
         playerSkinV109=Math.max(1,Math.min(200,host.setting("playerSkinV109",124)));
+        torsoStyleV139=Math.max(0,Math.min(19,host.setting("torsoAppearanceV139",1)-1));
+        pantsStyleV139=Math.max(0,Math.min(19,host.setting("pantsAppearanceV139",1)-1));
         playerGunPivotXV117=WeaponPivotV117.clamp(host.setting("weaponPivotXV117",0));
         playerGunPivotYV117=WeaponPivotV117.clamp(host.setting("weaponPivotYV117",0));
         npcGunPivotXV117=WeaponPivotV117.clamp(host.setting("weaponPivotXV117NpcV113",0));
@@ -3968,10 +3971,10 @@ public final class GameView extends View {
                 player?playerPelvisWidthV115:npcPelvisWidthV115,
                 player?(wardrobeV92.equipped[3]>=0?bootStyleV133:0):
                     Math.floorMod(npcVariant*3+skinIdV109,BootArtV133.COUNT),
-                player?wardrobeV92.equipped[1]:
-                    WardrobeV92.npcOutfit(Math.max(0,npcVariant),1),
-                player?wardrobeV92.equipped[2]:
-                    WardrobeV92.npcOutfit(Math.max(0,npcVariant),2),
+                player?(wardrobeV92.equipped[1]<0?-1:torsoStyleV139):
+                    Math.floorMod(Math.max(0,npcVariant)*7+skinIdV109*3,20),
+                player?(wardrobeV92.equipped[2]<0?-1:pantsStyleV139):
+                    Math.floorMod(Math.max(0,npcVariant)*11+skinIdV109*7,20),
                 player?runGaitV139.timeSeconds():worldTimer);
         }else{
             Bitmap atlas=npcVariant>=0?npcWalkV56:approvedWalkColors;
