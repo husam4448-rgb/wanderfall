@@ -1,0 +1,3690 @@
+{
+  "version": "SP_20_Editable_Matched_Outfit_Fittings_v1",
+  "source": "user-uploaded 2026-11-08 five-frame preset, intact",
+  "referenceStyleIndex": 5,
+  "note": "Reference is called military by user; source JSON style 5 is #06 Tactical Vest in simulator. #11 Military is index 10.",
+  "outfitNames": [
+    "T-Shirt",
+    "Hoodie",
+    "Jacket",
+    "Denim",
+    "Flannel",
+    "Tactical Vest",
+    "Armor",
+    "Hazmat",
+    "Medical",
+    "Workwear",
+    "Military",
+    "Desert",
+    "Snow",
+    "Forest",
+    "Urban",
+    "Leather",
+    "Winter",
+    "Survivor",
+    "Ranger",
+    "Civilian"
+  ],
+  "profiles": [
+    {
+      "version": "SP_Exact_Modular_Rig_v2_CopyFrames",
+      "description": "Original V132 head, 20 closed-end torso PNGs, 20 short pants PNGs, five exact V133 boot PNGs and canonical V133 five-frame placements. Frame-to-frame copy for all parts or just selected part.",
+      "canvas": {
+        "width": 300,
+        "height": 355
+      },
+      "styles": {
+        "torso": 0,
+        "pants": 0,
+        "boots": 0
+      },
+      "layers": {
+        "head": [
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "torso": [
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "pants": [
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          }
+        ],
+        "rear": [
+          {
+            "x": 90,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 6
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 18
+          },
+          {
+            "x": 65,
+            "y": 275,
+            "size": 93,
+            "rot": 51
+          },
+          {
+            "x": 73,
+            "y": 281,
+            "size": 93,
+            "rot": 39
+          }
+        ],
+        "front": [
+          {
+            "x": 160,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 158,
+            "y": 281,
+            "size": 93,
+            "rot": 26
+          },
+          {
+            "x": 179,
+            "y": 262,
+            "size": 93,
+            "rot": -45
+          },
+          {
+            "x": 165,
+            "y": 287,
+            "size": 93,
+            "rot": -8
+          },
+          {
+            "x": 164,
+            "y": 288,
+            "size": 93,
+            "rot": 0
+          }
+        ]
+      },
+      "fps": 4,
+      "idleBob": 2,
+      "scopeAll": true,
+      "frame": 0,
+      "selected": "rear",
+      "mirror": false,
+      "guides": false,
+      "solid": false
+    },
+    {
+      "version": "SP_Exact_Modular_Rig_v2_CopyFrames",
+      "description": "Original V132 head, 20 closed-end torso PNGs, 20 short pants PNGs, five exact V133 boot PNGs and canonical V133 five-frame placements. Frame-to-frame copy for all parts or just selected part.",
+      "canvas": {
+        "width": 300,
+        "height": 355
+      },
+      "styles": {
+        "torso": 1,
+        "pants": 1,
+        "boots": 0
+      },
+      "layers": {
+        "head": [
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "torso": [
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "pants": [
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          }
+        ],
+        "rear": [
+          {
+            "x": 90,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 6
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 18
+          },
+          {
+            "x": 65,
+            "y": 275,
+            "size": 93,
+            "rot": 51
+          },
+          {
+            "x": 73,
+            "y": 281,
+            "size": 93,
+            "rot": 39
+          }
+        ],
+        "front": [
+          {
+            "x": 160,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 158,
+            "y": 281,
+            "size": 93,
+            "rot": 26
+          },
+          {
+            "x": 179,
+            "y": 262,
+            "size": 93,
+            "rot": -45
+          },
+          {
+            "x": 165,
+            "y": 287,
+            "size": 93,
+            "rot": -8
+          },
+          {
+            "x": 164,
+            "y": 288,
+            "size": 93,
+            "rot": 0
+          }
+        ]
+      },
+      "fps": 4,
+      "idleBob": 2,
+      "scopeAll": true,
+      "frame": 0,
+      "selected": "rear",
+      "mirror": false,
+      "guides": false,
+      "solid": false
+    },
+    {
+      "version": "SP_Exact_Modular_Rig_v2_CopyFrames",
+      "description": "Original V132 head, 20 closed-end torso PNGs, 20 short pants PNGs, five exact V133 boot PNGs and canonical V133 five-frame placements. Frame-to-frame copy for all parts or just selected part.",
+      "canvas": {
+        "width": 300,
+        "height": 355
+      },
+      "styles": {
+        "torso": 2,
+        "pants": 2,
+        "boots": 0
+      },
+      "layers": {
+        "head": [
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "torso": [
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "pants": [
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          }
+        ],
+        "rear": [
+          {
+            "x": 90,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 6
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 18
+          },
+          {
+            "x": 65,
+            "y": 275,
+            "size": 93,
+            "rot": 51
+          },
+          {
+            "x": 73,
+            "y": 281,
+            "size": 93,
+            "rot": 39
+          }
+        ],
+        "front": [
+          {
+            "x": 160,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 158,
+            "y": 281,
+            "size": 93,
+            "rot": 26
+          },
+          {
+            "x": 179,
+            "y": 262,
+            "size": 93,
+            "rot": -45
+          },
+          {
+            "x": 165,
+            "y": 287,
+            "size": 93,
+            "rot": -8
+          },
+          {
+            "x": 164,
+            "y": 288,
+            "size": 93,
+            "rot": 0
+          }
+        ]
+      },
+      "fps": 4,
+      "idleBob": 2,
+      "scopeAll": true,
+      "frame": 0,
+      "selected": "rear",
+      "mirror": false,
+      "guides": false,
+      "solid": false
+    },
+    {
+      "version": "SP_Exact_Modular_Rig_v2_CopyFrames",
+      "description": "Original V132 head, 20 closed-end torso PNGs, 20 short pants PNGs, five exact V133 boot PNGs and canonical V133 five-frame placements. Frame-to-frame copy for all parts or just selected part.",
+      "canvas": {
+        "width": 300,
+        "height": 355
+      },
+      "styles": {
+        "torso": 3,
+        "pants": 3,
+        "boots": 0
+      },
+      "layers": {
+        "head": [
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "torso": [
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "pants": [
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          }
+        ],
+        "rear": [
+          {
+            "x": 90,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 6
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 18
+          },
+          {
+            "x": 65,
+            "y": 275,
+            "size": 93,
+            "rot": 51
+          },
+          {
+            "x": 73,
+            "y": 281,
+            "size": 93,
+            "rot": 39
+          }
+        ],
+        "front": [
+          {
+            "x": 160,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 158,
+            "y": 281,
+            "size": 93,
+            "rot": 26
+          },
+          {
+            "x": 179,
+            "y": 262,
+            "size": 93,
+            "rot": -45
+          },
+          {
+            "x": 165,
+            "y": 287,
+            "size": 93,
+            "rot": -8
+          },
+          {
+            "x": 164,
+            "y": 288,
+            "size": 93,
+            "rot": 0
+          }
+        ]
+      },
+      "fps": 4,
+      "idleBob": 2,
+      "scopeAll": true,
+      "frame": 0,
+      "selected": "rear",
+      "mirror": false,
+      "guides": false,
+      "solid": false
+    },
+    {
+      "version": "SP_Exact_Modular_Rig_v2_CopyFrames",
+      "description": "Original V132 head, 20 closed-end torso PNGs, 20 short pants PNGs, five exact V133 boot PNGs and canonical V133 five-frame placements. Frame-to-frame copy for all parts or just selected part.",
+      "canvas": {
+        "width": 300,
+        "height": 355
+      },
+      "styles": {
+        "torso": 4,
+        "pants": 4,
+        "boots": 0
+      },
+      "layers": {
+        "head": [
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "torso": [
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "pants": [
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          }
+        ],
+        "rear": [
+          {
+            "x": 90,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 6
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 18
+          },
+          {
+            "x": 65,
+            "y": 275,
+            "size": 93,
+            "rot": 51
+          },
+          {
+            "x": 73,
+            "y": 281,
+            "size": 93,
+            "rot": 39
+          }
+        ],
+        "front": [
+          {
+            "x": 160,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 158,
+            "y": 281,
+            "size": 93,
+            "rot": 26
+          },
+          {
+            "x": 179,
+            "y": 262,
+            "size": 93,
+            "rot": -45
+          },
+          {
+            "x": 165,
+            "y": 287,
+            "size": 93,
+            "rot": -8
+          },
+          {
+            "x": 164,
+            "y": 288,
+            "size": 93,
+            "rot": 0
+          }
+        ]
+      },
+      "fps": 4,
+      "idleBob": 2,
+      "scopeAll": true,
+      "frame": 0,
+      "selected": "rear",
+      "mirror": false,
+      "guides": false,
+      "solid": false
+    },
+    {
+      "version": "SP_Exact_Modular_Rig_v2_CopyFrames",
+      "description": "Original V132 head, 20 closed-end torso PNGs, 20 short pants PNGs, five exact V133 boot PNGs and canonical V133 five-frame placements. Frame-to-frame copy for all parts or just selected part.",
+      "canvas": {
+        "width": 300,
+        "height": 355
+      },
+      "styles": {
+        "torso": 5,
+        "pants": 5,
+        "boots": 0
+      },
+      "layers": {
+        "head": [
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "torso": [
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "pants": [
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          }
+        ],
+        "rear": [
+          {
+            "x": 90,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 6
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 18
+          },
+          {
+            "x": 65,
+            "y": 275,
+            "size": 93,
+            "rot": 51
+          },
+          {
+            "x": 73,
+            "y": 281,
+            "size": 93,
+            "rot": 39
+          }
+        ],
+        "front": [
+          {
+            "x": 160,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 158,
+            "y": 281,
+            "size": 93,
+            "rot": 26
+          },
+          {
+            "x": 179,
+            "y": 262,
+            "size": 93,
+            "rot": -45
+          },
+          {
+            "x": 165,
+            "y": 287,
+            "size": 93,
+            "rot": -8
+          },
+          {
+            "x": 164,
+            "y": 288,
+            "size": 93,
+            "rot": 0
+          }
+        ]
+      },
+      "fps": 4,
+      "idleBob": 2,
+      "scopeAll": true,
+      "frame": 0,
+      "selected": "rear",
+      "mirror": false,
+      "guides": false,
+      "solid": false
+    },
+    {
+      "version": "SP_Exact_Modular_Rig_v2_CopyFrames",
+      "description": "Original V132 head, 20 closed-end torso PNGs, 20 short pants PNGs, five exact V133 boot PNGs and canonical V133 five-frame placements. Frame-to-frame copy for all parts or just selected part.",
+      "canvas": {
+        "width": 300,
+        "height": 355
+      },
+      "styles": {
+        "torso": 6,
+        "pants": 6,
+        "boots": 0
+      },
+      "layers": {
+        "head": [
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "torso": [
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "pants": [
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          }
+        ],
+        "rear": [
+          {
+            "x": 90,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 6
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 18
+          },
+          {
+            "x": 65,
+            "y": 275,
+            "size": 93,
+            "rot": 51
+          },
+          {
+            "x": 73,
+            "y": 281,
+            "size": 93,
+            "rot": 39
+          }
+        ],
+        "front": [
+          {
+            "x": 160,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 158,
+            "y": 281,
+            "size": 93,
+            "rot": 26
+          },
+          {
+            "x": 179,
+            "y": 262,
+            "size": 93,
+            "rot": -45
+          },
+          {
+            "x": 165,
+            "y": 287,
+            "size": 93,
+            "rot": -8
+          },
+          {
+            "x": 164,
+            "y": 288,
+            "size": 93,
+            "rot": 0
+          }
+        ]
+      },
+      "fps": 4,
+      "idleBob": 2,
+      "scopeAll": true,
+      "frame": 0,
+      "selected": "rear",
+      "mirror": false,
+      "guides": false,
+      "solid": false
+    },
+    {
+      "version": "SP_Exact_Modular_Rig_v2_CopyFrames",
+      "description": "Original V132 head, 20 closed-end torso PNGs, 20 short pants PNGs, five exact V133 boot PNGs and canonical V133 five-frame placements. Frame-to-frame copy for all parts or just selected part.",
+      "canvas": {
+        "width": 300,
+        "height": 355
+      },
+      "styles": {
+        "torso": 7,
+        "pants": 7,
+        "boots": 0
+      },
+      "layers": {
+        "head": [
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "torso": [
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "pants": [
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          }
+        ],
+        "rear": [
+          {
+            "x": 90,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 6
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 18
+          },
+          {
+            "x": 65,
+            "y": 275,
+            "size": 93,
+            "rot": 51
+          },
+          {
+            "x": 73,
+            "y": 281,
+            "size": 93,
+            "rot": 39
+          }
+        ],
+        "front": [
+          {
+            "x": 160,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 158,
+            "y": 281,
+            "size": 93,
+            "rot": 26
+          },
+          {
+            "x": 179,
+            "y": 262,
+            "size": 93,
+            "rot": -45
+          },
+          {
+            "x": 165,
+            "y": 287,
+            "size": 93,
+            "rot": -8
+          },
+          {
+            "x": 164,
+            "y": 288,
+            "size": 93,
+            "rot": 0
+          }
+        ]
+      },
+      "fps": 4,
+      "idleBob": 2,
+      "scopeAll": true,
+      "frame": 0,
+      "selected": "rear",
+      "mirror": false,
+      "guides": false,
+      "solid": false
+    },
+    {
+      "version": "SP_Exact_Modular_Rig_v2_CopyFrames",
+      "description": "Original V132 head, 20 closed-end torso PNGs, 20 short pants PNGs, five exact V133 boot PNGs and canonical V133 five-frame placements. Frame-to-frame copy for all parts or just selected part.",
+      "canvas": {
+        "width": 300,
+        "height": 355
+      },
+      "styles": {
+        "torso": 8,
+        "pants": 8,
+        "boots": 0
+      },
+      "layers": {
+        "head": [
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "torso": [
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "pants": [
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          }
+        ],
+        "rear": [
+          {
+            "x": 90,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 6
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 18
+          },
+          {
+            "x": 65,
+            "y": 275,
+            "size": 93,
+            "rot": 51
+          },
+          {
+            "x": 73,
+            "y": 281,
+            "size": 93,
+            "rot": 39
+          }
+        ],
+        "front": [
+          {
+            "x": 160,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 158,
+            "y": 281,
+            "size": 93,
+            "rot": 26
+          },
+          {
+            "x": 179,
+            "y": 262,
+            "size": 93,
+            "rot": -45
+          },
+          {
+            "x": 165,
+            "y": 287,
+            "size": 93,
+            "rot": -8
+          },
+          {
+            "x": 164,
+            "y": 288,
+            "size": 93,
+            "rot": 0
+          }
+        ]
+      },
+      "fps": 4,
+      "idleBob": 2,
+      "scopeAll": true,
+      "frame": 0,
+      "selected": "rear",
+      "mirror": false,
+      "guides": false,
+      "solid": false
+    },
+    {
+      "version": "SP_Exact_Modular_Rig_v2_CopyFrames",
+      "description": "Original V132 head, 20 closed-end torso PNGs, 20 short pants PNGs, five exact V133 boot PNGs and canonical V133 five-frame placements. Frame-to-frame copy for all parts or just selected part.",
+      "canvas": {
+        "width": 300,
+        "height": 355
+      },
+      "styles": {
+        "torso": 9,
+        "pants": 9,
+        "boots": 0
+      },
+      "layers": {
+        "head": [
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "torso": [
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "pants": [
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          }
+        ],
+        "rear": [
+          {
+            "x": 90,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 6
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 18
+          },
+          {
+            "x": 65,
+            "y": 275,
+            "size": 93,
+            "rot": 51
+          },
+          {
+            "x": 73,
+            "y": 281,
+            "size": 93,
+            "rot": 39
+          }
+        ],
+        "front": [
+          {
+            "x": 160,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 158,
+            "y": 281,
+            "size": 93,
+            "rot": 26
+          },
+          {
+            "x": 179,
+            "y": 262,
+            "size": 93,
+            "rot": -45
+          },
+          {
+            "x": 165,
+            "y": 287,
+            "size": 93,
+            "rot": -8
+          },
+          {
+            "x": 164,
+            "y": 288,
+            "size": 93,
+            "rot": 0
+          }
+        ]
+      },
+      "fps": 4,
+      "idleBob": 2,
+      "scopeAll": true,
+      "frame": 0,
+      "selected": "rear",
+      "mirror": false,
+      "guides": false,
+      "solid": false
+    },
+    {
+      "version": "SP_Exact_Modular_Rig_v2_CopyFrames",
+      "description": "Original V132 head, 20 closed-end torso PNGs, 20 short pants PNGs, five exact V133 boot PNGs and canonical V133 five-frame placements. Frame-to-frame copy for all parts or just selected part.",
+      "canvas": {
+        "width": 300,
+        "height": 355
+      },
+      "styles": {
+        "torso": 10,
+        "pants": 10,
+        "boots": 0
+      },
+      "layers": {
+        "head": [
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "torso": [
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "pants": [
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          }
+        ],
+        "rear": [
+          {
+            "x": 90,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 6
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 18
+          },
+          {
+            "x": 65,
+            "y": 275,
+            "size": 93,
+            "rot": 51
+          },
+          {
+            "x": 73,
+            "y": 281,
+            "size": 93,
+            "rot": 39
+          }
+        ],
+        "front": [
+          {
+            "x": 160,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 158,
+            "y": 281,
+            "size": 93,
+            "rot": 26
+          },
+          {
+            "x": 179,
+            "y": 262,
+            "size": 93,
+            "rot": -45
+          },
+          {
+            "x": 165,
+            "y": 287,
+            "size": 93,
+            "rot": -8
+          },
+          {
+            "x": 164,
+            "y": 288,
+            "size": 93,
+            "rot": 0
+          }
+        ]
+      },
+      "fps": 4,
+      "idleBob": 2,
+      "scopeAll": true,
+      "frame": 0,
+      "selected": "rear",
+      "mirror": false,
+      "guides": false,
+      "solid": false
+    },
+    {
+      "version": "SP_Exact_Modular_Rig_v2_CopyFrames",
+      "description": "Original V132 head, 20 closed-end torso PNGs, 20 short pants PNGs, five exact V133 boot PNGs and canonical V133 five-frame placements. Frame-to-frame copy for all parts or just selected part.",
+      "canvas": {
+        "width": 300,
+        "height": 355
+      },
+      "styles": {
+        "torso": 11,
+        "pants": 11,
+        "boots": 0
+      },
+      "layers": {
+        "head": [
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "torso": [
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "pants": [
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          }
+        ],
+        "rear": [
+          {
+            "x": 90,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 6
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 18
+          },
+          {
+            "x": 65,
+            "y": 275,
+            "size": 93,
+            "rot": 51
+          },
+          {
+            "x": 73,
+            "y": 281,
+            "size": 93,
+            "rot": 39
+          }
+        ],
+        "front": [
+          {
+            "x": 160,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 158,
+            "y": 281,
+            "size": 93,
+            "rot": 26
+          },
+          {
+            "x": 179,
+            "y": 262,
+            "size": 93,
+            "rot": -45
+          },
+          {
+            "x": 165,
+            "y": 287,
+            "size": 93,
+            "rot": -8
+          },
+          {
+            "x": 164,
+            "y": 288,
+            "size": 93,
+            "rot": 0
+          }
+        ]
+      },
+      "fps": 4,
+      "idleBob": 2,
+      "scopeAll": true,
+      "frame": 0,
+      "selected": "rear",
+      "mirror": false,
+      "guides": false,
+      "solid": false
+    },
+    {
+      "version": "SP_Exact_Modular_Rig_v2_CopyFrames",
+      "description": "Original V132 head, 20 closed-end torso PNGs, 20 short pants PNGs, five exact V133 boot PNGs and canonical V133 five-frame placements. Frame-to-frame copy for all parts or just selected part.",
+      "canvas": {
+        "width": 300,
+        "height": 355
+      },
+      "styles": {
+        "torso": 12,
+        "pants": 12,
+        "boots": 0
+      },
+      "layers": {
+        "head": [
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "torso": [
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "pants": [
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          }
+        ],
+        "rear": [
+          {
+            "x": 90,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 6
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 18
+          },
+          {
+            "x": 65,
+            "y": 275,
+            "size": 93,
+            "rot": 51
+          },
+          {
+            "x": 73,
+            "y": 281,
+            "size": 93,
+            "rot": 39
+          }
+        ],
+        "front": [
+          {
+            "x": 160,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 158,
+            "y": 281,
+            "size": 93,
+            "rot": 26
+          },
+          {
+            "x": 179,
+            "y": 262,
+            "size": 93,
+            "rot": -45
+          },
+          {
+            "x": 165,
+            "y": 287,
+            "size": 93,
+            "rot": -8
+          },
+          {
+            "x": 164,
+            "y": 288,
+            "size": 93,
+            "rot": 0
+          }
+        ]
+      },
+      "fps": 4,
+      "idleBob": 2,
+      "scopeAll": true,
+      "frame": 0,
+      "selected": "rear",
+      "mirror": false,
+      "guides": false,
+      "solid": false
+    },
+    {
+      "version": "SP_Exact_Modular_Rig_v2_CopyFrames",
+      "description": "Original V132 head, 20 closed-end torso PNGs, 20 short pants PNGs, five exact V133 boot PNGs and canonical V133 five-frame placements. Frame-to-frame copy for all parts or just selected part.",
+      "canvas": {
+        "width": 300,
+        "height": 355
+      },
+      "styles": {
+        "torso": 13,
+        "pants": 13,
+        "boots": 0
+      },
+      "layers": {
+        "head": [
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "torso": [
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "pants": [
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          }
+        ],
+        "rear": [
+          {
+            "x": 90,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 6
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 18
+          },
+          {
+            "x": 65,
+            "y": 275,
+            "size": 93,
+            "rot": 51
+          },
+          {
+            "x": 73,
+            "y": 281,
+            "size": 93,
+            "rot": 39
+          }
+        ],
+        "front": [
+          {
+            "x": 160,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 158,
+            "y": 281,
+            "size": 93,
+            "rot": 26
+          },
+          {
+            "x": 179,
+            "y": 262,
+            "size": 93,
+            "rot": -45
+          },
+          {
+            "x": 165,
+            "y": 287,
+            "size": 93,
+            "rot": -8
+          },
+          {
+            "x": 164,
+            "y": 288,
+            "size": 93,
+            "rot": 0
+          }
+        ]
+      },
+      "fps": 4,
+      "idleBob": 2,
+      "scopeAll": true,
+      "frame": 0,
+      "selected": "rear",
+      "mirror": false,
+      "guides": false,
+      "solid": false
+    },
+    {
+      "version": "SP_Exact_Modular_Rig_v2_CopyFrames",
+      "description": "Original V132 head, 20 closed-end torso PNGs, 20 short pants PNGs, five exact V133 boot PNGs and canonical V133 five-frame placements. Frame-to-frame copy for all parts or just selected part.",
+      "canvas": {
+        "width": 300,
+        "height": 355
+      },
+      "styles": {
+        "torso": 14,
+        "pants": 14,
+        "boots": 0
+      },
+      "layers": {
+        "head": [
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "torso": [
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "pants": [
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          }
+        ],
+        "rear": [
+          {
+            "x": 90,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 6
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 18
+          },
+          {
+            "x": 65,
+            "y": 275,
+            "size": 93,
+            "rot": 51
+          },
+          {
+            "x": 73,
+            "y": 281,
+            "size": 93,
+            "rot": 39
+          }
+        ],
+        "front": [
+          {
+            "x": 160,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 158,
+            "y": 281,
+            "size": 93,
+            "rot": 26
+          },
+          {
+            "x": 179,
+            "y": 262,
+            "size": 93,
+            "rot": -45
+          },
+          {
+            "x": 165,
+            "y": 287,
+            "size": 93,
+            "rot": -8
+          },
+          {
+            "x": 164,
+            "y": 288,
+            "size": 93,
+            "rot": 0
+          }
+        ]
+      },
+      "fps": 4,
+      "idleBob": 2,
+      "scopeAll": true,
+      "frame": 0,
+      "selected": "rear",
+      "mirror": false,
+      "guides": false,
+      "solid": false
+    },
+    {
+      "version": "SP_Exact_Modular_Rig_v2_CopyFrames",
+      "description": "Original V132 head, 20 closed-end torso PNGs, 20 short pants PNGs, five exact V133 boot PNGs and canonical V133 five-frame placements. Frame-to-frame copy for all parts or just selected part.",
+      "canvas": {
+        "width": 300,
+        "height": 355
+      },
+      "styles": {
+        "torso": 15,
+        "pants": 15,
+        "boots": 0
+      },
+      "layers": {
+        "head": [
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "torso": [
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "pants": [
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          }
+        ],
+        "rear": [
+          {
+            "x": 90,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 6
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 18
+          },
+          {
+            "x": 65,
+            "y": 275,
+            "size": 93,
+            "rot": 51
+          },
+          {
+            "x": 73,
+            "y": 281,
+            "size": 93,
+            "rot": 39
+          }
+        ],
+        "front": [
+          {
+            "x": 160,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 158,
+            "y": 281,
+            "size": 93,
+            "rot": 26
+          },
+          {
+            "x": 179,
+            "y": 262,
+            "size": 93,
+            "rot": -45
+          },
+          {
+            "x": 165,
+            "y": 287,
+            "size": 93,
+            "rot": -8
+          },
+          {
+            "x": 164,
+            "y": 288,
+            "size": 93,
+            "rot": 0
+          }
+        ]
+      },
+      "fps": 4,
+      "idleBob": 2,
+      "scopeAll": true,
+      "frame": 0,
+      "selected": "rear",
+      "mirror": false,
+      "guides": false,
+      "solid": false
+    },
+    {
+      "version": "SP_Exact_Modular_Rig_v2_CopyFrames",
+      "description": "Original V132 head, 20 closed-end torso PNGs, 20 short pants PNGs, five exact V133 boot PNGs and canonical V133 five-frame placements. Frame-to-frame copy for all parts or just selected part.",
+      "canvas": {
+        "width": 300,
+        "height": 355
+      },
+      "styles": {
+        "torso": 16,
+        "pants": 16,
+        "boots": 0
+      },
+      "layers": {
+        "head": [
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "torso": [
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "pants": [
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          }
+        ],
+        "rear": [
+          {
+            "x": 90,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 6
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 18
+          },
+          {
+            "x": 65,
+            "y": 275,
+            "size": 93,
+            "rot": 51
+          },
+          {
+            "x": 73,
+            "y": 281,
+            "size": 93,
+            "rot": 39
+          }
+        ],
+        "front": [
+          {
+            "x": 160,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 158,
+            "y": 281,
+            "size": 93,
+            "rot": 26
+          },
+          {
+            "x": 179,
+            "y": 262,
+            "size": 93,
+            "rot": -45
+          },
+          {
+            "x": 165,
+            "y": 287,
+            "size": 93,
+            "rot": -8
+          },
+          {
+            "x": 164,
+            "y": 288,
+            "size": 93,
+            "rot": 0
+          }
+        ]
+      },
+      "fps": 4,
+      "idleBob": 2,
+      "scopeAll": true,
+      "frame": 0,
+      "selected": "rear",
+      "mirror": false,
+      "guides": false,
+      "solid": false
+    },
+    {
+      "version": "SP_Exact_Modular_Rig_v2_CopyFrames",
+      "description": "Original V132 head, 20 closed-end torso PNGs, 20 short pants PNGs, five exact V133 boot PNGs and canonical V133 five-frame placements. Frame-to-frame copy for all parts or just selected part.",
+      "canvas": {
+        "width": 300,
+        "height": 355
+      },
+      "styles": {
+        "torso": 17,
+        "pants": 17,
+        "boots": 0
+      },
+      "layers": {
+        "head": [
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "torso": [
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "pants": [
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          }
+        ],
+        "rear": [
+          {
+            "x": 90,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 6
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 18
+          },
+          {
+            "x": 65,
+            "y": 275,
+            "size": 93,
+            "rot": 51
+          },
+          {
+            "x": 73,
+            "y": 281,
+            "size": 93,
+            "rot": 39
+          }
+        ],
+        "front": [
+          {
+            "x": 160,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 158,
+            "y": 281,
+            "size": 93,
+            "rot": 26
+          },
+          {
+            "x": 179,
+            "y": 262,
+            "size": 93,
+            "rot": -45
+          },
+          {
+            "x": 165,
+            "y": 287,
+            "size": 93,
+            "rot": -8
+          },
+          {
+            "x": 164,
+            "y": 288,
+            "size": 93,
+            "rot": 0
+          }
+        ]
+      },
+      "fps": 4,
+      "idleBob": 2,
+      "scopeAll": true,
+      "frame": 0,
+      "selected": "rear",
+      "mirror": false,
+      "guides": false,
+      "solid": false
+    },
+    {
+      "version": "SP_Exact_Modular_Rig_v2_CopyFrames",
+      "description": "Original V132 head, 20 closed-end torso PNGs, 20 short pants PNGs, five exact V133 boot PNGs and canonical V133 five-frame placements. Frame-to-frame copy for all parts or just selected part.",
+      "canvas": {
+        "width": 300,
+        "height": 355
+      },
+      "styles": {
+        "torso": 18,
+        "pants": 18,
+        "boots": 0
+      },
+      "layers": {
+        "head": [
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "torso": [
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "pants": [
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          }
+        ],
+        "rear": [
+          {
+            "x": 90,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 6
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 18
+          },
+          {
+            "x": 65,
+            "y": 275,
+            "size": 93,
+            "rot": 51
+          },
+          {
+            "x": 73,
+            "y": 281,
+            "size": 93,
+            "rot": 39
+          }
+        ],
+        "front": [
+          {
+            "x": 160,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 158,
+            "y": 281,
+            "size": 93,
+            "rot": 26
+          },
+          {
+            "x": 179,
+            "y": 262,
+            "size": 93,
+            "rot": -45
+          },
+          {
+            "x": 165,
+            "y": 287,
+            "size": 93,
+            "rot": -8
+          },
+          {
+            "x": 164,
+            "y": 288,
+            "size": 93,
+            "rot": 0
+          }
+        ]
+      },
+      "fps": 4,
+      "idleBob": 2,
+      "scopeAll": true,
+      "frame": 0,
+      "selected": "rear",
+      "mirror": false,
+      "guides": false,
+      "solid": false
+    },
+    {
+      "version": "SP_Exact_Modular_Rig_v2_CopyFrames",
+      "description": "Original V132 head, 20 closed-end torso PNGs, 20 short pants PNGs, five exact V133 boot PNGs and canonical V133 five-frame placements. Frame-to-frame copy for all parts or just selected part.",
+      "canvas": {
+        "width": 300,
+        "height": 355
+      },
+      "styles": {
+        "torso": 19,
+        "pants": 19,
+        "boots": 0
+      },
+      "layers": {
+        "head": [
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 63,
+            "y": -5,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "torso": [
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          },
+          {
+            "x": 86,
+            "y": 116,
+            "size": 100,
+            "rot": 0
+          }
+        ],
+        "pants": [
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          },
+          {
+            "x": 97,
+            "y": 199,
+            "size": 104,
+            "rot": 0
+          }
+        ],
+        "rear": [
+          {
+            "x": 90,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 6
+          },
+          {
+            "x": 88,
+            "y": 284,
+            "size": 93,
+            "rot": 18
+          },
+          {
+            "x": 65,
+            "y": 275,
+            "size": 93,
+            "rot": 51
+          },
+          {
+            "x": 73,
+            "y": 281,
+            "size": 93,
+            "rot": 39
+          }
+        ],
+        "front": [
+          {
+            "x": 160,
+            "y": 287,
+            "size": 93,
+            "rot": 0
+          },
+          {
+            "x": 158,
+            "y": 281,
+            "size": 93,
+            "rot": 26
+          },
+          {
+            "x": 179,
+            "y": 262,
+            "size": 93,
+            "rot": -45
+          },
+          {
+            "x": 165,
+            "y": 287,
+            "size": 93,
+            "rot": -8
+          },
+          {
+            "x": 164,
+            "y": 288,
+            "size": 93,
+            "rot": 0
+          }
+        ]
+      },
+      "fps": 4,
+      "idleBob": 2,
+      "scopeAll": true,
+      "frame": 0,
+      "selected": "rear",
+      "mirror": false,
+      "guides": false,
+      "solid": false
+    }
+  ]
+}
