@@ -614,7 +614,10 @@ jobs:
           assert "WardrobeV92.npcOutfit(Math.max(0,npcVariant),1)" in game
           assert "Math.floorMod(Math.max(0,npcVariant)*7+skinIdV109*3,20)" in game
           assert "Math.floorMod(Math.max(0,npcVariant)*11+skinIdV109*7,20)" in game
-          assert "approvedOutfitArtV139.apply(" in skins
+          assert "approvedOutfitArtV139.drawApprovedRig(" in skins
+          assert "approvedHeadFitV139(" in skins
+          assert "bootArtV133.draw(c,bodyFrame" in skins
+          assert "source heads are never edited" in (root/"ApprovedOutfitArtV139.java").read_text().lower() or "head" in skins
           assert "torsoAppearanceV139" in ui and "pantsAppearanceV139" in ui
           assert "compactLootDialogV134(" in ui
           assert "lootGridV134(srcItems,25)" in ui
@@ -627,7 +630,7 @@ jobs:
           assert "Bitmap body=body(2,fit.blend)" not in skins
           assert "lowerOutlineV134(" not in skins
           assert "referenceUnderbodyV136(" not in skins
-          print("PASS V137: source-locked universal body, equipment recolor for player/NPC, separate heads and fitted boots")
+          print("PASS V139: legacy universal source untouched, exact approved modular draw + fitted boots + head bounds")
           PY
       - name: V137 pixel exact approved 16px centered underbody
         run: |
@@ -682,6 +685,29 @@ jobs:
                       assert hashlib.sha256(data).hexdigest()==f["sha256"],f["file"]
                   assert len(manifest["files"])==40
               print("PASS V139: 20 exact approved torsos, 20 exact pants, manifest digests")
+          PY
+      - name: V139 exact approved 20-outfit simulator anchor equivalence
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          p=Path("survival-paradise/native-game/assets/reference_v139/All_20_Editable_Fitting_Bundle.json")
+          presets=json.loads(p.read_text())["profiles"]
+          assert len(presets)==20
+          for i,preset in enumerate(presets):
+              assert preset["styles"]["torso"]==i
+              assert preset["styles"]["pants"]==i
+              for frame in range(5):
+                  head=preset["layers"]["head"][frame]
+                  torso=preset["layers"]["torso"][frame]
+                  pants=preset["layers"]["pants"][frame]
+                  assert (head["x"],head["y"],head["size"])==(63,-5,100)
+                  assert (torso["x"],torso["y"],torso["size"])==(86,116,100)
+                  assert (pants["x"],pants["y"],pants["size"])==(97,199,104)
+          code=(Path("survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame")/"ApprovedOutfitArtV139.java").read_text()
+          for anchor in ["47f,154f,93f*1.04f","36f,71f,120f"]:
+              assert anchor in code,anchor
+          print("PASS V139: all 20 source fitting profiles and all 5 poses match the exact V133-aligned modular anchors")
           PY
       - name: V139 smooth run animation unit tests and source wiring checks
         run: |
