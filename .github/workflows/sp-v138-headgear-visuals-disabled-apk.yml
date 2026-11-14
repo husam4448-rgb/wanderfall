@@ -60,7 +60,7 @@ jobs:
           source=(root/"app/src/main/java/com/survivalparadise/nativegame/CharacterSkinsV109.java").read_text()
           gradle=(root/"app/build.gradle").read_text()
           assert "versionCode 138" in gradle
-          assert "applicationId 'com.survivalparadise.nativegame.v137clothing'" in gradle
+          assert "applicationId 'com.survivalparadise.nativegame.v138headgearofftest'" in gradle
           assert "sp_v109_characters.zip" in source
           assert "CharacterAnimationV110.breathOffset" in source
           assert "CharacterAnimationV110.bodyFrame" in source
@@ -685,7 +685,7 @@ jobs:
           path: artifacts/
           retention-days: 30
           if-no-files-found: warn
-      - name: Publish V132 contextual ENTER and INTERACT APK as a separate test prerelease
+      - name: Publish V138 isolated test package
         if: success()
         env:
           GH_TOKEN: ${{ github.token }}
@@ -695,7 +695,7 @@ jobs:
           APK=artifacts/SurvivalParadise_V138_Headgear_Visuals_Off.apk
           SUM=artifacts/SHA256.txt
           test -s "$APK" && test -s "$SUM"
-          NOTE="V138 hides all equipped headgear visuals for player and NPCs: helmets, masks, hats, visors and future headwear. Inventory items, armor effects, slots, and saved equipment values remain. Source heads are unchanged. Torso clothing, pants, backpacks and boots keep V137 visuals. Headgear cosmetic selector is removed; pack and boot selectors remain. Same V137 applicationId permits in-place update if installed signing identities match. Existing other game installations are untouched."
+          NOTE="V138 hides all equipped headgear visuals for player and NPCs: helmets, masks, hats, visors and future headwear. Inventory items, armor effects, slots, and saved equipment values remain. Source heads are unchanged. Torso clothing, pants, backpacks and boots keep V137 visuals. Headgear cosmetic selector is removed; pack and boot selectors remain. V138 uses an isolated test applicationId so prior installations and save data remain untouched."
           if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" "$SUM" --clobber -R "$GITHUB_REPOSITORY"
             gh release edit "$TAG" -R "$GITHUB_REPOSITORY" --notes "$NOTE"
