@@ -6,8 +6,8 @@ android {
   applicationId 'com.survivalparadise.nativegame.v137clothing'
   minSdk 24
   targetSdk 34
-  versionCode 137
-  versionName '0.137-universal-clothing-body'
+  versionCode 138
+  versionName '0.138-headgear-invisible'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
