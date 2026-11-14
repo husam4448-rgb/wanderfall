@@ -660,6 +660,30 @@ jobs:
           PY
       - name: V138 regression gate - forbid all visible headgear
         run: python3 survival-paradise/native-game/tools/test_headgear_visuals_v138.py
+      - name: V139 approved source-art archive gate (optional for run-only preview)
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib,json
+          p=Path("survival-paradise/native-game/app/src/main/assets/sp_v139_outfits.zip")
+          if not p.is_file():
+              print("PREVIEW ONLY: 20 original outfit sources not bundled; style selectors remain hidden")
+          else:
+              with ZipFile(p) as z:
+                  names=z.namelist()
+                  for folder in ("torsos","pants"):
+                      matches=sorted(n for n in names if n.startswith(folder+"/") and n.endswith(".png"))
+                      assert len(matches)==20,(folder,len(matches))
+                      assert [int(n.split("/")[-1][:2]) for n in matches]==list(range(1,21))
+                  manifest=json.loads(z.read("manifest.json"))
+                  assert manifest["styles"]==20
+                  for f in manifest["files"]:
+                      data=z.read(f["file"])
+                      assert hashlib.sha256(data).hexdigest()==f["sha256"],f["file"]
+                  assert len(manifest["files"])==40
+              print("PASS V139: 20 exact approved torsos, 20 exact pants, manifest digests")
+          PY
       - name: V139 smooth run animation unit tests and source wiring checks
         run: |
           set -euo pipefail
@@ -695,6 +719,9 @@ jobs:
           unzip -l "$APK" | grep -q 'assets/npc_idle_v56.png'
           unzip -l "$APK" | grep -q 'assets/sp_v109_characters.zip'
           unzip -l "$APK" | grep -q 'assets/sp_v133_boots.zip'
+          if test -f survival-paradise/native-game/app/src/main/assets/sp_v139_outfits.zip; then
+            unzip -l "$APK" | grep -q 'assets/sp_v139_outfits.zip'
+          fi
           unzip -l "$APK" | grep -q 'assets/industrial_v123/SP_Industrial_Factory_Double_Bay_01.webp'
           unzip -l "$APK" | grep -q 'assets/industrial_v123/SP_Industrial_Forklift_01.webp'
           INDUSTRIAL_COUNT="$(unzip -Z1 "$APK" | grep -c '^assets/industrial_v123/.*[.]webp$')"
