@@ -20,6 +20,14 @@ jobs:
           gh release download survival-paradise-v138-headgear-visuals-off-test \
             --repo "$GITHUB_REPOSITORY" --pattern '*.apk' --dir /tmp/sp138
           test -s /tmp/sp138/*.apk
+      - name: Enable Android emulator KVM access
+        run: |
+          if [ -c /dev/kvm ]; then
+            sudo chmod a+rw /dev/kvm
+            ls -l /dev/kvm
+          else
+            echo "No /dev/kvm device: emulator may run slowly"
+          fi
       - name: Launch app and capture actual Android screenshots
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -42,29 +50,9 @@ jobs:
             sleep 8
             adb shell screencap -p /sdcard/sp138_menu.png
             adb pull /sdcard/sp138_menu.png /tmp/sp138/visual/01_menu.png
-            adb shell uiautomator dump /sdcard/sp138_ui.xml || true
-            adb pull /sdcard/sp138_ui.xml /tmp/sp138/visual/menu_ui.xml || true
-            python3 - <<'PY'
-            import re,subprocess,xml.etree.ElementTree as E
-            p='/tmp/sp138/visual/menu_ui.xml'
-            try: root=E.parse(p).getroot()
-            except Exception: root=None
-            found=False
-            if root is not None:
-                for target in ('CONTINUE','PLAY','START','NEW GAME'):
-                    for e in root.iter('node'):
-                        text=(e.attrib.get('text','')+' '+e.attrib.get('content-desc','')).upper()
-                        if target not in text: continue
-                        m=re.search(r'\[(\d+),(\d+)\]\[(\d+),(\d+)\]',e.attrib.get('bounds',''))
-                        if m:
-                            x1,y1,x2,y2=map(int,m.groups())
-                            subprocess.run(['adb','shell','input','tap',str((x1+x2)//2),str((y1+y2)//2)],check=True)
-                            found=True
-                            break
-                    if found: break
-            if not found:
-                subprocess.run(['adb','shell','input','tap','741','618'],check=True)
-            PY
+            # The canvas menu is drawn with logical height 660. At 1920x1080,
+            # its NEW GAME button center is approximately (744, 618).
+            adb shell input tap 744 618
             sleep 8
             adb shell screencap -p /sdcard/sp138_gameplay.png
             adb pull /sdcard/sp138_gameplay.png /tmp/sp138/visual/02_gameplay.png
