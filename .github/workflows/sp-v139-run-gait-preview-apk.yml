@@ -1,4 +1,4 @@
-name: Survival Paradise V139 - Run Gait Preview
+name: Survival Paradise V139 - 20 Approved Outfits + Running Animation
 on:
   push:
     branches: [sp-native-v139-outfits-run-gait-20261114]
@@ -660,16 +660,15 @@ jobs:
           PY
       - name: V138 regression gate - forbid all visible headgear
         run: python3 survival-paradise/native-game/tools/test_headgear_visuals_v138.py
-      - name: V139 approved source-art archive gate (optional for run-only preview)
+      - name: V139 approved original 40-image artwork integrity gate
         run: |
           python3 - <<'PY'
           from pathlib import Path
           from zipfile import ZipFile
           import hashlib,json
           p=Path("survival-paradise/native-game/app/src/main/assets/sp_v139_outfits.zip")
-          if not p.is_file():
-              print("PREVIEW ONLY: 20 original outfit sources not bundled; style selectors remain hidden")
-          else:
+          assert p.is_file(), "APPROVED 40-PNG OUTFIT ARCHIVE MISSING"
+          if p.is_file():
               with ZipFile(p) as z:
                   names=z.namelist()
                   for folder in ("torsos","pants"):
@@ -719,38 +718,36 @@ jobs:
           unzip -l "$APK" | grep -q 'assets/npc_idle_v56.png'
           unzip -l "$APK" | grep -q 'assets/sp_v109_characters.zip'
           unzip -l "$APK" | grep -q 'assets/sp_v133_boots.zip'
-          if test -f survival-paradise/native-game/app/src/main/assets/sp_v139_outfits.zip; then
-            unzip -l "$APK" | grep -q 'assets/sp_v139_outfits.zip'
-          fi
+          unzip -l "$APK" | grep -q 'assets/sp_v139_outfits.zip'
           unzip -l "$APK" | grep -q 'assets/industrial_v123/SP_Industrial_Factory_Double_Bay_01.webp'
           unzip -l "$APK" | grep -q 'assets/industrial_v123/SP_Industrial_Forklift_01.webp'
           INDUSTRIAL_COUNT="$(unzip -Z1 "$APK" | grep -c '^assets/industrial_v123/.*[.]webp$')"
           test "$INDUSTRIAL_COUNT" -eq 24
           echo "Verified $INDUSTRIAL_COUNT V132 industrial sprites in APK"
           mkdir -p artifacts
-          cp "$APK" artifacts/SurvivalParadise_V139_Run_Gait_Preview.apk
-          sha256sum artifacts/SurvivalParadise_V139_Run_Gait_Preview.apk > artifacts/SHA256.txt
+          cp "$APK" artifacts/SurvivalParadise_V139_Approved_Outfits_Run_Gait.apk
+          sha256sum artifacts/SurvivalParadise_V139_Approved_Outfits_Run_Gait.apk > artifacts/SHA256.txt
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: SP_V139_Run_Gait_Preview_APK
+          name: SP_V139_Approved_Outfits_Run_Gait_APK
           path: artifacts/
           retention-days: 30
           if-no-files-found: warn
-      - name: Publish V139 isolated run-gait preview
+      - name: Publish V139 isolated full outfit + run-gait test
         if: success()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          TAG=survival-paradise-v139-run-gait-preview-test
-          APK=artifacts/SurvivalParadise_V139_Run_Gait_Preview.apk
+          TAG=survival-paradise-v139-approved-outfits-run-gait-test
+          APK=artifacts/SurvivalParadise_V139_Approved_Outfits_Run_Gait.apk
           SUM=artifacts/SHA256.txt
           test -s "$APK" && test -s "$SUM"
-          NOTE="V139 experimental run-gait preview: the original four walk poses accelerate gradually to 1.8x playback speed when RUN is held, then decelerate smoothly. Movement speed/stamina behavior, approved artwork, invisible headgear policy, NPCs and saves remain unchanged. This preview does NOT include the pending twenty-style torso/pants image pack. Installed V138 remains untouched thanks to a different test package ID."
+          NOTE="V139 TEST BUILD: Contains all 20 exact original approved torso PNGs and 20 pants PNGs (40 images), with 400 selectable visual combinations through the V137 universal-body texture renderer when clothing is equipped. Heads remain identical; equipped headgear remains visually invisible but gameplay effects, items and saves are unchanged. Running smoothly accelerates the four original walking poses to 1.8x and decelerates when RUN ends; movement and stamina unchanged. This build is NOT visual-fidelity approved: body mask projection and all outfit variants require manual idle/walk/run review on actual player/NPC. Separate applicationId protects existing installations/saves."
           if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" "$SUM" --clobber -R "$GITHUB_REPOSITORY"
             gh release edit "$TAG" -R "$GITHUB_REPOSITORY" --notes "$NOTE"
           else
-            gh release create "$TAG" "$APK" "$SUM" --target "$GITHUB_SHA" -R "$GITHUB_REPOSITORY" --prerelease --title "Survival Paradise V139 - Run Gait Preview Test" --notes "$NOTE"
+            gh release create "$TAG" "$APK" "$SUM" --target "$GITHUB_SHA" -R "$GITHUB_REPOSITORY" --prerelease --title "Survival Paradise V139 - Approved Outfits + Running Animation Test" --notes "$NOTE"
           fi
