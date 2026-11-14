@@ -22,6 +22,8 @@ final class ApprovedOutfitArtV139 {
     static final String SOURCE_ASSET="sp_v139_outfits.zip";
     private final int[][] torsoColors=new int[COUNT][];
     private final int[][] pantsColors=new int[COUNT][];
+    private final Bitmap[] torsoSprites=new Bitmap[COUNT];
+    private final Bitmap[] pantsSprites=new Bitmap[COUNT];
     private final int[] torsoWidth=new int[COUNT],torsoHeight=new int[COUNT];
     private final int[] pantsWidth=new int[COUNT],pantsHeight=new int[COUNT];
     private final boolean available;
@@ -51,9 +53,8 @@ final class ApprovedOutfitArtV139 {
                 int w=bitmap.getWidth(),h=bitmap.getHeight();
                 int[] pixels=new int[w*h];
                 bitmap.getPixels(pixels,0,w,0,0,w,h);
-                if(torso){torsoColors[id]=pixels;torsoWidth[id]=w;torsoHeight[id]=h;}
-                else{pantsColors[id]=pixels;pantsWidth[id]=w;pantsHeight[id]=h;}
-                bitmap.recycle();
+                if(torso){torsoColors[id]=pixels;torsoWidth[id]=w;torsoHeight[id]=h;torsoSprites[id]=bitmap;}
+                else{pantsColors[id]=pixels;pantsWidth[id]=w;pantsHeight[id]=h;pantsSprites[id]=bitmap;}
                 zip.closeEntry();
             }
             ok=true;
@@ -63,6 +64,44 @@ final class ApprovedOutfitArtV139 {
         available=ok;
     }
     boolean ready(){return available;}
+
+    /**
+     * Exact original approved V132/V133 modular rig projection.
+     * Five-frame fitting bundle uses a 300x355 canvas with fixed torso
+     * x=86 y=116 width=120 and pants x=97 y=199 width=93*104%.
+     * Existing BootArtV133 FIT was built from these SAME profiles with
+     * x offset -50 / y offset -45. We translate outfit parts accordingly
+     * without stretching any source art or painting into the old body masks.
+     * Paint is the original nearest-neighbor renderer.
+     */
+    void drawApprovedRig(Canvas c,float left,float top,float unit,
+             int torsoStyle,int pantsStyle,int torsoWidthPercent,
+             int pelvisWidthPercent,android.graphics.Paint pixel){
+        if(!available)return;
+        int torso=Math.max(0,Math.min(19,torsoStyle));
+        int pants=Math.max(0,Math.min(19,pantsStyle));
+        // The user-approved simulator draws pants FIRST, then torso, then
+        // the original head, then independently animated rear/front boots.
+        drawRigSprite(c,pantsSprites[pants],47f,154f,93f*1.04f,
+            pelvisWidthPercent,left,top,unit,pixel);
+        drawRigSprite(c,torsoSprites[torso],36f,71f,120f,
+            torsoWidthPercent,left,top,unit,pixel);
+    }
+
+    private static void drawRigSprite(Canvas c,Bitmap bitmap,
+                float x,float y,float approvedWidth,int percent,
+                float left,float top,float unit,android.graphics.Paint paint){
+        if(bitmap==null)return;
+        // User width sliders affect this part only; no foot pixels move.
+        float widthScale=Math.max(.55f,Math.min(1f,percent/100f));
+        float w=approvedWidth*widthScale;
+        float center=x+approvedWidth*.5f;
+        float drawX=center-w*.5f;
+        float h=approvedWidth*bitmap.getHeight()/(float)bitmap.getWidth();
+        android.graphics.RectF target=new android.graphics.RectF(
+            left+drawX*unit,top+y*unit,left+(drawX+w)*unit,top+(y+h)*unit);
+        c.drawBitmap(bitmap,null,target,paint);
+    }
 
     /** Overwrite colored interiors only, respecting the exact original pixel mask. */
     void apply(int[] dressed,int[] original,int torso,int legs){
