@@ -1873,6 +1873,8 @@ public final class MainActivity extends Activity {
         });
         root.addView(text("Equipped headgear is hidden on all characters. Torso clothing, pants, backpacks and boots remain visible; headgear inventory slots and gameplay effects are unchanged.",11,false));
         slider(root,"Character display size","scale",65,135,98,"%");
+        if(game!=null&&game.characterSkinsV109!=null&&
+           game.characterSkinsV109.approvedOutfitsReadyV139()){
         section(root,"V139 • 20 APPROVED TORSO AND PANTS TEXTURES");
         final String[] approvedStyleNamesV139={
             "01 T-Shirt","02 Hoodie","03 Jacket","04 Denim","05 Flannel",
@@ -1908,6 +1910,9 @@ public final class MainActivity extends Activity {
             }
         });
 
+        }else{
+            root.addView(text("V139 preview: the 20 approved source PNG outfits are not bundled in this APK; original V137 clothing remains active.",11,false));
+        }
         section(root,"CHARACTER ADJUSTMENTS • TARGET");
         root.addView(text("Choose whether character adjustment sliders affect only your player or only world NPCs. Both settings profiles are saved independently.",12,false));
         Spinner characterTargetV113=new Spinner(this);
