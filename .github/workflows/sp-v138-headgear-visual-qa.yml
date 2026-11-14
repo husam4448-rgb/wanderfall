@@ -48,6 +48,11 @@ jobs:
             adb install /tmp/sp138/*.apk
             adb shell am start -n com.survivalparadise.nativegame.v138headgearofftest/com.survivalparadise.nativegame.MainActivity
             sleep 8
+            # Android's first immersive-mode launch can display a blue
+            # "Viewing full screen" coach mark over the character preview.
+            # Dismiss its safe-area "Got it" button before taking evidence.
+            adb shell input tap 1130 330
+            sleep 2
             adb shell screencap -p /sdcard/sp138_menu.png
             adb pull /sdcard/sp138_menu.png /tmp/sp138/visual/01_menu.png
             # The canvas menu is drawn with logical height 660. At 1920x1080,
