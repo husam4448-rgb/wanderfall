@@ -21,8 +21,9 @@ final class BodyClothingV137 {
     private BodyClothingV137(){}
 
     static int styleKey(int torsoStyle,int pantStyle){
-        return (normalized(torsoStyle)+1)*4+normalized(pantStyle)+1;
+        return (textureStyle(torsoStyle)+1)*21+textureStyle(pantStyle)+1;
     }
+    static int textureStyle(int style){return style>=0&&style<20?style:-1;}
     static int normalized(int style){return style>=0&&style<3?style:-1;}
 
     static void apply(int[] pixels,int width,int height,
