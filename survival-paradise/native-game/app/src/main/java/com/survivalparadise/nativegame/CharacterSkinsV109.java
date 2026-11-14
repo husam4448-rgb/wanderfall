@@ -352,14 +352,14 @@ final class CharacterSkinsV109 {
               float walkingTempo,float breathingTempo,int fixedWalkFps,int breathingAmplitude,
               float headTiltDegrees,int headOffsetX,int headOffsetY,int headSizePercent,
               int torsoWidthPercent,int pelvisWidthPercent,int bootStyleV133,
-              int torsoStyleV137,int pantsStyleV137) {
+              int torsoStyleV137,int pantsStyleV137,float walkClockSecondsV139) {
         id=range(id,1,COUNT);
         Fit fit=fitting[id];
         // Rendering scale uses 160/260 to match the old native 160px character rig.
         // The body has 200x260 canonical pixels; NO stretching between axes.
         float unit=(160f/HEIGHT)*s;
         float left=-100f*unit, top=-136f*s;
-        int bodyFrame=CharacterAnimationV110.bodyFrame(walking,timeSec,fit.fps,
+        int bodyFrame=CharacterAnimationV110.bodyFrame(walking,walkClockSecondsV139,fit.fps,
             fixedWalkFps,walkingTempo);
         // V137: universal static body, changing only interior equipment colors.
         Bitmap body=outfittedBodyV137(torsoStyleV137,pantsStyleV137);
