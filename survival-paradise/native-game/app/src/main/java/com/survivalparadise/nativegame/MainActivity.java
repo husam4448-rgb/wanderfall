@@ -1366,24 +1366,19 @@ public final class MainActivity extends Activity {
         vital.addView(text("FOOD "+game.foodCount+"   WATER "+game.waterCount,12,true),
             new LinearLayout.LayoutParams(0,-2,2));
         left.addView(vital);
-        // V96 cosmetic selection: 20 original isolated pack sprites and four
-        // approved headgear designs. Capacity/loot/save game systems unchanged.
+        // V138: appearance controls apply to backpacks and boots only.
+        // Equipped helmets, masks and hats remain usable in inventory, but
+        // their cosmetic character overlays are permanently disabled.
         LinearLayout appearanceV96=new LinearLayout(this);
         appearanceV96.setOrientation(LinearLayout.HORIZONTAL);
         Button packLookV96=v62Slot("PACK LOOK\n"+WearableArtV96.PACK_NAMES[game.backpackStyleV96],true);
-        Button headLookV96=v62Slot("HEADGEAR LOOK\n"+WearableArtV96.HEAD_NAMES[game.headgearStyleV96],true);
         packLookV96.setOnClickListener(v->new AlertDialog.Builder(this)
             .setTitle("BACKPACK APPEARANCE — 20 STYLES")
             .setSingleChoiceItems(WearableArtV96.PACK_NAMES,game.backpackStyleV96,(d,i)->{
                 game.backpackStyleV96=i;game.saveProgress();avatar.invalidate();
                 packLookV96.setText("PACK LOOK\n"+WearableArtV96.PACK_NAMES[i]);d.dismiss();
             }).show());
-        headLookV96.setOnClickListener(v->new AlertDialog.Builder(this)
-            .setTitle("APPROVED HEADGEAR — 4 STYLES")
-            .setSingleChoiceItems(WearableArtV96.HEAD_NAMES,game.headgearStyleV96,(d,i)->{
-                game.headgearStyleV96=i;game.saveProgress();avatar.invalidate();
-                headLookV96.setText("HEADGEAR LOOK\n"+WearableArtV96.HEAD_NAMES[i]);d.dismiss();
-            }).show());
+
         Button bootLookV133=v62Slot("BOOTS LOOK\n"+
             BootArtV133.NAMES[game.bootStyleV133],true);
         bootLookV133.setOnClickListener(v->new AlertDialog.Builder(this)
@@ -1395,7 +1390,6 @@ public final class MainActivity extends Activity {
                 d.dismiss();
             }).show());
         appearanceV96.addView(packLookV96,new LinearLayout.LayoutParams(0,-2,1));
-        appearanceV96.addView(headLookV96,new LinearLayout.LayoutParams(0,-2,1));
         appearanceV96.addView(bootLookV133,new LinearLayout.LayoutParams(0,-2,1));
         left.addView(appearanceV96);
         left.addView(text("Carry capacity: "+game.fieldFindsV91.capacity()+
@@ -1702,7 +1696,7 @@ public final class MainActivity extends Activity {
             }
         };
         refresh[0].run();
-        root.addView(text("Wearable hats, jackets, trousers, boots and backpacks are found in searchable cases. Equipment overlays retain the original approved survivor pixels.",12,false));
+        root.addView(text("Headgear stays equippable for gameplay but is never drawn on characters. Jackets, trousers, boots and backpacks retain their existing visual behavior.",12,false));
         shell.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
         LinearLayout tools=new LinearLayout(this);tools.setOrientation(LinearLayout.HORIZONTAL);
         Button smaller=v62Slot("WINDOW −",true),larger=v62Slot("WINDOW +",true);
@@ -1877,7 +1871,7 @@ public final class MainActivity extends Activity {
             previewWalkingV118[0]=!previewWalkingV118[0];
             characterPreviewV118.setWalkingPreview(previewWalkingV118[0]);
         });
-        root.addView(text("Use this selector to test every approved fitted survivor in live play. Headgear, backpacks and legacy torso overlays are visually hidden; inventory items remain usable. Weapons and hands still render.",11,false));
+        root.addView(text("Equipped headgear is hidden on all characters. Torso clothing, pants, backpacks and boots remain visible; headgear inventory slots and gameplay effects are unchanged.",11,false));
         slider(root,"Character display size","scale",65,135,98,"%");
         section(root,"CHARACTER ADJUSTMENTS • TARGET");
         root.addView(text("Choose whether character adjustment sliders affect only your player or only world NPCs. Both settings profiles are saved independently.",12,false));
