@@ -83,17 +83,17 @@ final class ApprovedOutfitArtV139 {
         // The user-approved simulator draws pants FIRST, then torso, then
         // the original head, then independently animated rear/front boots.
         drawRigSprite(c,pantsSprites[pants],47f,154f,93f*1.04f,
-            pelvisWidthPercent,left,top,unit,pixel);
+            pelvisWidthPercent,72,left,top,unit,pixel);
         drawRigSprite(c,torsoSprites[torso],36f,71f,120f,
-            torsoWidthPercent,left,top,unit,pixel);
+            torsoWidthPercent,71,left,top,unit,pixel);
     }
 
     private static void drawRigSprite(Canvas c,Bitmap bitmap,
-                float x,float y,float approvedWidth,int percent,
+                float x,float y,float approvedWidth,int percent,int defaultPercent,
                 float left,float top,float unit,android.graphics.Paint paint){
         if(bitmap==null)return;
         // User width sliders affect this part only; no foot pixels move.
-        float widthScale=Math.max(.55f,Math.min(1f,percent/100f));
+        float widthScale=Math.max(.65f,Math.min(1.42f,percent/(float)defaultPercent));
         float w=approvedWidth*widthScale;
         float center=x+approvedWidth*.5f;
         float drawX=center-w*.5f;
