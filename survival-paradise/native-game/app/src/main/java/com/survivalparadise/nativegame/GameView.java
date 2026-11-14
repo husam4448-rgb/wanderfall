@@ -233,6 +233,7 @@ public final class GameView extends View {
     float smoothedFrameMs=16.67f;
     long drawFrames=0;
     final AnimationCycle playerAnimation=new AnimationCycle();
+    final RunGaitV139 runGaitV139=new RunGaitV139();
     // Keep projectile collision against the exact approved atlas alpha, not an
     // unrelated circle near the characters' feet.
     CharacterCollision.PixelMask bodyMask=(x,y)->false;
@@ -990,7 +991,7 @@ public final class GameView extends View {
         knifeDuration=0;knifeCooldown=0;
         cameraLookX=0;cameraLookY=0;aimDeflection=0;
         cursorInitialized=false;cursorMoveX=0;cursorMoveY=0;
-        playerAnimation.reset();moving=false;stickX=0;stickY=0;shotClock=0;
+        playerAnimation.reset();runGaitV139.reset();moving=false;stickX=0;stickY=0;shotClock=0;
         gun=Math.max(0,Math.min(11,host.setting("gun",0)));ammo=MAG[gun];
         kills=0;wave=1;scrap=0;medkits=1;ammoPacks=2;
         wood=0;stone=0;fiber=0;bandagesV88=0;energyV88=0;harvestWorld.clear();salvageWorldV84.clear();groundPickupsV85.clear();
@@ -1054,7 +1055,7 @@ public final class GameView extends View {
             host.prefs.getInt("industrial_sx_v123",0),
             host.prefs.getInt("industrial_sy_v123",0),industrialSeedV123);
         industrialYardV123.decode(host.prefs.getString("industrial_yard_v123_"+industrialSeedV123,""));
-        playerAnimation.reset();moving=false;stickX=0;stickY=0;
+        playerAnimation.reset();runGaitV139.reset();moving=false;stickX=0;stickY=0;
         clock.setClock(host.prefs.getFloat("clockMinutes",night?21*60f:12*60f),
             host.setting("clockDay",1));
         aimX=host.prefs.getFloat("aimX",1f);aimY=host.prefs.getFloat("aimY",0f);
@@ -1872,6 +1873,7 @@ public final class GameView extends View {
             if(!clinicInteriorV89.blocked(playerX,ny,19f))playerY=ny;
         }
         moving=distance(playerX,playerY,oldX,oldY)>.001f;
+        runGaitV139.step(dt,moving,runHeld&&stamina>0);
         playerAnimation.step(moving,dt,CharacterFitV108.rate(
             PlayerMovementV77.gait(walkSpeedMultiplier,runHeld&&stamina>0)*
             walkingAnimationMultiplierV79,fitWalkFpsV108));
@@ -2380,7 +2382,7 @@ public final class GameView extends View {
     }
     void togglePause(){if(!playing)return;paused=!paused;
         if(paused)stopWalking();saveProgress();invalidate();}
-    void stopWalking(){stickX=0;stickY=0;moving=false;playerAnimation.reset();}
+    void stopWalking(){stickX=0;stickY=0;moving=false;playerAnimation.reset();runGaitV139.reset();}
     boolean debugTeleport(float dx,float dy){
         if(!playing||gameOver)return false;
         cancelPlaceV84();harvestV81.cancel();releaseControls();playerX+=dx;playerY+=dy;
@@ -2861,6 +2863,7 @@ public final class GameView extends View {
         // always restores the original neutral idle frame immediately.
         moving=distance(playerX,playerY,wasX,wasY)>.001f;
         // Adjustable extra gait multiplier, auto-synced to movement at 100%.
+        runGaitV139.step(dt,moving,runHeld&&stamina>0);
         playerAnimation.step(moving,dt,CharacterFitV108.rate(
             PlayerMovementV77.gait(walkSpeedMultiplier,runHeld&&stamina>0)*
             walkingAnimationMultiplierV79,fitWalkFpsV108));
@@ -3968,7 +3971,8 @@ public final class GameView extends View {
                 player?wardrobeV92.equipped[1]:
                     WardrobeV92.npcOutfit(Math.max(0,npcVariant),1),
                 player?wardrobeV92.equipped[2]:
-                    WardrobeV92.npcOutfit(Math.max(0,npcVariant),2));
+                    WardrobeV92.npcOutfit(Math.max(0,npcVariant),2),
+                player?runGaitV139.timeSeconds():worldTimer);
         }else{
             Bitmap atlas=npcVariant>=0?npcWalkV56:approvedWalkColors;
             int torsoVariant=player?wardrobeV92.equipped[1]:
