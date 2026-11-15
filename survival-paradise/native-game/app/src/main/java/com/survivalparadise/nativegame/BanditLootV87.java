@@ -21,9 +21,16 @@ public final class BanditLootV87 {
         public final int[] count=new int[ITEMS];
         /** Index 0 maps to stable item ID 39. Versioned, sparse save encoding. */
         public final int[] extra=new int[58];
+        /** Six independent ammo families; old 58 gear cells stay immutable. */
+        public final int[] ammoExtraV143=new int[6];
         public int itemCount(int kind){
-            if(kind>=ITEMS+extra.length&&kind<ITEMS+extra.length+3){
-                int denomination=kind-(ITEMS+extra.length);
+            if(kind>=ITEMS+extra.length&&
+               kind<ITEMS+extra.length+ammoExtraV143.length)
+                return ammoExtraV143[kind-ITEMS-extra.length];
+            if(kind>=ITEMS+extra.length+ammoExtraV143.length&&
+               kind<ITEMS+extra.length+ammoExtraV143.length+3){
+                int denomination=kind-(ITEMS+extra.length+
+                    ammoExtraV143.length);
                 return denomination==NutWalletV143.IRON?(int)(nutsV143%100):
                     denomination==NutWalletV143.SILVER_COIN?
                         (int)(nutsV143%10000/100):(int)(nutsV143/10000);
@@ -35,11 +42,15 @@ public final class BanditLootV87 {
         Bag(int id,float x,float y){this.id=id;this.x=x;this.y=y;}
         public boolean empty(){
             for(int n:count)if(n>0)return false;
-            return !hasExtra()&&nutsV143<=0;
+            if(nutsV143>0||hasExtra())return false;
+            for(int n:ammoExtraV143)if(n>0)return false;
+            return true;
         }
         public int total(){
             int n=0;for(int c:count)n+=c;for(int c:extra)n+=c;
-            for(int d=0;d<3;d++)n+=itemCount(ITEMS+extra.length+d);
+            for(int c:ammoExtraV143)n+=c;
+            for(int d=0;d<3;d++)n+=itemCount(ITEMS+extra.length+
+                ammoExtraV143.length+d);
             return n;
         }
     }
@@ -100,7 +111,8 @@ public final class BanditLootV87 {
     }
     public int takeNutsV143(Bag bag,int denomination){
         if(!contains(bag)||denomination<0||denomination>2)return 0;
-        int amount=bag.itemCount(ITEMS+bag.extra.length+denomination);
+        int amount=bag.itemCount(ITEMS+bag.extra.length+
+            bag.ammoExtraV143.length+denomination);
         if(amount<=0)return 0;
         bag.nutsV143-=(long)amount*NutWalletV143.unit(denomination);
         if(bag.empty()&&!bag.corpse)bags.remove(bag);
@@ -111,6 +123,14 @@ public final class BanditLootV87 {
         long total=bag.nutsV143;bag.nutsV143=0;
         if(bag.empty()&&!bag.corpse)bags.remove(bag);
         return total;
+    }
+    public int takeAmmoV143(Bag bag,int familyIndex){
+        if(!contains(bag)||familyIndex<0||familyIndex>=6)return 0;
+        int amount=bag.ammoExtraV143[familyIndex];
+        if(amount<1)return 0;
+        bag.ammoExtraV143[familyIndex]=0;
+        if(bag.empty()&&!bag.corpse)bags.remove(bag);
+        return amount;
     }
     public int[] takeAllExtra(Bag bag){
         int[] out=new int[58];
@@ -128,6 +148,10 @@ public final class BanditLootV87 {
         if(!bag.corpse)bags.remove(bag);
         return taken;
     }
+    private static boolean bagHasAmmoV143(Bag bag){
+        for(int n:bag.ammoExtraV143)if(n>0)return true;
+        return false;
+    }
     public String encode(){
         StringBuilder out=new StringBuilder(bags.size()*52);
         for(Bag bag:bags){
@@ -139,10 +163,18 @@ public final class BanditLootV87 {
             out.append(',').append(bag.corpse?1:0).append(',')
                .append(bag.variant).append(',').append(bag.face)
                .append(',').append(bag.skinV109);
-            if(bag.gearManifestV141||bag.hasExtra()||bag.nutsV143>0){
+            if(bag.gearManifestV141||bag.hasExtra()||bag.nutsV143>0||
+               bagHasAmmoV143(bag)){
                 out.append(",x");
                 for(int i=0;i<bag.extra.length;i++)if(bag.extra[i]>0)
                     out.append('|').append(i).append(':').append(bag.extra[i]);
+            }
+            if(bagHasAmmoV143(bag)){
+                out.append(",a");
+                for(int i=0;i<bag.ammoExtraV143.length;i++)
+                    if(bag.ammoExtraV143[i]>0)
+                        out.append('|').append(i).append(':')
+                            .append(bag.ammoExtraV143[i]);
             }
             if(bag.nutsV143>0)out.append(",n").append(bag.nutsV143);
         }
@@ -155,7 +187,7 @@ public final class BanditLootV87 {
             String[] p=entry.split(",");
             if(p.length!=ITEMS+3&&p.length!=ITEMS+6&&
                p.length!=ITEMS+7&&p.length!=ITEMS+8&&
-               p.length!=ITEMS+9)continue;
+               p.length!=ITEMS+9&&p.length!=ITEMS+10)continue;
             try{
                 int id=Integer.parseInt(p[0]);
                 float x=Float.parseFloat(p[1]),y=Float.parseFloat(p[2]);
@@ -194,12 +226,34 @@ public final class BanditLootV87 {
                         if(!valid)continue;
                         bag.gearManifestV141=true;
                     }
-                    if(p.length==ITEMS+9){
-                        String coins=p[ITEMS+8];
-                        if(!coins.startsWith("n"))continue;
-                        long amount=Long.parseLong(coins.substring(1));
-                        if(amount<1||amount>NutWalletV143.MAX)continue;
-                        bag.nutsV143=amount;
+                    if(p.length>=ITEMS+9){
+                        // Versioned optional suffixes: ammo 'a' and wallet 'n'.
+                        boolean seenAmmo=false,seenMoney=false;
+                        for(int field=ITEMS+8;field<p.length;field++){
+                            String value=p[field];
+                            if(value.startsWith("a")&&!seenAmmo){
+                                seenAmmo=true;
+                                String[] entries=value.split("\\|",-1);
+                                if(!"a".equals(entries[0])){invalid=true;break;}
+                                for(int k=1;k<entries.length;k++){
+                                    String[] parts=entries[k].split(":",-1);
+                                    if(parts.length!=2){invalid=true;break;}
+                                    int id=Integer.parseInt(parts[0]),
+                                        quantity=Integer.parseInt(parts[1]);
+                                    if(id<0||id>=6||quantity<1||quantity>9999||
+                                       bag.ammoExtraV143[id]!=0){invalid=true;break;}
+                                    bag.ammoExtraV143[id]=quantity;
+                                }
+                            }else if(value.startsWith("n")&&!seenMoney){
+                                seenMoney=true;
+                                long amount=Long.parseLong(value.substring(1));
+                                if(amount<1||amount>NutWalletV143.MAX){
+                                    invalid=true;break;
+                                }
+                                bag.nutsV143=amount;
+                            }else{invalid=true;break;}
+                        }
+                        if(invalid)continue;
                     }
                 }
                 if(!invalid&&(!bag.empty()||bag.corpse)){
