@@ -272,6 +272,8 @@ public final class GameView extends View {
     static class Bandit {float x,y,hp=78,cd,hit,homeX,homeY,patrolClock,aimX=1f,aimY=0f;int face=1,skinV109;boolean active=true;
         final AnimationCycle animation=new AnimationCycle();
         int variant;
+        // Pistol is the same firearm rendered and fired by this bandit.
+        int rounds=MAG[0],spareRounds=MAG[0];
         Bandit(float a,float b,int variant){x=a;y=b;homeX=a;homeY=b;patrolClock=variant*2.3f;cd=.7f;this.variant=variant;
             skinV109=1+Math.floorMod(Math.round(a*11f+b*17f+variant*73f),200);}}
     static class Survivor {float x,y,homeX,homeY,cd,aimX=1,aimY=0;int gun,face=1,variant,skinV109;
@@ -519,6 +521,8 @@ public final class GameView extends View {
         float load=0f;
         for(int i=0;i<InventoryCatalogV131.COUNT;i++)
             load+=InventoryCatalogV131.weight(i)*inventoryQuantityV92(i);
+        for(int i=OutfitInventoryV140.FIRST;i<OutfitInventoryV140.TOTAL;i++)
+            load+=OutfitInventoryV140.weight(i)*outfitsV140.count(i);
         return Math.min(100f,Math.max(0f,(load-fieldFindsV91.capacity())*1.7f));
     }
     float carrySpeedV91(){return Math.max(.54f,1f-encumbranceV91()*.0046f);}
@@ -2810,8 +2814,27 @@ public final class GameView extends View {
             BanditLootV87.Bag remains=banditLootV87.spawnCorpse(
                 enemy.x,enemy.y-3,kills,wave,enemy.variant,enemy.face,
                 enemy.skinV109);
-            if(remains!=null&&!lootEnabled)
-                java.util.Arrays.fill(remains.count,0);
+            if(remains!=null){
+                if(lootEnabled){
+                    remains.count[BanditLootV87.AMMO]=0; // exact bullets, not random magazine copies
+                    remains.extra[OutfitInventoryV140.TORSO+
+                        OutfitInventoryV140.npcTorso(enemy.variant,enemy.skinV109)-
+                        OutfitInventoryV140.FIRST]=1;
+                    remains.extra[OutfitInventoryV140.PANTS+
+                        OutfitInventoryV140.npcPants(enemy.variant,enemy.skinV109)-
+                        OutfitInventoryV140.FIRST]=1;
+                    remains.extra[OutfitInventoryV140.BOOTS+
+                        OutfitInventoryV140.npcBoots(enemy.variant,enemy.skinV109)-
+                        OutfitInventoryV140.FIRST]=1;
+                    remains.extra[OutfitInventoryV140.WEAPONS-
+                        OutfitInventoryV140.FIRST]=1; // bandits actually carry pistol
+                    remains.extra[OutfitInventoryV140.ROUNDS-
+                        OutfitInventoryV140.FIRST]=enemy.rounds+enemy.spareRounds;
+                }else{
+                    java.util.Arrays.fill(remains.count,0);
+                    java.util.Arrays.fill(remains.extra,0);
+                }
+            }
             saveProgress(); // The body persists even with loot drops disabled.
         }
     }
@@ -3168,7 +3191,14 @@ public final class GameView extends View {
             if(WorldSafetyV92.hostileAllowed(playerX,playerY,CAMP_X,CAMP_Y)&&
                 BanditBrainV88.shouldShoot(state,d,e.cd,clear)&&
                 NpcAimV122.aligned(e.aimX,e.aimY,dx,dy)){
-                shoot(e.x,e.y,e.aimX,e.aimY,0,true,e.face,false);
+                if(e.rounds==0&&e.spareRounds>0){
+                    int reload=Math.min(MAG[0],e.spareRounds);
+                    e.rounds=reload;e.spareRounds-=reload;
+                }
+                if(e.rounds>0){
+                    shoot(e.x,e.y,e.aimX,e.aimY,0,true,e.face,false);
+                    e.rounds--;
+                }
                 e.cd=.95f+(e.variant%3)*.19f;
             }
             e.animation.step(distance(e.x,e.y,oldX,oldY)>.001f,dt,
@@ -4367,12 +4397,23 @@ public final class GameView extends View {
     int lootBanditStackV87(BanditLootV87.Bag bag,int kind){
         if(!playing||!banditLootV87.contains(bag)||
             distance(playerX,playerY,bag.x,bag.y)>BanditLootV87.USE_RADIUS+7f)return 0;
-        int count=banditLootV87.take(bag,kind);
-        if(count>0){
+        int count;
+        String name;
+        if(kind<BanditLootV87.ITEMS){
+            count=banditLootV87.take(bag,kind);
             addBanditLootV87(kind,count);
-            gatherFeedback="LOOTED "+BanditLootV87.NAMES[kind]+" +"+count;
-            gatherFeedbackTime=2.2f;
-            organizeBagV131(0);invalidate();
+            name=count>0?BanditLootV87.NAMES[kind]:"";
+        }else{
+            int id=kind-BanditLootV87.ITEMS;
+            int type=OutfitInventoryV140.FIRST+id;
+            if(!OutfitInventoryV140.valid(type)||bag.extra[id]<=0||
+               !outfitsV140.add(type,bag.extra[id]))return 0;
+            count=banditLootV87.takeExtra(bag,id);
+            name=OutfitInventoryV140.name(type);
+        }
+        if(count>0){
+            gatherFeedback="LOOTED "+name+" +"+count;gatherFeedbackTime=2.2f;
+            organizeBagV131(0);saveProgress();invalidate();
         }
         return count;
     }
@@ -4384,9 +4425,14 @@ public final class GameView extends View {
         for(int i=0;i<taken.length;i++){
             addBanditLootV87(i,taken[i]);count+=taken[i];
         }
+        for(int i=0;i<OutfitInventoryV140.COUNT;i++){
+            int amount=bag.extra[i],type=OutfitInventoryV140.FIRST+i;
+            if(amount>0&&outfitsV140.add(type,amount))
+                count+=banditLootV87.takeExtra(bag,i);
+        }
         if(count>0){
             gatherFeedback="LOOTED "+count+" ITEMS";gatherFeedbackTime=2.2f;
-            organizeBagV131(0);invalidate();
+            organizeBagV131(0);saveProgress();invalidate();
         }
         return count;
     }
