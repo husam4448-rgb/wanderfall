@@ -13,6 +13,9 @@ public final class BanditLootV87 {
         public final int id;
         public final float x,y;
         public boolean corpse=false;
+        // Explicit manifest distinguishes newly stripped bodies from V87/V129
+        // legacy corpses. It persists even after the last item was taken.
+        public boolean gearManifestV141=false;
         public int variant=0,face=1,skinV109=-1;
         public final int[] count=new int[ITEMS];
         /** Index 0 maps to stable item ID 39. Versioned, sparse save encoding. */
@@ -108,7 +111,7 @@ public final class BanditLootV87 {
             out.append(',').append(bag.corpse?1:0).append(',')
                .append(bag.variant).append(',').append(bag.face)
                .append(',').append(bag.skinV109);
-            if(bag.hasExtra()){
+            if(bag.gearManifestV141||bag.hasExtra()){
                 out.append(",x");
                 for(int i=0;i<bag.extra.length;i++)if(bag.extra[i]>0)
                     out.append('|').append(i).append(':').append(bag.extra[i]);
@@ -159,6 +162,7 @@ public final class BanditLootV87 {
                             bag.extra[extraId]=n;
                         }
                         if(!valid)continue;
+                        bag.gearManifestV141=true;
                     }
                 }
                 if(!invalid&&(!bag.empty()||bag.corpse)){
