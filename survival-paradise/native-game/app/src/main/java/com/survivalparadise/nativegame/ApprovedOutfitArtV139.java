@@ -79,11 +79,12 @@ final class ApprovedOutfitArtV139 {
     /**
      * Load nine source-sized V144 legacy garments without touching V139 PNGs.
      * A missing or mismatched archive safely falls back to existing V142 art.
-     * Dimension and pixel alpha must match the user's approved base images.
+     * The user's individual designs preserve the existing canvas dimensions and anchors,
+     * but their INTERNAL alpha and silhouettes may differ. Never overlay V139 alpha masks.
      */
     private boolean loadLegacyArtworkV144(Context ctx){
         final int[] basesTorso={9,16,6},basesPants={10,18,6};
-        try(InputStream input=ctx.getAssets().open("sp_v144_legacy_equipment.zip");
+        try(InputStream input=ctx.getAssets().open("sp_v145_legacy_equipment.zip");
                 ZipInputStream zip=new ZipInputStream(input)){
             ZipEntry entry;
             while((entry=zip.getNextEntry())!=null){
@@ -103,7 +104,7 @@ final class ApprovedOutfitArtV139 {
                 byte[] data=out.toByteArray();
                 Bitmap image=BitmapFactory.decodeByteArray(data,0,data.length);
                 Bitmap approved=top?torsoSprites[basesTorso[i]]:pantsSprites[basesPants[i]];
-                if(!sameAlphaV144(image,approved))return false;
+                if(!validCanvasV145(image,approved))return false;
                 if(top)legacyTorsosV144[i]=image;
                 else legacyPantsV144[i]=image;
             }
@@ -112,15 +113,17 @@ final class ApprovedOutfitArtV139 {
             if(legacyTorsosV144[i]==null||legacyPantsV144[i]==null)return false;
         return true;
     }
-    private static boolean sameAlphaV144(Bitmap a,Bitmap b){
-        if(a==null||b==null||a.getWidth()!=b.getWidth()||
-           a.getHeight()!=b.getHeight())return false;
-        int w=a.getWidth(),h=a.getHeight();
-        int[] x=new int[w*h],y=new int[w*h];
-        a.getPixels(x,0,w,0,0,w,h);
-        b.getPixels(y,0,w,0,0,w,h);
-        for(int i=0;i<x.length;i++)if((x[i]>>>24)!=(y[i]>>>24))return false;
-        return true;
+    /** Canvas bounds are fixed; outlines and internal pixel art are NOT repainted. */
+    private static boolean validCanvasV145(Bitmap candidate, Bitmap approved){
+        if(candidate==null||approved==null||
+                candidate.getWidth()!=approved.getWidth()||
+                candidate.getHeight()!=approved.getHeight())return false;
+        int w=candidate.getWidth(),h=candidate.getHeight();
+        int[] pixels=new int[w*h];
+        candidate.getPixels(pixels,0,w,0,0,w,h);
+        int visible=0;
+        for(int p:pixels)if((p>>>24)>127)visible++;
+        return visible>=w*h/6;
     }
     private Bitmap torsoSpriteV144(int style){
         if(style<0)return undershirtV141;
