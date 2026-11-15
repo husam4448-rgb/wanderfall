@@ -272,11 +272,20 @@ public final class GameView extends View {
     final float PAD=46;
     static class Bandit {float x,y,hp=78,cd,hit,homeX,homeY,patrolClock,aimX=1f,aimY=0f;int face=1,skinV109;boolean active=true;
         final AnimationCycle animation=new AnimationCycle();
-        int variant;
-        // Pistol is the same firearm rendered and fired by this bandit.
-        int rounds=MAG[0],spareRounds=MAG[0];
-        Bandit(float a,float b,int variant){x=a;y=b;homeX=a;homeY=b;patrolClock=variant*2.3f;cd=.7f;this.variant=variant;
-            skinV109=1+Math.floorMod(Math.round(a*11f+b*17f+variant*73f),200);}}
+        int variant,gun;
+        int rounds,spareRounds;
+        final NutWalletV143 pocketV143;
+        Bandit(float a,float b,int variant){
+            x=a;y=b;homeX=a;homeY=b;patrolClock=variant*2.3f;
+            cd=.7f;this.variant=variant;
+            skinV109=1+Math.floorMod(Math.round(a*11f+b*17f+
+                variant*73f),200);
+            gun=NpcGearV143.banditGun(variant,skinV109);
+            int[] ammunition=NpcGearV143.ammo(gun,MAG[gun]);
+            rounds=ammunition[0];spareRounds=ammunition[1];
+            pocketV143=new NutWalletV143(
+                NpcGearV143.pocketIron(variant,skinV109,1));
+        }}
     static class Survivor {float x,y,homeX,homeY,cd,aimX=1,aimY=0;int gun,face=1,variant,skinV109;
         final AnimationCycle animation=new AnimationCycle();
         Survivor(float a,float b,int g,int variant){x=a;y=b;homeX=a;homeY=b;gun=g;this.variant=variant;
@@ -2985,8 +2994,9 @@ public final class GameView extends View {
                     remains.extra[OutfitInventoryV140.BOOTS+
                         OutfitInventoryV140.npcBoots(enemy.variant,enemy.skinV109)-
                         OutfitInventoryV140.FIRST]=1;
-                    remains.extra[OutfitInventoryV140.WEAPONS-
-                        OutfitInventoryV140.FIRST]=1; // bandits actually carry pistol
+                    remains.extra[OutfitInventoryV140.WEAPONS+enemy.gun-
+                        OutfitInventoryV140.FIRST]=1;
+                    remains.nutsV143=enemy.pocketV143.takeAll();
                     remains.extra[OutfitInventoryV140.ROUNDS-
                         OutfitInventoryV140.FIRST]=enemy.rounds+enemy.spareRounds;
                 }else{
@@ -3351,14 +3361,14 @@ public final class GameView extends View {
                 BanditBrainV88.shouldShoot(state,d,e.cd,clear)&&
                 NpcAimV122.aligned(e.aimX,e.aimY,dx,dy)){
                 if(e.rounds==0&&e.spareRounds>0){
-                    int reload=Math.min(MAG[0],e.spareRounds);
+                    int reload=Math.min(MAG[e.gun],e.spareRounds);
                     e.rounds=reload;e.spareRounds-=reload;
                 }
                 if(e.rounds>0){
-                    shoot(e.x,e.y,e.aimX,e.aimY,0,true,e.face,false);
+                    shoot(e.x,e.y,e.aimX,e.aimY,e.gun,true,e.face,false);
                     e.rounds--;
                 }
-                e.cd=.95f+(e.variant%3)*.19f;
+                e.cd=Math.max(.32f,RATES[e.gun])+(e.variant%3)*.13f;
             }
             e.animation.step(distance(e.x,e.y,oldX,oldY)>.001f,dt,
                 CharacterFitV108.rate(state==BanditBrainV88.CHASE?8.5f:6.6f,fitWalkFpsV108));
@@ -4643,9 +4653,13 @@ public final class GameView extends View {
                 if(bag.extra[OutfitInventoryV140.BOOTS+boots-
                         OutfitInventoryV140.FIRST]<=0)boots=-1;
             }
-            int held=bag.gearManifestV141&&
-                bag.extra[OutfitInventoryV140.WEAPONS-
-                    OutfitInventoryV140.FIRST]>0?0:-1;
+            int held=-1;
+            if(bag.gearManifestV141)
+                for(int gunId=0;gunId<12;gunId++)
+                    if(bag.extra[OutfitInventoryV140.WEAPONS+gunId-
+                        OutfitInventoryV140.FIRST]>0){
+                        held=gunId;break;
+                    }
             drawFallenBodyV141(c,x,y,bag.variant,skin,bag.face,
                 torso,pants,boots,held);
             if(!bag.empty())label(c,"SEARCH",x-15,y-86,11,0xffe6c99a,true);
@@ -4774,7 +4788,7 @@ public final class GameView extends View {
             }
             lastVisibleNpcs++;
             order.add(new DrawEntity(e.y,()->{
-            character(c,e.x,e.y,0,e.face,e.animation.frame(),
+            character(c,e.x,e.y,e.gun,e.face,e.animation.frame(),
                     e.animation.isWalking()?Float.POSITIVE_INFINITY:e.animation.breathOffset(),
                     Ballistics.angle(e.aimX,e.aimY,e.face),
                     0,false,true,e.variant,e.skinV109);
