@@ -10,12 +10,12 @@ package com.survivalparadise.nativegame;
 public final class UnifiedBagSlotsV141 {
     private UnifiedBagSlotsV141(){}
     public static final int EMPTY=OutfitInventoryV140.TOTAL;
-    public static final int MAX_TYPES=EMPTY;
+    public static final int MAX_TYPES=104; // 98..103 are V143 ammunition; 97 remains empty
 
     public interface Count { int available(int type); }
 
     public static boolean valid(int type){
-        return type>=0&&type<MAX_TYPES;
+        return type>=0&&type<MAX_TYPES&&type!=EMPTY;
     }
 
     public static boolean contains(int[] slots,int type){
