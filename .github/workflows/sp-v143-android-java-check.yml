@@ -1,0 +1,37 @@
+name: Survival Paradise V143 - Android Java Compile Only (NO APK)
+on:
+  push:
+    branches: [sp-native-v143-indoor-pan-trading-nuts-weapon-variety-20261115]
+    paths: ['.github/workflows/sp-v143-android-java-check.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compile-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Prepare Android 35 SDK
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -path '*/bin/sdkmanager' | sort -V | tail -1)"
+          test -x "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Compile Android Java sources, do not assemble or package APK
+        working-directory: survival-paradise/native-game
+        run: gradle --no-daemon :app:compileDebugJavaWithJavac
+      - name: Assert no Android APK was produced
+        shell: bash
+        run: |
+          test ! -e survival-paradise/native-game/app/build/outputs/apk/debug/app-debug.apk
+          echo "PASS: Android Java compilation only; NO APK created"
