@@ -689,6 +689,17 @@ public final class GameView extends View {
         return characterSkinsV109==null?null:
             characterSkinsV109.inventoryIconV140(host,type,dp);
     }
+    String inventoryNameV141(int type){
+        return InventoryCatalogV131.name(type,INVENTORY_NAMES_V92);
+    }
+    boolean canStowInventoryV141(int type){
+        return UnifiedBagSlotsV141.canStore(bagOrderV92,bagSplitAmountV130,
+            this::availableInventoryV131,type);
+    }
+    void syncBagV141(){
+        UnifiedBagSlotsV141.sync(bagOrderV92,bagSplitAmountV130,
+            this::availableInventoryV131);
+    }
     int equippedReserveV131(int type){
         int slot=InventoryCatalogV131.equipmentSlot(type);
         if(slot<0)return 0;
@@ -701,10 +712,14 @@ public final class GameView extends View {
     }
     /** Inventory totals include worn gear, bag quantities intentionally exclude it. */
     int availableInventoryV131(int type){
+        if(OutfitInventoryV140.valid(type))return outfitsV140.available(type);
         return type<0||type>=InventoryCatalogV131.COUNT?0:
             Math.max(0,inventoryQuantityV92(type)-equippedReserveV131(type));
     }
     boolean equipInventoryItemV131(int type,int targetSlot){
+        if(OutfitInventoryV140.valid(type))
+            return InventoryCatalogV131.compatible(type,targetSlot)&&
+                equipOutfitV140(type);
         if(!InventoryCatalogV131.compatible(type,targetSlot)||
            availableInventoryV131(type)<1)return false;
         boolean done=targetSlot==5?fieldFindsV91.equip(type-24):
@@ -731,8 +746,10 @@ public final class GameView extends View {
     /** Sort never alters the underlying quantities. Split portions move as a unit. */
     void organizeBagV131(int mode){
         reconcileBagSplitsV130();
+        syncBagV141();
         Integer[] places=new Integer[40];
-        int[] count=new int[40],firstIndex=new int[40];
+        int[] count=new int[40],
+            firstIndex=new int[UnifiedBagSlotsV141.EMPTY+1];
         java.util.Arrays.fill(firstIndex,40);
         for(int i=0;i<40;i++){
             places[i]=i;count[i]=bagSlotQuantityV130(i);
@@ -768,6 +785,7 @@ public final class GameView extends View {
             case 8:case 9:case 10:case 11:return craftV83.stock[idx-8];
             case 12:return bandagesV88;case 13:return energyV88;
             default:
+                if(OutfitInventoryV140.valid(idx))return outfitsV140.count(idx);
                 if(idx>=14&&idx<24)return fieldFindsV91.items[idx-14];
                 if(idx>=24&&idx<39)return playerGearQuantityV95(idx-24);
                 return 0;
@@ -985,29 +1003,48 @@ public final class GameView extends View {
     void initInventoryOrderV92(){
         clearBagSplitsV130();
         int count=0;
-        for(int i=0;i<bagOrderV92.length;i++)
+        // V92 reserved index 39 for EMPTY; V140 assigns it to torso #1.
+        for(int i=0;i<InventoryCatalogV131.COUNT;i++)
             if(availableInventoryV131(i)>0)bagOrderV92[count++]=i;
-        for(int i=0;i<bagOrderV92.length;i++)
+        for(int i=0;i<InventoryCatalogV131.COUNT;i++)
             if(availableInventoryV131(i)==0)bagOrderV92[count++]=i;
+        while(count<40)bagOrderV92[count++]=UnifiedBagSlotsV141.EMPTY;
+        syncBagV141();
         bagOrderInitializedV92=true;
     }
     void restoreBagOrderV92(String raw){
+        restoreBagOrderV141(raw,false);
+    }
+    void restoreBagOrderV141(String raw,boolean extended){
         initInventoryOrderV92();
         if(raw==null||raw.isEmpty())return;
         String[] fields=raw.split(",");
-        // Preserve V92-V94 24-cell player order, append 15 new gear stacks.
         if(fields.length!=24&&fields.length!=40)return;
-        int[] restored=new int[40];boolean[] seen=new boolean[40];
+        int[] restored=new int[40];
+        boolean[] seen=new boolean[InventoryCatalogV131.COUNT];
         int index=0;
         try{
             for(String value:fields){
                 int n=Integer.parseInt(value);
-                if(n<0||n>=40||seen[n])return;
-                restored[index++]=n;seen[n]=true;
+                if(extended){
+                    if(n<0||n>UnifiedBagSlotsV141.EMPTY)return;
+                }else{
+                    if(n<0||n>=40)return;
+                    if(n==39)n=UnifiedBagSlotsV141.EMPTY;
+                    else if(seen[n])return;
+                }
+                restored[index++]=n;
+                if(n>=0&&n<seen.length)seen[n]=true;
             }
-            for(int i=0;i<40;i++)if(!seen[i])restored[index++]=i;
+            if(!extended)for(int i=0;i<InventoryCatalogV131.COUNT;i++)
+                if(!seen[i])restored[index++]=i;
+            while(index<40)restored[index++]=UnifiedBagSlotsV141.EMPTY;
             System.arraycopy(restored,0,bagOrderV92,0,40);
+            syncBagV141();
         }catch(NumberFormatException ignored){}
+    }
+    String encodeLegacyBagOrderV141(){
+        return UnifiedBagSlotsV141.legacyOrder(bagOrderV92);
     }
     String encodeBagOrderV92(){
         StringBuilder b=new StringBuilder();
