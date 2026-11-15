@@ -2198,7 +2198,7 @@ public final class GameView extends View {
                     a.x,a.y,playerX,playerY)){
                 float[] direction=NpcAimV122.toward(a.x,a.y,playerX,playerY);
                 int facing=NpcAimV122.facing(direction[0],1);
-                spawnIndoorGunfireV122(a.x,a.y,0,facing,
+                spawnIndoorGunfireV122(a.x,a.y,a.gun,facing,
                     direction[0],direction[1],playerX,playerY,true,false);
             }
         }
@@ -2571,7 +2571,8 @@ public final class GameView extends View {
             lookX=toward[0];lookY=toward[1];
         }
         int facing=NpcAimV122.facing(lookX,1);
-        character(c,a.x,a.y,hostile?0:3,facing,0,
+        character(c,a.x,a.y,a.type==ClinicActorsV90.RAIDER?a.gun:
+            hostile?0:3,facing,0,
             (float)Math.sin(worldTimer*2+a.type)*.22f,
             Ballistics.angle(lookX,lookY,facing),0,
             false,hostile,variant,1+Math.floorMod(a.type*31+37,200));
@@ -2740,7 +2741,11 @@ public final class GameView extends View {
     }
     void reload(){
         if(gun==3||gun==11||ammo>=MAG[gun]||reloadClock>0)return;
-        if(outfitsV140.rounds>0){
+        int caliber=AmmoInventoryV143.forGun(gun);
+        if(caliber>=0&&playerAmmoV143.count(caliber)>0){
+            reloadLooseRoundsV140=playerAmmoV143.consumeForGun(
+                gun,MAG[gun]-ammo);
+        }else if(outfitsV140.rounds>0){
             reloadLooseRoundsV140=Math.min(MAG[gun]-ammo,outfitsV140.rounds);
             outfitsV140.remove(OutfitInventoryV140.ROUNDS,reloadLooseRoundsV140);
         }else{
@@ -3100,8 +3105,10 @@ public final class GameView extends View {
                     remains.extra[OutfitInventoryV140.WEAPONS+enemy.gun-
                         OutfitInventoryV140.FIRST]=1;
                     remains.nutsV143=enemy.pocketV143.takeAll();
-                    remains.extra[OutfitInventoryV140.ROUNDS-
-                        OutfitInventoryV140.FIRST]=enemy.rounds+enemy.spareRounds;
+                    int family=AmmoInventoryV143.forGun(enemy.gun);
+                    if(family>=0)
+                        remains.ammoExtraV143[family-AmmoInventoryV143.FIRST]=
+                            enemy.rounds+enemy.spareRounds;
                 }else{
                     java.util.Arrays.fill(remains.count,0);
                     java.util.Arrays.fill(remains.extra,0);
@@ -4622,7 +4629,7 @@ public final class GameView extends View {
                         stripped?-1:OutfitInventoryV140.npcTorso(appearance,skin),
                         stripped?-1:OutfitInventoryV140.npcPants(appearance,skin),
                         stripped?-1:OutfitInventoryV140.npcBoots(appearance,skin),
-                        stripped?-1:actor.type==ClinicActorsV90.RAIDER?0:
+                        stripped?-1:actor.type==ClinicActorsV90.RAIDER?actor.gun:
                             actor.type==ClinicActorsV90.MEDIC||
                             actor.type==ClinicActorsV90.SURVIVOR?3:-1);
                 });
@@ -4649,7 +4656,7 @@ public final class GameView extends View {
     String indoorCorpseContentsV129(int index){
         if(index<0||index>=clinicActorsV90.actors.length)return "";
         ClinicActorsV90.Actor a=clinicActorsV90.actors[index];
-        String supplies=a.type==ClinicActorsV90.RAIDER?"Ammo packs ×2, Scrap ×2":
+        String supplies=a.type==ClinicActorsV90.RAIDER?"Scrap ×2":
             a.type==ClinicActorsV90.MEDIC?"Medkit ×1, Water ×1":
             a.type==ClinicActorsV90.SURVIVOR?"Food ×1, Scrap ×1":
             a.type==ClinicActorsV90.ZOMBIE?"Scrap ×1":"";
@@ -4664,7 +4671,8 @@ public final class GameView extends View {
             ", "+OutfitInventoryV140.name(OutfitInventoryV140.BOOTS+
                 OutfitInventoryV140.npcBoots(appearance,skin));
         if(a.type==ClinicActorsV90.RAIDER)
-            garments+=", Pistol, "+(a.rounds+a.spareRounds)+" rounds";
+            garments+=", "+OutfitInventoryV140.WEAPON_NAMES[a.gun]+
+                ", "+(a.rounds+a.spareRounds)+" "+NpcGearV143.ammoName(a.gun);
         if(a.type==ClinicActorsV90.MEDIC||a.type==ClinicActorsV90.SURVIVOR)
             garments+=", Flashlight";
         return supplies+"; "+garments;
@@ -4681,7 +4689,7 @@ public final class GameView extends View {
             int role=actor.type==ClinicActorsV90.MEDIC?ROLE_MEDIC:
                 actor.type==ClinicActorsV90.SURVIVOR?ROLE_CIVILIAN:0;
             int gunId=actor.type==ClinicActorsV90.RAIDER?
-                OutfitInventoryV140.WEAPONS:
+                OutfitInventoryV140.WEAPONS+actor.gun:
                 actor.type==ClinicActorsV90.MEDIC||
                     actor.type==ClinicActorsV90.SURVIVOR?
                     OutfitInventoryV140.WEAPONS+3:-1;
@@ -4692,7 +4700,9 @@ public final class GameView extends View {
                             OutfitInventoryV140.npcPants(role,skin),
                           OutfitInventoryV140.BOOTS+
                             OutfitInventoryV140.npcBoots(role,skin),
-                          gunId,OutfitInventoryV140.ROUNDS}:
+                          gunId,actor.type==ClinicActorsV90.RAIDER?
+                              AmmoInventoryV143.forGun(actor.gun):
+                              OutfitInventoryV140.ROUNDS}:
                 new int[]{OutfitInventoryV140.TORSO+
                             OutfitInventoryV140.npcTorso(role,skin),
                           OutfitInventoryV140.PANTS+
@@ -4706,7 +4716,7 @@ public final class GameView extends View {
             }
         }
         switch(actor.type){
-            case ClinicActorsV90.RAIDER:ammoPacks+=2;scrap+=2;break;
+            case ClinicActorsV90.RAIDER:scrap+=2;break;
             case ClinicActorsV90.MEDIC:medkits++;waterCount++;break;
             case ClinicActorsV90.SURVIVOR:foodCount++;scrap++;break;
             case ClinicActorsV90.ZOMBIE:scrap++;break;
@@ -4723,9 +4733,11 @@ public final class GameView extends View {
             outfitsV140.add(OutfitInventoryV140.BOOTS+
                 OutfitInventoryV140.npcBoots(role,skin),1);
             if(actor.type==ClinicActorsV90.RAIDER){
-                outfitsV140.add(OutfitInventoryV140.WEAPONS,1); // pistol
+                outfitsV140.add(OutfitInventoryV140.WEAPONS+actor.gun,1);
                 int rounds=actor.rounds+actor.spareRounds;
-                if(rounds>0)outfitsV140.add(OutfitInventoryV140.ROUNDS,rounds);
+                int ammoType=AmmoInventoryV143.forGun(actor.gun);
+                if(rounds>0&&ammoType>=0)
+                    playerAmmoV143.add(ammoType,rounds);
             }else if(actor.type==ClinicActorsV90.MEDIC||
                      actor.type==ClinicActorsV90.SURVIVOR){
                 outfitsV140.add(OutfitInventoryV140.WEAPONS+3,1); // visible flashlight
