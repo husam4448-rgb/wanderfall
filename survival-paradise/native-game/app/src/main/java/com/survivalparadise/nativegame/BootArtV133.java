@@ -36,7 +36,6 @@ final class BootArtV133 {
         {{23,236,39},{119,243,0}}
     };
     private final Bitmap[] sprites=new Bitmap[COUNT];
-    private final Bitmap[] legacyV143=new Bitmap[3];
     private Bitmap socksV141;
     private final Rect src=new Rect(0,0,IMAGE_WIDTH,IMAGE_HEIGHT);
     private final RectF dst=new RectF();
@@ -63,9 +62,6 @@ final class BootArtV133 {
         for(int i=0;i<COUNT;i++)if(sprites[i]==null)
             throw new IOException("Missing V133 boot style "+FILES[i]);
         socksV141=makeSocksV141(sprites[0]);
-        int[] base={3,4,1};
-        for(int i=0;i<legacyV143.length;i++)
-            legacyV143[i]=LegacyGearSilhouettesV143.boots(sprites[base[i]],i);
     }
     /** Short ankle socks follow the exact same approved five-frame foot anchors.
      * The original boots and PNG pixel data are never modified.
@@ -97,9 +93,7 @@ final class BootArtV133 {
             sprites[clampStyle(style)],dp);
     }
     void draw(Canvas canvas,int frame,int style,float left,float top,float unit,Paint pixels){
-        Bitmap bitmap=style<0?socksV141:
-            style>=COUNT&&style<COUNT+legacyV143.length?
-                legacyV143[style-COUNT]:sprites[clampStyle(style)];
+        Bitmap bitmap=style<0?socksV141:sprites[clampStyle(style)];
         int f=Math.max(0,Math.min(4,frame));
         for(int foot=0;foot<2;foot++){
             int[] pos=FIT[f][foot];
