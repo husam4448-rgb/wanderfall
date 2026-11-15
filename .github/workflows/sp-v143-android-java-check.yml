@@ -27,7 +27,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-      - name: Compile Android Java sources, do not assemble or package APK
+      - name: Compile all current V143 Android sources only (NO APK packaging)
         working-directory: survival-paradise/native-game
         run: gradle --no-daemon :app:compileDebugJavaWithJavac
       - name: Assert no Android APK was produced
