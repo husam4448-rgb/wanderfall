@@ -4945,7 +4945,7 @@ public final class GameView extends View {
         int opacity=HudOpacityV142.clamp(host.setting("uiAlpha"+ENTER_EDITOR,100));
         int layer=opacity<100?c.saveLayerAlpha(x,y,x+w,y+h,
             Math.round(opacity*255f/100f)):0;
-        btn(c,x,y,w,h,insideClinicV89?"EXIT":"ENTER",0xff436b60);
+        btn(c,x,y,w,h,insideClinicV89?"EXIT":"ENTER",0xff278a72);
         if(layer!=0)c.restoreToCount(layer);
         if(editControls){
             color(uiEnabled(ENTER_EDITOR)?0xffc4dcbb:0xffe29b80);
@@ -5004,9 +5004,15 @@ public final class GameView extends View {
         int opacity=HudOpacityV142.clamp(host.setting("uiAlpha"+id,100));
         int layer=opacity<100?c.saveLayerAlpha(x,y,x+w,y+h,
             Math.round(opacity*255f/100f)):0;
-        int fill=(LegacyControlsV58.isFire(id)?0x735148:
-            LegacyControlsV58.isMelee(id)?0x4e5145:0x345354);
-        if(editControls&&id==editControl)fill=0x367665;
+        int fill=(LegacyControlsV58.isFire(id)?0xb64b40:
+            LegacyControlsV58.isMelee(id)?0x8f633a:
+            id==LegacyControlsV58.RUN?0x237e78:
+            id==LegacyControlsV58.RELOAD?0x3c72aa:
+            id==LegacyControlsV58.USE?0x278870:
+            id==LegacyControlsV58.ZOOM_IN||
+            id==LegacyControlsV58.ZOOM_OUT?0x4d668d:
+            0x426b81);
+        if(editControls&&id==editControl)fill=0x269a80;
         // Opacity applies to the whole button, including lettering,
         // not only its background. Touch geometry remains unchanged.
         btn(c,x,y,w,h,LegacyControlsV58.LABELS[id],0xff000000|fill);
@@ -5024,7 +5030,7 @@ public final class GameView extends View {
         int opacity=HudOpacityV142.clamp(host.setting("uiAlpha"+TALK_EDITOR,100));
         int layer=opacity<100?c.saveLayerAlpha(x,y,x+w,y+h,
             Math.round(255f*opacity/100f)):0;
-        btn(c,x,y,w,h,"TALK",0xff426a59);
+        btn(c,x,y,w,h,"TALK",0xff27886c);
         if(layer!=0)c.restoreToCount(layer);
         if(editControls){
             color(uiEnabled(TALK_EDITOR)?0xffc4dcbb:0xffe29b80);
@@ -5367,10 +5373,15 @@ public final class GameView extends View {
         }
     }
     float hudExtraXV118(int id){
+        // PAUSE is permanently a top-center action. Ignore all old V121
+        // "mid-screen" offsets even when restoring an existing save.
+        if(id==TOP_PAUSE_EDITOR)
+            return (viewW-hudExtraWidthV118(id))*.5f;
         return hudBaseXV118(id)+(editPointer>=0&&editControl==id?
             editX:host.setting("uiX"+id,0));
     }
     float hudExtraYV118(int id){
+        if(id==TOP_PAUSE_EDITOR)return TopHudV76.Y;
         return hudBaseYV118(id)+(editPointer>=0&&editControl==id?
             editY:host.setting("uiY"+id,0));
     }
@@ -5424,9 +5435,23 @@ public final class GameView extends View {
         int opacity=HudOpacityV142.clamp(host.setting("uiAlpha"+editor,100));
         int layer=opacity<100?c.saveLayerAlpha(x,y,x+width,y+height,
             Math.round(255f*opacity/100f)):0;
-        int fillAlpha=Math.round(topButtonOpacityV76*255f/100f);
-        if(fillAlpha>0)rounded(c,x,y,width,height,5,
-            (fillAlpha<<24)|(active?0x003b665b:0x0010262b));
+        // A button at 100% opacity needs a legible, vivid fill. Earlier
+        // low-opacity HUD settings remain intentionally translucent.
+        int fillAlpha=Math.round((opacity>=95&&hudOpacityV73>=95?
+            Math.max(85,topButtonOpacityV76):topButtonOpacityV76)*255f/100f);
+        int accent=id==TopHudV76.PAUSE?0x003c7d73:
+            id==TopHudV76.SET?0x0033668c:
+            id==TopHudV76.LAMP?0x004b886b:
+            id==TopHudV76.CAMP?0x007b6040:
+            id==TopHudV76.DAY?0x00665799:0x003e7b79;
+        if(fillAlpha>0){
+            rounded(c,x,y,width,height,5,(fillAlpha<<24)|
+                (active?0x0053a18b:accent));
+            color((Math.min(255,fillAlpha+30)<<24)|0x00a9d9bc);
+            p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(1.2f);
+            c.drawRoundRect(x+.5f,y+.5f,x+width-.5f,y+height-.5f,5,5,p);
+            p.setStyle(Paint.Style.FILL);
+        }
         int size=TopHudV76.scale(viewW)<.8f?10:12;
         size=Math.max(8,Math.round(size*hudExtraScaleV118(editor)));
         p.setTypeface(PIXEL_BOLD);p.setTextSize(size);
@@ -5445,7 +5470,7 @@ public final class GameView extends View {
         int layer=alpha<100?c.saveLayerAlpha(x,y,x+w,y+h,
             Math.round(255f*alpha/100f)):0;
         btn(c,x,y,w,h,"SQUAD"+(companionStayV118?" [STAY]":""),
-            0x99425a50);
+            0xff287b72);
         if(layer!=0)c.restoreToCount(layer);
         hudSelectionBorderV118(c,COMMAND_EDITOR);
     }
