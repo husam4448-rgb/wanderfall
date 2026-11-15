@@ -6,8 +6,8 @@
 ## Status
 
 - V145 Java loader staged. Preserves V139 colorful art and V133 boot anchors.
-- The source PNGs and prepared 9-asset archive were generated and checked in the ChatGPT workspace, but **the new binary archive has not been uploaded to this GitHub branch**.
-- Until `app/src/main/assets/sp_v145_legacy_equipment.zip` exists, the loader uses existing V142 fallback visuals. It is incorrect to describe V145 as in-game visually verified.
+- The source PNGs and prepared 9-asset archive were generated and checked in the ChatGPT workspace, but **the new binary archive has been uploaded and Git blob identity verified**.
+- The V145 loader now reads `app/src/main/assets/sp_v145_legacy_equipment.zip`; legacy inventory icons use these PNGs, retaining V95 fallback. No runtime or on-device visual QA has been completed.
 - No APK has been generated as part of V145.
 
 ## Required archive
