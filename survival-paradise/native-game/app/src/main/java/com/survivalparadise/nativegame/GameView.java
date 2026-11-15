@@ -2146,7 +2146,31 @@ public final class GameView extends View {
                 indoorShotCooldownV90=1.1f;
             }else indoorShotCooldownV90=.4f;
         }
-        cameraLookX=0;cameraLookY=0;
+        updateIndoorCameraPanV143(dt);
+    }
+    /** The indoor update exits before the outdoor camera tick: it needs
+     * its own continuous analogue-stick pan rather than clearing the offsets.
+     * Rendering still clamps these offsets to the finite room bounds.
+     */
+    void updateIndoorCameraPanV143(float dt){
+        if(!indoorCameraPanV142){cameraLookX=0f;cameraLookY=0f;return;}
+        float limit=Math.max(30f,Math.min(320f,
+            host.setting("indoorCameraPanDistanceV143",190)));
+        boolean aiming=rightPointer>=0&&
+            aimDeflection>ClassicAimV71.DEADZONE;
+        float factor=aiming?ClassicAimV71.panFactor(
+            aimDeflection,lookAheadThreshold):0f;
+        float wantX=aimX*limit*factor,wantY=aimY*limit*factor;
+        cameraLookX+=StableAimV68.panStep(wantX-cameraLookX,dt,
+            cameraPanSpeed,lookAheadSmooth);
+        cameraLookY+=StableAimV68.panStep(wantY-cameraLookY,dt,
+            cameraPanSpeed,lookAheadSmooth);
+        float bounded=BoundedCameraV69.radialFactor(
+            cameraLookX,cameraLookY,limit);
+        cameraLookX*=bounded;cameraLookY*=bounded;
+        if(!aiming&&Math.abs(cameraLookX)+Math.abs(cameraLookY)<.5f){
+            cameraLookX=0f;cameraLookY=0f;
+        }
     }
     /** Exterior is substantially larger than V88. Entrance remains physically reachable. */
     void drawFieldClinicExteriorV89(Canvas c,ExpeditionSitesV88.Site site){
