@@ -36,6 +36,9 @@ final class BootArtV133 {
         {{23,236,39},{119,243,0}}
     };
     private final Bitmap[] sprites=new Bitmap[COUNT];
+    // V144 extended silhouettes remain source-locked to original V133 FIT.
+    private final Bitmap[] legacySpritesV144=new Bitmap[3];
+    private final int[] legacyBaseV144={3,4,1};
     private Bitmap socksV141;
     private final Rect src=new Rect(0,0,IMAGE_WIDTH,IMAGE_HEIGHT);
     private final RectF dst=new RectF();
@@ -61,6 +64,7 @@ final class BootArtV133 {
         }
         for(int i=0;i<COUNT;i++)if(sprites[i]==null)
             throw new IOException("Missing V133 boot style "+FILES[i]);
+        loadLegacyBootsV144(context);
         socksV141=makeSocksV141(sprites[0]);
     }
     /** Short ankle socks follow the exact same approved five-frame foot anchors.
@@ -87,13 +91,57 @@ final class BootArtV133 {
         }
         return Bitmap.createBitmap(out,w,h,Bitmap.Config.ARGB_8888);
     }
-    static int clampStyle(int v){return Math.max(0,Math.min(COUNT-1,v));}
+    private void loadLegacyBootsV144(Context context){
+        try(InputStream file=context.getAssets().open("sp_v144_legacy_equipment.zip");
+                ZipInputStream zip=new ZipInputStream(file)){
+            ZipEntry entry;
+            while((entry=zip.getNextEntry())!=null){
+                String name=entry.getName();
+                if(!name.startsWith("boots/")||!name.endsWith(".png"))continue;
+                int i;
+                try{i=Integer.parseInt(name.substring(6,8))-5;}
+                catch(RuntimeException ignored){continue;}
+                if(i<0||i>=3)continue;
+                ByteArrayOutputStream bytes=new ByteArrayOutputStream();
+                byte[] chunk=new byte[4096];int n;
+                while((n=zip.read(chunk))!=-1)bytes.write(chunk,0,n);
+                byte[] data=bytes.toByteArray();
+                Bitmap bmp=BitmapFactory.decodeByteArray(data,0,data.length);
+                if(!sameBootAlphaV144(bmp,sprites[legacyBaseV144[i]])){
+                    java.util.Arrays.fill(legacySpritesV144,null);
+                    return;
+                }
+                legacySpritesV144[i]=bmp;
+            }
+        }catch(IOException ignored){java.util.Arrays.fill(legacySpritesV144,null);}
+        for(Bitmap bmp:legacySpritesV144)if(bmp==null){
+            java.util.Arrays.fill(legacySpritesV144,null);return;
+        }
+    }
+    private static boolean sameBootAlphaV144(Bitmap a,Bitmap b){
+        if(a==null||b==null||a.getWidth()!=IMAGE_WIDTH||
+                a.getHeight()!=IMAGE_HEIGHT)return false;
+        int[] x=new int[IMAGE_WIDTH*IMAGE_HEIGHT],y=new int[x.length];
+        a.getPixels(x,0,IMAGE_WIDTH,0,0,IMAGE_WIDTH,IMAGE_HEIGHT);
+        b.getPixels(y,0,IMAGE_WIDTH,0,0,IMAGE_WIDTH,IMAGE_HEIGHT);
+        for(int i=0;i<x.length;i++)if((x[i]>>>24)!=(y[i]>>>24))return false;
+        return true;
+    }
+    static int clampStyle(int v){return Math.max(0,Math.min(COUNT+2,v));}
+    private Bitmap spriteV144(int style){
+        if(style<0)return socksV141;
+        if(style<COUNT)return sprites[clampStyle(style)];
+        int id=style-COUNT;
+        if(id<0||id>2)return sprites[0];
+        return legacySpritesV144[id]!=null?legacySpritesV144[id]:
+            sprites[legacyBaseV144[id]];
+    }
     android.graphics.drawable.Drawable inventoryIcon(Context context,int style,int dp){
         return ApprovedOutfitArtV139.makeOriginalIcon(context,
-            sprites[clampStyle(style)],dp);
+            spriteV144(style),dp);
     }
     void draw(Canvas canvas,int frame,int style,float left,float top,float unit,Paint pixels){
-        Bitmap bitmap=style<0?socksV141:sprites[clampStyle(style)];
+        Bitmap bitmap=spriteV144(style);
         int f=Math.max(0,Math.min(4,frame));
         for(int foot=0;foot<2;foot++){
             int[] pos=FIT[f][foot];
