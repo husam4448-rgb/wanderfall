@@ -6,6 +6,7 @@ on:
       - '.github/workflows/sp-v145-user-art-compile-only.yml'
       - 'survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/**'
       - 'survival-paradise/native-game/app/src/main/assets/sp_v145_legacy_equipment.zip'
+      - 'survival-paradise/native-game/tools/verify_v145_asset_bundle.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -26,25 +27,8 @@ jobs:
           C=survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame
           javac -d /tmp/v145-tests "$C/LegacyOutfitVisualV144.java" survival-paradise/native-game/tools/V144LegacyVisualTest.java
           java -cp /tmp/v145-tests com.survivalparadise.nativegame.V144LegacyVisualTest
-      - name: Check correct nine user-origin art archive if present
-        shell: bash
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import zipfile,hashlib
-          p=Path('survival-paradise/native-game/app/src/main/assets/sp_v145_legacy_equipment.zip')
-          expected='649bbecd59b13740d7fe221e70f2f05707dae9b70e1a04ae517c83fc65997822'
-          if not p.exists():
-              print('ARTWORK PENDING: game-ready user originals have not been uploaded to GitHub.')
-          else:
-              assert hashlib.sha256(p.read_bytes()).hexdigest()==expected,'Unexpected asset archive'
-              with zipfile.ZipFile(p) as z:
-                  items=[n for n in z.namelist() if n.endswith('.png')]
-                  assert len(items)==9,items
-                  assert z.testzip() is None
-                  assert 'pants/21_ripstop_trousers.png' in items
-              print('PASS V145 archive verified; separate in-game visual QA still pending')
-          PY
+      - name: Reject any change to nine user-approved legacy art files
+        run: python3 survival-paradise/native-game/tools/verify_v145_asset_bundle.py
       - name: Android SDK API 35
         shell: bash
         run: |
