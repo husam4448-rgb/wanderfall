@@ -756,7 +756,7 @@ jobs:
                         "OutfitInventoryV140.npcPants",
                         "OutfitInventoryV140.npcBoots",
                         "remains.extra[", "enemy.rounds+enemy.spareRounds",
-                        "lootBanditV87", "searchIndoorCorpseV129("):
+                        "lootBanditStackV87", "searchIndoorCorpseV129("):
               assert token in game, token
           for token in ("appendOutfitInventoryV140", "iconOutfitV140",
                         '"sp-v140-wearable"', "OutfitInventoryV140.name",
@@ -795,7 +795,7 @@ jobs:
           path: artifacts/
           retention-days: 30
           if-no-files-found: warn
-      - name: Publish V139 isolated full outfit + run-gait test
+      - name: Publish V140 isolated worn-gear and corpse-loot test
         if: success()
         env:
           GH_TOKEN: ${{ github.token }}
