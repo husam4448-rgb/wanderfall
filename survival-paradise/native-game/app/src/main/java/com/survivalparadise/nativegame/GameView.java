@@ -106,6 +106,7 @@ public final class GameView extends View {
     final WardrobeV92 wardrobeV92=new WardrobeV92();
     final OutfitInventoryV140 outfitsV140=new OutfitInventoryV140();
     final NutWalletV143 playerNutsV143=new NutWalletV143();
+    final AmmoInventoryV143 playerAmmoV143=new AmmoInventoryV143();
     final NpcTradeLedgerV143 npcTradesV143=new NpcTradeLedgerV143();
     int reloadLooseRoundsV140=0;
     final WearableArtV96 wearableArtV96=new WearableArtV96();
@@ -713,11 +714,13 @@ public final class GameView extends View {
             characterSkinsV109.inventoryIconV140(host,type,dp);
     }
     String inventoryNameV141(int type){
-        return OutfitInventoryV140.valid(type)?OutfitInventoryV140.name(type):
+        return AmmoInventoryV143.valid(type)?AmmoInventoryV143.name(type):
+            OutfitInventoryV140.valid(type)?OutfitInventoryV140.name(type):
             type>=0&&type<INVENTORY_NAMES_V92.length?
                 INVENTORY_NAMES_V92[type]:"EMPTY";
     }
     int inventorySlotV141(int type){
+        if(AmmoInventoryV143.valid(type))return -1;
         if(OutfitInventoryV140.valid(type)){
             int slot=OutfitInventoryV140.slot(type);
             return slot==0?2:slot==1?3:slot==2?4:slot==3?6:-1;
@@ -734,6 +737,7 @@ public final class GameView extends View {
             String.format(java.util.Locale.US,"%.2f",value);
     }
     int categoryV141(int type){
+        if(AmmoInventoryV143.valid(type))return 9;
         if(!OutfitInventoryV140.valid(type))return InventoryCatalogV131.category(type);
         int slot=OutfitInventoryV140.slot(type);
         return slot==0?6:slot==1?7:slot==2?8:slot==3?9:3;
@@ -770,6 +774,7 @@ public final class GameView extends View {
     }
     /** Inventory totals include worn gear, bag quantities intentionally exclude it. */
     int availableInventoryV131(int type){
+        if(AmmoInventoryV143.valid(type))return playerAmmoV143.count(type);
         if(OutfitInventoryV140.valid(type))return outfitsV140.available(type);
         return type<0||type>=InventoryCatalogV131.COUNT?0:
             Math.max(0,inventoryQuantityV92(type)-equippedReserveV131(type));
@@ -835,7 +840,8 @@ public final class GameView extends View {
         saveProgress();
     }
     float itemMassV131(int kind){
-        return OutfitInventoryV140.valid(kind)?OutfitInventoryV140.weight(kind):
+        return AmmoInventoryV143.valid(kind)?.045f:
+            OutfitInventoryV140.valid(kind)?OutfitInventoryV140.weight(kind):
             InventoryCatalogV131.weight(kind);
     }
     int inventoryQuantityV92(int idx){
@@ -846,6 +852,7 @@ public final class GameView extends View {
             case 8:case 9:case 10:case 11:return craftV83.stock[idx-8];
             case 12:return bandagesV88;case 13:return energyV88;
             default:
+                if(AmmoInventoryV143.valid(idx))return playerAmmoV143.count(idx);
                 if(OutfitInventoryV140.valid(idx))return outfitsV140.count(idx);
                 if(idx>=14&&idx<24)return fieldFindsV91.items[idx-14];
                 if(idx>=24&&idx<39)return playerGearQuantityV95(idx-24);
@@ -862,6 +869,11 @@ public final class GameView extends View {
     }
     float gameTimeV129(){return DroppedItemsV129.time(clock.day(),clock.minute());}
     boolean changeInventoryV129(int idx,int delta){
+        if(AmmoInventoryV143.valid(idx)){
+            if(delta==0)return false;
+            return delta>0?playerAmmoV143.add(idx,delta):
+                playerAmmoV143.remove(idx,-delta);
+        }
         if(OutfitInventoryV140.valid(idx)){
             if(delta==0)return false;
             return delta>0?outfitsV140.add(idx,delta):
@@ -1183,6 +1195,7 @@ public final class GameView extends View {
         enemies.clear();friends.clear();campStaff.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();indoorRoundsV122.clear();builtCampfires.clear();
         craftV83.clear();banditLootV87.clear();removeBarricadeCoverV83();
         playerNutsV143.decode("0");npcTradesV143.clear();
+        playerAmmoV143.clear();
         droppedItemsV129.clear();
         sitesInitializedV88=false;stationUsedV88.clear();
         clinicInteriorV89=new ClinicInteriorV89();
@@ -1283,6 +1296,8 @@ public final class GameView extends View {
         groundPickupsV85.decode(host.prefs.getString("loose_pickups_v85",""));
         banditLootV87.decode(host.prefs.getString("bandit_loot_bags_v87",""));
         playerNutsV143.decode(host.prefs.getString("player_nuts_v143","0"));
+        playerAmmoV143.decode(host.prefs.getString("player_ammo_v143",
+            "1,0,0,0,0,0,0"));
         npcTradesV143.decode(host.prefs.getString("npc_trade_ledger_v143","1"));
         droppedItemsV129.decode(host.prefs.getString("ground_drops_v129",""));
         droppedItemsV129.expire(gameTimeV129());
@@ -2646,6 +2661,7 @@ public final class GameView extends View {
                 .putString("loose_pickups_v85",groundPickupsV85.encode())
                 .putString("bandit_loot_bags_v87",banditLootV87.encode())
                 .putString("player_nuts_v143",playerNutsV143.encode())
+                .putString("player_ammo_v143",playerAmmoV143.encode())
                 .putString("npc_trade_ledger_v143",npcTradesV143.encode())
                 .putString("ground_drops_v129",droppedItemsV129.encode())
                 .putBoolean("sitesInitializedV88",sitesInitializedV88)
