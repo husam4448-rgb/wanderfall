@@ -198,6 +198,9 @@ public final class MainActivity extends Activity {
             else if("f".equals(t))ed.putFloat(key,(float)typed.getDouble("value"));
         }
         if(!ed.commit())throw new IllegalStateException("Save write failed");
+        // Old exported saves have no V142 marker. Upgrade their body/HUD
+        // preferences once without touching identities, heads or item stacks.
+        applyReferenceV142();
         game.hasSave=prefs.getBoolean("hasSave",false);
         game.reloadSettings();
         if(game.hasSave)game.continueGame();
