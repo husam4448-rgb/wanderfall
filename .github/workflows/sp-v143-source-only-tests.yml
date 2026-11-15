@@ -31,6 +31,7 @@ jobs:
             "$C/AmmoInventoryV143.java" \
             "$C/NutWalletV143.java" \
             "$C/NpcTradeLedgerV143.java" \
+            "$C/TradeQuantityV143.java" \
             "$C/NpcGearV143.java" \
             "$C/UnifiedBagSlotsV141.java" \
             "$C/BanditLootV87.java" \
@@ -68,7 +69,8 @@ jobs:
           assert 'V143' in clinic or 'NpcGearV143' in clinic
           for needle in ('npcTradeWindowV143','"BUY SELECTED"','"SELL SELECTED"',
                          'GameView.CORPSE_NUT_KIND_V143',
-                         'AmmoInventoryV143.valid(type)'):
+                         'AmmoInventoryV143.valid(type)',
+                         'selectedQuantity[0]', 'TradeQuantityV143.buyMaximum'):
               assert needle in ui,needle
           assert 'takeNutsV143' in loot and 'takeAmmoV143' in loot
           assert 'wearableArtV96.drawHead(' not in g
