@@ -505,7 +505,7 @@ jobs:
           defaults=(d/"ScreenshotDefaultsV121.java").read_text()
           preset=(d/"ScreenshotSettingsV121.java").read_text()
           assert 'ScreenshotSettingsV121.applyCharacters(prefs,false)' in menu
-          assert 'ScreenshotSettingsV121.applyCharacters(prefs,true)' in menu
+          assert 'CharacterPresetV142.BODY_KEYS' in menu and 'applyReferenceV142()' in menu
           assert 'ScreenshotSettingsV121.applyHud(prefs,game.viewW,true)' in menu
           assert 'ScreenshotSettingsV121.applyHud(host.prefs,logicalWidth,false)' in game
           assert 'onSizeChanged(int width,int height' in game
@@ -545,7 +545,7 @@ jobs:
           assert 'GunEffectsV119.BULLET_TRAIL_LENGTH' in game
           assert 'weapon==11' in game and 'if(weapon==3)return;' in game
           assert 'bodyWidthV114NpcV113' in game and 'pelvisWidthV115NpcV113' in game
-          print("V122: NPC look vectors 360 degrees; independent bandit/friend/guard aim; physical outdoor gunfire and indoor synchronized rounds; old 200-head V121 visual defaults unchanged")
+          print("V122: NPC look vectors 360 degrees; independent bandit/friend/guard aim; physical outdoor gunfire and indoor synchronized rounds; 200 original head assets unchanged; V142 screenshot body defaults applied")
           PY
       - name: Verify V122 original 200-character and front foot exact source pixel regression
         run: python3 survival-paradise/native-game/tools/test_v120_alignment.py
