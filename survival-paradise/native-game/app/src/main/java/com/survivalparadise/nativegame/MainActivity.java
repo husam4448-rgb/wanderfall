@@ -688,6 +688,8 @@ public final class MainActivity extends Activity {
     }
     /** V134: source and destination tiles draw the same item icon and label. */
     private android.graphics.drawable.Drawable lootIconV134(int type){
+        if(OutfitInventoryV140.valid(type))
+            return game.iconOutfitV140(type,18);
         if(type>=24&&type<39)
             return GearItemIconsV95.drawable(this,type-24,18);
         if(type>=14&&type<24)
@@ -700,13 +702,15 @@ public final class MainActivity extends Activity {
     }
     private void showLootTileV134(SquareItemSlotV88 cell,int type,int amount,
                                   boolean chosen){
-        if(type<0||type>=39||amount<=0){
+        if(type<0||
+           (type>=39&&!OutfitInventoryV140.valid(type))||amount<=0){
             cell.setText("");
             cell.setCompoundDrawables(null,null,null,null);
             cell.setContentDescription("Empty inventory slot");
             return;
         }
-        String name=GameView.INVENTORY_NAMES_V92[type];
+        String name=OutfitInventoryV140.valid(type)?
+            OutfitInventoryV140.name(type):GameView.INVENTORY_NAMES_V92[type];
         cell.setText(name.substring(0,Math.min(7,name.length()))+
             "\n×"+amount+(chosen?" ✓":""));
         cell.setCompoundDrawables(null,lootIconV134(type),null,null);
@@ -808,7 +812,9 @@ public final class MainActivity extends Activity {
                 if(index>=sourceCells.length)break;
                 SquareItemSlotV88 cell=sourceCells[index++];
                 int inventoryType=kind<BanditLootV87.ITEMS?kind:
-                    24+(kind-BanditLootV87.ITEMS);
+                    kinds>GearLootV95.TOTAL?
+                        OutfitInventoryV140.FIRST+kind-BanditLootV87.ITEMS:
+                        24+kind-BanditLootV87.ITEMS;
                 cell.setTag(kind);
                 showLootTileV134(cell,inventoryType,amount,selected[0]==kind);
             }
@@ -886,8 +892,9 @@ public final class MainActivity extends Activity {
                 site==null?"BANDIT BACKPACK  •  SEARCH & TRANSFER":
                 site.name+"  •  SUPPLY CACHE",
             site==null?"BANDIT LOOT":"SCAVENGE SUPPLIES",
-            BanditLootV87.ITEMS,
-            kind->bag.count[kind],
+            bag.corpse?BanditLootV87.ITEMS+OutfitInventoryV140.COUNT:
+                BanditLootV87.ITEMS,
+            kind->bag.itemCount(kind),
             kind->game.lootBanditStackV87(bag,kind),
             ()->game.lootAllBanditV87(bag),true);
     }
@@ -1186,6 +1193,72 @@ public final class MainActivity extends Activity {
                 }
             }).show();
     }
+    /** The original 40-slot backpack remains byte-for-byte save-compatible.
+     * These additional owned items are real inventory stacks, not cosmetic
+     * preview controls. Drag garments onto their existing equipment sockets.
+     */
+    void appendOutfitInventoryV140(LinearLayout target,V62InventoryPreview avatar,
+                                  Runnable refreshSockets){
+        if(game==null)return;
+        section(target,"RECOVERED CLOTHING, BOOTS & WEAPONS");
+        target.addView(text("Items recovered from corpses. Tap to equip or hold "+
+            "and drag to torso, legs, feet or weapon slot.",11,false));
+        final LinearLayout contents=column();
+        target.addView(contents);
+        final Runnable[] update={null};
+        update[0]=()->{
+            contents.removeAllViews();
+            int shown=0;
+            LinearLayout line=null;
+            for(int type=OutfitInventoryV140.FIRST;
+                    type<OutfitInventoryV140.TOTAL;type++){
+                int quantity=game.outfitsV140.count(type);
+                if(quantity<=0)continue;
+                if(shown%5==0){
+                    line=new LinearLayout(this);
+                    line.setOrientation(LinearLayout.HORIZONTAL);
+                    contents.addView(line,new LinearLayout.LayoutParams(-1,-2));
+                }
+                final int item=type;
+                int slot=OutfitInventoryV140.slot(item);
+                int current=slot<0?-1:game.outfitsV140.equippedType(slot);
+                SquareItemSlotV88 cell=v88SquareSlot("",false);
+                String name=OutfitInventoryV140.name(item);
+                cell.setText(name.substring(0,Math.min(11,name.length()))+
+                    "\n×"+quantity+(current==item?" ✓":""));
+                cell.setTextSize(8f);
+                cell.setCompoundDrawables(null,game.iconOutfitV140(item,27),null,null);
+                cell.setCompoundDrawablePadding(2);
+                cell.setContentDescription(name+" quantity "+quantity+
+                    (current==item?", equipped":""));
+                line.addView(cell,new LinearLayout.LayoutParams(0,-2,1f));
+                // A single click equips a wearable or weapon; rounds are
+                // ammunition consumed through the normal reload command.
+                cell.setOnClickListener(v->{
+                    if(item==OutfitInventoryV140.ROUNDS){
+                        Toast.makeText(this,"Loose rounds: "+game.outfitsV140.rounds+
+                            ". Reload your equipped firearm to use them.",
+                            Toast.LENGTH_SHORT).show();return;
+                    }
+                    boolean ok=game.equipOutfitV140(item);
+                    if(ok){avatar.invalidate();refreshSockets.run();update[0].run();}
+                    else Toast.makeText(this,"Item unavailable",Toast.LENGTH_SHORT).show();
+                });
+                cell.setOnLongClickListener(v->{
+                    if(OutfitInventoryV140.slot(item)<0)return false;
+                    android.content.ClipData data=android.content.ClipData.
+                        newPlainText("sp-v140-wearable",Integer.toString(item));
+                    return v.startDragAndDrop(data,new View.DragShadowBuilder(v),null,0);
+                });
+                shown++;
+            }
+            if(shown==0)contents.addView(text(
+                "No recovered gear yet. Search a fallen NPC to collect clothing, "+
+                "boots and its weapon.",12,false));
+        };
+        update[0].run();
+    }
+
     void inventory(){
         if(game==null||!game.isPlaying())return;
         game.menuPause(true);
@@ -1256,22 +1329,29 @@ public final class MainActivity extends Activity {
                 Button socket=equipmentButtonsV131[ix];
                 if(socket==null)continue;
                 int equippedType=-1;
+                if(ix==2||ix==3||ix==4)
+                    equippedType=game.outfitsV140.equippedType(
+                        ix==2?0:ix==3?1:2);
                 if(ix==5&&game.fieldFindsV91.equipped>=0)
                     equippedType=24+game.fieldFindsV91.equipped;
-                else if(ix==0||ix==2||ix==3||ix==4){
+                else if(equippedType<0&&(ix==0||ix==2||ix==3||ix==4)){
                     int clothing=ix==0?0:ix==2?1:ix==3?2:3;
                     int variant=game.wardrobeV92.equipped[clothing];
                     if(variant>=0)equippedType=27+clothing*3+variant;
                 }
                 String value=equippedType>=0?
-                    GameView.INVENTORY_NAMES_V92[equippedType]:
+                    (OutfitInventoryV140.valid(equippedType)?
+                        OutfitInventoryV140.name(equippedType):
+                        GameView.INVENTORY_NAMES_V92[equippedType]):
                     ix==6?LOADOUTS[game.gun]:
                     ix==7?(game.dualTorch&&game.lampOn?"FLASHLIGHT":"EMPTY"):
                     ix==1?"MASK SLOT":"EMPTY";
                 if(value.length()>19)value=value.substring(0,19);
                 socket.setText(equipment[ix]+"\n"+value);
                 android.graphics.drawable.Drawable icon=
-                    equippedType>=0?GearItemIconsV95.drawable(this,equippedType-24,29):
+                    equippedType>=0?(OutfitInventoryV140.valid(equippedType)?
+                        game.iconOutfitV140(equippedType,29):
+                        GearItemIconsV95.drawable(this,equippedType-24,29)):
                     ix==6||ix==7?game.itemIconsV84.drawable(getResources(),
                         ix==7?ItemIconsV84.TORCH:ItemIconsV84.RIFLE,29):
                     GearItemIconsV95.silhouette(this,ix,29);
@@ -1294,6 +1374,19 @@ public final class MainActivity extends Activity {
                     try{
                         int position=Integer.parseInt(event.getClipData().
                             getItemAt(0).getText().toString());
+                        CharSequence label=event.getClipDescription().getLabel();
+                        if(label!=null&&"sp-v140-wearable".contentEquals(label)){
+                            int compatible=socketIndex==2?0:socketIndex==3?1:
+                                socketIndex==4?2:socketIndex==6?3:-1;
+                            if(OutfitInventoryV140.slot(position)!=compatible)
+                                return false;
+                            boolean ok=game.equipOutfitV140(position);
+                            if(ok){
+                                refreshEquipmentV131[0].run();
+                                if(redrawV92[0]!=null)redrawV92[0].run();
+                            }
+                            return ok;
+                        }
                         if(position<0||position>=40)return false;
                         int type=game.bagOrderV92[position];
                         if(game.bagSlotQuantityV130(position)<1||
@@ -1341,13 +1434,28 @@ public final class MainActivity extends Activity {
                         kinds.add(kind);
                     }
                 }
+                int clothingSocket=socketIndex==2?0:socketIndex==3?1:
+                    socketIndex==4?2:-1;
+                if(clothingSocket>=0)
+                    for(int kind=OutfitInventoryV140.FIRST;
+                        kind<OutfitInventoryV140.WEAPONS;kind++)
+                        if(OutfitInventoryV140.slot(kind)==clothingSocket&&
+                            game.outfitsV140.available(kind)>0){
+                            choices.add(OutfitInventoryV140.name(kind)+" ×"+
+                                game.outfitsV140.available(kind));
+                            kinds.add(kind);
+                        }
                 new AlertDialog.Builder(this)
                     .setTitle(equipment[socketIndex]+" EQUIPMENT")
                     .setItems(choices.toArray(new String[0]),(dialog,which)->{
                         int kind=kinds.get(which);
                         boolean success=kind<0?
-                            game.unequipInventorySlotV131(socketIndex):
-                            game.equipInventoryItemV131(kind,socketIndex);
+                            (clothingSocket>=0&&game.outfitsV140.equippedType(clothingSocket)>=0?
+                                game.unequipOutfitV140(clothingSocket):
+                                game.unequipInventorySlotV131(socketIndex)):
+                            OutfitInventoryV140.valid(kind)?
+                                game.equipOutfitV140(kind):
+                                game.equipInventoryItemV131(kind,socketIndex);
                         if(success){
                             refreshEquipmentV131[0].run();
                             if(redrawV92[0]!=null)redrawV92[0].run();
@@ -1696,7 +1804,8 @@ public final class MainActivity extends Activity {
             }
         };
         refresh[0].run();
-        root.addView(text("Headgear stays equippable for gameplay but is never drawn on characters. Jackets, trousers, boots and backpacks retain their existing visual behavior.",12,false));
+        appendOutfitInventoryV140(root,avatar,refreshEquipmentV131[0]);
+        root.addView(text("Headgear remains gameplay-only and invisible. New clothing, boots and recovered weapons use original item art.",12,false));
         shell.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
         LinearLayout tools=new LinearLayout(this);tools.setOrientation(LinearLayout.HORIZONTAL);
         Button smaller=v62Slot("WINDOW −",true),larger=v62Slot("WINDOW +",true);
