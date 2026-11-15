@@ -15,8 +15,8 @@ public final class TradeQuantityV143 {
         if(price<=0)return 0;
         long affordable=buyer.iron()/price;
         long npcRoom=(NutWalletV143.MAX-npc.wallet.iron())/price;
-        return (int)Math.max(0,Math.min(npc.count(type),
-            Math.min(affordable,npcRoom)));
+        return (int)Math.max(0,Math.min(player.maxReceivable(type),
+            Math.min(npc.count(type),Math.min(affordable,npcRoom))));
     }
     public static int sellMaximum(NpcTradeLedgerV143.Npc npc,int type,
                                   NpcTradeLedgerV143.Inventory player,
