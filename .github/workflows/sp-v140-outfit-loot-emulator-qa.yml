@@ -48,7 +48,7 @@ jobs:
             adb shell wm size 1920x1080 || true
             adb shell wm density 260 || true
             adb install /tmp/sp140/*.apk
-            adb shell am start -n com.survivalparadise.nativegame.v140rungaittest/com.survivalparadise.nativegame.MainActivity
+            adb shell am start -n com.survivalparadise.nativegame.v140outfitloottest/com.survivalparadise.nativegame.MainActivity
             sleep 8
             # Android's first immersive-mode launch can display a blue
             # "Viewing full screen" coach mark over the character preview.
