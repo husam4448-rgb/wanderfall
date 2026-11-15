@@ -1853,6 +1853,12 @@ public final class GameView extends View {
         return true;
     }
     /** Resolve the actual live NPC, not merely its common dialogue role. */
+    String indoorTradeIdentityV143(int index){
+        String zone=activeSiteV91==INDUSTRIAL_SITE_V123?
+            "industrial"+industrialSeedV123+"_"+industrialSiteV123.sx+
+            "_"+industrialSiteV123.sy:"site"+activeSiteV91;
+        return "indoor:"+zone+"_actor"+index;
+    }
     String nearbyTradeIdentityV143(){
         float nearest=148f;
         String chosen=null;
@@ -1863,10 +1869,7 @@ public final class GameView extends View {
                 float range=distance(playerX,playerY,actor.x,actor.y);
                 if(range>=nearest)continue;
                 nearest=range;
-                String zone=activeSiteV91==INDUSTRIAL_SITE_V123?
-                    "industrial"+industrialSeedV123+"_"+industrialSiteV123.sx+
-                    "_"+industrialSiteV123.sy:"site"+activeSiteV91;
-                chosen="indoor:"+zone+"_actor"+i;
+                chosen=indoorTradeIdentityV143(i);
             }
         }else{
             for(int i=0;i<campStaff.size();i++){
@@ -4713,6 +4716,23 @@ public final class GameView extends View {
                 bagSplitAmountV130,this::availableInventoryV131,items)){
                 gatherFeedback="BAG FULL - FREE INVENTORY SLOTS";
                 gatherFeedbackTime=2.5f;invalidate();return false;
+            }
+        }
+        if(actor.type!=ClinicActorsV90.FERAL){
+            NpcTradeLedgerV143.Npc pocket=npcTradesV143.get(
+                indoorTradeIdentityV143(index),
+                actor.type==ClinicActorsV90.RAIDER?5:
+                    actor.type==ClinicActorsV90.MEDIC?1:4);
+            if(pocket!=null){
+                long amount=pocket.wallet.iron();
+                if(amount>0&&!playerNutsV143.canCredit(amount)){
+                    gatherFeedback="NUT WALLET FULL";
+                    gatherFeedbackTime=2f;return false;
+                }
+                if(amount>0){
+                    playerNutsV143.credit(amount);
+                    pocket.wallet.takeAll();
+                }
             }
         }
         switch(actor.type){
