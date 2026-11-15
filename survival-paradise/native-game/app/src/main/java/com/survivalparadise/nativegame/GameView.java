@@ -1907,6 +1907,11 @@ public final class GameView extends View {
             public boolean capacity(int type){
                 return canStowInventoryV141(type);
             }
+            public int maxReceivable(int type){
+                if(!canStowInventoryV141(type))return 0;
+                int max=type>=24&&type<=38?99:9999;
+                return Math.max(0,max-inventoryQuantityV92(type));
+            }
         };
     }
     boolean tradeV143(String npcId,int type,int qty,boolean buy){
