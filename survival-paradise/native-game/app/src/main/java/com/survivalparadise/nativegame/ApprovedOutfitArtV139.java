@@ -25,6 +25,10 @@ final class ApprovedOutfitArtV139 {
     private final int[][] pantsColors=new int[COUNT][];
     private final Bitmap[] torsoSprites=new Bitmap[COUNT];
     private final Bitmap[] pantsSprites=new Bitmap[COUNT];
+    // Additive legacy art. The 20 approved V139 sprites stay byte-identical.
+    private final Bitmap[] legacyTorsosV144=new Bitmap[3];
+    private final Bitmap[] legacyPantsV144=new Bitmap[3];
+    private final boolean legacyReadyV144;
     // Recolor only the approved original silhouette alpha. No alternative
     // anatomy, altered heads, transparent/nude body or external placeholder.
     private Bitmap undershirtV141,boxersV141;
@@ -66,10 +70,73 @@ final class ApprovedOutfitArtV139 {
                 ok=false;
         }catch(IOException ignored){ok=false;}
         available=ok;
+        legacyReadyV144=ok&&loadLegacyArtworkV144(ctx);
         if(ok){
             undershirtV141=underwearSpriteV141(torsoSprites[0],true);
             boxersV141=underwearSpriteV141(pantsSprites[0],false);
         }
+    }
+    /**
+     * Load nine source-sized V144 legacy garments without touching V139 PNGs.
+     * A missing or mismatched archive safely falls back to existing V142 art.
+     * Dimension and pixel alpha must match the user's approved base images.
+     */
+    private boolean loadLegacyArtworkV144(Context ctx){
+        final int[] basesTorso={9,16,6},basesPants={10,18,6};
+        try(InputStream input=ctx.getAssets().open("sp_v144_legacy_equipment.zip");
+                ZipInputStream zip=new ZipInputStream(input)){
+            ZipEntry entry;
+            while((entry=zip.getNextEntry())!=null){
+                String file=entry.getName();
+                boolean top=file.startsWith("torsos/");
+                boolean leg=file.startsWith("pants/");
+                if(!(top||leg)||!file.endsWith(".png"))continue;
+                int i;
+                try {
+                    int from=top?7:6;
+                    i=Integer.parseInt(file.substring(from,from+2))-20;
+                }catch(RuntimeException ignored){continue;}
+                if(i<0||i>=3)continue;
+                java.io.ByteArrayOutputStream out=new java.io.ByteArrayOutputStream();
+                byte[] chunk=new byte[8192];int n;
+                while((n=zip.read(chunk))!=-1)out.write(chunk,0,n);
+                byte[] data=out.toByteArray();
+                Bitmap image=BitmapFactory.decodeByteArray(data,0,data.length);
+                Bitmap approved=top?torsoSprites[basesTorso[i]]:pantsSprites[basesPants[i]];
+                if(!sameAlphaV144(image,approved))return false;
+                if(top)legacyTorsosV144[i]=image;
+                else legacyPantsV144[i]=image;
+            }
+        }catch(IOException ignored){return false;}
+        for(int i=0;i<3;i++)
+            if(legacyTorsosV144[i]==null||legacyPantsV144[i]==null)return false;
+        return true;
+    }
+    private static boolean sameAlphaV144(Bitmap a,Bitmap b){
+        if(a==null||b==null||a.getWidth()!=b.getWidth()||
+           a.getHeight()!=b.getHeight())return false;
+        int w=a.getWidth(),h=a.getHeight();
+        int[] x=new int[w*h],y=new int[w*h];
+        a.getPixels(x,0,w,0,0,w,h);
+        b.getPixels(y,0,w,0,0,w,h);
+        for(int i=0;i<x.length;i++)if((x[i]>>>24)!=(y[i]>>>24))return false;
+        return true;
+    }
+    private Bitmap torsoSpriteV144(int style){
+        if(style<0)return undershirtV141;
+        if(style<COUNT)return torsoSprites[style];
+        int id=style-20;
+        if(id<0||id>2)return torsoSprites[0];
+        return legacyReadyV144?legacyTorsosV144[id]:
+            torsoSprites[LegacyOutfitVisualV142.torso(id,0)];
+    }
+    private Bitmap pantsSpriteV144(int style){
+        if(style<0)return boxersV141;
+        if(style<COUNT)return pantsSprites[style];
+        int id=style-20;
+        if(id<0||id>2)return pantsSprites[0];
+        return legacyReadyV144?legacyPantsV144[id]:
+            pantsSprites[LegacyOutfitVisualV142.pants(id,0)];
     }
     /** Fully covered undershirt and boxer shorts from original silhouette.
      * Every non-transparent exterior source pixel remains within its original
@@ -151,14 +218,14 @@ final class ApprovedOutfitArtV139 {
              int torsoStyle,int pantsStyle,int torsoWidthPercent,
              int pelvisWidthPercent,android.graphics.Paint pixel){
         if(!available)return;
-        int torso=Math.max(-1,Math.min(19,torsoStyle));
-        int pants=Math.max(-1,Math.min(19,pantsStyle));
+        int torso=Math.max(-1,Math.min(22,torsoStyle));
+        int pants=Math.max(-1,Math.min(22,pantsStyle));
         // The user-approved simulator draws pants FIRST, then torso, then
         // the original head, then independently animated rear/front boots.
-        drawRigSprite(c,pants>=0?pantsSprites[pants]:boxersV141,
+        drawRigSprite(c,pantsSpriteV144(pants),
             47f,154f,93f*1.04f,
             pelvisWidthPercent,72,left,top,unit,pixel);
-        drawRigSprite(c,torso>=0?torsoSprites[torso]:undershirtV141,
+        drawRigSprite(c,torsoSpriteV144(torso),
             36f,71f,120f,
             torsoWidthPercent,71,left,top,unit,pixel);
     }
