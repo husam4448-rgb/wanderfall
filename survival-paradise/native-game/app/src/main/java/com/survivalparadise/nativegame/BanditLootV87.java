@@ -15,9 +15,16 @@ public final class BanditLootV87 {
         public boolean corpse=false;
         public int variant=0,face=1,skinV109=-1;
         public final int[] count=new int[ITEMS];
+        /** Index 0 maps to stable item ID 39. Versioned, sparse save encoding. */
+        public final int[] extra=new int[OutfitInventoryV140.COUNT];
+        public int itemCount(int kind){
+            return kind>=0&&kind<ITEMS?count[kind]:
+                kind>=ITEMS&&kind<ITEMS+extra.length?extra[kind-ITEMS]:0;
+        }
+        public boolean hasExtra(){for(int n:extra)if(n>0)return true;return false;}
         Bag(int id,float x,float y){this.id=id;this.x=x;this.y=y;}
-        public boolean empty(){for(int n:count)if(n>0)return false;return true;}
-        public int total(){int n=0;for(int c:count)n+=c;return n;}
+        public boolean empty(){for(int n:count)if(n>0)return false;return !hasExtra();}
+        public int total(){int n=0;for(int c:count)n+=c;for(int c:extra)n+=c;return n;}
     }
     public final ArrayList<Bag> bags=new ArrayList<>();
     private int nextId=1;
@@ -67,6 +74,21 @@ public final class BanditLootV87 {
         if(bag.empty()&&!bag.corpse)bags.remove(bag);
         return amount;
     }
+    public int takeExtra(Bag bag,int index){
+        if(!contains(bag)||index<0||index>=OutfitInventoryV140.COUNT)return 0;
+        int n=bag.extra[index];if(n<=0)return 0;
+        bag.extra[index]=0;
+        if(bag.empty()&&!bag.corpse)bags.remove(bag);
+        return n;
+    }
+    public int[] takeAllExtra(Bag bag){
+        int[] out=new int[OutfitInventoryV140.COUNT];
+        if(!contains(bag))return out;
+        System.arraycopy(bag.extra,0,out,0,out.length);
+        java.util.Arrays.fill(bag.extra,0);
+        if(bag.empty()&&!bag.corpse)bags.remove(bag);
+        return out;
+    }
     public int[] takeAll(Bag bag){
         int[] taken=new int[ITEMS];
         if(!contains(bag))return taken;
@@ -86,6 +108,11 @@ public final class BanditLootV87 {
             out.append(',').append(bag.corpse?1:0).append(',')
                .append(bag.variant).append(',').append(bag.face)
                .append(',').append(bag.skinV109);
+            if(bag.hasExtra()){
+                out.append(",x");
+                for(int i=0;i<bag.extra.length;i++)if(bag.extra[i]>0)
+                    out.append('|').append(i).append(':').append(bag.extra[i]);
+            }
         }
         return out.toString();
     }
@@ -94,7 +121,8 @@ public final class BanditLootV87 {
         for(String entry:data.split(";")){
             if(bags.size()>=MAX_BAGS)break;
             String[] p=entry.split(",");
-            if(p.length!=ITEMS+3&&p.length!=ITEMS+6&&p.length!=ITEMS+7)continue;
+            if(p.length!=ITEMS+3&&p.length!=ITEMS+6&&
+               p.length!=ITEMS+7&&p.length!=ITEMS+8)continue;
             try{
                 int id=Integer.parseInt(p[0]);
                 float x=Float.parseFloat(p[1]),y=Float.parseFloat(p[2]);
@@ -114,9 +142,23 @@ public final class BanditLootV87 {
                     bag.corpse=Integer.parseInt(p[ITEMS+3])==1;
                     bag.variant=Integer.parseInt(p[ITEMS+4]);
                     bag.face=Integer.parseInt(p[ITEMS+5])<0?-1:1;
-                    if(p.length==ITEMS+7){
+                    if(p.length>=ITEMS+7){
                         int skin=Integer.parseInt(p[ITEMS+6]);
                         bag.skinV109=skin>=1&&skin<=200?skin:-1;
+                    }
+                    if(p.length==ITEMS+8){
+                        String[] entries=p[ITEMS+7].split("\\\\|",-1);
+                        if(entries.length<1||!"x".equals(entries[0]))continue;
+                        boolean valid=true;
+                        for(int k=1;k<entries.length;k++){
+                            String[] pair=entries[k].split(":",-1);
+                            if(pair.length!=2){valid=false;break;}
+                            int id=Integer.parseInt(pair[0]),n=Integer.parseInt(pair[1]);
+                            if(id<0||id>=bag.extra.length||n<1||n>9999||
+                               bag.extra[id]!=0){valid=false;break;}
+                            bag.extra[id]=n;
+                        }
+                        if(!valid)continue;
                     }
                 }
                 if(!invalid&&(!bag.empty()||bag.corpse)){
