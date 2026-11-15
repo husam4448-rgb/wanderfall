@@ -104,6 +104,8 @@ public final class GameView extends View {
     final FieldFindsV91 fieldFindsV91=new FieldFindsV91();
     final GearLootV95 gearLootV95=new GearLootV95();
     final WardrobeV92 wardrobeV92=new WardrobeV92();
+    final OutfitInventoryV140 outfitsV140=new OutfitInventoryV140();
+    int reloadLooseRoundsV140=0;
     final WearableArtV96 wearableArtV96=new WearableArtV96();
     CharacterSkinsV109 characterSkinsV109; // exact 200 approved head/body sources + V5 fittings
     int playerSkinV109=124;
@@ -632,7 +634,10 @@ public final class GameView extends View {
         nightDarkness=Math.round(255f*host.setting("darkness",83)/100f);
         flashlightReach=host.setting("beamReach",490);
         int next=host.setting("gun",0);
-        if(next!=gun){gun=Math.max(0,Math.min(11,next));ammo=MAG[gun];reloadClock=0;}
+        if(next!=gun){gun=Math.max(0,Math.min(11,next));ammo=MAG[gun];reloadClock=0;
+            reloadLooseRoundsV140=0;
+            if(outfitsV140.equippedStyle(3)!=gun)outfitsV140.unequip(3);
+        }
         refreshDaylight();
         allySetting=host.setting("survivors",1);
         if(playing)adjustFriends();
@@ -648,6 +653,37 @@ public final class GameView extends View {
         }
         while(friends.size()>allySetting-1)friends.remove(friends.size()-1);
         allyCurrent=1+friends.size();
+    }
+    /** V140: equipment icons are real inventory entries; legacy slots/save untouched. */
+    boolean equipOutfitV140(int type){
+        if(!outfitsV140.equip(type))return false;
+        int slot=OutfitInventoryV140.slot(type);
+        if(slot==0)wardrobeV92.equip(1,-1);
+        if(slot==1)wardrobeV92.equip(2,-1);
+        if(slot==2)wardrobeV92.equip(3,-1);
+        if(slot==3){
+            gun=OutfitInventoryV140.style(type);
+            ammo=MAG[gun];reloadClock=0;reloadLooseRoundsV140=0;
+            host.prefs.edit().putInt("gun",gun).apply();
+            snapAimToWeaponRest();
+        }
+        saveProgress();invalidate();return true;
+    }
+    boolean unequipOutfitV140(int slot){
+        if(!outfitsV140.unequip(slot))return false;
+        saveProgress();invalidate();return true;
+    }
+    android.graphics.drawable.Drawable iconOutfitV140(int type,int dp){
+        if(!OutfitInventoryV140.valid(type))return null;
+        if(type==OutfitInventoryV140.ROUNDS)return itemIconsV84.drawable(
+            host.getResources(),ItemIconsV84.AMMO,dp);
+        int slot=OutfitInventoryV140.slot(type);
+        if(slot==3)return itemIconsV84.drawable(host.getResources(),
+            OutfitInventoryV140.style(type)==3?ItemIconsV84.TORCH:
+            OutfitInventoryV140.style(type)==0||OutfitInventoryV140.style(type)==1?
+                ItemIconsV84.PISTOL:ItemIconsV84.RIFLE,dp);
+        return characterSkinsV109==null?null:
+            characterSkinsV109.inventoryIconV140(host,type,dp);
     }
     int equippedReserveV131(int type){
         int slot=InventoryCatalogV131.equipmentSlot(type);
@@ -1019,6 +1055,8 @@ public final class GameView extends View {
             wardrobeV92.found[slot][0]=1;
             wardrobeV92.equip(slot,0);
         }
+        outfitsV140.migrate(torsoStyleV139,pantsStyleV139,bootStyleV133,gun,
+            true,true,true);
         bagOrderInitializedV92=false;campGuardCooldownV92=0f;
         android.content.SharedPreferences.Editor sitesClear=host.prefs.edit();
         for(int i=0;i<ExpeditionSitesV88.SITES.length+CampCraftV83.MAX;i++)
@@ -1112,6 +1150,10 @@ public final class GameView extends View {
         backpackStyleV96=Math.floorMod(host.prefs.getInt("backpackStyleV96",0),20);
         headgearStyleV96=Math.floorMod(host.prefs.getInt("headgearStyleV96",0),4);
         bootStyleV133=BootArtV133.clampStyle(host.prefs.getInt("bootStyleV133",0));
+        if(!outfitsV140.decode(host.prefs.getString("outfits_v140","")))
+            outfitsV140.migrate(torsoStyleV139,pantsStyleV139,bootStyleV133,gun,
+                wardrobeV92.equipped[1]>=0,wardrobeV92.equipped[2]>=0,
+                wardrobeV92.equipped[3]>=0);
         gearLootV95.decode(host.prefs.getString("gear_loot_v95",""));
         relationshipsV92.decode(host.prefs.getString("npc_relations_v92",""));
         restoreBagOrderV92(host.prefs.getString("bag_order_v92",""));
@@ -1861,7 +1903,7 @@ public final class GameView extends View {
         updateIndoorRoundsV122(dt);
         if(reloadClock>0f){
             reloadClock-=dt;
-            if(reloadClock<=0f){ammo=MAG[gun];reloadClock=0f;}
+            if(reloadClock<=0f)finishReloadV140();
         }
         float vx=stickX,vy=stickY;
         float oldX=playerX,oldY=playerY;
@@ -2358,6 +2400,7 @@ public final class GameView extends View {
                 .putInt("active_site_v91",insideClinicV89?activeSiteV91:-1)
                 .putString("field_finds_v91",fieldFindsV91.encode())
                 .putString("wardrobe_v92",wardrobeV92.encode())
+                .putString("outfits_v140",outfitsV140.encode())
                 .putInt("backpackStyleV96",backpackStyleV96)
                 .putInt("headgearStyleV96",headgearStyleV96)
                 .putInt("bootStyleV133",bootStyleV133)
@@ -2417,13 +2460,25 @@ public final class GameView extends View {
     void switchWeapon(){
         if(harvestV81.active)return;
         gun=(gun+1)%12;ammo=MAG[gun];reloadClock=0;
+        reloadLooseRoundsV140=0;outfitsV140.unequip(3);
         snapAimToWeaponRest();
         host.prefs.edit().putInt("gun",gun).apply();
     }
     void reload(){
         if(gun==3||gun==11||ammo>=MAG[gun]||reloadClock>0)return;
-        if(ammoPacks==0)return;
-        ammoPacks--;reloadClock=1.25f;shotClock=0;
+        if(outfitsV140.rounds>0){
+            reloadLooseRoundsV140=Math.min(MAG[gun]-ammo,outfitsV140.rounds);
+            outfitsV140.remove(OutfitInventoryV140.ROUNDS,reloadLooseRoundsV140);
+        }else{
+            if(ammoPacks==0)return;
+            ammoPacks--;reloadLooseRoundsV140=-1;
+        }
+        reloadClock=1.25f;shotClock=0;
+    }
+    void finishReloadV140(){
+        if(reloadLooseRoundsV140>0)ammo=Math.min(MAG[gun],ammo+reloadLooseRoundsV140);
+        else ammo=MAG[gun];
+        reloadLooseRoundsV140=0;reloadClock=0;
     }
     float clamp(float x,float min,float max){return Math.max(min,Math.min(max,x));}
     boolean blocked(float x,float y,float r){
@@ -2847,7 +2902,7 @@ public final class GameView extends View {
         shotClock=Math.max(0,shotClock-dt);
         recoil=Math.max(0,recoil-dt*5);
         if(reloadClock>0){
-            reloadClock-=dt;if(reloadClock<=0){ammo=MAG[gun];reloadClock=0;}
+            reloadClock-=dt;if(reloadClock<=0)finishReloadV140();
         }
         float wasX=playerX,wasY=playerY;
         float vx=stickX,vy=stickY;
@@ -3969,12 +4024,18 @@ public final class GameView extends View {
                 player?playerHeadSizeV113:npcHeadSizeV113,
                 player?playerTorsoWidthV114:npcTorsoWidthV114,
                 player?playerPelvisWidthV115:npcPelvisWidthV115,
-                player?(wardrobeV92.equipped[3]>=0?bootStyleV133:0):
-                    Math.floorMod(npcVariant*3+skinIdV109,BootArtV133.COUNT),
-                player?(wardrobeV92.equipped[1]<0?-1:torsoStyleV139):
-                    Math.floorMod(Math.max(0,npcVariant)*7+skinIdV109*3,20),
-                player?(wardrobeV92.equipped[2]<0?-1:pantsStyleV139):
-                    Math.floorMod(Math.max(0,npcVariant)*11+skinIdV109*7,20),
+                player?(outfitsV140.equippedStyle(2)>=0?
+                    outfitsV140.equippedStyle(2):
+                    wardrobeV92.equipped[3]>=0?bootStyleV133:0):
+                    OutfitInventoryV140.npcBoots(npcVariant,skinIdV109),
+                player?(outfitsV140.equippedStyle(0)>=0?
+                    outfitsV140.equippedStyle(0):
+                    wardrobeV92.equipped[1]<0?-1:torsoStyleV139):
+                    OutfitInventoryV140.npcTorso(npcVariant,skinIdV109),
+                player?(outfitsV140.equippedStyle(1)>=0?
+                    outfitsV140.equippedStyle(1):
+                    wardrobeV92.equipped[2]<0?-1:pantsStyleV139):
+                    OutfitInventoryV140.npcPants(npcVariant,skinIdV109),
                 player?runGaitV139.timeSeconds():worldTimer);
         }else{
             Bitmap atlas=npcVariant>=0?npcWalkV56:approvedWalkColors;
