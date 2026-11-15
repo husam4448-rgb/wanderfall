@@ -690,7 +690,42 @@ public final class GameView extends View {
             characterSkinsV109.inventoryIconV140(host,type,dp);
     }
     String inventoryNameV141(int type){
-        return InventoryCatalogV131.name(type,INVENTORY_NAMES_V92);
+        return OutfitInventoryV140.valid(type)?OutfitInventoryV140.name(type):
+            type>=0&&type<INVENTORY_NAMES_V92.length?
+                INVENTORY_NAMES_V92[type]:"EMPTY";
+    }
+    int inventorySlotV141(int type){
+        if(OutfitInventoryV140.valid(type)){
+            int slot=OutfitInventoryV140.slot(type);
+            return slot==0?2:slot==1?3:slot==2?4:slot==3?6:-1;
+        }
+        return InventoryCatalogV131.equipmentSlot(type);
+    }
+    boolean inventoryCompatibleV141(int type,int socket){
+        return inventorySlotV141(type)==socket&&socket>=0;
+    }
+    String itemMassLabelV141(int type,int amount){
+        float value=itemMassV131(type)*Math.max(0,amount);
+        return Math.abs(value-Math.round(value))<.005f?
+            Integer.toString(Math.round(value)):
+            String.format(java.util.Locale.US,"%.2f",value);
+    }
+    int categoryV141(int type){
+        if(!OutfitInventoryV140.valid(type))return InventoryCatalogV131.category(type);
+        int slot=OutfitInventoryV140.slot(type);
+        return slot==0?6:slot==1?7:slot==2?8:slot==3?9:3;
+    }
+    int compareBagV141(int left,int right,int mode){
+        if(!OutfitInventoryV140.valid(left)&&!OutfitInventoryV140.valid(right))
+            return InventoryCatalogV131.compare(left,right,mode,INVENTORY_NAMES_V92);
+        if(left==right)return 0;
+        int cmp=mode==1?Integer.compare(categoryV141(left),categoryV141(right)):
+            mode==2?Float.compare(itemMassV131(right),itemMassV131(left)):
+            mode==3?inventoryNameV141(left).compareToIgnoreCase(inventoryNameV141(right)):0;
+        if(cmp!=0)return cmp;
+        return mode==1||mode==2?
+            inventoryNameV141(left).compareToIgnoreCase(inventoryNameV141(right)):
+            Integer.compare(left,right);
     }
     boolean canStowInventoryV141(int type){
         return UnifiedBagSlotsV141.canStore(bagOrderV92,bagSplitAmountV130,
@@ -718,7 +753,7 @@ public final class GameView extends View {
     }
     boolean equipInventoryItemV131(int type,int targetSlot){
         if(OutfitInventoryV140.valid(type))
-            return InventoryCatalogV131.compatible(type,targetSlot)&&
+            return inventoryCompatibleV141(type,targetSlot)&&
                 equipOutfitV140(type);
         if(!InventoryCatalogV131.compatible(type,targetSlot)||
            availableInventoryV131(type)<1)return false;
@@ -762,7 +797,7 @@ public final class GameView extends View {
             int t=bagOrderV92[a],u=bagOrderV92[b];
             int cmp=mode==0?
                 Integer.compare(firstIndex[t],firstIndex[u]):
-                InventoryCatalogV131.compare(t,u,mode,INVENTORY_NAMES_V92);
+                compareBagV141(t,u,mode);
             return cmp!=0?cmp:Integer.compare(a,b);
         });
         int[] order=new int[40],splits=new int[40],originals=new int[40];
@@ -776,7 +811,10 @@ public final class GameView extends View {
         System.arraycopy(originals,0,bagSplitOriginalV130,0,40);
         saveProgress();
     }
-    float itemMassV131(int kind){return InventoryCatalogV131.weight(kind);}
+    float itemMassV131(int kind){
+        return OutfitInventoryV140.valid(kind)?OutfitInventoryV140.weight(kind):
+            InventoryCatalogV131.weight(kind);
+    }
     int inventoryQuantityV92(int idx){
         switch(idx){
             case 0:return scrap;case 1:return medkits;case 2:return ammoPacks;
