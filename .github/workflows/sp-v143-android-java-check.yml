@@ -30,7 +30,7 @@ jobs:
       - name: Compile all current V143 Android sources only (NO APK packaging)
         working-directory: survival-paradise/native-game
         run: gradle --no-daemon :app:compileDebugJavaWithJavac
-      - name: Assert no Android APK was produced
+      - name: Assert latest trade GUI, hex-nut artwork and weapon sources produced no APK
         shell: bash
         run: |
           test ! -e survival-paradise/native-game/app/build/outputs/apk/debug/app-debug.apk
