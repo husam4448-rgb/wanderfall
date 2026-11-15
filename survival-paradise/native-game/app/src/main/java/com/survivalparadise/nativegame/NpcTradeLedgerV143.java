@@ -14,6 +14,10 @@ public final class NpcTradeLedgerV143 {
         boolean add(int type,int quantity);
         boolean remove(int type,int quantity);
         boolean capacity(int type);
+        /** A destination's stack cap, distinct from free backpack cells. */
+        default int maxReceivable(int type){
+            return capacity(type)?MAX_STOCK:0;
+        }
     }
     public static final class Npc {
         public final String id;
@@ -84,7 +88,8 @@ public final class NpcTradeLedgerV143 {
                        NutWalletV143 money){
         if(npc==null||player==null||money==null||count<1||
            type<0||type>=ITEM_TYPES||type==97||
-           npc.stock[type]<count||!player.capacity(type))
+           npc.stock[type]<count||!player.capacity(type)||
+           player.maxReceivable(type)<count)
             return false;
         long unit=price(type),bill=unit*count;
         if(unit<=0||!money.canDebit(bill)||!npc.wallet.canCredit(bill))
