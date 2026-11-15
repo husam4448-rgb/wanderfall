@@ -1,0 +1,63 @@
+name: Survival Paradise V145 - User Artwork Loading Code Check (NO APK)
+on:
+  push:
+    branches: [sp-native-v145-user-approved-legacy-asset-loading-20261115]
+    paths:
+      - '.github/workflows/sp-v145-user-art-compile-only.yml'
+      - 'survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/**'
+      - 'survival-paradise/native-game/app/src/main/assets/sp_v145_legacy_equipment.zip'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-compile-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 26
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Pure Java V144/V145 stable item mapping regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          C=survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame
+          javac -d /tmp/v145-tests "$C/LegacyOutfitVisualV144.java" survival-paradise/native-game/tools/V144LegacyVisualTest.java
+          java -cp /tmp/v145-tests com.survivalparadise.nativegame.V144LegacyVisualTest
+      - name: Check correct nine user-origin art archive if present
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import zipfile,hashlib
+          p=Path('survival-paradise/native-game/app/src/main/assets/sp_v145_legacy_equipment.zip')
+          expected='649bbecd59b13740d7fe221e70f2f05707dae9b70e1a04ae517c83fc65997822'
+          if not p.exists():
+              print('ARTWORK PENDING: game-ready user originals have not been uploaded to GitHub.')
+          else:
+              assert hashlib.sha256(p.read_bytes()).hexdigest()==expected,'Unexpected asset archive'
+              with zipfile.ZipFile(p) as z:
+                  items=[n for n in z.namelist() if n.endswith('.png')]
+                  assert len(items)==9,items
+                  assert z.testzip() is None
+                  assert 'pants/21_ripstop_trousers.png' in items
+              print('PASS V145 archive verified; separate in-game visual QA still pending')
+          PY
+      - name: Android SDK API 35
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -path '*/bin/sdkmanager' | sort -V | tail -1)"
+          test -x "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Compile Android Java sources (no APK)
+        working-directory: survival-paradise/native-game
+        run: gradle --no-daemon :app:compileDebugJavaWithJavac
+      - name: No package assembled
+        run: test ! -f survival-paradise/native-game/app/build/outputs/apk/debug/app-debug.apk
