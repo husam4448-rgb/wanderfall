@@ -4324,13 +4324,26 @@ public final class GameView extends View {
     }
     String indoorCorpseContentsV129(int index){
         if(index<0||index>=clinicActorsV90.actors.length)return "";
-        switch(clinicActorsV90.actors[index].type){
-            case ClinicActorsV90.RAIDER:return "Ammo ×2, Scrap ×2";
-            case ClinicActorsV90.MEDIC:return "Medkit ×1, Water ×1";
-            case ClinicActorsV90.SURVIVOR:return "Food ×1, Scrap ×1";
-            case ClinicActorsV90.ZOMBIE:return "Scrap ×1";
-            default:return "No usable possessions";
-        }
+        ClinicActorsV90.Actor a=clinicActorsV90.actors[index];
+        String supplies=a.type==ClinicActorsV90.RAIDER?"Ammo packs ×2, Scrap ×2":
+            a.type==ClinicActorsV90.MEDIC?"Medkit ×1, Water ×1":
+            a.type==ClinicActorsV90.SURVIVOR?"Food ×1, Scrap ×1":
+            a.type==ClinicActorsV90.ZOMBIE?"Scrap ×1":"";
+        if(a.type==ClinicActorsV90.FERAL)return supplies;
+        int skin=1+Math.floorMod(a.type*31+37,200);
+        int appearance=a.type==ClinicActorsV90.MEDIC?ROLE_MEDIC:
+            a.type==ClinicActorsV90.SURVIVOR?ROLE_CIVILIAN:0;
+        String garments=OutfitInventoryV140.name(OutfitInventoryV140.TORSO+
+                OutfitInventoryV140.npcTorso(appearance,skin))+
+            ", "+OutfitInventoryV140.name(OutfitInventoryV140.PANTS+
+                OutfitInventoryV140.npcPants(appearance,skin))+
+            ", "+OutfitInventoryV140.name(OutfitInventoryV140.BOOTS+
+                OutfitInventoryV140.npcBoots(appearance,skin));
+        if(a.type==ClinicActorsV90.RAIDER)
+            garments+=", Pistol, "+(a.rounds+a.spareRounds)+" rounds";
+        if(a.type==ClinicActorsV90.MEDIC||a.type==ClinicActorsV90.SURVIVOR)
+            garments+=", Flashlight";
+        return supplies+"; "+garments;
     }
     boolean searchIndoorCorpseV129(int index){
         if(!insideClinicV89||!playing||index<0||
@@ -4345,6 +4358,25 @@ public final class GameView extends View {
             case ClinicActorsV90.SURVIVOR:foodCount++;scrap++;break;
             case ClinicActorsV90.ZOMBIE:scrap++;break;
             default:break;
+        }
+        if(actor.type!=ClinicActorsV90.FERAL){
+            int skin=1+Math.floorMod(actor.type*31+37,200);
+            int role=actor.type==ClinicActorsV90.MEDIC?ROLE_MEDIC:
+                actor.type==ClinicActorsV90.SURVIVOR?ROLE_CIVILIAN:0;
+            outfitsV140.add(OutfitInventoryV140.TORSO+
+                OutfitInventoryV140.npcTorso(role,skin),1);
+            outfitsV140.add(OutfitInventoryV140.PANTS+
+                OutfitInventoryV140.npcPants(role,skin),1);
+            outfitsV140.add(OutfitInventoryV140.BOOTS+
+                OutfitInventoryV140.npcBoots(role,skin),1);
+            if(actor.type==ClinicActorsV90.RAIDER){
+                outfitsV140.add(OutfitInventoryV140.WEAPONS,1); // pistol
+                int rounds=actor.rounds+actor.spareRounds;
+                if(rounds>0)outfitsV140.add(OutfitInventoryV140.ROUNDS,rounds);
+            }else if(actor.type==ClinicActorsV90.MEDIC||
+                     actor.type==ClinicActorsV90.SURVIVOR){
+                outfitsV140.add(OutfitInventoryV140.WEAPONS+3,1); // visible flashlight
+            }
         }
         int old=host.prefs.getInt(indoorCorpseKeyV129(),0);
         host.prefs.edit().putInt(indoorCorpseKeyV129(),old|(1<<index)).apply();
