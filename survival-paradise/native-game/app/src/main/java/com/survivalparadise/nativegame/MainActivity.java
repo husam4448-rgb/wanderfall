@@ -77,6 +77,7 @@ public final class MainActivity extends Activity {
         // V121 screenshot profile, only where preferences are unset.
         if(!prefs.getBoolean(ScreenshotSettingsV121.CHARACTER_MARKER,false))
             ScreenshotSettingsV121.applyCharacters(prefs,false);
+        applyReferenceV142();
         applyImmersive();
         game=new GameView(this);
         // Only the isolated V141 QA APK accepts the opt-in screenshot gallery.
@@ -87,6 +88,40 @@ public final class MainActivity extends Activity {
             game.qaCorpseVisualV141=true;
         setContentView(game);
     }
+    /** One-time body-only migration; never change head size, identity, fitting,
+     * tilt, gear ownership, equipped items, or saved world data. */
+    void applyReferenceV142(){
+        if(prefs.getBoolean("v142_body_hud_migrated",false))return;
+        SharedPreferences.Editor values=prefs.edit();
+        for(boolean npc:new boolean[]{false,true})
+            for(int i=0;i<CharacterPresetV142.BODY_KEYS.length;i++)
+                values.putInt(CharacterPresetV142.scopeKey(
+                    CharacterPresetV142.BODY_KEYS[i],npc),
+                    CharacterPresetV142.BODY_VALUES[i]);
+        values.putInt("scale",CharacterPresetV142.GLOBAL_SCALE);
+        values.putInt("hudOpacityV73",HudOpacityV142.DEFAULT_GLOBAL);
+        values.putInt("controlOpacity",100);
+        values.putInt("topButtonOpacityV76",22);
+        for(int id=0;id<GameView.EDITOR_ITEMS;id++)
+            values.putInt("uiAlpha"+id,HudOpacityV142.defaultFor(
+                id,GameView.MOVE_PAD,GameView.AIM_PAD,GameView.HOTBAR,
+                GameView.TOP_FORM_EDITOR,GameView.STATUS_EDITOR));
+        values.putInt("hudAllButtonsAlphaV142",HudOpacityV142.DEFAULT_BUTTON);
+        values.putBoolean("indoorCameraPanV142",true);
+        values.putBoolean("v142_body_hud_migrated",true).apply();
+    }
+    /** A single atomic edit of all control alpha keys, including hidden and
+     * subsequently enabled buttons. Positions/sizes remain untouched. */
+    void applyAllHudOpacitiesV142(int requested){
+        if(game==null)return;
+        int value=HudOpacityV142.clamp(requested);
+        SharedPreferences.Editor edits=prefs.edit();
+        for(int id=0;id<GameView.EDITOR_ITEMS;id++)
+            edits.putInt("uiAlpha"+id,value);
+        edits.putInt("hudAllButtonsAlphaV142",value).apply();
+        game.reloadSettings();game.invalidate();
+    }
+
     static final int EXPORT_SAVE_V85=851,IMPORT_SAVE_V85=852,EXPORT_FIT_V108=1081;
     /** Android system file picker stores a portable save outside app-private data. */
     void exportGameSaveV85(){
