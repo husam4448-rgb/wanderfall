@@ -581,7 +581,7 @@ jobs:
           assert 'sp_v133_boots.zip' in boot
           assert 'Bitmap body=outfittedBodyV137(torsoStyleV137,pantsStyleV137);' in char
           assert 'bootArtV133.draw(c,bodyFrame,bootStyleV133' in char
-          assert 'wardrobeV92.equipped[3]>=0?bootStyleV133:0' in game
+          assert 'LegacyOutfitVisualV142.boots(wardrobeV92.equipped[3],' in game
           assert '.putInt("bootStyleV133",bootStyleV133)' in game
           assert 'BOOT LOOK' in menu or 'BOOTS LOOK' in menu
           assert 'bootLookV133.setOnClickListener' in menu
