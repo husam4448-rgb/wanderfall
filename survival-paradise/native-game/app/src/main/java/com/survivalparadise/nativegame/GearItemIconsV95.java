@@ -150,7 +150,10 @@ public final class GearItemIconsV95 {
     }
     public static Drawable drawable(Context context,int kind,int dp){
         if(kind<0||kind>=GearLootV95.TYPES)return null;
-        return from(context,render(kind,false),dp);
+        // V145: legacy torso/pants/boots use the exact user's approved artwork.
+        // Kinds 3..5 head equipment retain their inventory-only icons.
+        Drawable approved=ApprovedLegacyIconsV145.drawable(context,kind,dp);
+        return approved!=null?approved:from(context,render(kind,false),dp);
     }
     /** Unoccupied equipment socket placeholder, by actual body part. */
     public static Drawable silhouette(Context context,int equipmentSlot,int dp){
