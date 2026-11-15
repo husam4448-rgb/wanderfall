@@ -62,6 +62,10 @@ final class BootArtV133 {
             throw new IOException("Missing V133 boot style "+FILES[i]);
     }
     static int clampStyle(int v){return Math.max(0,Math.min(COUNT-1,v));}
+    android.graphics.drawable.Drawable inventoryIcon(Context context,int style,int dp){
+        return ApprovedOutfitArtV139.makeOriginalIcon(context,
+            sprites[clampStyle(style)],dp);
+    }
     void draw(Canvas canvas,int frame,int style,float left,float top,float unit,Paint pixels){
         Bitmap bitmap=sprites[clampStyle(style)];
         int f=Math.max(0,Math.min(4,frame));
