@@ -415,10 +415,10 @@ jobs:
           assert 'player?playerHeadSizeV113:npcHeadSizeV113,' in game
           assert 'player?playerTorsoWidthV114:npcTorsoWidthV114,' in game
           assert 'player?playerPelvisWidthV115:npcPelvisWidthV115,' in game
-          assert 'PelvisWidthV115.percent(host.setting("pelvisWidthV115",100))' in game
-          assert 'PelvisWidthV115.percent(host.setting("pelvisWidthV115NpcV113",100))' in game
-          assert 'TorsoWidthV114.percent(host.setting("bodyWidthV114",100))' in game
-          assert 'TorsoWidthV114.percent(host.setting("bodyWidthV114NpcV113",100))' in game
+          assert 'playerPelvisWidthV115=PelvisWidthV115.percent(host.setting("pelvisWidthV115",' in game
+          assert 'npcPelvisWidthV115=PelvisWidthV115.percent(host.setting("pelvisWidthV115NpcV113",' in game
+          assert 'playerTorsoWidthV114=TorsoWidthV114.percent(host.setting("bodyWidthV114",' in game
+          assert 'npcTorsoWidthV114=TorsoWidthV114.percent(host.setting("bodyWidthV114NpcV113",' in game
           assert 'drawBody(c,body,2,0,left,top,unit,' in skins
           assert 'PelvisLegRigV116.part(frame,x,sourceY)' in skins
           assert 'BodyAlignmentV120.rearBootShift(pelvisWidth)' in skins
