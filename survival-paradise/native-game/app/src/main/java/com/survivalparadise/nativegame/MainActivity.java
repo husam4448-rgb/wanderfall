@@ -750,6 +750,8 @@ public final class MainActivity extends Activity {
     }
     /** V134: source and destination tiles draw the same item icon and label. */
     private android.graphics.drawable.Drawable lootIconV134(int type){
+        if(AmmoInventoryV143.valid(type))
+            return game.itemIconsV84.drawable(getResources(),2,18);
         if(OutfitInventoryV140.valid(type))
             return game.iconOutfitV140(type,18);
         if(type>=24&&type<39)
@@ -775,13 +777,16 @@ public final class MainActivity extends Activity {
             return;
         }
         if(type<0||
-           (type>=39&&!OutfitInventoryV140.valid(type))||amount<=0){
+           (type>=39&&!OutfitInventoryV140.valid(type)&&
+            !AmmoInventoryV143.valid(type))||amount<=0){
             cell.setText("");
             cell.setCompoundDrawables(null,null,null,null);
             cell.setContentDescription("Empty inventory slot");
             return;
         }
-        String name=OutfitInventoryV140.valid(type)?
+        String name=AmmoInventoryV143.valid(type)?
+            AmmoInventoryV143.name(type):
+            OutfitInventoryV140.valid(type)?
             OutfitInventoryV140.name(type):GameView.INVENTORY_NAMES_V92[type];
         cell.setText(name.substring(0,Math.min(7,name.length()))+
             "\n×"+amount+(chosen?" ✓":""));
@@ -887,6 +892,9 @@ public final class MainActivity extends Activity {
                     kinds>GearLootV95.TOTAL?
                         (kind>=GameView.CORPSE_NUT_KIND_V143?
                             -2-(kind-GameView.CORPSE_NUT_KIND_V143):
+                            kind>=GameView.CORPSE_AMMO_KIND_V143?
+                                AmmoInventoryV143.FIRST+
+                                    kind-GameView.CORPSE_AMMO_KIND_V143:
                             OutfitInventoryV140.FIRST+kind-BanditLootV87.ITEMS):
                         24+kind-BanditLootV87.ITEMS;
                 cell.setTag(kind);
