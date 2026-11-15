@@ -7,7 +7,7 @@ import java.util.Map;
  * Wallet and stock operate independently of player head/outfit/save formats.
  */
 public final class NpcTradeLedgerV143 {
-    public static final int ITEM_TYPES=97;
+    public static final int ITEM_TYPES=104; // 97 is reserved EMPTY; 98..103 ammo
     public static final int MAX_NPCS=512,MAX_STOCK=9999;
     public interface Inventory {
         int available(int type);
@@ -40,7 +40,11 @@ public final class NpcTradeLedgerV143 {
         npc.stock[4]=2+(seed/3)%5;
         if(role==0||role==1)npc.stock[1]=1+seed%3;
         if(role==1)npc.stock[12]=2+seed%5; // bandages
-        if(role==2)npc.stock[2]=1+seed%4; // ammunition packs
+        if(role==2){
+            npc.stock[2]=1+seed%4; // legacy compatibility
+            npc.stock[AmmoInventoryV143.RIFLE]=15+seed%30;
+            npc.stock[AmmoInventoryV143.HANDGUN]=8+seed%18;
+        }
         if(role==3)npc.stock[8]=1+(seed%3);
         if(role==4)npc.stock[7]=4+seed%8; // fiber
         npc.stock[39+Math.floorMod(seed,20)]=1; // one real garment
@@ -53,7 +57,10 @@ public final class NpcTradeLedgerV143 {
             id.indexOf(':')>=0;
     }
     public static long price(int type){
-        if(type<0||type>=ITEM_TYPES)return 0;
+        if(type<0||type>=ITEM_TYPES||type==97)return 0;
+        if(AmmoInventoryV143.valid(type))
+            return type==AmmoInventoryV143.GRENADE?85:
+                type==AmmoInventoryV143.SHOTGUN?12:6;
         if(type>=OutfitInventoryV140.WEAPONS&&type<OutfitInventoryV140.ROUNDS)
             return 180+45*(type-OutfitInventoryV140.WEAPONS);
         if(type>=OutfitInventoryV140.BOOTS)return 55;
@@ -76,7 +83,8 @@ public final class NpcTradeLedgerV143 {
     public boolean buy(Npc npc,int type,int count,Inventory player,
                        NutWalletV143 money){
         if(npc==null||player==null||money==null||count<1||
-           type<0||type>=ITEM_TYPES||npc.stock[type]<count||!player.capacity(type))
+           type<0||type>=ITEM_TYPES||type==97||
+           npc.stock[type]<count||!player.capacity(type))
             return false;
         long unit=price(type),bill=unit*count;
         if(unit<=0||!money.canDebit(bill)||!npc.wallet.canCredit(bill))
@@ -89,7 +97,8 @@ public final class NpcTradeLedgerV143 {
     public boolean sell(Npc npc,int type,int count,Inventory player,
                         NutWalletV143 money){
         if(npc==null||player==null||money==null||count<1||
-           type<0||type>=ITEM_TYPES||player.available(type)<count||
+           type<0||type>=ITEM_TYPES||type==97||
+           player.available(type)<count||
            npc.stock[type]>MAX_STOCK-count)return false;
         long bill=resale(type)*count;
         if(bill<=0||!npc.wallet.canDebit(bill)||!money.canCredit(bill))
@@ -130,7 +139,7 @@ public final class NpcTradeLedgerV143 {
                     String[] cell=entry.split(":");
                     if(cell.length!=2)return false;
                     int type=Integer.parseInt(cell[0]),count=Integer.parseInt(cell[1]);
-                    if(type<0||type>=ITEM_TYPES||count<1||
+                    if(type<0||type>=ITEM_TYPES||type==97||count<1||
                        count>MAX_STOCK||npc.stock[type]!=0)return false;
                     npc.stock[type]=count;
                 }
