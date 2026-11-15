@@ -1821,6 +1821,11 @@ public final class GameView extends View {
                 npc.variant==ROLE_GUARD||npc.variant==ROLE_GUARD+1?2:
                 npc.variant==ROLE_MECHANIC||npc.variant==ROLE_MECHANIC+1?3:4;
         }
+        for(Survivor npc:friends){
+            float d=distance(playerX,playerY,npc.x,npc.y);
+            if(d>=nearest)continue;
+            nearest=d;role=4;
+        }
         return role;
     }
     boolean interactNearbyNPCV92(){
@@ -4775,12 +4780,21 @@ public final class GameView extends View {
             case BanditLootV87.FIBER:fiber+=count;break;
         }
     }
+    static final int CORPSE_NUT_KIND_V143=
+        BanditLootV87.ITEMS+OutfitInventoryV140.COUNT;
     int lootBanditStackV87(BanditLootV87.Bag bag,int kind){
         if(!playing||!banditLootV87.contains(bag)||
             distance(playerX,playerY,bag.x,bag.y)>BanditLootV87.USE_RADIUS+7f)return 0;
         int count;
         String name;
-        if(kind<BanditLootV87.ITEMS){
+        if(kind>=CORPSE_NUT_KIND_V143&&kind<CORPSE_NUT_KIND_V143+3){
+            int denomination=kind-CORPSE_NUT_KIND_V143;
+            int coins=bag.itemCount(kind);
+            long iron=coins*NutWalletV143.unit(denomination);
+            if(coins<1||!playerNutsV143.credit(iron))return 0;
+            count=banditLootV87.takeNutsV143(bag,denomination);
+            name=NutWalletV143.NAMES[denomination];
+        }else if(kind<BanditLootV87.ITEMS){
             count=banditLootV87.take(bag,kind);
             addBanditLootV87(kind,count);
             name=count>0?BanditLootV87.NAMES[kind]:"";
@@ -4816,8 +4830,15 @@ public final class GameView extends View {
                 count+=banditLootV87.takeExtra(bag,i);
             }
         }
+        // Currency is independent of the forty item slots, remains on the
+        // corpse if the player wallet is full, and transfers exactly once.
+        if(bag.nutsV143>0&&playerNutsV143.canCredit(bag.nutsV143)){
+            long iron=banditLootV87.takeAllNutsV143(bag);
+            playerNutsV143.credit(iron);
+            count+=(int)Math.min(Integer.MAX_VALUE,iron);
+        }
         if(count>0){
-            gatherFeedback="LOOTED "+count+" ITEMS";gatherFeedbackTime=2.2f;
+            gatherFeedback="LOOTED "+count+" ITEMS / NUTS";gatherFeedbackTime=2.2f;
             organizeBagV131(0);saveProgress();invalidate();
         }
         return count;
