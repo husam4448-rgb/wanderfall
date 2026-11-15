@@ -432,7 +432,8 @@ final class CharacterSkinsV109 {
               float walkingTempo,float breathingTempo,int fixedWalkFps,int breathingAmplitude,
               float headTiltDegrees,int headOffsetX,int headOffsetY,int headSizePercent,
               int torsoWidthPercent,int pelvisWidthPercent,int bootStyleV133,
-              int torsoStyleV137,int pantsStyleV137,float walkClockSecondsV139) {
+              int torsoStyleV137,int pantsStyleV137,float walkClockSecondsV139,
+              boolean corpseV141) {
         id=range(id,1,COUNT);
         Fit fit=fitting[id];
         // Rendering scale uses 160/260 to match the old native 160px character rig.
@@ -446,14 +447,17 @@ final class CharacterSkinsV109 {
         // No rejected V137 compressed/mask-projection artwork is used.
         if(approvedOutfitArtV139.ready()){
             approvedOutfitArtV139.drawApprovedRig(c,left,top,unit,
-                torsoStyleV137,pantsStyleV137,
+                corpseV141?torsoStyleV137:Math.max(0,torsoStyleV137),
+                corpseV141?pantsStyleV137:Math.max(0,pantsStyleV137),
                 torsoWidthPercent,pelvisWidthPercent,pixel);
             Bitmap approvedHead=head(id);
             if(approvedHead!=null)drawApprovedHeadV139(c,id,approvedHead,
                 left,top,unit,pixel,headTiltDegrees,headOffsetX,headOffsetY,
                 headSizePercent,breathingAmplitude,breathingTempo,timeSec,
                 walking);
-            bootArtV133.draw(c,bodyFrame,bootStyleV133,left,top,unit,pixel);
+            bootArtV133.draw(c,bodyFrame,
+                corpseV141?bootStyleV133:Math.max(0,bootStyleV133),
+                left,top,unit,pixel);
             return;
         }
         // V137 fallback when the exact forty original PNGs are absent.
