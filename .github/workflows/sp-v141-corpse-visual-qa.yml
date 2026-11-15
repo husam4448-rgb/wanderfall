@@ -105,5 +105,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release upload survival-paradise-v141-inventory-loot-corpse-strip-test \
-            /tmp/sp141/visual/01_menu.png /tmp/sp141/visual/02_gameplay.png /tmp/sp141/visual/03_gameplay_zoom.png \
+            /tmp/sp141/visual/01_menu.png /tmp/sp141/visual/02_gameplay.png /tmp/sp141/visual/03_gameplay_zoom.png /tmp/sp141/visual/04_corpse_stripping_actual_renderer.png \
             --clobber --repo "$GITHUB_REPOSITORY"
