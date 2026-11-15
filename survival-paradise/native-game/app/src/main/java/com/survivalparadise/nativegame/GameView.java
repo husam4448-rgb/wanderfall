@@ -5612,7 +5612,48 @@ public final class GameView extends View {
         }
     }
 
+    /** Special visual-test entry point, never enabled for normal gameplay. */
+    boolean qaCorpseVisualV141=false;
+    void drawCorpseVisualGalleryV141(Canvas c){
+        c.drawColor(0xffdfe8e4);
+        p.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+        p.setTextSize(25f);p.setColor(0xff204b43);
+        c.drawText("V141 - ORIGINAL HEADS, APPROVED OUTFITS, STRIPPED CORPSES",
+            22f,37f,p);
+        int skin=124,variant=0,torso=OutfitInventoryV140.npcTorso(variant,skin),
+            pants=OutfitInventoryV140.npcPants(variant,skin),
+            boots=OutfitInventoryV140.npcBoots(variant,skin);
+        int[][] styles={{torso,pants,boots,0},{-1,pants,boots,0},
+            {torso,-1,boots,0},{-1,-1,-1,-1}};
+        String[] names={"FULL EQUIPMENT","TORSO TAKEN","PANTS TAKEN",
+            "ALL ITEMS TAKEN"};
+        for(int i=0;i<4;i++){
+            float x=142+i*260f,y=287f;
+            c.save();c.translate(x,y);c.scale(1.1f,1.1f);
+            renderingCorpseV130=true;
+            corpseTorsoV141=styles[i][0];corpsePantsV141=styles[i][1];
+            corpseBootsV141=styles[i][2];
+            try{
+                character(c,0,0,0,1,0,0f,0f,0f,false,true,variant,skin);
+            }finally{renderingCorpseV130=false;c.restore();}
+            p.setColor(0xff274d42);p.setTextSize(16f);
+            c.drawText(names[i],x-116f,79f,p);
+            drawFallenBodyV141(c,x,y+242f,variant,skin,1,
+                styles[i][0],styles[i][1],styles[i][2],styles[i][3]);
+        }
+        p.setTextSize(15f);p.setColor(0xff274d42);
+        c.drawText("Actual game renderer. All silhouettes remain fully covered.",
+            25f,635f,p);
+        p.setTypeface(null);
+    }
     @Override protected void onDraw(Canvas canvas){
+        if(qaCorpseVisualV141){
+            float factor=Math.min(getWidth()/1120f,getHeight()/660f);
+            canvas.save();canvas.scale(factor,factor);
+            drawCorpseVisualGalleryV141(canvas);
+            canvas.restore();
+            return;
+        }
         super.onDraw(canvas);
         long now=System.nanoTime();float dt=lastFrame==0?0:(now-lastFrame)/1e9f;lastFrame=now;
         if(dt>0&&dt<.5f){
