@@ -3,11 +3,11 @@ android {
  namespace 'com.survivalparadise.nativegame'
  compileSdk 35
  defaultConfig {
-  applicationId 'com.survivalparadise.nativegame.v139rungaittest'
+  applicationId 'com.survivalparadise.nativegame.v140outfitloottest'
   minSdk 24
   targetSdk 34
-  versionCode 139
-  versionName '0.139-run-gait-test'
+  versionCode 140
+  versionName '0.140-worn-gear-loot-test'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
