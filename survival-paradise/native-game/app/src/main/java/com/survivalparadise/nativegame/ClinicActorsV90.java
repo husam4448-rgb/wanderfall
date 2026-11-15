@@ -8,9 +8,11 @@ public final class ClinicActorsV90 {
         public float x,y,hp,cooldown,wandering;
         public final float spawnX,spawnY;
         public boolean active=true;
+        public int rounds,spareRounds;
         Actor(int type,float x,float y,float hp){
             this.type=type;this.x=x;this.y=y;this.spawnX=x;this.spawnY=y;
             this.hp=hp;
+            if(type==RAIDER){rounds=12;spareRounds=12;}
         }
         public boolean hostile(){return type<=RAIDER;}
     }
@@ -84,6 +86,14 @@ public final class ClinicActorsV90 {
             if(!map.blocked(nx,a.y,16))a.x=nx;
             if(!map.blocked(a.x,ny,16))a.y=ny;
             if(a.hostile()&&sees&&d<(a.type==RAIDER?245:64)&&a.cooldown<=0){
+                if(a.type==RAIDER){
+                    if(a.rounds==0&&a.spareRounds>0){
+                        int n=Math.min(12,a.spareRounds);
+                        a.rounds=n;a.spareRounds-=n;
+                    }
+                    if(a.rounds==0)continue;
+                    a.rounds--;
+                }
                 damage+=a.type==FERAL?9f:a.type==RAIDER?6f:6f;
                 a.cooldown=a.type==FERAL?1.1f:a.type==RAIDER?1.65f:1.45f;
             }
@@ -121,7 +131,8 @@ public final class ClinicActorsV90 {
             b.append(a.type).append(',').append(Math.round(a.x))
                 .append(',').append(Math.round(a.y))
                 .append(',').append(Math.round(a.hp))
-                .append(',').append(a.active?1:0);
+                .append(',').append(a.active?1:0)
+                .append(',').append(a.rounds).append(',').append(a.spareRounds);
         }
         return b.toString();
     }
@@ -129,21 +140,26 @@ public final class ClinicActorsV90 {
         reset(map);if(data==null||data.isEmpty())return;
         String[] groups=data.split(";");
         if(groups.length!=actors.length)return;
-        int[][] parsed=new int[actors.length][5];
+        int[][] parsed=new int[actors.length][7];
+        boolean[] legacy=new boolean[actors.length];
         try{
             for(int i=0;i<groups.length;i++){
                 String[] p=groups[i].split(",");
-                if(p.length!=5)return;
-                for(int j=0;j<5;j++)parsed[i][j]=Integer.parseInt(p[j]);
+                if(p.length!=5&&p.length!=7)return;
+                legacy[i]=p.length==5;
+                for(int j=0;j<p.length;j++)parsed[i][j]=Integer.parseInt(p[j]);
                 if(parsed[i][0]!=actors[i].type||parsed[i][3]<0||
                     parsed[i][3]>100||parsed[i][4]<0||parsed[i][4]>1||
                     parsed[i][1]<30||parsed[i][1]>ClinicInteriorV89.WIDTH-30||
-                    parsed[i][2]<30||parsed[i][2]>ClinicInteriorV89.HEIGHT-30)
+                    parsed[i][2]<30||parsed[i][2]>ClinicInteriorV89.HEIGHT-30||
+                    parsed[i][5]<0||parsed[i][5]>1000||parsed[i][6]<0||parsed[i][6]>1000)
                     return;
             }
             for(int i=0;i<actors.length;i++){
                 Actor a=actors[i];a.x=parsed[i][1];a.y=parsed[i][2];
                 a.hp=parsed[i][3];a.active=parsed[i][4]==1&&a.hp>0;
+                a.rounds=legacy[i]?(a.active&&a.type==RAIDER?12:0):parsed[i][5];
+                a.spareRounds=legacy[i]?(a.active&&a.type==RAIDER?12:0):parsed[i][6];
             }
         }catch(NumberFormatException ignored){reset(map);}
     }
