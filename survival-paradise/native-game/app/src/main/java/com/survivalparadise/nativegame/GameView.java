@@ -4339,20 +4339,20 @@ public final class GameView extends View {
                 renderingCorpseV130?corpseBootsV141:
                 player?(outfitsV140.equippedStyle(2)>=0?
                     outfitsV140.equippedStyle(2):
-                    LegacyOutfitVisualV142.boots(wardrobeV92.equipped[3],
+                    LegacyOutfitVisualV142.bootsSprite(wardrobeV92.equipped[3],
                         bootStyleV133)):
                     Math.floorMod(OutfitInventoryV140.npcBoots(npcVariant,skinIdV109),
                         BootArtV133.COUNT),
                 renderingCorpseV130?corpseTorsoV141:
                 player?(outfitsV140.equippedStyle(0)>=0?
                     outfitsV140.equippedStyle(0):
-                    LegacyOutfitVisualV142.torso(wardrobeV92.equipped[1],
+                    LegacyOutfitVisualV142.torsoSprite(wardrobeV92.equipped[1],
                         torsoStyleV139)):
                     OutfitInventoryV140.npcTorso(npcVariant,skinIdV109),
                 renderingCorpseV130?corpsePantsV141:
                 player?(outfitsV140.equippedStyle(1)>=0?
                     outfitsV140.equippedStyle(1):
-                    LegacyOutfitVisualV142.pants(wardrobeV92.equipped[2],
+                    LegacyOutfitVisualV142.pantsSprite(wardrobeV92.equipped[2],
                         pantsStyleV139)):
                     OutfitInventoryV140.npcPants(npcVariant,skinIdV109),
                 player?runGaitV139.timeSeconds():worldTimer,
