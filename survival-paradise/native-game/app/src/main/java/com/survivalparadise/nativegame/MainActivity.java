@@ -868,7 +868,11 @@ public final class MainActivity extends Activity {
             if(takeAll.take()>0){
                 game.organizeBagV131(0);
                 refresh[0].run();
-                if(closeWhenEmpty&&active[0]!=null)active[0].dismiss();
+                if(closeWhenEmpty&&active[0]!=null){
+                    boolean empty=true;
+                    for(int k=0;k<kinds;k++)if(counts.at(k)>0){empty=false;break;}
+                    if(empty)active[0].dismiss();
+                }
             }
         });
         AlertDialog dialog=new AlertDialog.Builder(this).setView(shell).create();
@@ -1004,8 +1008,8 @@ public final class MainActivity extends Activity {
     }
     /** Works for tap-to-drop and for a genuine bag-slot drag to the bin. */
     void dropQuantityDialogV129(int kind,Runnable refresh){
-        if(game==null||kind<0||kind>=39)return;
-        final int available=game.inventoryQuantityV92(kind);
+        if(game==null||!UnifiedBagSlotsV141.valid(kind))return;
+        final int available=game.availableInventoryV131(kind);
         if(available<=0)return;
         final int[] selected={1};
         LinearLayout editor=column();
@@ -1034,7 +1038,7 @@ public final class MainActivity extends Activity {
         plus.setOnClickListener(v->slider.setProgress(Math.min(
             slider.getMax(),slider.getProgress()+1)));
         new AlertDialog.Builder(this)
-            .setTitle("DROP "+GameView.INVENTORY_NAMES_V92[kind])
+            .setTitle("DROP "+game.inventoryNameV141(kind))
             .setMessage("Place the selected quantity on the ground. "+
                 "It remains for "+prefs.getInt("groundDropDaysV129",2)+
                 " in-game day(s) and can be recovered.")
@@ -1044,18 +1048,18 @@ public final class MainActivity extends Activity {
                 boolean success=game.dropInventoryV129(kind,selected[0]);
                 if(success&&refresh!=null)refresh.run();
                 Toast.makeText(this,success?"Dropped "+selected[0]+" "+
-                    GameView.INVENTORY_NAMES_V92[kind]:
+                    game.inventoryNameV141(kind):
                     "Could not drop this stack here",Toast.LENGTH_SHORT).show();
             }).show();
     }
     void dropByListV129(Runnable refresh){
         java.util.ArrayList<String> labels=new java.util.ArrayList<>();
         java.util.ArrayList<Integer> indexes=new java.util.ArrayList<>();
-        for(int i=0;i<39;i++){
-            int quantity=game.inventoryQuantityV92(i);
+        for(int i=0;i<OutfitInventoryV140.TOTAL;i++){
+            int quantity=game.availableInventoryV131(i);
             if(quantity<=0)continue;
             indexes.add(i);
-            labels.add(GameView.INVENTORY_NAMES_V92[i]+"  ×"+quantity);
+            labels.add(game.inventoryNameV141(i)+"  ×"+quantity);
         }
         if(labels.isEmpty()){
             Toast.makeText(this,"Inventory is empty",Toast.LENGTH_SHORT).show();return;
@@ -1125,7 +1129,7 @@ public final class MainActivity extends Activity {
         plus.setOnClickListener(v->slider.setProgress(
             Math.min(slider.getMax(),slider.getProgress()+1)));
         new AlertDialog.Builder(this)
-            .setTitle((split?"SPLIT ":"DROP ")+GameView.INVENTORY_NAMES_V92[kind])
+            .setTitle((split?"SPLIT ":"DROP ")+game.inventoryNameV141(kind))
             .setView(content)
             .setNegativeButton("CANCEL",null)
             .setPositiveButton(split?"SPLIT STACK":"DROP",(dialog,which)->{
@@ -1144,9 +1148,9 @@ public final class MainActivity extends Activity {
         if(game==null||position<0||position>=40)return;
         game.reconcileBagSplitsV130();
         int kind=game.bagOrderV92[position],quantity=game.bagSlotQuantityV130(position);
-        if(kind<0||kind>=39||quantity<=0)return;
+        if(!UnifiedBagSlotsV141.valid(kind)||quantity<=0)return;
         java.util.ArrayList<String> choices=new java.util.ArrayList<>();
-        if(kind>=24)choices.add("EQUIP");
+        if(InventoryCatalogV131.equipmentSlot(kind)>=0)choices.add("EQUIP");
         else if(kind>=8&&kind<=11)choices.add("PLACE IN WORLD");
         else if(kind==1||kind==3||kind==4||kind==12||kind==13)
             choices.add("USE");
@@ -1155,7 +1159,7 @@ public final class MainActivity extends Activity {
         choices.add("DROP");
         choices.add("CANCEL");
         new AlertDialog.Builder(this)
-            .setTitle(GameView.INVENTORY_NAMES_V92[kind]+" ×"+quantity+
+            .setTitle(game.inventoryNameV141(kind)+" ×"+quantity+
                 "\nUNIT WT "+InventoryCatalogV131.massLabel(kind,1)+
                 "   STACK WT "+InventoryCatalogV131.massLabel(kind,quantity)+
                 " LOAD")
@@ -1185,7 +1189,7 @@ public final class MainActivity extends Activity {
                 }else if(action.equals("ASSIGN QUICK SLOT")){
                     String[] numbers={"SLOT 1","SLOT 2","SLOT 3",
                         "SLOT 4","SLOT 5","SLOT 6"};
-                    new AlertDialog.Builder(this).setTitle("ASSIGN "+GameView.INVENTORY_NAMES_V92[kind])
+                    new AlertDialog.Builder(this).setTitle("ASSIGN "+game.inventoryNameV141(kind))
                         .setItems(numbers,(d,index)->game.setHotbarItem(index,
                             kind>=8?kind+1:kind==3?6:kind==4?7:
                             kind==12?13:kind==13?14:kind))
@@ -1649,16 +1653,9 @@ public final class MainActivity extends Activity {
                     tile.setCompoundDrawables(null,null,null,null);
                     tile.setContentDescription("Empty inventory slot");
                 }else{
-                    String name=GameView.INVENTORY_NAMES_V92[kind];
+                    String name=game.inventoryNameV141(kind);
                     tile.setText((name.length()>7?name.substring(0,6):name)+"\n×"+qty);
-                    android.graphics.drawable.Drawable itemIcon=kind>=24&&kind<39?
-                        GearItemIconsV95.drawable(this,kind-24,18):
-                        kind>=14?FieldItemIconsV91.drawable(getResources(),kind-14,18):
-                        game.itemIconsV84.drawable(getResources(),
-                            kind==10?ItemIconsV84.WATER_COLLECTOR:
-                            kind==11?ItemIconsV84.FIELD_SHELTER:
-                            kind==12?ItemIconsV84.BANDAGE:
-                            kind==13?ItemIconsV84.ENERGY_RATION:kind,18);
+                    android.graphics.drawable.Drawable itemIcon=lootIconV134(kind);
                     tile.setCompoundDrawables(null,itemIcon,null,null);
                     tile.setCompoundDrawablePadding(1);
                     tile.setContentDescription(name+" "+qty+" items; hold to drag");
@@ -1804,8 +1801,9 @@ public final class MainActivity extends Activity {
             }
         };
         refresh[0].run();
-        appendOutfitInventoryV140(root,avatar,refreshEquipmentV131[0]);
-        root.addView(text("Headgear remains gameplay-only and invisible. New clothing, boots and recovered weapons use original item art.",12,false));
+        // The 40 player slots above now display all legacy AND recovered gear
+        // directly; do not bury the new items in a separate bottom panel.
+        root.addView(text("Recovered clothing, boots, weapons and rounds are displayed in the backpack slots above. Headgear remains invisible on characters.",12,false));
         shell.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
         LinearLayout tools=new LinearLayout(this);tools.setOrientation(LinearLayout.HORIZONTAL);
         Button smaller=v62Slot("WINDOW −",true),larger=v62Slot("WINDOW +",true);
