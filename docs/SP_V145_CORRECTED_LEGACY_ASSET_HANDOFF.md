@@ -5,8 +5,8 @@
 
 ## Status
 
-- V145 Java loader staged. Preserves V139 colorful art and V133 boot anchors.
-- The source PNGs and prepared 9-asset archive were generated and checked in the ChatGPT workspace, but **the new binary archive has been uploaded and Git blob identity verified**.
+- V145 Java loader and inventory icons committed. Preserves V139 colorful art and V133 boot anchors.
+- The exact corrected archive is committed on the V145 branch (Git blob `35346b056012f04837d58e9683ce0498340d3895`). Source originals remain preserved in the separate downloadable bundle.
 - The V145 loader now reads `app/src/main/assets/sp_v145_legacy_equipment.zip`; legacy inventory icons use these PNGs, retaining V95 fallback. No runtime or on-device visual QA has been completed.
 - No APK has been generated as part of V145.
 
