@@ -4524,6 +4524,7 @@ public final class GameView extends View {
             int id=kind-BanditLootV87.ITEMS;
             int type=OutfitInventoryV140.FIRST+id;
             if(!OutfitInventoryV140.valid(type)||bag.extra[id]<=0||
+               !canStowInventoryV141(type)||
                !outfitsV140.add(type,bag.extra[id]))return 0;
             count=banditLootV87.takeExtra(bag,id);
             name=OutfitInventoryV140.name(type);
@@ -4544,8 +4545,12 @@ public final class GameView extends View {
         }
         for(int i=0;i<OutfitInventoryV140.COUNT;i++){
             int amount=bag.extra[i],type=OutfitInventoryV140.FIRST+i;
-            if(amount>0&&outfitsV140.add(type,amount))
+            if(amount>0&&canStowInventoryV141(type)&&outfitsV140.add(type,amount)){
+                // Reserve the player's actual visible bag cell before
+                // transferring another item; no invisible overflow.
+                syncBagV141();
                 count+=banditLootV87.takeExtra(bag,i);
+            }
         }
         if(count>0){
             gatherFeedback="LOOTED "+count+" ITEMS";gatherFeedbackTime=2.2f;
