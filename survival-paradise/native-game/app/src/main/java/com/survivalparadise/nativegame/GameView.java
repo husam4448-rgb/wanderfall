@@ -187,6 +187,7 @@ public final class GameView extends View {
     int panelPointer=-1;float panelGrabX,panelGrabY;
     float panelX=0,panelY=62,panelScale=1f;
     boolean editControls=false,showStatusBars=true,showCrosshair=true,lookAheadEnabled=true;
+    boolean indoorCameraPanV142=true;
     float lookAheadStrength=0f,lookAheadThreshold=.72f,aimDeflection=0f;
     float lookAheadSmooth=5f;
     float cameraLookX=0f,cameraLookY=0f,cameraPanLimit=65f;
@@ -528,27 +529,37 @@ public final class GameView extends View {
     float carrySpeedV91(){return Math.max(.54f,1f-encumbranceV91()*.0046f);}
     boolean isPlaying(){return playing;}
     void reloadSettings(){
-        scale=host.setting("scale",100)/100f;
+        scale=host.setting("scale",CharacterPresetV142.GLOBAL_SCALE)/100f;
         playerSkinV109=Math.max(1,Math.min(200,host.setting("playerSkinV109",124)));
         torsoStyleV139=Math.max(0,Math.min(19,host.setting("torsoAppearanceV139",1)-1));
         pantsStyleV139=Math.max(0,Math.min(19,host.setting("pantsAppearanceV139",1)-1));
-        playerGunPivotXV117=WeaponPivotV117.clamp(host.setting("weaponPivotXV117",0));
-        playerGunPivotYV117=WeaponPivotV117.clamp(host.setting("weaponPivotYV117",0));
-        npcGunPivotXV117=WeaponPivotV117.clamp(host.setting("weaponPivotXV117NpcV113",0));
-        npcGunPivotYV117=WeaponPivotV117.clamp(host.setting("weaponPivotYV117NpcV113",0));
+        playerGunPivotXV117=WeaponPivotV117.clamp(host.setting("weaponPivotXV117",
+            CharacterPresetV142.PIVOT_X));
+        playerGunPivotYV117=WeaponPivotV117.clamp(host.setting("weaponPivotYV117",
+            CharacterPresetV142.PIVOT_Y));
+        npcGunPivotXV117=WeaponPivotV117.clamp(host.setting("weaponPivotXV117NpcV113",
+            CharacterPresetV142.PIVOT_X));
+        npcGunPivotYV117=WeaponPivotV117.clamp(host.setting("weaponPivotYV117NpcV113",
+            CharacterPresetV142.PIVOT_Y));
         playerHeadSizeV113=CharacterScopeV113.percent(host.setting("headSizeV82",100),75,160);
-        playerTorsoWidthV114=TorsoWidthV114.percent(host.setting("bodyWidthV114",100));
-        npcTorsoWidthV114=TorsoWidthV114.percent(host.setting("bodyWidthV114NpcV113",100));
-        playerPelvisWidthV115=PelvisWidthV115.percent(host.setting("pelvisWidthV115",100));
-        npcPelvisWidthV115=PelvisWidthV115.percent(host.setting("pelvisWidthV115NpcV113",100));
+        playerTorsoWidthV114=TorsoWidthV114.percent(host.setting("bodyWidthV114",
+            CharacterPresetV142.TORSO));
+        npcTorsoWidthV114=TorsoWidthV114.percent(host.setting("bodyWidthV114NpcV113",
+            CharacterPresetV142.TORSO));
+        playerPelvisWidthV115=PelvisWidthV115.percent(host.setting("pelvisWidthV115",
+            CharacterPresetV142.PELVIS));
+        npcPelvisWidthV115=PelvisWidthV115.percent(host.setting("pelvisWidthV115NpcV113",
+            CharacterPresetV142.PELVIS));
         npcHeadSizeV113=CharacterScopeV113.percent(host.setting("headSizeV82NpcV113",100),75,160);
         npcHeadFitXV113=HeadFitOffsetsV112.clampOffset(host.setting("fitHeadXV108NpcV113",0));
         npcHeadFitYV113=HeadFitOffsetsV112.clampOffset(host.setting("fitHeadYV108NpcV113",0));
         npcBreathPixelsV113=CharacterScopeV113.percent(host.setting("fitIdleBreathV108NpcV113",4),0,12);
-        npcWalkFpsV113=CharacterScopeV113.percent(host.setting("fitWalkFpsV108NpcV113",0),0,12);
+        npcWalkFpsV113=CharacterScopeV113.percent(host.setting("fitWalkFpsV108NpcV113",
+            CharacterPresetV142.WALK_FPS),0,12);
         npcHeadAimMaxDegreesV113=HeadAimV111.limit(host.setting("headAimTiltV111NpcV113",10));
         npcBreathingTempoV113=CharacterAnimationV110.breathingMultiplier(host.setting("idleBreathingSpeedV110NpcV113",100));
-        npcWalkingAnimationTempoV113=WalkingAnimationV79.multiplier(host.setting("walkingAnimationSpeedV79NpcV113",100));
+        npcWalkingAnimationTempoV113=WalkingAnimationV79.multiplier(host.setting(
+            "walkingAnimationSpeedV79NpcV113",CharacterPresetV142.WALK_SPEED));
         headAimMaxDegreesV111=HeadAimV111.limit(
             host.setting("headAimTiltV111",HeadAimV111.DEFAULT_MAX_DEGREES));
         headScaleV82=HeadKnifeV82.headMultiplier(host.setting("headSizeV82",HeadKnifeV82.HEAD_DEFAULT));
@@ -582,6 +593,7 @@ public final class GameView extends View {
         showCrosshair=host.option("showCrosshair",true);
         // V71 rollback: old panning preference must not override classic aim.
         lookAheadEnabled=host.option("classicAimCameraV71",true);
+        indoorCameraPanV142=host.option("indoorCameraPanV142",true);
         lookAheadThreshold=host.setting("lookAheadThreshold",72)/100f;
         lookAheadStrength=host.setting("lookAheadStrength",420);
         lookAheadSmooth=host.setting("lookAheadSmooth",8);
@@ -4180,18 +4192,21 @@ public final class GameView extends View {
                 renderingCorpseV130?corpseBootsV141:
                 player?(outfitsV140.equippedStyle(2)>=0?
                     outfitsV140.equippedStyle(2):
-                    wardrobeV92.equipped[3]>=0?bootStyleV133:0):
+                    LegacyOutfitVisualV142.boots(wardrobeV92.equipped[3],
+                        bootStyleV133)):
                     Math.floorMod(OutfitInventoryV140.npcBoots(npcVariant,skinIdV109),
                         BootArtV133.COUNT),
                 renderingCorpseV130?corpseTorsoV141:
                 player?(outfitsV140.equippedStyle(0)>=0?
                     outfitsV140.equippedStyle(0):
-                    wardrobeV92.equipped[1]<0?-1:torsoStyleV139):
+                    LegacyOutfitVisualV142.torso(wardrobeV92.equipped[1],
+                        torsoStyleV139)):
                     OutfitInventoryV140.npcTorso(npcVariant,skinIdV109),
                 renderingCorpseV130?corpsePantsV141:
                 player?(outfitsV140.equippedStyle(1)>=0?
                     outfitsV140.equippedStyle(1):
-                    wardrobeV92.equipped[2]<0?-1:pantsStyleV139):
+                    LegacyOutfitVisualV142.pants(wardrobeV92.equipped[2],
+                        pantsStyleV139)):
                     OutfitInventoryV140.npcPants(npcVariant,skinIdV109),
                 player?runGaitV139.timeSeconds():worldTimer,
                 renderingCorpseV130);
@@ -5697,9 +5712,13 @@ public final class GameView extends View {
         // Camera follow and clamping in world coordinates.
         if(insideClinicV89){
             float frameW=viewW/effectiveZoom,frameH=viewH/effectiveZoom;
-            camX=clamp(playerX-frameW*.5f,0f,
+            // The same smooth, bounded aim-pan as outdoors is allowed indoors,
+            // but its camera origin must remain inside the room geometry.
+            float panX=indoorCameraPanV142?cameraLookX:0f;
+            float panY=indoorCameraPanV142?cameraLookY:0f;
+            camX=clamp(playerX-frameW*.5f+panX,0f,
                 Math.max(0f,ClinicInteriorV89.WIDTH-frameW));
-            camY=clamp(playerY-frameH*.5f,0f,
+            camY=clamp(playerY-frameH*.5f+panY,0f,
                 Math.max(0f,ClinicInteriorV89.HEIGHT-frameH));
         }else{
             camX=playerX-viewW/(2*effectiveZoom)+cameraLookX;
