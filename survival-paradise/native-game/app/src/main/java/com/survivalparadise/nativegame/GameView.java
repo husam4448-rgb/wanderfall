@@ -2899,6 +2899,7 @@ public final class GameView extends View {
                 enemy.x,enemy.y-3,kills,wave,enemy.variant,enemy.face,
                 enemy.skinV109);
             if(remains!=null){
+                remains.gearManifestV141=true;
                 if(lootEnabled){
                     remains.count[BanditLootV87.AMMO]=0; // exact bullets, not random magazine copies
                     remains.extra[OutfitInventoryV140.TORSO+
@@ -4105,7 +4106,7 @@ public final class GameView extends View {
         // body so neither head pixels nor the body silhouette are overwritten.
         if(player&&fieldFindsV91.equipped>=0)
             wearableArtV96.drawPack(c,backpackStyleV96,s,pixel);
-        else if(!player&&npcVariant>=0&&(npcVariant%3)!=0)
+        else if(!renderingCorpseV130&&!player&&npcVariant>=0&&(npcVariant%3)!=0)
             wearableArtV96.drawPack(c,Math.floorMod(npcVariant*7+11,20),s,pixel);
         // V58 rear-layer hand torch. Draw BEFORE the immutable original body:
         // its silhouette cannot cover the head, eyes, or facial outline.
@@ -4138,20 +4139,24 @@ public final class GameView extends View {
                 player?playerHeadSizeV113:npcHeadSizeV113,
                 player?playerTorsoWidthV114:npcTorsoWidthV114,
                 player?playerPelvisWidthV115:npcPelvisWidthV115,
+                renderingCorpseV130?corpseBootsV141:
                 player?(outfitsV140.equippedStyle(2)>=0?
                     outfitsV140.equippedStyle(2):
                     wardrobeV92.equipped[3]>=0?bootStyleV133:0):
                     Math.floorMod(OutfitInventoryV140.npcBoots(npcVariant,skinIdV109),
                         BootArtV133.COUNT),
+                renderingCorpseV130?corpseTorsoV141:
                 player?(outfitsV140.equippedStyle(0)>=0?
                     outfitsV140.equippedStyle(0):
                     wardrobeV92.equipped[1]<0?-1:torsoStyleV139):
                     OutfitInventoryV140.npcTorso(npcVariant,skinIdV109),
+                renderingCorpseV130?corpsePantsV141:
                 player?(outfitsV140.equippedStyle(1)>=0?
                     outfitsV140.equippedStyle(1):
                     wardrobeV92.equipped[2]<0?-1:pantsStyleV139):
                     OutfitInventoryV140.npcPants(npcVariant,skinIdV109),
-                player?runGaitV139.timeSeconds():worldTimer);
+                player?runGaitV139.timeSeconds():worldTimer,
+                renderingCorpseV130);
         }else{
             Bitmap atlas=npcVariant>=0?npcWalkV56:approvedWalkColors;
             int torsoVariant=player?wardrobeV92.equipped[1]:
@@ -4350,6 +4355,8 @@ public final class GameView extends View {
 
     /** Fallen sprites are frozen: no animation clock, head movement or breathing. */
     boolean renderingCorpseV130=false;
+    int corpseTorsoV141=-1,corpsePantsV141=-1,corpseBootsV141=-1,
+        corpseWeaponV141=-1;
     void drawFallenAnimalV130(Canvas c,float x,float y){
         // Feral dogs keep their animal form after death, rather than inheriting
         // the generic human rig. All pieces are static and remain near the ground.
