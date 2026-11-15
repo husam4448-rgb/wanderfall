@@ -22,5 +22,17 @@ public final class LegacyOutfitVisualV142 {
     public static int boots(int legacy,int fallback){
         return legacy>=0&&legacy<BOOTS.length?BOOTS[legacy]:fallback;
     }
+    /** V143 uses distinct overlay textures at renderer IDs 20..22 without
+     * changing existing V142 mapping used by older save migration.
+     */
+    public static int torsoSprite(int legacy,int fallback){
+        return legacy>=0&&legacy<3?20+legacy:fallback;
+    }
+    public static int pantsSprite(int legacy,int fallback){
+        return legacy>=0&&legacy<3?20+legacy:fallback;
+    }
+    public static int bootsSprite(int legacy,int fallback){
+        return legacy>=0&&legacy<3?5+legacy:fallback;
+    }
     public static int headgear(int legacy){return -1;} // ALWAYS invisible.
 }
