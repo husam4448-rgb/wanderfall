@@ -30,6 +30,9 @@ public final class V143EconomyWeaponTest {
         public boolean capacity(int type){
             return UnifiedBagSlotsV141.canStore(slots,splits,this::available,type);
         }
+        public int maxReceivable(int type){
+            return capacity(type)?Math.max(0,9999-items[type]):0;
+        }
     }
     public static void main(String[] args){
         NutWalletV143 money=new NutWalletV143(10203);
@@ -80,6 +83,11 @@ public final class V143EconomyWeaponTest {
            TradeQuantityV143.clamp(0,2)==1&&
            TradeQuantityV143.clamp(5,0)==0,
             "trade quantity +/- and MAX bounds invalid");
+        // An affordable item must still be unbuyable when that stack is full.
+        player.items[stockType]=9999;
+        ok(TradeQuantityV143.buyMaximum(trader,stockType,player,money)==0,
+            "bulk purchases exceeded a full 9999-item inventory stack");
+        player.items[stockType]=0;
         int count=trader.count(stockType);
         NutWalletV143 bankrupt=new NutWalletV143();
         ok(!ledger.buy(trader,stockType,1,player,bankrupt)&&
