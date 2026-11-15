@@ -105,6 +105,8 @@ public final class GameView extends View {
     final GearLootV95 gearLootV95=new GearLootV95();
     final WardrobeV92 wardrobeV92=new WardrobeV92();
     final OutfitInventoryV140 outfitsV140=new OutfitInventoryV140();
+    final NutWalletV143 playerNutsV143=new NutWalletV143();
+    final NpcTradeLedgerV143 npcTradesV143=new NpcTradeLedgerV143();
     int reloadLooseRoundsV140=0;
     final WearableArtV96 wearableArtV96=new WearableArtV96();
     CharacterSkinsV109 characterSkinsV109; // exact 200 approved head/body sources + V5 fittings
@@ -1180,6 +1182,7 @@ public final class GameView extends View {
         face=1;aimX=1;aimY=0;refreshDaylight();
         enemies.clear();friends.clear();campStaff.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();indoorRoundsV122.clear();builtCampfires.clear();
         craftV83.clear();banditLootV87.clear();removeBarricadeCoverV83();
+        playerNutsV143.decode("0");npcTradesV143.clear();
         droppedItemsV129.clear();
         sitesInitializedV88=false;stationUsedV88.clear();
         clinicInteriorV89=new ClinicInteriorV89();
@@ -1279,6 +1282,8 @@ public final class GameView extends View {
         salvageWorldV84.decode(host.prefs.getString("salvaged_scrap_v84",""));
         groundPickupsV85.decode(host.prefs.getString("loose_pickups_v85",""));
         banditLootV87.decode(host.prefs.getString("bandit_loot_bags_v87",""));
+        playerNutsV143.decode(host.prefs.getString("player_nuts_v143","0"));
+        npcTradesV143.decode(host.prefs.getString("npc_trade_ledger_v143","1"));
         droppedItemsV129.decode(host.prefs.getString("ground_drops_v129",""));
         droppedItemsV129.expire(gameTimeV129());
         sitesInitializedV88=host.prefs.getBoolean("sitesInitializedV88",false);
@@ -1824,6 +1829,78 @@ public final class GameView extends View {
         host.runOnUiThread(()->host.npcInteractionV92(role));
         return true;
     }
+    /** Resolve the actual live NPC, not merely its common dialogue role. */
+    String nearbyTradeIdentityV143(){
+        float nearest=148f;
+        String chosen=null;
+        if(insideClinicV89){
+            for(int i=0;i<clinicActorsV90.actors.length;i++){
+                ClinicActorsV90.Actor actor=clinicActorsV90.actors[i];
+                if(!actor.active||actor.hostile())continue;
+                float range=distance(playerX,playerY,actor.x,actor.y);
+                if(range>=nearest)continue;
+                nearest=range;
+                String zone=activeSiteV91==INDUSTRIAL_SITE_V123?
+                    "industrial"+industrialSeedV123+"_"+industrialSiteV123.sx+
+                    "_"+industrialSiteV123.sy:"site"+activeSiteV91;
+                chosen="indoor:"+zone+"_actor"+i;
+            }
+        }else{
+            for(int i=0;i<campStaff.size();i++){
+                Survivor npc=campStaff.get(i);
+                float range=distance(playerX,playerY,npc.x,npc.y);
+                if(range>=nearest)continue;
+                nearest=range;
+                chosen="camp:"+i+"_"+npc.skinV109;
+            }
+            for(int i=0;i<friends.size();i++){
+                Survivor npc=friends.get(i);
+                float range=distance(playerX,playerY,npc.x,npc.y);
+                if(range>=nearest)continue;
+                nearest=range;
+                chosen="friend:"+npc.skinV109+"_"+npc.variant;
+            }
+        }
+        return chosen;
+    }
+    NpcTradeLedgerV143.Npc nearbyTradeNpcV143(){
+        String key=nearbyTradeIdentityV143();
+        if(key==null)return null;
+        int role=nearbyNPCInteractionV92();
+        return role<0?null:npcTradesV143.get(key,role);
+    }
+    NpcTradeLedgerV143.Inventory playerTradeInventoryV143(){
+        return new NpcTradeLedgerV143.Inventory(){
+            public int available(int type){return availableInventoryV131(type);}
+            public boolean add(int type,int amount){
+                return changeInventoryV129(type,amount);
+            }
+            public boolean remove(int type,int amount){
+                return changeInventoryV129(type,-amount);
+            }
+            public boolean capacity(int type){
+                return canStowInventoryV141(type);
+            }
+        };
+    }
+    boolean tradeV143(String npcId,int type,int qty,boolean buy){
+        if(!playing||gameOver||qty<1||npcId==null||
+           !npcId.equals(nearbyTradeIdentityV143()))return false;
+        NpcTradeLedgerV143.Npc merchant=npcTradesV143.find(npcId);
+        if(merchant==null)return false;
+        NpcTradeLedgerV143.Inventory player=playerTradeInventoryV143();
+        boolean success=buy?
+            npcTradesV143.buy(merchant,type,qty,player,playerNutsV143):
+            npcTradesV143.sell(merchant,type,qty,player,playerNutsV143);
+        if(!success)return false;
+        relationshipsV92.trade();
+        syncBagV141();
+        gatherFeedback=(buy?"BOUGHT ":"SOLD ")+inventoryNameV141(type)+
+            " ×"+qty;
+        gatherFeedbackTime=2.3f;
+        saveProgress();invalidate();return true;
+    }
+    /** Legacy scrap recruiting and achievements remain independent of nuts. */
     boolean tradeNPCV92(int choice){
         if(nearbyNPCInteractionV92()<0||!playing||gameOver)return false;
         switch(choice){
@@ -2563,6 +2640,8 @@ public final class GameView extends View {
                 .putString("salvaged_scrap_v84",salvageWorldV84.encode())
                 .putString("loose_pickups_v85",groundPickupsV85.encode())
                 .putString("bandit_loot_bags_v87",banditLootV87.encode())
+                .putString("player_nuts_v143",playerNutsV143.encode())
+                .putString("npc_trade_ledger_v143",npcTradesV143.encode())
                 .putString("ground_drops_v129",droppedItemsV129.encode())
                 .putBoolean("sitesInitializedV88",sitesInitializedV88)
                 .putString("facilityCooldownV88",encodeFacilityCooldownV88())
