@@ -4903,10 +4903,11 @@ public final class GameView extends View {
         if(!enterVisibleV132())return;
         float x=enterLeftV132(),y=enterTopV132(),
             w=enterWidthV132(),h=enterHeightV132();
-        int alpha=Math.max(36,Math.min(255,
-            host.setting("uiAlpha"+ENTER_EDITOR,100)*255/100));
-        btn(c,x,y,w,h,insideClinicV89?"EXIT":"ENTER",
-            (alpha<<24)|0x00436b60);
+        int opacity=HudOpacityV142.clamp(host.setting("uiAlpha"+ENTER_EDITOR,100));
+        int layer=opacity<100?c.saveLayerAlpha(x,y,x+w,y+h,
+            Math.round(opacity*255f/100f)):0;
+        btn(c,x,y,w,h,insideClinicV89?"EXIT":"ENTER",0xff436b60);
+        if(layer!=0)c.restoreToCount(layer);
         if(editControls){
             color(uiEnabled(ENTER_EDITOR)?0xffc4dcbb:0xffe29b80);
             p.setStrokeWidth(2f);p.setStyle(Paint.Style.STROKE);
@@ -4961,12 +4962,16 @@ public final class GameView extends View {
     void drawAction(Canvas c,int id){
         if(!uiEnabled(id)&&!editControls)return;
         float x=uiX(id),y=uiY(id),w=uiWidth(id),h=uiHeight(id);
-        int opacity=host.setting("uiAlpha"+id,100);
-        int alpha=Math.max(36,Math.min(255,opacity*255/100));
+        int opacity=HudOpacityV142.clamp(host.setting("uiAlpha"+id,100));
+        int layer=opacity<100?c.saveLayerAlpha(x,y,x+w,y+h,
+            Math.round(opacity*255f/100f)):0;
         int fill=(LegacyControlsV58.isFire(id)?0x735148:
             LegacyControlsV58.isMelee(id)?0x4e5145:0x345354);
         if(editControls&&id==editControl)fill=0x367665;
-        btn(c,x,y,w,h,LegacyControlsV58.LABELS[id],(alpha<<24)|fill);
+        // Opacity applies to the whole button, including lettering,
+        // not only its background. Touch geometry remains unchanged.
+        btn(c,x,y,w,h,LegacyControlsV58.LABELS[id],0xff000000|fill);
+        if(layer!=0)c.restoreToCount(layer);
         if(editControls){
             color(uiEnabled(id)?0xffc4dcbb:0xffe29b80);
             p.setStrokeWidth(2f);p.setStyle(Paint.Style.STROKE);
@@ -4977,9 +4982,11 @@ public final class GameView extends View {
         if(!talkVisibleV94())return;
         float x=talkLeftV94(),y=talkTopV94(),
             w=talkWidthV94(),h=talkHeightV94();
-        int alpha=Math.max(36,Math.min(255,
-            host.setting("uiAlpha"+TALK_EDITOR,100)*255/100));
-        btn(c,x,y,w,h,"TALK",(alpha<<24)|0x00426a59);
+        int opacity=HudOpacityV142.clamp(host.setting("uiAlpha"+TALK_EDITOR,100));
+        int layer=opacity<100?c.saveLayerAlpha(x,y,x+w,y+h,
+            Math.round(255f*opacity/100f)):0;
+        btn(c,x,y,w,h,"TALK",0xff426a59);
+        if(layer!=0)c.restoreToCount(layer);
         if(editControls){
             color(uiEnabled(TALK_EDITOR)?0xffc4dcbb:0xffe29b80);
             p.setStrokeWidth(2f);p.setStyle(Paint.Style.STROKE);
@@ -5114,7 +5121,7 @@ public final class GameView extends View {
     void drawHudEditorOverlay(Canvas c){
         float left=hudEditorLeft(),top=panelY;
         c.save();c.translate(left,top);c.scale(panelScale,panelScale);
-        rounded(c,0,0,700,113,10,0xf2203436);
+        rounded(c,0,0,700,153,10,0xf2203436);
         int i=Math.max(0,Math.min(EDITOR_ITEMS-1,selectedHudControl));
         label(c,"MOVE PANEL: drag header    "+controlName(i)+
              "   SIZE "+host.setting(controlSizeKey(i),100)+"%",10,17,12,WHITE,true);
@@ -5126,12 +5133,15 @@ public final class GameView extends View {
         String[] positions={"LEFT","RIGHT","UP","DOWN","RESET","DONE"};
         for(int j=0;j<positions.length;j++)
             btn(c,8+j*115,65,110,35,positions[j],0xff395653);
+        String[] opacityActions={"ALL -5","ALL +5","MATCH SELECTED","ALL DEFAULT"};
+        for(int j=0;j<opacityActions.length;j++)
+            btn(c,8+j*172,109,167,35,opacityActions[j],0xff385951);
         c.restore();
     }
     boolean hudEditorTouch(float x,float y){
         if(!editControls)return false;
         float left=hudEditorLeft(),top=panelY;
-        if(!within(x,y,left,top,700*panelScale,113*panelScale))return false;
+        if(!within(x,y,left,top,700*panelScale,153*panelScale))return false;
         float u=(x-left)/panelScale,v=(y-top)/panelScale;
         int i=Math.max(0,Math.min(EDITOR_ITEMS-1,selectedHudControl));
         if(v<20){
@@ -5156,7 +5166,7 @@ public final class GameView extends View {
                             !host.option("uiEnabled"+i,true)).apply();
                 }else{
                     String key=j==2||j==3?controlSizeKey(i):"uiAlpha"+i;
-                    int min=j<=3?(i>=MOVE_PAD?70:60):30;
+                    int min=j<=3?(i>=MOVE_PAD?70:60):HudOpacityV142.MIN;
                     int current=host.setting(key,100);
                     int next=Math.round(clamp(current+(j%2==0?-10:10),min,j<=3?180:100));
                     host.prefs.edit().putInt(key,next).apply();
@@ -5183,6 +5193,18 @@ public final class GameView extends View {
                     int shift=(j==0||j==2)?-10:10;
                     host.prefs.edit().putInt(key,host.setting(key,0)+shift).apply();
                 }
+                invalidate();return true;
+            }
+        }
+        if(v>=109&&v<=148){
+            int j=(int)((u-8)/172);
+            if(j>=0&&j<4){
+                int current=host.setting("hudAllButtonsAlphaV142",
+                    HudOpacityV142.DEFAULT_BUTTON);
+                int selected=host.setting("uiAlpha"+i,100);
+                int target=j==0?current-5:j==1?current+5:
+                    j==2?selected:HudOpacityV142.DEFAULT_BUTTON;
+                host.applyAllHudOpacitiesV142(target);
                 invalidate();return true;
             }
         }
