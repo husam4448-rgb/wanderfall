@@ -16,7 +16,7 @@ public final class BanditLootV87 {
         public int variant=0,face=1,skinV109=-1;
         public final int[] count=new int[ITEMS];
         /** Index 0 maps to stable item ID 39. Versioned, sparse save encoding. */
-        public final int[] extra=new int[OutfitInventoryV140.COUNT];
+        public final int[] extra=new int[58];
         public int itemCount(int kind){
             return kind>=0&&kind<ITEMS?count[kind]:
                 kind>=ITEMS&&kind<ITEMS+extra.length?extra[kind-ITEMS]:0;
@@ -75,14 +75,14 @@ public final class BanditLootV87 {
         return amount;
     }
     public int takeExtra(Bag bag,int index){
-        if(!contains(bag)||index<0||index>=OutfitInventoryV140.COUNT)return 0;
+        if(!contains(bag)||index<0||index>=58)return 0;
         int n=bag.extra[index];if(n<=0)return 0;
         bag.extra[index]=0;
         if(bag.empty()&&!bag.corpse)bags.remove(bag);
         return n;
     }
     public int[] takeAllExtra(Bag bag){
-        int[] out=new int[OutfitInventoryV140.COUNT];
+        int[] out=new int[58];
         if(!contains(bag))return out;
         System.arraycopy(bag.extra,0,out,0,out.length);
         java.util.Arrays.fill(bag.extra,0);
