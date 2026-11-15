@@ -1095,7 +1095,7 @@ public final class MainActivity extends Activity {
     void recoverDroppedV129(DroppedItemsV129.Stack stack){
         if(game==null||stack==null||!game.droppedItemsV129.contains(stack))return;
         new AlertDialog.Builder(this)
-            .setTitle("PICK UP "+GameView.INVENTORY_NAMES_V92[stack.type])
+            .setTitle("PICK UP "+game.inventoryNameV141(stack.type))
             .setMessage("Recover "+stack.quantity+" item(s) from the ground?")
             .setNegativeButton("LEAVE",null)
             .setPositiveButton("PICK UP",(d,w)->{
