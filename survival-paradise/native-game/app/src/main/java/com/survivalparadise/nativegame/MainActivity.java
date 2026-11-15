@@ -1328,7 +1328,7 @@ public final class MainActivity extends Activity {
             for(int ix=0;ix<equipmentButtonsV131.length;ix++){
                 Button socket=equipmentButtonsV131[ix];
                 if(socket==null)continue;
-                int equippedType=-1;
+                int equippedType=ix==6?game.outfitsV140.equippedType(3):-1;
                 if(ix==2||ix==3||ix==4)
                     equippedType=game.outfitsV140.equippedType(
                         ix==2?0:ix==3?1:2);
