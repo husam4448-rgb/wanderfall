@@ -4524,6 +4524,35 @@ public final class GameView extends View {
         ClinicActorsV90.Actor actor=clinicActorsV90.actors[index];
         if(actor.active||distance(playerX,playerY,actor.x,actor.y)>128f)
             return false;
+        if(actor.type!=ClinicActorsV90.FERAL){
+            int skin=1+Math.floorMod(actor.type*31+37,200);
+            int role=actor.type==ClinicActorsV90.MEDIC?ROLE_MEDIC:
+                actor.type==ClinicActorsV90.SURVIVOR?ROLE_CIVILIAN:0;
+            int gunId=actor.type==ClinicActorsV90.RAIDER?
+                OutfitInventoryV140.WEAPONS:
+                actor.type==ClinicActorsV90.MEDIC||
+                    actor.type==ClinicActorsV90.SURVIVOR?
+                    OutfitInventoryV140.WEAPONS+3:-1;
+            int[] items=gunId>=0?
+                new int[]{OutfitInventoryV140.TORSO+
+                            OutfitInventoryV140.npcTorso(role,skin),
+                          OutfitInventoryV140.PANTS+
+                            OutfitInventoryV140.npcPants(role,skin),
+                          OutfitInventoryV140.BOOTS+
+                            OutfitInventoryV140.npcBoots(role,skin),
+                          gunId,OutfitInventoryV140.ROUNDS}:
+                new int[]{OutfitInventoryV140.TORSO+
+                            OutfitInventoryV140.npcTorso(role,skin),
+                          OutfitInventoryV140.PANTS+
+                            OutfitInventoryV140.npcPants(role,skin),
+                          OutfitInventoryV140.BOOTS+
+                            OutfitInventoryV140.npcBoots(role,skin)};
+            if(!UnifiedBagSlotsV141.canStoreAll(bagOrderV92,
+                bagSplitAmountV130,this::availableInventoryV131,items)){
+                gatherFeedback="BAG FULL - FREE INVENTORY SLOTS";
+                gatherFeedbackTime=2.5f;invalidate();return false;
+            }
+        }
         switch(actor.type){
             case ClinicActorsV90.RAIDER:ammoPacks+=2;scrap+=2;break;
             case ClinicActorsV90.MEDIC:medkits++;waterCount++;break;
@@ -4550,6 +4579,7 @@ public final class GameView extends View {
                 outfitsV140.add(OutfitInventoryV140.WEAPONS+3,1); // visible flashlight
             }
         }
+        syncBagV141();
         int old=host.prefs.getInt(indoorCorpseKeyV129(),0);
         host.prefs.edit().putInt(indoorCorpseKeyV129(),old|(1<<index)).apply();
         gatherFeedback="SEARCHED FALLEN NPC";gatherFeedbackTime=2f;
