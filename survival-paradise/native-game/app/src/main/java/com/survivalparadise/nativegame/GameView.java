@@ -812,7 +812,7 @@ public final class GameView extends View {
         syncBagV141();
         Integer[] places=new Integer[40];
         int[] count=new int[40],
-            firstIndex=new int[UnifiedBagSlotsV141.EMPTY+1];
+            firstIndex=new int[UnifiedBagSlotsV141.MAX_TYPES];
         java.util.Arrays.fill(firstIndex,40);
         for(int i=0;i<40;i++){
             places[i]=i;count[i]=bagSlotQuantityV130(i);
@@ -918,11 +918,14 @@ public final class GameView extends View {
         if(insideClinicV89){
             if(clinicInteriorV89.blocked(x,y,16f)){x=playerX;y=playerY;}
         }else if(blocked(x,y,16f)){x=playerX;y=playerY;}
-        DroppedItemsV129.Stack stack=OutfitInventoryV140.valid(kind)?
-            droppedItemsV129.dropGearV141(kind,quantity,x,y,droppedSceneV129(),
+        DroppedItemsV129.Stack stack=AmmoInventoryV143.valid(kind)?
+            droppedItemsV129.dropAmmoV143(kind,quantity,x,y,droppedSceneV129(),
                 gameTimeV129(),host.setting("groundDropDaysV129",2)):
-            droppedItemsV129.drop(kind,quantity,x,y,droppedSceneV129(),
-                gameTimeV129(),host.setting("groundDropDaysV129",2));
+            OutfitInventoryV140.valid(kind)?
+                droppedItemsV129.dropGearV141(kind,quantity,x,y,droppedSceneV129(),
+                    gameTimeV129(),host.setting("groundDropDaysV129",2)):
+                droppedItemsV129.drop(kind,quantity,x,y,droppedSceneV129(),
+                    gameTimeV129(),host.setting("groundDropDaysV129",2));
         if(stack==null)return false;
         if(!changeInventoryV129(kind,-quantity)){
             droppedItemsV129.take(stack);return false;
@@ -1088,10 +1091,10 @@ public final class GameView extends View {
                 order[i]=Integer.parseInt(parts[0]);
                 pieces[i]=Integer.parseInt(parts[1]);
                 originals[i]=Integer.parseInt(parts[2]);
-                if(order[i]<0||order[i]>(extended?UnifiedBagSlotsV141.EMPTY:39)||
+                if(order[i]<0||order[i]>(extended?UnifiedBagSlotsV141.MAX_TYPES-1:39)||
                    pieces[i]<0||pieces[i]>9999||
                    originals[i]<-1||originals[i]>(extended?
-                       UnifiedBagSlotsV141.EMPTY:39))return;
+                       UnifiedBagSlotsV141.MAX_TYPES-1:39))return;
                 if(!extended){
                     if(order[i]==39)order[i]=UnifiedBagSlotsV141.EMPTY;
                     if(originals[i]==39)originals[i]=UnifiedBagSlotsV141.EMPTY;
@@ -1132,7 +1135,7 @@ public final class GameView extends View {
             for(String value:fields){
                 int n=Integer.parseInt(value);
                 if(extended){
-                    if(n<0||n>UnifiedBagSlotsV141.EMPTY)return;
+                    if(n<0||n>=UnifiedBagSlotsV141.MAX_TYPES)return;
                 }else{
                     if(n<0||n>=40)return;
                     if(n==39)n=UnifiedBagSlotsV141.EMPTY;
