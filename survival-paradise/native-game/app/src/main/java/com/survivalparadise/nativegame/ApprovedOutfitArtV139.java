@@ -25,6 +25,9 @@ final class ApprovedOutfitArtV139 {
     private final int[][] pantsColors=new int[COUNT][];
     private final Bitmap[] torsoSprites=new Bitmap[COUNT];
     private final Bitmap[] pantsSprites=new Bitmap[COUNT];
+    /** New variants are generated once; all forty approved PNGs stay intact. */
+    private final Bitmap[] legacyTorsoV143=new Bitmap[3];
+    private final Bitmap[] legacyPantsV143=new Bitmap[3];
     // Recolor only the approved original silhouette alpha. No alternative
     // anatomy, altered heads, transparent/nude body or external placeholder.
     private Bitmap undershirtV141,boxersV141;
@@ -69,6 +72,13 @@ final class ApprovedOutfitArtV139 {
         if(ok){
             undershirtV141=underwearSpriteV141(torsoSprites[0],true);
             boxersV141=underwearSpriteV141(pantsSprites[0],false);
+            int[] torsoBase={9,16,6},pantsBase={10,18,6};
+            for(int k=0;k<3;k++){
+                legacyTorsoV143[k]=LegacyGearSilhouettesV143.torso(
+                    torsoSprites[torsoBase[k]],k);
+                legacyPantsV143[k]=LegacyGearSilhouettesV143.pants(
+                    pantsSprites[pantsBase[k]],k);
+            }
         }
     }
     /** Fully covered undershirt and boxer shorts from original silhouette.
@@ -151,14 +161,16 @@ final class ApprovedOutfitArtV139 {
              int torsoStyle,int pantsStyle,int torsoWidthPercent,
              int pelvisWidthPercent,android.graphics.Paint pixel){
         if(!available)return;
-        int torso=Math.max(-1,Math.min(19,torsoStyle));
-        int pants=Math.max(-1,Math.min(19,pantsStyle));
+        int torso=Math.max(-1,Math.min(22,torsoStyle));
+        int pants=Math.max(-1,Math.min(22,pantsStyle));
         // The user-approved simulator draws pants FIRST, then torso, then
         // the original head, then independently animated rear/front boots.
-        drawRigSprite(c,pants>=0?pantsSprites[pants]:boxersV141,
+        drawRigSprite(c,pants>=20?legacyPantsV143[pants-20]:
+                pants>=0?pantsSprites[pants]:boxersV141,
             47f,154f,93f*1.04f,
             pelvisWidthPercent,72,left,top,unit,pixel);
-        drawRigSprite(c,torso>=0?torsoSprites[torso]:undershirtV141,
+        drawRigSprite(c,torso>=20?legacyTorsoV143[torso-20]:
+                torso>=0?torsoSprites[torso]:undershirtV141,
             36f,71f,120f,
             torsoWidthPercent,71,left,top,unit,pixel);
     }
