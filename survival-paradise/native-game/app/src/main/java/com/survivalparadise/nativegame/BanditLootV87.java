@@ -238,11 +238,13 @@ public final class BanditLootV87 {
                                 for(int k=1;k<entries.length;k++){
                                     String[] parts=entries[k].split(":",-1);
                                     if(parts.length!=2){invalid=true;break;}
-                                    int id=Integer.parseInt(parts[0]),
+                                    int ammoIndex=Integer.parseInt(parts[0]),
                                         quantity=Integer.parseInt(parts[1]);
-                                    if(id<0||id>=6||quantity<1||quantity>9999||
-                                       bag.ammoExtraV143[id]!=0){invalid=true;break;}
-                                    bag.ammoExtraV143[id]=quantity;
+                                    if(ammoIndex<0||ammoIndex>=6||quantity<1||
+                                       quantity>9999||bag.ammoExtraV143[ammoIndex]!=0){
+                                        invalid=true;break;
+                                    }
+                                    bag.ammoExtraV143[ammoIndex]=quantity;
                                 }
                             }else if(value.startsWith("n")&&!seenMoney){
                                 seenMoney=true;
