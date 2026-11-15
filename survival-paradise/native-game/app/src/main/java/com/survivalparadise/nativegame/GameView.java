@@ -899,7 +899,7 @@ public final class GameView extends View {
     int bagSlotQuantityV130(int position){
         if(position<0||position>=40)return 0;
         int kind=bagOrderV92[position];
-        if(kind<0||kind>=39)return 0;
+        if(!UnifiedBagSlotsV141.valid(kind))return 0;
         int total=availableInventoryV131(kind);
         if(bagSplitAmountV130[position]>0)
             return Math.min(total,bagSplitAmountV130[position]);
@@ -918,7 +918,8 @@ public final class GameView extends View {
             if(bagSplitAmountV130[position]<=0)continue;
             int kind=bagOrderV92[position];
             int original=bagSplitOriginalV130[position];
-            if(kind<0||kind>=39||original<0||original>=40){
+            if(!UnifiedBagSlotsV141.valid(kind)||
+               original<0||original>UnifiedBagSlotsV141.EMPTY){
                 bagSplitAmountV130[position]=0;continue;
             }
             // A newly obtained item takes priority over a placeholder slot.
@@ -967,6 +968,17 @@ public final class GameView extends View {
             bagSplitAmountV130[position]-=quantity;
         reconcileBagSplitsV130();saveProgress();return true;
     }
+    String encodeLegacyBagSplitsV141(){
+        // A downgrade can still restore every legacy item count. Split UI
+        // layout stays in the separate versioned V141 field.
+        String[] legacy=encodeLegacyBagOrderV141().split(",");
+        StringBuilder out=new StringBuilder();
+        for(String id:legacy){
+            if(out.length()>0)out.append(',');
+            out.append(id).append(":0:-1");
+        }
+        return out.toString();
+    }
     String encodeBagSplitsV130(){
         StringBuilder sb=new StringBuilder();
         for(int i=0;i<40;i++){
@@ -978,6 +990,9 @@ public final class GameView extends View {
         return sb.toString();
     }
     void restoreBagSplitsV130(String raw){
+        restoreBagSplitsV141(raw,false);
+    }
+    void restoreBagSplitsV141(String raw,boolean extended){
         clearBagSplitsV130();
         if(raw==null||raw.isEmpty())return;
         String[] fields=raw.split(",",-1);
@@ -990,14 +1005,21 @@ public final class GameView extends View {
                 order[i]=Integer.parseInt(parts[0]);
                 pieces[i]=Integer.parseInt(parts[1]);
                 originals[i]=Integer.parseInt(parts[2]);
-                if(order[i]<0||order[i]>=40||pieces[i]<0||pieces[i]>9999||
-                   originals[i]<-1||originals[i]>=40)return;
+                if(order[i]<0||order[i]>(extended?UnifiedBagSlotsV141.EMPTY:39)||
+                   pieces[i]<0||pieces[i]>9999||
+                   originals[i]<-1||originals[i]>(extended?
+                       UnifiedBagSlotsV141.EMPTY:39))return;
+                if(!extended){
+                    if(order[i]==39)order[i]=UnifiedBagSlotsV141.EMPTY;
+                    if(originals[i]==39)originals[i]=UnifiedBagSlotsV141.EMPTY;
+                }
                 if((pieces[i]>0)!=(originals[i]>=0))return;
             }
             System.arraycopy(order,0,bagOrderV92,0,40);
             System.arraycopy(pieces,0,bagSplitAmountV130,0,40);
             System.arraycopy(originals,0,bagSplitOriginalV130,0,40);
             reconcileBagSplitsV130();
+            syncBagV141();
         }catch(NumberFormatException ignored){clearBagSplitsV130();}
     }
     void initInventoryOrderV92(){
@@ -1204,8 +1226,14 @@ public final class GameView extends View {
                 wardrobeV92.equipped[3]>=0);
         gearLootV95.decode(host.prefs.getString("gear_loot_v95",""));
         relationshipsV92.decode(host.prefs.getString("npc_relations_v92",""));
-        restoreBagOrderV92(host.prefs.getString("bag_order_v92",""));
-        restoreBagSplitsV130(host.prefs.getString("bag_splits_v130",""));
+        String upgradedBagOrderV141=host.prefs.getString("bag_order_v141","");
+        boolean upgradedBagV141=!upgradedBagOrderV141.isEmpty();
+        restoreBagOrderV141(upgradedBagV141?upgradedBagOrderV141:
+            host.prefs.getString("bag_order_v92",""),upgradedBagV141);
+        restoreBagSplitsV141(upgradedBagV141?
+            host.prefs.getString("bag_splits_v141",""):
+            host.prefs.getString("bag_splits_v130",""),upgradedBagV141);
+        syncBagV141();
         insideClinicV89=host.prefs.getBoolean("inside_clinic_v89",false);
         int savedSiteV91=host.prefs.getInt("active_site_v91",1);
         if(insideClinicV89)configureInteriorV91(savedSiteV91);
@@ -2454,8 +2482,10 @@ public final class GameView extends View {
                 .putInt("bootStyleV133",bootStyleV133)
                 .putString("gear_loot_v95",gearLootV95.encode())
                 .putString("npc_relations_v92",relationshipsV92.encode())
-                .putString("bag_order_v92",encodeBagOrderV92())
-                .putString("bag_splits_v130",encodeBagSplitsV130())
+                .putString("bag_order_v92",encodeLegacyBagOrderV141())
+                .putString("bag_splits_v130",encodeLegacyBagSplitsV141())
+                .putString("bag_order_v141",encodeBagOrderV92())
+                .putString("bag_splits_v141",encodeBagSplitsV130())
                 .putBoolean("inside_clinic_v89",insideClinicV89)
                 .putFloat("clinic_return_x_v89",outsideDoorXv89)
                 .putFloat("clinic_return_y_v89",outsideDoorYv89)
