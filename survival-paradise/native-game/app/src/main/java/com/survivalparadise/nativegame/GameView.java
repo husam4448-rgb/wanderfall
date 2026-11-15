@@ -710,7 +710,12 @@ public final class GameView extends View {
         boolean done=targetSlot==5?fieldFindsV91.equip(type-24):
             wardrobeV92.equip(targetSlot==0?0:targetSlot==2?1:
                 targetSlot==3?2:3,(type-27)%3);
-        if(done){organizeBagV131(0);saveProgress();invalidate();}
+        if(done){
+            // Legacy gear never hides a newer explicitly equipped V140 item.
+            int nslot=targetSlot==2?0:targetSlot==3?1:targetSlot==4?2:-1;
+            if(nslot>=0)outfitsV140.unequip(nslot);
+            organizeBagV131(0);saveProgress();invalidate();
+        }
         return done;
     }
     boolean unequipInventorySlotV131(int slot){
@@ -718,6 +723,8 @@ public final class GameView extends View {
         else if(slot==0||slot==2||slot==3||slot==4){
             int clothing=slot==0?0:slot==2?1:slot==3?2:3;
             wardrobeV92.equip(clothing,-1);
+            int custom=slot==2?0:slot==3?1:slot==4?2:-1;
+            if(custom>=0)outfitsV140.unequip(custom);
         }else return false;
         organizeBagV131(0);saveProgress();invalidate();return true;
     }
