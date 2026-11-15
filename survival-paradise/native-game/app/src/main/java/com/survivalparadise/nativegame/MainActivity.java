@@ -764,6 +764,16 @@ public final class MainActivity extends Activity {
     }
     private void showLootTileV134(SquareItemSlotV88 cell,int type,int amount,
                                   boolean chosen){
+        if(type<=-2&&type>=-4&&amount>0){
+            int coin=-type-2;
+            String name=NutWalletV143.NAMES[coin];
+            cell.setText(name+"\n×"+amount+(chosen?" ✓":""));
+            cell.setCompoundDrawables(null,null,null,null);
+            cell.setTextColor(coin==2?0xffffd766:
+                coin==1?0xffc8e0f0:0xffe0a875);
+            cell.setContentDescription(name+" ×"+amount);
+            return;
+        }
         if(type<0||
            (type>=39&&!OutfitInventoryV140.valid(type))||amount<=0){
             cell.setText("");
@@ -875,7 +885,9 @@ public final class MainActivity extends Activity {
                 SquareItemSlotV88 cell=sourceCells[index++];
                 int inventoryType=kind<BanditLootV87.ITEMS?kind:
                     kinds>GearLootV95.TOTAL?
-                        OutfitInventoryV140.FIRST+kind-BanditLootV87.ITEMS:
+                        (kind>=GameView.CORPSE_NUT_KIND_V143?
+                            -2-(kind-GameView.CORPSE_NUT_KIND_V143):
+                            OutfitInventoryV140.FIRST+kind-BanditLootV87.ITEMS):
                         24+kind-BanditLootV87.ITEMS;
                 cell.setTag(kind);
                 showLootTileV134(cell,inventoryType,amount,selected[0]==kind);
@@ -958,7 +970,7 @@ public final class MainActivity extends Activity {
                 site==null?"BANDIT BACKPACK  •  SEARCH & TRANSFER":
                 site.name+"  •  SUPPLY CACHE",
             site==null?"BANDIT LOOT":"SCAVENGE SUPPLIES",
-            bag.corpse?BanditLootV87.ITEMS+OutfitInventoryV140.COUNT:
+            bag.corpse?GameView.CORPSE_NUT_KIND_V143+3:
                 BanditLootV87.ITEMS,
             kind->bag.itemCount(kind),
             kind->game.lootBanditStackV87(bag,kind),
@@ -1012,16 +1024,9 @@ public final class MainActivity extends Activity {
                 .setNegativeButton("BACK",(d,which)->{})
                 .show();
         });
-        action(actions,"TRADE  •  Exchange real inventory",()->{
-            String[] offers={"2 SCRAP → 1 MEDKIT","1 SCRAP → 2 FOOD",
-                "1 SCRAP → 2 WATER"};
-            new AlertDialog.Builder(this).setTitle("TRADE WITH "+
-                NPCDialogueV97.ROLES[npc]).setItems(offers,(d,choice)->{
-                    boolean ok=game.tradeNPCV92(choice);
-                    refresh.run();
-                    Toast.makeText(this,ok?"TRADE COMPLETED — "+offers[choice]:
-                        "INSUFFICIENT SCRAP OR NPC OUT OF RANGE",Toast.LENGTH_SHORT).show();
-                }).setNegativeButton("BACK",(d,w)->{}).show();
+        action(actions,"TRADE  •  Buy / sell using iron, silver and gold nuts",()->{
+            if(shell[0]!=null)shell[0].dismiss();
+            npcTradeWindowV143();
         });
         action(actions,"RECRUIT / FOLLOW  •  4 scrap, reputation 30+",()->{
             if(!NPCDialogueV97.recruitable(npc)){
@@ -1068,6 +1073,127 @@ public final class MainActivity extends Activity {
         dialog.setCancelable(true);
         resizeSettingsWindow(dialog,76,87);
     }
+    /** Two-sided actual-inventory trade, using the same icon grid as looting.
+     * No fictional purchases: NPCs have finite saved goods and pocket money.
+     */
+    void npcTradeWindowV143(){
+        if(game==null||!game.isPlaying())return;
+        NpcTradeLedgerV143.Npc merchant=game.nearbyTradeNpcV143();
+        if(merchant==null)return;
+        final String traderId=merchant.id;
+        game.menuPause(true);
+        LinearLayout shell=column();
+        shell.setBackgroundColor(0xff202f30);
+        section(shell,"NPC TRADE  •  IRON / SILVER / GOLD NUTS");
+        TextView wallets=text("",13,true);
+        shell.addView(wallets);
+        shell.addView(text("100 IRON = 1 SILVER  •  100 SILVER = 1 GOLD. "+
+            "Select a stock item to BUY or your own item to SELL. "+
+            "The trader has a limited budget, and actual stock changes after each purchase.",11,false));
+        LinearLayout sides=new LinearLayout(this);
+        sides.setOrientation(LinearLayout.HORIZONTAL);
+        shell.addView(sides,new LinearLayout.LayoutParams(-1,0,1f));
+        LinearLayout stock=column(),player=column();
+        stock.setBackgroundColor(0xff29443e);
+        player.setBackgroundColor(0xff35404a);
+        sides.addView(stock,new LinearLayout.LayoutParams(0,-1,1f));
+        sides.addView(player,new LinearLayout.LayoutParams(0,-1,1f));
+        section(stock,"NPC INVENTORY  •  BUY");
+        section(player,"PLAYER INVENTORY  •  SELL");
+        ScrollView npcScroll=new ScrollView(this),playerScroll=new ScrollView(this);
+        LinearLayout stockTiles=column(),playerTiles=column();
+        npcScroll.addView(stockTiles);playerScroll.addView(playerTiles);
+        stock.addView(npcScroll,new LinearLayout.LayoutParams(-1,0,1f));
+        player.addView(playerScroll,new LinearLayout.LayoutParams(-1,0,1f));
+        final SquareItemSlotV88[] npcCells=lootGridV134(stockTiles,40);
+        final SquareItemSlotV88[] playerCells=lootGridV134(playerTiles,40);
+        final int[] selectedNpc={-1},selectedPlayer={-1};
+        final Runnable[] refresh={null};
+        refresh[0]=()->{
+            NpcTradeLedgerV143.Npc live=game.npcTradesV143.find(traderId);
+            if(live==null)return;
+            wallets.setText("YOUR POCKET: "+game.playerNutsV143.display()+
+                "\nNPC POCKET: "+live.wallet.display());
+            int pos=0;
+            for(int type=0;type<NpcTradeLedgerV143.ITEM_TYPES;type++){
+                int qty=live.count(type);if(qty<1)continue;
+                if(pos>=npcCells.length)break;
+                final int id=type;
+                SquareItemSlotV88 tile=npcCells[pos++];
+                showLootTileV134(tile,type,qty,selectedNpc[0]==type);
+                tile.setText(game.inventoryNameV141(type).substring(0,
+                    Math.min(9,game.inventoryNameV141(type).length()))+
+                    "\n"+NutWalletV143.price(NpcTradeLedgerV143.price(type)));
+                tile.setContentDescription(game.inventoryNameV141(type)+
+                    " buy price "+NutWalletV143.price(NpcTradeLedgerV143.price(type)));
+                tile.setOnClickListener(v->{
+                    selectedNpc[0]=id;selectedPlayer[0]=-1;refresh[0].run();
+                });
+            }
+            while(pos<npcCells.length){
+                SquareItemSlotV88 tile=npcCells[pos++];
+                showLootTileV134(tile,-1,0,false);
+                tile.setOnClickListener(null);
+            }
+            pos=0;
+            for(int type=0;type<NpcTradeLedgerV143.ITEM_TYPES;type++){
+                int qty=game.availableInventoryV131(type);
+                if(qty<1)continue;
+                if(pos>=playerCells.length)break;
+                final int id=type;
+                SquareItemSlotV88 tile=playerCells[pos++];
+                showLootTileV134(tile,type,qty,selectedPlayer[0]==type);
+                tile.setText(game.inventoryNameV141(type).substring(0,
+                    Math.min(9,game.inventoryNameV141(type).length()))+
+                    "\n"+NutWalletV143.price(NpcTradeLedgerV143.resale(type)));
+                tile.setContentDescription(game.inventoryNameV141(type)+
+                    " sell price "+NutWalletV143.price(NpcTradeLedgerV143.resale(type)));
+                tile.setOnClickListener(v->{
+                    selectedPlayer[0]=id;selectedNpc[0]=-1;refresh[0].run();
+                });
+            }
+            while(pos<playerCells.length){
+                SquareItemSlotV88 tile=playerCells[pos++];
+                showLootTileV134(tile,-1,0,false);
+                tile.setOnClickListener(null);
+            }
+        };
+        LinearLayout footer=new LinearLayout(this);
+        footer.setOrientation(LinearLayout.HORIZONTAL);
+        shell.addView(footer);
+        Button buy=v62Slot("BUY SELECTED",true),
+            sell=v62Slot("SELL SELECTED",true),
+            close=v62Slot("CLOSE",true);
+        for(Button control:new Button[]{buy,sell,close}){
+            control.setTextSize(12f);
+            footer.addView(control,new LinearLayout.LayoutParams(0,dp118(48),1f));
+        }
+        buy.setOnClickListener(v->{
+            boolean ok=selectedNpc[0]>=0&&
+                game.tradeV143(traderId,selectedNpc[0],1,true);
+            if(!ok)Toast.makeText(this,
+                "Cannot buy: insufficient nuts, stock, space or NPC out of range",
+                Toast.LENGTH_SHORT).show();
+            refresh[0].run();
+        });
+        sell.setOnClickListener(v->{
+            boolean ok=selectedPlayer[0]>=0&&
+                game.tradeV143(traderId,selectedPlayer[0],1,false);
+            if(!ok)Toast.makeText(this,
+                "Cannot sell: missing item, equipped item, NPC budget or out of range",
+                Toast.LENGTH_SHORT).show();
+            refresh[0].run();
+        });
+        AlertDialog dialog=new AlertDialog.Builder(this).setView(shell).create();
+        close.setOnClickListener(v->dialog.dismiss());
+        dialog.setOnDismissListener(d->{
+            game.saveProgress();game.menuPause(false);restoreFullscreenAfterShade();
+        });
+        refresh[0].run();dialog.show();
+        dialog.setCancelable(true);
+        resizeSettingsWindow(dialog,95,88);
+    }
+
     /** Works for tap-to-drop and for a genuine bag-slot drag to the bin. */
     void dropQuantityDialogV129(int kind,Runnable refresh){
         if(game==null||!UnifiedBagSlotsV141.valid(kind))return;
