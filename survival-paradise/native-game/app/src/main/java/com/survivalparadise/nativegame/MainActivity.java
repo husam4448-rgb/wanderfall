@@ -79,6 +79,12 @@ public final class MainActivity extends Activity {
             ScreenshotSettingsV121.applyCharacters(prefs,false);
         applyImmersive();
         game=new GameView(this);
+        // Only the isolated V141 QA APK accepts the opt-in screenshot gallery.
+        // The default launch, production game, inventory and saves are unchanged.
+        if(BuildConfig.APPLICATION_ID.endsWith(".v141lootstriptest")&&
+           getIntent()!=null&&
+           getIntent().getBooleanExtra("sp.v141.visual_qa",false))
+            game.qaCorpseVisualV141=true;
         setContentView(game);
     }
     static final int EXPORT_SAVE_V85=851,IMPORT_SAVE_V85=852,EXPORT_FIT_V108=1081;
