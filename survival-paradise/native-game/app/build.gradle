@@ -3,11 +3,11 @@ android {
  namespace 'com.survivalparadise.nativegame'
  compileSdk 35
  defaultConfig {
-  applicationId 'com.survivalparadise.nativegame.v141lootstriptest'
+  applicationId 'com.survivalparadise.nativegame.v142hudpantest'
   minSdk 24
   targetSdk 34
-  versionCode 141
-  versionName '0.141-corpse-strip-test'
+  versionCode 142
+  versionName '0.142-hud-pan-gear-test'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
