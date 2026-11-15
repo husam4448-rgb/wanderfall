@@ -72,6 +72,14 @@ public final class V143EconomyWeaponTest {
             "sell inflated or lost items");
         ok(!ledger.sell(trader,stockType,1,player,money),
             "player can sell item not owned");
+        ok(TradeQuantityV143.buyMaximum(trader,stockType,player,money)>0,
+            "buy quantity should reflect actual NPC stock and wallet");
+        ok(TradeQuantityV143.sellMaximum(trader,stockType,player,money)==0,
+            "selling more than owned must remain impossible");
+        ok(TradeQuantityV143.clamp(999,3)==3&&
+           TradeQuantityV143.clamp(0,2)==1&&
+           TradeQuantityV143.clamp(5,0)==0,
+            "trade quantity +/- and MAX bounds invalid");
         int count=trader.count(stockType);
         NutWalletV143 bankrupt=new NutWalletV143();
         ok(!ledger.buy(trader,stockType,1,player,bankrupt)&&
