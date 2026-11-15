@@ -81,7 +81,7 @@ public final class MainActivity extends Activity {
         game=new GameView(this);
         // Only the isolated V141 QA APK accepts the opt-in screenshot gallery.
         // The default launch, production game, inventory and saves are unchanged.
-        if(BuildConfig.APPLICATION_ID.endsWith(".v141lootstriptest")&&
+        if(getPackageName().endsWith(".v141lootstriptest")&&
            getIntent()!=null&&
            getIntent().getBooleanExtra("sp.v141.visual_qa",false))
             game.qaCorpseVisualV141=true;
