@@ -1116,12 +1116,30 @@ public final class MainActivity extends Activity {
         final SquareItemSlotV88[] npcCells=lootGridV134(stockTiles,40);
         final SquareItemSlotV88[] playerCells=lootGridV134(playerTiles,40);
         final int[] selectedNpc={-1},selectedPlayer={-1};
+        final int[] selectedQuantity={1};
+        TextView quantityLabel=text("QUANTITY: 1",12,true);
+        shell.addView(quantityLabel);
         final Runnable[] refresh={null};
         refresh[0]=()->{
             NpcTradeLedgerV143.Npc live=game.npcTradesV143.find(traderId);
             if(live==null)return;
             wallets.setText("YOUR POCKET: "+game.playerNutsV143.display()+
                 "\nNPC POCKET: "+live.wallet.display());
+            int maxQuantity=selectedNpc[0]>=0?
+                TradeQuantityV143.buyMaximum(live,selectedNpc[0],
+                    game.playerTradeInventoryV143(),game.playerNutsV143):
+                selectedPlayer[0]>=0?
+                TradeQuantityV143.sellMaximum(live,selectedPlayer[0],
+                    game.playerTradeInventoryV143(),game.playerNutsV143):0;
+            selectedQuantity[0]=TradeQuantityV143.clamp(
+                selectedQuantity[0],maxQuantity);
+            long rate=selectedNpc[0]>=0?
+                NpcTradeLedgerV143.price(selectedNpc[0]):
+                selectedPlayer[0]>=0?
+                NpcTradeLedgerV143.resale(selectedPlayer[0]):0;
+            quantityLabel.setText("QUANTITY: "+selectedQuantity[0]+
+                " / "+maxQuantity+"  •  TOTAL: "+
+                NutWalletV143.price(rate*selectedQuantity[0]));
             int pos=0;
             for(int type=0;type<NpcTradeLedgerV143.ITEM_TYPES;type++){
                 int qty=live.count(type);if(qty<1)continue;
@@ -1135,7 +1153,8 @@ public final class MainActivity extends Activity {
                 tile.setContentDescription(game.inventoryNameV141(type)+
                     " buy price "+NutWalletV143.price(NpcTradeLedgerV143.price(type)));
                 tile.setOnClickListener(v->{
-                    selectedNpc[0]=id;selectedPlayer[0]=-1;refresh[0].run();
+                    selectedNpc[0]=id;selectedPlayer[0]=-1;
+                    selectedQuantity[0]=1;refresh[0].run();
                 });
             }
             while(pos<npcCells.length){
@@ -1157,7 +1176,8 @@ public final class MainActivity extends Activity {
                 tile.setContentDescription(game.inventoryNameV141(type)+
                     " sell price "+NutWalletV143.price(NpcTradeLedgerV143.resale(type)));
                 tile.setOnClickListener(v->{
-                    selectedPlayer[0]=id;selectedNpc[0]=-1;refresh[0].run();
+                    selectedPlayer[0]=id;selectedNpc[0]=-1;
+                    selectedQuantity[0]=1;refresh[0].run();
                 });
             }
             while(pos<playerCells.length){
@@ -1166,6 +1186,38 @@ public final class MainActivity extends Activity {
                 tile.setOnClickListener(null);
             }
         };
+        LinearLayout quantityControls=new LinearLayout(this);
+        quantityControls.setOrientation(LinearLayout.HORIZONTAL);
+        shell.addView(quantityControls);
+        Button minus=v62Slot("−",true),plus=v62Slot("+",true),
+            maximum=v62Slot("MAX",true);
+        for(Button control:new Button[]{minus,plus,maximum})
+            quantityControls.addView(control,
+                new LinearLayout.LayoutParams(0,dp118(42),1f));
+        final Runnable[] adjustQuantity={null};
+        adjustQuantity[0]=()->{
+            NpcTradeLedgerV143.Npc live=game.npcTradesV143.find(traderId);
+            if(live==null)return;
+            refresh[0].run();
+        };
+        minus.setOnClickListener(v->{
+            selectedQuantity[0]=Math.max(1,selectedQuantity[0]-1);
+            adjustQuantity[0].run();
+        });
+        plus.setOnClickListener(v->{
+            selectedQuantity[0]++;adjustQuantity[0].run();
+        });
+        maximum.setOnClickListener(v->{
+            NpcTradeLedgerV143.Npc live=game.npcTradesV143.find(traderId);
+            if(live==null)return;
+            selectedQuantity[0]=selectedNpc[0]>=0?
+                TradeQuantityV143.buyMaximum(live,selectedNpc[0],
+                    game.playerTradeInventoryV143(),game.playerNutsV143):
+                selectedPlayer[0]>=0?
+                TradeQuantityV143.sellMaximum(live,selectedPlayer[0],
+                    game.playerTradeInventoryV143(),game.playerNutsV143):0;
+            refresh[0].run();
+        });
         LinearLayout footer=new LinearLayout(this);
         footer.setOrientation(LinearLayout.HORIZONTAL);
         shell.addView(footer);
@@ -1178,7 +1230,7 @@ public final class MainActivity extends Activity {
         }
         buy.setOnClickListener(v->{
             boolean ok=selectedNpc[0]>=0&&
-                game.tradeV143(traderId,selectedNpc[0],1,true);
+                game.tradeV143(traderId,selectedNpc[0],selectedQuantity[0],true);
             if(!ok)Toast.makeText(this,
                 "Cannot buy: insufficient nuts, stock, space or NPC out of range",
                 Toast.LENGTH_SHORT).show();
@@ -1186,7 +1238,7 @@ public final class MainActivity extends Activity {
         });
         sell.setOnClickListener(v->{
             boolean ok=selectedPlayer[0]>=0&&
-                game.tradeV143(traderId,selectedPlayer[0],1,false);
+                game.tradeV143(traderId,selectedPlayer[0],selectedQuantity[0],false);
             if(!ok)Toast.makeText(this,
                 "Cannot sell: missing item, equipped item, NPC budget or out of range",
                 Toast.LENGTH_SHORT).show();
