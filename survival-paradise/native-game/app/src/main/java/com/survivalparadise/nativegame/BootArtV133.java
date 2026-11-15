@@ -92,7 +92,7 @@ final class BootArtV133 {
         return Bitmap.createBitmap(out,w,h,Bitmap.Config.ARGB_8888);
     }
     private void loadLegacyBootsV144(Context context){
-        try(InputStream file=context.getAssets().open("sp_v144_legacy_equipment.zip");
+        try(InputStream file=context.getAssets().open("sp_v145_legacy_equipment.zip");
                 ZipInputStream zip=new ZipInputStream(file)){
             ZipEntry entry;
             while((entry=zip.getNextEntry())!=null){
@@ -107,7 +107,7 @@ final class BootArtV133 {
                 while((n=zip.read(chunk))!=-1)bytes.write(chunk,0,n);
                 byte[] data=bytes.toByteArray();
                 Bitmap bmp=BitmapFactory.decodeByteArray(data,0,data.length);
-                if(!sameBootAlphaV144(bmp,sprites[legacyBaseV144[i]])){
+                if(!validBootCanvasV145(bmp)){
                     java.util.Arrays.fill(legacySpritesV144,null);
                     return;
                 }
@@ -118,14 +118,15 @@ final class BootArtV133 {
             java.util.Arrays.fill(legacySpritesV144,null);return;
         }
     }
-    private static boolean sameBootAlphaV144(Bitmap a,Bitmap b){
-        if(a==null||b==null||a.getWidth()!=IMAGE_WIDTH||
-                a.getHeight()!=IMAGE_HEIGHT)return false;
-        int[] x=new int[IMAGE_WIDTH*IMAGE_HEIGHT],y=new int[x.length];
-        a.getPixels(x,0,IMAGE_WIDTH,0,0,IMAGE_WIDTH,IMAGE_HEIGHT);
-        b.getPixels(y,0,IMAGE_WIDTH,0,0,IMAGE_WIDTH,IMAGE_HEIGHT);
-        for(int i=0;i<x.length;i++)if((x[i]>>>24)!=(y[i]>>>24))return false;
-        return true;
+    /** User originals have different detailed contours but exactly the V133 canvas. */
+    private static boolean validBootCanvasV145(Bitmap bmp){
+        if(bmp==null||bmp.getWidth()!=IMAGE_WIDTH||
+                bmp.getHeight()!=IMAGE_HEIGHT)return false;
+        int[] rgba=new int[IMAGE_WIDTH*IMAGE_HEIGHT];
+        bmp.getPixels(rgba,0,IMAGE_WIDTH,0,0,IMAGE_WIDTH,IMAGE_HEIGHT);
+        int visible=0;
+        for(int pixel:rgba)if((pixel>>>24)>127)visible++;
+        return visible>IMAGE_WIDTH*IMAGE_HEIGHT/6;
     }
     static int clampStyle(int v){return Math.max(0,Math.min(COUNT+2,v));}
     private Bitmap spriteV144(int style){
