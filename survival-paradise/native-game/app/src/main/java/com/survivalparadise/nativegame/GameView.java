@@ -2899,7 +2899,7 @@ public final class GameView extends View {
                 enemy.x,enemy.y-3,kills,wave,enemy.variant,enemy.face,
                 enemy.skinV109);
             if(remains!=null){
-                remains.gearManifestV141=true;
+                remains.gearManifestV141=lootEnabled;
                 if(lootEnabled){
                     remains.count[BanditLootV87.AMMO]=0; // exact bullets, not random magazine copies
                     remains.extra[OutfitInventoryV140.TORSO+
@@ -4372,16 +4372,49 @@ public final class GameView extends View {
     }
     /** A fallen body is itself the searchable object; approved pixels preserved. */
     void drawFallenBodyV129(Canvas c,float x,float y,int variant,int skin,int facing){
+        // Legacy corpses without V141 manifests retain their original outfits.
+        drawFallenBodyV141(c,x,y,variant,skin,facing,
+            OutfitInventoryV140.npcTorso(variant,skin),
+            OutfitInventoryV140.npcPants(variant,skin),
+            OutfitInventoryV140.npcBoots(variant,skin),-1);
+    }
+    /** One corpse renders only what remains in its loot manifest.
+     * Underwear/socks replace ONLY removed categories; original heads and
+     * registered idle pose are unchanged. No idle breathing after death.
+     */
+    void drawFallenBodyV141(Canvas c,float x,float y,int variant,int skin,
+                            int facing,int torso,int pants,int boots,int weapon){
         color(0x7c592021);c.drawOval(x-34,y-19,x+35,y+10,p);
         color(0x9b742427);c.drawOval(x-22,y-14,x+18,y+4,p);
         c.save();c.rotate(facing<0?-85f:85f,x,y-47f);
+        boolean oldCorpse=renderingCorpseV130;
+        int oldTorso=corpseTorsoV141,oldPants=corpsePantsV141,
+            oldBoots=corpseBootsV141,oldWeapon=corpseWeaponV141;
         renderingCorpseV130=true;
-        try {
+        corpseTorsoV141=torso;corpsePantsV141=pants;
+        corpseBootsV141=boots;corpseWeaponV141=weapon;
+        try{
             character(c,x,y,0,facing,0,0f,0f,0f,false,true,variant,skin);
-        }finally{renderingCorpseV130=false;c.restore();}
+            // The same weapon sprite from the living actor remains beside the
+            // body until the corresponding loot stack is actually transferred.
+            if(weapon>=0&&weapon<12&&showWeapons&&gear!=null){
+                c.save();
+                c.translate(x,y);
+                if(facing<0)c.scale(-1f,1f);
+                atlas(c,gear,weapon*260,0,0,0,CharacterCollision.BASE_SCALE*scale);
+                c.restore();
+            }
+        }finally{
+            renderingCorpseV130=oldCorpse;
+            corpseTorsoV141=oldTorso;corpsePantsV141=oldPants;
+            corpseBootsV141=oldBoots;corpseWeaponV141=oldWeapon;
+            c.restore();
+        }
     }
     void drawIndoorCorpsesV129(Canvas c){
+        int actorIndexV141=0;
         for(ClinicActorsV90.Actor actor:clinicActorsV90.actors){
+            final int corpseIndexV141=actorIndexV141++;
             if(actor.active||!WorldPerfV55.nearView(actor.x,actor.y,
                 camX,camY,viewW,viewH,150f)||
                 !indoorCharacterVisibleV127(actor.x,actor.y))continue;
@@ -4392,8 +4425,17 @@ public final class GameView extends View {
             else{
                 int appearance=actor.type==ClinicActorsV90.MEDIC?ROLE_MEDIC:
                     actor.type==ClinicActorsV90.SURVIVOR?ROLE_CIVILIAN:0;
-                drawIndoorVisibleEntityV127(c,()->drawFallenBodyV129(c,
-                    actor.x,actor.y,appearance,skin,(actor.type&1)==0?1:-1));
+                drawIndoorVisibleEntityV127(c,()->{
+                    boolean stripped=indoorCorpseSearchedV129(corpseIndexV141);
+                    drawFallenBodyV141(c,actor.x,actor.y,appearance,skin,
+                        (actor.type&1)==0?1:-1,
+                        stripped?-1:OutfitInventoryV140.npcTorso(appearance,skin),
+                        stripped?-1:OutfitInventoryV140.npcPants(appearance,skin),
+                        stripped?-1:OutfitInventoryV140.npcBoots(appearance,skin),
+                        stripped?-1:actor.type==ClinicActorsV90.RAIDER?0:
+                            actor.type==ClinicActorsV90.MEDIC||
+                            actor.type==ClinicActorsV90.SURVIVOR?3:-1);
+                });
             }
         }
     }
@@ -4483,7 +4525,22 @@ public final class GameView extends View {
                 bag.skinV109:
                 1+Math.floorMod(Math.round(x*11f+(y+3f)*17f+
                     bag.variant*73f),200);
-            drawFallenBodyV129(c,x,y,bag.variant,skin,bag.face);
+            int torso=OutfitInventoryV140.npcTorso(bag.variant,skin),
+                pants=OutfitInventoryV140.npcPants(bag.variant,skin),
+                boots=OutfitInventoryV140.npcBoots(bag.variant,skin);
+            if(bag.gearManifestV141){
+                if(bag.extra[OutfitInventoryV140.TORSO+torso-
+                        OutfitInventoryV140.FIRST]<=0)torso=-1;
+                if(bag.extra[OutfitInventoryV140.PANTS+pants-
+                        OutfitInventoryV140.FIRST]<=0)pants=-1;
+                if(bag.extra[OutfitInventoryV140.BOOTS+boots-
+                        OutfitInventoryV140.FIRST]<=0)boots=-1;
+            }
+            int held=bag.gearManifestV141&&
+                bag.extra[OutfitInventoryV140.WEAPONS-
+                    OutfitInventoryV140.FIRST]>0?0:-1;
+            drawFallenBodyV141(c,x,y,bag.variant,skin,bag.face,
+                torso,pants,boots,held);
             if(!bag.empty())label(c,"SEARCH",x-15,y-86,11,0xffe6c99a,true);
             return;
         }
