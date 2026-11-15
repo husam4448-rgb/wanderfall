@@ -5102,8 +5102,7 @@ public final class GameView extends View {
     void drawHotbar(Canvas c){
         if(!uiEnabled(HOTBAR)&&!editControls)return;
         float x=hotbarLeft(),y=hotbarTop(),size=47f*hotbarScale;
-        int hotbarAlpha=Math.max(25,Math.min(100,
-            host.setting("uiAlpha"+HOTBAR,100)));
+        int hotbarAlpha=HudOpacityV142.clamp(host.setting("uiAlpha"+HOTBAR,100));
         int hotbarLayer=hotbarAlpha<100?c.saveLayerAlpha(
             x,y,x+6*size,y+size,Math.round(hotbarAlpha*255f/100f)):0;
         for(int i=0;i<6;i++){
@@ -5398,7 +5397,7 @@ public final class GameView extends View {
         if(!uiEnabled(editor)&&!editControls)return;
         float x=hudExtraXV118(editor),y=hudExtraYV118(editor),
               width=hudExtraWidthV118(editor),height=hudExtraHeightV118(editor);
-        int opacity=Math.max(30,Math.min(100,host.setting("uiAlpha"+editor,100)));
+        int opacity=HudOpacityV142.clamp(host.setting("uiAlpha"+editor,100));
         int layer=opacity<100?c.saveLayerAlpha(x,y,x+width,y+height,
             Math.round(255f*opacity/100f)):0;
         int fillAlpha=Math.round(topButtonOpacityV76*255f/100f);
@@ -5418,8 +5417,7 @@ public final class GameView extends View {
         if(!uiEnabled(COMMAND_EDITOR)&&!editControls)return;
         float x=hudExtraXV118(COMMAND_EDITOR),y=hudExtraYV118(COMMAND_EDITOR),
               w=hudExtraWidthV118(COMMAND_EDITOR),h=hudExtraHeightV118(COMMAND_EDITOR);
-        int alpha=Math.max(25,Math.min(100,
-            host.setting("uiAlpha"+COMMAND_EDITOR,100)));
+        int alpha=HudOpacityV142.clamp(host.setting("uiAlpha"+COMMAND_EDITOR,100));
         int layer=alpha<100?c.saveLayerAlpha(x,y,x+w,y+h,
             Math.round(255f*alpha/100f)):0;
         btn(c,x,y,w,h,"SQUAD"+(companionStayV118?" [STAY]":""),
@@ -5430,8 +5428,7 @@ public final class GameView extends View {
     void drawStatusWindowV118(Canvas c){
         if(!showStatusBars&&!editControls)return;
         if(!uiEnabled(STATUS_EDITOR)&&!editControls)return;
-        int id=STATUS_EDITOR,opacity=Math.max(25,Math.min(100,
-            host.setting("uiAlpha"+id,100)));
+        int id=STATUS_EDITOR,opacity=HudOpacityV142.clamp(host.setting("uiAlpha"+id,100));
         c.save();
         c.translate(hudExtraXV118(id),hudExtraYV118(id));
         c.scale(hudExtraScaleV118(id),hudExtraScaleV118(id));
