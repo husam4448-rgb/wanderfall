@@ -2038,7 +2038,8 @@ public final class MainActivity extends Activity {
             characterPreviewV118.setWalkingPreview(previewWalkingV118[0]);
         });
         root.addView(text("Equipped headgear is hidden on all characters. Torso clothing, pants, backpacks and boots remain visible; headgear inventory slots and gameplay effects are unchanged.",11,false));
-        slider(root,"Character display size","scale",65,135,98,"%");
+        slider(root,"Character display size","scale",65,135,
+            CharacterPresetV142.GLOBAL_SCALE,"%");
         if(game!=null&&game.characterSkinsV109!=null&&
            game.characterSkinsV109.approvedOutfitsReadyV139()){
         section(root,"V139 • 20 APPROVED TORSO AND PANTS TEXTURES");
@@ -2101,7 +2102,8 @@ public final class MainActivity extends Activity {
                 CharacterScopeV113.key("headSizeV82",scope),75,160,93,"%");
             section(characterControlsV113,"BODY SHAPE • RIGID FEET");
             slider(characterControlsV113,"Upper torso width (legs unchanged)",
-                CharacterScopeV113.key("bodyWidthV114",scope),55,100,71,"%");
+                CharacterScopeV113.key("bodyWidthV114",scope),55,100,
+                CharacterPresetV142.TORSO,"%");
             slider(characterControlsV113,"Pelvis / hips width (legs unchanged)",
                 CharacterScopeV113.key("pelvisWidthV115",scope),55,100,72,"%");
             section(characterControlsV113,"WEAPON + BOTH HANDS • ROTATION AXIS");
@@ -2110,7 +2112,7 @@ public final class MainActivity extends Activity {
                 WeaponPivotV117.MIN,WeaponPivotV117.MAX,9," px");
             slider(characterControlsV113,"Weapon/hand pivot vertical",
                 CharacterScopeV113.key("weaponPivotYV117",scope),
-                WeaponPivotV117.MIN,WeaponPivotV117.MAX,-5," px");
+                WeaponPivotV117.MIN,WeaponPivotV117.MAX,CharacterPresetV142.PIVOT_Y," px");
             slider(characterControlsV113,"Head follows aim (0 = off)",
                 CharacterScopeV113.key("headAimTiltV111",scope),0,15,15,"°");
             slider(characterControlsV113,"Head horizontal fit",
@@ -2125,7 +2127,8 @@ public final class MainActivity extends Activity {
             slider(characterControlsV113,"Walking base frame rate (0 = fitted V5)",
                 CharacterScopeV113.key("fitWalkFpsV108",scope),0,12,4," fps");
             slider(characterControlsV113,"Walking animation speed",
-                CharacterScopeV113.key("walkingAnimationSpeedV79",scope),50,200,100,"%");
+                CharacterScopeV113.key("walkingAnimationSpeedV79",scope),50,200,
+                CharacterPresetV142.WALK_SPEED,"%");
             characterControlsV113.addView(text("The weapon/hand pivot sliders relocate the entire original weapon, trigger hand and support hand together, retaining recoil, aim angle and bullet/flashlight origins. Zero means original V116 placement. Player / World NPC selection above saves independent pivot locations. Torso and pelvis sliders still work as before.",11,false));
             action(characterControlsV113,"RESET "+label+" CHARACTER ADJUSTMENTS",()->{
                 android.content.SharedPreferences.Editor edits=prefs.edit();
@@ -2135,6 +2138,10 @@ public final class MainActivity extends Activity {
                 int[] defaults=ScreenshotDefaultsV121.CHARACTER_VALUES;
                 for(int n=0;n<keys.length;n++)
                     edits.putInt(CharacterScopeV113.key(keys[n],scope),defaults[n]);
+                for(int n=0;n<CharacterPresetV142.BODY_KEYS.length;n++)
+                    edits.putInt(CharacterScopeV113.key(
+                        CharacterPresetV142.BODY_KEYS[n],scope),
+                        CharacterPresetV142.BODY_VALUES[n]);
                 edits.apply();
                 game.reloadSettings();
                 rebuildCharacterSlidersV113Holder[0].run();
@@ -2150,12 +2157,19 @@ public final class MainActivity extends Activity {
             }
         });
         rebuildCharacterSlidersV113Holder[0].run();
-        action(root,"APPLY SCREENSHOT FIT TO PLAYER + ALL NPCs",()->{
-            ScreenshotSettingsV121.applyCharacters(prefs,true);
+        action(root,"APPLY BODY FIT TO PLAYER + ALL NPCs (HEADS UNCHANGED)",()->{
+            SharedPreferences.Editor adjustment=prefs.edit();
+            for(int scope=CharacterScopeV113.PLAYER;
+                    scope<=CharacterScopeV113.NPCS;scope++)
+                for(int n=0;n<CharacterPresetV142.BODY_KEYS.length;n++)
+                    adjustment.putInt(CharacterScopeV113.key(
+                        CharacterPresetV142.BODY_KEYS[n],scope),
+                        CharacterPresetV142.BODY_VALUES[n]);
+            adjustment.putInt("scale",CharacterPresetV142.GLOBAL_SCALE).apply();
             game.reloadSettings();
             rebuildCharacterSlidersV113Holder[0].run();
             characterPreviewV118.invalidate();
-            Toast.makeText(this,"V121 fitting applied to both profiles",
+            Toast.makeText(this,"V142 body calibration applied; heads untouched",
                 Toast.LENGTH_SHORT).show();
         });
         action(root,"EXPORT PLAYER CHARACTER FITTING JSON",()->exportCharacterFittingV108());
