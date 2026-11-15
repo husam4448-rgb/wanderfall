@@ -4064,7 +4064,8 @@ public final class GameView extends View {
                 player?(outfitsV140.equippedStyle(2)>=0?
                     outfitsV140.equippedStyle(2):
                     wardrobeV92.equipped[3]>=0?bootStyleV133:0):
-                    OutfitInventoryV140.npcBoots(npcVariant,skinIdV109),
+                    Math.floorMod(OutfitInventoryV140.npcBoots(npcVariant,skinIdV109),
+                        BootArtV133.COUNT),
                 player?(outfitsV140.equippedStyle(0)>=0?
                     outfitsV140.equippedStyle(0):
                     wardrobeV92.equipped[1]<0?-1:torsoStyleV139):
