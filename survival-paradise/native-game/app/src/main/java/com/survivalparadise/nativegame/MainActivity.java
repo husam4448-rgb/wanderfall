@@ -501,11 +501,24 @@ public final class MainActivity extends Activity {
         LinearLayout root=column();
         scroll.addView(root);
         section(root,"GLOBAL HUD VISIBILITY");
-        slider(root,"Global HUD opacity","hudOpacityV73",15,100,100,"%");
+        slider(root,"Whole HUD opacity (panels and buttons)",
+            "hudOpacityV73",15,100,HudOpacityV142.DEFAULT_GLOBAL,"%");
         slider(root,"Top button background opacity","topButtonOpacityV76",0,65,22,"%");
+        section(root,"BUTTON OPACITY - ALL OR INDIVIDUAL");
+        slider(root,"All-buttons target opacity","hudAllButtonsAlphaV142",
+            HudOpacityV142.MIN,HudOpacityV142.MAX,
+            HudOpacityV142.DEFAULT_BUTTON,"%");
+        action(root,"APPLY OPACITY TO ALL HUD BUTTONS",()->{
+            applyAllHudOpacitiesV142(prefs.getInt("hudAllButtonsAlphaV142",
+                HudOpacityV142.DEFAULT_BUTTON));
+            Toast.makeText(this,"Applied to every HUD control",
+                Toast.LENGTH_SHORT).show();
+        });
         check(root,"Show FPS diagnostics","testPerf",false);
         check(root,"Compact performance readout","compactDebugV76",true);
-        root.addView(text("Fades all HUD panels, controls, hotbar and status bars. Aim reticle and HUD editor remain visible.",11,false));
+        root.addView(text("Select a HUD control below to change its opacity only. " +
+            "Use APPLY OPACITY TO ALL for one shared value. The whole-HUD " +
+            "opacity multiplies each button's opacity.",11,false));
         section(root,"BUTTON SELECTION");
         Spinner picker=new Spinner(this);
         String[] choicesV87=new String[GameView.EDITOR_ITEMS];
@@ -531,7 +544,10 @@ public final class MainActivity extends Activity {
                 slider(options,"SIZE","uiSize"+control,60,180,
                     index>=LegacyControlsV58.COUNT?100:
                     LegacyControlsV58.defaultScale(index),"%");
-                slider(options,"OPACITY","uiAlpha"+control,30,100,100,"%");
+                slider(options,"THIS BUTTON OPACITY","uiAlpha"+control,15,100,
+                    HudOpacityV142.defaultFor(control,GameView.MOVE_PAD,
+                        GameView.AIM_PAD,GameView.HOTBAR,
+                        GameView.TOP_FORM_EDITOR,GameView.STATUS_EDITOR),"%");
                 slider(options,"HORIZONTAL POSITION","uiX"+control,-420,420,0,"");
                 slider(options,"VERTICAL POSITION","uiY"+control,-310,310,0,"");
             }
@@ -552,6 +568,8 @@ public final class MainActivity extends Activity {
         });
         action(root,"RESTORE ALL BUTTON DEFAULTS (SCREENSHOT V121)",()->{
             ScreenshotSettingsV121.applyHud(prefs,game.viewW,true);
+            prefs.edit().putInt("hudOpacityV73",HudOpacityV142.DEFAULT_GLOBAL).apply();
+            applyAllHudOpacitiesV142(HudOpacityV142.DEFAULT_BUTTON);
             game.reloadSettings();
             if(active[0]!=null)active[0].dismiss();
             Toast.makeText(this,"V121 screenshot HUD restored",Toast.LENGTH_SHORT).show();
@@ -2219,6 +2237,7 @@ public final class MainActivity extends Activity {
         root.addView(text("CLASSIC V61 AIM RESTORED: drag the aim thumb from its center toward the rim. Both the thumb and crosshair slide directly with your finger, without auto-extension, acceleration, or aim zones.",11,false));
         slider(root,"Released crosshair distance (weapon-relative)","crosshairRestPercent",50,200,100,"%");
         check(root,"Circular camera look-ahead (ON by default)","classicAimCameraV71",true);
+        check(root,"Camera panning inside buildings","indoorCameraPanV142",true);
         weaponPanSlider(root);
         slider(root,"Camera look-ahead stick threshold","lookAheadThreshold",30,95,72,"%");
         slider(root,"Camera panning response speed","lookAheadSmooth",2,18,8," /s");
