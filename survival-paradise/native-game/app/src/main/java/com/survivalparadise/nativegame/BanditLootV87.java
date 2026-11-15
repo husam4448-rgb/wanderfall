@@ -147,7 +147,7 @@ public final class BanditLootV87 {
                         bag.skinV109=skin>=1&&skin<=200?skin:-1;
                     }
                     if(p.length==ITEMS+8){
-                        String[] entries=p[ITEMS+7].split("\\\\|",-1);
+                        String[] entries=p[ITEMS+7].split("\\|",-1);
                         if(entries.length<1||!"x".equals(entries[0]))continue;
                         boolean valid=true;
                         for(int k=1;k<entries.length;k++){
