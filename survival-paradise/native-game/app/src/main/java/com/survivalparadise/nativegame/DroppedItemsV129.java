@@ -33,6 +33,10 @@ public final class DroppedItemsV129 {
         return dropValidatedV141(type,quantity,x,y,scene,now,days,
             97 /* V140 item range 0..96 */);
     }
+    public Stack dropAmmoV143(int type,int quantity,float x,float y,
+                               String scene,float now,int days){
+        return dropValidatedV141(type,quantity,x,y,scene,now,days,104);
+    }
     private Stack dropValidatedV141(int type,int quantity,float x,float y,
                              String scene,float now,int days,int maxType){
         if(type<0||type>=maxType||quantity<=0||quantity>9999||
@@ -80,7 +84,8 @@ public final class DroppedItemsV129 {
                 int n=Integer.parseInt(p[2]);
                 float x=Float.parseFloat(p[3]),y=Float.parseFloat(p[4]);
                 float expiry=Float.parseFloat(p[5]);String scene=p[6];
-                if(id<1||t<0||t>=97 /* V140 item range 0..96 */||n<=0||n>9999||
+                if(id<1||t<0||t>=104 /* V143 extended item range */||t==97||
+                   n<=0||n>9999||
                    !Float.isFinite(x)||!Float.isFinite(y)||
                    !Float.isFinite(expiry)||Math.abs(x)>2_000_000f||
                    Math.abs(y)>2_000_000f||scene.isEmpty()||
