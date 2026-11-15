@@ -256,10 +256,10 @@ jobs:
           assert 'organizeBagV131(' in g
           assert 'equippedReserveV131(' in g and 'availableInventoryV131(' in g
           assert 'bagSortV131' in u and 'SORT BACKPACK' in u
-          assert 'InventoryCatalogV131.massLabel(kind,1)' in u
+          assert 'game.itemMassLabelV141(kind,1)' in u
           assert 'refreshEquipmentV131' in u and 'equipmentSurroundV131' in u
-          assert 'InventoryCatalogV131.compatible(type,socketIndex)' in u
-          assert 'drawFallenBodyV129(c,x,y,bag.variant,skin,bag.face)' in g
+          assert 'game.inventoryCompatibleV141(type,socketIndex)' in u
+          assert 'drawFallenBodyV141(c,x,y,bag.variant,skin,bag.face' in g
           assert 'bag.skinV109>=1' in g
           assert 'spawnCorpse(' in g and 'enemy.skinV109' in g
           assert 'headOpaqueBoundsV131' in skins
