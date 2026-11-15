@@ -770,7 +770,9 @@ public final class MainActivity extends Activity {
             int coin=-type-2;
             String name=NutWalletV143.NAMES[coin];
             cell.setText(name+"\n×"+amount+(chosen?" ✓":""));
-            cell.setCompoundDrawables(null,null,null,null);
+            cell.setCompoundDrawables(null,NutIconsV143.drawable(this,coin,22),
+                null,null);
+            cell.setCompoundDrawablePadding(2);
             cell.setTextColor(coin==2?0xffffd766:
                 coin==1?0xffc8e0f0:0xffe0a875);
             cell.setContentDescription(name+" ×"+amount);
@@ -781,6 +783,7 @@ public final class MainActivity extends Activity {
             !AmmoInventoryV143.valid(type))||amount<=0){
             cell.setText("");
             cell.setCompoundDrawables(null,null,null,null);
+            cell.setTextColor(0xffe6d7b7);
             cell.setContentDescription("Empty inventory slot");
             return;
         }
