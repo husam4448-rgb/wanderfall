@@ -268,6 +268,13 @@ final class CharacterSkinsV109 {
         return Bitmap.createBitmap(pixels,WIDTH,HEIGHT,Bitmap.Config.ARGB_8888);
     }
     boolean ready(){return loaded;}
+    android.graphics.drawable.Drawable inventoryIconV140(Context context,int type,int dp){
+        int slot=OutfitInventoryV140.slot(type);
+        if(slot==0||slot==1)return approvedOutfitArtV139.inventoryIcon(context,type,dp);
+        if(slot==2)return bootArtV133.inventoryIcon(context,
+            OutfitInventoryV140.style(type),dp);
+        return null;
+    }
     boolean approvedOutfitsReadyV139(){return approvedOutfitArtV139.ready();}
     Fit fit(int id){return fitting[range(id,1,COUNT)];}
     private Bitmap head(int id){
