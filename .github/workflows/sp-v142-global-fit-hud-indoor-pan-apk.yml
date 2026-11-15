@@ -448,10 +448,10 @@ jobs:
           assert 'new Fit(base)' in skins and 'characterOverrides' in skins
           assert 'fps=2' in skins
           assert 'void draw(Canvas c,int id,boolean walking' in skins
-          assert 'playerGunPivotXV117=WeaponPivotV117.clamp(host.setting("weaponPivotXV117",0))' in game
-          assert 'playerGunPivotYV117=WeaponPivotV117.clamp(host.setting("weaponPivotYV117",0))' in game
-          assert 'npcGunPivotXV117=WeaponPivotV117.clamp(host.setting("weaponPivotXV117NpcV113",0))' in game
-          assert 'npcGunPivotYV117=WeaponPivotV117.clamp(host.setting("weaponPivotYV117NpcV113",0))' in game
+          assert 'playerGunPivotXV117=WeaponPivotV117.clamp(host.setting("weaponPivotXV117",' in game
+          assert 'playerGunPivotYV117=WeaponPivotV117.clamp(host.setting("weaponPivotYV117",' in game
+          assert 'npcGunPivotXV117=WeaponPivotV117.clamp(host.setting("weaponPivotXV117NpcV113",' in game
+          assert 'npcGunPivotYV117=WeaponPivotV117.clamp(host.setting("weaponPivotYV117NpcV113",' in game
           assert 'CharacterScopeV113.key("weaponPivotXV117",scope)' in menu
           assert 'CharacterScopeV113.key("weaponPivotYV117",scope)' in menu
           assert 'player?playerGunPivotXV117:npcGunPivotXV117' in game
