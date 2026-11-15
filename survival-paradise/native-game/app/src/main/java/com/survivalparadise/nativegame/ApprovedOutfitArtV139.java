@@ -25,6 +25,9 @@ final class ApprovedOutfitArtV139 {
     private final int[][] pantsColors=new int[COUNT][];
     private final Bitmap[] torsoSprites=new Bitmap[COUNT];
     private final Bitmap[] pantsSprites=new Bitmap[COUNT];
+    // Recolor only the approved original silhouette alpha. No alternative
+    // anatomy, altered heads, transparent/nude body or external placeholder.
+    private Bitmap undershirtV141,boxersV141;
     private final int[] torsoWidth=new int[COUNT],torsoHeight=new int[COUNT];
     private final int[] pantsWidth=new int[COUNT],pantsHeight=new int[COUNT];
     private final boolean available;
@@ -63,6 +66,48 @@ final class ApprovedOutfitArtV139 {
                 ok=false;
         }catch(IOException ignored){ok=false;}
         available=ok;
+        if(ok){
+            undershirtV141=underwearSpriteV141(torsoSprites[0],true);
+            boxersV141=underwearSpriteV141(pantsSprites[0],false);
+        }
+    }
+    /** Fully covered undershirt and boxer shorts from original silhouette.
+     * Every non-transparent exterior source pixel remains within its original
+     * outline. Nearest-neighbor rendering preserves the game's pixel grid.
+     */
+    private static Bitmap underwearSpriteV141(Bitmap source,boolean top){
+        int w=source.getWidth(),h=source.getHeight();
+        int[] pixels=new int[w*h],out=new int[w*h];
+        source.getPixels(pixels,0,w,0,0,w,h);
+        for(int y=0;y<h;y++)for(int x=0;x<w;x++){
+            int index=y*w+x;
+            if((pixels[index]>>>24)<128)continue;
+            boolean edge=false;
+            for(int yy=-2;yy<=2&&!edge;yy++)for(int xx=-2;xx<=2;xx++){
+                int nx=x+xx,ny=y+yy;
+                if(nx<0||ny<0||nx>=w||ny>=h||
+                   (pixels[ny*w+nx]>>>24)<128){edge=true;break;}
+            }
+            if(edge){out[index]=0xff171b1e;continue;}
+            float distance=Math.abs(x-(w-1)*.5f)/Math.max(1f,w*.5f);
+            int base=top?0xffc5c9bb:0xff536070;
+            int dark=top?0xff89968c:0xff303c50;
+            int light=top?0xffd6d6c7:0xff677689;
+            int waistband=h/10;
+            if(!top&&(y>=waistband-3&&y<=waistband+3))
+                out[index]=0xffb9b7aa;
+            else if(!top&&Math.abs(x-(w-1)/2)<=2&&y>h*.4f)
+                out[index]=0xff323c4b;
+            else if(top&&y>h*.87f)
+                out[index]=0xff7a867d;
+            else if(distance>.75f)
+                out[index]=dark;
+            else if(distance<.34f)
+                out[index]=light;
+            else
+                out[index]=base;
+        }
+        return Bitmap.createBitmap(out,w,h,Bitmap.Config.ARGB_8888);
     }
     boolean ready(){return available;}
     /** Exact original PNG rendered to a small nearest-neighbor inventory icon. */
@@ -106,13 +151,15 @@ final class ApprovedOutfitArtV139 {
              int torsoStyle,int pantsStyle,int torsoWidthPercent,
              int pelvisWidthPercent,android.graphics.Paint pixel){
         if(!available)return;
-        int torso=Math.max(0,Math.min(19,torsoStyle));
-        int pants=Math.max(0,Math.min(19,pantsStyle));
+        int torso=Math.max(-1,Math.min(19,torsoStyle));
+        int pants=Math.max(-1,Math.min(19,pantsStyle));
         // The user-approved simulator draws pants FIRST, then torso, then
         // the original head, then independently animated rear/front boots.
-        drawRigSprite(c,pantsSprites[pants],47f,154f,93f*1.04f,
+        drawRigSprite(c,pants>=0?pantsSprites[pants]:boxersV141,
+            47f,154f,93f*1.04f,
             pelvisWidthPercent,72,left,top,unit,pixel);
-        drawRigSprite(c,torsoSprites[torso],36f,71f,120f,
+        drawRigSprite(c,torso>=0?torsoSprites[torso]:undershirtV141,
+            36f,71f,120f,
             torsoWidthPercent,71,left,top,unit,pixel);
     }
 
