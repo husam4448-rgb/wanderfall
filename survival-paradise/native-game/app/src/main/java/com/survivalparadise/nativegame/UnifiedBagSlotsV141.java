@@ -55,6 +55,24 @@ public final class UnifiedBagSlotsV141 {
         return exposed;
     }
 
+    /** Atomic search of one indoor corpse: never grant invisible overflow. */
+    public static boolean canStoreAll(int[] slots,int[] splits,Count counts,
+                                      int[] incoming){
+        int free=0;
+        for(int i=0;i<slots.length;i++)
+            if(splits[i]==0&&(slots[i]==EMPTY||!valid(slots[i])||
+               counts.available(slots[i])<=0))free++;
+        int needed=0;
+        for(int i=0;i<incoming.length;i++){
+            int type=incoming[i];
+            if(!valid(type)||contains(slots,type))continue;
+            boolean already=false;
+            for(int j=0;j<i;j++)if(incoming[j]==type){already=true;break;}
+            if(!already)needed++;
+        }
+        return needed<=free;
+    }
+
     /** Convert V92's reserved index 39 from EMPTY to the new sentinel 97. */
     public static void migrateLegacyOrder(int[] slots){
         for(int i=0;i<slots.length;i++)
