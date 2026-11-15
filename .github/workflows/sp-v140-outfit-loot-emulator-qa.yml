@@ -78,9 +78,7 @@ jobs:
             adb logcat -d -t 1000 > /tmp/sp140/visual/logcat_tail.txt
             # Verify the package process still exists after menu and gameplay.
             adb shell pidof com.survivalparadise.nativegame.v140outfitloottest
-            if grep -E '(FATAL EXCEPTION|Process: com.survivalparadise.nativegame.v140outfitloottest)' /tmp/sp140/visual/logcat_tail.txt; then
-              echo 'Android runtime fatal exception detected'; exit 1
-            fi
+            if grep -E '(FATAL EXCEPTION|Process: com.survivalparadise.nativegame.v140outfitloottest)' /tmp/sp140/visual/logcat_tail.txt; then echo 'Android runtime fatal exception detected'; exit 1; fi
             test -s /tmp/sp140/visual/01_menu.png
             test -s /tmp/sp140/visual/02_gameplay.png
             test -s /tmp/sp140/visual/03_gameplay_zoom.png
