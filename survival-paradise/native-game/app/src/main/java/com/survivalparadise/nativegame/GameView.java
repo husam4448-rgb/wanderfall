@@ -671,11 +671,11 @@ public final class GameView extends View {
             host.prefs.edit().putInt("gun",gun).apply();
             snapAimToWeaponRest();
         }
-        saveProgress();invalidate();return true;
+        syncBagV141();saveProgress();invalidate();return true;
     }
     boolean unequipOutfitV140(int slot){
         if(!outfitsV140.unequip(slot))return false;
-        saveProgress();invalidate();return true;
+        syncBagV141();saveProgress();invalidate();return true;
     }
     android.graphics.drawable.Drawable iconOutfitV140(int type,int dp){
         if(!OutfitInventoryV140.valid(type))return null;
@@ -801,6 +801,11 @@ public final class GameView extends View {
     }
     float gameTimeV129(){return DroppedItemsV129.time(clock.day(),clock.minute());}
     boolean changeInventoryV129(int idx,int delta){
+        if(OutfitInventoryV140.valid(idx)){
+            if(delta==0)return false;
+            return delta>0?outfitsV140.add(idx,delta):
+                outfitsV140.remove(idx,-delta);
+        }
         if(idx<0||idx>=39||delta==0)return false;
         int current=inventoryQuantityV92(idx);
         int equippedReserved=equippedReserveV131(idx);
@@ -834,19 +839,22 @@ public final class GameView extends View {
     }
     /** Save stack before changing the inventory, so failed placement loses nothing. */
     boolean dropInventoryV129(int kind,int quantity){
-        if(!playing||gameOver||kind<0||kind>=39||quantity<=0||
-           availableInventoryV131(kind)<quantity)return false;
+        if(!playing||gameOver||!UnifiedBagSlotsV141.valid(kind)||
+           quantity<=0||availableInventoryV131(kind)<quantity)return false;
         float x=playerX+aimX*44f,y=playerY+aimY*44f;
         if(insideClinicV89){
             if(clinicInteriorV89.blocked(x,y,16f)){x=playerX;y=playerY;}
         }else if(blocked(x,y,16f)){x=playerX;y=playerY;}
-        DroppedItemsV129.Stack stack=droppedItemsV129.drop(kind,quantity,x,y,
-            droppedSceneV129(),gameTimeV129(),host.setting("groundDropDaysV129",2));
+        DroppedItemsV129.Stack stack=OutfitInventoryV140.valid(kind)?
+            droppedItemsV129.dropGearV141(kind,quantity,x,y,droppedSceneV129(),
+                gameTimeV129(),host.setting("groundDropDaysV129",2)):
+            droppedItemsV129.drop(kind,quantity,x,y,droppedSceneV129(),
+                gameTimeV129(),host.setting("groundDropDaysV129",2));
         if(stack==null)return false;
         if(!changeInventoryV129(kind,-quantity)){
             droppedItemsV129.take(stack);return false;
         }
-        gatherFeedback="DROPPED "+INVENTORY_NAMES_V92[kind]+" ×"+quantity;
+        gatherFeedback="DROPPED "+inventoryNameV141(kind)+" ×"+quantity;
         gatherFeedbackTime=2.2f;saveProgress();invalidate();return true;
     }
     DroppedItemsV129.Stack nearbyDroppedV129(){
@@ -859,9 +867,11 @@ public final class GameView extends View {
            !stack.scene.equals(droppedSceneV129())||
            distance(playerX,playerY,stack.x,stack.y)>DroppedItemsV129.USE_RADIUS+8f)
             return false;
-        if(!changeInventoryV129(stack.type,stack.quantity))return false;
+        if(!canStowInventoryV141(stack.type)||
+           !changeInventoryV129(stack.type,stack.quantity))return false;
         droppedItemsV129.take(stack);
-        gatherFeedback="RECOVERED "+INVENTORY_NAMES_V92[stack.type]+" ×"+stack.quantity;
+        syncBagV141();
+        gatherFeedback="RECOVERED "+inventoryNameV141(stack.type)+" ×"+stack.quantity;
         gatherFeedbackTime=2f;saveProgress();invalidate();return true;
     }
     void drawDroppedItemsV129(Canvas c){
@@ -877,7 +887,7 @@ public final class GameView extends View {
             rect(c,x-16,y-18,32,12,0xffa28d63);
             rect(c,x-14,y-14,28,3,0xff453f35);
             rect(c,x+12,y-16,5,13,0xff243f3e);
-            label(c,INVENTORY_NAMES_V92[stack.type]+" ×"+stack.quantity,
+            label(c,inventoryNameV141(stack.type)+" ×"+stack.quantity,
                 x-24,y-31,10,0xffe2c58f,true);
         }
         if(insideClinicV89)c.restore();
