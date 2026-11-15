@@ -16,18 +16,32 @@ public final class BanditLootV87 {
         // Explicit manifest distinguishes newly stripped bodies from V87/V129
         // legacy corpses. It persists even after the last item was taken.
         public boolean gearManifestV141=false;
+        public long nutsV143=0; // immutable coin value until explicitly looted
         public int variant=0,face=1,skinV109=-1;
         public final int[] count=new int[ITEMS];
         /** Index 0 maps to stable item ID 39. Versioned, sparse save encoding. */
         public final int[] extra=new int[58];
         public int itemCount(int kind){
+            if(kind>=ITEMS+extra.length&&kind<ITEMS+extra.length+3){
+                int denomination=kind-(ITEMS+extra.length);
+                return denomination==NutWalletV143.IRON?(int)(nutsV143%100):
+                    denomination==NutWalletV143.SILVER_COIN?
+                        (int)(nutsV143%10000/100):(int)(nutsV143/10000);
+            }
             return kind>=0&&kind<ITEMS?count[kind]:
                 kind>=ITEMS&&kind<ITEMS+extra.length?extra[kind-ITEMS]:0;
         }
         public boolean hasExtra(){for(int n:extra)if(n>0)return true;return false;}
         Bag(int id,float x,float y){this.id=id;this.x=x;this.y=y;}
-        public boolean empty(){for(int n:count)if(n>0)return false;return !hasExtra();}
-        public int total(){int n=0;for(int c:count)n+=c;for(int c:extra)n+=c;return n;}
+        public boolean empty(){
+            for(int n:count)if(n>0)return false;
+            return !hasExtra()&&nutsV143<=0;
+        }
+        public int total(){
+            int n=0;for(int c:count)n+=c;for(int c:extra)n+=c;
+            for(int d=0;d<3;d++)n+=itemCount(ITEMS+extra.length+d);
+            return n;
+        }
     }
     public final ArrayList<Bag> bags=new ArrayList<>();
     private int nextId=1;
@@ -84,6 +98,20 @@ public final class BanditLootV87 {
         if(bag.empty()&&!bag.corpse)bags.remove(bag);
         return n;
     }
+    public int takeNutsV143(Bag bag,int denomination){
+        if(!contains(bag)||denomination<0||denomination>2)return 0;
+        int amount=bag.itemCount(ITEMS+bag.extra.length+denomination);
+        if(amount<=0)return 0;
+        bag.nutsV143-=(long)amount*NutWalletV143.unit(denomination);
+        if(bag.empty()&&!bag.corpse)bags.remove(bag);
+        return amount;
+    }
+    public long takeAllNutsV143(Bag bag){
+        if(!contains(bag))return 0;
+        long total=bag.nutsV143;bag.nutsV143=0;
+        if(bag.empty()&&!bag.corpse)bags.remove(bag);
+        return total;
+    }
     public int[] takeAllExtra(Bag bag){
         int[] out=new int[58];
         if(!contains(bag))return out;
@@ -111,11 +139,12 @@ public final class BanditLootV87 {
             out.append(',').append(bag.corpse?1:0).append(',')
                .append(bag.variant).append(',').append(bag.face)
                .append(',').append(bag.skinV109);
-            if(bag.gearManifestV141||bag.hasExtra()){
+            if(bag.gearManifestV141||bag.hasExtra()||bag.nutsV143>0){
                 out.append(",x");
                 for(int i=0;i<bag.extra.length;i++)if(bag.extra[i]>0)
                     out.append('|').append(i).append(':').append(bag.extra[i]);
             }
+            if(bag.nutsV143>0)out.append(",n").append(bag.nutsV143);
         }
         return out.toString();
     }
@@ -125,7 +154,8 @@ public final class BanditLootV87 {
             if(bags.size()>=MAX_BAGS)break;
             String[] p=entry.split(",");
             if(p.length!=ITEMS+3&&p.length!=ITEMS+6&&
-               p.length!=ITEMS+7&&p.length!=ITEMS+8)continue;
+               p.length!=ITEMS+7&&p.length!=ITEMS+8&&
+               p.length!=ITEMS+9)continue;
             try{
                 int id=Integer.parseInt(p[0]);
                 float x=Float.parseFloat(p[1]),y=Float.parseFloat(p[2]);
@@ -149,7 +179,7 @@ public final class BanditLootV87 {
                         int skin=Integer.parseInt(p[ITEMS+6]);
                         bag.skinV109=skin>=1&&skin<=200?skin:-1;
                     }
-                    if(p.length==ITEMS+8){
+                    if(p.length>=ITEMS+8){
                         String[] entries=p[ITEMS+7].split("\\|",-1);
                         if(entries.length<1||!"x".equals(entries[0]))continue;
                         boolean valid=true;
@@ -163,6 +193,13 @@ public final class BanditLootV87 {
                         }
                         if(!valid)continue;
                         bag.gearManifestV141=true;
+                    }
+                    if(p.length==ITEMS+9){
+                        String coins=p[ITEMS+8];
+                        if(!coins.startsWith("n"))continue;
+                        long amount=Long.parseLong(coins.substring(1));
+                        if(amount<1||amount>NutWalletV143.MAX)continue;
+                        bag.nutsV143=amount;
                     }
                 }
                 if(!invalid&&(!bag.empty()||bag.corpse)){
