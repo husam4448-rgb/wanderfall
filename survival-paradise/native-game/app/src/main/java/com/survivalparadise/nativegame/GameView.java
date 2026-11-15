@@ -743,7 +743,7 @@ public final class GameView extends View {
         return slot==0?6:slot==1?7:slot==2?8:slot==3?9:3;
     }
     int compareBagV141(int left,int right,int mode){
-        if(!OutfitInventoryV140.valid(left)&&!OutfitInventoryV140.valid(right))
+        if(left<39&&right<39)
             return InventoryCatalogV131.compare(left,right,mode,INVENTORY_NAMES_V92);
         if(left==right)return 0;
         int cmp=mode==1?Integer.compare(categoryV141(left),categoryV141(right)):
@@ -4811,14 +4811,25 @@ public final class GameView extends View {
             case BanditLootV87.FIBER:fiber+=count;break;
         }
     }
-    static final int CORPSE_NUT_KIND_V143=
+    static final int CORPSE_AMMO_KIND_V143=
         BanditLootV87.ITEMS+OutfitInventoryV140.COUNT;
+    static final int CORPSE_NUT_KIND_V143=
+        CORPSE_AMMO_KIND_V143+AmmoInventoryV143.COUNT;
     int lootBanditStackV87(BanditLootV87.Bag bag,int kind){
         if(!playing||!banditLootV87.contains(bag)||
             distance(playerX,playerY,bag.x,bag.y)>BanditLootV87.USE_RADIUS+7f)return 0;
         int count;
         String name;
-        if(kind>=CORPSE_NUT_KIND_V143&&kind<CORPSE_NUT_KIND_V143+3){
+        if(kind>=CORPSE_AMMO_KIND_V143&&kind<CORPSE_NUT_KIND_V143){
+            int family=kind-CORPSE_AMMO_KIND_V143;
+            int type=AmmoInventoryV143.FIRST+family;
+            if(bag.ammoExtraV143[family]<=0||
+               !canStowInventoryV141(type)||
+               !playerAmmoV143.add(type,bag.ammoExtraV143[family]))return 0;
+            count=banditLootV87.takeAmmoV143(bag,family);
+            name=AmmoInventoryV143.name(type);
+        }else if(kind>=CORPSE_NUT_KIND_V143&&
+                 kind<CORPSE_NUT_KIND_V143+3){
             int denomination=kind-CORPSE_NUT_KIND_V143;
             int coins=bag.itemCount(kind);
             long iron=coins*NutWalletV143.unit(denomination);
@@ -4859,6 +4870,15 @@ public final class GameView extends View {
                 // transferring another item; no invisible overflow.
                 syncBagV141();
                 count+=banditLootV87.takeExtra(bag,i);
+            }
+        }
+        for(int family=0;family<AmmoInventoryV143.COUNT;family++){
+            int amount=bag.ammoExtraV143[family],
+                type=AmmoInventoryV143.FIRST+family;
+            if(amount>0&&canStowInventoryV141(type)&&
+               playerAmmoV143.add(type,amount)){
+                syncBagV141();
+                count+=banditLootV87.takeAmmoV143(bag,family);
             }
         }
         // Currency is independent of the forty item slots, remains on the
