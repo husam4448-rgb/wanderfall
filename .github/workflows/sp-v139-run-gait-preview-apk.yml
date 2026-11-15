@@ -686,6 +686,8 @@ jobs:
                   assert len(manifest["files"])==40
               print("PASS V139: 20 exact approved torsos, 20 exact pants, manifest digests")
           PY
+      - name: Validate byte-exact the_new_style.zip garment artwork
+        run: python3 survival-paradise/native-game/tools/verify_new_style_art_v139.py
       - name: V139 exact approved 20-outfit simulator anchor equivalence
         run: |
           python3 - <<'PY'
