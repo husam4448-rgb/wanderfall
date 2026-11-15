@@ -153,10 +153,10 @@ public final class BanditLootV87 {
                         for(int k=1;k<entries.length;k++){
                             String[] pair=entries[k].split(":",-1);
                             if(pair.length!=2){valid=false;break;}
-                            int id=Integer.parseInt(pair[0]),n=Integer.parseInt(pair[1]);
-                            if(id<0||id>=bag.extra.length||n<1||n>9999||
-                               bag.extra[id]!=0){valid=false;break;}
-                            bag.extra[id]=n;
+                            int extraId=Integer.parseInt(pair[0]),n=Integer.parseInt(pair[1]);
+                            if(extraId<0||extraId>=bag.extra.length||n<1||n>9999||
+                               bag.extra[extraId]!=0){valid=false;break;}
+                            bag.extra[extraId]=n;
                         }
                         if(!valid)continue;
                     }
