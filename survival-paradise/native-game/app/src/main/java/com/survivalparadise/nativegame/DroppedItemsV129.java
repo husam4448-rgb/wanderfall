@@ -25,7 +25,17 @@ public final class DroppedItemsV129 {
     }
     public static int days(int setting){return Math.max(1,Math.min(2,setting));}
     public Stack drop(int type,int quantity,float x,float y,String scene,float now,int days){
-        if(type<0||type>=TYPES||quantity<=0||quantity>9999||
+        return dropValidatedV141(type,quantity,x,y,scene,now,days,TYPES);
+    }
+    /** Extended item IDs preserve V129's original drop() contract/tests. */
+    public Stack dropGearV141(int type,int quantity,float x,float y,
+                              String scene,float now,int days){
+        return dropValidatedV141(type,quantity,x,y,scene,now,days,
+            OutfitInventoryV140.TOTAL);
+    }
+    private Stack dropValidatedV141(int type,int quantity,float x,float y,
+                             String scene,float now,int days,int maxType){
+        if(type<0||type>=maxType||quantity<=0||quantity>9999||
            !Float.isFinite(x)||!Float.isFinite(y)||!Float.isFinite(now)||
            scene==null||scene.isEmpty()||scene.contains(",")||scene.contains(";")||
            stacks.size()>=MAX)return null;
@@ -70,7 +80,7 @@ public final class DroppedItemsV129 {
                 int n=Integer.parseInt(p[2]);
                 float x=Float.parseFloat(p[3]),y=Float.parseFloat(p[4]);
                 float expiry=Float.parseFloat(p[5]);String scene=p[6];
-                if(id<1||t<0||t>=TYPES||n<=0||n>9999||
+                if(id<1||t<0||t>=OutfitInventoryV140.TOTAL||n<=0||n>9999||
                    !Float.isFinite(x)||!Float.isFinite(y)||
                    !Float.isFinite(expiry)||Math.abs(x)>2_000_000f||
                    Math.abs(y)>2_000_000f||scene.isEmpty()||
