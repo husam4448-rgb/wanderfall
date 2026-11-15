@@ -13,6 +13,13 @@ public final class NpcGearV143 {
     public static int indoorRaiderGun(int index,int skin){
         return INDOOR[Math.floorMod(index*5+skin,INDOOR.length)];
     }
+    public static final int[] MAGAZINE={12,6,28,1,30,30,28,6,5,75,8,1};
+    public static int magazine(int weapon){
+        return weapon>=0&&weapon<MAGAZINE.length?MAGAZINE[weapon]:0;
+    }
+    public static int ammoType(int weapon){
+        return AmmoInventoryV143.forGun(weapon);
+    }
     public static int[] ammo(int weapon,int magazine){
         int mag=Math.max(1,magazine);
         int spare=Math.max(mag,Math.min(4*mag,mag*(2+(weapon%3))));
