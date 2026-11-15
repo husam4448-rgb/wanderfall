@@ -15,6 +15,10 @@ public final class InventoryCatalogV131 {
     };
     /** Families: medical, food, crafting, supplies, packs, head, torso, legs, feet. */
     public static int category(int type){
+        if(OutfitInventoryV140.valid(type)){
+            int slot=OutfitInventoryV140.slot(type);
+            return slot==0?6:slot==1?7:slot==2?8:slot==3?9:3;
+        }
         if(type<0||type>=COUNT)return 99;
         if(type==1||type==12||type==17)return 0;
         if(type==3||type==4||type==13)return 1;
@@ -26,6 +30,10 @@ public final class InventoryCatalogV131 {
     }
     /** Clothing and bags map to the eight equipment sockets in the UI. */
     public static int equipmentSlot(int type){
+        if(OutfitInventoryV140.valid(type)){
+            int slot=OutfitInventoryV140.slot(type);
+            return slot==0?2:slot==1?3:slot==2?4:slot==3?6:-1;
+        }
         if(type<24||type>=COUNT)return -1;
         if(type<27)return 5; // back
         if(type<30)return 0; // head
@@ -37,7 +45,12 @@ public final class InventoryCatalogV131 {
         return equipmentSlot(type)==slot;
     }
     public static float weight(int type){
-        return type<0||type>=COUNT?0f:WEIGHT[type];
+        return OutfitInventoryV140.valid(type)?
+            OutfitInventoryV140.weight(type):type<0||type>=COUNT?0f:WEIGHT[type];
+    }
+    public static String name(int type,String[] names){
+        if(OutfitInventoryV140.valid(type))return OutfitInventoryV140.name(type);
+        return type>=0&&type<names.length?names[type]:"EMPTY";
     }
     public static int compare(int left,int right,int mode,String[] names){
         if(left==right)return 0;
@@ -45,12 +58,12 @@ public final class InventoryCatalogV131 {
         switch(mode){
             case 1:result=Integer.compare(category(left),category(right));break;
             case 2:result=Float.compare(weight(right),weight(left));break;
-            case 3:result=names[left].compareToIgnoreCase(names[right]);break;
+            case 3:result=name(left,names).compareToIgnoreCase(name(right,names));break;
             default:break;
         }
         if(result!=0)return result;
         if(mode==1||mode==2)
-            return names[left].compareToIgnoreCase(names[right]);
+            return name(left,names).compareToIgnoreCase(name(right,names));
         return Integer.compare(left,right);
     }
     public static String massLabel(int type,int quantity){
