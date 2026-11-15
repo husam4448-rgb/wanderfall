@@ -1150,7 +1150,7 @@ public final class MainActivity extends Activity {
         int kind=game.bagOrderV92[position],quantity=game.bagSlotQuantityV130(position);
         if(!UnifiedBagSlotsV141.valid(kind)||quantity<=0)return;
         java.util.ArrayList<String> choices=new java.util.ArrayList<>();
-        if(InventoryCatalogV131.equipmentSlot(kind)>=0)choices.add("EQUIP");
+        if(game.inventorySlotV141(kind)>=0)choices.add("EQUIP");
         else if(kind>=8&&kind<=11)choices.add("PLACE IN WORLD");
         else if(kind==1||kind==3||kind==4||kind==12||kind==13)
             choices.add("USE");
@@ -1160,15 +1160,15 @@ public final class MainActivity extends Activity {
         choices.add("CANCEL");
         new AlertDialog.Builder(this)
             .setTitle(game.inventoryNameV141(kind)+" ×"+quantity+
-                "\nUNIT WT "+InventoryCatalogV131.massLabel(kind,1)+
-                "   STACK WT "+InventoryCatalogV131.massLabel(kind,quantity)+
+                "\nUNIT WT "+game.itemMassLabelV141(kind,1)+
+                "   STACK WT "+game.itemMassLabelV141(kind,quantity)+
                 " LOAD")
             .setItems(choices.toArray(new String[0]),(dialog,chosen)->{
                 String action=choices.get(chosen);
                 if(action.equals("DROP")||action.equals("SPLIT STACK")){
                     bagQuantityMenuV130(position,action.equals("SPLIT STACK"),refresh);
                 }else if(action.equals("EQUIP")){
-                    int slot=InventoryCatalogV131.equipmentSlot(kind);
+                    int slot=game.inventorySlotV141(kind);
                     boolean equipped=game.equipInventoryItemV131(kind,slot);
                     if(equipped){
                         avatar.invalidate();refresh.run();
@@ -1394,7 +1394,7 @@ public final class MainActivity extends Activity {
                         if(position<0||position>=40)return false;
                         int type=game.bagOrderV92[position];
                         if(game.bagSlotQuantityV130(position)<1||
-                           !InventoryCatalogV131.compatible(type,socketIndex))
+                           !game.inventoryCompatibleV141(type,socketIndex))
                             return false;
                         boolean success=game.equipInventoryItemV131(type,socketIndex);
                         if(success){
