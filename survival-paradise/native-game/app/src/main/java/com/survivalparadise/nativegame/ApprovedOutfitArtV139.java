@@ -65,6 +65,33 @@ final class ApprovedOutfitArtV139 {
         available=ok;
     }
     boolean ready(){return available;}
+    /** Exact original PNG rendered to a small nearest-neighbor inventory icon. */
+    android.graphics.drawable.Drawable inventoryIcon(Context ctx,int type,int dp){
+        int slot=OutfitInventoryV140.slot(type);
+        int id=OutfitInventoryV140.style(type);
+        Bitmap original=slot==0?torsoSprites[id]:slot==1?pantsSprites[id]:null;
+        return makeOriginalIcon(ctx,original,dp);
+    }
+    static android.graphics.drawable.Drawable makeOriginalIcon(Context ctx,
+            Bitmap original,int dp){
+        if(original==null)return null;
+        Bitmap tile=Bitmap.createBitmap(56,56,Bitmap.Config.ARGB_8888);
+        Canvas canvas=new Canvas(tile);
+        android.graphics.Paint nearest=new android.graphics.Paint();
+        nearest.setFilterBitmap(false);nearest.setAntiAlias(false);
+        float scale=Math.min(51f/original.getWidth(),51f/original.getHeight());
+        int w=Math.max(1,Math.round(original.getWidth()*scale));
+        int h=Math.max(1,Math.round(original.getHeight()*scale));
+        float x=(56f-w)/2f,y=(56f-h)/2f;
+        canvas.drawBitmap(original,null,new android.graphics.RectF(x,y,x+w,y+h),nearest);
+        android.graphics.drawable.BitmapDrawable icon=
+            new android.graphics.drawable.BitmapDrawable(ctx.getResources(),tile);
+        icon.setFilterBitmap(false);
+        float density=ctx.getResources().getDisplayMetrics().density;
+        int pixels=Math.max(12,Math.round(dp*density));
+        icon.setBounds(0,0,pixels,pixels);
+        return icon;
+    }
 
     /**
      * Exact original approved V132/V133 modular rig projection.
