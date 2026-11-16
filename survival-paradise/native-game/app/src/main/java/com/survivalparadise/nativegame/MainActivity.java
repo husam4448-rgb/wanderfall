@@ -1597,8 +1597,27 @@ public final class MainActivity extends Activity {
         shell.setBackgroundColor(0xff251e1a);
         TextView handle=text("✦  SURVIVAL PARADISE  •  INVENTORY & EQUIPMENT  ✦",14,true);
         handle.setGravity(Gravity.CENTER);
-        handle.setTextColor(0xffe5b966);handle.setBackgroundColor(0xff60402d);
+        handle.setTextColor(0xffd7eddb);handle.setBackgroundColor(0xff31504a);
         shell.addView(handle);
+        // V147 persistent currency strip. Nuts live in the player's pocket,
+        // not in ordinary inventory slots; display the exact saved V143 wallet.
+        LinearLayout bagCurrencyBarV147=new LinearLayout(this);
+        bagCurrencyBarV147.setGravity(Gravity.CENTER_VERTICAL);
+        bagCurrencyBarV147.setOrientation(LinearLayout.HORIZONTAL);
+        bagCurrencyBarV147.setPadding(dp118(4),dp118(3),dp118(4),dp118(3));
+        TextView bagNutsTitleV147=text("CARRIED NUTS",12,true);
+        bagNutsTitleV147.setTextColor(0xffd2e9d7);
+        bagCurrencyBarV147.addView(bagNutsTitleV147,
+            new LinearLayout.LayoutParams(0,dp118(34),1.1f));
+        final TextView[] bagCoinsV147=new TextView[3];
+        for(int coin=2;coin>=0;coin--){
+            bagCoinsV147[coin]=v147CoinChip(coin);
+            LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(
+                0,dp118(34),1f);
+            cp.setMargins(dp118(2),0,dp118(2),0);
+            bagCurrencyBarV147.addView(bagCoinsV147[coin],cp);
+        }
+        shell.addView(bagCurrencyBarV147);
         ScrollView scroll=new ScrollView(this);
         LinearLayout root=column();
         root.setBackgroundColor(0xff2e2521);scroll.addView(root);
@@ -1972,6 +1991,9 @@ public final class MainActivity extends Activity {
         });
         redrawV92[0]=()->{
             game.reconcileBagSplitsV130();
+            for(int coin=0;coin<bagCoinsV147.length;coin++)
+                bagCoinsV147[coin].setText(
+                    NutWalletV143.NAMES[coin]+"  "+game.playerNutsV143.coins(coin));
             for(int position=0;position<tilesV92.length;position++){
                 SquareItemSlotV88 tile=tilesV92[position];
                 int kind=game.bagOrderV92[position],qty=game.bagSlotQuantityV130(position);
@@ -2133,9 +2155,10 @@ public final class MainActivity extends Activity {
         root.addView(text("Recovered clothing, boots, weapons and rounds are displayed in the backpack slots above. Headgear remains invisible on characters.",12,false));
         shell.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
         LinearLayout tools=new LinearLayout(this);tools.setOrientation(LinearLayout.HORIZONTAL);
-        Button smaller=v62Slot("WINDOW −",true),larger=v62Slot("WINDOW +",true);
-        Button closeBag=v62Slot("CLOSE BAG",true);
-        int footerDp=Math.round(50*getResources().getDisplayMetrics().density);
+        Button smaller=v147TouchButton("− WINDOW",false),
+            larger=v147TouchButton("+ WINDOW",false);
+        Button closeBag=v147TouchButton("CLOSE BAG",true);
+        int footerDp=dp118(43);
         tools.addView(smaller,new LinearLayout.LayoutParams(0,footerDp,1));
         tools.addView(larger,new LinearLayout.LayoutParams(0,footerDp,1));
         tools.addView(closeBag,new LinearLayout.LayoutParams(0,footerDp,1));
