@@ -1084,8 +1084,57 @@ public final class MainActivity extends Activity {
         dialog.setCancelable(true);
         resizeSettingsWindow(dialog,76,87);
     }
-    /** Two-sided actual-inventory trade, using the same icon grid as looting.
-     * No fictional purchases: NPCs have finite saved goods and pocket money.
+    /** V147 rounded touch surfaces, explicit pressed feedback and 44dp targets. */
+    private android.graphics.drawable.Drawable v147TouchSurface(
+            int color,int border,int cornerDp){
+        android.graphics.drawable.GradientDrawable bg=
+            new android.graphics.drawable.GradientDrawable();
+        bg.setColor(color);bg.setCornerRadius(dp118(cornerDp));
+        bg.setStroke(dp118(1),border);
+        return new android.graphics.drawable.RippleDrawable(
+            android.content.res.ColorStateList.valueOf(0x66fff0c2),bg,null);
+    }
+    private Button v147TouchButton(String title,boolean primary){
+        Button control=new Button(this);
+        control.setAllCaps(false);
+        control.setText(title);
+        control.setTextSize(12f);
+        control.setTextColor(primary?0xff122723:0xfff1e6cf);
+        control.setGravity(Gravity.CENTER);
+        control.setPadding(dp118(5),0,dp118(5),0);
+        control.setMinHeight(0);control.setMinimumHeight(0);
+        control.setMinWidth(0);control.setMinimumWidth(0);
+        control.setElevation(0f);control.setStateListAnimator(null);
+        control.setBackground(v147TouchSurface(
+            primary?0xffb0d9bd:0xff354c4a,
+            primary?0xffd4f5d4:0xff668c84,9));
+        return control;
+    }
+    private void v147TradeCell(SquareItemSlotV88 tile,boolean selected){
+        tile.setBackground(v147TouchSurface(
+            selected?0xff53624c:0xff253a3a,
+            selected?0xffffd287:0xff526c69,8));
+        tile.setContentDescription(tile.getContentDescription()+
+            (selected?". Selected.":""));
+    }
+    /** View-only coins. The stored wallet is still the exact V143 save value. */
+    private TextView v147CoinChip(int coin){
+        TextView view=text("",12,true);
+        view.setGravity(Gravity.CENTER);
+        view.setTextColor(coin==NutWalletV143.GOLD_COIN?0xffffd778:
+            coin==NutWalletV143.SILVER_COIN?0xffd1e7ed:0xffdda77d);
+        view.setPadding(dp118(5),dp118(3),dp118(5),dp118(3));
+        android.graphics.drawable.GradientDrawable bg=
+            new android.graphics.drawable.GradientDrawable();
+        bg.setColor(0xff304341);bg.setCornerRadius(dp118(8));
+        view.setBackground(bg);
+        view.setCompoundDrawables(
+            NutIconsV143.drawable(this,coin,18),null,null,null);
+        view.setCompoundDrawablePadding(dp118(4));
+        return view;
+    }
+    /** Two live inventories with one compact touch transaction bar.
+     * Actual buys, sells, limits and money all use the original V143 engine.
      */
     void npcTradeWindowV143(){
         if(game==null||!game.isPlaying())return;
@@ -1094,122 +1143,164 @@ public final class MainActivity extends Activity {
         final String traderId=merchant.id;
         game.menuPause(true);
         LinearLayout shell=column();
-        shell.setBackgroundColor(0xff202f30);
-        section(shell,"NPC TRADE  •  IRON / SILVER / GOLD NUTS");
-        TextView wallets=text("",13,true);
+        shell.setPadding(dp118(8),dp118(5),dp118(8),dp118(6));
+        shell.setBackgroundColor(0xff1b2b2e);
+
+        LinearLayout header=new LinearLayout(this);
+        header.setOrientation(LinearLayout.HORIZONTAL);
+        header.setGravity(Gravity.CENTER_VERTICAL);
+        TextView title=text("TRADE  •  IRON / SILVER / GOLD NUTS",16,true);
+        title.setTextColor(0xffbce5ce);
+        title.setGravity(Gravity.CENTER_VERTICAL);
+        header.addView(title,new LinearLayout.LayoutParams(0,dp118(42),1));
+        Button close=v147TouchButton("✕ CLOSE",false);
+        header.addView(close,new LinearLayout.LayoutParams(dp118(90),dp118(40)));
+        shell.addView(header);
+        TextView wallets=text("",12,true);
+        wallets.setTextColor(0xffe8dfc8);
         shell.addView(wallets);
-        shell.addView(text("100 IRON = 1 SILVER  •  100 SILVER = 1 GOLD. "+
-            "Select a stock item to BUY or your own item to SELL. "+
-            "The trader has a limited budget, and actual stock changes after each purchase.",11,false));
+        TextView hint=text("TAP AN ITEM TO SEE ITS PRICE  •  100 IRON = 1 SILVER  •  100 SILVER = 1 GOLD",10,false);
+        hint.setTextColor(0xffa2c2bc);
+        shell.addView(hint);
+
         LinearLayout sides=new LinearLayout(this);
         sides.setOrientation(LinearLayout.HORIZONTAL);
         shell.addView(sides,new LinearLayout.LayoutParams(-1,0,1f));
         LinearLayout stock=column(),player=column();
-        stock.setBackgroundColor(0xff29443e);
-        player.setBackgroundColor(0xff35404a);
-        sides.addView(stock,new LinearLayout.LayoutParams(0,-1,1f));
-        sides.addView(player,new LinearLayout.LayoutParams(0,-1,1f));
-        section(stock,"NPC INVENTORY  •  BUY");
-        section(player,"PLAYER INVENTORY  •  SELL");
+        stock.setBackgroundColor(0xff243d3a);player.setBackgroundColor(0xff283a40);
+        LinearLayout.LayoutParams pane=new LinearLayout.LayoutParams(0,-1,1);
+        pane.setMargins(0,dp118(3),dp118(3),0);
+        sides.addView(stock,pane);
+        LinearLayout.LayoutParams pane2=new LinearLayout.LayoutParams(0,-1,1);
+        pane2.setMargins(dp118(3),dp118(3),0,0);
+        sides.addView(player,pane2);
+        section(stock,"TRADER STOCK  •  BUY");
+        section(player,"YOUR BAG  •  SELL");
         ScrollView npcScroll=new ScrollView(this),playerScroll=new ScrollView(this);
         LinearLayout stockTiles=column(),playerTiles=column();
+        npcScroll.setFillViewport(true);playerScroll.setFillViewport(true);
         npcScroll.addView(stockTiles);playerScroll.addView(playerTiles);
-        stock.addView(npcScroll,new LinearLayout.LayoutParams(-1,0,1f));
-        player.addView(playerScroll,new LinearLayout.LayoutParams(-1,0,1f));
+        stock.addView(npcScroll,new LinearLayout.LayoutParams(-1,0,1));
+        player.addView(playerScroll,new LinearLayout.LayoutParams(-1,0,1));
         final SquareItemSlotV88[] npcCells=lootGridV134(stockTiles,40);
         final SquareItemSlotV88[] playerCells=lootGridV134(playerTiles,40);
-        final int[] selectedNpc={-1},selectedPlayer={-1};
-        final int[] selectedQuantity={1};
-        TextView quantityLabel=text("QUANTITY: 1",12,true);
-        shell.addView(quantityLabel);
+        final int[] selectedNpc={-1},selectedPlayer={-1},selectedQuantity={1};
+        TextView priceLine=text("TAP AN ITEM TO SHOW ITS UNIT PRICE",12,true);
+        priceLine.setPadding(dp118(8),dp118(6),dp118(8),dp118(6));
+        priceLine.setTextColor(0xffffdc9b);
+        priceLine.setBackground(v147TouchSurface(0xff2c4240,0xff59847b,9));
+        priceLine.setMaxLines(2);
+        shell.addView(priceLine);
+
+        LinearLayout controls=new LinearLayout(this);
+        controls.setGravity(Gravity.CENTER_VERTICAL);
+        controls.setOrientation(LinearLayout.HORIZONTAL);
+        LinearLayout.LayoutParams bar=new LinearLayout.LayoutParams(-1,dp118(46));
+        bar.topMargin=dp118(5);
+        shell.addView(controls,bar);
+        TextView quantityLabel=text("QTY 0 / 0",12,true);
+        quantityLabel.setGravity(Gravity.CENTER);
+        quantityLabel.setTextColor(0xffeff4e7);
+        controls.addView(quantityLabel,new LinearLayout.LayoutParams(0,-1,1.15f));
+        Button minus=v147TouchButton("−",false),plus=v147TouchButton("+",false),
+            maximum=v147TouchButton("MAX",false),
+            confirm=v147TouchButton("SELECT ITEM",true);
+        for(Button button:new Button[]{minus,plus,maximum}){
+            LinearLayout.LayoutParams dims=new LinearLayout.LayoutParams(
+                0,dp118(42),button==maximum?0.92f:0.65f);
+            dims.setMargins(dp118(2),0,dp118(2),0);
+            controls.addView(button,dims);
+        }
+        LinearLayout.LayoutParams confirmParams=new LinearLayout.LayoutParams(
+            0,dp118(42),2.1f);
+        confirmParams.setMargins(dp118(5),0,0,0);
+        controls.addView(confirm,confirmParams);
+
         final Runnable[] refresh={null};
         refresh[0]=()->{
             NpcTradeLedgerV143.Npc live=game.npcTradesV143.find(traderId);
             if(live==null)return;
-            wallets.setText("YOUR POCKET: "+game.playerNutsV143.display()+
-                "\nNPC POCKET: "+live.wallet.display());
-            int maxQuantity=selectedNpc[0]>=0?
-                TradeQuantityV143.buyMaximum(live,selectedNpc[0],
+            wallets.setText("YOU  "+game.playerNutsV143.display()+
+                "     |     TRADER  "+live.wallet.display());
+            boolean buying=selectedNpc[0]>=0;
+            int type=buying?selectedNpc[0]:selectedPlayer[0];
+            int maximumQuantity=type<0?0:buying?
+                TradeQuantityV143.buyMaximum(live,type,
                     game.playerTradeInventoryV143(),game.playerNutsV143):
-                selectedPlayer[0]>=0?
-                TradeQuantityV143.sellMaximum(live,selectedPlayer[0],
-                    game.playerTradeInventoryV143(),game.playerNutsV143):0;
+                TradeQuantityV143.sellMaximum(live,type,
+                    game.playerTradeInventoryV143(),game.playerNutsV143);
             selectedQuantity[0]=TradeQuantityV143.clamp(
-                selectedQuantity[0],maxQuantity);
-            long rate=selectedNpc[0]>=0?
-                NpcTradeLedgerV143.price(selectedNpc[0]):
-                selectedPlayer[0]>=0?
-                NpcTradeLedgerV143.resale(selectedPlayer[0]):0;
-            quantityLabel.setText("QUANTITY: "+selectedQuantity[0]+
-                " / "+maxQuantity+"  •  TOTAL: "+
-                NutWalletV143.price(rate*selectedQuantity[0]));
+                selectedQuantity[0],maximumQuantity);
+            long unit=type<0?0:buying?
+                NpcTradeLedgerV143.price(type):NpcTradeLedgerV143.resale(type);
+            priceLine.setText(TradeSelectionV147.priceLine(
+                type<0?"":game.inventoryNameV141(type),
+                buying,unit,selectedQuantity[0],maximumQuantity));
+            quantityLabel.setText(TradeSelectionV147.quantity(
+                selectedQuantity[0],maximumQuantity));
+            confirm.setText(type<0?"SELECT ITEM":buying?"BUY SELECTED":"SELL SELECTED");
+            confirm.setEnabled(type>=0&&maximumQuantity>0&&selectedQuantity[0]>0);
+            confirm.setAlpha(confirm.isEnabled()?1f:0.42f);
+            minus.setEnabled(selectedQuantity[0]>1);
+            plus.setEnabled(maximumQuantity>0&&selectedQuantity[0]<maximumQuantity);
+            maximum.setEnabled(maximumQuantity>0);
+
             int pos=0;
-            for(int type=0;type<NpcTradeLedgerV143.ITEM_TYPES;type++){
-                int qty=live.count(type);if(qty<1)continue;
+            for(int stockType=0;stockType<NpcTradeLedgerV143.ITEM_TYPES;stockType++){
+                int qty=live.count(stockType);
+                if(qty<1)continue;
                 if(pos>=npcCells.length)break;
-                final int id=type;
+                final int id=stockType;
                 SquareItemSlotV88 tile=npcCells[pos++];
-                showLootTileV134(tile,type,qty,selectedNpc[0]==type);
-                tile.setText(game.inventoryNameV141(type).substring(0,
-                    Math.min(9,game.inventoryNameV141(type).length()))+
-                    "\n"+NutWalletV143.price(NpcTradeLedgerV143.price(type)));
-                tile.setContentDescription(game.inventoryNameV141(type)+
-                    " buy price "+NutWalletV143.price(NpcTradeLedgerV143.price(type)));
+                boolean chosen=selectedNpc[0]==id;
+                showLootTileV134(tile,id,qty,chosen);
+                String name=game.inventoryNameV141(id);
+                tile.setText(name.substring(0,Math.min(11,name.length()))+"\n×"+qty);
+                tile.setContentDescription(name+" buy price "+
+                    NutWalletV143.price(NpcTradeLedgerV143.price(id)));
+                v147TradeCell(tile,chosen);
                 tile.setOnClickListener(v->{
+                    tile.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP);
                     selectedNpc[0]=id;selectedPlayer[0]=-1;
                     selectedQuantity[0]=1;refresh[0].run();
                 });
             }
             while(pos<npcCells.length){
                 SquareItemSlotV88 tile=npcCells[pos++];
-                showLootTileV134(tile,-1,0,false);
+                showLootTileV134(tile,-1,0,false);v147TradeCell(tile,false);
                 tile.setOnClickListener(null);
             }
             pos=0;
-            for(int type=0;type<NpcTradeLedgerV143.ITEM_TYPES;type++){
-                int qty=game.availableInventoryV131(type);
+            for(int stockType=0;stockType<NpcTradeLedgerV143.ITEM_TYPES;stockType++){
+                int qty=game.availableInventoryV131(stockType);
                 if(qty<1)continue;
                 if(pos>=playerCells.length)break;
-                final int id=type;
+                final int id=stockType;
                 SquareItemSlotV88 tile=playerCells[pos++];
-                showLootTileV134(tile,type,qty,selectedPlayer[0]==type);
-                tile.setText(game.inventoryNameV141(type).substring(0,
-                    Math.min(9,game.inventoryNameV141(type).length()))+
-                    "\n"+NutWalletV143.price(NpcTradeLedgerV143.resale(type)));
-                tile.setContentDescription(game.inventoryNameV141(type)+
-                    " sell price "+NutWalletV143.price(NpcTradeLedgerV143.resale(type)));
+                boolean chosen=selectedPlayer[0]==id;
+                showLootTileV134(tile,id,qty,chosen);
+                String name=game.inventoryNameV141(id);
+                tile.setText(name.substring(0,Math.min(11,name.length()))+"\n×"+qty);
+                tile.setContentDescription(name+" sell price "+
+                    NutWalletV143.price(NpcTradeLedgerV143.resale(id)));
+                v147TradeCell(tile,chosen);
                 tile.setOnClickListener(v->{
+                    tile.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP);
                     selectedPlayer[0]=id;selectedNpc[0]=-1;
                     selectedQuantity[0]=1;refresh[0].run();
                 });
             }
             while(pos<playerCells.length){
                 SquareItemSlotV88 tile=playerCells[pos++];
-                showLootTileV134(tile,-1,0,false);
+                showLootTileV134(tile,-1,0,false);v147TradeCell(tile,false);
                 tile.setOnClickListener(null);
             }
         };
-        LinearLayout quantityControls=new LinearLayout(this);
-        quantityControls.setOrientation(LinearLayout.HORIZONTAL);
-        shell.addView(quantityControls);
-        Button minus=v62Slot("−",true),plus=v62Slot("+",true),
-            maximum=v62Slot("MAX",true);
-        for(Button control:new Button[]{minus,plus,maximum})
-            quantityControls.addView(control,
-                new LinearLayout.LayoutParams(0,dp118(42),1f));
-        final Runnable[] adjustQuantity={null};
-        adjustQuantity[0]=()->{
-            NpcTradeLedgerV143.Npc live=game.npcTradesV143.find(traderId);
-            if(live==null)return;
-            refresh[0].run();
-        };
         minus.setOnClickListener(v->{
             selectedQuantity[0]=Math.max(1,selectedQuantity[0]-1);
-            adjustQuantity[0].run();
+            refresh[0].run();
         });
-        plus.setOnClickListener(v->{
-            selectedQuantity[0]++;adjustQuantity[0].run();
-        });
+        plus.setOnClickListener(v->{selectedQuantity[0]++;refresh[0].run();});
         maximum.setOnClickListener(v->{
             NpcTradeLedgerV143.Npc live=game.npcTradesV143.find(traderId);
             if(live==null)return;
@@ -1221,30 +1312,14 @@ public final class MainActivity extends Activity {
                     game.playerTradeInventoryV143(),game.playerNutsV143):0;
             refresh[0].run();
         });
-        LinearLayout footer=new LinearLayout(this);
-        footer.setOrientation(LinearLayout.HORIZONTAL);
-        shell.addView(footer);
-        Button buy=v62Slot("BUY SELECTED",true),
-            sell=v62Slot("SELL SELECTED",true),
-            close=v62Slot("CLOSE",true);
-        for(Button control:new Button[]{buy,sell,close}){
-            control.setTextSize(12f);
-            footer.addView(control,new LinearLayout.LayoutParams(0,dp118(48),1f));
-        }
-        buy.setOnClickListener(v->{
-            boolean ok=selectedNpc[0]>=0&&
-                game.tradeV143(traderId,selectedNpc[0],selectedQuantity[0],true);
-            if(!ok)Toast.makeText(this,
-                "Cannot buy: insufficient nuts, stock, space or NPC out of range",
-                Toast.LENGTH_SHORT).show();
-            refresh[0].run();
-        });
-        sell.setOnClickListener(v->{
-            boolean ok=selectedPlayer[0]>=0&&
-                game.tradeV143(traderId,selectedPlayer[0],selectedQuantity[0],false);
-            if(!ok)Toast.makeText(this,
-                "Cannot sell: missing item, equipped item, NPC budget or out of range",
-                Toast.LENGTH_SHORT).show();
+        confirm.setOnClickListener(v->{
+            boolean buying=selectedNpc[0]>=0;
+            int type=buying?selectedNpc[0]:selectedPlayer[0];
+            if(type<0||selectedQuantity[0]<=0)return;
+            boolean ok=game.tradeV143(traderId,type,selectedQuantity[0],buying);
+            if(!ok)Toast.makeText(this,buying?
+                "Cannot buy: nuts, stock, space or NPC range":
+                "Cannot sell: item, NPC budget or range",Toast.LENGTH_SHORT).show();
             refresh[0].run();
         });
         AlertDialog dialog=new AlertDialog.Builder(this).setView(shell).create();
@@ -1252,9 +1327,10 @@ public final class MainActivity extends Activity {
         dialog.setOnDismissListener(d->{
             game.saveProgress();game.menuPause(false);restoreFullscreenAfterShade();
         });
-        refresh[0].run();dialog.show();
-        dialog.setCancelable(true);
-        resizeSettingsWindow(dialog,95,88);
+        refresh[0].run();
+        dialog.show();dialog.setCancelable(true);
+        dialog.setCanceledOnTouchOutside(true);
+        makeWindowMovable(dialog,header,95,86,"tradeWindowV147");
     }
 
     /** Works for tap-to-drop and for a genuine bag-slot drag to the bin. */
