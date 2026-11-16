@@ -201,7 +201,7 @@ jobs:
         if: always()
         with:
           name: SurvivalParadise_V146_Approved_Legacy_Test
-          path: survival-paradise/native-game/artifacts/
+          path: artifacts/
           retention-days: 30
           if-no-files-found: warn
 
@@ -213,7 +213,7 @@ jobs:
         run: |
           set -euo pipefail
           TAG=survival-paradise-v146-approved-legacy-test
-          FILE=survival-paradise/native-game/artifacts/SurvivalParadise_V146_Approved_Legacy_Test.apk
-          SHA=survival-paradise/native-game/artifacts/SHA256.txt
+          FILE=artifacts/SurvivalParadise_V146_Approved_Legacy_Test.apk
+          SHA=artifacts/SHA256.txt
           NOTES="V146 EXPERIMENTAL OFFLINE ANDROID BUILD. Nine exact user-approved legacy garment designs and corrected ripstop PNG; legacy inventory/equipment icons. V143 trade/currencies/NPC weapons and V142 HUD/camera code retained. Original 200 heads, existing colorful equipment, V133 boot fit anchors, save serialization and gameplay data unchanged. Isolated package com.survivalparadise.nativegame.v146legacytest to preserve previous installations and their data. Known issue: boot-to-pants visual separation in fitting preview. Compile and signature verified, but full physical-device runtime and visual verification pending. Do not treat as final production approval."
           gh release create "$TAG" "$FILE" "$SHA" --target "$GITHUB_SHA" --prerelease --title "Survival Paradise V146 — Approved Legacy Equipment Test APK" --notes "$NOTES" -R "$GITHUB_REPOSITORY"
