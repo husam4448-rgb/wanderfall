@@ -36,7 +36,7 @@ jobs:
           emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -gpu swiftshader_indirect -memory 2048
           disable-animations: false
           script: |
-            set -euo pipefail
+            set -eu
             APP=com.survivalparadise.nativegame.v146legacytest
             adb wait-for-device
             adb shell settings put secure immersive_mode_confirmations confirmed || true
