@@ -129,7 +129,7 @@ jobs:
           art=(r/'app/src/main/java/com/survivalparadise/nativegame/ApprovedOutfitArtV139.java').read_text()
           boots=(r/'app/src/main/java/com/survivalparadise/nativegame/BootArtV133.java').read_text()
           assert "applicationId 'com.survivalparadise.nativegame.v147tradetest'" in gradle
-          assert 'versionCode 146' in gradle
+          assert 'versionCode 147' in gradle
           assert 'Survival Paradise V147 Test' in manifest
           assert 'LegacyOutfitVisualV144.torso(' in game
           assert 'LegacyOutfitVisualV144.pants(' in game
