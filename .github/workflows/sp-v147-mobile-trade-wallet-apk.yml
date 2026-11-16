@@ -197,7 +197,7 @@ jobs:
           unzip -Z1 "$APK" | grep -Fx 'assets/industrial_v123/SP_Industrial_Factory_Double_Bay_01.webp'
           unzip -Z1 "$APK" | grep -Fx 'assets/industrial_v123/SP_Industrial_Forklift_01.webp'
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose "$APK"
-          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | grep -E "^package: name='com.survivalparadise.nativegame.v147tradetest' versionCode='146'"
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | grep -E "^package: name='com.survivalparadise.nativegame.v147tradetest' versionCode='147'"
           mkdir -p artifacts
           cp "$APK" artifacts/SurvivalParadise_V147_Mobile_Trade_Wallet_Test.apk
           (cd artifacts && sha256sum SurvivalParadise_V147_Mobile_Trade_Wallet_Test.apk > SHA256.txt)
