@@ -36,8 +36,6 @@ jobs:
           emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -gpu swiftshader_indirect -memory 2048
           disable-animations: false
           script: |
-            set -eu
-            APP=com.survivalparadise.nativegame.v146legacytest
             adb wait-for-device
             adb shell settings put secure immersive_mode_confirmations confirmed || true
             adb shell settings put system accelerometer_rotation 0 || true
@@ -46,8 +44,8 @@ jobs:
             adb shell wm density 260
             adb logcat -c
             adb install /tmp/sp146/SurvivalParadise_V146_Approved_Legacy_Test.apk
-            adb shell pm path "$APP"
-            adb shell am start -n "$APP/com.survivalparadise.nativegame.MainActivity"
+            adb shell pm path com.survivalparadise.nativegame.v146legacytest
+            adb shell am start -n com.survivalparadise.nativegame.v146legacytest/com.survivalparadise.nativegame.MainActivity
             sleep 8
             adb shell input tap 1130 330
             adb shell input tap 1140 335
@@ -73,15 +71,12 @@ jobs:
             adb shell screencap -p /sdcard/sp146_bag.png
             adb pull /sdcard/sp146_bag.png /tmp/sp146/visual/04_inventory_probe.png
             adb logcat -d -t 2500 > /tmp/sp146/visual/logcat_tail.txt
-            adb shell pidof "$APP"
+            adb shell pidof com.survivalparadise.nativegame.v146legacytest
             test -s /tmp/sp146/visual/01_menu.png
             test -s /tmp/sp146/visual/02_gameplay.png
             test -s /tmp/sp146/visual/03_motion_probe.png
             test -s /tmp/sp146/visual/04_inventory_probe.png
-            if grep -E '(FATAL EXCEPTION|Process: com.survivalparadise.nativegame.v146legacytest)' /tmp/sp146/visual/logcat_tail.txt; then
-              echo "FAIL: V146 fatal Java exception in emulator"
-              exit 1
-            fi
+            if grep -Eq '(FATAL EXCEPTION|Process: com.survivalparadise.nativegame.v146legacytest)' /tmp/sp146/visual/logcat_tail.txt; then echo "FAIL: V146 fatal Java exception in emulator"; exit 1; fi
             echo "PASS: emulator APK installed, activity running, screenshot captures collected; visual acceptance NOT established"
       - name: Upload actual Android visual QA images and logs
         uses: actions/upload-artifact@v4
