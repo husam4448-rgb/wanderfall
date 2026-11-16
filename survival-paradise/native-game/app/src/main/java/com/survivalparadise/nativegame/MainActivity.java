@@ -748,6 +748,44 @@ public final class MainActivity extends Activity {
         }
         return slots;
     }
+
+    /** V148: dense responsive trade-only grid. Do not resize the main bag/loot slots.
+     * Render invisible spacer tiles in the last row so all rows remain square.
+     */
+    private SquareItemSlotV88[] tradeGridV148(LinearLayout target,int total){
+        int columns=TradeGridV148.columns(
+            getResources().getDisplayMetrics().widthPixels,
+            getResources().getDisplayMetrics().density);
+        SquareItemSlotV88[] tiles=new SquareItemSlotV88[total];
+        int rows=TradeGridV148.rows(total,columns);
+        for(int row=0;row<rows;row++){
+            LinearLayout strip=new LinearLayout(this);
+            strip.setOrientation(LinearLayout.HORIZONTAL);
+            target.addView(strip,new LinearLayout.LayoutParams(-1,-2));
+            for(int column=0;column<columns;column++){
+                int index=row*columns+column;
+                SquareItemSlotV88 tile=v88SquareSlot("",false);
+                tile.setGravity(Gravity.CENTER);
+                tile.setTextSize(7.5f);
+                tile.setIncludeFontPadding(false);
+                tile.setPadding(0,0,0,0);
+                tile.setCompoundDrawablePadding(0);
+                LinearLayout.LayoutParams dims=new LinearLayout.LayoutParams(0,-2,1f);
+                dims.setMargins(dp118(1),dp118(1),dp118(1),dp118(1));
+                strip.addView(tile,dims);
+                if(index<total)tiles[index]=tile;
+                else tile.setVisibility(View.INVISIBLE);
+            }
+        }
+        return tiles;
+    }
+    private void tradeSectionV148(LinearLayout target,String title){
+        TextView label=text(title,10,true);
+        label.setTextColor(0xffbce5ce);
+        label.setPadding(dp118(4),dp118(2),dp118(2),dp118(2));
+        target.addView(label);
+    }
+
     /** V134: source and destination tiles draw the same item icon and label. */
     private android.graphics.drawable.Drawable lootIconV134(int type){
         if(AmmoInventoryV143.valid(type))
@@ -1119,18 +1157,18 @@ public final class MainActivity extends Activity {
     }
     /** View-only coins. The stored wallet is still the exact V143 save value. */
     private TextView v147CoinChip(int coin){
-        TextView view=text("",12,true);
+        TextView view=text("",10,true);
         view.setGravity(Gravity.CENTER);
         view.setTextColor(coin==NutWalletV143.GOLD_COIN?0xffffd778:
             coin==NutWalletV143.SILVER_COIN?0xffd1e7ed:0xffdda77d);
-        view.setPadding(dp118(5),dp118(3),dp118(5),dp118(3));
+        view.setPadding(dp118(2),dp118(1),dp118(2),dp118(1));
         android.graphics.drawable.GradientDrawable bg=
             new android.graphics.drawable.GradientDrawable();
         bg.setColor(0xff304341);bg.setCornerRadius(dp118(8));
         view.setBackground(bg);
         view.setCompoundDrawables(
-            NutIconsV143.drawable(this,coin,18),null,null,null);
-        view.setCompoundDrawablePadding(dp118(4));
+            NutIconsV143.drawable(this,coin,13),null,null,null);
+        view.setCompoundDrawablePadding(dp118(2));
         return view;
     }
     /** Two live inventories with one compact touch transaction bar.
@@ -1143,23 +1181,24 @@ public final class MainActivity extends Activity {
         final String traderId=merchant.id;
         game.menuPause(true);
         LinearLayout shell=column();
-        shell.setPadding(dp118(8),dp118(5),dp118(8),dp118(6));
+        shell.setPadding(dp118(4),dp118(2),dp118(4),dp118(3));
         shell.setBackgroundColor(0xff1b2b2e);
 
         LinearLayout header=new LinearLayout(this);
         header.setOrientation(LinearLayout.HORIZONTAL);
         header.setGravity(Gravity.CENTER_VERTICAL);
-        TextView title=text("TRADE  •  IRON / SILVER / GOLD NUTS",16,true);
+        TextView title=text("TRADE  •  IRON / SILVER / GOLD NUTS",12,true);
         title.setTextColor(0xffbce5ce);
         title.setGravity(Gravity.CENTER_VERTICAL);
-        header.addView(title,new LinearLayout.LayoutParams(0,dp118(42),1));
+        header.addView(title,new LinearLayout.LayoutParams(0,dp118(30),1));
         Button close=v147TouchButton("✕ CLOSE",false);
-        header.addView(close,new LinearLayout.LayoutParams(dp118(90),dp118(40)));
+        close.setTextSize(10f);
+        header.addView(close,new LinearLayout.LayoutParams(dp118(74),dp118(29)));
         shell.addView(header);
-        TextView wallets=text("",12,true);
+        TextView wallets=text("",10,true);
         wallets.setTextColor(0xffe8dfc8);
         shell.addView(wallets);
-        TextView hint=text("TAP AN ITEM TO SEE ITS PRICE  •  100 IRON = 1 SILVER  •  100 SILVER = 1 GOLD",10,false);
+        TextView hint=text("SELECT ITEM FOR PRICE  •  100 IRON = 1 SILVER  •  100 SILVER = 1 GOLD",9,false);
         hint.setTextColor(0xffa2c2bc);
         shell.addView(hint);
 
@@ -1174,19 +1213,19 @@ public final class MainActivity extends Activity {
         LinearLayout.LayoutParams pane2=new LinearLayout.LayoutParams(0,-1,1);
         pane2.setMargins(dp118(3),dp118(3),0,0);
         sides.addView(player,pane2);
-        section(stock,"TRADER STOCK  •  BUY");
-        section(player,"YOUR BAG  •  SELL");
+        tradeSectionV148(stock,"TRADER STOCK  •  BUY");
+        tradeSectionV148(player,"YOUR BAG  •  SELL");
         ScrollView npcScroll=new ScrollView(this),playerScroll=new ScrollView(this);
         LinearLayout stockTiles=column(),playerTiles=column();
         npcScroll.setFillViewport(true);playerScroll.setFillViewport(true);
         npcScroll.addView(stockTiles);playerScroll.addView(playerTiles);
         stock.addView(npcScroll,new LinearLayout.LayoutParams(-1,0,1));
         player.addView(playerScroll,new LinearLayout.LayoutParams(-1,0,1));
-        final SquareItemSlotV88[] npcCells=lootGridV134(stockTiles,40);
-        final SquareItemSlotV88[] playerCells=lootGridV134(playerTiles,40);
+        final SquareItemSlotV88[] npcCells=tradeGridV148(stockTiles,40);
+        final SquareItemSlotV88[] playerCells=tradeGridV148(playerTiles,40);
         final int[] selectedNpc={-1},selectedPlayer={-1},selectedQuantity={1};
-        TextView priceLine=text("TAP AN ITEM TO SHOW ITS UNIT PRICE",12,true);
-        priceLine.setPadding(dp118(8),dp118(6),dp118(8),dp118(6));
+        TextView priceLine=text("TAP AN ITEM TO SHOW ITS UNIT PRICE",10,true);
+        priceLine.setPadding(dp118(5),dp118(3),dp118(5),dp118(3));
         priceLine.setTextColor(0xffffdc9b);
         priceLine.setBackground(v147TouchSurface(0xff2c4240,0xff59847b,9));
         priceLine.setMaxLines(2);
@@ -1195,10 +1234,10 @@ public final class MainActivity extends Activity {
         LinearLayout controls=new LinearLayout(this);
         controls.setGravity(Gravity.CENTER_VERTICAL);
         controls.setOrientation(LinearLayout.HORIZONTAL);
-        LinearLayout.LayoutParams bar=new LinearLayout.LayoutParams(-1,dp118(46));
-        bar.topMargin=dp118(5);
+        LinearLayout.LayoutParams bar=new LinearLayout.LayoutParams(-1,dp118(37));
+        bar.topMargin=dp118(2);
         shell.addView(controls,bar);
-        TextView quantityLabel=text("QTY 0 / 0",12,true);
+        TextView quantityLabel=text("QTY 0 / 0",10,true);
         quantityLabel.setGravity(Gravity.CENTER);
         quantityLabel.setTextColor(0xffeff4e7);
         controls.addView(quantityLabel,new LinearLayout.LayoutParams(0,-1,1.15f));
@@ -1206,15 +1245,17 @@ public final class MainActivity extends Activity {
             maximum=v147TouchButton("MAX",false),
             confirm=v147TouchButton("SELECT ITEM",true);
         for(Button button:new Button[]{minus,plus,maximum}){
+            button.setTextSize(10f);
             LinearLayout.LayoutParams dims=new LinearLayout.LayoutParams(
-                0,dp118(42),button==maximum?0.92f:0.65f);
+                0,dp118(35),button==maximum?0.92f:0.65f);
             dims.setMargins(dp118(2),0,dp118(2),0);
             controls.addView(button,dims);
         }
         LinearLayout.LayoutParams confirmParams=new LinearLayout.LayoutParams(
-            0,dp118(42),2.1f);
+            0,dp118(35),2.1f);
         confirmParams.setMargins(dp118(5),0,0,0);
         controls.addView(confirm,confirmParams);
+        confirm.setTextSize(10f);
 
         final Runnable[] refresh={null};
         refresh[0]=()->{
@@ -1330,7 +1371,7 @@ public final class MainActivity extends Activity {
         refresh[0].run();
         dialog.show();dialog.setCancelable(true);
         dialog.setCanceledOnTouchOutside(true);
-        makeWindowMovable(dialog,header,95,86,"tradeWindowV147");
+        makeWindowMovable(dialog,header,95,94,"tradeWindowV147");
     }
 
     /** Works for tap-to-drop and for a genuine bag-slot drag to the bin. */
@@ -1604,16 +1645,16 @@ public final class MainActivity extends Activity {
         LinearLayout bagCurrencyBarV147=new LinearLayout(this);
         bagCurrencyBarV147.setGravity(Gravity.CENTER_VERTICAL);
         bagCurrencyBarV147.setOrientation(LinearLayout.HORIZONTAL);
-        bagCurrencyBarV147.setPadding(dp118(4),dp118(3),dp118(4),dp118(3));
-        TextView bagNutsTitleV147=text("CARRIED NUTS",12,true);
+        bagCurrencyBarV147.setPadding(dp118(2),dp118(1),dp118(2),dp118(1));
+        TextView bagNutsTitleV147=text("NUTS",10,true);
         bagNutsTitleV147.setTextColor(0xffd2e9d7);
         bagCurrencyBarV147.addView(bagNutsTitleV147,
-            new LinearLayout.LayoutParams(0,dp118(34),1.1f));
+            new LinearLayout.LayoutParams(0,dp118(23),0.68f));
         final TextView[] bagCoinsV147=new TextView[3];
         for(int coin=2;coin>=0;coin--){
             bagCoinsV147[coin]=v147CoinChip(coin);
             LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(
-                0,dp118(34),1f);
+                0,dp118(23),1f);
             cp.setMargins(dp118(2),0,dp118(2),0);
             bagCurrencyBarV147.addView(bagCoinsV147[coin],cp);
         }
