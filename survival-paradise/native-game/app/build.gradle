@@ -3,11 +3,11 @@ android {
  namespace 'com.survivalparadise.nativegame'
  compileSdk 35
  defaultConfig {
-  applicationId 'com.survivalparadise.nativegame.v146legacytest'
+  applicationId 'com.survivalparadise.nativegame.v147tradetest'
   minSdk 24
   targetSdk 34
-  versionCode 146
-  versionName '0.146-legacy-equipment-test'
+  versionCode 147
+  versionName '0.147-mobile-trade-wallet-test'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
