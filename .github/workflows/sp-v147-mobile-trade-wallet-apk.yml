@@ -1,0 +1,227 @@
+name: Survival Paradise V147 - Mobile Trade and Player Wallet Test APK
+on:
+  push:
+    branches: [sp-native-v147-mobile-trade-wallet-ui-20261116]
+    paths:
+      - '.github/workflows/sp-v147-mobile-trade-wallet-apk.yml'
+      - 'survival-paradise/native-game/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sp-v147-approved-legacy-apk
+  cancel-in-progress: false
+
+jobs:
+  build-v147-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout only required source and assets
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            survival-paradise
+            assets/authored2d
+            assets/world
+          sparse-checkout-cone-mode: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Prepare exact original game asset pipeline
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install -q Pillow numpy
+          R=survival-paradise/native-game
+          python3 "$R/tools/extract_locked_atlases.py"
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,base64
+          r=Path('survival-paradise/native-game')
+          for original,output,expected in [
+              ('approved_v29_axe.png.b64','approved_v29_axe.png','f0d146757318e620024cae0c2a34243bdd9339a939a7f51e5428ae8250620dee'),
+              ('approved_v44_walk_palette.png.b64','approved_v44_walk_palette.png','fd01230e9c13ffd3087e933abe976a2179d80e9adc9b0710f899a7bef7fc3d71'),
+          ]:
+              data=base64.b64decode((r/'tools'/original).read_text().strip(),validate=True)
+              assert hashlib.sha256(data).hexdigest()==expected,original
+              (r/'app/src/main/assets'/output).write_bytes(data)
+          PY
+          python3 "$R/tools/build_v51_assets.py"
+          python3 "$R/tools/build_v52_idle.py"
+          python3 "$R/tools/fix_v53_skin_palette.py"
+          python3 "$R/tools/build_v56_approved_character_atlases.py"
+          python3 "$R/tools/build_v74_biome_assets.py"
+          test "$(sha256sum "$R/app/src/main/assets/body.png" | cut -d' ' -f1)" = '141878713a6880d05879b7102c728581dddb55730434bcac8e050fe44b3d82ad'
+
+      - name: Reconstitute 200 original heads and exact V109/V5 source
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import io,json,hashlib,zipfile
+          from pathlib import Path
+          root=Path('survival-paradise/native-game')
+          parts=sorted((root/'source_v109').glob('part_*.bin'))
+          assert len(parts)==8,f'Expected eight original segments, found {len(parts)}'
+          raw=b''.join(p.read_bytes() for p in parts)
+          assert hashlib.sha256(raw).hexdigest()=='c8e364bc1485eb5251fa9494889977038268cbac10f455fa844d7b8a46f6dc3a'
+          with zipfile.ZipFile(io.BytesIO(raw)) as z:
+              assert z.testzip() is None
+              assert all(f'heads/{n:03}.png' in z.namelist() for n in range(1,201))
+              manifest=json.loads(z.read('v5_fittings.json'))
+              assert manifest['totalCharacters']==200
+              assert len(manifest['characterOverrides'])==51
+              assert z.read('body_idle.png') and z.read('body_walk.png')
+          (root/'app/src/main/assets/sp_v109_characters.zip').write_bytes(raw)
+          print('PASS: original 200 heads and all V5 fitting records exactly preserved')
+          PY
+
+      - name: Validate user-supplied V145 nine equipment sprites (no repaint)
+        shell: bash
+        run: |
+          python3 survival-paradise/native-game/tools/verify_v145_asset_bundle.py
+          python3 survival-paradise/native-game/tools/test_headgear_visuals_v138.py
+          python3 survival-paradise/native-game/tools/verify_new_style_art_v139.py
+
+      - name: Validate V143 economy/NPC and V145 equipment mapping
+        shell: bash
+        run: |
+          set -euo pipefail
+          R=survival-paradise/native-game
+          C="$R/app/src/main/java/com/survivalparadise/nativegame"
+          mkdir -p /tmp/sp-v147-tests
+          javac -d /tmp/sp-v147-tests \
+            "$C/OutfitInventoryV140.java" \
+            "$C/AmmoInventoryV143.java" \
+            "$C/NutWalletV143.java" \
+            "$C/NpcTradeLedgerV143.java" \
+            "$C/TradeQuantityV143.java" \
+            "$C/NpcGearV143.java" \
+            "$C/UnifiedBagSlotsV141.java" \
+            "$C/BanditLootV87.java" \
+            "$C/DroppedItemsV129.java" \
+            "$C/LegacyOutfitVisualV144.java" \
+            "$C/TradeSelectionV147.java" \
+            "$R/tools/TradeSelectionV147Test.java" \
+            "$R/tools/V143EconomyWeaponTest.java" \
+            "$R/tools/V141CorpseInventoryTest.java" \
+            "$R/tools/V144LegacyVisualTest.java"
+          java -cp /tmp/sp-v147-tests com.survivalparadise.nativegame.V143EconomyWeaponTest
+          java -cp /tmp/sp-v147-tests com.survivalparadise.nativegame.V141CorpseInventoryTest
+          java -cp /tmp/sp-v147-tests com.survivalparadise.nativegame.V144LegacyVisualTest
+          java -cp /tmp/sp-v147-tests com.survivalparadise.nativegame.TradeSelectionV147Test
+
+      - name: Verify safe independent package and visible equipment integration
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          r=Path('survival-paradise/native-game')
+          gradle=(r/'app/build.gradle').read_text()
+          manifest=(r/'app/src/main/AndroidManifest.xml').read_text()
+          game=(r/'app/src/main/java/com/survivalparadise/nativegame/GameView.java').read_text()
+          art=(r/'app/src/main/java/com/survivalparadise/nativegame/ApprovedOutfitArtV139.java').read_text()
+          boots=(r/'app/src/main/java/com/survivalparadise/nativegame/BootArtV133.java').read_text()
+          assert "applicationId 'com.survivalparadise.nativegame.v147tradetest'" in gradle
+          assert 'versionCode 146' in gradle
+          assert 'Survival Paradise V147 Test' in manifest
+          assert 'LegacyOutfitVisualV144.torso(' in game
+          assert 'LegacyOutfitVisualV144.pants(' in game
+          assert 'LegacyOutfitVisualV144.boots(' in game
+          assert 'drawApprovedRig' in art and 'sp_v145_legacy_equipment.zip' in art
+          assert 'sp_v145_legacy_equipment.zip' in boots
+          assert 'ApprovedLegacyIconsV145.drawable' in (r/'app/src/main/java/com/survivalparadise/nativegame/GearItemIconsV95.java').read_text()
+          main=(r/'app/src/main/java/com/survivalparadise/nativegame/MainActivity.java').read_text()
+          for marker in ('TradeSelectionV147.priceLine(', 'v147TouchButton("MAX",false)',
+                         'v147CoinChip(coin)', 'bagCoinsV147[coin].setText(',
+                         'makeWindowMovable(dialog,header,95,86,"tradeWindowV147")'):
+              assert marker in main, marker
+          assert 'wearableArtV96.drawHead(' not in game
+          print('PASS: separate app identity and all approved art linked, no visible head equipment')
+          PY
+
+      - name: Prepare Android API 35
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -path '*/bin/sdkmanager' | sort -V | tail -1)"
+          test -x "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Use stable release key if configured (otherwise Android debug key)
+        shell: bash
+        env:
+          SP_KEYSTORE_BASE64: ${{ secrets.SP_SIGNING_KEYSTORE_BASE64 }}
+          SP_SIGNING_PASSWORD: ${{ secrets.SP_SIGNING_PASSWORD }}
+          SP_SIGNING_KEY_PASSWORD: ${{ secrets.SP_SIGNING_KEY_PASSWORD }}
+          SP_SIGNING_ALIAS: ${{ secrets.SP_SIGNING_ALIAS }}
+        run: |
+          set -euo pipefail
+          if [ -n "$SP_KEYSTORE_BASE64" ] && [ -n "$SP_SIGNING_PASSWORD" ]; then
+            echo "$SP_KEYSTORE_BASE64" | base64 --decode > /tmp/sp_native_stable_keystore.jks
+            echo "SP_SIGNING_STORE=/tmp/sp_native_stable_keystore.jks" >> "$GITHUB_ENV"
+            echo "SP_SIGNING_PASSWORD=$SP_SIGNING_PASSWORD" >> "$GITHUB_ENV"
+            echo "SP_SIGNING_KEY_PASSWORD=$SP_SIGNING_KEY_PASSWORD" >> "$GITHUB_ENV"
+            echo "SP_SIGNING_ALIAS=$SP_SIGNING_ALIAS" >> "$GITHUB_ENV"
+            echo "Signing mode: stable configuration"
+          else
+            echo "Signing mode: isolated Android debug key; older app IDs will not be replaced"
+          fi
+
+      - name: Assemble V147 actual Android APK
+        working-directory: survival-paradise/native-game
+        run: gradle --no-daemon :app:assembleDebug
+
+      - name: Validate APK signature, package, runtime dex and source art
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK=survival-paradise/native-game/app/build/outputs/apk/debug/app-debug.apk
+          test -s "$APK"
+          unzip -t "$APK" >/dev/null
+          unzip -Z1 "$APK" | grep -Fx 'classes.dex'
+          for file in body.png npc_idle_v56.png sp_v109_characters.zip sp_v133_boots.zip sp_v139_outfits.zip sp_v145_legacy_equipment.zip; do
+            unzip -Z1 "$APK" | grep -Fx "assets/$file"
+          done
+          unzip -Z1 "$APK" | grep -Fx 'assets/industrial_v123/SP_Industrial_Factory_Double_Bay_01.webp'
+          unzip -Z1 "$APK" | grep -Fx 'assets/industrial_v123/SP_Industrial_Forklift_01.webp'
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose "$APK"
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | grep -E "^package: name='com.survivalparadise.nativegame.v147tradetest' versionCode='146'"
+          mkdir -p artifacts
+          cp "$APK" artifacts/SurvivalParadise_V147_Mobile_Trade_Wallet_Test.apk
+          (cd artifacts && sha256sum SurvivalParadise_V147_Mobile_Trade_Wallet_Test.apk > SHA256.txt)
+          printf 'V147 EXPERIMENTAL: mobile touch trade sheet with selected unit price/total, compact actions and wallet in bag. Original gear/head assets and V143 ledger preserved.\n' > artifacts/BUILD_NOTES.txt
+          echo "Verified V147 APK contents, signature, distinct package and SHA-256"
+
+      - name: Upload checked APK as GitHub Action artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: SurvivalParadise_V147_Mobile_Trade_Wallet_Test
+          path: artifacts/
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Publish GitHub release for reliable Android download
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG=survival-paradise-v147-mobile-trade-wallet-test
+          FILE=artifacts/SurvivalParadise_V147_Mobile_Trade_Wallet_Test.apk
+          SHA=artifacts/SHA256.txt
+          NOTES="V147 EXPERIMENTAL OFFLINE ANDROID BUILD. Compact ripple-responsive trade buttons, tap-to-select item unit and total price strip, bag displays carried gold/silver/iron nuts with official hex nut icons, existing V143 ledger and save serialization unchanged. V145 approved art and 200 source heads preserved. Separate test package com.survivalparadise.nativegame.v147tradetest protects previous installs and their saves. Known gap between boots and trousers is not resolved. Full nine-gear in-game visual acceptance and trade tactile device QA remain pending."
+          gh release create "$TAG" "$FILE" "$SHA" --target "$GITHUB_SHA" --prerelease --title "Survival Paradise V147 — Mobile Trade and Wallet Test APK" --notes "$NOTES" -R "$GITHUB_REPOSITORY"
