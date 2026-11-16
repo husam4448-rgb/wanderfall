@@ -1,0 +1,105 @@
+name: Survival Paradise V146 - Android Emulator Playability QA
+on:
+  push:
+    branches: [sp-native-v146-approved-legacy-apk-20261116]
+    paths: ['.github/workflows/sp-v146-emulator-playability.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  emulator-v146:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Download exact signed V146 release APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/sp146/visual
+          gh release download survival-paradise-v146-approved-legacy-test \
+            --repo "$GITHUB_REPOSITORY" --pattern '*.apk' --pattern 'SHA256.txt' --dir /tmp/sp146
+          test -s /tmp/sp146/SurvivalParadise_V146_Approved_Legacy_Test.apk
+          (cd /tmp/sp146 && sha256sum -c SHA256.txt)
+      - name: Enable emulator hardware virtualization
+        run: |
+          if [ -c /dev/kvm ]; then sudo chmod a+rw /dev/kvm; fi
+          ls -l /dev/kvm || true
+      - name: Boot Android, open game, start new world, capture evidence
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -gpu swiftshader_indirect -memory 2048
+          disable-animations: false
+          script: |
+            set -euo pipefail
+            APP=com.survivalparadise.nativegame.v146legacytest
+            adb wait-for-device
+            adb shell settings put secure immersive_mode_confirmations confirmed || true
+            adb shell settings put system accelerometer_rotation 0 || true
+            adb shell settings put system user_rotation 1 || true
+            adb shell wm size 1920x1080
+            adb shell wm density 260
+            adb logcat -c
+            adb install /tmp/sp146/SurvivalParadise_V146_Approved_Legacy_Test.apk
+            adb shell pm path "$APP"
+            adb shell am start -n "$APP/com.survivalparadise.nativegame.MainActivity"
+            sleep 8
+            adb shell input tap 1130 330
+            adb shell input tap 1140 335
+            sleep 2
+            adb shell screencap -p /sdcard/sp146_menu.png
+            adb pull /sdcard/sp146_menu.png /tmp/sp146/visual/01_menu.png
+            # V140-V142 gameplay menu uses same logical coordinate mapping.
+            adb shell input tap 744 618
+            sleep 8
+            adb shell input tap 1130 330
+            adb shell input tap 1140 335
+            sleep 2
+            adb shell screencap -p /sdcard/sp146_gameplay.png
+            adb pull /sdcard/sp146_gameplay.png /tmp/sp146/visual/02_gameplay.png
+            # Exercise camera/actor motion with left virtual joystick input.
+            adb shell input swipe 230 880 390 850 2200
+            sleep 2
+            adb shell screencap -p /sdcard/sp146_motion.png
+            adb pull /sdcard/sp146_motion.png /tmp/sp146/visual/03_motion_probe.png
+            # Best-effort bag UI screenshot; exact action still needs manual review.
+            adb shell input tap 1600 500
+            sleep 2
+            adb shell screencap -p /sdcard/sp146_bag.png
+            adb pull /sdcard/sp146_bag.png /tmp/sp146/visual/04_inventory_probe.png
+            adb logcat -d -t 2500 > /tmp/sp146/visual/logcat_tail.txt
+            adb shell pidof "$APP"
+            test -s /tmp/sp146/visual/01_menu.png
+            test -s /tmp/sp146/visual/02_gameplay.png
+            test -s /tmp/sp146/visual/03_motion_probe.png
+            test -s /tmp/sp146/visual/04_inventory_probe.png
+            if grep -E '(FATAL EXCEPTION|Process: com.survivalparadise.nativegame.v146legacytest)' /tmp/sp146/visual/logcat_tail.txt; then
+              echo "FAIL: V146 fatal Java exception in emulator"
+              exit 1
+            fi
+            echo "PASS: emulator APK installed, activity running, screenshot captures collected; visual acceptance NOT established"
+      - name: Upload actual Android visual QA images and logs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: SP_V146_Actual_Emulator_Visual_QA
+          path: /tmp/sp146/visual/
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Add emulator screenshots to the existing V146 pre-release
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh release upload survival-paradise-v146-approved-legacy-test \
+            /tmp/sp146/visual/01_menu.png \
+            /tmp/sp146/visual/02_gameplay.png \
+            /tmp/sp146/visual/03_motion_probe.png \
+            /tmp/sp146/visual/04_inventory_probe.png \
+            --clobber -R "$GITHUB_REPOSITORY"
