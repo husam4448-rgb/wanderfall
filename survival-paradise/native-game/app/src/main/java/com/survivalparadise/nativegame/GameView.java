@@ -110,6 +110,8 @@ public final class GameView extends View {
     final NpcTradeLedgerV143 npcTradesV143=new NpcTradeLedgerV143();
     int reloadLooseRoundsV140=0;
     final WearableArtV96 wearableArtV96=new WearableArtV96();
+    // V151 additive pixel-magazine and loading-port artwork.
+    final ReloadArtV151 reloadArtV151=new ReloadArtV151();
     CharacterSkinsV109 characterSkinsV109; // exact 200 approved head/body sources + V5 fittings
     int playerSkinV109=124;
     final TorsoRecolorV98 torsoRecolorV98=new TorsoRecolorV98();
@@ -2764,7 +2766,7 @@ public final class GameView extends View {
             if(ammoPacks==0)return;
             ammoPacks--;reloadLooseRoundsV140=-1;
         }
-        reloadClock=ReloadPoseV150.DURATION;shotClock=0;
+        reloadClock=ReloadProfileV151.duration(gun);shotClock=0;
     }
     void finishReloadV140(){
         if(reloadLooseRoundsV140>0)ammo=Math.min(MAG[gun],ammo+reloadLooseRoundsV140);
@@ -3493,12 +3495,12 @@ public final class GameView extends View {
                 BanditBrainV88.shouldShoot(state,d,e.cd,clear)&&
                 NpcAimV122.aligned(e.aimX,e.aimY,dx,dy)){
                 if(e.rounds==0&&e.spareRounds>0){
-                    e.reloadClockV150=ReloadPoseV150.DURATION;
+                    e.reloadClockV150=ReloadProfileV151.duration(e.gun);
                 }else if(e.rounds>0){
                     shoot(e.x,e.y,e.aimX,e.aimY,e.gun,true,e.face,false);
                     e.rounds--;
                     if(e.rounds==0&&e.spareRounds>0)
-                        e.reloadClockV150=ReloadPoseV150.DURATION;
+                        e.reloadClockV150=ReloadProfileV151.duration(e.gun);
                 }
                 e.cd=Math.max(.32f,RATES[e.gun])+(e.variant%3)*.13f;
             }
@@ -4410,16 +4412,16 @@ public final class GameView extends View {
             int actorFitX=player?playerGunPivotXV117:npcGunPivotXV117;
             int actorFitY=player?playerGunPivotYV117:npcGunPivotYV117;
             c.translate(pivotX-kick+WeaponPivotV117.localX(actorFitX,s)+
-                    ReloadPoseV150.pullBackPx(reloadRemainingV150,weapon)*s,
+                    ReloadProfileV151.pullBackPx(weapon,reloadRemainingV150)*s,
                 pivotY+WeaponPivotV117.localY(actorFitY,s)+
-                    ReloadPoseV150.lowerPx(reloadRemainingV150,weapon)*s);
+                    ReloadProfileV151.lowerPx(weapon,reloadRemainingV150)*s);
             float displayedAngleV118=aimRotation?aimAng*180f/(float)Math.PI:0f;
             if(player&&weapon==11&&axeSwingTimeV118>0f){
                 float phase=1f-axeSwingTimeV118/.25f;
                 displayedAngleV118+=-35f+75f*(float)Math.sin(Math.PI*phase);
             }
-            displayedAngleV118+=ReloadPoseV150.rotateDegrees(
-                reloadRemainingV150,weapon);
+            displayedAngleV118+=ReloadProfileV151.tiltDegrees(
+                weapon,reloadRemainingV150);
             c.rotate(displayedAngleV118);
             c.translate(-pivotX,-pivotY);
             c.translate(offsetX,offsetY);
@@ -4428,12 +4430,27 @@ public final class GameView extends View {
                     drawApprovedAxe(c,(MAIN_X[weapon]-70f)*s,(MAIN_Y[weapon]-136f)*s,scale*(CharacterCollision.BASE_SCALE/.76f));
                 else atlas(c,gear,weapon*260,0,0,0,s);
                 if(weapon==3)drawFlashlightLens(c,s);
+                // Mechanisms stay attached to the original gun, not the face.
+                reloadArtV151.drawMechanism(c,weapon,reloadRemainingV150,s);
             }
             if(showHands){
+                // Exact original firing hand never changes its pivot or atlas pixels.
                 handAtlas(c,weapon,2,0,0,s,handScale,0,0);
-                handAtlas(c,weapon,1,0,0,s,handScale,
-                    support+ReloadPoseV150.supportReachPx(reloadRemainingV150,weapon),
-                    supportVertical+ReloadPoseV150.supportDownPx(reloadRemainingV150,weapon));
+                if(ReloadProfileV151.propVisible(weapon,reloadRemainingV150)){
+                    int supportWeaponV151=ReloadProfileV151.needsBorrowedHand(weapon)?
+                        ReloadProfileV151.CARBINE:weapon;
+                    // Draw unique ammunition behind the curled original hand.
+                    if(showWeapons)reloadArtV151.drawHeldAmmo(
+                        c,weapon,reloadRemainingV150,s);
+                    float handX=ReloadProfileV151.handX(weapon,reloadRemainingV150);
+                    float handY=ReloadProfileV151.handY(weapon,reloadRemainingV150);
+                    handAtlas(c,supportWeaponV151,1,0,0,s,handScale,
+                        support+handX-OFF_X[supportWeaponV151],
+                        supportVertical+handY-OFF_Y[supportWeaponV151]);
+                }else{
+                    handAtlas(c,weapon,1,0,0,s,handScale,
+                        support,supportVertical);
+                }
             }
             if(anchors){
                 // Debug the torso parent + the attached contact points separately.
