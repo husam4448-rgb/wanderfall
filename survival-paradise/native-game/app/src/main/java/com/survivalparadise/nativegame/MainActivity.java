@@ -1617,38 +1617,8 @@ public final class MainActivity extends Activity {
             }).show();
     }
     /** Compact, art-matched item inspector; no system list/error-window styling. */
-    private String bagItemStatsV161(int type,int quantity){
-        String kind=AmmoInventoryV143.valid(type)?"AMMUNITION":
-            OutfitInventoryV140.valid(type)?
-                (OutfitInventoryV140.slot(type)==0?"TORSO EQUIPMENT":
-                 OutfitInventoryV140.slot(type)==1?"LEG EQUIPMENT":
-                 OutfitInventoryV140.slot(type)==2?"FOOTWEAR":
-                 OutfitInventoryV140.slot(type)==3?"FIREARM":"LOOSE ROUNDS"):
-            InventoryCatalogV131.equipmentSlot(type)==0?"HEAD EQUIPMENT":
-            InventoryCatalogV131.equipmentSlot(type)==2?"BODY ARMOR":
-            InventoryCatalogV131.equipmentSlot(type)==3?"PANTS":
-            InventoryCatalogV131.equipmentSlot(type)==4?"BOOTS":
-            InventoryCatalogV131.equipmentSlot(type)==5?"BACKPACK":
-            type==1||type==12?"MEDICAL":
-            type==3||type==4||type==13?"SURVIVAL":
-            type==2?"AMMUNITION":"MATERIAL / SUPPLY";
-        String effect="";
-        if(type==1)effect="   •   HEALS 40 HP";
-        else if(type==12)effect="   •   HEALS 24 HP";
-        else if(type==3)effect="   •   RESTORES 30 HUNGER";
-        else if(type==4)effect="   •   RESTORES 35 THIRST";
-        else if(type==13)effect="   •   +50 STA / −20 FATIGUE";
-        else if(type==2)effect="   •   REFILLS CURRENT MAGAZINE";
-        else if(OutfitInventoryV140.valid(type)&&
-                 OutfitInventoryV140.slot(type)==3){
-            int weapon=OutfitInventoryV140.style(type);
-            if(weapon>=0&&weapon<GameView.POWER.length)
-                effect="   •   DAMAGE "+GameView.POWER[weapon]+
-                    "   •   MAG "+GameView.MAG[weapon];
-        }
-        return kind+effect+"\nUNIT WEIGHT  "+game.itemMassLabelV141(type,1)+
-            "   •   STACK WEIGHT  "+game.itemMassLabelV141(type,quantity)+
-            "\nOWNED IN STACK  "+quantity;
+    private String bagItemStatsV162(int type,int quantity){
+        return ItemDetailsV162.describe(game,type,quantity);
     }
     void bagItemMenuV130(int position,Runnable refresh,V62InventoryPreview avatar,
                           AlertDialog[] bagDialog,Runnable refreshEquipment){
@@ -1678,7 +1648,7 @@ public final class MainActivity extends Activity {
         android.widget.ImageView icon=new android.widget.ImageView(this);
         icon.setImageDrawable(lootIconV134(kind));
         icon.setScaleType(android.widget.ImageView.ScaleType.FIT_CENTER);
-        header.addView(icon,new LinearLayout.LayoutParams(dp118(48),dp118(48)));
+        header.addView(icon,new LinearLayout.LayoutParams(dp118(42),dp118(42)));
         LinearLayout titleStack=new LinearLayout(this);
         titleStack.setOrientation(LinearLayout.VERTICAL);
         TextView title=text(game.inventoryNameV141(kind)+"  ×"+quantity,14,true);
@@ -1690,7 +1660,7 @@ public final class MainActivity extends Activity {
         titleStack.addView(subtitle);
         header.addView(titleStack,new LinearLayout.LayoutParams(0,-2,1f));
         panel.addView(header);
-        TextView stats=text(bagItemStatsV161(kind,quantity),11,false);
+        TextView stats=text(bagItemStatsV162(kind,quantity),10,false);
         stats.setTextColor(0xffd8e6da);
         stats.setPadding(dp118(3),dp118(6),dp118(3),dp118(9));
         panel.addView(stats);
@@ -1704,14 +1674,14 @@ public final class MainActivity extends Activity {
         AlertDialog dialog=new AlertDialog.Builder(this).setView(panel).create();
         for(String action:choices){
             final String selected=action;
-            TextView option=text(action,12,true);
+            TextView option=text(action,10,true);
             option.setGravity(Gravity.CENTER_VERTICAL);
             option.setTextColor(action.equals("DROP")?0xffffb7a6:
                 action.equals("CANCEL")?0xffa9bcac:0xfff0e8ce);
             option.setPadding(dp118(12),0,dp118(8),0);
             option.setBackground(v147TouchSurface(0xff29423d,0xff506d63,5));
-            LinearLayout.LayoutParams dims=new LinearLayout.LayoutParams(-1,dp118(36));
-            dims.topMargin=dp118(3);actions.addView(option,dims);
+            LinearLayout.LayoutParams dims=new LinearLayout.LayoutParams(-1,dp118(28));
+            dims.topMargin=dp118(2);actions.addView(option,dims);
             option.setOnClickListener(v->{
                 dialog.dismiss();
                 if(selected.equals("DROP")||selected.equals("SPLIT STACK")){
@@ -1749,7 +1719,7 @@ public final class MainActivity extends Activity {
         if(dialog.getWindow()!=null){
             dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
             int screen=getResources().getDisplayMetrics().widthPixels;
-            dialog.getWindow().setLayout(Math.min(dp118(335),Math.round(screen*.53f)),-2);
+            dialog.getWindow().setLayout(Math.min(dp118(320),Math.round(screen*.48f)),-2);
         }
     }
     /** The original 40-slot backpack remains byte-for-byte save-compatible.
@@ -1888,7 +1858,7 @@ public final class MainActivity extends Activity {
                 Button socket=v62Slot(equipment[ix]+"\nEMPTY",true);
                 socket.setTextSize(8.5f);
                 LinearLayout holder=side==0?leftSocketsV131:rightSocketsV131;
-                LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,dp118(48));
+                LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,dp118(40));
                 lp.setMargins(2,3,2,3);holder.addView(socket,lp);
                 equipmentButtonsV131[ix]=socket;
             }
@@ -1900,7 +1870,7 @@ public final class MainActivity extends Activity {
             Button socket=v62Slot(equipment[ix],true);
             socket.setTextSize(9f);
             LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,
-                dp118(49),1f);
+                dp118(38),1f);
             lp.setMargins(2,3,2,3);handsV131.addView(socket,lp);
             equipmentButtonsV131[ix]=socket;
         }
@@ -2387,12 +2357,13 @@ public final class MainActivity extends Activity {
         Button smaller=v147TouchButton("− WINDOW",false),
             larger=v147TouchButton("+ WINDOW",false);
         Button closeBag=v147TouchButton("CLOSE BAG",true);
-        int footerDp=dp118(33);
+        int footerDp=dp118(26);
         smaller.setTextSize(10f);larger.setTextSize(10f);
         closeBag.setTextSize(10f);
-        tools.addView(smaller,new LinearLayout.LayoutParams(0,footerDp,.7f));
-        tools.addView(larger,new LinearLayout.LayoutParams(0,footerDp,.7f));
-        tools.addView(closeBag,new LinearLayout.LayoutParams(0,footerDp,1.25f));
+        tools.setGravity(Gravity.END);
+        tools.addView(smaller,new LinearLayout.LayoutParams(dp118(86),footerDp));
+        tools.addView(larger,new LinearLayout.LayoutParams(dp118(86),footerDp));
+        tools.addView(closeBag,new LinearLayout.LayoutParams(dp118(120),footerDp));
         shell.addView(tools);
         // A compact in-panel footer avoids Android AlertDialog’s large button strip.
         AlertDialog dialog=new AlertDialog.Builder(this).setView(shell).create();
