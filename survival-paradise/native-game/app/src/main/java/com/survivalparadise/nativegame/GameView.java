@@ -4133,12 +4133,6 @@ public final class GameView extends View {
         // This hides the horizontal kerb inside the crossing.
         rect(c,1500,camY-4,220,viewH+8,0xff565b50);
         float roadBottom=camY+viewH+4f;
-        if(camY-4f<925f){
-            float end=Math.min(925f,roadBottom);
-            if(end>camY-4f){
-                // Roadbed has no raised kerb inside its intersection.
-            }
-        }
         // V162: vertical kerb is split above and below the intersection.
         if(camY-4f<925f){
             float end=Math.min(925f,roadBottom);
