@@ -38,6 +38,22 @@ public final class NaturalGroundV157 {
                  Math.floorMod(u>>>17,11)<9?GRASS:DRY;
         return new Patch(x,y,rx,ry,angle,kind,Math.floorMod(v>>>22,12));
     }
+    /** V160 terrain details use the saved world seed. Legacy V157/V159
+     * coordinates remain exactly as before via the original patch method.
+     */
+    public static Patch patchSeeded(int cx,int cy,int slot,int worldSeed){
+        if(slot<0||slot>=PER_CELL)return null;
+        int v=hash(cx^worldSeed,cy,slot+1);
+        int u=hash(cx,cy^worldSeed,slot+57);
+        float x=cx*CELL+Math.floorMod(v,340)+5f;
+        float y=cy*CELL+Math.floorMod(v>>>9,340)+5f;
+        float rx=86f+Math.floorMod(u,100);
+        float ry=57f+Math.floorMod(u>>>9,84);
+        float angle=Math.floorMod(v>>>17,180);
+        int kind=Math.floorMod(u>>>17,11)<5?DIRT:
+                 Math.floorMod(u>>>17,11)<9?GRASS:DRY;
+        return new Patch(x,y,rx,ry,angle,kind,Math.floorMod(v>>>22,12));
+    }
     public static float wobble(Patch p,int index){
         int seed=hash(Math.round(p.x),Math.round(p.y),index+121);
         return .78f+Math.floorMod(seed,38)/100f;
