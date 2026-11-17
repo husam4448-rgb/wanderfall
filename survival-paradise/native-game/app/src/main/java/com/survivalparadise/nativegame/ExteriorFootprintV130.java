@@ -42,23 +42,14 @@ public final class ExteriorFootprintV130 {
                                    float l,float t,float rr,float bb){
         return x+r>l&&x-r<rr&&y+r>t&&y-r<bb;
     }
-    /** The solid roof and physical front wall match the painted geometry.
-     * An actual gap at the middle front wall keeps the ENTER approach clear.
-     */
+    /** V157 fully solid painted exterior; ENTER remains outside the wall. */
     public static boolean blocked(ExpeditionSitesV88.Site s,
                                   float x,float y,float radius){
         float r=Math.max(0f,radius),doorY=s.y+anchor(s);
         float left=s.x-width(s),right=s.x+width(s);
-        if(touches(x,y,r,left,doorY-height(s),right,doorY-65f))
-            return true;
-        if(touches(x,y,r,left,doorY-65f,right,doorY-25f)){
-            float gapLeft=s.x-DOOR_HALF_WIDTH;
-            float gapRight=s.x+DOOR_HALF_WIDTH;
-            if(touches(x,y,r,left,doorY-65f,gapLeft,doorY-25f))
-                return true;
-            if(touches(x,y,r,gapRight,doorY-65f,right,doorY-25f))
-                return true;
-        }
-        return false;
+        // V157: the entire roof AND front masonry wall are solid, including
+        // the visual doorway. ENTER is a scene transition activated from the
+        // outside apron, never a pass-through gap into a painted 2D building.
+        return touches(x,y,r,left,doorY-height(s),right,doorY-25f);
     }
 }
