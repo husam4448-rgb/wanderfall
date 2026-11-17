@@ -24,6 +24,58 @@ jobs:
       - name: Enable Android emulator KVM
         run: |
           if [ -c /dev/kvm ]; then sudo chmod a+rw /dev/kvm; fi
+      - name: Prepare one persistent-shell emulator test script
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > /tmp/sp157/emulator_test.sh <<'SCRIPT'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          PKG=com.survivalparadise.nativegame.v157worldfix
+          adb wait-for-device
+          adb shell settings put secure immersive_mode_confirmations confirmed || true
+          adb shell settings put system accelerometer_rotation 0 || true
+          adb shell settings put system user_rotation 1 || true
+          adb shell wm size 1920x1080 || true
+          adb shell wm density 260 || true
+          adb install /tmp/sp157/Survival_Paradise_V157_World_Fix.apk
+          adb logcat -c
+          adb shell am start -W -n "com.survivalparadise.nativegame.v157worldfix/com.survivalparadise.nativegame.MainActivity"
+          sleep 8
+          adb logcat -d > /tmp/sp157/visual/logcat_startup.txt
+          if ! adb shell pidof "$PKG"; then
+            echo 'ERROR: game process exited before showing menu'
+            grep -E -A 22 -B 6 'FATAL EXCEPTION|Process: com.survivalparadise.nativegame.v157worldfix|AndroidRuntime|SP-V109' /tmp/sp157/visual/logcat_startup.txt | tail -160 || true
+            exit 1
+          fi
+          adb shell input tap 1130 330
+          adb shell input tap 1140 335
+          sleep 2
+          adb shell screencap -p /sdcard/v157_menu.png
+          adb pull /sdcard/v157_menu.png /tmp/sp157/visual/01_menu.png
+          adb shell input tap 744 618
+          sleep 8
+          adb shell input tap 1130 330
+          sleep 2
+          adb shell screencap -p /sdcard/v157_gameplay.png
+          adb pull /sdcard/v157_gameplay.png /tmp/sp157/visual/02_gameplay.png
+          adb shell input tap 1840 170
+          adb shell input tap 1840 170
+          sleep 2
+          adb shell screencap -p /sdcard/v157_zoom.png
+          adb pull /sdcard/v157_zoom.png /tmp/sp157/visual/03_gameplay_zoom.png
+          adb logcat -d > /tmp/sp157/visual/logcat_tail.txt
+          adb shell pidof "$PKG"
+          if grep -E '(FATAL EXCEPTION|Process: com.survivalparadise.nativegame.v157worldfix)' /tmp/sp157/visual/logcat_tail.txt; then
+            echo 'ERROR: Android runtime fatal exception in V157'
+            exit 1
+          fi
+          test -s /tmp/sp157/visual/01_menu.png
+          test -s /tmp/sp157/visual/02_gameplay.png
+          test -s /tmp/sp157/visual/03_gameplay_zoom.png
+          echo 'PASS: V157 Android process, menu, gameplay, screenshots and logcat'
+          SCRIPT
+          chmod +x /tmp/sp157/emulator_test.sh
       - name: Install and visually smoke-test genuine Android game scene
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -33,53 +85,7 @@ jobs:
           profile: pixel_2
           emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -gpu swiftshader_indirect -memory 1536
           disable-animations: true
-          script: |
-            set -eux
-            export PKG=com.survivalparadise.nativegame.v157worldfix
-            adb wait-for-device
-            adb shell settings put secure immersive_mode_confirmations confirmed || true
-            adb shell settings put system accelerometer_rotation 0 || true
-            adb shell settings put system user_rotation 1 || true
-            adb shell wm size 1920x1080 || true
-            adb shell wm density 260 || true
-            adb install /tmp/sp157/Survival_Paradise_V157_World_Fix.apk
-            # Capture startup exceptions BEFORE boot/system noise can evict them.
-            adb logcat -c
-            adb shell am start -n "$PKG/com.survivalparadise.nativegame.MainActivity"
-            sleep 7
-            adb logcat -d > /tmp/sp157/visual/logcat_startup.txt
-            if ! adb shell pidof "$PKG"; then
-              echo 'ERROR: game process exited before menu screenshot'
-              grep -E -A 20 -B 8 'FATAL EXCEPTION|Process: com.survivalparadise.nativegame.v157worldfix|AndroidRuntime|SP-V109' /tmp/sp157/visual/logcat_startup.txt | tail -140 || true
-              exit 1
-            fi
-            adb shell input tap 1130 330
-            adb shell input tap 1140 335
-            sleep 2
-            adb shell screencap -p /sdcard/v157_menu.png
-            adb pull /sdcard/v157_menu.png /tmp/sp157/visual/01_menu.png
-            # Base logical UI H660 rendered at 1920x1080.
-            adb shell input tap 744 618
-            sleep 9
-            adb shell input tap 1130 330
-            sleep 2
-            adb shell screencap -p /sdcard/v157_gameplay.png
-            adb pull /sdcard/v157_gameplay.png /tmp/sp157/visual/02_gameplay.png
-            # Capture close-up with the existing HUD zoom button.
-            adb shell input tap 1840 170
-            adb shell input tap 1840 170
-            sleep 3
-            adb shell screencap -p /sdcard/v157_zoom.png
-            adb pull /sdcard/v157_zoom.png /tmp/sp157/visual/03_gameplay_zoom.png
-            adb logcat -d > /tmp/sp157/visual/logcat_tail.txt
-            adb shell pidof "$PKG"
-            if grep -E '(FATAL EXCEPTION|Process: com.survivalparadise.nativegame.v157worldfix)' /tmp/sp157/visual/logcat_tail.txt; then
-              echo 'FAIL: Android runtime fatal exception'
-              exit 1
-            fi
-            test -s /tmp/sp157/visual/02_gameplay.png
-            test -s /tmp/sp157/visual/03_gameplay_zoom.png
-            echo 'PASS: V157 native Android process, menu, gameplay and zoom screenshots captured'
+          script: bash /tmp/sp157/emulator_test.sh
       - name: Preserve actual emulator screenshots and logcat for review
         if: always()
         uses: actions/upload-artifact@v4
