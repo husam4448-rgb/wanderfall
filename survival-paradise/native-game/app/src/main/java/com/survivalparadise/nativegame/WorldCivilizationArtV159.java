@@ -38,6 +38,10 @@ public final class WorldCivilizationArtV159 {
      */
     public static void ground(Canvas c,WorldCivilizationV159.Plan plan,
                               float camX,float camY,float viewW,float viewH){
+        ground(c,plan,camX,camY,viewW,viewH,1f);
+    }
+    public static void ground(Canvas c,WorldCivilizationV159.Plan plan,
+                              float camX,float camY,float viewW,float viewH,float zoom){
         if(plan==null)return;
         c.save();c.clipRect(camX-30,camY-30,camX+viewW+30,camY+viewH+30);
         for(WorldCivilizationV159.Parcel region:plan.parcels){
@@ -55,7 +59,7 @@ public final class WorldCivilizationArtV159 {
             c.drawRoundRect(x,y,x+w,y+h,22f,22f,P);
             c.save();
             c.clipRect(x+2,y+2,x+w-2,y+h-2);
-            for(int i=0;i<44;i++){
+            for(int i=0;i<(zoom<.70f?11:44);i++){
                 int rand=IndustrialWorldV123.hash(
                     region.tx*53+i*37,region.ty*71-i*29,
                     plan.seed^0x159A000+region.variation);
@@ -82,7 +86,7 @@ public final class WorldCivilizationArtV159 {
                 c.restore();
             }
             // Fine stones and natural cracks instead of geometric floor grids.
-            for(int i=0;i<110;i++){
+            for(int i=0;i<(zoom<.70f?24:110);i++){
                 int hsh=IndustrialWorldV123.hash(
                     region.tx*131+i*17,region.ty*119-i*23,plan.seed^0x15938);
                 float px=x+28f+Math.floorMod(hsh,(int)Math.max(1,w-56));
