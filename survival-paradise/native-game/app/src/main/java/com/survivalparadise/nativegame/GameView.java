@@ -1395,6 +1395,10 @@ public final class GameView extends View {
             host.prefs.edit().putFloat("px",playerX).putFloat("py",playerY)
                 .putBoolean("v153_site_player_migrated",true).apply();
         }
+        if(!insideClinicV89&&NeighborhoodV154.blocked(playerX,playerY,21f)){
+            float[] cityLanding=NeighborhoodV154.clearSavedPosition(playerX,playerY);
+            playerX=cityLanding[0];playerY=cityLanding[1];
+        }
         if(!insideClinicV89&&blocked(playerX,playerY,21f)){
             float[] safe=WorldSafetyV92.resolveExit(this::blocked,playerX,playerY);
             playerX=safe[0];playerY=safe[1];
@@ -1815,6 +1819,7 @@ public final class GameView extends View {
             if(Ballistics.segmentBox(x,y,tx,ty,
                 c.x-3,c.y-3,c.x+c.w+3,c.y+c.h+3)<=1f)return false;
         }
+        if(NeighborhoodV154.firstImpact(x,y,tx,ty)<=1f)return false;
         // Static POIs are no longer fake V88 cover rectangles. A shot must
         // actually cross the rendered V153 solid roof to be blocked.
         for(ExpeditionSitesV88.Site site:ExpeditionSitesV88.SITES){
@@ -2857,8 +2862,10 @@ public final class GameView extends View {
             return true;
         if(industrialModeV123)return IndustrialOpenWorldV124.blocked(
             x,y,r,industrialSeedV123);
-        // V130 collision matches the expanded painted roof only, preserving
-        // the original southern doorway and normal NPC navigation lanes.
+        // Broadphase is restricted to the 3x3 city grid around this actor;
+        // paved district lanes stay walkable, but actual roofs are solid.
+        if(NeighborhoodV154.blocked(x,y,r))return true;
+        // The existing 26 enterable landmarks retain their V153 geometry.
         for(ExpeditionSitesV88.Site site:ExpeditionSitesV88.SITES)
             if(ExteriorFootprintV130.blocked(site,x,y,r))return true;
         // V53 unbounded world: collisions are against solid structures, never map borders.
@@ -3617,6 +3624,25 @@ public final class GameView extends View {
                         box.x-2,box.y-2,box.x+box.w+2,box.y+box.h+2);
                 if(t<first){first=t;victim=null;hitPlayer=false;hitCover=true;}
             }
+            // Physical district walls and V153 institutions also stop the
+            // same swept bullets used by the player, raiders and companions.
+            float urbanT=NeighborhoodV154.firstImpact(
+                bullet.x,bullet.y,nx,ny);
+            if(urbanT<first){
+                first=urbanT;victim=null;hitPlayer=false;hitCover=true;
+            }
+            for(ExpeditionSitesV88.Site site:ExpeditionSitesV88.SITES){
+                float[] roof=ExteriorFootprintV130.roofBounds(site);
+                if(!WorldPerfV55.segmentNearRect(bullet.x,bullet.y,nx,ny,
+                    roof[0],roof[1],roof[2]-roof[0],roof[3]-roof[1],2f))
+                    continue;
+                float t=Ballistics.segmentBox(bullet.x,bullet.y,nx,ny,
+                    roof[0],roof[1],roof[2],
+                    site.y+ExteriorFootprintV130.anchor(site)-65f);
+                if(t<first){
+                    first=t;victim=null;hitPlayer=false;hitCover=true;
+                }
+            }
             if(bullet.hostile){
                 float headT=firstHeadImpactV131(bullet.x,bullet.y,nx,ny,
                     playerX,playerY,face,playerSkinV109,
@@ -3938,6 +3964,9 @@ public final class GameView extends View {
             }
         }
         drawBiomePropsV74(c);
+        // A populated outdoor world: physical large blocks and their side
+        // streets appear below the existing named, enterable landmarks.
+        NeighborhoodArtV154.draw(c,p,camX,camY,viewW,viewH,night);
         drawExpeditionSitesV88(c);
         drawSalvageWorldV84(c);
         drawLooseGroundPickupsV85(c);
