@@ -48,6 +48,10 @@ public final class MainActivity extends Activity {
     void generateWorldV159(int seed){
         if(game==null||worldGenerationInProgressV159||isFinishing())return;
         worldGenerationInProgressV159=true;
+        // Pause live combat/world clocks while a new seed is being planned.
+        // Resume the old game unchanged if generation fails.
+        final boolean oldGameWasActive=game.isPlaying();
+        if(oldGameWasActive)game.menuPause(true);
         LinearLayout panel=new LinearLayout(this);
         panel.setOrientation(LinearLayout.VERTICAL);
         float density=getResources().getDisplayMetrics().density;
@@ -100,6 +104,7 @@ public final class MainActivity extends Activity {
                         android.util.Log.e("SP-V159","World initialization failed",error);
                         Toast.makeText(this,"World initialization failed: "+
                             error.getMessage(),Toast.LENGTH_LONG).show();
+                        if(oldGameWasActive)game.menuPause(false);
                     }finally{
                         worldGenerationInProgressV159=false;
                         dialog.dismiss();
@@ -110,6 +115,7 @@ public final class MainActivity extends Activity {
                 runOnUiThread(()->{
                     worldGenerationInProgressV159=false;
                     dialog.dismiss();
+                    if(oldGameWasActive&&game!=null)game.menuPause(false);
                     if(!isFinishing())
                         new AlertDialog.Builder(this)
                             .setTitle("WORLD GENERATION ERROR")
