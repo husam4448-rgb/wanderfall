@@ -3,7 +3,6 @@ package com.survivalparadise.nativegame;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.RectF;
 
 /**
  * Civilization is drawn INSIDE authentic plotted lots and their fences.
@@ -47,7 +46,12 @@ public final class WorldCivilizationArtV159 {
             // Slightly rounded, but planned fence corners remain square.
             // Industrial region is separately authored in V124/V128.
             P.setStyle(Paint.Style.FILL);
-            P.setColor(BASE[region.kind]);
+            // Preserve a faint trace of the procedural biome's color noise
+            // underneath the developed surface. Fully opaque flat slabs
+            // were visually artificial and destroyed terrain texture.
+            int opacity=region.kind==WorldCivilizationV159.CITY?230:
+                region.kind==WorldCivilizationV159.VILLAGE?205:224;
+            P.setColor((opacity<<24)|(BASE[region.kind]&0xffffff));
             c.drawRoundRect(x,y,x+w,y+h,22f,22f,P);
             c.save();
             c.clipRect(x+2,y+2,x+w-2,y+h-2);
