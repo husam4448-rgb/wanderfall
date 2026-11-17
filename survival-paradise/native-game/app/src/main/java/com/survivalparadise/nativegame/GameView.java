@@ -1425,8 +1425,8 @@ public final class GameView extends View {
             host.prefs.edit().putFloat("px",playerX).putFloat("py",playerY)
                 .putBoolean("v153_site_player_migrated",true).apply();
         }
-        if(!insideClinicV89&&NeighborhoodV154.blocked(playerX,playerY,21f)){
-            float[] cityLanding=NeighborhoodV154.clearSavedPosition(playerX,playerY);
+        if(!insideClinicV89&&NeighborhoodV154.blocked(playerX,playerY,21f,civilizationV159)){
+            float[] cityLanding=NeighborhoodV154.clearSavedPosition(playerX,playerY,civilizationV159);
             playerX=cityLanding[0];playerY=cityLanding[1];
         }
         if(!insideClinicV89&&blocked(playerX,playerY,21f)){
@@ -1849,7 +1849,7 @@ public final class GameView extends View {
             if(Ballistics.segmentBox(x,y,tx,ty,
                 c.x-3,c.y-3,c.x+c.w+3,c.y+c.h+3)<=1f)return false;
         }
-        if(NeighborhoodV154.firstImpact(x,y,tx,ty)<=1f)return false;
+        if(NeighborhoodV154.firstImpact(x,y,tx,ty,civilizationV159)<=1f)return false;
         // Static POIs are no longer fake V88 cover rectangles. A shot must
         // actually cross the rendered V153 solid roof to be blocked.
         for(ExpeditionSitesV88.Site site:ExpeditionSitesV88.SITES){
@@ -2896,7 +2896,7 @@ public final class GameView extends View {
             x,y,r,industrialSeedV123);
         // Broadphase is restricted to the 3x3 city grid around this actor;
         // paved district lanes stay walkable, but actual roofs are solid.
-        if(NeighborhoodV154.blocked(x,y,r))return true;
+        if(NeighborhoodV154.blocked(x,y,r,civilizationV159))return true;
         if(civilizationV159!=null){
             if(civilizationV159.blocked(x,y,r))return true;
             if(IndustrialPerimeterV159.blocked(x,y,r,industrialSeedV123))
@@ -2908,7 +2908,7 @@ public final class GameView extends View {
         // V53 unbounded world: collisions are against solid structures, never map borders.
         for(Cover c:covers)
             if(!WorldBuildingV157.sceneryRectBlocked(
-                    c.x,c.y,c.x+c.w,c.y+c.h,industrialSeedV123)&&
+                    c.x,c.y,c.x+c.w,c.y+c.h,industrialSeedV123,civilizationV159)&&
                x+r>c.x&&x-r<c.x+c.w&&y+r>c.y&&y-r<c.y+c.h)
                 return true;
         return false;
@@ -3676,7 +3676,7 @@ public final class GameView extends View {
             // Physical district walls and V153 institutions also stop the
             // same swept bullets used by the player, raiders and companions.
             float urbanT=NeighborhoodV154.firstImpact(
-                bullet.x,bullet.y,nx,ny);
+                bullet.x,bullet.y,nx,ny,civilizationV159);
             if(urbanT<first){
                 first=urbanT;victim=null;hitPlayer=false;hitCover=true;
             }
@@ -4003,7 +4003,7 @@ public final class GameView extends View {
                 continue;
             if(x<camX-55||x>camX+viewW+55||y<camY-55||y>camY+viewH+55||
                WorldBuildingV157.sceneryRectBlocked(
-                   x-40f,y-185f,x+53f,y+56f,industrialSeedV123))continue;
+                   x-40f,y-185f,x+53f,y+56f,industrialSeedV123,civilizationV159))continue;
             if((i%7)==0){
                 c.save();
                 c.translate(x,y+43f);
@@ -4024,7 +4024,7 @@ public final class GameView extends View {
         drawSalvageWorldV84(c);
         drawLooseGroundPickupsV85(c);
         // The solid architectural massing covers any scenery below it.
-        NeighborhoodArtV154.draw(c,p,camX,camY,viewW,viewH,night);
+        NeighborhoodArtV154.draw(c,p,camX,camY,viewW,viewH,night,civilizationV159);
         drawExpeditionSitesV88(c);
         WorldCivilizationArtV159.fences(c,civilizationV159,
             camX,camY,viewW,viewH);
@@ -4054,7 +4054,7 @@ public final class GameView extends View {
             if(box.x+box.w>=camX-15&&box.x<=camX+viewW+15&&
                box.y+box.h>=camY-15&&box.y<=camY+viewH+15&&
                !WorldBuildingV157.sceneryRectBlocked(
-                    box.x,box.y,box.x+box.w,box.y+box.h,industrialSeedV123))
+                    box.x,box.y,box.x+box.w,box.y+box.h,industrialSeedV123,civilizationV159))
                 drawCover(c,box);
         drawSpawnCamp(c);
     }
@@ -4072,7 +4072,7 @@ public final class GameView extends View {
             if(x<camX-60||x>camX+viewW+60||y<camY-60||y>camY+viewH+60||
                !GroundPickupsV85.placed(kind,seed,x,y,CAMP_X,CAMP_Y)||
                 WorldBuildingV157.sceneryBlocked(
-                    x,y-11f,46f,industrialSeedV123))continue;
+                    x,y-11f,46f,industrialSeedV123,civilizationV159))continue;
             // V86 irregular ground silhouettes; never draw framed inventory icons.
             color(0x99101c1a);c.drawOval(x-18,y-8,x+18,y+5,p);
             if(kind==GroundPickupsV85.STONE){
@@ -4145,7 +4145,7 @@ public final class GameView extends View {
                y<camY-110||y>camY+viewH+110||
                !SalvageWorldV84.placed(x,y,seed,CAMP_X,CAMP_Y,WORLD_W,WORLD_H)||
                 WorldBuildingV157.sceneryRectBlocked(
-                    x-84f,y-94f,x+84f,y+27f,industrialSeedV123))continue;
+                    x-84f,y-94f,x+84f,y+27f,industrialSeedV123,civilizationV159))continue;
             int type=Math.floorMod(seed,3);
             boolean depleted=salvageWorldV84.exhausted(cx,cy,k);
             if(depleted&&type!=SalvageWorldV84.CAR)continue;
@@ -4203,7 +4203,7 @@ public final class GameView extends View {
                 if(x<camX-200||x>camX+viewW+200||
                    y<camY-200||y>camY+viewH+200||
                     WorldBuildingV157.sceneryRectBlocked(
-                        x-110f,y-209f,x+110f,y+29f,industrialSeedV123)||
+                        x-110f,y-209f,x+110f,y+29f,industrialSeedV123,civilizationV159)||
                     (civilizationV159!=null&&
                         civilizationV159.developed(x,y)))
                     continue;
