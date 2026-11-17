@@ -1639,75 +1639,81 @@ public final class GameView extends View {
         }
         sitesInitializedV88=true;
     }
-    /** 10 visitable silhouettes: each contains distinct features and real loot cache. */
+    /**
+     * V153: Each enterable landmark now has a world-sized exterior compatible
+     * with its real 2720 x 1904 interior. Cull by full roof footprint rather
+     * than the old tiny facade anchor so the roof cannot pop into view.
+     */
     void drawExpeditionSitesV88(Canvas c){
-        for(ExpeditionSitesV88.Site s:ExpeditionSitesV88.SITES){
-            if(!WorldPerfV55.nearView(s.x,s.y,camX,camY,viewW,viewH,630))continue;
-            if(s.kind==ExpeditionSitesV88.CLINIC){
-                drawFieldClinicExteriorV89(c,s);continue;
-            }
-            float x=s.x,y=s.y;
-            // Scale the old structure and its authored decoration together,
-            // around the unchanged world-space interaction doorway.
-            float zoom=ExteriorFootprintV130.scale(s);
-            float pivotY=y+ExteriorFootprintV130.anchor(s);
-            c.save();c.translate(x,pivotY);c.scale(zoom,zoom);
-            c.translate(-x,-pivotY);
-            // Dirt lot and entrance path ensure readable traversal.
-            rect(c,x-105,y-79,210,186,0xff44544a);
-            rect(c,x-97,y-73,194,156,0xff54574b);
-            rect(c,x-10,y+72,20,58,0xff79765d);
-            int roof=s.kind==ExpeditionSitesV88.CLINIC?0xffa2afa2:
-                s.kind==ExpeditionSitesV88.RELAY?0xff456771:
-                s.kind==ExpeditionSitesV88.FARM?0xff886548:
-                s.kind==ExpeditionSitesV88.CHECKPOINT?0xff4a5555:
-                s.kind==ExpeditionSitesV88.GARAGE?0xff786352:0xff656f61;
-            if(s.kind==ExpeditionSitesV88.RELAY||s.kind==ExpeditionSitesV88.TOWER){
-                rect(c,x-52,y-57,104,120,0xff182628);
-                rect(c,x-46,y-53,92,111,0xff565e51);
-                rect(c,x-29,y-80,58,50,0xff253e3e);
-                rect(c,x-6,y-146,12,67,0xff172729);
-                rect(c,x-3,y-140,6,55,0xff9ba79c);
-                rect(c,x-34,y-119,69,7,0xff263b3e);
-                rect(c,x-20,y-106,42,4,0xffb6baa0);
-                rect(c,x-19,y+38,38,19,0xff172a2b);
-            }else{
-                rect(c,x-78,y-66,160,145,0xff142626);
-                rect(c,x-71,y-60,145,130,roof);
-                rect(c,x-64,y-54,130,20,0xffa19b7a);
-                rect(c,x-63,y-29,125,80,0xff4a5b51);
-                rect(c,x-15,y+44,31,30,0xff172d2c);
-                rect(c,x-61,y-19,27,24,0xff142f32);
-                rect(c,x+32,y-19,27,24,0xff142f32);
-                rect(c,x-57,y-16,19,15,0xff8d9f9c);
-                rect(c,x+36,y-16,19,15,0xff8d9f9c);
-                if(s.kind==ExpeditionSitesV88.GARAGE||s.kind==ExpeditionSitesV88.WORKSHOP){
-                    rect(c,x-65,y+7,54,55,0xff1a2a2a);
-                    rect(c,x-60,y+12,44,46,0xff876a4b);
-                    for(int q=0;q<3;q++)rect(c,x-57,y+16+q*13,38,3,0xff263637);
-                }else if(s.kind==ExpeditionSitesV88.CLINIC){
-                    rect(c,x-8,y-52,16,27,0xffb94845);
-                    rect(c,x-17,y-44,34,11,0xffb94845);
-                }else if(s.kind==ExpeditionSitesV88.FARM){
-                    rect(c,x-93,y+45,50,10,0xff2d4c36);
-                    rect(c,x-91,y+55,49,13,0xff72905c);
-                }else if(s.kind==ExpeditionSitesV88.MOTEL){
-                    rect(c,x-62,y+26,30,26,0xff29373b);
-                    rect(c,x+35,y+26,25,26,0xff29373b);
-                }
-            }
-            rect(c,x-84,y-82,168,19,0xff1b2b2b);
-            rect(c,x-81,y-78,162,12,0xffa2a18a);
-            label(c,s.name,x-75,y-68,11,0xff1c2928,true);
-            // Stenciled crate near entry; remaining loot bag is drawn separately.
-            rect(c,x+91,y+73,44,30,0xff1a2926);
-            rect(c,x+96,y+77,35,22,0xff94714b);
-            rect(c,x+100,y+80,27,6,0xffc4a373);
-            rect(c,x+110,y+78,5,20,0xff4b4937);
-            rect(c,x-13,y+66,26,11,0xff111d1c);
-            label(c,"ENTER",x-24,y+108,10,0xffe9d49d,true);
-            c.restore();
+        for(ExpeditionSitesV88.Site site:ExpeditionSitesV88.SITES){
+            float[] b=ExteriorFootprintV130.bounds(site);
+            if(b[2]<camX-80f||b[0]>camX+viewW+80f||
+               b[3]<camY-80f||b[1]>camY+viewH+80f)continue;
+            drawLargeSiteExteriorV153(c,site);
         }
+    }
+    /** Physical pixels, not a magnified shack: human-sized doors and roof bays. */
+    void drawLargeSiteExteriorV153(Canvas c,ExpeditionSitesV88.Site site){
+        float x=site.x,doorY=site.y+ExteriorFootprintV130.anchor(site);
+        float hw=ExteriorFootprintV130.width(site);
+        float top=doorY-ExteriorFootprintV130.height(site);
+        float left=x-hw,right=x+hw,w=2f*hw;
+        int kind=site.kind;
+        int roof=kind==ExpeditionSitesV88.CLINIC?0xff829f9a:
+            kind==ExpeditionSitesV88.RELAY||kind==ExpeditionSitesV88.TOWER?
+                0xff526e73:
+            kind==ExpeditionSitesV88.GARAGE||kind==ExpeditionSitesV88.WORKSHOP?
+                0xff817a68:
+            kind==ExpeditionSitesV88.MOTEL?0xffa08b73:
+            kind==ExpeditionSitesV88.FARM?0xff6a7b5b:
+            kind==ExpeditionSitesV88.CHECKPOINT?0xff697778:0xff6f7c78;
+        // The apron stays outside the solid front wall, and its center
+        // matches the ContextualDoorV132 saved site identity and proximity.
+        rect(c,left-24,top-22,w+48,doorY-top+110f,0xff2c3b3b);
+        rect(c,left-12,top-10,w+24,doorY-top+92f,0xff3f4c48);
+        rect(c,left,top,w,doorY-top-65f,0xff17272b);
+        rect(c,left+16,top+16,w-32,doorY-top-98f,roof);
+        // Architectural bays/roof seams read as a campus rather than an
+        // enlarged single-room cabin. All are real world-unit features.
+        for(int i=0;i<10;i++){
+            float bayX=left+58+i*(w-116)/10f;
+            rect(c,bayX,top+43,8,doorY-top-180f,0x44303a3a);
+            rect(c,bayX+19,top+78,(w-116)/10f-40,12,0x55626f66);
+            for(int j=0;j<3;j++){
+                float yy=top+160+j*(doorY-top-350f)/3f;
+                rect(c,bayX+18,yy,Math.max(28f,(w-116)/10f-51f),32,
+                    0xff384d4f);
+                rect(c,bayX+25,yy+7,Math.max(18f,(w-116)/10f-65f),9,
+                    0xff9fb0a5);
+            }
+        }
+        // Wide independent wings surround a central roof service spine.
+        rect(c,left+110,top+104,w*.28f,78,0xff475a5d);
+        rect(c,right-w*.28f-110,top+104,w*.28f,78,0xff475a5d);
+        rect(c,x-95,top+120,190,doorY-top-350f,0xff354749);
+        for(int i=0;i<6;i++)
+            rect(c,x-78,top+156+i*(doorY-top-460f)/6f,
+                156,20,0xff8c9990);
+        // Human-scaled south-facing wall, with an actual 184-unit portal.
+        rect(c,left,doorY-65f,hw-ExteriorFootprintV130.DOOR_HALF_WIDTH,
+            40f,0xff253638);
+        rect(c,x+ExteriorFootprintV130.DOOR_HALF_WIDTH,doorY-65f,
+            hw-ExteriorFootprintV130.DOOR_HALF_WIDTH,40f,0xff253638);
+        rect(c,x-ExteriorFootprintV130.DOOR_HALF_WIDTH,doorY-65f,
+            2f*ExteriorFootprintV130.DOOR_HALF_WIDTH,86f,0xff5b6054);
+        rect(c,x-74,doorY-64,148,56,0xff112b31);
+        rect(c,x-66,doorY-59,132,48,0xff405450);
+        rect(c,x-5,doorY-58,10,54,0xff9fb19e);
+        rect(c,x-118,doorY-86,236,18,0xff172c30);
+        rect(c,x-114,doorY-82,228,10,0xffc0a36e);
+        // Stepped footpath to the same world-space interaction point.
+        rect(c,x-114,doorY+24f,228f,224f,0xff69685d);
+        rect(c,x-97,doorY+36f,194f,203f,0xff8a846e);
+        for(int i=0;i<4;i++)
+            rect(c,x-89,doorY+50f+i*45f,178,5,0xffaaa083);
+        int textColor=kind==ExpeditionSitesV88.CLINIC?0xffedf5e8:0xffe9e1c9;
+        label(c,site.name,x-118,doorY-111,17,textColor,true);
+        label(c,"ENTER",x-30,doorY+19,13,0xfff0d9a2,true);
     }
     /** Avoid player-built and fixed cover when shooting, independent of FPS. */
     boolean banditHasLineOfSightV88(float x,float y,float tx,float ty){
@@ -2302,51 +2308,9 @@ public final class GameView extends View {
             cameraLookX=0f;cameraLookY=0f;
         }
     }
-    /** Exterior is substantially larger than V88. Entrance remains physically reachable. */
+    /** V153 clinic uses exactly the same world-size facade and door geometry. */
     void drawFieldClinicExteriorV89(Canvas c,ExpeditionSitesV88.Site site){
-        float x=site.x,y=site.y;
-        float zoom=ExteriorFootprintV130.scale(site);
-        float pivotY=y+ExteriorFootprintV130.anchor(site);
-        c.save();c.translate(x,pivotY);c.scale(zoom,zoom);
-        c.translate(-x,-pivotY);
-        rect(c,x-210,y-174,420,365,0xff3c4b43);
-        rect(c,x-204,y-167,408,342,0xff52584b);
-        // Pixelated roof and concrete foundation.
-        rect(c,x-194,y-159,388,292,0xff102122);
-        rect(c,x-184,y-151,368,277,0xff7f9591);
-        rect(c,x-174,y-145,348,267,0xffa4b2aa);
-        for(int i=0;i<6;i++){
-            rect(c,x-166+i*56,y-141,45,12,i%2==0?0xff829b99:0xff78918e);
-            rect(c,x-162+i*56,y+102,43,9,0xff4a6c6a);
-        }
-        // Distinct crossed ambulance insignia and emergency awning.
-        rect(c,x-21,y-106,43,71,0xffa1433d);
-        rect(c,x-42,y-84,85,26,0xffa1433d);
-        rect(c,x-10,y-97,20,55,0xffe8e3c9);
-        rect(c,x-31,y-75,62,9,0xffe8e3c9);
-        rect(c,x-84,y+119,168,14,0xff142826);
-        rect(c,x-78,y+125,156,10,0xff9e7961);
-        rect(c,x-52,y+134,104,17,0xff243533);
-        rect(c,x-25,y+137,50,8,0xff9ab1af);
-        rect(c,x-24,y+147,48,27,0xff1b3031);
-        rect(c,x-2,y+145,5,28,0xff8daca5);
-        // Empty landing strip guides USE interaction.
-        rect(c,x-63,y+171,126,13,0xff968e75);
-        rect(c,x-54,y+183,108,4,0xffb9ae89);
-        label(c,"FIELD CLINIC",x-92,y-155,17,0xffe3ebe1,true);
-        label(c,"ENTER AT THE DOOR",x-48,y+205,13,0xffe1d4a3,true);
-        // Door furniture, vents, rust and water damage are distinct from V88.
-        rect(c,x-166,y-24,49,59,0xff425d59);
-        rect(c,x+117,y-24,49,59,0xff425d59);
-        for(int i=0;i<4;i++){
-            rect(c,x-159,y-17+i*12,34,5,0xffa1b7ae);
-            rect(c,x+124,y-17+i*12,34,5,0xffa1b7ae);
-        }
-        rect(c,x-172,y+42,83,34,0xff405e5d);
-        rect(c,x+90,y+43,82,31,0xff405e5d);
-        rect(c,x-164,y+49,69,7,0xff658d88);
-        rect(c,x+98,y+49,67,7,0xff658d88);
-        c.restore();
+        drawLargeSiteExteriorV153(c,site);
     }
     /** Furniture uses only reusable rectangle primitives, never generated bitmaps. */
     void drawClinicFurnitureV89(Canvas c,float[] item){
