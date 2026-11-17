@@ -408,13 +408,9 @@ public final class GameView extends View {
         covers.add(new Cover(650,1160,100,38,1));
         covers.add(new Cover(1360,1570,110,40,1));
         covers.add(new Cover(2520,1760,110,40,1));
-        // The ten fixed facilities are physical solid buildings; loot is
-        // reachable from the cache parked outside each entrance.
-        for(ExpeditionSitesV88.Site s:ExpeditionSitesV88.SITES){
-            if(s.kind==ExpeditionSitesV88.CLINIC)
-                covers.add(new Cover(s.x-175,s.y-140,350,255,4));
-            else covers.add(new Cover(s.x-68,s.y-56,136,120,4));
-        }
+        // V153: do not add the old invisible V88 rectangular cover blocks.
+        // ExteriorFootprintV130 supplies the exact large roof and door wall
+        // collision, including its open central entry corridor.
     }
     /** Load one independent indoor instance. V90 clinic saves are migrated unchanged. */
     String currentSiteNameV91(){
@@ -1818,6 +1814,14 @@ public final class GameView extends View {
         for(Cover c:covers){
             if(Ballistics.segmentBox(x,y,tx,ty,
                 c.x-3,c.y-3,c.x+c.w+3,c.y+c.h+3)<=1f)return false;
+        }
+        // Static POIs are no longer fake V88 cover rectangles. A shot must
+        // actually cross the rendered V153 solid roof to be blocked.
+        for(ExpeditionSitesV88.Site site:ExpeditionSitesV88.SITES){
+            float[] b=ExteriorFootprintV130.roofBounds(site);
+            if(Ballistics.segmentBox(x,y,tx,ty,
+                b[0],b[1],b[2],site.y+
+                    ExteriorFootprintV130.anchor(site)-65f)<=1f)return false;
         }
         return true;
     }
