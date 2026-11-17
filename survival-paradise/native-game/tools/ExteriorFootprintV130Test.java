@@ -27,6 +27,10 @@ public final class ExteriorFootprintV130Test {
                "visible doorway corridor is blocked: "+s.name);
             ok(!ExteriorFootprintV130.blocked(s,s.x,doorY,18f),
                "ENTER button approach is blocked: "+s.name);
+            ok(!ExteriorFootprintV130.blocked(s,s.x+120f,doorY+36f,16f),
+               "supply cache hidden inside building: "+s.name);
+            ok(120f*120f+36f*36f<138f*138f,
+               "new supplies must be reachable from the entry");
             ok(ExteriorFootprintV130.blocked(s,
                s.x+ExteriorFootprintV130.DOOR_HALF_WIDTH+32f,doorY-45f,8f),
                "front wall missing to the right of doorway: "+s.name);
