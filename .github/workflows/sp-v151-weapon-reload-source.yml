@@ -1,0 +1,92 @@
+name: Survival Paradise V151 - Unique Weapon Reload QA (NO APK)
+on:
+  push:
+    branches: [sp-native-v151-distinct-weapon-reload-20261117]
+    paths:
+      - '.github/workflows/sp-v151-weapon-reload-source.yml'
+      - 'survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/GameView.java'
+      - 'survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/ClinicActorsV90.java'
+      - 'survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/ReloadArtV151.java'
+      - 'survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/ReloadProfileV151.java'
+      - 'survival-paradise/native-game/tools/ReloadProfileV151Test.java'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compile-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            survival-paradise
+          sparse-checkout-cone-mode: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Pure Java tests for every distinct weapon/ammunition type
+        shell: bash
+        run: |
+          set -euo pipefail
+          R=survival-paradise/native-game
+          C="$R/app/src/main/java/com/survivalparadise/nativegame"
+          mkdir -p /tmp/v151
+          javac -d /tmp/v151 "$C/ReloadProfileV151.java" "$R/tools/ReloadProfileV151Test.java"
+          java -cp /tmp/v151 com.survivalparadise.nativegame.ReloadProfileV151Test
+          javac -d /tmp/v151 "$C/ReloadPoseV150.java" "$R/tools/ReloadPoseV150Test.java"
+          java -cp /tmp/v151 com.survivalparadise.nativegame.ReloadPoseV150Test
+      - name: Check ammo props, reload hooks, original V149 bullets and immutable art
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          r=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame')
+          g=(r/'GameView.java').read_text()
+          c=(r/'ClinicActorsV90.java').read_text()
+          art=(r/'ReloadArtV151.java').read_text()
+          profile=(r/'ReloadProfileV151.java').read_text()
+          b=(r/'Ballistics.java').read_text()
+          assert 'reloadClock=ReloadProfileV151.duration(gun)' in g
+          assert 'reloadArtV151.drawHeldAmmo(' in g
+          assert 'reloadArtV151.drawMechanism(' in g
+          assert 'ReloadProfileV151.needsBorrowedHand(weapon)' in g
+          assert 'ReloadProfileV151.handX(weapon,reloadRemainingV150)' in g
+          assert 'e.reloadClockV150=ReloadProfileV151.duration(e.gun)' in g
+          assert 'a.reloadClockV150=ReloadProfileV151.duration(a.gun)' in c
+          assert 'e.rounds=loaded;e.spareRounds-=loaded;' in g
+          assert 'a.rounds=loaded;a.spareRounds-=loaded;' in c
+          for tag in ('SLIM_PISTOL','SPEEDLOADER','UZI_BOX','STANAG',
+              'CURVED_AK','BULLPUP_BOX','TOP_SHELLS','PRECISION_BOX',
+              'BELT_BOX','GRENADE_ROUNDS'):
+              assert 'case ReloadProfileV151.'+tag+':' in art,tag
+          assert 'weapon==SHOTGUN' in profile
+          assert 'float reloadClockV151=0f;' in g
+          assert '3100f,3100f,3100f,0f,3100f' in b
+          assert 'wearableArtV96.drawHead(' not in g
+          assert 'append(a.reloadClockV150)' not in c
+          assert ".append(',').append(a.gun);" in c
+          print('PASS distinct props, original art, saved ammo compatibility and headgear ban')
+          PY
+          python3 survival-paradise/native-game/tools/verify_v145_asset_bundle.py
+          python3 survival-paradise/native-game/tools/test_headgear_visuals_v138.py
+      - name: Android SDK API 35
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -path '*/bin/sdkmanager' | sort -V | tail -1)"
+          test -x "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Java compilation only; no Android application package
+        working-directory: survival-paradise/native-game
+        run: gradle --no-daemon :app:compileDebugJavaWithJavac
+      - name: Assert no APK generated
+        shell: bash
+        run: |
+          test ! -f survival-paradise/native-game/app/build/outputs/apk/debug/app-debug.apk
+          echo 'PASS: source-only checked; NO APK'
