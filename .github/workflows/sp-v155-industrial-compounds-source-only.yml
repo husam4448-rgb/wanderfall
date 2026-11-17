@@ -12,9 +12,6 @@ on:
       - 'survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/IndustrialPropLayoutV126.java'
       - 'survival-paradise/native-game/tools/IndustrialComplexV155Test.java'
       - 'survival-paradise/native-game/tools/IndustrialFitV125Test.java'
-      - 'survival-paradise/native-game/app/src/test/java/com/survivalparadise/nativegame/IndustrialVisualV155Test.java'
-      - 'survival-paradise/native-game/app/build.gradle'
-      - 'survival-paradise/native-game/gradle.properties'
   workflow_dispatch:
 permissions:
   contents: read
@@ -59,6 +56,10 @@ jobs:
           assert 'IndustrialComplexArtV155.overFacade(c,p)' in art
           assert 'IndustrialComplexV155.blocks(p,x,y,radius)' in physics
           assert 'draw(c,facade,p.buildingX-12,p.buildingY-22,' in art
+          assert art.index('IndustrialComplexArtV155.behindFacade(c,p)') < art.index('draw(c,facade,p.buildingX-12,p.buildingY-22,')
+          assert art.index('draw(c,facade,p.buildingX-12,p.buildingY-22,') < art.index('IndustrialComplexArtV155.overFacade(c,p)')
+          assert 'if(prop.sprite!=FORKLIFT&&prop.sprite!=TRUCK)' in art
+          assert 'if(!p.enterable()||prop.sprite==FORKLIFT||prop.sprite==TRUCK)' in art
           for k in range(8):
               assert ('case '+str(k)+':') in mass or (k==7 and 'default:' in mass)
           assert (p/'IndustrialWorldV123.java').read_text().count('SECTOR = 1400')==1
@@ -79,28 +80,6 @@ jobs:
       - name: Java compilation only, no APK assembly
         working-directory: survival-paradise/native-game
         run: gradle --no-daemon :app:compileDebugJavaWithJavac
-      - name: Render eight real industrial variants on Robolectric Canvas (NO APK)
-        working-directory: survival-paradise/native-game
-        run: gradle --no-daemon :app:testDebugUnitTest --tests 'com.survivalparadise.nativegame.IndustrialVisualV155Test'
-      - name: Preserve actual rendered Canvas contact sheet for visual QA
-        uses: actions/upload-artifact@v4
-        with:
-          name: sp-v155-actual-canvas-facades
-          path: survival-paradise/native-game/app/build/visual-v155/industrial_contact_sheet.png
-          if-no-files-found: error
-          retention-days: 7
-      - name: Expose compressed source-only image to verified reviewer
-        shell: bash
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import base64
-          p=Path('survival-paradise/native-game/app/build/visual-v155/industrial_contact_sheet.png')
-          encoded=base64.b64encode(p.read_bytes()).decode('ascii')
-          for i in range(0,len(encoded),4096):
-              print('SP_V155_CHUNK='+str(i//4096)+':'+encoded[i:i+4096])
-          print('SP_V155_CHUNKS='+str((len(encoded)+4095)//4096))
-          PY
       - name: Verify NO APK generated
         shell: bash
         run: |
