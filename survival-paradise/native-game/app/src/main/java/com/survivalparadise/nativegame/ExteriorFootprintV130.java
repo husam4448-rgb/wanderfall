@@ -1,74 +1,64 @@
 package com.survivalparadise.nativegame;
 
 /**
- * Adaptive enlargement of the legacy enterable building silhouettes.
- * Scaling is anchored to their original USE/entrance landing, not their roof
- * center, so old saves, entrances, caches, and NPC navigation targets stay.
- * Every structure is checked against the nearest other structure and camp.
+ * V153 true large-site exterior geometry, anchored to the actual ENTER door.
+ * The interior (2720 x 1904) has a corresponding ~80% scale exterior,
+ * instead of the old 170-unit-wide shack. Pure collision/render dimensions.
+ * Site positions are separated once in ExpeditionSitesV88 to avoid overlaps.
  */
 public final class ExteriorFootprintV130 {
     private ExteriorFootprintV130(){}
-    // Exact existing GameView.CAMP_X/Y, intentionally not moved.
     public static final float CAMP_X=1080f,CAMP_Y=710f;
-    public static final float ROAD_CLEARANCE=24f;
+    public static final float ROAD_CLEARANCE=140f;
+    public static final float DOOR_HALF_WIDTH=92f;
     public static boolean clinic(ExpeditionSitesV88.Site s){
         return s.kind==ExpeditionSitesV88.CLINIC;
     }
+    /** Roof half-width in world units, not the old sprite half-width. */
     public static float width(ExpeditionSitesV88.Site s){
-        return clinic(s)?210f:85f;
+        return clinic(s)?1140f:1090f;
     }
+    public static float height(ExpeditionSitesV88.Site s){
+        return clinic(s)?1640f:1570f;
+    }
+    /** Door landing remains relative to the site's stable identity. */
     public static float anchor(ExpeditionSitesV88.Site s){
-        return clinic(s)?205f:108f;
+        return clinic(s)?154f:90f;
     }
-    private static final float[] SCALES=new float[ExpeditionSitesV88.SITES.length];
-    public static float scale(ExpeditionSitesV88.Site s){
-        int id=-1;
-        for(int i=0;i<ExpeditionSitesV88.SITES.length;i++)
-            if(ExpeditionSitesV88.SITES[i]==s){id=i;break;}
-        if(id>=0&&SCALES[id]>0f)return SCALES[id];
-        float ideal=clinic(s)?1.74f:2.30f;
-        float nearest=Float.POSITIVE_INFINITY;
-        for(ExpeditionSitesV88.Site other:ExpeditionSitesV88.SITES){
-            if(other==s)continue;
-            float distance=(float)Math.hypot(s.x-other.x,s.y-other.y);
-            float needed=width(s)+width(other);
-            float allowed=(distance-ROAD_CLEARANCE)/(needed);
-            if(allowed<nearest)nearest=allowed;
-        }
-        // Camp settlement centre stays clear of new roofs.
-        float campDistance=(float)Math.hypot(
-            s.x-CAMP_X,s.y-CAMP_Y);
-        float campAllowed=(campDistance-360f)/(width(s)+175f);
-        // Preserve at least the original facade scale in cramped sites.
-        float result=Math.max(1f,Math.min(ideal,Math.min(nearest,campAllowed)));
-        // At the industrial stitch, the old sites may not grow into factories.
-        if(s.x>5100f)result=Math.min(result,1f);
-        if(id>=0)SCALES[id]=result;
-        return result;
+    /** Retained compatibility method: V153 facades use world geometry directly. */
+    public static float scale(ExpeditionSitesV88.Site s){return 1f;}
+    public static float[] roofBounds(ExpeditionSitesV88.Site s){
+        float doorY=s.y+anchor(s);
+        return new float[]{s.x-width(s),doorY-height(s),
+            s.x+width(s),doorY-25f};
     }
+    /** Draw-culling bounds also include the exterior landing apron. */
     public static float[] bounds(ExpeditionSitesV88.Site s){
-        float zoom=scale(s),anchor=anchor(s);
-        float w=clinic(s)?210f:85f;
-        float top=clinic(s)?-174f:-84f;
-        float bottom=clinic(s)?190f:83f;
-        return new float[]{s.x-w*zoom,
-            s.y+anchor+(top-anchor)*zoom,
-            s.x+w*zoom,s.y+anchor+(bottom-anchor)*zoom};
+        float[] b=roofBounds(s);
+        b[3]=s.y+anchor(s)+248f;
+        return b;
     }
-    /** Solid visual hull only, no arbitrary rectangle beyond painted roof. */
-    public static boolean blocked(ExpeditionSitesV88.Site site,float x,float y,float radius){
-        float zoom=scale(site),a=anchor(site);
-        float px=(x-site.x)/zoom;
-        float py=a+(y-site.y-a)/zoom;
-        float r=radius/zoom;
-        if(clinic(site)){
-            if(px+r<=-194||px-r>=194||py+r<=-159||py-r>=174)return false;
-            // Central original entry/USE corridor is always accessible.
-            if(Math.abs(px)<43-r&&py>=113-r)return false;
-            return py-r<133f;
+    private static boolean touches(float x,float y,float r,
+                                   float l,float t,float rr,float bb){
+        return x+r>l&&x-r<rr&&y+r>t&&y-r<bb;
+    }
+    /** The solid roof and physical front wall match the painted geometry.
+     * An actual gap at the middle front wall keeps the ENTER approach clear.
+     */
+    public static boolean blocked(ExpeditionSitesV88.Site s,
+                                  float x,float y,float radius){
+        float r=Math.max(0f,radius),doorY=s.y+anchor(s);
+        float left=s.x-width(s),right=s.x+width(s);
+        if(touches(x,y,r,left,doorY-height(s),right,doorY-65f))
+            return true;
+        if(touches(x,y,r,left,doorY-65f,right,doorY-25f)){
+            float gapLeft=s.x-DOOR_HALF_WIDTH;
+            float gapRight=s.x+DOOR_HALF_WIDTH;
+            if(touches(x,y,r,left,doorY-65f,gapLeft,doorY-25f))
+                return true;
+            if(touches(x,y,r,gapRight,doorY-65f,right,doorY-25f))
+                return true;
         }
-        if(px+r<=-83||px-r>=84||py+r<=-83||py-r>=79)return false;
-        if(Math.abs(px)<20-r&&py>=30-r)return false;
-        return py-r<70;
+        return false;
     }
 }
