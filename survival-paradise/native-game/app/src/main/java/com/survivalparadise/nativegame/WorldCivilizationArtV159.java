@@ -169,10 +169,10 @@ public final class WorldCivilizationArtV159 {
     }
     public static void industrialFence(Canvas c,int seed,
                                        float camX,float camY,float width,float height){
-        if(camX+width<IndustrialBiomeBridgeV128.WEST-60f||
-           camX>IndustrialBiomeBridgeV128.EAST+60f||
-           camY+height<IndustrialBiomeBridgeV128.NORTH-60f||
-           camY>IndustrialBiomeBridgeV128.SOUTH+60f)return;
+        if(camX+width<IndustrialBiomeBridgeV128.WEST-340f||
+           camX>IndustrialBiomeBridgeV128.EAST+340f||
+           camY+height<IndustrialBiomeBridgeV128.NORTH-340f||
+           camY>IndustrialBiomeBridgeV128.SOUTH+340f)return;
         c.save();c.clipRect(camX-35,camY-35,camX+width+35,camY+height+35);
         for(WorldCivilizationV159.Segment f:IndustrialPerimeterV159.segments(seed))
             drawFence(c,f,camX,camY,width,height);
