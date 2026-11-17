@@ -13,9 +13,14 @@ public final class WorldBuildingV157 {
     private WorldBuildingV157(){}
     /** Fast pure-Java test of whether a visual prop would intersect a roof. */
     public static boolean sceneryBlocked(float x,float y,float radius,int industrialSeed){
+        return sceneryBlocked(x,y,radius,industrialSeed,null);
+    }
+    public static boolean sceneryBlocked(float x,float y,float radius,
+                                         int industrialSeed,
+                                         WorldCivilizationV159.Plan plan){
         if(!Float.isFinite(x)||!Float.isFinite(y))return false;
         float r=Math.max(0f,radius);
-        if(NeighborhoodV154.blocked(x,y,r+9f))return true;
+        if(NeighborhoodV154.blocked(x,y,r+9f,plan))return true;
         for(ExpeditionSitesV88.Site site:ExpeditionSitesV88.SITES)
             if(ExteriorFootprintV130.blocked(site,x,y,r+9f))return true;
         // Stitched factory buildings and the solid machinery/fence are already
@@ -29,10 +34,16 @@ public final class WorldBuildingV157 {
     public static boolean sceneryRectBlocked(float left,float top,
                                              float right,float bottom,
                                              int industrialSeed){
+        return sceneryRectBlocked(left,top,right,bottom,industrialSeed,null);
+    }
+    public static boolean sceneryRectBlocked(float left,float top,
+                                             float right,float bottom,
+                                             int industrialSeed,
+                                             WorldCivilizationV159.Plan plan){
         float x=(left+right)*.5f,y=(top+bottom)*.5f;
         float halfW=(right-left)*.5f,halfH=(bottom-top)*.5f;
         // Conservative circumscribed circle means clipped canopies/vehicles
         // disappear before they can overpaint a large roof. Dirt is unaffected.
-        return sceneryBlocked(x,y,(float)Math.hypot(halfW,halfH),industrialSeed);
+        return sceneryBlocked(x,y,(float)Math.hypot(halfW,halfH),industrialSeed,plan);
     }
 }
