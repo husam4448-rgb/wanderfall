@@ -4154,6 +4154,15 @@ public final class GameView extends View {
         gatherFeedbackTime=2f;saveProgress();return true;
     }
     /** Procedural rusted vehicles and scrap heaps, drawn only in visible cells. */
+    /** Exclude industrial roads for the full scrap-object footprint. */
+    boolean salvageOnIndustrialRoadV161(float x,float y){
+        if(!stitchedIndustrialV128||!IndustrialBiomeBridgeV128.bounds(x,y))return false;
+        return IndustrialBiomeBridgeV128.roadAt(x,y,industrialSeedV123)||
+            IndustrialBiomeBridgeV128.roadAt(x-74,y-45,industrialSeedV123)||
+            IndustrialBiomeBridgeV128.roadAt(x+74,y+15,industrialSeedV123)||
+            IndustrialBiomeBridgeV128.roadAt(x+74,y-45,industrialSeedV123)||
+            IndustrialBiomeBridgeV128.roadAt(x-74,y+15,industrialSeedV123);
+    }
     void drawSalvageWorldV84(Canvas c){
         int cell=SalvageWorldV84.CELL;
         int x0=(int)Math.floor(camX/cell)-1,x1=(int)Math.ceil((camX+viewW)/cell)+1;
@@ -4165,6 +4174,7 @@ public final class GameView extends View {
             if(x<camX-170||x>camX+viewW+170||
                y<camY-110||y>camY+viewH+110||
                !SalvageWorldV84.placed(x,y,seed,CAMP_X,CAMP_Y,WORLD_W,WORLD_H)||
+                salvageOnIndustrialRoadV161(x,y)||
                 WorldBuildingV157.sceneryRectBlocked(
                     x-84f,y-94f,x+84f,y+27f,industrialSeedV123,civilizationV159))continue;
             int type=Math.floorMod(seed,3);
@@ -6391,6 +6401,8 @@ public final class GameView extends View {
            civilizationV159.developed(node.x,node.y))node=null;
         SalvageWorldV84.Node salvage=salvageWorldV84.nearest(playerX,playerY,
             SalvageWorldV84.REACH,CAMP_X,CAMP_Y,WORLD_W,WORLD_H);
+        if(salvage!=null&&salvageOnIndustrialRoadV161(salvage.x,salvage.y))
+            salvage=null;
         if(node==null&&salvage==null)return false;
         boolean useScrap=salvage!=null&&(node==null||
             distance(playerX,playerY,salvage.x,salvage.y)<
