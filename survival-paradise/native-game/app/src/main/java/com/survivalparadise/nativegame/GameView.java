@@ -162,6 +162,7 @@ public final class GameView extends View {
     boolean bagOrderInitializedV92=false;
     float campGuardCooldownV92=0f;
     int activeSiteV91=-1; // -1 outdoors, 1 original clinic, all others separate indoor maps
+    NeighborhoodV154.Building neighborhoodSiteV161;
     boolean sitesInitializedV88=false;
     ClinicInteriorV89 clinicInteriorV89=new ClinicInteriorV89();
     ClinicActorsV90 clinicActorsV90=new ClinicActorsV90(clinicInteriorV89);
@@ -426,6 +427,9 @@ public final class GameView extends View {
     }
     /** Load one independent indoor instance. V90 clinic saves are migrated unchanged. */
     String currentSiteNameV91(){
+        if(activeSiteV91>=NeighborhoodInteriorV161.SITE_BASE&&
+           neighborhoodSiteV161!=null)
+            return NeighborhoodV154.LABELS[neighborhoodSiteV161.kind];
         if(activeSiteV91==INDUSTRIAL_SITE_V123)
             return industrialSiteV123.name;
         if(activeSiteV91>=0&&activeSiteV91<ExpeditionSitesV88.SITES.length)
@@ -433,6 +437,31 @@ public final class GameView extends View {
         return activeSiteV91>=ExpeditionSitesV88.SITES.length?"FIELD SHELTER":"FIELD CLINIC";
     }
     void configureInteriorV91(int site){
+        if(site>=NeighborhoodInteriorV161.SITE_BASE){
+            NeighborhoodV154.Building building=neighborhoodSiteV161;
+            if(building==null||
+               NeighborhoodInteriorV161.siteId(building,industrialSeedV123)!=site)
+                building=NeighborhoodV154.get(
+                    host.prefs.getInt("neighborhood_tx_v161",0),
+                    host.prefs.getInt("neighborhood_ty_v161",0),
+                    host.prefs.getInt("neighborhood_slot_v161",0),civilizationV159);
+            if(building!=null&&
+               NeighborhoodInteriorV161.siteId(building,industrialSeedV123)==site){
+                neighborhoodSiteV161=building;
+                activeSiteV91=site;
+                clinicInteriorV89=new NeighborhoodInteriorV161(building,industrialSeedV123);
+                clinicActorsV90=new ClinicActorsV90(clinicInteriorV89);
+                clinicNavV90=new ClinicNavV90(clinicInteriorV89);
+                String key=NeighborhoodInteriorV161.saveKey(building,industrialSeedV123);
+                clinicInteriorV89.decode(host.prefs.getString(key+"_loot",""));
+                clinicActorsV90.decode(host.prefs.getString(key+"_actors",""),clinicInteriorV89);
+                indoorCorpseLootV158.decode(
+                    host.prefs.getString(indoorCorpseLootKeyV158(),""));
+                clinicFriendWaypointsV90.clear();return;
+            }
+            // Corrupt neighborhood identity never crashes an existing save.
+            site=1;neighborhoodSiteV161=null;
+        }
         if((industrialModeV123||stitchedIndustrialV128)&&
                 site==INDUSTRIAL_SITE_V123){
             activeSiteV91=site;
@@ -472,6 +501,16 @@ public final class GameView extends View {
         clinicFriendWaypointsV90.clear();
     }
     void persistCurrentInteriorV91(){
+        if(activeSiteV91>=NeighborhoodInteriorV161.SITE_BASE&&
+           neighborhoodSiteV161!=null){
+            String key=NeighborhoodInteriorV161.saveKey(
+                neighborhoodSiteV161,industrialSeedV123);
+            host.prefs.edit().putString(key+"_loot",clinicInteriorV89.encode())
+                .putString(key+"_actors",clinicActorsV90.encode())
+                .putString(indoorCorpseLootKeyV158(),
+                    indoorCorpseLootV158.encode()).apply();
+            return;
+        }
         if(activeSiteV91==INDUSTRIAL_SITE_V123){
             String key=IndustrialWorldV123.saveNamespace(industrialSeedV123)+"_"+
                        industrialSiteV123.id.replace(',','_');
@@ -881,6 +920,10 @@ public final class GameView extends View {
 
     String droppedSceneV129(){
         if(!insideClinicV89)return "world";
+        if(activeSiteV91>=NeighborhoodInteriorV161.SITE_BASE&&
+           neighborhoodSiteV161!=null)
+            return NeighborhoodInteriorV161.saveKey(
+                neighborhoodSiteV161,industrialSeedV123);
         if(activeSiteV91==INDUSTRIAL_SITE_V123)
             return "industrial:"+industrialSeedV123+":"+industrialSiteV123.sx+
                 ":"+industrialSiteV123.sy;
@@ -1245,7 +1288,7 @@ public final class GameView extends View {
         clinicInteriorV89=new ClinicInteriorV89();
         clinicActorsV90=new ClinicActorsV90(clinicInteriorV89);
         clinicNavV90=new ClinicNavV90(clinicInteriorV89);
-        insideClinicV89=false;activeSiteV91=-1;fieldFindsV91.clear();
+        insideClinicV89=false;activeSiteV91=-1;neighborhoodSiteV161=null;fieldFindsV91.clear();
         wardrobeV92.clear();gearLootV95.clear();relationshipsV92.decode("");
         backpackStyleV96=0;headgearStyleV96=0;bootStyleV133=0;
         // Starting clothes are modular overlays, never edits to the locked
@@ -1394,7 +1437,7 @@ public final class GameView extends View {
         if(insideClinicV89)configureInteriorV91(savedSiteV91);
         else {
             indoorCorpseLootV158.clear();
-            activeSiteV91=-1;
+            activeSiteV91=-1;neighborhoodSiteV161=null;
             clinicInteriorV89=new ClinicInteriorV89();
             clinicActorsV90=new ClinicActorsV90(clinicInteriorV89);
             clinicNavV90=new ClinicNavV90(clinicInteriorV89);
@@ -1893,9 +1936,16 @@ public final class GameView extends View {
     static final class DoorV132 {
         final int site;final float x,y;final String name;
         final IndustrialWorldV123.District district;
+        final NeighborhoodV154.Building neighborhood;
         DoorV132(int site,float x,float y,String name,
                  IndustrialWorldV123.District district){
-            this.site=site;this.x=x;this.y=y;this.name=name;this.district=district;
+            this(site,x,y,name,district,null);
+        }
+        DoorV132(int site,float x,float y,String name,
+                 IndustrialWorldV123.District district,
+                 NeighborhoodV154.Building neighborhood){
+            this.site=site;this.x=x;this.y=y;this.name=name;
+            this.district=district;this.neighborhood=neighborhood;
         }
     }
     DoorV132 nearbyDoorV132(){
@@ -1929,6 +1979,23 @@ public final class GameView extends View {
                 site.x,site.y,site.kind==ExpeditionSitesV88.CLINIC))
                 return new DoorV132(i,site.x,doorY+20f,site.name,null);
         }
+        // V161 neighborhoods share the physical facade's exact door anchor.
+        if(civilizationV159!=null){
+            final DoorV132[] best={null};
+            final float[] distance2={170f*170f};
+            NeighborhoodV154.visible(playerX-220f,playerY-220f,440f,440f,
+                civilizationV159,b->{
+                    float dx=b.doorX-playerX,dy=b.doorY+31f-playerY;
+                    float d2=dx*dx+dy*dy;
+                    if(d2>distance2[0])return;
+                    distance2[0]=d2;
+                    best[0]=new DoorV132(
+                        NeighborhoodInteriorV161.siteId(b,industrialSeedV123),
+                        b.doorX,b.doorY+42f,
+                        NeighborhoodV154.LABELS[b.kind],null,b);
+                });
+            if(best[0]!=null)return best[0];
+        }
         for(int i=0;i<craftV83.objects.size();i++){
             CampCraftV83.Structure shelter=craftV83.objects.get(i);
             if(shelter.kind==CampCraftV83.FIELD_SHELTER&&
@@ -1945,6 +2012,14 @@ public final class GameView extends View {
         if(door==null)return false;
         if(door.site==-2){exitClinicV89();return true;}
         if(door.district!=null)industrialSiteV123=door.district;
+        if(door.neighborhood!=null){
+            neighborhoodSiteV161=door.neighborhood;
+            host.prefs.edit()
+                .putInt("neighborhood_tx_v161",door.neighborhood.tileX)
+                .putInt("neighborhood_ty_v161",door.neighborhood.tileY)
+                .putInt("neighborhood_slot_v161",door.neighborhood.slot)
+                .apply();
+        }
         return enterIndoorSiteV91(door.site,door.x,door.y,door.name);
     }
     /** Historical method retained, called by ENTER only. */
@@ -2595,6 +2670,9 @@ public final class GameView extends View {
             rect(c,sx,642,width,428,south[i]);
         }
         rect(c,23,508,1554,112,0xff93998a);
+        if(clinicInteriorV89 instanceof NeighborhoodInteriorV161)
+            NeighborhoodInteriorArtV161.floor(c,p,
+                (NeighborhoodInteriorV161)clinicInteriorV89);
         // Checker-style grouting with no dynamic bitmaps, loops <160 lines.
         for(int x=44;x<1575;x+=72)
             rect(c,x,43,2,1028,0x32404c46);
@@ -2626,11 +2704,17 @@ public final class GameView extends View {
         label(c,"MAIN CORRIDOR  •  "+currentSiteNameV91(),
             550,559,14,0xff253e3a,true);
         c.restore();
-        for(float[] obj:nonClinicV91?
-            ((ExpeditionInteriorV91)clinicInteriorV89).sceneFurniture():ClinicInteriorV89.FURNITURE){
+        float[][] furnitureV161=nonClinicV91?
+            ((ExpeditionInteriorV91)clinicInteriorV89).sceneFurniture():ClinicInteriorV89.FURNITURE;
+        for(int fi=0;fi<furnitureV161.length;fi++){
+            float[] obj=furnitureV161[fi];
             if(!WorldPerfV55.nearView(obj[1],obj[2],camX,camY,
                 viewW,viewH,Math.max(obj[3],obj[4])+30))continue;
-            drawClinicFurnitureV89(c,obj);
+            if(clinicInteriorV89 instanceof NeighborhoodInteriorV161){
+                NeighborhoodInteriorV161 room=(NeighborhoodInteriorV161)clinicInteriorV89;
+                NeighborhoodInteriorArtV161.furniture(c,p,obj,
+                    room.theme,room.variation,fi);
+            }else drawClinicFurnitureV89(c,obj);
         }
         for(ClinicInteriorV89.Storage storage:clinicInteriorV89.storages){
             if(!WorldPerfV55.nearView(storage.x,storage.y,camX,camY,viewW,viewH,80))
@@ -4960,6 +5044,11 @@ public final class GameView extends View {
      * and every seed-specific industrial district. No outdoor bag contamination.
      */
     String indoorCorpseLootKeyV158(){
+        if(activeSiteV91>=NeighborhoodInteriorV161.SITE_BASE&&
+           neighborhoodSiteV161!=null)
+            return "indoor_corpse_loot_v158_"+
+                NeighborhoodInteriorV161.saveKey(
+                    neighborhoodSiteV161,industrialSeedV123);
         if(activeSiteV91==INDUSTRIAL_SITE_V123)
             return "indoor_corpse_loot_v158_industrial:"+
                 industrialSeedV123+":"+industrialSiteV123.sx+":"+industrialSiteV123.sy;
