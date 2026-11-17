@@ -9,7 +9,7 @@ public final class V161NeighborhoodInteriorTest {
         int verified=0,industrial=0;
         for(int seed:new int[]{14901,87011,15247}){
             WorldCivilizationV159.Plan plan=WorldCivilizationV159.generate(seed,null,
-                new WorldGeographyV160(seed));
+                WorldGeographyV160.prepare(seed,null));
             for(WorldCivilizationV159.Parcel parcel:plan.parcels){
                 for(int slot=0;slot<NeighborhoodV154.COLS*NeighborhoodV154.ROWS;slot++){
                     NeighborhoodV154.Building building=NeighborhoodV154.get(
