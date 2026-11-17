@@ -171,7 +171,7 @@ public final class IndustrialInteriorArtV125 {
             float[] q=room.machines[i];
             float x=q[0]+15,y=q[1]+12,w=q[2]-30,h=q[3]-24;
             if(w<35||h<28)continue;
-            int mode=Math.floorMod(kind+i,4);
+            int mode=Math.floorMod(hash(room,i,0x161B),4);
             if(i<6){
                 if(mode==0||mode==2)pump(c,p,x+12,y+10,w-24,h-23,kind);
                 else cabinet(c,p,x+12,y+11,w-24,h-22,kind);
