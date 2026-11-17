@@ -146,6 +146,31 @@ public final class NeighborhoodV154 {
         }
         return false;
     }
+    /**
+     * Old V153 saves may load with the player inside a newly populated city
+     * block. Relocate to the nearest actual outside wall, not a new spawn,
+     * without changing coordinates or the save schema of other actors.
+     */
+    public static float[] clearSavedPosition(float x,float y){
+        if(!blocked(x,y,24f))return new float[]{x,y};
+        float best=Float.POSITIVE_INFINITY,px=x,py=y;
+        int tx=tileX(x),ty=tileY(y);
+        for(int dy=-1;dy<=1;dy++)for(int dx=-1;dx<=1;dx++)
+            for(Building b:cell(tx+dx,ty+dy)){
+                if(b==null||!b.blocked(x,y,24f))continue;
+                float[][] possibilities={
+                    {b.left-82f,y},{b.right()+82f,y},
+                    {x,b.top-82f},{x,b.bottom()+82f}
+                };
+                for(float[] point:possibilities){
+                    float xx=point[0],yy=point[1];
+                    if(blocked(xx,yy,24f))continue;
+                    float d=(xx-x)*(xx-x)+(yy-y)*(yy-y);
+                    if(d<best){best=d;px=xx;py=yy;}
+                }
+            }
+        return new float[]{px,py};
+    }
     /** Dynamic broadphase, accurate for all projectile and NPC ray paths. */
     public static float firstImpact(float x0,float y0,float x1,float y1){
         float hit=Float.POSITIVE_INFINITY;
