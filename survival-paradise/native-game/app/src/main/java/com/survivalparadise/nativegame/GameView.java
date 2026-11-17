@@ -3997,11 +3997,11 @@ public final class GameView extends View {
         if(!industrialCoreV128){
         // V54: render cached, asynchronously prepared 16x16-tile chunk textures.
         // Missing chunks use a deterministic immediate fallback (no blank screen).
-        terrainChunks.draw(c,camX,camY,viewW,viewH);
-        NaturalGroundArtV157.draw(c,camX,camY,viewW,viewH,geographyV160);
+        terrainChunks.draw(c,camX,camY,viewW,viewH,renderZoomV90);
+        NaturalGroundArtV157.draw(c,camX,camY,viewW,viewH,geographyV160,renderZoomV90<.70f);
         // Plotted civilization ground is separate from natural terrain.
         WorldCivilizationArtV159.ground(c,civilizationV159,
-            camX,camY,viewW,viewH);
+            camX,camY,viewW,viewH,renderZoomV90);
         // Landmark road corridors extend through all visible world coordinates.
         rect(c,camX-4,925,viewW+8,225,0xff565b50);
         rect(c,camX-4,940,viewW+8,8,0xff3e493e);
