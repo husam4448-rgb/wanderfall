@@ -8,6 +8,7 @@ public final class V159WorldPlanTest {
     public static void main(String[] args){
         int[] seeds={14901,87011,-999,0,20261117};
         String previous=null;
+        WorldCivilizationV159.Plan previousPlan=null;
         int total=0;
         for(int seed:seeds){
             final int[] lastProgress={-1};
@@ -37,9 +38,23 @@ public final class V159WorldPlanTest {
                 seed,null);
             yes(repeated.encode().equals(encoded),
                 "same seed is not deterministic across New Game");
-            if(previous!=null)yes(!previous.equals(encoded),
-                "different seed generated an identical world");
+            if(previous!=null){
+                yes(!previous.equals(encoded),
+                    "different seed generated an identical world");
+                int changed=0;
+                for(int tx=WorldCivilizationV159.MIN_TX;
+                        tx<=WorldCivilizationV159.MAX_TX;tx++)
+                    for(int ty=WorldCivilizationV159.MIN_TY;
+                            ty<=WorldCivilizationV159.MAX_TY;ty++){
+                        boolean old=previousPlan.atTile(tx,ty)!=null;
+                        boolean now=plan.atTile(tx,ty)!=null;
+                        if(old!=now)changed++;
+                    }
+                yes(changed>=3,"different seed only recolored buildings, "+
+                    "not the actual town/village layout: "+changed);
+            }
             previous=encoded;
+            previousPlan=plan;
             for(WorldCivilizationV159.Parcel region:plan.parcels){
                 total++;
                 yes(region.buildings>=1&&region.fences.length>=5,
