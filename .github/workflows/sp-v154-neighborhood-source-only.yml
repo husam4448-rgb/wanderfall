@@ -1,0 +1,82 @@
+name: Survival Paradise V154 - Dense Neighborhoods QA (NO APK)
+on:
+  push:
+    branches: [sp-native-v154-lived-in-world-blocks-20261117]
+    paths:
+      - '.github/workflows/sp-v154-neighborhood-source-only.yml'
+      - 'survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/GameView.java'
+      - 'survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/NeighborhoodV154.java'
+      - 'survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/NeighborhoodArtV154.java'
+      - 'survival-paradise/native-game/tools/NeighborhoodV154Test.java'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            survival-paradise
+          sparse-checkout-cone-mode: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Procedural block density, eight facades, collision and saved player
+        shell: bash
+        run: |
+          set -euo pipefail
+          R=survival-paradise/native-game
+          C="$R/app/src/main/java/com/survivalparadise/nativegame"
+          mkdir -p /tmp/v154
+          javac -d /tmp/v154 "$C/Ballistics.java" \
+            "$C/ExpeditionSitesV88.java" "$C/ExteriorFootprintV130.java" \
+            "$C/ClinicInteriorV89.java" "$C/NeighborhoodV154.java" \
+            "$R/tools/NeighborhoodV154Test.java"
+          java -cp /tmp/v154 com.survivalparadise.nativegame.NeighborhoodV154Test
+          javac -d /tmp/v154 "$R/tools/ExteriorFootprintV130Test.java" -cp /tmp/v154
+          java -cp /tmp/v154 com.survivalparadise.nativegame.ExteriorFootprintV130Test
+      - name: Check seamless integration without altered save item classes
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame')
+          g=(p/'GameView.java').read_text()
+          n=(p/'NeighborhoodV154.java').read_text()
+          art=(p/'NeighborhoodArtV154.java').read_text()
+          assert 'NeighborhoodArtV154.draw(c,p,camX,camY,viewW,viewH,night)' in g
+          assert 'NeighborhoodV154.blocked(x,y,r)' in g
+          assert 'NeighborhoodV154.firstImpact(' in g
+          assert 'NeighborhoodV154.clearSavedPosition(playerX,playerY)' in g
+          assert 'new java.util.LinkedHashMap<Long,Building[]>' in n
+          assert 'ExpeditionSitesV88.SITES' in n
+          for title in ('APARTMENTS','OFFICES','MARKET','HOTEL','SCHOOL',
+                        'FACTORY','WAREHOUSE','RESIDENCES'):
+              assert 'NeighborhoodV154.'+title in art,title
+          assert 'wearableArtV96.drawHead(' not in g
+          print('PASS art, real geometry, visibility, saves and headgear restriction')
+          PY
+          python3 survival-paradise/native-game/tools/test_headgear_visuals_v138.py
+      - name: Android SDK API 35
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -path '*/bin/sdkmanager' | sort -V | tail -1)"
+          test -x "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Compile Android game source only, no APK
+        working-directory: survival-paradise/native-game
+        run: gradle --no-daemon :app:compileDebugJavaWithJavac
+      - name: Assert no APK built
+        shell: bash
+        run: |
+          test ! -f survival-paradise/native-game/app/build/outputs/apk/debug/app-debug.apk
+          echo 'PASS V154 Android compile, source only; no APK'
