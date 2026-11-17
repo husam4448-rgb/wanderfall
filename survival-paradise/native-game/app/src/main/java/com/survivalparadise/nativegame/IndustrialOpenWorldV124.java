@@ -66,10 +66,15 @@ public final class IndustrialOpenWorldV124 {
             type=(sx==0&&sy==0)?FACILITY:!connection?VACANT:
                 roll<18?VACANT:roll<35?YARD:FACILITY;
             gateSide=south?0:west?1:east?2:-1;
-            // Several genuine different footprint sizes, no single repeated box.
+            // V155: real factory blocks, not shed-sized art in an enormous
+            // industrial compound. Keep the 1400-unit saved sector grid and
+            // the unchanged door at (700,810); expanding the sector itself
+            // would invalidate existing stockpile/site IDs and player saves.
+            // Four broad hall profiles, with additional industrial wings in
+            // IndustrialComplexV155. All stay clear of arterial road margins.
             int size=Math.floorMod(IndustrialWorldV123.hash(sx+31,sy+17,seed^0x394A),4);
-            buildingW=(kind==3||kind==0)?930:size==0?610:size==1?735:size==2?830:930;
-            buildingH=(kind==3||kind==0)?555:size==0?385:size==1?445:size==2?495:555;
+            buildingW=(kind==3||kind==0)?1080f:990f+30f*size;
+            buildingH=(kind==3||kind==0)?600f:560f+13f*size;
             buildingX=x+700-buildingW*.5f;
             buildingY=y+780-buildingH;
             doorX=x+700;
