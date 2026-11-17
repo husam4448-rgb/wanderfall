@@ -152,6 +152,42 @@ public final class BanditLootV87 {
         for(int n:bag.ammoExtraV143)if(n>0)return true;
         return false;
     }
+    /**
+     * One-time pre-V153 fixed-site cache relocation. Only the original static
+     * outdoor supplies bags are moved, identified by their exact authored
+     * world coordinates. Corpse/normal drop locations and ALL item quantities,
+     * gear, ammunition, currency and IDs are preserved.
+     */
+    public int migrateFixedSiteCachesV153(){
+        int moved=0;
+        for(int index=0;index<bags.size();index++){
+            Bag old=bags.get(index);
+            if(old.corpse)continue;
+            for(int i=0;i<ExpeditionSitesV88.SITES.length;i++){
+                float originalX=ExpeditionSitesV88.LEGACY_X[i]+115f;
+                float originalY=ExpeditionSitesV88.LEGACY_Y[i]+91f;
+                if(Math.abs(old.x-originalX)>1.1f||
+                   Math.abs(old.y-originalY)>1.1f)continue;
+                ExpeditionSitesV88.Site site=ExpeditionSitesV88.SITES[i];
+                if(Math.abs(site.x+115f-old.x)<1f&&
+                   Math.abs(site.y+91f-old.y)<1f)break;
+                Bag shifted=new Bag(old.id,site.x+115f,site.y+91f);
+                shifted.corpse=old.corpse;
+                shifted.gearManifestV141=old.gearManifestV141;
+                shifted.nutsV143=old.nutsV143;
+                shifted.variant=old.variant;shifted.face=old.face;
+                shifted.skinV109=old.skinV109;
+                System.arraycopy(old.count,0,shifted.count,0,old.count.length);
+                System.arraycopy(old.extra,0,shifted.extra,0,old.extra.length);
+                System.arraycopy(old.ammoExtraV143,0,shifted.ammoExtraV143,0,
+                    old.ammoExtraV143.length);
+                bags.set(index,shifted);
+                moved++;
+                break;
+            }
+        }
+        return moved;
+    }
     public String encode(){
         StringBuilder out=new StringBuilder(bags.size()*52);
         for(Bag bag:bags){
