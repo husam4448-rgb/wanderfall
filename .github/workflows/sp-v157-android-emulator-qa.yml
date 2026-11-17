@@ -43,8 +43,16 @@ jobs:
             adb shell wm size 1920x1080 || true
             adb shell wm density 260 || true
             adb install /tmp/sp157/Survival_Paradise_V157_World_Fix.apk
+            # Capture startup exceptions BEFORE boot/system noise can evict them.
+            adb logcat -c
             adb shell am start -n "$PKG/com.survivalparadise.nativegame.MainActivity"
             sleep 7
+            adb logcat -d > /tmp/sp157/visual/logcat_startup.txt
+            if ! adb shell pidof "$PKG"; then
+              echo 'ERROR: game process exited before menu screenshot'
+              grep -E -A 20 -B 8 'FATAL EXCEPTION|Process: com.survivalparadise.nativegame.v157worldfix|AndroidRuntime|SP-V109' /tmp/sp157/visual/logcat_startup.txt | tail -140 || true
+              exit 1
+            fi
             adb shell input tap 1130 330
             adb shell input tap 1140 335
             sleep 2
@@ -63,7 +71,7 @@ jobs:
             sleep 3
             adb shell screencap -p /sdcard/v157_zoom.png
             adb pull /sdcard/v157_zoom.png /tmp/sp157/visual/03_gameplay_zoom.png
-            adb logcat -d -t 1900 > /tmp/sp157/visual/logcat_tail.txt
+            adb logcat -d > /tmp/sp157/visual/logcat_tail.txt
             adb shell pidof "$PKG"
             if grep -E '(FATAL EXCEPTION|Process: com.survivalparadise.nativegame.v157worldfix)' /tmp/sp157/visual/logcat_tail.txt; then
               echo 'FAIL: Android runtime fatal exception'
