@@ -119,8 +119,71 @@ public final class NeighborhoodV154 {
         CACHE.put(key,result);
         return result;
     }
+    /**
+     * V160 seeded districts retain all old plot/camp/road exclusions and
+     * building-count save identities, but each surviving building can receive
+     * a distinct type, size, and position. V159 saved towns use cell() above
+     * and are never shifted.
+     */
+    private static int seededCacheSeed=Integer.MIN_VALUE;
+    private static final java.util.LinkedHashMap<Long,Building[]> SEEDED_CACHE=
+        new java.util.LinkedHashMap<Long,Building[]>(128,.75f,true){
+            @Override protected boolean removeEldestEntry(
+                java.util.Map.Entry<Long,Building[]> e){return size()>144;}
+        };
+    private static synchronized Building[] seededCell(int tx,int ty,
+                                                      WorldCivilizationV159.Plan plan){
+        if(plan==null||!plan.variedBuildingsV160)return cell(tx,ty);
+        if(seededCacheSeed!=plan.seed){
+            SEEDED_CACHE.clear();
+            seededCacheSeed=plan.seed;
+        }
+        long key=key(tx,ty);
+        Building[] cached=SEEDED_CACHE.get(key);
+        if(cached!=null)return cached;
+        Building[] originals=cell(tx,ty);
+        Building[] updated=new Building[originals.length];
+        WorldCivilizationV159.Parcel parcel=plan.atTile(tx,ty);
+        for(int slot=0;slot<originals.length;slot++){
+            Building old=originals[slot];
+            if(old==null)continue;
+            int h=IndustrialWorldV123.hash(tx*53+slot*11,
+                ty*59-slot*7,plan.seed^0x160B17);
+            int type=Math.floorMod(old.kind+Math.floorMod(h>>>15,TYPES),TYPES);
+            int variation=Math.floorMod(old.variation+
+                Math.floorMod(h>>>19,12),12);
+            float cx=old.left+old.width*.5f+
+                Math.floorMod(h,281)-140f;
+            float top=old.top+Math.floorMod(h>>>8,171)-85f;
+            float width=old.width*(.91f+Math.floorMod(h>>>22,9)*.017f);
+            float height=old.height*(.90f+Math.floorMod(h>>>25,9)*.020f);
+            Building proposed=new Building(tx,ty,slot,type,variation,
+                cx-width*.5f,top,width,height,cx,top+height+28f);
+            // Never cross real plot fences, established sites or highways.
+            // Preserve a known-safe original footprint when a randomized
+            // position is geometrically unsuitable.
+            if(parcel!=null&&
+               parcel.inside(proposed.left,proposed.top,35f)&&
+               parcel.inside(proposed.right(),proposed.bottom()+60f,35f)&&
+               safe(proposed))
+                updated[slot]=proposed;
+            else
+                updated[slot]=new Building(tx,ty,slot,type,variation,
+                    old.left,old.top,old.width,old.height,old.doorX,old.doorY);
+        }
+        SEEDED_CACHE.put(key,updated);
+        return updated;
+    }
+    private static Building[] cell(int tx,int ty,WorldCivilizationV159.Plan plan){
+        return plan!=null&&plan.variedBuildingsV160?
+            seededCell(tx,ty,plan):cell(tx,ty);
+    }
     public static Building get(int tx,int ty,int slot){
         return slot<0||slot>=COLS*ROWS?null:cell(tx,ty)[slot];
+    }
+    public static Building get(int tx,int ty,int slot,
+                               WorldCivilizationV159.Plan plan){
+        return slot<0||slot>=COLS*ROWS?null:cell(tx,ty,plan)[slot];
     }
     /** Broadphase limits all rendering to viewport tiles, not the whole world. */
     public static void visible(float x,float y,float width,float height,Visitor draw){
@@ -132,7 +195,7 @@ public final class NeighborhoodV154 {
         int y0=tileY(y-170f),y1=tileY(y+height+170f);
         for(int ty=y0;ty<=y1;ty++)for(int tx=x0;tx<=x1;tx++){
             if(plan!=null&&plan.atTile(tx,ty)==null)continue;
-            Building[] buildings=cell(tx,ty);
+            Building[] buildings=cell(tx,ty,plan);
             for(int slot=0;slot<COLS*ROWS;slot++){
                 Building b=buildings[slot];
                 if(b!=null&&b.onScreen(x,y,width,height))draw.visit(b);
@@ -148,7 +211,7 @@ public final class NeighborhoodV154 {
         int tx=tileX(x),ty=tileY(y);
         for(int dy=-1;dy<=1;dy++)for(int dx=-1;dx<=1;dx++){
             if(plan!=null&&plan.atTile(tx+dx,ty+dy)==null)continue;
-            Building[] buildings=cell(tx+dx,ty+dy);
+            Building[] buildings=cell(tx+dx,ty+dy,plan);
             for(int slot=0;slot<COLS*ROWS;slot++){
                 Building b=buildings[slot];
                 if(b!=null&&b.blocked(x,y,radius))return true;
@@ -171,7 +234,7 @@ public final class NeighborhoodV154 {
         int tx=tileX(x),ty=tileY(y);
         for(int dy=-1;dy<=1;dy++)for(int dx=-1;dx<=1;dx++){
             if(plan!=null&&plan.atTile(tx+dx,ty+dy)==null)continue;
-            for(Building b:cell(tx+dx,ty+dy)){
+            for(Building b:cell(tx+dx,ty+dy,plan)){
                 if(b==null||!b.blocked(x,y,24f))continue;
                 float[][] possibilities={
                     {b.left-82f,y},{b.right()+82f,y},
@@ -200,7 +263,7 @@ public final class NeighborhoodV154 {
         if(tx1-tx0>16||ty1-ty0>16)return hit;
         for(int ty=ty0;ty<=ty1;ty++)for(int tx=tx0;tx<=tx1;tx++){
             if(plan!=null&&plan.atTile(tx,ty)==null)continue;
-            Building[] buildings=cell(tx,ty);
+            Building[] buildings=cell(tx,ty,plan);
             for(int slot=0;slot<COLS*ROWS;slot++){
                 Building b=buildings[slot];
                 if(b==null||!b.overlaps(Math.min(x0,x1),Math.min(y0,y1),
