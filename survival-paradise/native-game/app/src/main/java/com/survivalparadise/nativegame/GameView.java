@@ -294,6 +294,8 @@ public final class GameView extends View {
                 NpcGearV143.pocketIron(variant,skinV109,1));
         }}
     static class Survivor {float x,y,homeX,homeY,cd,aimX=1,aimY=0;int gun,face=1,variant,skinV109;
+        // Visual/cadence only, existing survivor saves remain compatible.
+        int firedRoundsV151=0;float reloadClockV151=0f;
         final AnimationCycle animation=new AnimationCycle();
         Survivor(float a,float b,int g,int variant){x=a;y=b;homeX=a;homeY=b;gun=g;this.variant=variant;
             skinV109=1+Math.floorMod(Math.round(a*13f+b*19f+variant*41f),200);}}
@@ -2116,6 +2118,7 @@ public final class GameView extends View {
             }
             friend.animation.step(walked,dt,CharacterFitV108.rate(7.8f,fitWalkFpsV108));
             friend.cd=Math.max(0f,friend.cd-dt);
+            friend.reloadClockV151=Math.max(0f,friend.reloadClockV151-dt);
             ClinicActorsV90.Actor chosen=null;
             float nearestDistance=300f;
             for(ClinicActorsV90.Actor a:clinicActorsV90.actors){
@@ -2137,8 +2140,8 @@ public final class GameView extends View {
                 wantX,wantY,dt);
             friend.aimX=heading[0];friend.aimY=heading[1];
             friend.face=NpcAimV122.facing(friend.aimX,friend.face);
-            if(chosen!=null&&friend.cd<=0&&!companionHoldFireV118&&
-                NpcGunfireV122.firearm(friend.gun)&&
+            if(chosen!=null&&friend.cd<=0&&friend.reloadClockV151<=0f&&
+                !companionHoldFireV118&&NpcGunfireV122.firearm(friend.gun)&&
                 NpcAimV122.aligned(friend.aimX,friend.aimY,wantX,wantY)){
                 clinicActorsV90.hit(chosen,17f);
                 hitBloodV129(chosen.x,chosen.y-42f,friend.aimX,friend.aimY,5);
@@ -2146,6 +2149,11 @@ public final class GameView extends View {
                     friend.face,friend.aimX,friend.aimY,
                     chosen.x,chosen.y,false,false);
                 friend.cd=.9f+(i%3)*.17f;
+                friend.firedRoundsV151++;
+                if(friend.firedRoundsV151>=MAG[friend.gun]){
+                    friend.firedRoundsV151=0;
+                    friend.reloadClockV151=ReloadProfileV151.duration(friend.gun);
+                }
             }
         }
     }
@@ -2422,7 +2430,8 @@ public final class GameView extends View {
                 friend.animation.isWalking()?Float.POSITIVE_INFINITY:
                     friend.animation.breathOffset(),
                 Ballistics.angle(friend.aimX,friend.aimY,friend.face),
-                0,false,false,friend.variant,friend.skinV109))));
+                0,false,false,friend.variant,friend.skinV109,
+                    friend.reloadClockV151))));
         }
         sorted.add(new DrawEntity(playerY,()->character(c,playerX,playerY,gun,face,
             playerAnimation.frame(),
@@ -2542,7 +2551,8 @@ public final class GameView extends View {
                     friend.animation.frame(),
                     friend.animation.isWalking()?Float.POSITIVE_INFINITY:
                     friend.animation.breathOffset(),friendAim,0,false,false,
-                    friend.variant,friend.skinV109);
+                    friend.variant,friend.skinV109,
+                    friend.reloadClockV151);
                 rect(c,friend.x-6,friend.y-117,13,4,OLIVE);
                 
             })));
@@ -3351,11 +3361,18 @@ public final class GameView extends View {
             // The existing armed camp guard now actually shoots: no more
             // invisible magic hits on raiders. Use the same physical Shot
             // bullets and restrained V119 muzzle effects as the player.
+            npc.reloadClockV151=Math.max(0f,npc.reloadClockV151-dt);
             if(npc.gun!=3&&threat!=null&&npc.cd<=0f&&
+                npc.reloadClockV151<=0f&&
                 NpcAimV122.aligned(npc.aimX,npc.aimY,desireX,desireY)&&
                 banditHasLineOfSightV88(npc.x,npc.y-30f,threat.x,threat.y-30f)){
                 shoot(npc.x,npc.y,npc.aimX,npc.aimY,npc.gun,false,npc.face,false);
                 npc.cd=RATES[npc.gun]+.28f;
+                npc.firedRoundsV151++;
+                if(npc.firedRoundsV151>=MAG[npc.gun]){
+                    npc.firedRoundsV151=0;
+                    npc.reloadClockV151=ReloadProfileV151.duration(npc.gun);
+                }
             }
             npc.cd=Math.max(0f,npc.cd-dt);
             npc.animation.step(distance(px,py,npc.x,npc.y)>.001f,dt,
@@ -3368,6 +3385,7 @@ public final class GameView extends View {
             Survivor friend=friends.get(fi);
             float beforeFriendX=friend.x,beforeFriendY=friend.y;
             friend.cd=Math.max(0,friend.cd-dt);
+            friend.reloadClockV151=Math.max(0f,friend.reloadClockV151-dt);
             float gx=CompanionOrdersV118.targetX(playerX,followHeadingX,followHeadingY,
                 followMode,fi,friends.size(),followSpacing);
             float gy=CompanionOrdersV118.targetY(playerY,followHeadingX,followHeadingY,
@@ -3417,13 +3435,19 @@ public final class GameView extends View {
                 wantX,wantY,dt);
             friend.aimX=heading[0];friend.aimY=heading[1];
             friend.face=NpcAimV122.facing(friend.aimX,friend.face);
-            if(target!=null&&friend.cd<=0f&&!companionHoldFireV118&&
+            if(target!=null&&friend.cd<=0f&&friend.reloadClockV151<=0f&&
+                !companionHoldFireV118&&
                 NpcGunfireV122.firearm(friend.gun)&&
                 NpcAimV122.aligned(friend.aimX,friend.aimY,wantX,wantY)&&
                 banditHasLineOfSightV88(friend.x,friend.y-30f,target.x,target.y-30f)){
                 shoot(friend.x,friend.y,friend.aimX,friend.aimY,
                     friend.gun,false,friend.face,false);
                 friend.cd=RATES[friend.gun]+.2f;
+                friend.firedRoundsV151++;
+                if(friend.firedRoundsV151>=MAG[friend.gun]){
+                    friend.firedRoundsV151=0;
+                    friend.reloadClockV151=ReloadProfileV151.duration(friend.gun);
+                }
             }
         }
         if(enemyAI)for(Bandit e:enemies){
@@ -5026,7 +5050,8 @@ public final class GameView extends View {
             order.add(new DrawEntity(f.y,()->{
             character(c,f.x,f.y,f.gun,f.face,f.animation.frame(),
                     f.animation.isWalking()?Float.POSITIVE_INFINITY:f.animation.breathOffset(),
-                    Ballistics.angle(f.aimX,f.aimY,f.face),0,false,false,f.variant,f.skinV109);
+                    Ballistics.angle(f.aimX,f.aimY,f.face),0,false,false,
+                    f.variant,f.skinV109,f.reloadClockV151);
             rect(c,f.x-5,f.y-117,10,4,OLIVE);
             
         }));
@@ -5040,7 +5065,8 @@ public final class GameView extends View {
             character(c,npc.x,npc.y,npc.gun,npc.face,npc.animation.frame(),
                 npc.animation.isWalking()?Float.POSITIVE_INFINITY:npc.animation.breathOffset(),
                 Ballistics.angle(npc.aimX,npc.aimY,npc.face),
-                0,false,false,npc.variant,npc.skinV109);
+                0,false,false,npc.variant,npc.skinV109,
+                npc.reloadClockV151);
             
         }));
         }
