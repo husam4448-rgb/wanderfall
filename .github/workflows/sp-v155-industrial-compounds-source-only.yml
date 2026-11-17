@@ -1,0 +1,83 @@
+name: Survival Paradise V155 - Massive Industrial Compounds QA (NO APK)
+on:
+  push:
+    branches: [sp-native-v155-industrial-complex-massing-20261117]
+    paths:
+      - '.github/workflows/sp-v155-industrial-compounds-source-only.yml'
+      - 'survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/IndustrialOpenWorldV124.java'
+      - 'survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/IndustrialComplexV155.java'
+      - 'survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/IndustrialComplexArtV155.java'
+      - 'survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/IndustrialArtV123.java'
+      - 'survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/IndustrialFacadeShapeV126.java'
+      - 'survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/IndustrialPropLayoutV126.java'
+      - 'survival-paradise/native-game/tools/IndustrialComplexV155Test.java'
+      - 'survival-paradise/native-game/tools/IndustrialFitV125Test.java'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            survival-paradise
+          sparse-checkout-cone-mode: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Saved industrial identity, door, stockpile, NPC and road regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          R=survival-paradise/native-game
+          C="$R/app/src/main/java/com/survivalparadise/nativegame"
+          mkdir -p /tmp/sp-v155
+          javac -d /tmp/sp-v155               "$C/IndustrialWorldV123.java"               "$C/IndustrialOpenWorldV124.java"               "$C/IndustrialFacadeShapeV126.java"               "$C/IndustrialComplexV155.java"               "$C/IndustrialPropLayoutV126.java"               "$C/IndustrialCampV125.java"               "$C/IndustrialBiomeBridgeV128.java"               "$R/tools/IndustrialComplexV155Test.java"               "$R/tools/IndustrialFitV125Test.java"               "$R/tools/IndustrialGeometryV126Test.java"               "$R/tools/IndustrialOpenWorldV124Test.java"               "$R/tools/IndustrialBiomeBridgeV128Test.java"               "$R/tools/IndustrialWorldV123Test.java"
+          for test in IndustrialComplexV155Test IndustrialFitV125Test               IndustrialGeometryV126Test IndustrialOpenWorldV124Test               IndustrialBiomeBridgeV128Test IndustrialWorldV123Test; do
+            java -cp /tmp/sp-v155 com.survivalparadise.nativegame."$test"
+          done
+      - name: Verify untouched original source art, stable saves and architecture
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame')
+          hall=(p/'IndustrialOpenWorldV124.java').read_text()
+          art=(p/'IndustrialArtV123.java').read_text()
+          mass=(p/'IndustrialComplexArtV155.java').read_text()
+          physics=(p/'IndustrialFacadeShapeV126.java').read_text()
+          assert 'buildingW=(kind==3||kind==0)?1080f:990f+30f*size' in hall
+          assert 'doorX=x+700;' in hall and 'doorY=y+810;' in hall
+          assert 'IndustrialComplexArtV155.behindFacade(c,p)' in art
+          assert 'IndustrialComplexArtV155.overFacade(c,p)' in art
+          assert 'IndustrialComplexV155.blocks(p,x,y,radius)' in physics
+          assert 'draw(c,facade,p.buildingX-12,p.buildingY-22,' in art
+          for k in range(8):
+              assert ('case '+str(k)+':') in mass or (k==7 and 'default:' in mass)
+          assert (p/'IndustrialWorldV123.java').read_text().count('SECTOR = 1400')==1
+          print('PASS source bitmap unmodified, eight industrial architectural families, stable sector/doors')
+          PY
+          python3 survival-paradise/native-game/tools/test_headgear_visuals_v138.py
+      - name: Android SDK API 35
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -path '*/bin/sdkmanager' | sort -V | tail -1)"
+          test -x "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Java compilation only, no APK assembly
+        working-directory: survival-paradise/native-game
+        run: gradle --no-daemon :app:compileDebugJavaWithJavac
+      - name: Verify NO APK generated
+        shell: bash
+        run: |
+          test ! -f survival-paradise/native-game/app/build/outputs/apk/debug/app-debug.apk
+          echo 'PASS V155 source-only; no APK'
