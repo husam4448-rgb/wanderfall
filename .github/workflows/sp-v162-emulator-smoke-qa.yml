@@ -64,6 +64,19 @@ jobs:
           sleep 2
           adb shell screencap -p /sdcard/v162_zoom.png
           adb pull /sdcard/v162_zoom.png /tmp/sp157/visual/03_gameplay_zoom.png
+          # V162 UI regression captures: inventory, then a real item inspector.
+          adb shell input tap 1580 480
+          sleep 2
+          adb shell screencap -p /sdcard/v162_inventory.png
+          adb pull /sdcard/v162_inventory.png /tmp/sp157/visual/04_inventory.png
+          adb shell uiautomator dump /sdcard/v162_inventory.xml || true
+          adb pull /sdcard/v162_inventory.xml /tmp/sp157/visual/04_inventory.xml || true
+          adb shell input tap 894 360
+          sleep 2
+          adb shell screencap -p /sdcard/v162_item_stats.png
+          adb pull /sdcard/v162_item_stats.png /tmp/sp157/visual/05_item_stats.png
+          adb shell uiautomator dump /sdcard/v162_item_stats.xml || true
+          adb pull /sdcard/v162_item_stats.xml /tmp/sp157/visual/05_item_stats.xml || true
           adb logcat -d > /tmp/sp157/visual/logcat_tail.txt
           adb shell pidof "$PKG"
           if grep -E '(FATAL EXCEPTION|Process: com.survivalparadise.nativegame.v162statstest)' /tmp/sp157/visual/logcat_tail.txt; then
@@ -73,6 +86,8 @@ jobs:
           test -s /tmp/sp157/visual/01_menu.png
           test -s /tmp/sp157/visual/02_gameplay.png
           test -s /tmp/sp157/visual/03_gameplay_zoom.png
+          test -s /tmp/sp157/visual/04_inventory.png
+          test -s /tmp/sp157/visual/05_item_stats.png
           echo 'PASS: V162 Android process, menu, gameplay, screenshots and logcat'
           SCRIPT
           chmod +x /tmp/sp157/emulator_test.sh
