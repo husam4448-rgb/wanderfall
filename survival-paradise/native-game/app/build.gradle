@@ -3,11 +3,11 @@ android {
  namespace 'com.survivalparadise.nativegame'
  compileSdk 35
  defaultConfig {
-  applicationId 'com.survivalparadise.nativegame.v161fixtest'
+  applicationId 'com.survivalparadise.nativegame.v162statstest'
   minSdk 24
   targetSdk 34
-  versionCode 161
-  versionName '0.161-visual-world-inventory-fixes-test'
+  versionCode 162
+  versionName '0.162-item-stats-road-inventory-test'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
