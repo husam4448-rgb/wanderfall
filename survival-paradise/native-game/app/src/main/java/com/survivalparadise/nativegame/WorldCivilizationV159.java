@@ -63,10 +63,13 @@ public final class WorldCivilizationV159 {
     }
     public static final class Plan {
         public final int seed;
+        public final boolean variedBuildingsV160;
         public final Parcel[] parcels;
         private final HashMap<Long,Parcel> byTile;
-        private Plan(int seed,ArrayList<Parcel> list){
+        private Plan(int seed,ArrayList<Parcel> list,
+                     boolean variedBuildingsV160){
             this.seed=seed;
+            this.variedBuildingsV160=variedBuildingsV160;
             parcels=list.toArray(new Parcel[0]);
             byTile=new HashMap<>(parcels.length*2+1);
             for(Parcel p:parcels)byTile.put(key(p.tx,p.ty),p);
@@ -94,7 +97,8 @@ public final class WorldCivilizationV159 {
         }
         public String encode(){
             StringBuilder b=new StringBuilder(32+parcels.length*17);
-            b.append(VERSION).append('|').append(seed).append('|')
+            b.append(variedBuildingsV160?160:VERSION)
+                .append('|').append(seed).append('|')
                 .append(parcels.length).append('|');
             for(int i=0;i<parcels.length;i++){
                 Parcel p=parcels[i];
@@ -245,7 +249,7 @@ public final class WorldCivilizationV159 {
                     "LAYING OUT FENCED CITY AND VILLAGE PLOTS");
         }
         if(layout.isEmpty())throw new IllegalStateException("Empty world blueprint");
-        Plan plan=new Plan(seed,layout);
+        Plan plan=new Plan(seed,layout,geography!=null);
         if(onProgress!=null)onProgress.step(84,"VERIFYING ROAD GATES AND FENCES");
         // Every highway crossing must remain traversable, even if a fence
         // happens to intersect the original world road at the parcel edge.
@@ -274,7 +278,9 @@ public final class WorldCivilizationV159 {
             if(!Long.toHexString(check.getValue()).equals(encoded.substring(split+1)))
                 return null;
             String[] fields=body.split("\\|",-1);
-            if(fields.length!=4||Integer.parseInt(fields[0])!=VERSION||
+            if(fields.length!=4||
+               (Integer.parseInt(fields[0])!=VERSION&&
+                Integer.parseInt(fields[0])!=160)||
                Integer.parseInt(fields[1])!=expectedSeed)return null;
             int count=Integer.parseInt(fields[2]);
             if(count<1||count>(MAX_TX-MIN_TX+1)*(MAX_TY-MIN_TY+1))return null;
@@ -294,7 +300,8 @@ public final class WorldCivilizationV159 {
                    duplicates.put(key(tx,ty),true)!=null)return null;
                 parcels.add(new Parcel(tx,ty,type,variation,buildings));
             }
-            return new Plan(expectedSeed,parcels);
+            return new Plan(expectedSeed,parcels,
+                Integer.parseInt(fields[0])==160);
         }catch(RuntimeException invalid){return null;}
     }
 }
