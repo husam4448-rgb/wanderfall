@@ -1869,6 +1869,8 @@ public final class MainActivity extends Activity {
         equipmentSurroundV131.setOrientation(LinearLayout.HORIZONTAL);
         left.addView(equipmentSurroundV131);
         LinearLayout leftSocketsV131=column(),rightSocketsV131=column();
+        leftSocketsV131.setGravity(Gravity.CENTER_VERTICAL);
+        rightSocketsV131.setGravity(Gravity.CENTER_VERTICAL);
         int avatarHeightV131=Math.round(218*getResources().getDisplayMetrics().density);
         equipmentSurroundV131.addView(leftSocketsV131,
             new LinearLayout.LayoutParams(0,avatarHeightV131,.84f));
@@ -1886,7 +1888,7 @@ public final class MainActivity extends Activity {
                 Button socket=v62Slot(equipment[ix]+"\nEMPTY",true);
                 socket.setTextSize(8.5f);
                 LinearLayout holder=side==0?leftSocketsV131:rightSocketsV131;
-                LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,0,1f);
+                LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,dp118(48));
                 lp.setMargins(2,3,2,3);holder.addView(socket,lp);
                 equipmentButtonsV131[ix]=socket;
             }
@@ -1898,7 +1900,7 @@ public final class MainActivity extends Activity {
             Button socket=v62Slot(equipment[ix],true);
             socket.setTextSize(9f);
             LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,
-                Math.round(67*getResources().getDisplayMetrics().density),1f);
+                dp118(49),1f);
             lp.setMargins(2,3,2,3);handsV131.addView(socket,lp);
             equipmentButtonsV131[ix]=socket;
         }
