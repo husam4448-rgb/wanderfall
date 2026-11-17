@@ -4203,7 +4203,9 @@ public final class GameView extends View {
                 if(x<camX-200||x>camX+viewW+200||
                    y<camY-200||y>camY+viewH+200||
                     WorldBuildingV157.sceneryRectBlocked(
-                        x-110f,y-209f,x+110f,y+29f,industrialSeedV123))
+                        x-110f,y-209f,x+110f,y+29f,industrialSeedV123)||
+                    (civilizationV159!=null&&
+                        civilizationV159.developed(x,y)))
                     continue;
                 int kind=k==3?ResourceWorldV80.BUSH:k==2&&
                     x>=0&&x<=WORLD_W&&y>=0&&y<=WORLD_H?4:BiomeWorldV74.prop(x,y,h);
@@ -6016,7 +6018,8 @@ public final class GameView extends View {
         }else{
             ResourceWorldV80.Node near=harvestWorld.nearest(playerX,playerY,
                 ResourceWorldV80.USE_RADIUS,CAMP_X,CAMP_Y,WORLD_W,WORLD_H);
-            if(near!=null)
+            if(near!=null&&(civilizationV159==null||
+                    !civilizationV159.developed(near.x,near.y)))
                 label(c,"INTERACT: GATHER "+near.name(),14,viewH-54,12,0xffd3e4a7,true);
         }
         // Original two virtual sticks, with per-stick size/sensitivity tests.
@@ -6359,6 +6362,8 @@ public final class GameView extends View {
         if(nearest(playerX,playerY,135f)!=null)return false;
         ResourceWorldV80.Node node=harvestWorld.nearest(playerX,playerY,
             ResourceWorldV80.USE_RADIUS,CAMP_X,CAMP_Y,WORLD_W,WORLD_H);
+        if(node!=null&&civilizationV159!=null&&
+           civilizationV159.developed(node.x,node.y))node=null;
         SalvageWorldV84.Node salvage=salvageWorldV84.nearest(playerX,playerY,
             SalvageWorldV84.REACH,CAMP_X,CAMP_Y,WORLD_W,WORLD_H);
         if(node==null&&salvage==null)return false;
