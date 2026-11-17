@@ -277,6 +277,8 @@ public final class GameView extends View {
         final AnimationCycle animation=new AnimationCycle();
         int variant,gun;
         int rounds,spareRounds;
+        // Transient reload pose only; NPC save and loot formats are unchanged.
+        float reloadClockV150=0f;
         final NutWalletV143 pocketV143;
         Bandit(float a,float b,int variant){
             x=a;y=b;homeX=a;homeY=b;patrolClock=variant*2.3f;
@@ -2258,10 +2260,11 @@ public final class GameView extends View {
                 }
                 indoorShotCooldownV90=Math.max(.13f,RATES[gun]);
                 saveProgress();
-            }else if(ammoPacks>0){
-                ammoPacks--;ammo=MAG[gun];
-                indoorShotCooldownV90=1.1f;
-            }else indoorShotCooldownV90=.4f;
+            }else{
+                // Indoors use the same physical reload pose and ammo logic.
+                reload();
+                indoorShotCooldownV90=.4f;
+            }
         }
         updateIndoorCameraPanV143(dt);
     }
@@ -2583,7 +2586,8 @@ public final class GameView extends View {
             hostile?0:3,facing,0,
             (float)Math.sin(worldTimer*2+a.type)*.22f,
             Ballistics.angle(lookX,lookY,facing),0,
-            false,hostile,variant,1+Math.floorMod(a.type*31+37,200));
+            false,hostile,variant,1+Math.floorMod(a.type*31+37,200),
+            a.type==ClinicActorsV90.RAIDER?a.reloadClockV150:0f);
         if(a.type==ClinicActorsV90.ZOMBIE){
             // Greenish face + torn sleeves over original character atlas.
             rect(c,a.x-9,a.y-103,17,8,0xff718361);
@@ -2760,7 +2764,7 @@ public final class GameView extends View {
             if(ammoPacks==0)return;
             ammoPacks--;reloadLooseRoundsV140=-1;
         }
-        reloadClock=1.25f;shotClock=0;
+        reloadClock=ReloadPoseV150.DURATION;shotClock=0;
     }
     void finishReloadV140(){
         if(reloadLooseRoundsV140>0)ammo=Math.min(MAG[gun],ammo+reloadLooseRoundsV140);
@@ -3475,16 +3479,26 @@ public final class GameView extends View {
                 desireX,desireY,dt);
             e.aimX=facingAim[0];e.aimY=facingAim[1];
             e.face=NpcAimV122.facing(e.aimX,e.face);
+            // V150: NPCs visibly reload with real reserve rounds and no
+            // phantom bullets. Keep the existing gun identity and loot data.
+            if(e.reloadClockV150>0f){
+                e.reloadClockV150=Math.max(0f,e.reloadClockV150-dt);
+                if(e.reloadClockV150<=0f&&e.rounds==0&&e.spareRounds>0){
+                    int loaded=Math.min(MAG[e.gun],e.spareRounds);
+                    e.rounds=loaded;e.spareRounds-=loaded;
+                }
+            }
             if(WorldSafetyV92.hostileAllowed(playerX,playerY,CAMP_X,CAMP_Y)&&
+                e.reloadClockV150<=0f&&
                 BanditBrainV88.shouldShoot(state,d,e.cd,clear)&&
                 NpcAimV122.aligned(e.aimX,e.aimY,dx,dy)){
                 if(e.rounds==0&&e.spareRounds>0){
-                    int reload=Math.min(MAG[e.gun],e.spareRounds);
-                    e.rounds=reload;e.spareRounds-=reload;
-                }
-                if(e.rounds>0){
+                    e.reloadClockV150=ReloadPoseV150.DURATION;
+                }else if(e.rounds>0){
                     shoot(e.x,e.y,e.aimX,e.aimY,e.gun,true,e.face,false);
                     e.rounds--;
+                    if(e.rounds==0&&e.spareRounds>0)
+                        e.reloadClockV150=ReloadPoseV150.DURATION;
                 }
                 e.cd=Math.max(.32f,RATES[e.gun])+(e.variant%3)*.13f;
             }
@@ -4300,6 +4314,13 @@ public final class GameView extends View {
     }
     void character(Canvas c,float x,float y,int weapon,int facing,int frame,float breath,float aimAng,float kick,
                    boolean player,boolean bandit,int npcVariant,int skinIdV109){
+        character(c,x,y,weapon,facing,frame,breath,aimAng,kick,player,bandit,
+            npcVariant,skinIdV109,0f);
+    }
+    /** Extra NPC reload clock modifies approved gun and hand sprites only. */
+    void character(Canvas c,float x,float y,int weapon,int facing,int frame,float breath,float aimAng,float kick,
+                   boolean player,boolean bandit,int npcVariant,int skinIdV109,
+                   float npcReloadRemainingV150){
         float s=CharacterCollision.BASE_SCALE*scale;
         c.save();c.translate(x,y);if(facing<0)c.scale(-1,1);
         color(0x670b1a18);c.drawOval(-26*s,-7*s,26*s,7*s,p);
@@ -4374,6 +4395,8 @@ public final class GameView extends View {
         else if(player&&knifeDuration>0f)drawKnifeSwing(c,s);
         else if(characterSkinsV109!=null||!bandit){
             c.save();
+            // V150: head/body/feet are untouched; animate only existing hand/gun rig.
+            float reloadRemainingV150=player?reloadClock:npcReloadRemainingV150;
             // Keep the accepted V36 torso-centered weapon/hand rig stationary.
             // Parent pivot is the CHARACTER'S torso center (constant across all weapons).
             // The approved weapon, main hand and support hand remain rigid sibling
@@ -4386,13 +4409,17 @@ public final class GameView extends View {
             // Both hands retain original contact points; recoil and aim unchanged.
             int actorFitX=player?playerGunPivotXV117:npcGunPivotXV117;
             int actorFitY=player?playerGunPivotYV117:npcGunPivotYV117;
-            c.translate(pivotX-kick+WeaponPivotV117.localX(actorFitX,s),
-                pivotY+WeaponPivotV117.localY(actorFitY,s));
+            c.translate(pivotX-kick+WeaponPivotV117.localX(actorFitX,s)+
+                    ReloadPoseV150.pullBackPx(reloadRemainingV150,weapon)*s,
+                pivotY+WeaponPivotV117.localY(actorFitY,s)+
+                    ReloadPoseV150.lowerPx(reloadRemainingV150,weapon)*s);
             float displayedAngleV118=aimRotation?aimAng*180f/(float)Math.PI:0f;
             if(player&&weapon==11&&axeSwingTimeV118>0f){
                 float phase=1f-axeSwingTimeV118/.25f;
                 displayedAngleV118+=-35f+75f*(float)Math.sin(Math.PI*phase);
             }
+            displayedAngleV118+=ReloadPoseV150.rotateDegrees(
+                reloadRemainingV150,weapon);
             c.rotate(displayedAngleV118);
             c.translate(-pivotX,-pivotY);
             c.translate(offsetX,offsetY);
@@ -4404,7 +4431,9 @@ public final class GameView extends View {
             }
             if(showHands){
                 handAtlas(c,weapon,2,0,0,s,handScale,0,0);
-                handAtlas(c,weapon,1,0,0,s,handScale,support,supportVertical);
+                handAtlas(c,weapon,1,0,0,s,handScale,
+                    support+ReloadPoseV150.supportReachPx(reloadRemainingV150,weapon),
+                    supportVertical+ReloadPoseV150.supportDownPx(reloadRemainingV150,weapon));
             }
             if(anchors){
                 // Debug the torso parent + the attached contact points separately.
@@ -4967,7 +4996,7 @@ public final class GameView extends View {
             character(c,e.x,e.y,e.gun,e.face,e.animation.frame(),
                     e.animation.isWalking()?Float.POSITIVE_INFINITY:e.animation.breathOffset(),
                     Ballistics.angle(e.aimX,e.aimY,e.face),
-                    0,false,true,e.variant,e.skinV109);
+                    0,false,true,e.variant,e.skinV109,e.reloadClockV150);
             rect(c,e.x-23,e.y-114,46,5,DK);rect(c,e.x-22,e.y-113,44*clamp(e.hp/78,0,1),3,RED);
             
         }));
