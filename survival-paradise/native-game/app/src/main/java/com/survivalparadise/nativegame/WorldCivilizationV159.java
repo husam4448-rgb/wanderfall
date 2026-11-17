@@ -194,9 +194,13 @@ public final class WorldCivilizationV159 {
         int rows=MAX_TY-MIN_TY+1;
         for(int ty=MIN_TY;ty<=MAX_TY;ty++){
             for(int tx=MIN_TX;tx<=MAX_TX;tx++){
-                // The protected authored starter camp must remain a camp,
-                // not be buried under the large urban paved neighborhood.
+                // A seed chooses which 2x2 macro-districts become towns.
+                // This varies the actual building map, not merely paint.
+                // Natural tracts remain between connected built-up clusters.
                 if(tx==0&&ty==0)continue;
+                int cluster=hash(seed,Math.floorDiv(tx,2),
+                                 Math.floorDiv(ty,2),73);
+                if(Math.floorMod(cluster,100)>=76)continue;
                 int count=buildings(tx,ty);
                 if(count<1)continue;
                 // Coherent style across a 2-by-2 district, not random styles
