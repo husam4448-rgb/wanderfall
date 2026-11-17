@@ -124,9 +124,14 @@ public final class NeighborhoodV154 {
     }
     /** Broadphase limits all rendering to viewport tiles, not the whole world. */
     public static void visible(float x,float y,float width,float height,Visitor draw){
+        visible(x,y,width,height,null,draw);
+    }
+    public static void visible(float x,float y,float width,float height,
+                               WorldCivilizationV159.Plan plan,Visitor draw){
         int x0=tileX(x-170f),x1=tileX(x+width+170f);
         int y0=tileY(y-170f),y1=tileY(y+height+170f);
         for(int ty=y0;ty<=y1;ty++)for(int tx=x0;tx<=x1;tx++){
+            if(plan!=null&&plan.atTile(tx,ty)==null)continue;
             Building[] buildings=cell(tx,ty);
             for(int slot=0;slot<COLS*ROWS;slot++){
                 Building b=buildings[slot];
@@ -135,9 +140,14 @@ public final class NeighborhoodV154 {
         }
     }
     public static boolean blocked(float x,float y,float radius){
+        return blocked(x,y,radius,null);
+    }
+    public static boolean blocked(float x,float y,float radius,
+                                  WorldCivilizationV159.Plan plan){
         if(!Float.isFinite(x)||!Float.isFinite(y))return false;
         int tx=tileX(x),ty=tileY(y);
         for(int dy=-1;dy<=1;dy++)for(int dx=-1;dx<=1;dx++){
+            if(plan!=null&&plan.atTile(tx+dx,ty+dy)==null)continue;
             Building[] buildings=cell(tx+dx,ty+dy);
             for(int slot=0;slot<COLS*ROWS;slot++){
                 Building b=buildings[slot];
@@ -152,10 +162,15 @@ public final class NeighborhoodV154 {
      * without changing coordinates or the save schema of other actors.
      */
     public static float[] clearSavedPosition(float x,float y){
-        if(!blocked(x,y,24f))return new float[]{x,y};
+        return clearSavedPosition(x,y,null);
+    }
+    public static float[] clearSavedPosition(float x,float y,
+                                              WorldCivilizationV159.Plan plan){
+        if(!blocked(x,y,24f,plan))return new float[]{x,y};
         float best=Float.POSITIVE_INFINITY,px=x,py=y;
         int tx=tileX(x),ty=tileY(y);
-        for(int dy=-1;dy<=1;dy++)for(int dx=-1;dx<=1;dx++)
+        for(int dy=-1;dy<=1;dy++)for(int dx=-1;dx<=1;dx++){
+            if(plan!=null&&plan.atTile(tx+dx,ty+dy)==null)continue;
             for(Building b:cell(tx+dx,ty+dy)){
                 if(b==null||!b.blocked(x,y,24f))continue;
                 float[][] possibilities={
@@ -164,21 +179,27 @@ public final class NeighborhoodV154 {
                 };
                 for(float[] point:possibilities){
                     float xx=point[0],yy=point[1];
-                    if(blocked(xx,yy,24f))continue;
+                    if(blocked(xx,yy,24f,plan))continue;
                     float d=(xx-x)*(xx-x)+(yy-y)*(yy-y);
                     if(d<best){best=d;px=xx;py=yy;}
                 }
             }
+        }
         return new float[]{px,py};
     }
     /** Dynamic broadphase, accurate for all projectile and NPC ray paths. */
     public static float firstImpact(float x0,float y0,float x1,float y1){
+        return firstImpact(x0,y0,x1,y1,null);
+    }
+    public static float firstImpact(float x0,float y0,float x1,float y1,
+                                    WorldCivilizationV159.Plan plan){
         float hit=Float.POSITIVE_INFINITY;
         int tx0=tileX(Math.min(x0,x1)-2),tx1=tileX(Math.max(x0,x1)+2);
         int ty0=tileY(Math.min(y0,y1)-2),ty1=tileY(Math.max(y0,y1)+2);
         // A pathological ray must not scan infinitely many procedural lots.
         if(tx1-tx0>16||ty1-ty0>16)return hit;
         for(int ty=ty0;ty<=ty1;ty++)for(int tx=tx0;tx<=tx1;tx++){
+            if(plan!=null&&plan.atTile(tx,ty)==null)continue;
             Building[] buildings=cell(tx,ty);
             for(int slot=0;slot<COLS*ROWS;slot++){
                 Building b=buildings[slot];
