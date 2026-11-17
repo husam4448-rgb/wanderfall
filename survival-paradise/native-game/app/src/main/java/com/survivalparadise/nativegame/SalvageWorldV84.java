@@ -28,6 +28,10 @@ public final class SalvageWorldV84 {
     public static boolean placed(float x,float y,int seed,
                                  float campX,float campY,float worldW,float worldH){
         float dx=x-campX,dy=y-campY,d2=dx*dx+dy*dy;
+        // V161: consider the whole wreck (not just its anchor) near roads.
+        // Wrecks previously spawned beneath road edges when their centers
+        // sat only 20-60 units outside the painted tarmac.
+        if((y>844f&&y<1244f)||(x>1395f&&x<1825f))return false;
         if(d2<420f*420f)return false;
         if(x>=0&&x<=worldW&&y>=0&&y<=worldH){
             return d2<1800f*1800f && Math.floorMod(seed,3)!=0 &&
