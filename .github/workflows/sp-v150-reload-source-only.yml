@@ -1,0 +1,89 @@
+name: Survival Paradise V150 - Reload Animation Java QA (NO APK)
+on:
+  push:
+    branches: [sp-native-v150-reload-animation-20261117]
+    paths:
+      - '.github/workflows/sp-v150-reload-source-only.yml'
+      - 'survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/GameView.java'
+      - 'survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/ClinicActorsV90.java'
+      - 'survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/ReloadPoseV150.java'
+      - 'survival-paradise/native-game/tools/ReloadPoseV150Test.java'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout source only
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            survival-paradise
+          sparse-checkout-cone-mode: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Test reload poses, no head art changes, preserved ammunition
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT=survival-paradise/native-game
+          C="$ROOT/app/src/main/java/com/survivalparadise/nativegame"
+          mkdir -p /tmp/sp-v150-tests
+          javac -d /tmp/sp-v150-tests "$C/ReloadPoseV150.java" "$ROOT/tools/ReloadPoseV150Test.java"
+          java -cp /tmp/sp-v150-tests com.survivalparadise.nativegame.ReloadPoseV150Test
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame')
+          game=(root/'GameView.java').read_text()
+          clinic=(root/'ClinicActorsV90.java').read_text()
+          ballistics=(root/'Ballistics.java').read_text()
+          assert 'reloadClock=ReloadPoseV150.DURATION;shotClock=0;' in game
+          assert 'ReloadPoseV150.rotateDegrees(' in game
+          assert 'ReloadPoseV150.supportReachPx(' in game
+          assert 'ReloadPoseV150.lowerPx(' in game
+          assert 'a.type==ClinicActorsV90.RAIDER?a.reloadClockV150:0f' in game
+          assert 'e.reloadClockV150=ReloadPoseV150.DURATION' in game
+          assert 'a.reloadClockV150=ReloadPoseV150.DURATION' in clinic
+          assert 'if(a.reloadClockV150>0f)continue;' in clinic
+          assert 'a.rounds=loaded;a.spareRounds-=loaded;' in clinic
+          assert 'e.rounds=loaded;e.spareRounds-=loaded;' in game
+          assert 'public final float[] SPEED' not in ballistics # V149 SPEED unchanged
+          assert '3100f,3100f,3100f,0f,3100f' in ballistics
+          assert 'wearableArtV96.drawHead(' not in game
+          # Existing indoor save serializes exactly eight actor values, not animation.
+          assert 'b.append(\",\").append(a.gun);' in clinic
+          assert 'append(a.reloadClockV150)' not in clinic
+          print('PASS V150 actor render hooks, delayed ammo transfer and save compatibility')
+          PY
+          python3 "$ROOT/tools/test_headgear_visuals_v138.py"
+          python3 "$ROOT/tools/verify_v145_asset_bundle.py"
+
+      - name: Install Android 35 platform
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -path '*/bin/sdkmanager' | sort -V | tail -1)"
+          test -x "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Compile native Android Java sources only
+        working-directory: survival-paradise/native-game
+        run: gradle --no-daemon :app:compileDebugJavaWithJavac
+
+      - name: Assert NO APK is generated
+        shell: bash
+        run: |
+          test ! -f survival-paradise/native-game/app/build/outputs/apk/debug/app-debug.apk
+          echo 'PASS: Java compile and source regression only; no APK assembled'
