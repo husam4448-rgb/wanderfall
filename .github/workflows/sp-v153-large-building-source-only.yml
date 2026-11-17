@@ -8,6 +8,8 @@ on:
       - 'survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/ExpeditionSitesV88.java'
       - 'survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/ExteriorFootprintV130.java'
       - 'survival-paradise/native-game/tools/ExteriorFootprintV130Test.java'
+      - 'survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/BanditLootV87.java'
+      - 'survival-paradise/native-game/tools/V153SiteMigrationTest.java'
   workflow_dispatch:
 permissions:
   contents: read
@@ -36,6 +38,10 @@ jobs:
               "$C/ExteriorFootprintV130.java" "$C/ClinicInteriorV89.java" \
               "$R/tools/ExteriorFootprintV130Test.java"
           java -cp /tmp/sp-v153 com.survivalparadise.nativegame.ExteriorFootprintV130Test
+          javac -d /tmp/sp-v153 "$C/NutWalletV143.java" \
+              "$C/BanditLootV87.java" "$R/tools/V153SiteMigrationTest.java" \
+              -cp /tmp/sp-v153
+          java -cp /tmp/sp-v153 com.survivalparadise.nativegame.V153SiteMigrationTest
       - name: Ensure full-size culling, save IDs and immutable character artwork
         shell: bash
         run: |
