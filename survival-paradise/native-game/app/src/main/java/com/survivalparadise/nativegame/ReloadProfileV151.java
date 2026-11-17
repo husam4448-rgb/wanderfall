@@ -72,7 +72,8 @@ public final class ReloadProfileV151 {
             // Repeated visible shell strokes DOWN into the top loading port.
             float repeat=(p-.28f)/.50f*3f;
             float step=repeat-(float)Math.floor(repeat);
-            y+=9f*smooth(step);
+            float arc=(float)Math.sin(Math.PI*step);
+            y+=9f*arc*arc;
         }
         return y;
     }
