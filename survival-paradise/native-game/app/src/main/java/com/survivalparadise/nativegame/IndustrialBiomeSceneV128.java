@@ -184,6 +184,44 @@ public final class IndustrialBiomeSceneV128 {
         c.restore();
     }
     /** Other side of the biome connects back into the same global highway. */
+    /** V159: the V124 perimeter arterial is centered EXACTLY on WEST/EAST.
+     * Prior V128 region clipping discarded its outer half and exposed grass
+     * over the road. Paint both correct outside half-lanes before clipping
+     * the unchanged facility/world layout into the industrial region.
+     */
+    private static void drawOuterBoundaryRoadsV159(
+            Canvas c,Paint p,float camX,float camY,float vw,float vh,int seed){
+        float firstY=Math.max(NORTH,camY-30f);
+        float lastY=Math.min(SOUTH,camY+vh+30f);
+        if(firstY>=lastY)return;
+        for(int edge=0;edge<2;edge++){
+            float center=edge==0?WEST:EAST;
+            float start=edge==0?center-177f:center+0f;
+            float end=edge==0?center+0f:center+177f;
+            if(start>camX+vw+20f||end<camX-20f)continue;
+            // Outside original V128 clip, only the missing road shoulder and
+            // road surface. Facility positions, intersections and seeds stay.
+            p.setShader(null);p.setStyle(Paint.Style.FILL);
+            p.setColor(0xff696961);
+            c.drawRect(start,firstY,end,lastY,p);
+            p.setColor(0xff333a3c);
+            float asphaltStart=edge==0?center-137f:center;
+            float asphaltEnd=edge==0?center:center+137f;
+            c.drawRect(asphaltStart,firstY,asphaltEnd,lastY,p);
+            p.setColor(0xff999078);
+            float shoulder=edge==0?center-145f:center+145f;
+            c.drawRect(shoulder-3f,firstY,shoulder+3f,lastY,p);
+            // Sparse weathered road markings, continuous across the region.
+            p.setColor(0xff9e9371);
+            for(int i=(int)Math.floor(firstY/145f);
+                    i<=(int)Math.ceil(lastY/145f);i++){
+                float yy=i*145f;
+                if(yy<firstY||yy>lastY)continue;
+                float bx=edge==0?center-20f:center+14f;
+                c.drawRect(bx,yy,bx+6f,yy+68f,p);
+            }
+        }
+    }
     private static void eastContinuation(Canvas c,Paint p,
                                           float camX,float camY,float vw,float vh){
         final float END=EAST+1650f;
@@ -211,6 +249,7 @@ public final class IndustrialBiomeSceneV128 {
         // Surface grade first; asphalt is then painted over it, ensuring a
         // connected road with no tinted dirt patches over its drive lanes.
         gradeBorders(c,p,camX,camY,vw,vh,seed);
+        drawOuterBoundaryRoadsV159(c,p,camX,camY,vw,vh,seed);
         approachRoad(c,p,camX,camY,vw,vh,seed);
         eastContinuation(c,p,camX,camY,vw,vh);
         if(onScreen(WEST-150,NORTH-150,EAST-WEST+300,SOUTH-NORTH+300,
