@@ -72,7 +72,7 @@ public final class WorldChunkCache {
     private static void tile(Canvas canvas,Paint p,int gx,int gy,int tx,int ty,
                              int pixelsPerTile,int scale,int campX,int campY){
         float baseX=tx*(float)pixelsPerTile,baseY=ty*(float)pixelsPerTile;
-        final int subdivisions=6;
+        final int subdivisions=8;
         float cell=pixelsPerTile/(float)subdivisions;
         // Subtile colors sample world coordinates; no hard square patch seams.
         for(int sy=0;sy<subdivisions;sy++)for(int sx=0;sx<subdivisions;sx++){
@@ -139,10 +139,19 @@ public final class WorldChunkCache {
         // Exact deterministic colors while a fresh texture renders in background.
         for(int y=0;y<N;y++)for(int x=0;x<N;x++){
             int gx=cx*N+x,gy=cy*N+y;
-            // UI-thread fallback stays cheap while an async detailed texture
-            // renders. 36 subtiles here caused first-entry FPS spikes.
-            rect(canvas,terrainPaint,gx*TILE,gy*TILE,TILE,TILE,
-                 WorldChunkModel.groundColor(gx,gy,campX,campY));
+            // V157: 72-unit solid fallback squares were the conspicuous
+            // unnatural grid on Android when streamed chunks were cold. Four
+            // blended subtiles avoid that without costly UI-thread noise at
+            // the 8x8 resolution used by fully cached chunk textures.
+            final int div=4;
+            final float step=TILE/(float)div;
+            for(int yy=0;yy<div;yy++)for(int xx=0;xx<div;xx++){
+                float x=(gx+(xx+.5f)/div)*TILE;
+                float y=(gy+(yy+.5f)/div)*TILE;
+                rect(canvas,terrainPaint,
+                    gx*TILE+xx*step,gy*TILE+yy*step,step+.2f,step+.2f,
+                    WorldChunkModel.groundColorAt(x,y,campX,campY));
+            }
         }
     }
     public void draw(Canvas canvas,float camX,float camY,float width,float height){
