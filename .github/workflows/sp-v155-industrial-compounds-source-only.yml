@@ -95,7 +95,10 @@ jobs:
           from pathlib import Path
           import base64
           p=Path('survival-paradise/native-game/app/build/visual-v155/industrial_contact_sheet.png')
-          print('SP_V155_CONTACT_SHEET='+base64.b64encode(p.read_bytes()).decode('ascii'))
+          encoded=base64.b64encode(p.read_bytes()).decode('ascii')
+          for i in range(0,len(encoded),4096):
+              print('SP_V155_CHUNK='+str(i//4096)+':'+encoded[i:i+4096])
+          print('SP_V155_CHUNKS='+str((len(encoded)+4095)//4096))
           PY
       - name: Verify NO APK generated
         shell: bash
