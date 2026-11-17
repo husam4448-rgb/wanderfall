@@ -148,7 +148,7 @@ public final class WorldChunkCache {
             evicted.bitmap.recycle();
         }
     }
-    private void fallback(Canvas canvas,int cx,int cy){
+    private void fallback(Canvas canvas,int cx,int cy,boolean distant){
         // Exact deterministic colors while a fresh texture renders in background.
         for(int y=0;y<N;y++)for(int x=0;x<N;x++){
             int gx=cx*N+x,gy=cy*N+y;
@@ -156,7 +156,7 @@ public final class WorldChunkCache {
             // unnatural grid on Android when streamed chunks were cold. Four
             // blended subtiles avoid that without costly UI-thread noise at
             // the 8x8 resolution used by fully cached chunk textures.
-            final int div=geography==null?4:2;
+            final int div=distant?1:geography==null?4:2;
             final float step=TILE/(float)div;
             for(int yy=0;yy<div;yy++)for(int xx=0;xx<div;xx++){
                 float worldX=(gx+(xx+.5f)/div)*TILE;
@@ -170,6 +170,9 @@ public final class WorldChunkCache {
         }
     }
     public void draw(Canvas canvas,float camX,float camY,float width,float height){
+        draw(canvas,camX,camY,width,height,1f);
+    }
+    public void draw(Canvas canvas,float camX,float camY,float width,float height,float zoom){
         if(closed)return;
         acceptCompleted();
         int x0=WorldChunkModel.chunkIndex(camX);
@@ -184,7 +187,7 @@ public final class WorldChunkCache {
             if(current==null){
                 cacheMisses++;
                 queue(cx,cy);
-                fallback(canvas,cx,cy);
+                fallback(canvas,cx,cy,zoom<.70f);
             }else{
                 cacheHits++;
                 dst.set(cx*(float)C,cy*(float)C,(cx+1f)*C,(cy+1f)*C);
