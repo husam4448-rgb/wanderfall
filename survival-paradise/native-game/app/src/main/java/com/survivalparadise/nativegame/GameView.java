@@ -4117,18 +4117,52 @@ public final class GameView extends View {
         // Plotted civilization ground is separate from natural terrain.
         WorldCivilizationArtV159.ground(c,civilizationV159,
             camX,camY,viewW,viewH,renderZoomV90);
-        // Landmark road corridors extend through all visible world coordinates.
+        // V162: two highways share one continuous asphalt intersection.
+        // Road shoulders and center dashes terminate before the crossroad;
+        // neither highway paints through the other as an overlapping stripe.
         rect(c,camX-4,925,viewW+8,225,0xff565b50);
         rect(c,camX-4,940,viewW+8,8,0xff3e493e);
         rect(c,camX-4,1134,viewW+8,7,0xff323f3a);
         int roadX=(int)Math.floor((camX-20)/123f);
-        for(int i=roadX;i<roadX+(int)Math.ceil(viewW/123f)+3;i++)
-            rect(c,20+i*123,1035,56,6,0xffa1a78d);
-        rect(c,1500,camY-4,220,viewH+8,0xff525b50);
-        rect(c,1500,camY-4,9,viewH+8,0xff3c473f);
+        for(int i=roadX;i<roadX+(int)Math.ceil(viewW/123f)+3;i++){
+            float dashX=20+i*123;
+            if(dashX<1720f&&dashX+56>1500f)continue;
+            rect(c,dashX,1035,56,6,0xffa1a78d);
+        }
+        // Paint the perpendicular carriageway on top with SAME asphalt tone.
+        // This hides the horizontal kerb inside the crossing.
+        rect(c,1500,camY-4,220,viewH+8,0xff565b50);
+        float roadBottom=camY+viewH+4f;
+        if(camY-4f<925f){
+            float end=Math.min(925f,roadBottom);
+            if(end>camY-4f){
+                // Roadbed has no raised kerb inside its intersection.
+            }
+        }
+        // V162: vertical kerb is split above and below the intersection.
+        if(camY-4f<925f){
+            float end=Math.min(925f,roadBottom);
+            if(end>camY-4f){
+                rect(c,1500,camY-4,9,end-camY+4f,0xff3c473f);
+                rect(c,1712,camY-4,8,end-camY+4f,0xff3c473f);
+            }
+        }
+        if(roadBottom>1150f){
+            float start=Math.max(1150f,camY-4f);
+            rect(c,1500,start,9,roadBottom-start,0xff3c473f);
+            rect(c,1712,start,8,roadBottom-start,0xff3c473f);
+        }
         int roadY=(int)Math.floor(camY/135f);
-        for(int i=roadY;i<roadY+(int)Math.ceil(viewH/135f)+3;i++)
-            rect(c,1604,i*135+12,7,63,0xffa5aa8e);
+        for(int i=roadY;i<roadY+(int)Math.ceil(viewH/135f)+3;i++){
+            float dashY=i*135+12f;
+            if(dashY<1150f&&dashY+63f>925f)continue;
+            rect(c,1604,dashY,7,63,0xffa5aa8e);
+        }
+        // Four subtle approach bars identify a shared four-way junction.
+        rect(c,1441,965,6,145,0xff9b9f88);
+        rect(c,1760,965,6,145,0xff9b9f88);
+        rect(c,1535,865,142,6,0xff9b9f88);
+        rect(c,1535,1195,142,6,0xff9b9f88);
         // Bushes and trees are always behind buildings and actors.
         for(int i=0;i<140;i++){
             int x=(137*i+27*i*i)%3180,y=(211*i+47*i*i)%2170;
