@@ -14,6 +14,7 @@ on:
       - 'survival-paradise/native-game/tools/IndustrialFitV125Test.java'
       - 'survival-paradise/native-game/app/src/test/java/com/survivalparadise/nativegame/IndustrialVisualV155Test.java'
       - 'survival-paradise/native-game/app/build.gradle'
+      - 'survival-paradise/native-game/gradle.properties'
   workflow_dispatch:
 permissions:
   contents: read
