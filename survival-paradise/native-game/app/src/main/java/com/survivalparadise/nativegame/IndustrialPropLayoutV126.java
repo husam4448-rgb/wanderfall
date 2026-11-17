@@ -58,26 +58,31 @@ public final class IndustrialPropLayoutV126 {
 
     // World props are sized relative to the player, not as small icons.
     // Fenced yard openings and factory entrance driveways stay unobstructed.
+    // V155 roofs are wider, so heavy equipment moves onto their reinforced
+    // service platforms. Only the forklift/truck remains on the open apron.
+    // Original four world stockpile coordinates, save keys, NPC interaction
+    // lanes and vehicle scale remain unchanged; neither machines nor
+    // pavement hide an old container in solid collision.
     private static final Prop[] FACTORY_EVEN={
-        art(TANKS,1010,355,215,218,true),
-        art(TRANSFORMER,1002,840,205,181,true),
-        art(BELT,177,891,258,188,true),
-        art(PIPE,1015,693,177,148,true),
-        art(FORKLIFT,871,1004,270,192,true)
+        art(TANKS,235,286,215,218,true),
+        art(TRANSFORMER,484,313,205,181,true),
+        art(BELT,722,292,258,188,true),
+        art(PIPE,901,506,177,148,true),
+        art(FORKLIFT,800,835,270,192,true)
     };
     private static final Prop[] FACTORY_FOUNDRY={
-        art(SILOS,1010,355,215,218,true),
-        art(TRANSFORMER,1002,840,205,181,true),
-        art(BELT,177,891,258,188,true),
-        art(PIPE,1015,693,177,148,true),
-        art(FORKLIFT,871,1004,270,192,true)
+        art(SILOS,235,286,215,218,true),
+        art(TRANSFORMER,484,313,205,181,true),
+        art(BELT,722,292,258,188,true),
+        art(PIPE,901,506,177,148,true),
+        art(FORKLIFT,800,835,270,192,true)
     };
     private static final Prop[] FACTORY_ODD={
-        art(TANKS,1010,355,215,218,true),
-        art(TRANSFORMER,1002,840,205,181,true),
-        art(BELT,177,891,258,188,true),
-        art(PIPE,1015,693,177,148,true),
-        art(TRUCK,906,1004,298,198,true)
+        art(TANKS,235,286,215,218,true),
+        art(TRANSFORMER,484,313,205,181,true),
+        art(BELT,722,292,258,188,true),
+        art(PIPE,901,506,177,148,true),
+        art(TRUCK,786,833,298,198,true)
     };
     private static final Prop[] STORAGE_YARD={
         art(SCRAP,218,694,252,188,true),
