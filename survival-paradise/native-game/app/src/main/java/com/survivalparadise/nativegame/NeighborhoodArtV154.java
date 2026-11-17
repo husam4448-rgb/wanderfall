@@ -222,23 +222,47 @@ public final class NeighborhoodArtV154 {
         if(!hasBuilding)return;
         float x=tx*(float)NeighborhoodV154.TILE_W;
         float y=ty*(float)NeighborhoodV154.TILE_H;
-        // Neighborhood lanes and their connected footpaths sit BETWEEN
-        // reserved lots, never underneath a roof or across the old highway.
-        for(int i=0;i<2;i++){
-            float laneX=x+(i==0?1750f:3550f);
-            box(c,p,laneX-116,y+200,232,4195,0xff64665e);
-            box(c,p,laneX-99,y+201,198,4192,0xff373d3f);
-            box(c,p,laneX-111,y+205,7,4185,0xffa2997c);
-            box(c,p,laneX+104,y+205,7,4185,0xffa2997c);
-            for(int dash=0;dash<33;dash++)
-                box(c,p,laneX-3,y+230+dash*126,6,58,0xffb0a079);
+        float[] vertical={1750f,3550f};
+        float[] horizontal={2190f,4250f};
+        // V162: draw all road surfaces BEFORE their lane markings.
+        // Both carriageways use one asphalt substrate at four-way crossings.
+        for(float xx:vertical){
+            box(c,p,x+xx-116,y+200,232,4195,0xff64665e);
+            box(c,p,x+xx-99,y+201,198,4192,0xff373d3f);
         }
-        for(int i=0;i<2;i++){
-            float laneY=y+(i==0?2190f:4250f);
-            box(c,p,x+140,laneY-111,5120,222,0xff67675e);
-            box(c,p,x+142,laneY-97,5116,194,0xff373d3f);
-            for(int dash=0;dash<35;dash++)
-                box(c,p,x+176+dash*145,laneY-3,69,6,0xffb4a078);
+        for(float yy:horizontal){
+            box(c,p,x+140,y+yy-111,5120,222,0xff67675e);
+            box(c,p,x+142,y+yy-97,5116,194,0xff373d3f);
+        }
+        for(float xx:vertical)for(float yy:horizontal)
+            box(c,p,x+xx-116,y+yy-111,232,222,0xff373d3f);
+        // Kerbs only on free-standing vertical road edges; never through the
+        // asphalt intersection where a perpendicular road connects.
+        for(float xx:vertical){
+            float[][] segments={{205f,2076f},{2304f,4136f},{4364f,4390f}};
+            for(float[] segment:segments){
+                box(c,p,x+xx-111,y+segment[0],7,segment[1]-segment[0],
+                    0xffa2997c);
+                box(c,p,x+xx+104,y+segment[0],7,segment[1]-segment[0],
+                    0xffa2997c);
+            }
+            for(int dash=0;dash<33;dash++){
+                float cy=230f+dash*126f;
+                if((cy+58f>2079f&&cy<2301f)||
+                   (cy+58f>4139f&&cy<4361f))continue;
+                box(c,p,x+xx-3,y+cy,6,58,0xffb0a079);
+            }
+        }
+        // Yellow lane dashes stop on both sides of the crossing.
+        for(float yy:horizontal){
+            for(int dash=0;dash<35;dash++){
+                float cx=176f+dash*145f;
+                boolean intersection=false;
+                for(float xx:vertical)
+                    if(cx+69f>xx-121f&&cx<xx+121f)
+                        intersection=true;
+                if(!intersection)box(c,p,x+cx,y+yy-3f,69,6,0xffb4a078);
+            }
         }
     }
     public static void draw(Canvas c,Paint p,float camX,float camY,
