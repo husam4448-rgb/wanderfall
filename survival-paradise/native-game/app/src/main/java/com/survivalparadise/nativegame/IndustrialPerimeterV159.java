@@ -10,7 +10,9 @@ import java.util.ArrayList;
  */
 public final class IndustrialPerimeterV159 {
     private IndustrialPerimeterV159(){}
-    public static final int INSET=103;
+    // Outside the true V124 perimeter arterial (135-unit half-width).
+    // This leaves a wilderness buffer and shoulder outside the traffic lane.
+    public static final int SETBACK=248;
     public static final float GATE_HALF=208f;
     private static volatile int currentSeed=Integer.MIN_VALUE;
     private static volatile WorldCivilizationV159.Segment[] current;
@@ -20,10 +22,10 @@ public final class IndustrialPerimeterV159 {
         synchronized(IndustrialPerimeterV159.class){
             if(currentSeed==seed&&current!=null)return current;
             ArrayList<WorldCivilizationV159.Segment> all=new ArrayList<>(160);
-            float west=IndustrialBiomeBridgeV128.WEST+INSET;
-            float east=IndustrialBiomeBridgeV128.EAST-INSET;
-            float north=IndustrialBiomeBridgeV128.NORTH+INSET;
-            float south=IndustrialBiomeBridgeV128.SOUTH-INSET;
+            float west=IndustrialBiomeBridgeV128.WEST-SETBACK;
+            float east=IndustrialBiomeBridgeV128.EAST+SETBACK;
+            float north=IndustrialBiomeBridgeV128.NORTH-SETBACK;
+            float south=IndustrialBiomeBridgeV128.SOUTH+SETBACK;
             int originX=IndustrialBiomeBridgeV128.ORIGIN_X;
             int originY=IndustrialBiomeBridgeV128.ORIGIN_Y;
             int size=IndustrialWorldV123.SECTOR;
@@ -76,10 +78,10 @@ public final class IndustrialPerimeterV159 {
                 WorldCivilizationV159.OUTPOST,salt));
     }
     public static boolean blocked(float x,float y,float radius,int seed){
-        if(x<IndustrialBiomeBridgeV128.WEST-150f||
-           x>IndustrialBiomeBridgeV128.EAST+150f||
-           y<IndustrialBiomeBridgeV128.NORTH-150f||
-           y>IndustrialBiomeBridgeV128.SOUTH+150f)return false;
+        if(x<IndustrialBiomeBridgeV128.WEST-320f||
+           x>IndustrialBiomeBridgeV128.EAST+320f||
+           y<IndustrialBiomeBridgeV128.NORTH-320f||
+           y>IndustrialBiomeBridgeV128.SOUTH+320f)return false;
         for(WorldCivilizationV159.Segment f:segments(seed))
             if(f.blocked(x,y,radius))return true;
         return false;
