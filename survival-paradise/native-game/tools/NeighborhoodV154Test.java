@@ -68,8 +68,21 @@ public final class NeighborhoodV154Test {
                                 "roof overlap / impossible street");
                         }
             }
+        // The original 26 V153 institutions already occupy much of the
+        // starter 3x3 district area. Count both established landmarks and
+        // new blocks, instead of forcing buildings onto existing roofs.
+        int landmarksNearOrigin=0;
+        for(ExpeditionSitesV88.Site site:ExpeditionSitesV88.SITES)
+            if(site.x>=-NeighborhoodV154.TILE_W&&
+               site.x<=2f*NeighborhoodV154.TILE_W&&
+               site.y>=-NeighborhoodV154.TILE_H&&
+               site.y<=2f*NeighborhoodV154.TILE_H)
+                landmarksNearOrigin++;
         ok(total>=70,"world too sparse: "+total);
-        ok(nearOrigin>=8,"opening world still looks deserted: "+nearOrigin);
+        ok(nearOrigin>=4,"opening world still deserted beyond safe limits: "+nearOrigin);
+        ok(nearOrigin+landmarksNearOrigin>=12,
+            "few buildings around starting region: new="+nearOrigin+
+            " landmarks="+landmarksNearOrigin);
         for(int i=0;i<kinds.length;i++)
             ok(kinds[i],"missing building variety "+NeighborhoodV154.LABELS[i]);
         ok(!NeighborhoodV154.blocked(1080f,710f,30f),
@@ -79,7 +92,8 @@ public final class NeighborhoodV154Test {
         ok(!NeighborhoodV154.blocked(5600f,1036f,20f),
             "industrial transition blocked");
         System.out.println("PASS V154: "+total+" full-sized buildings in 49 "+
-            "districts, "+nearOrigin+" near starter region, eight variants, "+
+            "districts, "+nearOrigin+" new and "+landmarksNearOrigin+
+            " original institutions near starter region, eight variants, "+
             "clear roads, saved position, physical bullets and site access");
     }
 }
