@@ -2,7 +2,7 @@ package com.survivalparadise.nativegame;
 /** Independent geometry for fast, frame-rate-safe projectiles. */
 public final class Ballistics {
  private Ballistics(){}
- public static final float[] SPEED={2050f,2350f,2050f,0f,3100f,2850f,3000f,2350f,3950f,2950f,1450f,0f};
+ public static final float[] SPEED={3100f,3100f,3100f,0f,3100f,3100f,3100f,3100f,3100f,3100f,3100f,0f};
  // Shared, actual bullet lifetime used by both Shot integration and the HUD reticle.
  public static final float PROJECTILE_LIFE=1.3f;
  public static float unobstructedTravel(int weapon){
