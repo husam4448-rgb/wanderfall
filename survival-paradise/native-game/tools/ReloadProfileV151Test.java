@@ -42,6 +42,30 @@ public final class ReloadProfileV151Test {
             "carbine uses STANAG");
         check(ReloadProfileV151.topFeed(7),"shotgun loads from top");
         check(!ReloadProfileV151.topFeed(5),"AK does not top-load shells");
+        for(int weapon=0;weapon<12;weapon++){
+            if(!ReloadProfileV151.canReload(weapon))continue;
+            float duration=ReloadProfileV151.duration(weapon);
+            // The magazine leaves the hand before the return stroke finishes.
+            check(!ReloadProfileV151.propVisible(weapon,duration*.10f),
+                "magazine must already be inserted at 90% "+weapon);
+            check(ReloadProfileV151.supportHandActive(weapon,duration*.10f),
+                "support hand snapped back before full return "+weapon);
+            check(ReloadProfileV151.supportHandActive(weapon,duration*.06f),
+                "support hand must still complete 94% return "+weapon);
+            check(!ReloadProfileV151.supportHandActive(weapon,0f),
+                "support hand animation after reload "+weapon);
+        }
+        // Hand borrowed from the rifle atlas for handgun reloads must only
+        // appear from the torso after departure and vanish after returning.
+        for(int weapon=0;weapon<=2;weapon++){
+            float duration=ReloadProfileV151.duration(weapon);
+            check(!ReloadProfileV151.supportHandActive(weapon,duration*.97f),
+                "borrowed hand appeared before starting "+weapon);
+            check(ReloadProfileV151.supportHandActive(weapon,duration*.90f),
+                "borrowed hand did not emerge at its rest pose "+weapon);
+            check(!ReloadProfileV151.supportHandActive(weapon,duration*.04f),
+                "borrowed hand failed to return to torso "+weapon);
+        }
         check(ReloadProfileV151.needsBorrowedHand(0)&&
             ReloadProfileV151.needsBorrowedHand(1)&&
             ReloadProfileV151.needsBorrowedHand(2),
