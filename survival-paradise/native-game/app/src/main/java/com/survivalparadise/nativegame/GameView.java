@@ -77,7 +77,9 @@ public final class GameView extends View {
     boolean lampOn=true,neonEnabled=true,campfiresLit=true;
     int nightDarkness=211,flashlightReach=490;
     final LightingV47 lighting=new LightingV47();
-    final WorldChunkCache terrainChunks=new WorldChunkCache((int)CAMP_X,(int)CAMP_Y);
+    WorldChunkCache terrainChunks=new WorldChunkCache((int)CAMP_X,(int)CAMP_Y);
+    // Null on pre-V160 saves; the original landscape remains unchanged.
+    WorldGeographyV160 geographyV160;
     // V128: the original camp, NPCs, and all six V74 outdoor biomes remain.
     // The industrial biome now occupies a seed-stable connected region east
     // of the original world; no second world mode or teleport is required.
@@ -1199,7 +1201,21 @@ public final class GameView extends View {
             IndustrialWorldV123.SEED_PREF,14901));
     }
     void completeNewGameV159(WorldCivilizationV159.Plan layout){
-        if(layout==null)throw new IllegalArgumentException("World plan missing");
+        completeNewGameV159(layout,null);
+    }
+    void resetTerrainCacheV160(WorldGeographyV160 next){
+        WorldChunkCache old=terrainChunks;
+        int capacity=old.residentLimit(),preload=old.preloadRadius();
+        old.release(); // discard previously rendered seed and stale worker work
+        terrainChunks=new WorldChunkCache((int)CAMP_X,(int)CAMP_Y,next);
+        terrainChunks.setLimits(capacity,preload);
+    }
+    void completeNewGameV159(WorldCivilizationV159.Plan layout,
+                              WorldGeographyV160 geography){
+        if(layout==null||geography!=null&&geography.seed!=layout.seed)
+            throw new IllegalArgumentException("World plan/seed mismatch");
+        geographyV160=geography;
+        resetTerrainCacheV160(geography);
         civilizationV159=layout;
         industrialSeedV123=layout.seed;
         industrialSiteV123=IndustrialWorldV123.district(0,0,industrialSeedV123);
@@ -1286,6 +1302,9 @@ public final class GameView extends View {
         // Continuing an old save leaves its world entirely intact.
         civilizationV159=WorldCivilizationV159.decode(
             host.prefs.getString("world_civilization_v159",""),industrialSeedV123);
+        geographyV160=WorldGeographyV160.decode(
+            host.prefs.getString("world_geography_v160",""),industrialSeedV123);
+        resetTerrainCacheV160(geographyV160);
         industrialSiteV123=IndustrialWorldV123.district(
             host.prefs.getInt("industrial_sx_v123",0),
             host.prefs.getInt("industrial_sy_v123",0),industrialSeedV123);
@@ -2792,6 +2811,8 @@ public final class GameView extends View {
                 .putString("bandit_loot_bags_v87",banditLootV87.encode())
                 .putString("world_civilization_v159",
                     civilizationV159==null?"":civilizationV159.encode())
+                .putString("world_geography_v160",
+                    geographyV160==null?"":geographyV160.encode())
                 .putString("player_nuts_v143",playerNutsV143.encode())
                 .putString("player_ammo_v143",playerAmmoV143.encode())
                 .putString("npc_trade_ledger_v143",npcTradesV143.encode())
@@ -3977,7 +3998,7 @@ public final class GameView extends View {
         // V54: render cached, asynchronously prepared 16x16-tile chunk textures.
         // Missing chunks use a deterministic immediate fallback (no blank screen).
         terrainChunks.draw(c,camX,camY,viewW,viewH);
-        NaturalGroundArtV157.draw(c,camX,camY,viewW,viewH);
+        NaturalGroundArtV157.draw(c,camX,camY,viewW,viewH,geographyV160);
         // Plotted civilization ground is separate from natural terrain.
         WorldCivilizationArtV159.ground(c,civilizationV159,
             camX,camY,viewW,viewH);
@@ -4195,7 +4216,7 @@ public final class GameView extends View {
             for(int k=0;k<ResourceWorldV80.SLOTS;k++){
                 if(harvestWorld.exhausted(cx,cy,k))continue;
                 // V80 low-end performance: render world props allocation-free.
-                int h=ResourceWorldV80.seed(cx,cy,k);
+                int h=ResourceWorldV80.seed(cx,cy,k,geographyV160);
                 float x=ResourceWorldV80.worldX(cx,h);
                 float y=ResourceWorldV80.worldY(cy,h);
                 if(!ResourceWorldV80.placed(x,y,k,h,
@@ -4208,7 +4229,9 @@ public final class GameView extends View {
                         civilizationV159.developed(x,y)))
                     continue;
                 int kind=k==3?ResourceWorldV80.BUSH:k==2&&
-                    x>=0&&x<=WORLD_W&&y>=0&&y<=WORLD_H?4:BiomeWorldV74.prop(x,y,h);
+                    x>=0&&x<=WORLD_W&&y>=0&&y<=WORLD_H?4:
+                    geographyV160==null?BiomeWorldV74.prop(x,y,h):
+                    geographyV160.prop(x,y,h);
                 boolean shake=harvestImpactTimeV81>0&&harvestV81.matches(cx,cy,k);
                 if(shake){
                     c.save();
@@ -4217,7 +4240,8 @@ public final class GameView extends View {
                 }
                 if(kind==ResourceWorldV80.BUSH){
                     // Low stepped pixel bush; distinct fiber gathering target.
-                    int leaf=BiomeWorldV74.detail(BiomeWorldV74.biome(x,y),h);
+                    int leaf=BiomeWorldV74.detail(geographyV160==null?
+                        BiomeWorldV74.biome(x,y):geographyV160.biomeAt(x,y),h);
                     rect(c,x-21,y-12,42,12,0xff192b24);
                     rect(c,x-27,y-21,54,13,0xff23372b);
                     rect(c,x-17,y-28,35,15,leaf);
@@ -4232,7 +4256,8 @@ public final class GameView extends View {
                     dest.set(x-extent*.5f,y-extent,x+extent*.5f,y);
                     c.drawBitmap(biomeProps,src,dest,pixel);
                 }else{
-                    int tint=BiomeWorldV74.detail(BiomeWorldV74.biome(x,y),h);
+                    int tint=BiomeWorldV74.detail(geographyV160==null?
+                        BiomeWorldV74.biome(x,y):geographyV160.biomeAt(x,y),h);
                     rect(c,x-8,y-14,16,14,0xff24332a);
                     rect(c,x-17,y-28,34,17,tint);
                 }
@@ -6017,7 +6042,7 @@ public final class GameView extends View {
                 14,viewH-54,12,0xffd3e4a7,true);
         }else{
             ResourceWorldV80.Node near=harvestWorld.nearest(playerX,playerY,
-                ResourceWorldV80.USE_RADIUS,CAMP_X,CAMP_Y,WORLD_W,WORLD_H);
+                ResourceWorldV80.USE_RADIUS,CAMP_X,CAMP_Y,WORLD_W,WORLD_H,geographyV160);
             if(near!=null&&(civilizationV159==null||
                     !civilizationV159.developed(near.x,near.y)))
                 label(c,"INTERACT: GATHER "+near.name(),14,viewH-54,12,0xffd3e4a7,true);
@@ -6361,7 +6386,7 @@ public final class GameView extends View {
         if(harvestV81.active||firing||!playing||paused||gameOver)return false;
         if(nearest(playerX,playerY,135f)!=null)return false;
         ResourceWorldV80.Node node=harvestWorld.nearest(playerX,playerY,
-            ResourceWorldV80.USE_RADIUS,CAMP_X,CAMP_Y,WORLD_W,WORLD_H);
+            ResourceWorldV80.USE_RADIUS,CAMP_X,CAMP_Y,WORLD_W,WORLD_H,geographyV160);
         if(node!=null&&civilizationV159!=null&&
            civilizationV159.developed(node.x,node.y))node=null;
         SalvageWorldV84.Node salvage=salvageWorldV84.nearest(playerX,playerY,
