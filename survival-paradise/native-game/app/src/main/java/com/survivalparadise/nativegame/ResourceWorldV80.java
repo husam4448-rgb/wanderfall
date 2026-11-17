@@ -30,6 +30,17 @@ public final class ResourceWorldV80 {
         return slot<3?WorldChunkModel.hash(cx*7+slot,cy*11-slot):
             WorldChunkModel.hash(cx*23+17,cy*37-9);
     }
+    /** V160 changes tree and rock arrangements outside the starter camp,
+     * while unchanged V80 IDs and harvested bitmasks remain save-compatible.
+     */
+    public static int seed(int cx,int cy,int slot,WorldGeographyV160 geography){
+        int base=seed(cx,cy,slot);
+        if(geography==null)return base;
+        float wx=(cx+.5f)*CELL,wy=(cy+.5f)*CELL;
+        if(Math.hypot(wx-1080f,wy-710f)<1550f)return base;
+        return base^IndustrialWorldV123.hash(cx*11+slot,cy*17-slot,
+            geography.seed^0x160A55);
+    }
     public static float worldX(int cx,int seed){
         return cx*CELL+20+Math.floorMod(seed,CELL-40);
     }
@@ -49,12 +60,18 @@ public final class ResourceWorldV80 {
     }
     public static Node node(int cx,int cy,int slot,
                             float campX,float campY,float worldW,float worldH){
+        return node(cx,cy,slot,campX,campY,worldW,worldH,null);
+    }
+    public static Node node(int cx,int cy,int slot,
+                            float campX,float campY,float worldW,float worldH,
+                            WorldGeographyV160 geography){
         if(slot<0||slot>=SLOTS)return null;
-        int seed=seed(cx,cy,slot);
+        int seed=seed(cx,cy,slot,geography);
         float x=worldX(cx,seed),y=worldY(cy,seed);
         if(!placed(x,y,slot,seed,campX,campY,worldW,worldH))return null;
         int kind=slot==3?BUSH:slot==2 && x>=0&&x<=worldW&&y>=0&&y<=worldH?
-            4:BiomeWorldV74.prop(x,y,seed);
+            4:geography==null?BiomeWorldV74.prop(x,y,seed):
+                geography.prop(x,y,seed);
         return new Node(cx,cy,slot,kind,seed,x,y);
     }
     public boolean exhausted(int cx,int cy,int slot){
@@ -107,6 +124,11 @@ public final class ResourceWorldV80 {
     }
     public Node nearest(float px,float py,float radius,
                         float campX,float campY,float worldW,float worldH){
+        return nearest(px,py,radius,campX,campY,worldW,worldH,null);
+    }
+    public Node nearest(float px,float py,float radius,
+                        float campX,float campY,float worldW,float worldH,
+                        WorldGeographyV160 geography){
         float best2=radius*radius;
         Node closest=null;
         int x0=(int)Math.floor((px-radius)/CELL)-1;
@@ -116,14 +138,15 @@ public final class ResourceWorldV80 {
         for(int cy=y0;cy<=y1;cy++)for(int cx=x0;cx<=x1;cx++)
             for(int slot=0;slot<SLOTS;slot++){
                 if(exhausted(cx,cy,slot))continue;
-                int h=seed(cx,cy,slot);
+                int h=seed(cx,cy,slot,geography);
                 float x=worldX(cx,h),y=worldY(cy,h);
                 if(!placed(x,y,slot,h,campX,campY,worldW,worldH))continue;
                 float dx=x-px,dy=y-py,ds=dx*dx+dy*dy;
                 if(ds<=best2){
                     best2=ds;
                     int kind=slot==3?BUSH:slot==2&&x>=0&&x<=worldW&&y>=0&&y<=worldH?
-                        4:BiomeWorldV74.prop(x,y,h);
+                        4:geography==null?BiomeWorldV74.prop(x,y,h):
+                            geography.prop(x,y,h);
                     closest=new Node(cx,cy,slot,kind,h,x,y);
                 }
             }
