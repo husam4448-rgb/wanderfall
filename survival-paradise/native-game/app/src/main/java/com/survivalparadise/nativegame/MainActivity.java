@@ -2721,7 +2721,7 @@ public final class MainActivity extends Activity {
             field.setText(String.valueOf(game.industrialSeedV123));
             field.selectAll();
             new android.app.AlertDialog.Builder(this)
-                .setTitle("Procedural industrial world seed")
+                .setTitle("Survival Paradise world seed")
                 .setView(field)
                 .setNegativeButton("CANCEL",null)
                 .setPositiveButton("GENERATE",(dialog,which)->{
@@ -2736,12 +2736,11 @@ public final class MainActivity extends Activity {
                             .setNegativeButton("CANCEL",null)
                             .setPositiveButton("START NEW WORLD",(confirmation,accepted)->{
                                 game.saveProgress();
-                                prefs.edit().putInt(IndustrialWorldV123.SEED_PREF,next).apply();
-                                game.newGame();
                                 if(activeDialog[0]!=null)activeDialog[0].dismiss();
                                 game.menuPause(false);
-                                Toast.makeText(this,"Joined world / industrial seed: "+next,
-                                    Toast.LENGTH_LONG).show();
+                                // Validated, seed-specific new world generation.
+                                // Do not overwrite the old seed/save beforehand.
+                                generateWorldV159(next);
                             }).show();
                     }catch(NumberFormatException ex){
                         Toast.makeText(this,"Enter a signed whole-number seed",
