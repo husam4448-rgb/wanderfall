@@ -76,18 +76,26 @@ public final class IndustrialArtV123 {
                 int shape=IndustrialFacadeShapeV126.facade(p.kind);
                 int facade=shape==0?DOUBLE:shape==1?SINGLE:
                            shape==2?SHED:WAREHOUSE;
-                // V155 attached roof wings are drawn behind the original
-                // approved facade. The V126 alpha mask still traces that
-                // untouched bitmap, and V155 adds exact wing collision.
+                // Back wings and rooftop machinery are occluded by the
+                // approved front-facing factory source illustration. Do NOT
+                // put rectangular roof overlays or heavy factory equipment
+                // on top of its already detailed rusted pixel artwork.
                 IndustrialComplexArtV155.behindFacade(c,p);
+                for(IndustrialPropLayoutV126.Prop prop:
+                        IndustrialPropLayoutV126.forPlot(p))
+                    if(prop.sprite!=FORKLIFT&&prop.sprite!=TRUCK)
+                        draw(c,prop.sprite,x+prop.x,y+prop.y,prop.w,prop.h);
                 draw(c,facade,p.buildingX-12,p.buildingY-22,
                      p.buildingW+24,p.buildingH+46);
                 IndustrialComplexArtV155.overFacade(c,p);
             }
-            // Props: physical size and position are shared with collision.
+            // Forklift/truck remains an actual yard-ground vehicle, with
+            // precise V126 source-art alpha collision. Empty yards retain
+            // their original scattered props.
             for(IndustrialPropLayoutV126.Prop prop:
                     IndustrialPropLayoutV126.forPlot(p))
-                draw(c,prop.sprite,x+prop.x,y+prop.y,prop.w,prop.h);
+                if(!p.enterable()||prop.sprite==FORKLIFT||prop.sprite==TRUCK)
+                    draw(c,prop.sprite,x+prop.x,y+prop.y,prop.w,prop.h);
             // Fence sprites only over real physical fence segments; central
             // yard gate is left empty and can be crossed by characters.
             draw(c,FENCE,x+112,y+1178,470,48);
