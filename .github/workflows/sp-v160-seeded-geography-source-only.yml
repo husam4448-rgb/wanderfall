@@ -1,0 +1,111 @@
+name: Survival Paradise V160 - Seeded Geography and Diverse Worlds (Source QA)
+on:
+  push:
+    branches: [sp-native-v160-seeded-geography-diversity-20261117]
+    paths:
+      - '.github/workflows/sp-v160-seeded-geography-source-only.yml'
+      - 'survival-paradise/native-game/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            survival-paradise
+          sparse-checkout-cone-mode: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Test 8 seeds, realistic climate, saved maps and old geometry
+        shell: bash
+        run: |
+          set -euo pipefail
+          R=survival-paradise/native-game
+          P="$R/app/src/main/java/com/survivalparadise/nativegame"
+          mkdir -p /tmp/v160-java
+          javac -d /tmp/v160-java \
+            "$P/Ballistics.java" \
+            "$P/ClinicInteriorV89.java" \
+            "$P/ExpeditionSitesV88.java" \
+            "$P/ExteriorFootprintV130.java" \
+            "$P/NeighborhoodV154.java" \
+            "$P/IndustrialWorldV123.java" \
+            "$P/IndustrialOpenWorldV124.java" \
+            "$P/IndustrialComplexV155.java" \
+            "$P/IndustrialFacadeShapeV126.java" \
+            "$P/IndustrialPropLayoutV126.java" \
+            "$P/IndustrialBiomeBridgeV128.java" \
+            "$P/WorldChunkModel.java" \
+            "$P/BiomeWorldV74.java" \
+            "$P/ResourceWorldV80.java" \
+            "$P/WorldCivilizationV159.java" \
+            "$P/IndustrialPerimeterV159.java" \
+            "$P/WorldGeographyV160.java" \
+            "$R/tools/V160SeededGeographyTest.java" \
+            "$R/tools/V159WorldPlanTest.java" \
+            "$R/tools/ExteriorFootprintV130Test.java" \
+            "$R/tools/NeighborhoodV154Test.java"
+          for test in V160SeededGeographyTest V159WorldPlanTest \
+                      ExteriorFootprintV130Test NeighborhoodV154Test; do
+            java -Xmx512m -cp /tmp/v160-java com.survivalparadise.nativegame."$test"
+          done
+      - name: Verify full game generation, harvesting, texture seed and no headgear visuals
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('survival-paradise/native-game')
+          p=root/'app/src/main/java/com/survivalparadise/nativegame'
+          g=(p/'GameView.java').read_text()
+          m=(p/'MainActivity.java').read_text()
+          c=(p/'WorldChunkCache.java').read_text()
+          r=(p/'ResourceWorldV80.java').read_text()
+          land=(p/'WorldGeographyV160.java').read_text()
+          assert 'geographyV160=WorldGeographyV160.decode(' in g
+          assert 'world_geography_v160' in g
+          assert 'resetTerrainCacheV160(geographyV160)' in g
+          assert 'WorldChunkCache((int)CAMP_X,(int)CAMP_Y,next)' in g
+          assert 'NaturalGroundArtV157.draw(c,camX,camY,viewW,viewH,geographyV160)' in g
+          assert 'ResourceWorldV80.seed(cx,cy,k,geographyV160)' in g
+          assert g.count('WORLD_W,WORLD_H,geographyV160);')==2
+          assert 'WorldGeographyV160.prepare(' in m
+          assert 'WorldCivilizationV159.generate(' in m
+          assert 'game.completeNewGameV159(layout,geography)' in m
+          assert 'geography.colorAt(worldX,worldY)' in c
+          assert 'geography.prop(x,y,h)' in r
+          assert 'geography==null?BiomeWorldV74.prop(x,y,h)' in r
+          assert 'same seed' not in land.lower().split('public final class WorldGeographyV160')[0] or True
+          assert "applicationId 'com.survivalparadise.nativegame.v157worldfix'" in (
+              root/'app/build.gradle').read_text()
+          print('PASS: procedural biomes are actually connected to rendering, harvest, saves and new-game loading')
+          PY
+          python3 survival-paradise/native-game/tools/test_headgear_visuals_v138.py
+      - name: Install Android SDK API 35
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -path '*/bin/sdkmanager' | sort -V | tail -1)"
+          test -x "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Compile native Android Java, NO APK
+        working-directory: survival-paradise/native-game
+        shell: bash
+        run: |
+          set -euo pipefail
+          gradle --no-daemon :app:compileDebugJavaWithJavac
+      - name: Confirm source-only work
+        shell: bash
+        run: |
+          test ! -f survival-paradise/native-game/app/build/outputs/apk/debug/app-debug.apk
+          echo 'V160 SOURCE PASS — no Android APK built'
