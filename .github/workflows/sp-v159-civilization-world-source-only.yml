@@ -1,0 +1,101 @@
+name: Survival Paradise V159 - Seeded Civilization Plan Source QA (NO APK)
+on:
+  push:
+    branches: [sp-native-v159-civilization-plots-loading-20261117]
+    paths:
+      - '.github/workflows/sp-v159-civilization-world-source-only.yml'
+      - 'survival-paradise/native-game/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 32
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            survival-paradise
+          sparse-checkout-cone-mode: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Seed, save, gated streets and industrial boundary regression tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          R=survival-paradise/native-game
+          P="$R/app/src/main/java/com/survivalparadise/nativegame"
+          mkdir -p /tmp/sp-v159-qa
+          javac -d /tmp/sp-v159-qa \
+            "$P/Ballistics.java" \
+            "$P/ClinicInteriorV89.java" \
+            "$P/ExpeditionSitesV88.java" \
+            "$P/ExteriorFootprintV130.java" \
+            "$P/NeighborhoodV154.java" \
+            "$P/IndustrialWorldV123.java" \
+            "$P/IndustrialOpenWorldV124.java" \
+            "$P/IndustrialComplexV155.java" \
+            "$P/IndustrialFacadeShapeV126.java" \
+            "$P/IndustrialPropLayoutV126.java" \
+            "$P/IndustrialBiomeBridgeV128.java" \
+            "$P/WorldCivilizationV159.java" \
+            "$P/IndustrialPerimeterV159.java" \
+            "$R/tools/V159WorldPlanTest.java" \
+            "$R/tools/ExteriorFootprintV130Test.java" \
+            "$R/tools/NeighborhoodV154Test.java"
+          for test in V159WorldPlanTest ExteriorFootprintV130Test NeighborhoodV154Test; do
+            java -cp /tmp/sp-v159-qa com.survivalparadise.nativegame."$test"
+          done
+      - name: Protect original assets, save keys and separate existing player installations
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('survival-paradise/native-game')
+          p=root/'app/src/main/java/com/survivalparadise/nativegame'
+          g=(p/'GameView.java').read_text()
+          m=(p/'MainActivity.java').read_text()
+          b=(p/'IndustrialBiomeSceneV128.java').read_text()
+          art=(p/'WorldCivilizationArtV159.java').read_text()
+          plan=(p/'WorldCivilizationV159.java').read_text()
+          assert 'game.completeNewGameV159(layout)' in m
+          assert 'game.newGame();' not in m.split('Start a new seeded world?')[1].split('}).show();',1)[0]
+          assert 'GENERATING SURVIVAL PARADISE' in m
+          assert 'world_civilization_v159' in g
+          assert 'WorldCivilizationV159.decode(' in g
+          assert 'WorldCivilizationArtV159.ground(c,civilizationV159' in g
+          assert 'WorldCivilizationArtV159.fences(c,civilizationV159' in g
+          assert 'WorldCivilizationArtV159.industrialFence(c,industrialSeedV123' in g
+          assert 'IndustrialPerimeterV159.blocked(x,y,r,industrialSeedV123)' in g
+          assert 'drawOuterBoundaryRoadsV159(c,p,camX,camY,vw,vh,seed)' in b
+          assert '138' not in plan.split('public static final int VERSION=')[1].split(';')[0]
+          assert 'new String[]{"backpack.png","headgear.png"' not in g
+          assert 'characterSkinsV109.draw(' in g
+          assert "applicationId 'com.survivalparadise.nativegame.v157worldfix'" in (
+              root/'app/build.gradle').read_text()
+          print('PASS V159: only additive procedural model, original 200 heads and game package unchanged')
+          PY
+          python3 survival-paradise/native-game/tools/test_headgear_visuals_v138.py
+      - name: Install Android SDK API 35
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -path '*/bin/sdkmanager' | sort -V | tail -1)"
+          test -x "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Compile Java game only, no APK
+        working-directory: survival-paradise/native-game
+        run: gradle --no-daemon :app:compileDebugJavaWithJavac
+      - name: Confirm no APK assembled
+        shell: bash
+        run: |
+          test ! -f survival-paradise/native-game/app/build/outputs/apk/debug/app-debug.apk
+          echo 'V159 passed. Source only: no APK generated.'
