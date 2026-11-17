@@ -5,149 +5,116 @@ import android.graphics.Paint;
 import android.graphics.Typeface;
 
 /**
- * Architectural massing painted around the existing approved industrial
- * sprites, never replacing or resampling them. Roof structure, loading bays,
- * skylights and machinery differ by actual facility kind. Geometry outside
- * the original V126 silhouette is exactly IndustrialComplexV155.Wing.
+ * V155 architectural extensions are behind the four approved, front-facing
+ * factory facade WebPs. Never paint new "roof grids" over their original
+ * pixel artwork: that destroys their perspective, rusty panels and shading.
+ * Both attached opaque wings share exact IndustrialComplexV155 collision.
  */
 public final class IndustrialComplexArtV155 {
     private IndustrialComplexArtV155(){}
     private static final Paint P=new Paint(Paint.ANTI_ALIAS_FLAG);
-    private static final int DARK=0xff1e2c31, STEEL=0xff657576;
+    private static final int DARK=0xff1a292d;
+    private static final int[] ROOFS={
+        0xff66747b,0xff627b79,0xff766c60,0xff616e74,
+        0xff68766d,0xff6e625b,0xff5f7076,0xff786c5e
+    };
+    private static final int[] ACCENTS={
+        0xffb59d74,0xff94b7ac,0xffc68a52,0xffa8abb0,
+        0xffa5c3a8,0xffae996b,0xffadb1a5,0xffbfa77b
+    };
     private static void rect(Canvas c,float x,float y,float w,float h,int color){
-        if(w<=0||h<=0)return;
+        if(w<=0f||h<=0f)return;
         P.setStyle(Paint.Style.FILL);P.setColor(color);
         c.drawRect(x,y,x+w,y+h,P);
     }
-    private static final int[] ROOFS={
-        0xff768188,0xff637b7b,0xff786b61,0xff68777a,
-        0xff68756d,0xff766f62,0xff657781,0xff807766
-    };
-    private static final int[] ACCENTS={
-        0xffb59d74,0xff97b3a9,0xffc68a52,0xffa6afb3,
-        0xffaec4ab,0xffb39b69,0xffa9afa7,0xffc6a579
-    };
-    private static void drawWing(Canvas c,IndustrialComplexV155.Wing wing,
-                                 int color,int accent,int variant){
-        float x=wing.x,y=wing.y,w=wing.w,h=wing.h;
-        // Opaque painted hull exactly matches the separate wing collision.
+    private static void wing(Canvas c,IndustrialComplexV155.Wing part,
+                             int kind,int variation){
+        float x=part.x,y=part.y,w=part.w,h=part.h;
+        int roof=ROOFS[kind],accent=ACCENTS[kind];
+        // Opaque masonry matches the physical annex with no hitbox margins.
         rect(c,x,y,w,h,DARK);
-        rect(c,x+9,y+8,w-18,h-17,color);
-        rect(c,x+18,y+19,w-36,12,accent);
-        for(int i=0;i<4;i++){
-            float yy=y+40+i*29;
-            rect(c,x+29,yy,w-58,8,0xff334a4e);
-            rect(c,x+34,yy+9,Math.max(32,w-68),5,0xffa9ac9c);
+        rect(c,x+9f,y+8f,w-18f,h-17f,roof);
+        rect(c,x+18f,y+18f,w-36f,12f,accent);
+        rect(c,x+18f,y+h-40f,w-36f,11f,0xff263b42);
+        switch(kind){
+            case 0: // steel mill: continuous rolling lines
+                for(int j=0;j<5;j++)
+                    rect(c,x+27,y+47+j*23,w-54,9,
+                        j%2==0?accent:0xff3e545a);
+                break;
+            case 1: // assembly factory: separate ventilated bays
+                for(int j=0;j<4;j++){
+                    float xx=x+27+j*(w-54f)/4f;
+                    rect(c,xx,y+51,28,h-109f,0xff293b41);
+                    rect(c,xx+5,y+63,18,23,accent);
+                }
+                break;
+            case 2: // foundry: thick exhaust banks
+                for(int j=0;j<4;j++){
+                    float xx=x+31+j*(w-62f)/4f;
+                    rect(c,xx,y+48,30,52,0xff303c3f);
+                    rect(c,xx+5,y+54,20,14,accent);
+                    rect(c,xx+4,y+104,22,18,0xff8d5944);
+                }
+                break;
+            case 3: // logistics warehouse: loading sections
+                for(int j=0;j<4;j++)
+                    rect(c,x+28+j*(w-56f)/4f,y+51,
+                        Math.max(23f,(w-80f)/4f),h-112f,
+                        j%2==0?0xff384c51:0xff82918b);
+                break;
+            case 4: // electric plant: rooftop transformer enclosures
+                for(int j=0;j<3;j++){
+                    float xx=x+33+j*(w-66f)/3f;
+                    rect(c,xx,y+58,45,51,0xff273f42);
+                    rect(c,xx+7,y+67,31,10,accent);
+                }
+                break;
+            case 5: // scrap recycler: corrugated patchwork
+                for(int j=0;j<5;j++)
+                    rect(c,x+22+j*(w-44f)/5f,y+52,22,h-115f,
+                        j%2==0?0xff88745a:0xff354a50);
+                break;
+            case 6: // machine works: pipe/service grid
+                for(int j=0;j<5;j++){
+                    float yy=y+43+j*(h-91f)/5f;
+                    rect(c,x+29,yy,w-58,10,0xff324b52);
+                    rect(c,x+41+j*17f,yy+3,27,6,accent);
+                }
+                break;
+            default: // raw material depot: long reinforced roof hatches
+                for(int j=0;j<4;j++){
+                    float xx=x+26+j*(w-52f)/4f;
+                    rect(c,xx,y+49,39,h-112f,0xff40565a);
+                    rect(c,xx+7,y+62,25,h-138f,accent);
+                }
         }
-        for(int i=0;i<3;i++){
-            float xx=x+31+i*(w-62f)/3f;
-            rect(c,xx,y+h-33,27,21,i==variant%3?accent:0xff47585b);
+        for(int j=0;j<3;j++){
+            float xx=x+29+j*(w-58f)/3f;
+            rect(c,xx,y+h-25,22,10,j==variation%3?accent:DARK);
         }
     }
+    /** Extensions first. Original facility sprites draw over them untouched. */
     public static void behindFacade(Canvas c,IndustrialOpenWorldV124.Plot site){
         if(!site.enterable())return;
-        int kind=site.kind,variant=Math.floorMod(
-            IndustrialWorldV123.hash(site.sx,site.sy,site.seed^0x155),6);
-        int color=ROOFS[kind],accent=ACCENTS[kind];
-        drawWing(c,IndustrialComplexV155.left(site),color,accent,variant);
-        drawWing(c,IndustrialComplexV155.right(site),color,accent,variant+2);
+        int kind=site.kind;
+        int variant=Math.floorMod(IndustrialWorldV123.hash(
+            site.sx,site.sy,site.seed^0x155),6);
+        wing(c,IndustrialComplexV155.left(site),kind,variant);
+        wing(c,IndustrialComplexV155.right(site),kind,(variant+2)%6);
     }
+    /** Ground-only entry stencil, below the painted original source facade. */
     public static void overFacade(Canvas c,IndustrialOpenWorldV124.Plot site){
         if(!site.enterable())return;
-        float bx=site.buildingX,by=site.buildingY;
-        float w=site.buildingW,h=site.buildingH;
-        int k=site.kind;
-        int accent=ACCENTS[k],roof=ROOFS[k];
-        int variation=Math.floorMod(IndustrialWorldV123.hash(
-            site.sx+13,site.sy-19,site.seed^0x155),5);
-        // The approved V126 bitmap still supplies the entire main facade;
-        // these confined roof fixtures make the structure read as a facility.
-        rect(c,bx+80,by+70,w-160,12,0x77404c51);
-        rect(c,bx+80,by+h-121,w-160,12,0x77404c51);
-        switch(k){
-            case 0: // Steel mill: long steel rolling and cooling bays
-                for(int i=0;i<5;i++){
-                    float yy=by+128+i*(h-268)/5f;
-                    rect(c,bx+140,yy,w-280,22,0xff41595f);
-                    rect(c,bx+162,yy+5,w-324,8,0xffa9b7ad);
-                }
-                break;
-            case 1: // Assembly factory: conveyor branches / skylights
-                for(int i=0;i<4;i++){
-                    float xx=bx+155+i*(w-310)/4f;
-                    rect(c,xx,by+116,66,h-242,0xff3e5a60);
-                    for(int j=0;j<5;j++)
-                        rect(c,xx+11,by+132+j*(h-280)/5f,45,13,
-                            0xffa0aaa1);
-                }
-                break;
-            case 2: // Foundry: thermal venting, roof stacks and crane gantry
-                for(int i=0;i<7;i++){
-                    float xx=bx+135+i*(w-270)/7f;
-                    rect(c,xx,by+130,54,54,0xff2e3e41);
-                    rect(c,xx+10,by+141,32,32,i%2==0?0xffac7149:accent);
-                }
-                rect(c,bx+120,by+h*.62f,w-240,18,0xff9b8d78);
-                break;
-            case 3: // Logistics warehouse: huge repeated loading halls
-                for(int i=0;i<6;i++){
-                    float xx=bx+108+i*(w-216)/6f;
-                    rect(c,xx,by+120,(w-255)/6f,h-240,
-                        i%2==0?0xff4c646a:0xff839596);
-                    rect(c,xx+10,by+130,(w-283)/6f,16,accent);
-                }
-                break;
-            case 4: // Electrical plant: transformer arrays / roof duct grid
-                for(int i=0;i<4;i++)for(int j=0;j<3;j++){
-                    float xx=bx+126+i*(w-250)/4f;
-                    float yy=by+120+j*(h-260)/3f;
-                    rect(c,xx,yy,90,65,0xff273d3e);
-                    rect(c,xx+7,yy+8,76,13,accent);
-                    rect(c,xx+18,yy+33,55,17,0xff718e85);
-                }
-                break;
-            case 5: // Scrap recycling: separated processing roof bays
-                for(int i=0;i<5;i++){
-                    float xx=bx+135+i*(w-270)/5f;
-                    rect(c,xx,by+150,(w-300)/5f,h-320,
-                        i%2==0?0xff705f54:0xff4b5559);
-                    rect(c,xx+13,by+180,(w-338)/5f,15,accent);
-                }
-                break;
-            case 6: // Machine works: overhead ventilation / service grid
-                for(int i=0;i<7;i++){
-                    float yy=by+122+i*(h-240)/7f;
-                    rect(c,bx+112,yy,w-224,18,0xff304c53);
-                    for(int j=0;j<4;j++)
-                        rect(c,bx+142+j*(w-284)/4f,yy+3,42,9,
-                            0xffb7b1a3);
-                }
-                break;
-            default: // Raw material depot: multiple roof hoppers
-                for(int i=0;i<5;i++){
-                    float xx=bx+127+i*(w-254)/5f;
-                    rect(c,xx,by+130,(w-290)/5f,h-280,
-                        0xff34494d);
-                    rect(c,xx+11,by+142,(w-320)/5f,h-316,
-                        i%2==0?0xffa99779:0xff779090);
-                }
-        }
-        // Repeatable building-specific wear and lightning rods, not uniform
-        // copy-pasted facade plates. Confined well within alpha-solid roof.
-        for(int i=0;i<variation+2;i++){
-            float xx=bx+114+i*(w-228)/(float)(variation+3);
-            rect(c,xx,by+h-103,24,8,accent);
-        }
-        // Massive human-scaled south service front with a visible signed
-        // entrance in the EXACT historic world-space interaction corridor.
-        float door=site.doorX,front=site.y+782f;
-        rect(c,door-108f,front-20f,216f,17f,0xff1b2a2c);
-        rect(c,door-101f,front-16f,202f,9f,accent);
-        rect(c,door-71f,front,142f,21f,0xff59615d);
-        rect(c,door-66f,front+4f,132f,12f,0xffb4aa8e);
+        float door=site.doorX;
+        float y=site.y+817f; // below the 804-unit-high facade bitmap
+        int accent=ACCENTS[site.kind];
+        rect(c,door-73,y+13,146,6,0xff28363a);
+        rect(c,door-69,y+14,138,3,accent);
+        // Marked walkable yard landing: does not put a fake door on the art.
+        P.setColor(0xffd8c6a0);
+        P.setTextSize(13f);
         P.setTypeface(Typeface.create("monospace",Typeface.BOLD));
-        P.setTextSize(17f);
-        P.setColor(0xffecdec2);
-        c.drawText("ENTER",door-27,front-27,P);
+        c.drawText("ENTER",door-20,y+5,P);
     }
 }
