@@ -45,5 +45,5 @@ android {
 // Source-only visual QA; these dependencies affect unit tests, not the APK.
 dependencies {
  testImplementation 'junit:junit:4.13.2'
- testImplementation 'org.robolectric:robolectric:4.13.1'
+ testImplementation 'org.robolectric:robolectric:4.15.1'
 }
