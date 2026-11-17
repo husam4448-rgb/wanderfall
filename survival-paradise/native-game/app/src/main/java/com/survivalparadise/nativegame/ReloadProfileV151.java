@@ -14,7 +14,7 @@ public final class ReloadProfileV151 {
         PRECISION_BOX=8, BELT_BOX=9, GRENADE_ROUNDS=10;
 
     public static final float[] DURATION={
-        1.35f,2.25f,1.55f,0f,1.70f,1.90f,2.05f,2.60f,2.25f,3.20f,2.70f,0f
+        1.35f,2.25f,1.55f,0f,1.70f,1.90f,2.05f,3.15f,2.35f,3.20f,2.70f,0f
     };
     // Where the support hand starts and where it performs the loading operation.
     private static final float[] HOME_X={
@@ -70,7 +70,7 @@ public final class ReloadProfileV151 {
         float y=lerp(HOME_Y[weapon],LOAD_Y[weapon],operation(p));
         if(topFeed(weapon)&&p>.28f&&p<.78f){
             // Repeated visible shell strokes DOWN into the top loading port.
-            float repeat=(p-.28f)/.50f*3f;
+            float repeat=(p-.28f)/.50f*6f;
             float step=repeat-(float)Math.floor(repeat);
             float arc=(float)Math.sin(Math.PI*step);
             y+=9f*arc*arc;
