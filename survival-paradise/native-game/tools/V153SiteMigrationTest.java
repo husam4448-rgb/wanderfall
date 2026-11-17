@@ -25,8 +25,9 @@ public final class V153SiteMigrationTest {
         check(count==1,"expected one living supply cache relocation");
         BanditLootV87.Bag moved=loot.bags.get(0);
         check(moved.id==originalId,"cache identity changed");
-        check(moved.x==ExpeditionSitesV88.SITES[0].x+115f&&
-              moved.y==ExpeditionSitesV88.SITES[0].y+91f,
+        check(moved.x==ExpeditionSitesV88.SITES[0].x+120f&&
+              moved.y==ExpeditionSitesV88.SITES[0].y+
+                  ExteriorFootprintV130.anchor(ExpeditionSitesV88.SITES[0])+36f,
               "cache not moved to institution entrance");
         for(int j=0;j<previous.length;j++)
             check(moved.count[j]==previous[j],"item stack corrupted "+j);
