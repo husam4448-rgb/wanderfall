@@ -4872,9 +4872,52 @@ public final class GameView extends View {
         return found;
     }
     String indoorCorpseKeyV129(){return "indoor_corpse_v129_"+droppedSceneV129();}
-    boolean indoorCorpseSearchedV129(int index){
+    /** Stable independent archive for each of the 26 sites, built shelters,
+     * and every seed-specific industrial district. No outdoor bag contamination.
+     */
+    String indoorCorpseLootKeyV158(){
+        if(activeSiteV91==INDUSTRIAL_SITE_V123)
+            return "indoor_corpse_loot_v158_industrial:"+
+                industrialSeedV123+":"+industrialSiteV123.sx+":"+industrialSiteV123.sy;
+        return "indoor_corpse_loot_v158_site:"+activeSiteV91;
+    }
+    boolean indoorCorpseLegacySearchedV129(int index){
         return index<0||index>=clinicActorsV90.actors.length||
             (host.prefs.getInt(indoorCorpseKeyV129(),0)&(1<<index))!=0;
+    }
+    /** Never reissue V129 one-tap loot. First V158 inspection creates one
+     * persistent inventory; subsequent visits reuse the same item quantities.
+     */
+    BanditLootV87.Bag indoorCorpseBagV158(int index){
+        if(!insideClinicV89||!playing||gameOver||index<0||
+           index>=clinicActorsV90.actors.length||
+           nearestIndoorCorpseV129()!=index)return null;
+        ClinicActorsV90.Actor actor=clinicActorsV90.actors[index];
+        if(actor.active||distance(playerX,playerY,actor.x,actor.y)>128f)
+            return null;
+        BanditLootV87.Bag bag=indoorCorpseLootV158.get(index);
+        if(bag!=null)return bag;
+        boolean legacy=indoorCorpseLegacySearchedV129(index);
+        long money=0;
+        if(!legacy&&actor.type!=ClinicActorsV90.FERAL){
+            NpcTradeLedgerV143.Npc pocket=npcTradesV143.get(
+                indoorTradeIdentityV143(index),
+                actor.type==ClinicActorsV90.RAIDER?5:
+                    actor.type==ClinicActorsV90.MEDIC?1:4);
+            if(pocket!=null)money=pocket.wallet.iron();
+        }
+        int appearance=actor.type==ClinicActorsV90.MEDIC?ROLE_MEDIC:
+            actor.type==ClinicActorsV90.SURVIVOR?ROLE_CIVILIAN:0;
+        int skin=1+Math.floorMod(actor.type*31+37,200);
+        bag=indoorCorpseLootV158.ensure(index,actor,appearance,skin,
+            money,legacy);
+        if(bag!=null)saveProgress(); // persist before any loot can transfer
+        return bag;
+    }
+    boolean indoorCorpseSearchedV129(int index){
+        if(indoorCorpseLegacySearchedV129(index))return true;
+        BanditLootV87.Bag bag=indoorCorpseLootV158.get(index);
+        return bag!=null&&bag.empty();
     }
     String indoorCorpseContentsV129(int index){
         if(index<0||index>=clinicActorsV90.actors.length)return "";
@@ -4900,94 +4943,11 @@ public final class GameView extends View {
             garments+=", Flashlight";
         return supplies+"; "+garments;
     }
+    /** Compatibility entry point. All V129 searches now use the same
+     * item-by-item inventory transfer and capacity checks as outside.
+     */
     boolean searchIndoorCorpseV129(int index){
-        if(!insideClinicV89||!playing||index<0||
-            index>=clinicActorsV90.actors.length||
-            indoorCorpseSearchedV129(index))return false;
-        ClinicActorsV90.Actor actor=clinicActorsV90.actors[index];
-        if(actor.active||distance(playerX,playerY,actor.x,actor.y)>128f)
-            return false;
-        if(actor.type!=ClinicActorsV90.FERAL){
-            int skin=1+Math.floorMod(actor.type*31+37,200);
-            int role=actor.type==ClinicActorsV90.MEDIC?ROLE_MEDIC:
-                actor.type==ClinicActorsV90.SURVIVOR?ROLE_CIVILIAN:0;
-            int gunId=actor.type==ClinicActorsV90.RAIDER?
-                OutfitInventoryV140.WEAPONS+actor.gun:
-                actor.type==ClinicActorsV90.MEDIC||
-                    actor.type==ClinicActorsV90.SURVIVOR?
-                    OutfitInventoryV140.WEAPONS+3:-1;
-            int[] items=gunId>=0?
-                new int[]{OutfitInventoryV140.TORSO+
-                            OutfitInventoryV140.npcTorso(role,skin),
-                          OutfitInventoryV140.PANTS+
-                            OutfitInventoryV140.npcPants(role,skin),
-                          OutfitInventoryV140.BOOTS+
-                            OutfitInventoryV140.npcBoots(role,skin),
-                          gunId,actor.type==ClinicActorsV90.RAIDER?
-                              AmmoInventoryV143.forGun(actor.gun):
-                              OutfitInventoryV140.ROUNDS}:
-                new int[]{OutfitInventoryV140.TORSO+
-                            OutfitInventoryV140.npcTorso(role,skin),
-                          OutfitInventoryV140.PANTS+
-                            OutfitInventoryV140.npcPants(role,skin),
-                          OutfitInventoryV140.BOOTS+
-                            OutfitInventoryV140.npcBoots(role,skin)};
-            if(!UnifiedBagSlotsV141.canStoreAll(bagOrderV92,
-                bagSplitAmountV130,this::availableInventoryV131,items)){
-                gatherFeedback="BAG FULL - FREE INVENTORY SLOTS";
-                gatherFeedbackTime=2.5f;invalidate();return false;
-            }
-        }
-        if(actor.type!=ClinicActorsV90.FERAL){
-            NpcTradeLedgerV143.Npc pocket=npcTradesV143.get(
-                indoorTradeIdentityV143(index),
-                actor.type==ClinicActorsV90.RAIDER?5:
-                    actor.type==ClinicActorsV90.MEDIC?1:4);
-            if(pocket!=null){
-                long amount=pocket.wallet.iron();
-                if(amount>0&&!playerNutsV143.canCredit(amount)){
-                    gatherFeedback="NUT WALLET FULL";
-                    gatherFeedbackTime=2f;return false;
-                }
-                if(amount>0){
-                    playerNutsV143.credit(amount);
-                    pocket.wallet.takeAll();
-                }
-            }
-        }
-        switch(actor.type){
-            case ClinicActorsV90.RAIDER:scrap+=2;break;
-            case ClinicActorsV90.MEDIC:medkits++;waterCount++;break;
-            case ClinicActorsV90.SURVIVOR:foodCount++;scrap++;break;
-            case ClinicActorsV90.ZOMBIE:scrap++;break;
-            default:break;
-        }
-        if(actor.type!=ClinicActorsV90.FERAL){
-            int skin=1+Math.floorMod(actor.type*31+37,200);
-            int role=actor.type==ClinicActorsV90.MEDIC?ROLE_MEDIC:
-                actor.type==ClinicActorsV90.SURVIVOR?ROLE_CIVILIAN:0;
-            outfitsV140.add(OutfitInventoryV140.TORSO+
-                OutfitInventoryV140.npcTorso(role,skin),1);
-            outfitsV140.add(OutfitInventoryV140.PANTS+
-                OutfitInventoryV140.npcPants(role,skin),1);
-            outfitsV140.add(OutfitInventoryV140.BOOTS+
-                OutfitInventoryV140.npcBoots(role,skin),1);
-            if(actor.type==ClinicActorsV90.RAIDER){
-                outfitsV140.add(OutfitInventoryV140.WEAPONS+actor.gun,1);
-                int rounds=actor.rounds+actor.spareRounds;
-                int ammoType=AmmoInventoryV143.forGun(actor.gun);
-                if(rounds>0&&ammoType>=0)
-                    playerAmmoV143.add(ammoType,rounds);
-            }else if(actor.type==ClinicActorsV90.MEDIC||
-                     actor.type==ClinicActorsV90.SURVIVOR){
-                outfitsV140.add(OutfitInventoryV140.WEAPONS+3,1); // visible flashlight
-            }
-        }
-        syncBagV141();
-        int old=host.prefs.getInt(indoorCorpseKeyV129(),0);
-        host.prefs.edit().putInt(indoorCorpseKeyV129(),old|(1<<index)).apply();
-        gatherFeedback="SEARCHED FALLEN NPC";gatherFeedbackTime=2f;
-        saveProgress();invalidate();return true;
+        return lootAllIndoorCorpseV158(index)>0;
     }
     /** A grounded pixel-art dropped backpack with zipper, straps and loot count. */
     void drawBanditBagV87(Canvas c,BanditLootV87.Bag bag){
