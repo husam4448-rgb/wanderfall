@@ -243,14 +243,23 @@ public final class NeighborhoodArtV154 {
     }
     public static void draw(Canvas c,Paint p,float camX,float camY,
                             float viewW,float viewH,boolean night){
+        draw(c,p,camX,camY,viewW,viewH,night,null);
+    }
+    /** New worlds render only the seed-selected town clusters. Old saves
+     * pass null to retain the exact historical V154 building map.
+     */
+    public static void draw(Canvas c,Paint p,float camX,float camY,
+                            float viewW,float viewH,boolean night,
+                            WorldCivilizationV159.Plan plan){
         int tx0=NeighborhoodV154.tileX(camX-170),
             tx1=NeighborhoodV154.tileX(camX+viewW+170);
         int ty0=NeighborhoodV154.tileY(camY-170),
             ty1=NeighborhoodV154.tileY(camY+viewH+170);
         for(int ty=ty0;ty<=ty1;ty++)for(int tx=tx0;tx<=tx1;tx++)
-            if(NeighborhoodV154.district(tx,ty))
+            if(NeighborhoodV154.district(tx,ty)&&
+               (plan==null||plan.atTile(tx,ty)!=null))
                 roads(c,p,tx,ty);
-        NeighborhoodV154.visible(camX,camY,viewW,viewH,
+        NeighborhoodV154.visible(camX,camY,viewW,viewH,plan,
             b->building(c,p,b,night));
     }
 }
