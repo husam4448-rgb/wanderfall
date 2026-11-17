@@ -9,6 +9,14 @@ package com.survivalparadise.nativegame;
  */
 public final class NeighborhoodV154 {
     private NeighborhoodV154(){}
+    // Prevent allocating dozens of building/site-bound objects on every
+    // NPC movement/collision tick. The bounded cache is derived entirely
+    // from static world coordinates and is safe to rebuild at any time.
+    private static final java.util.LinkedHashMap<Long,Building[]> CACHE=
+        new java.util.LinkedHashMap<Long,Building[]>(128,.75f,true){
+            @Override protected boolean removeEldestEntry(
+                java.util.Map.Entry<Long,Building[]> e){return size()>144;}
+        };
     public static final int TILE_W=5400, TILE_H=4400;
     public static final int COLS=3, ROWS=2;
     public static final int TYPES=8;
@@ -96,17 +104,32 @@ public final class NeighborhoodV154 {
         }
         return true;
     }
+    private static long key(int tx,int ty){
+        return (((long)tx)<<32)^(ty&0xffffffffL);
+    }
+    private static synchronized Building[] cell(int tx,int ty){
+        long key=key(tx,ty);
+        Building[] cached=CACHE.get(key);
+        if(cached!=null)return cached;
+        Building[] result=new Building[COLS*ROWS];
+        for(int slot=0;slot<result.length;slot++){
+            Building b=candidate(tx,ty,slot);
+            if(safe(b))result[slot]=b;
+        }
+        CACHE.put(key,result);
+        return result;
+    }
     public static Building get(int tx,int ty,int slot){
-        Building b=candidate(tx,ty,slot);
-        return safe(b)?b:null;
+        return slot<0||slot>=COLS*ROWS?null:cell(tx,ty)[slot];
     }
     /** Broadphase limits all rendering to viewport tiles, not the whole world. */
     public static void visible(float x,float y,float width,float height,Visitor draw){
         int x0=tileX(x-170f),x1=tileX(x+width+170f);
         int y0=tileY(y-170f),y1=tileY(y+height+170f);
         for(int ty=y0;ty<=y1;ty++)for(int tx=x0;tx<=x1;tx++){
+            Building[] buildings=cell(tx,ty);
             for(int slot=0;slot<COLS*ROWS;slot++){
-                Building b=get(tx,ty,slot);
+                Building b=buildings[slot];
                 if(b!=null&&b.onScreen(x,y,width,height))draw.visit(b);
             }
         }
@@ -114,11 +137,13 @@ public final class NeighborhoodV154 {
     public static boolean blocked(float x,float y,float radius){
         if(!Float.isFinite(x)||!Float.isFinite(y))return false;
         int tx=tileX(x),ty=tileY(y);
-        for(int dy=-1;dy<=1;dy++)for(int dx=-1;dx<=1;dx++)
+        for(int dy=-1;dy<=1;dy++)for(int dx=-1;dx<=1;dx++){
+            Building[] buildings=cell(tx+dx,ty+dy);
             for(int slot=0;slot<COLS*ROWS;slot++){
-                Building b=get(tx+dx,ty+dy,slot);
+                Building b=buildings[slot];
                 if(b!=null&&b.blocked(x,y,radius))return true;
             }
+        }
         return false;
     }
     /** Dynamic broadphase, accurate for all projectile and NPC ray paths. */
@@ -128,15 +153,17 @@ public final class NeighborhoodV154 {
         int ty0=tileY(Math.min(y0,y1)-2),ty1=tileY(Math.max(y0,y1)+2);
         // A pathological ray must not scan infinitely many procedural lots.
         if(tx1-tx0>16||ty1-ty0>16)return hit;
-        for(int ty=ty0;ty<=ty1;ty++)for(int tx=tx0;tx<=tx1;tx++)
+        for(int ty=ty0;ty<=ty1;ty++)for(int tx=tx0;tx<=tx1;tx++){
+            Building[] buildings=cell(tx,ty);
             for(int slot=0;slot<COLS*ROWS;slot++){
-                Building b=get(tx,ty,slot);
+                Building b=buildings[slot];
                 if(b==null||!b.overlaps(Math.min(x0,x1),Math.min(y0,y1),
                     Math.max(x0,x1),Math.max(y0,y1),3f))continue;
                 float t=Ballistics.segmentBox(x0,y0,x1,y1,
                     b.left,b.top,b.right(),b.bottom());
                 if(t<hit)hit=t;
             }
+        }
         return hit;
     }
 }
