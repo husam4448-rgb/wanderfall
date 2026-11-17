@@ -143,7 +143,7 @@ public final class NeighborhoodArtV154 {
                 for(int i=0;i<5;i++)
                     box(c,p,x+160+i*(w-320)/5f,y+126,90,40,trim);
                 break;
-            default:
+            case NeighborhoodV154.RESIDENCES:
                 for(int i=0;i<7;i++){
                     float xx=x+45+i*(w-90)/7f;
                     box(c,p,xx,y+65,(w-112)/7f,useH-135,
@@ -151,6 +151,8 @@ public final class NeighborhoodArtV154 {
                     box(c,p,xx+16,y+105,34,75,0xffb6a18a);
                     box(c,p,xx+18,y+210,65,15,0xff3e5451);
                 }
+                break;
+            default:break;
         }
         // Stable rooftop vents: not interactive items or world collision.
         for(int i=0;i<3;i++){
