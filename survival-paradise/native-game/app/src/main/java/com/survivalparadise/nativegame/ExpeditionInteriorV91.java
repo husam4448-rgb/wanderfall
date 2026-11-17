@@ -1,7 +1,7 @@
 package com.survivalparadise.nativegame;
 
 /** Distinct themed room-map variant sharing V90 indoor physics, vision and AI. */
-public final class ExpeditionInteriorV91 extends ClinicInteriorV89 {
+public class ExpeditionInteriorV91 extends ClinicInteriorV89 {
     private final float[][] walls,furniture;
     private final String[] labels;
     private final String title;
