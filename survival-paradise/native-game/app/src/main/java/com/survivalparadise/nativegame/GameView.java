@@ -4240,12 +4240,31 @@ public final class GameView extends View {
     /** Procedural rusted vehicles and scrap heaps, drawn only in visible cells. */
     /** Exclude industrial roads for the full scrap-object footprint. */
     boolean salvageOnIndustrialRoadV161(float x,float y){
-        if(!stitchedIndustrialV128||!IndustrialBiomeBridgeV128.bounds(x,y))return false;
-        return IndustrialBiomeBridgeV128.roadAt(x,y,industrialSeedV123)||
-            IndustrialBiomeBridgeV128.roadAt(x-74,y-45,industrialSeedV123)||
-            IndustrialBiomeBridgeV128.roadAt(x+74,y+15,industrialSeedV123)||
-            IndustrialBiomeBridgeV128.roadAt(x+74,y-45,industrialSeedV123)||
-            IndustrialBiomeBridgeV128.roadAt(x-74,y+15,industrialSeedV123);
+        // V161: refuse wrecks with ANY part under an industrial or urban road.
+        if(stitchedIndustrialV128&&IndustrialBiomeBridgeV128.bounds(x,y)&&
+            (IndustrialBiomeBridgeV128.roadAt(x,y,industrialSeedV123)||
+             IndustrialBiomeBridgeV128.roadAt(x-74,y-45,industrialSeedV123)||
+             IndustrialBiomeBridgeV128.roadAt(x+74,y+15,industrialSeedV123)||
+             IndustrialBiomeBridgeV128.roadAt(x+74,y-45,industrialSeedV123)||
+             IndustrialBiomeBridgeV128.roadAt(x-74,y+15,industrialSeedV123)))
+            return true;
+        if(civilizationV159!=null){
+            int tx=NeighborhoodV154.tileX(x),ty=NeighborhoodV154.tileY(y);
+            for(int oy=-1;oy<=1;oy++)for(int ox=-1;ox<=1;ox++){
+                int gx=tx+ox,gy=ty+oy;
+                if(civilizationV159.atTile(gx,gy)==null)continue;
+                float px=x-gx*(float)NeighborhoodV154.TILE_W;
+                float py=y-gy*(float)NeighborhoodV154.TILE_H;
+                // Exact V154 lane centerlines expanded by vehicle half-bounds.
+                if(py>=105f&&py<=4485f&&
+                   (Math.abs(px-1750f)<198f||Math.abs(px-3550f)<198f))
+                    return true;
+                if(px>=50f&&px<=5360f&&
+                   (Math.abs(py-2190f)<180f||Math.abs(py-4250f)<180f))
+                    return true;
+            }
+        }
+        return false;
     }
     void drawSalvageWorldV84(Canvas c){
         int cell=SalvageWorldV84.CELL;
