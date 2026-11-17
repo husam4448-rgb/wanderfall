@@ -23,8 +23,8 @@ public final class ExteriorFootprintV130Test {
                "culling bounds missing apron: "+s.name);
             ok(ExteriorFootprintV130.blocked(s,s.x,doorY-185f,12f),
                "non-solid main roof: "+s.name);
-            ok(!ExteriorFootprintV130.blocked(s,s.x,doorY-45f,12f),
-               "visible doorway corridor is blocked: "+s.name);
+            ok(ExteriorFootprintV130.blocked(s,s.x,doorY-45f,12f),
+               "V157 front doorway must be a solid exterior transition: "+s.name);
             ok(!ExteriorFootprintV130.blocked(s,s.x,doorY,18f),
                "ENTER button approach is blocked: "+s.name);
             ok(!ExteriorFootprintV130.blocked(s,s.x+120f,doorY+36f,16f),
@@ -53,6 +53,6 @@ public final class ExteriorFootprintV130Test {
         }
         ok(buildings==26&&clinics==1,"site IDs or clinic lost");
         System.out.println("PASS V153: "+buildings+" exterior campuses, 78%+ interior scale, "+
-            "clear full-size roofs, usable doors, preserved roads, camp and industrial border");
+            "solid four-sided exteriors, outside ENTER landings, preserved roads, camp and industrial border");
     }
 }
