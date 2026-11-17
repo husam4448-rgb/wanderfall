@@ -13,6 +13,11 @@ android {
   sourceCompatibility JavaVersion.VERSION_17
   targetCompatibility JavaVersion.VERSION_17
  }
+ // Local JVM Canvas validation requires packaged source assets but never
+ // builds or installs an Android application.
+ testOptions {
+  unitTests.includeAndroidResources = true
+ }
  // Production-safe signing support. Configure Android keystore securely as
  // GH Actions secrets; do NOT commit a private signing key into this public repo.
  def signStore=System.getenv('SP_SIGNING_STORE')
@@ -36,4 +41,9 @@ android {
    if(signStore && signPassword) signingConfig signingConfigs.stable
   }
  }
+}
+// Source-only visual QA; these dependencies affect unit tests, not the APK.
+dependencies {
+ testImplementation 'junit:junit:4.13.2'
+ testImplementation 'org.robolectric:robolectric:4.13.1'
 }
