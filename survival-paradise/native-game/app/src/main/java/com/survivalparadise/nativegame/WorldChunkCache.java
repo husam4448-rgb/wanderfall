@@ -40,6 +40,7 @@ public final class WorldChunkCache {
     private final Paint terrainPaint=new Paint();
     private final RectF dst=new RectF();
     private final int campX,campY;
+    private final WorldGeographyV160 geography;
     private volatile boolean closed=false;
     private int residentLimit=WorldChunkModel.MAX_RESIDENT;
     private int preloadRadius=2;
@@ -47,6 +48,7 @@ public final class WorldChunkCache {
     public int residentCount(){return resident.size();}
     public int pendingCount(){return pending.size();}
     public int residentLimit(){return residentLimit;}
+    public int preloadRadius(){return preloadRadius;}
     // Called on the UI thread from the legacy settings dialog.
     public void setLimits(int maxChunks,int preload){
         residentLimit=Math.max(12,Math.min(64,maxChunks));
@@ -60,7 +62,11 @@ public final class WorldChunkCache {
         long key(){return WorldChunkModel.chunkKey(cx,cy);}
     }
     public WorldChunkCache(int campX,int campY){
+        this(campX,campY,null);
+    }
+    public WorldChunkCache(int campX,int campY,WorldGeographyV160 geography){
         this.campX=campX;this.campY=campY;
+        this.geography=geography;
         bitmapPaint.setAntiAlias(false);
         bitmapPaint.setFilterBitmap(false);
         terrainPaint.setAntiAlias(false);
@@ -70,7 +76,8 @@ public final class WorldChunkCache {
         c.drawRect(x,y,x+w,y+h,p);
     }
     private static void tile(Canvas canvas,Paint p,int gx,int gy,int tx,int ty,
-                             int pixelsPerTile,int scale,int campX,int campY){
+                             int pixelsPerTile,int scale,int campX,int campY,
+                             WorldGeographyV160 geography){
         float baseX=tx*(float)pixelsPerTile,baseY=ty*(float)pixelsPerTile;
         final int subdivisions=8;
         float cell=pixelsPerTile/(float)subdivisions;
@@ -78,14 +85,19 @@ public final class WorldChunkCache {
         for(int sy=0;sy<subdivisions;sy++)for(int sx=0;sx<subdivisions;sx++){
             float worldX=gx*TILE+(sx+.5f)*TILE/subdivisions;
             float worldY=gy*TILE+(sy+.5f)*TILE/subdivisions;
-            int tint=WorldChunkModel.groundColorAt(worldX,worldY,campX,campY);
+            int tint=geography==null?
+                WorldChunkModel.groundColorAt(worldX,worldY,campX,campY):
+                geography.colorAt(worldX,worldY);
             rect(canvas,p,baseX+sx*cell,baseY+sy*cell,cell+.07f,cell+.07f,tint);
         }
         // Small, irregular old-world grass, leaf and soil details stay on tile.
         int h=WorldChunkModel.tileDetail(gx,gy);
+        if(geography!=null)h^=IndustrialWorldV123.hash(gx,gy,geography.seed);
         float fx=(10+(h&17))/(float)scale;
         rect(canvas,p,baseX+fx,baseY+30f/scale,Math.max(1,3f/scale),
-                Math.max(1,3f/scale),BiomeWorldV74.detail(BiomeWorldV74.biome((gx+.5f)*TILE,(gy+.5f)*TILE),h));
+                Math.max(1,3f/scale),BiomeWorldV74.detail(geography==null?
+                    BiomeWorldV74.biome((gx+.5f)*TILE,(gy+.5f)*TILE):
+                    geography.biomeAt((gx+.5f)*TILE,(gy+.5f)*TILE),h));
         if((h&15)==1){
             rect(canvas,p,baseX+33f/scale,baseY+52f/scale,Math.max(1,7f/scale),
                  Math.max(1,4f/scale),0xff566d51);
@@ -99,7 +111,8 @@ public final class WorldChunkCache {
         Paint p=new Paint();
         p.setAntiAlias(false);
         for(int y=0;y<N;y++)for(int x=0;x<N;x++)
-            tile(c,p,cx*N+x,cy*N+y,x,y,TILE_PX,STEP,campX,campY);
+            tile(c,p,cx*N+x,cy*N+y,x,y,TILE_PX,STEP,
+                campX,campY,geography);
         return new Chunk(cx,cy,bitmap);
     }
     private void queue(int cx,int cy){
@@ -143,14 +156,16 @@ public final class WorldChunkCache {
             // unnatural grid on Android when streamed chunks were cold. Four
             // blended subtiles avoid that without costly UI-thread noise at
             // the 8x8 resolution used by fully cached chunk textures.
-            final int div=4;
+            final int div=geography==null?4:2;
             final float step=TILE/(float)div;
             for(int yy=0;yy<div;yy++)for(int xx=0;xx<div;xx++){
                 float worldX=(gx+(xx+.5f)/div)*TILE;
                 float worldY=(gy+(yy+.5f)/div)*TILE;
                 rect(canvas,terrainPaint,
                     gx*TILE+xx*step,gy*TILE+yy*step,step+.2f,step+.2f,
-                    WorldChunkModel.groundColorAt(worldX,worldY,campX,campY));
+                    geography==null?
+                        WorldChunkModel.groundColorAt(worldX,worldY,campX,campY):
+                        geography.colorAt(worldX,worldY));
             }
         }
     }
