@@ -105,13 +105,13 @@ public final class ClinicActorsV90 {
                     // outdoors. Damage is applied only to fired bullets.
                     if(a.reloadClockV150>0f)continue;
                     if(a.rounds==0&&a.spareRounds>0){
-                        a.reloadClockV150=ReloadPoseV150.DURATION;
+                        a.reloadClockV150=ReloadProfileV151.duration(a.gun);
                         continue;
                     }
                     if(a.rounds==0)continue;
                     a.rounds--;
                     if(a.rounds==0&&a.spareRounds>0)
-                        a.reloadClockV150=ReloadPoseV150.DURATION;
+                        a.reloadClockV150=ReloadProfileV151.duration(a.gun);
                 }
                 damage+=a.type==FERAL?9f:a.type==RAIDER?
                     (a.gun==7?9f:a.gun==8?12f:6f):6f;
