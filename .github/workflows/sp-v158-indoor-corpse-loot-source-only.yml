@@ -39,6 +39,7 @@ jobs:
             "$P/NpcGearV143.java" \
             "$P/ClinicActorsV90.java" \
             "$P/ExpeditionSitesV88.java" \
+            "$P/ExteriorFootprintV130.java" \
             "$P/BanditLootV87.java" \
             "$P/IndoorCorpseLootV158.java" \
             "$R/tools/V158IndoorCorpseLootTest.java"
