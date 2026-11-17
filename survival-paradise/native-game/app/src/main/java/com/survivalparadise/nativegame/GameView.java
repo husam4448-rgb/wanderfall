@@ -4460,12 +4460,20 @@ public final class GameView extends View {
             if(showHands){
                 // Exact original firing hand never changes its pivot or atlas pixels.
                 handAtlas(c,weapon,2,0,0,s,handScale,0,0);
-                if(ReloadProfileV151.propVisible(weapon,reloadRemainingV150)){
+                if(ReloadProfileV151.supportHandActive(weapon,reloadRemainingV150)){
                     int supportWeaponV151=ReloadProfileV151.needsBorrowedHand(weapon)?
                         ReloadProfileV151.CARBINE:weapon;
-                    // Draw unique ammunition behind the curled original hand.
-                    if(showWeapons)reloadArtV151.drawHeldAmmo(
-                        c,weapon,reloadRemainingV150,s);
+                    // The held magazine must share both user-configurable
+                    // support-hand offsets, facing, aim and reload transforms.
+                    // This keeps the prop physically inside the hand for
+                    // player/NPC poses instead of drifting when HUD sliders move.
+                    if(showWeapons){
+                        c.save();
+                        c.translate(support*s,supportVertical*s);
+                        reloadArtV151.drawHeldAmmo(
+                            c,weapon,reloadRemainingV150,s);
+                        c.restore();
+                    }
                     float handX=ReloadProfileV151.handX(weapon,reloadRemainingV150);
                     float handY=ReloadProfileV151.handY(weapon,reloadRemainingV150);
                     handAtlas(c,supportWeaponV151,1,0,0,s,handScale,
