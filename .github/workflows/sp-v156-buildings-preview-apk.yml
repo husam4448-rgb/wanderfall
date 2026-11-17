@@ -1,0 +1,90 @@
+name: Survival Paradise V156 Buildings Preview APK
+on:
+  push:
+    branches: [sp-native-v156-buildings-preview-apk-20261117]
+    paths:
+      - '.github/workflows/sp-v156-buildings-preview-apk.yml'
+      - 'survival-paradise/native-game/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-and-build-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            survival-paradise
+          sparse-checkout-cone-mode: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Verify source family, Android package separation and prior saves
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('survival-paradise/native-game')
+          gradle=(root/'app/build.gradle').read_text()
+          manifest=(root/'app/src/main/AndroidManifest.xml').read_text()
+          game=(root/'app/src/main/java/com/survivalparadise/nativegame/GameView.java').read_text()
+          assert "applicationId 'com.survivalparadise.nativegame.v156buildingspreview'" in gradle
+          assert "versionCode 156" in gradle
+          assert 'Survival Paradise V156 Buildings' in manifest
+          assert 'NeighborhoodArtV154.draw(' in game
+          assert 'drawExpeditionSitesV88(c)' in game
+          assert 'IndustrialBiomeSceneV128.draw(' in game
+          assert (root/'app/src/main/java/com/survivalparadise/nativegame/IndustrialComplexArtV155.java').exists()
+          print('PASS: separate preview package, V154 city and V155 industrial buildings included')
+          PY
+          python3 survival-paradise/native-game/tools/test_headgear_visuals_v138.py
+      - name: Install Android build tools and platform 35
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -path '*/bin/sdkmanager' | sort -V | tail -1)"
+          test -x "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Build signed debug APK
+        working-directory: survival-paradise/native-game
+        shell: bash
+        run: |
+          set -euo pipefail
+          gradle --no-daemon --stacktrace :app:assembleDebug
+      - name: Verify APK package, build version, signature and ZIP integrity
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="survival-paradise/native-game/app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$APK"
+          test "$(stat -c %s "$APK")" -gt 3000000
+          unzip -t "$APK" | tail -1 | grep -F 'No errors detected'
+          BADGING="$ANDROID_HOME/build-tools/35.0.0/aapt"
+          test -x "$BADGING"
+          "$BADGING" dump badging "$APK" | tee /tmp/sp-badging.txt
+          grep -F "name='com.survivalparadise.nativegame.v156buildingspreview'" /tmp/sp-badging.txt
+          grep -F "versionCode='156'" /tmp/sp-badging.txt
+          grep -F "sdkVersion:'24'" /tmp/sp-badging.txt
+          grep -F "application-label:'Survival Paradise V156 Buildings'" /tmp/sp-badging.txt
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK"
+          "$ANDROID_HOME/build-tools/35.0.0/zipalign" -c -v 4 "$APK"
+          mkdir -p deliverables
+          cp "$APK" deliverables/Survival_Paradise_V156_Buildings_Preview.apk
+          sha256sum deliverables/Survival_Paradise_V156_Buildings_Preview.apk | tee deliverables/SHA256.txt
+          wc -c deliverables/Survival_Paradise_V156_Buildings_Preview.apk
+      - name: Publish installable APK and hash
+        uses: actions/upload-artifact@v4
+        with:
+          name: Survival_Paradise_V156_Buildings_Preview
+          path: deliverables/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 21
