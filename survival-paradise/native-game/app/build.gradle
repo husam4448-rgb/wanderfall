@@ -3,11 +3,11 @@ android {
  namespace 'com.survivalparadise.nativegame'
  compileSdk 35
  defaultConfig {
-  applicationId 'com.survivalparadise.nativegame.v157worldfix'
+  applicationId 'com.survivalparadise.nativegame.v160seedtest'
   minSdk 24
   targetSdk 34
-  versionCode 157
-  versionName '0.157-solid-buildings-natural-world'
+  versionCode 160
+  versionName '0.160-seeded-geography-diversity-test'
  }
  compileOptions {
   sourceCompatibility JavaVersion.VERSION_17
