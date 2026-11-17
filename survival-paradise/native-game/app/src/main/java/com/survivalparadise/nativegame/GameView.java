@@ -588,15 +588,38 @@ public final class GameView extends View {
         }
         return found;
     }
-    float encumbranceV91(){
+    float inventoryLoadV162(){
         float load=0f;
         for(int i=0;i<InventoryCatalogV131.COUNT;i++)
             load+=InventoryCatalogV131.weight(i)*inventoryQuantityV92(i);
         for(int i=OutfitInventoryV140.FIRST;i<OutfitInventoryV140.TOTAL;i++)
             load+=OutfitInventoryV140.weight(i)*outfitsV140.count(i);
-        return Math.min(100f,Math.max(0f,(load-fieldFindsV91.capacity())*1.7f));
+        return load;
     }
-    float carrySpeedV91(){return Math.max(.54f,1f-encumbranceV91()*.0046f);}
+    float encumbranceV91(){
+        int bonus=fieldFindsV91.equipped>=0&&fieldFindsV91.equipped<3?
+            FieldFindsV91.CAPACITY_BONUS[fieldFindsV91.equipped]:0;
+        return GearStatsV162.encumbrance(inventoryLoadV162(),bonus);
+    }
+    int equippedGearTypeV162(int socket){
+        int legacy=socket==0?0:socket==2?1:socket==3?2:socket==4?3:-1;
+        if(legacy<0)return -1;
+        if(socket!=0){
+            int modern=outfitsV140.equippedType(socket==2?0:socket==3?1:2);
+            if(modern>=0)return modern;
+        }
+        int v=wardrobeV92.equipped[legacy];
+        return v>=0?27+legacy*3+v:-1;
+    }
+    GearStatsV162.Bonus equipmentBonusesV162(){
+        return GearStatsV162.total(equippedGearTypeV162(0),
+            equippedGearTypeV162(2),equippedGearTypeV162(3),
+            equippedGearTypeV162(4));
+    }
+    float carrySpeedV91(){
+        return Math.max(.54f,1f-encumbranceV91()*.0046f)*
+            GearStatsV162.movementFactor(equipmentBonusesV162());
+    }
     boolean isPlaying(){return playing;}
     void reloadSettings(){
         scale=host.setting("scale",CharacterPresetV142.GLOBAL_SCALE)/100f;
@@ -3363,7 +3386,10 @@ public final class GameView extends View {
     }
     void hurt(float amount){
         harvestV81.cancel();
-        health=Math.max(0,health-amount);shake=.12f;
+        // Armor is a real applied damage multiplier, shared with item details.
+        health=Math.max(0,health-
+            GearStatsV162.damageAfterArmor(amount,equipmentBonusesV162()));
+        shake=.12f;
         particles(playerX,playerY-35,RED,5);
         if(health<=0){gameOver=true;paused=true;saveProgress();}
     }
@@ -3387,6 +3413,11 @@ public final class GameView extends View {
         refreshDaylight();
         dt=Math.min(.04f,dt)*timeSpeed;
         worldTimer+=dt;autSaveClock+=dt;
+        // Equipped healing clothing regenerates HP in both indoor and outdoor
+        // gameplay; never revive a fallen survivor.
+        if(health>0f&&health<100f)
+            health=Math.min(100f,health+
+                equipmentBonusesV162().regenHpPerSecond*dt);
         // Head alone gently follows aim pitch, same in the world and interiors.
         // Never alter ballistic angle, aim stick, weapon/hands or character body.
         playerHeadTiltV111=HeadAimV111.follow(playerHeadTiltV111,
