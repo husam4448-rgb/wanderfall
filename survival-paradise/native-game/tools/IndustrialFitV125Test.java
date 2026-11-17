@@ -13,10 +13,17 @@ public final class IndustrialFitV125Test {
                 n++;
                 float left=plot.buildingX-12, right=plot.buildingX+plot.buildingW+12;
                 float top=plot.buildingY-22,bottom=plot.buildingY+plot.buildingH+24;
-                ok(left>=plot.x+200 && right<=plot.x+1200,
-                    "factory overlaps the street/curb at x");
-                ok(top>=plot.y+187 && bottom<plot.y+990,
-                    "factory overlaps street/curb at y");
+                // V155 industrial massing is intentionally much wider
+                // than the old small facility; still behind true pavement
+                // and the fenced yard's side-street clearance.
+                ok(left>=plot.x+140 && right<=plot.x+1255,
+                    "full-scale factory overlaps the arterial shoulder at x");
+                ok(top>=plot.y+151 && bottom<plot.y+990,
+                    "full-scale factory overlaps north road or yard at y");
+                float[] mass=IndustrialComplexV155.bounds(plot);
+                ok(mass[0]>=plot.x+140&&mass[2]<=plot.x+1255&&
+                   mass[1]>=plot.y+151&&mass[3]<plot.y+980,
+                   "attached factory wings spill into road/yard");
                 ok(!IndustrialOpenWorldV124.roadAt(plot.doorX,plot.doorY,seed),
                     "factory entrance drawn on roadway");
                 ok(!IndustrialOpenWorldV124.blocked(
