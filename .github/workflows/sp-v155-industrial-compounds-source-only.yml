@@ -12,6 +12,8 @@ on:
       - 'survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/IndustrialPropLayoutV126.java'
       - 'survival-paradise/native-game/tools/IndustrialComplexV155Test.java'
       - 'survival-paradise/native-game/tools/IndustrialFitV125Test.java'
+      - 'survival-paradise/native-game/app/src/test/java/com/survivalparadise/nativegame/IndustrialVisualV155Test.java'
+      - 'survival-paradise/native-game/app/build.gradle'
   workflow_dispatch:
 permissions:
   contents: read
@@ -76,6 +78,25 @@ jobs:
       - name: Java compilation only, no APK assembly
         working-directory: survival-paradise/native-game
         run: gradle --no-daemon :app:compileDebugJavaWithJavac
+      - name: Render eight real industrial variants on Robolectric Canvas (NO APK)
+        working-directory: survival-paradise/native-game
+        run: gradle --no-daemon :app:testDebugUnitTest --tests 'com.survivalparadise.nativegame.IndustrialVisualV155Test'
+      - name: Preserve actual rendered Canvas contact sheet for visual QA
+        uses: actions/upload-artifact@v4
+        with:
+          name: sp-v155-actual-canvas-facades
+          path: survival-paradise/native-game/app/build/visual-v155/industrial_contact_sheet.png
+          if-no-files-found: error
+          retention-days: 7
+      - name: Expose compressed source-only image to verified reviewer
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64
+          p=Path('survival-paradise/native-game/app/build/visual-v155/industrial_contact_sheet.png')
+          print('SP_V155_CONTACT_SHEET='+base64.b64encode(p.read_bytes()).decode('ascii'))
+          PY
       - name: Verify NO APK generated
         shell: bash
         run: |
