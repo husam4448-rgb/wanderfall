@@ -46,7 +46,8 @@ public final class IndustrialFacadeShapeV126 {
                                          float x,float y,float radius){
         if(!p.enterable())return false;
         return overlaps(facade(p.kind),x,y,radius,
-            p.buildingX-12f,p.buildingY-22f,p.buildingW+24f,p.buildingH+46f);
+            p.buildingX-12f,p.buildingY-22f,p.buildingW+24f,p.buildingH+46f)
+            ||IndustrialComplexV155.blocks(p,x,y,radius);
     }
     public static boolean overlaps(int facade,float x,float y,float radius,
                                    float left,float top,float width,float height){
