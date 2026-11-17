@@ -1,0 +1,170 @@
+package com.survivalparadise.nativegame;
+
+import android.graphics.Canvas;
+import android.graphics.Paint;
+
+/**
+ * V161 themed solid props. Each object's painted extent stays inside the
+ * exact collision rectangle supplied by NeighborhoodInteriorV161.
+ * No empty placeholder blocks, head art changes, or asset substitutions.
+ */
+public final class NeighborhoodInteriorArtV161 {
+    private NeighborhoodInteriorArtV161(){}
+    private static void r(Canvas c,Paint p,float x,float y,float w,float h,int color){
+        if(w<=0||h<=0)return;
+        p.setStyle(Paint.Style.FILL);p.setColor(color);
+        c.drawRect(x,y,x+w,y+h,p);
+    }
+    private static void oval(Canvas c,Paint p,float x,float y,float w,float h,int color){
+        p.setStyle(Paint.Style.FILL);p.setColor(color);
+        c.drawOval(x,y,x+w,y+h,p);
+    }
+    /** Under wall layer, so each building has real floor zoning and wear. */
+    public static void floor(Canvas c,Paint p,NeighborhoodInteriorV161 room){
+        int kind=room.theme,variant=room.variation;
+        int floor=kind==NeighborhoodV154.FACTORY?0xff686963:
+            kind==NeighborhoodV154.WAREHOUSE?0xff777566:
+            kind==NeighborhoodV154.MARKET?0xff8d8c7a:
+            kind==NeighborhoodV154.HOTEL?0xff826f64:
+            kind==NeighborhoodV154.SCHOOL?0xff818b80:
+            kind==NeighborhoodV154.OFFICES?0xff6b797a:0xff8b816e;
+        for(int z=0;z<6;z++){
+            float left=38+(z%3)*525,top=z<3?49:659;
+            r(c,p,left,top,488,398,floor);
+            for(int i=0;i<10;i++){
+                int hash=IndustrialWorldV123.hash(i+z*37,
+                    variant+z*59,room.seed);
+                float xx=left+24+Math.floorMod(hash,420);
+                float yy=top+18+Math.floorMod(hash>>>10,340);
+                if(kind==NeighborhoodV154.FACTORY||kind==NeighborhoodV154.WAREHOUSE){
+                    r(c,p,xx,yy,48,4,0x59606154);
+                    r(c,p,xx+4,yy+4,3,13,0x554c5248);
+                }else{
+                    r(c,p,xx,yy,4,3,0x4d3a423e);
+                }
+            }
+            if(kind==NeighborhoodV154.MARKET||kind==NeighborhoodV154.SCHOOL){
+                for(int i=0;i<6;i++)r(c,p,left+21+i*72,top+15,2,355,0x28545e56);
+                for(int i=0;i<5;i++)r(c,p,left+17,top+12+i*76,450,2,0x28545e56);
+            }else if(kind==NeighborhoodV154.HOTEL||
+                     kind==NeighborhoodV154.RESIDENCES||
+                     kind==NeighborhoodV154.APARTMENTS){
+                r(c,p,left+140,top+105,205,160,0xff695b50);
+                r(c,p,left+151,top+116,183,138,
+                    (variant&1)==0?0xffae8466:0xff7b8c7f);
+                r(c,p,left+165,top+129,155,10,0xffd7ba93);
+            }else if(kind==NeighborhoodV154.FACTORY){
+                r(c,p,left+12,top+8,465,9,0xffd1ad61);
+                for(int j=0;j<18;j++)r(c,p,left+15+j*25,top+8,11,9,0xff344241);
+            }
+        }
+    }
+    /** Draw one visually recognizable item scaled to its collidable footprint. */
+    public static void furniture(Canvas c,Paint p,float[] q,int theme,int variant,int index){
+        float x=q[1],y=q[2],w=q[3],h=q[4];
+        if(w<25||h<20)return;
+        c.save();c.clipRect(x-3,y-3,x+w+3,y+h+3);
+        // Furniture silhouettes include seams, handles and top-facing details.
+        r(c,p,x-3,y-3,w+6,h+6,0xff1a2a2b);
+        int type=(int)q[0];
+        if(theme==NeighborhoodV154.WAREHOUSE ||
+           theme==NeighborhoodV154.FACTORY){
+            if(type==4 || theme==NeighborhoodV154.FACTORY&&index%3==0){
+                // Industrial press / motor with guards, vents and feed rollers.
+                r(c,p,x,y,w,h,0xff586566);
+                r(c,p,x+5,y+5,w-10,h*.32f,0xff9d9d85);
+                r(c,p,x+w*.16f,y+h*.22f,w*.68f,h*.51f,0xff354d51);
+                r(c,p,x+w*.22f,y+h*.28f,w*.56f,h*.16f,0xffb39462);
+                for(int i=0;i<5;i++){
+                    r(c,p,x+10+i*(w-20)/5f,y+h*.78f,
+                        Math.max(4,(w-25)/8f),Math.max(3,h*.10f),0xff23393e);
+                }
+                r(c,p,x+w*.76f,y+h*.08f,8,8,0xffe0b35c);
+                r(c,p,x+w*.79f,y+h*.17f,6,7,0xffaa4b43);
+            }else{
+                // Pallet racking, strapped timber boxes, stacked freight.
+                r(c,p,x,y,w,h,0xff51463d);
+                r(c,p,x+3,y+3,w-6,h-6,0xff94744f);
+                for(int i=1;i<4;i++)
+                    r(c,p,x+5,y+i*h/4f,w-10,5,0xff343d3c);
+                for(int j=0;j<3;j++){
+                    float xx=x+7+j*(w-13)/3f;
+                    r(c,p,xx,y+8,Math.max(8,(w-18)/3f),h*.22f,
+                        j==1?0xff8f8c72:0xffb58b59);
+                    r(c,p,xx+4,y+h*.49f,Math.max(3,(w-35)/3f),h*.17f,
+                        0xff6c7b72);
+                }
+                r(c,p,x+7,y+h-12,w-14,5,0xffc2a26c);
+            }
+        }else if(theme==NeighborhoodV154.MARKET){
+            // Stocked store shelving and checker-out countertops.
+            r(c,p,x,y,w,h,0xff415356);
+            for(int row=0;row<3;row++){
+                float yy=y+7+row*(h-15)/3f;
+                r(c,p,x+4,yy,w-8,Math.max(5,(h-26)/3f),0xff9d986f);
+                for(int j=0;j<5;j++){
+                    float xx=x+8+j*(w-16)/5f;
+                    r(c,p,xx,yy+2,Math.max(3,(w-30)/5f),
+                        Math.max(3,(h-26)/3f-3),
+                        (j+row+variant)%3==0?0xff9e6542:
+                        (j+row)%2==0?0xff778c6c:0xffbaae74);
+                }
+                r(c,p,x+3,yy+(h-15)/3f-5,w-6,5,0xff253c3c);
+            }
+        }else if(theme==NeighborhoodV154.SCHOOL){
+            // Chalkboard desks with notebooks, textbooks, chair legs.
+            r(c,p,x,y,w,h,0xff594c3c);
+            r(c,p,x+4,y+4,w-8,h*.52f,0xffa0875c);
+            r(c,p,x+7,y+7,w*.36f,h*.26f,0xffe2cf9d);
+            r(c,p,x+w*.54f,y+6,w*.31f,h*.25f,0xffd1dcb6);
+            r(c,p,x+6,y+h*.63f,w-12,Math.max(4,h*.15f),0xff464b44);
+            r(c,p,x+8,y+h-11,7,8,0xff202c2b);
+            r(c,p,x+w-15,y+h-11,7,8,0xff202c2b);
+        }else if(theme==NeighborhoodV154.OFFICES){
+            // Desktop workstation: monitor, keyboard, chair back and cable.
+            r(c,p,x,y,w,h,0xff5c5445);
+            r(c,p,x+4,y+4,w-8,h*.56f,0xffab997a);
+            r(c,p,x+w*.27f,y+6,w*.46f,h*.34f,0xff182b35);
+            r(c,p,x+w*.30f,y+9,w*.40f,h*.25f,0xff688b91);
+            r(c,p,x+w*.43f,y+h*.38f,w*.14f,5,0xff1a3134);
+            r(c,p,x+w*.25f,y+h*.48f,w*.49f,5,0xff273c3d);
+            r(c,p,x+w*.19f,y+h*.67f,w*.64f,h*.19f,0xff3f5153);
+        }else if(theme==NeighborhoodV154.HOTEL||theme==NeighborhoodV154.APARTMENTS||
+                 theme==NeighborhoodV154.RESIDENCES){
+            if(type==0||index%4==0){
+                // Bed frame, separate pillows, sheets and folded blanket.
+                r(c,p,x,y,w,h,0xff343e3a);
+                r(c,p,x+4,y+4,w-8,h-8,0xffb5a68a);
+                r(c,p,x+8,y+7,(w-20)*.49f,h*.24f,0xffe2dfc8);
+                r(c,p,x+w*.52f,y+7,(w-20)*.44f,h*.24f,0xffe2dfc8);
+                r(c,p,x+8,y+h*.37f,w-16,h*.50f,
+                    theme==NeighborhoodV154.HOTEL?0xff78938c:
+                    variant%2==0?0xff8f6a55:0xff849379);
+                r(c,p,x+9,y+h*.72f,w-18,6,0xffd3b387);
+            }else if(type==3||index%3==0){
+                // Kitchen / dining table set with plates and small utensils.
+                r(c,p,x,y,w,h,0xff56483b);
+                r(c,p,x+5,y+5,w-10,h-12,0xff977b5b);
+                oval(c,p,x+w*.2f,y+h*.16f,x+w*.43f,y+h*.59f,0xffd0c9a5);
+                oval(c,p,x+w*.54f,y+h*.16f,x+w*.76f,y+h*.59f,0xffd0c9a5);
+                r(c,p,x+w*.47f,y+9,5,h*.54f,0xff43595b);
+            }else{
+                // Bookcase / cupboard with shelves, handles and storage.
+                r(c,p,x,y,w,h,0xff3d3e38);
+                r(c,p,x+4,y+4,w-8,h-8,0xff856f53);
+                for(int i=1;i<4;i++)
+                    r(c,p,x+6,y+i*h/4f,w-12,4,0xff453c35);
+                r(c,p,x+w*.47f,y+8,4,h-16,0xffba9c68);
+                r(c,p,x+w*.58f,y+h*.52f,5,8,0xff2b3534);
+            }
+        }else{
+            // Fallback detailed cabinet, not an empty featureless placeholder.
+            r(c,p,x,y,w,h,0xff455d5b);
+            r(c,p,x+4,y+4,w-8,h-8,0xff6e8073);
+            for(int i=0;i<4;i++)
+                r(c,p,x+6,y+6+i*(h-13)/4f,w-12,4,0xff283f43);
+            r(c,p,x+w*.47f,y+8,5,h-17,0xffb3b79a);
+        }
+        c.restore();
+    }
+}
