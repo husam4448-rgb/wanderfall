@@ -1,0 +1,77 @@
+name: Survival Paradise V153 - Institution-scale Buildings Source QA (NO APK)
+on:
+  push:
+    branches: [sp-native-v153-large-building-footprints-20261117]
+    paths:
+      - '.github/workflows/sp-v153-large-building-source-only.yml'
+      - 'survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/GameView.java'
+      - 'survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/ExpeditionSitesV88.java'
+      - 'survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/ExteriorFootprintV130.java'
+      - 'survival-paradise/native-game/tools/ExteriorFootprintV130Test.java'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            survival-paradise
+          sparse-checkout-cone-mode: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Geometry QA on every institutional exterior, camp, road and doorway
+        shell: bash
+        run: |
+          set -euo pipefail
+          R=survival-paradise/native-game
+          C="$R/app/src/main/java/com/survivalparadise/nativegame"
+          mkdir -p /tmp/sp-v153
+          javac -d /tmp/sp-v153 "$C/ExpeditionSitesV88.java" \
+              "$C/ExteriorFootprintV130.java" "$C/ClinicInteriorV89.java" \
+              "$R/tools/ExteriorFootprintV130Test.java"
+          java -cp /tmp/sp-v153 com.survivalparadise.nativegame.ExteriorFootprintV130Test
+      - name: Ensure full-size culling, save IDs and immutable character artwork
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame')
+          g=(p/'GameView.java').read_text()
+          s=(p/'ExpeditionSitesV88.java').read_text()
+          f=(p/'ExteriorFootprintV130.java').read_text()
+          assert 'drawLargeSiteExteriorV153(c,site)' in g
+          assert 'float[] b=ExteriorFootprintV130.bounds(site)' in g
+          assert 'ExteriorFootprintV130.blocked(site,x,y,r)' in g
+          assert 'System.arraycopy(allocated,0,SITES,0,SITES.length)' in s
+          assert 'Math.max(Math.abs(dx),Math.abs(dy))!=ring' in s
+          assert 'site_containers_v91_'+'' in g
+          assert 'wearableArtV96.drawHead(' not in g
+          assert 'float[] roofBounds(ExpeditionSitesV88.Site s)' in f
+          print('PASS full-size draw, collision, culling, stable site keys and headgear ban')
+          PY
+          python3 survival-paradise/native-game/tools/test_headgear_visuals_v138.py
+      - name: Android SDK API 35
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -path '*/bin/sdkmanager' | sort -V | tail -1)"
+          test -x "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Java compile only (do not assemble APK)
+        working-directory: survival-paradise/native-game
+        run: gradle --no-daemon :app:compileDebugJavaWithJavac
+      - name: Verify no application package built
+        shell: bash
+        run: |
+          test ! -f survival-paradise/native-game/app/build/outputs/apk/debug/app-debug.apk
+          echo 'PASS V153 source-only: NO APK'
