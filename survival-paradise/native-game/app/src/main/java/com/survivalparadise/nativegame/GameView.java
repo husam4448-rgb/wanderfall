@@ -5030,9 +5030,53 @@ public final class GameView extends View {
         BanditLootV87.ITEMS+OutfitInventoryV140.COUNT;
     static final int CORPSE_NUT_KIND_V143=
         CORPSE_AMMO_KIND_V143+AmmoInventoryV143.COUNT;
+    /** The same bag-transfer rules now serve outdoor and indoor corpses.
+     * Store ownership and actor proximity are checked before every transfer,
+     * including drag-and-drop and LOOT ALL.
+     */
+    boolean canLootCorpseBagV158(BanditLootV87 owner,BanditLootV87.Bag bag){
+        if(!playing||gameOver||bag==null||!owner.contains(bag))return false;
+        if(owner==banditLootV87)
+            return !insideClinicV89&&
+                distance(playerX,playerY,bag.x,bag.y)<=
+                    BanditLootV87.USE_RADIUS+7f;
+        if(owner!=indoorCorpseLootV158.stock||!insideClinicV89)return false;
+        int index=bag.id-1;
+        if(index<0||index>=clinicActorsV90.actors.length||
+           indoorCorpseLootV158.get(index)!=bag)return false;
+        ClinicActorsV90.Actor actor=clinicActorsV90.actors[index];
+        return !actor.active&&
+            distance(playerX,playerY,actor.x,actor.y)<=128f;
+    }
+    void settleIndoorCorpsePocketV158(BanditLootV87 owner,BanditLootV87.Bag bag){
+        if(owner!=indoorCorpseLootV158.stock)return;
+        int index=bag.id-1;
+        if(index<0||index>=clinicActorsV90.actors.length)return;
+        ClinicActorsV90.Actor actor=clinicActorsV90.actors[index];
+        if(actor.type==ClinicActorsV90.FERAL)return;
+        NpcTradeLedgerV143.Npc pocket=npcTradesV143.get(
+            indoorTradeIdentityV143(index),
+            actor.type==ClinicActorsV90.RAIDER?5:
+                actor.type==ClinicActorsV90.MEDIC?1:4);
+        if(pocket!=null)pocket.wallet.takeAll();
+    }
+    int lootIndoorCorpseStackV158(int index,int kind){
+        BanditLootV87.Bag bag=indoorCorpseLootV158.get(index);
+        return bag==null?0:lootSharedBagStackV158(indoorCorpseLootV158.stock,bag,kind);
+    }
+    int lootAllIndoorCorpseV158(int index){
+        BanditLootV87.Bag bag=indoorCorpseBagV158(index);
+        return bag==null?0:lootAllSharedBagV158(indoorCorpseLootV158.stock,bag);
+    }
     int lootBanditStackV87(BanditLootV87.Bag bag,int kind){
-        if(!playing||!banditLootV87.contains(bag)||
-            distance(playerX,playerY,bag.x,bag.y)>BanditLootV87.USE_RADIUS+7f)return 0;
+        return lootSharedBagStackV158(banditLootV87,bag,kind);
+    }
+    int lootAllBanditV87(BanditLootV87.Bag bag){
+        return lootAllSharedBagV158(banditLootV87,bag);
+    }
+    int lootSharedBagStackV158(BanditLootV87 owner,BanditLootV87.Bag bag,int kind){
+        if(!canLootCorpseBagV158(owner,bag)||kind<0||
+           kind>=CORPSE_NUT_KIND_V143+3)return 0;
         int count;
         String name;
         if(kind>=CORPSE_AMMO_KIND_V143&&kind<CORPSE_NUT_KIND_V143){
@@ -5041,7 +5085,7 @@ public final class GameView extends View {
             if(bag.ammoExtraV143[family]<=0||
                !canStowInventoryV141(type)||
                !playerAmmoV143.add(type,bag.ammoExtraV143[family]))return 0;
-            count=banditLootV87.takeAmmoV143(bag,family);
+            count=owner.takeAmmoV143(bag,family);
             name=AmmoInventoryV143.name(type);
         }else if(kind>=CORPSE_NUT_KIND_V143&&
                  kind<CORPSE_NUT_KIND_V143+3){
@@ -5049,31 +5093,31 @@ public final class GameView extends View {
             int coins=bag.itemCount(kind);
             long iron=coins*NutWalletV143.unit(denomination);
             if(coins<1||!playerNutsV143.credit(iron))return 0;
-            count=banditLootV87.takeNutsV143(bag,denomination);
+            count=owner.takeNutsV143(bag,denomination);
+            if(count>0)settleIndoorCorpsePocketV158(owner,bag);
             name=NutWalletV143.NAMES[denomination];
         }else if(kind<BanditLootV87.ITEMS){
-            count=banditLootV87.take(bag,kind);
+            count=owner.take(bag,kind);
             addBanditLootV87(kind,count);
             name=count>0?BanditLootV87.NAMES[kind]:"";
-        }else{
+        }else if(kind<CORPSE_AMMO_KIND_V143){
             int id=kind-BanditLootV87.ITEMS;
             int type=OutfitInventoryV140.FIRST+id;
             if(!OutfitInventoryV140.valid(type)||bag.extra[id]<=0||
                !canStowInventoryV141(type)||
                !outfitsV140.add(type,bag.extra[id]))return 0;
-            count=banditLootV87.takeExtra(bag,id);
+            count=owner.takeExtra(bag,id);
             name=OutfitInventoryV140.name(type);
-        }
+        }else return 0;
         if(count>0){
             gatherFeedback="LOOTED "+name+" +"+count;gatherFeedbackTime=2.2f;
             organizeBagV131(0);saveProgress();invalidate();
         }
         return count;
     }
-    int lootAllBanditV87(BanditLootV87.Bag bag){
-        if(!playing||!banditLootV87.contains(bag)||
-            distance(playerX,playerY,bag.x,bag.y)>BanditLootV87.USE_RADIUS+7f)return 0;
-        int[] taken=banditLootV87.takeAll(bag);
+    int lootAllSharedBagV158(BanditLootV87 owner,BanditLootV87.Bag bag){
+        if(!canLootCorpseBagV158(owner,bag))return 0;
+        int[] taken=owner.takeAll(bag);
         int count=0;
         for(int i=0;i<taken.length;i++){
             addBanditLootV87(i,taken[i]);count+=taken[i];
@@ -5084,7 +5128,7 @@ public final class GameView extends View {
                 // Reserve the player's actual visible bag cell before
                 // transferring another item; no invisible overflow.
                 syncBagV141();
-                count+=banditLootV87.takeExtra(bag,i);
+                count+=owner.takeExtra(bag,i);
             }
         }
         for(int family=0;family<AmmoInventoryV143.COUNT;family++){
@@ -5093,14 +5137,15 @@ public final class GameView extends View {
             if(amount>0&&canStowInventoryV141(type)&&
                playerAmmoV143.add(type,amount)){
                 syncBagV141();
-                count+=banditLootV87.takeAmmoV143(bag,family);
+                count+=owner.takeAmmoV143(bag,family);
             }
         }
         // Currency is independent of the forty item slots, remains on the
         // corpse if the player wallet is full, and transfers exactly once.
         if(bag.nutsV143>0&&playerNutsV143.canCredit(bag.nutsV143)){
-            long iron=banditLootV87.takeAllNutsV143(bag);
+            long iron=owner.takeAllNutsV143(bag);
             playerNutsV143.credit(iron);
+            if(iron>0)settleIndoorCorpsePocketV158(owner,bag);
             count+=(int)Math.min(Integer.MAX_VALUE,iron);
         }
         if(count>0){
