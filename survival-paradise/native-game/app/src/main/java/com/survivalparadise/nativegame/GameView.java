@@ -87,6 +87,9 @@ public final class GameView extends View {
     final IndustrialYardV123 industrialYardV123=new IndustrialYardV123();
     static final int INDUSTRIAL_SITE_V123=99123;
     int industrialSeedV123=14901;
+    // V159: a versioned, saved civilization blueprint. Null represents a
+    // legacy save; never unexpectedly rearrange its old buildings.
+    WorldCivilizationV159.Plan civilizationV159;
     IndustrialWorldV123.District industrialSiteV123=IndustrialWorldV123.district(0,0,14901);
     // V47: solar clock advances during gameplay, including smooth dawn/dusk.
     final GameClockV47 clock=new GameClockV47(21*60f);
@@ -1191,7 +1194,14 @@ public final class GameView extends View {
         saveProgress();return true;
     }
     void newGame(){
-        industrialSeedV123=host.prefs.getInt(IndustrialWorldV123.SEED_PREF,14901);
+        // The world is planned on a worker before mutating the active save.
+        host.generateWorldV159(host.prefs.getInt(
+            IndustrialWorldV123.SEED_PREF,14901));
+    }
+    void completeNewGameV159(WorldCivilizationV159.Plan layout){
+        if(layout==null)throw new IllegalArgumentException("World plan missing");
+        civilizationV159=layout;
+        industrialSeedV123=layout.seed;
         industrialSiteV123=IndustrialWorldV123.district(0,0,industrialSeedV123);
         industrialYardV123.clear();
         playerX=industrialModeV123?industrialSiteV123.doorX:CAMP_X;
@@ -1273,6 +1283,9 @@ public final class GameView extends View {
     void continueGame(){
         if(!hasSave){newGame();return;}
         industrialSeedV123=host.prefs.getInt(IndustrialWorldV123.SEED_PREF,14901);
+        // Continuing an old save leaves its world entirely intact.
+        civilizationV159=WorldCivilizationV159.decode(
+            host.prefs.getString("world_civilization_v159",""),industrialSeedV123);
         industrialSiteV123=IndustrialWorldV123.district(
             host.prefs.getInt("industrial_sx_v123",0),
             host.prefs.getInt("industrial_sy_v123",0),industrialSeedV123);
@@ -2777,6 +2790,8 @@ public final class GameView extends View {
                 .putString("salvaged_scrap_v84",salvageWorldV84.encode())
                 .putString("loose_pickups_v85",groundPickupsV85.encode())
                 .putString("bandit_loot_bags_v87",banditLootV87.encode())
+                .putString("world_civilization_v159",
+                    civilizationV159==null?"":civilizationV159.encode())
                 .putString("player_nuts_v143",playerNutsV143.encode())
                 .putString("player_ammo_v143",playerAmmoV143.encode())
                 .putString("npc_trade_ledger_v143",npcTradesV143.encode())
@@ -2882,6 +2897,11 @@ public final class GameView extends View {
         // Broadphase is restricted to the 3x3 city grid around this actor;
         // paved district lanes stay walkable, but actual roofs are solid.
         if(NeighborhoodV154.blocked(x,y,r))return true;
+        if(civilizationV159!=null){
+            if(civilizationV159.blocked(x,y,r))return true;
+            if(IndustrialPerimeterV159.blocked(x,y,r,industrialSeedV123))
+                return true;
+        }
         // The existing 26 enterable landmarks retain their V153 geometry.
         for(ExpeditionSitesV88.Site site:ExpeditionSitesV88.SITES)
             if(ExteriorFootprintV130.blocked(site,x,y,r))return true;
@@ -3958,6 +3978,9 @@ public final class GameView extends View {
         // Missing chunks use a deterministic immediate fallback (no blank screen).
         terrainChunks.draw(c,camX,camY,viewW,viewH);
         NaturalGroundArtV157.draw(c,camX,camY,viewW,viewH);
+        // Plotted civilization ground is separate from natural terrain.
+        WorldCivilizationArtV159.ground(c,civilizationV159,
+            camX,camY,viewW,viewH);
         // Landmark road corridors extend through all visible world coordinates.
         rect(c,camX-4,925,viewW+8,225,0xff565b50);
         rect(c,camX-4,940,viewW+8,8,0xff3e493e);
@@ -3976,6 +3999,8 @@ public final class GameView extends View {
             if(y>912&&y<1160)continue;
             if(x>1480&&x<1740)continue;
             if(Math.hypot(x-CAMP_X,y-CAMP_Y)<325)continue;
+            if(civilizationV159!=null&&civilizationV159.developed(x,y))
+                continue;
             if(x<camX-55||x>camX+viewW+55||y<camY-55||y>camY+viewH+55||
                WorldBuildingV157.sceneryRectBlocked(
                    x-40f,y-185f,x+53f,y+56f,industrialSeedV123))continue;
@@ -4001,12 +4026,19 @@ public final class GameView extends View {
         // The solid architectural massing covers any scenery below it.
         NeighborhoodArtV154.draw(c,p,camX,camY,viewW,viewH,night);
         drawExpeditionSitesV88(c);
+        WorldCivilizationArtV159.fences(c,civilizationV159,
+            camX,camY,viewW,viewH);
         }
         // One world, no portal: render the industrial terrain into its world
         // coordinates over the old streamed biome. Render before structures,
         // characters and effects so their depth/aiming systems remain intact.
-        if(stitchedIndustrialV128)IndustrialBiomeSceneV128.draw(c,p,
-            industrialArtV123,camX,camY,viewW,viewH,industrialSeedV123);
+        if(stitchedIndustrialV128){
+            IndustrialBiomeSceneV128.draw(c,p,industrialArtV123,
+                camX,camY,viewW,viewH,industrialSeedV123);
+            if(civilizationV159!=null)
+                WorldCivilizationArtV159.industrialFence(c,industrialSeedV123,
+                    camX,camY,viewW,viewH);
+        }
         if(placingKindV84>=0){
             updatePlacementTargetV86();
             c.saveLayerAlpha(placingXv84-72,placingYv84-115,
