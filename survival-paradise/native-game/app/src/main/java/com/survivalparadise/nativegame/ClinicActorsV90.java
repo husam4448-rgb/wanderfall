@@ -9,6 +9,8 @@ public final class ClinicActorsV90 {
         public final float spawnX,spawnY;
         public boolean active=true;
         public int rounds,spareRounds,gun=-1;
+        // Transient visual reload timer, deliberately excluded from saved records.
+        public float reloadClockV150=0f;
         Actor(int type,float x,float y,float hp,int index){
             this.type=type;this.x=x;this.y=y;this.spawnX=x;this.spawnY=y;
             this.hp=hp;
@@ -67,6 +69,13 @@ public final class ClinicActorsV90 {
         for(Actor a:actors){
             if(!a.active)continue;
             a.cooldown=Math.max(0,a.cooldown-dt);
+            if(a.type==RAIDER&&a.reloadClockV150>0f){
+                a.reloadClockV150=Math.max(0f,a.reloadClockV150-dt);
+                if(a.reloadClockV150<=0f&&a.rounds==0&&a.spareRounds>0){
+                    int loaded=Math.min(NpcGearV143.magazine(a.gun),a.spareRounds);
+                    a.rounds=loaded;a.spareRounds-=loaded;
+                }
+            }
             a.wandering+=dt;
             float dx=px-a.x,dy=py-a.y,d=(float)Math.hypot(dx,dy);
             boolean sees=d<500&&lineOfSight(map,a.x,a.y,px,py);
@@ -92,12 +101,17 @@ public final class ClinicActorsV90 {
             if(!map.blocked(a.x,ny,16))a.y=ny;
             if(a.hostile()&&sees&&d<(a.type==RAIDER?245:64)&&a.cooldown<=0){
                 if(a.type==RAIDER){
+                    // Actual magazine reload uses the same V150 hand pose as
+                    // outdoors. Damage is applied only to fired bullets.
+                    if(a.reloadClockV150>0f)continue;
                     if(a.rounds==0&&a.spareRounds>0){
-                        int n=Math.min(NpcGearV143.magazine(a.gun),a.spareRounds);
-                        a.rounds=n;a.spareRounds-=n;
+                        a.reloadClockV150=ReloadPoseV150.DURATION;
+                        continue;
                     }
                     if(a.rounds==0)continue;
                     a.rounds--;
+                    if(a.rounds==0&&a.spareRounds>0)
+                        a.reloadClockV150=ReloadPoseV150.DURATION;
                 }
                 damage+=a.type==FERAL?9f:a.type==RAIDER?
                     (a.gun==7?9f:a.gun==8?12f:6f):6f;
