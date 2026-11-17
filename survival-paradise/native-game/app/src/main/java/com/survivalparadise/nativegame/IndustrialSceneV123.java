@@ -166,8 +166,16 @@ public final class IndustrialSceneV123 {
         }
         for(int i=0;i<room.machines.length;i++){
             float[] q=room.machines[i];
-            if(i<6)machine(c,p,q[0],q[1],q[2],q[3],kind==2?0xff82563d:0xff4c595c,i);
-            else if(i<14)rack(c,p,q[0],q[1],q[2],q[3],seed+i);
+            if(i<6){
+                int variant=Math.floorMod(IndustrialWorldV123.hash(
+                    room.district.sx*17+i,room.district.sy*29-i,seed^0x161A),6);
+                machine(c,p,q[0],q[1],q[2],q[3],
+                    kind==2?0xff82563d:kind==3?0xff63706d:0xff4c595c,
+                    i+variant);
+            }
+            else if(i<14)rack(c,p,q[0],q[1],q[2],q[3],
+                IndustrialWorldV123.hash(room.district.sx+i,
+                    room.district.sy-i,seed));
             else metal(c,p,q[0],q[1],q[2],q[3]);
         }
         // Each wing opening gets a striped physical doorway and direction cue.
