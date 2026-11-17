@@ -328,6 +328,7 @@ public final class GameView extends View {
         super(activity);host=activity;
         setFocusable(true);setLayerType(View.LAYER_TYPE_HARDWARE,null);
         pixel.setAntiAlias(false);pixel.setFilterBitmap(false);
+        pixel.setAlpha(255);
         try{characterSkinsV109=new CharacterSkinsV109(activity);}catch(Exception v109Error){
             android.util.Log.e("SP-V109","Source-locked character pack failed to load",v109Error);
             characterSkinsV109=null; // legacy renderer only if source fails validation
@@ -391,6 +392,11 @@ public final class GameView extends View {
                 biomeProps.getHeight()!=BiomeWorldV74.CELL)biomeProps=null;
         }catch(Exception ignored){biomeProps=null;}
         // Build lossless alpha masks once, not per-bullet on the render thread.
+        // V156 shipped with the approved atlas assets missing. Never silently
+        // render transparent actors when a source-locked character pack is absent.
+        if(characterSkinsV109==null||!characterSkinsV109.ready()||
+           body==null||gear==null||npcIdleV56==null||approvedWalkColors==null)
+            throw new IllegalStateException("V157: missing approved character/weapon assets");
         if(body!=null)bodyMask=packAlpha(body);
         if(approvedWalkColors!=null)walkMask=packAlpha(approvedWalkColors);
         pickaxeV81=makePixelPickaxeV81();
@@ -2869,7 +2875,11 @@ public final class GameView extends View {
         for(ExpeditionSitesV88.Site site:ExpeditionSitesV88.SITES)
             if(ExteriorFootprintV130.blocked(site,x,y,r))return true;
         // V53 unbounded world: collisions are against solid structures, never map borders.
-        for(Cover c:covers)if(x+r>c.x&&x-r<c.x+c.w&&y+r>c.y&&y-r<c.y+c.h)return true;
+        for(Cover c:covers)
+            if(!WorldBuildingV157.sceneryRectBlocked(
+                    c.x,c.y,c.x+c.w,c.y+c.h,industrialSeedV123)&&
+               x+r>c.x&&x-r<c.x+c.w&&y+r>c.y&&y-r<c.y+c.h)
+                return true;
         return false;
     }
     float distance(float x,float y,float xx,float yy){return (float)Math.hypot(x-xx,y-yy);}
@@ -3928,6 +3938,7 @@ public final class GameView extends View {
         // V54: render cached, asynchronously prepared 16x16-tile chunk textures.
         // Missing chunks use a deterministic immediate fallback (no blank screen).
         terrainChunks.draw(c,camX,camY,viewW,viewH);
+        NaturalGroundArtV157.draw(c,camX,camY,viewW,viewH);
         // Landmark road corridors extend through all visible world coordinates.
         rect(c,camX-4,925,viewW+8,225,0xff565b50);
         rect(c,camX-4,940,viewW+8,8,0xff3e493e);
@@ -3946,7 +3957,9 @@ public final class GameView extends View {
             if(y>912&&y<1160)continue;
             if(x>1480&&x<1740)continue;
             if(Math.hypot(x-CAMP_X,y-CAMP_Y)<325)continue;
-            if(x<camX-55||x>camX+viewW+55||y<camY-55||y>camY+viewH+55)continue;
+            if(x<camX-55||x>camX+viewW+55||y<camY-55||y>camY+viewH+55||
+               WorldBuildingV157.sceneryRectBlocked(
+                   x-40f,y-185f,x+53f,y+56f,industrialSeedV123))continue;
             if((i%7)==0){
                 c.save();
                 c.translate(x,y+43f);
@@ -3964,12 +3977,11 @@ public final class GameView extends View {
             }
         }
         drawBiomePropsV74(c);
-        // A populated outdoor world: physical large blocks and their side
-        // streets appear below the existing named, enterable landmarks.
-        NeighborhoodArtV154.draw(c,p,camX,camY,viewW,viewH,night);
-        drawExpeditionSitesV88(c);
         drawSalvageWorldV84(c);
         drawLooseGroundPickupsV85(c);
+        // The solid architectural massing covers any scenery below it.
+        NeighborhoodArtV154.draw(c,p,camX,camY,viewW,viewH,night);
+        drawExpeditionSitesV88(c);
         }
         // One world, no portal: render the industrial terrain into its world
         // coordinates over the old streamed biome. Render before structures,
@@ -3989,7 +4001,9 @@ public final class GameView extends View {
         }
         for(Cover box:covers)
             if(box.x+box.w>=camX-15&&box.x<=camX+viewW+15&&
-               box.y+box.h>=camY-15&&box.y<=camY+viewH+15)
+               box.y+box.h>=camY-15&&box.y<=camY+viewH+15&&
+               !WorldBuildingV157.sceneryRectBlocked(
+                    box.x,box.y,box.x+box.w,box.y+box.h,industrialSeedV123))
                 drawCover(c,box);
         drawSpawnCamp(c);
     }
@@ -4005,7 +4019,9 @@ public final class GameView extends View {
             int seed=GroundPickupsV85.seed(cx,cy,kind);
             float x=GroundPickupsV85.worldX(cx,seed),y=GroundPickupsV85.worldY(cy,seed);
             if(x<camX-60||x>camX+viewW+60||y<camY-60||y>camY+viewH+60||
-               !GroundPickupsV85.placed(kind,seed,x,y,CAMP_X,CAMP_Y))continue;
+               !GroundPickupsV85.placed(kind,seed,x,y,CAMP_X,CAMP_Y)||
+                WorldBuildingV157.sceneryBlocked(
+                    x,y-11f,46f,industrialSeedV123))continue;
             // V86 irregular ground silhouettes; never draw framed inventory icons.
             color(0x99101c1a);c.drawOval(x-18,y-8,x+18,y+5,p);
             if(kind==GroundPickupsV85.STONE){
@@ -4076,7 +4092,9 @@ public final class GameView extends View {
             float x=SalvageWorldV84.x(cx,seed),y=SalvageWorldV84.y(cy,seed);
             if(x<camX-170||x>camX+viewW+170||
                y<camY-110||y>camY+viewH+110||
-               !SalvageWorldV84.placed(x,y,seed,CAMP_X,CAMP_Y,WORLD_W,WORLD_H))continue;
+               !SalvageWorldV84.placed(x,y,seed,CAMP_X,CAMP_Y,WORLD_W,WORLD_H)||
+                WorldBuildingV157.sceneryRectBlocked(
+                    x-84f,y-94f,x+84f,y+27f,industrialSeedV123))continue;
             int type=Math.floorMod(seed,3);
             boolean depleted=salvageWorldV84.exhausted(cx,cy,k);
             if(depleted&&type!=SalvageWorldV84.CAR)continue;
@@ -4132,7 +4150,10 @@ public final class GameView extends View {
                 if(!ResourceWorldV80.placed(x,y,k,h,
                        CAMP_X,CAMP_Y,WORLD_W,WORLD_H))continue;
                 if(x<camX-200||x>camX+viewW+200||
-                   y<camY-200||y>camY+viewH+200)continue;
+                   y<camY-200||y>camY+viewH+200||
+                    WorldBuildingV157.sceneryRectBlocked(
+                        x-110f,y-209f,x+110f,y+29f,industrialSeedV123))
+                    continue;
                 int kind=k==3?ResourceWorldV80.BUSH:k==2&&
                     x>=0&&x<=WORLD_W&&y>=0&&y<=WORLD_H?4:BiomeWorldV74.prop(x,y,h);
                 boolean shake=harvestImpactTimeV81>0&&harvestV81.matches(cx,cy,k);
@@ -4444,6 +4465,7 @@ public final class GameView extends View {
                    boolean player,boolean bandit,int npcVariant,int skinIdV109,
                    float npcReloadRemainingV150){
         float s=CharacterCollision.BASE_SCALE*scale;
+        pixel.setAlpha(255);
         c.save();c.translate(x,y);if(facing<0)c.scale(-1,1);
         color(0x670b1a18);c.drawOval(-26*s,-7*s,26*s,7*s,p);
         // V138: backpacks are an approved rear-body equipment layer even with
