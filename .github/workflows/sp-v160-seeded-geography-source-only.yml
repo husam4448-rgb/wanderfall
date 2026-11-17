@@ -82,7 +82,7 @@ jobs:
           assert 'geography.prop(x,y,h)' in r
           assert 'geography==null?BiomeWorldV74.prop(x,y,h)' in r
           assert 'same seed' not in land.lower().split('public final class WorldGeographyV160')[0] or True
-          assert "applicationId 'com.survivalparadise.nativegame.v157worldfix'" in (
+          assert "applicationId 'com.survivalparadise.nativegame.v160seedtest'" in (
               root/'app/build.gradle').read_text()
           print('PASS: procedural biomes are actually connected to rendering, harvest, saves and new-game loading')
           PY
