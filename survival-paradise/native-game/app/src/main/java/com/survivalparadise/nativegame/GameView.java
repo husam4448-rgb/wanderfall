@@ -1739,6 +1739,58 @@ public final class GameView extends View {
         for(int i=0;i<6;i++)
             rect(c,x-78,top+156+i*(doorY-top-460f)/6f,
                 156,20,0xff8c9990);
+        // Purpose-specific landmark silhouettes, at source world-unit detail.
+        // Clinics read as clinics, accommodation as multi-wing buildings and
+        // factories as service halls. Roof decorations never add phantom
+        // collision or change the common usable south entrance.
+        if(kind==ExpeditionSitesV88.CLINIC){
+            rect(c,x-34,top+345,68,244,0xff9d4842);
+            rect(c,x-115,top+434,230,64,0xff9d4842);
+            rect(c,x-20,top+356,40,221,0xffe8e9d5);
+            rect(c,x-103,top+448,206,36,0xffe8e9d5);
+        }else if(kind==ExpeditionSitesV88.GARAGE||
+                 kind==ExpeditionSitesV88.WORKSHOP||
+                 kind==ExpeditionSitesV88.DEPOT){
+            for(int bay=0;bay<4;bay++){
+                float bx=left+170+bay*(w-340)/4f;
+                rect(c,bx,doorY-480,Math.max(96f,(w-380)/4f),204,
+                    0xff303d3f);
+                for(int stripe=0;stripe<7;stripe++)
+                    rect(c,bx+12,doorY-464+stripe*27f,
+                        Math.max(70f,(w-430)/4f),10,0xff9d9884);
+            }
+        }else if(kind==ExpeditionSitesV88.MOTEL||
+                 kind==ExpeditionSitesV88.CABIN){
+            for(int room=0;room<9;room++){
+                float rx=left+120+room*(w-240)/9f;
+                rect(c,rx,doorY-380,110,95,0xff2b4244);
+                rect(c,rx+9,doorY-369,90,70,0xffb3b99f);
+                rect(c,rx+54,doorY-369,8,70,0xff4d5d58);
+            }
+        }else if(kind==ExpeditionSitesV88.RELAY||
+                 kind==ExpeditionSitesV88.TOWER){
+            rect(c,x-170,top+320,340,240,0xff202d33);
+            rect(c,x-150,top+337,300,210,0xff7b8884);
+            rect(c,x-7,top+90,14,240,0xffc2c9b2);
+            for(int arm=0;arm<4;arm++)
+                rect(c,x-80,top+142+arm*46f,160,9,0xff2a383a);
+        }else if(kind==ExpeditionSitesV88.FARM){
+            for(int bed=0;bed<4;bed++){
+                float bx=left+142+bed*(w-284)/4f;
+                rect(c,bx,top+390,Math.max(120f,(w-350)/4f),244,
+                    0xff597965);
+                for(int row=0;row<5;row++)
+                    rect(c,bx+18,top+414+row*40,
+                        Math.max(86f,(w-415)/4f),7,0xffb9c5a0);
+            }
+        }else if(kind==ExpeditionSitesV88.CHECKPOINT){
+            for(int bunker=0;bunker<2;bunker++){
+                float bx=bunker==0?left+96:right-456;
+                rect(c,bx,doorY-415,356,268,0xff28383a);
+                rect(c,bx+34,doorY-378,286,38,0xffa0a99b);
+                rect(c,bx+39,doorY-290,276,12,0xff161f23);
+            }
+        }
         // Human-scaled south-facing wall, with an actual 184-unit portal.
         rect(c,left,doorY-65f,hw-ExteriorFootprintV130.DOOR_HALF_WIDTH,
             40f,0xff253638);
