@@ -171,7 +171,8 @@ public final class BanditLootV87 {
                 ExpeditionSitesV88.Site site=ExpeditionSitesV88.SITES[i];
                 if(Math.abs(site.x+115f-old.x)<1f&&
                    Math.abs(site.y+91f-old.y)<1f)break;
-                Bag shifted=new Bag(old.id,site.x+115f,site.y+91f);
+                Bag shifted=new Bag(old.id,site.x+120f,
+                    site.y+ExteriorFootprintV130.anchor(site)+36f);
                 shifted.corpse=old.corpse;
                 shifted.gearManifestV141=old.gearManifestV141;
                 shifted.nutsV143=old.nutsV143;
