@@ -39,6 +39,12 @@ final class ReloadArtV151 {
         c.save();
         c.translate((hx-70f)*sourceScale,(hy-136f)*sourceScale);
         c.scale(sourceScale,sourceScale);
+        if(weapon==ReloadProfileV151.AK){
+            // Rock-and-lock insertion: hook front lug, rotate curved mag home.
+            float progress=ReloadProfileV151.progress(weapon,remaining);
+            float lock=Math.max(0f,Math.min(1f,(progress-.25f)/.42f));
+            c.rotate(-24f*(1f-lock));
+        }
         switch(ReloadProfileV151.propKind(weapon)){
             case ReloadProfileV151.SLIM_PISTOL:
                 // 9 mm pistol: narrow, straight, single grip-length metal magazine.
