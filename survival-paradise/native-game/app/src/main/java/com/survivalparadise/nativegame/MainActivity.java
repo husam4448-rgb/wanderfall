@@ -1708,10 +1708,12 @@ public final class MainActivity extends Activity {
                     String[] numbers={"SLOT 1","SLOT 2","SLOT 3",
                         "SLOT 4","SLOT 5","SLOT 6"};
                     new AlertDialog.Builder(this).setTitle("ASSIGN "+game.inventoryNameV141(kind))
-                        .setItems(numbers,(d,index)->game.setHotbarItem(index,
-                            kind>=8?kind+1:kind==3?6:kind==4?7:
-                            kind==12?13:kind==13?14:kind))
-                        .show();
+                        .setItems(numbers,(d,index)->{
+                            game.setHotbarItem(index,
+                                kind>=8?kind+1:kind==3?6:kind==4?7:
+                                kind==12?13:kind==13?14:kind);
+                            if(refresh!=null)refresh.run();
+                        }).show();
                 }
             });
         }
@@ -1830,6 +1832,7 @@ public final class MainActivity extends Activity {
         section(left,"SURVIVOR   •   EQUIPMENT");
         final Runnable[] redrawV92={null};
         final Runnable[] refreshEquipmentV131={null};
+        final Runnable[] refreshQuickV162={null};
         final AlertDialog[] bagDialogV84=new AlertDialog[1];
         final Button[] equipmentButtonsV131=new Button[8];
         final String[] equipment={"HEAD","FACE","TORSO","LEGS",
@@ -1958,7 +1961,7 @@ public final class MainActivity extends Activity {
                         .setItems(LOADOUTS,(d,weapon)->{
                             prefs.edit().putInt("gun",weapon).apply();
                             game.reloadSettings();game.saveProgress();
-                            refreshEquipmentV131[0].run();
+                            if(redrawV92[0]!=null)redrawV92[0].run();
                         }).show();
                     return;
                 }
@@ -1967,7 +1970,7 @@ public final class MainActivity extends Activity {
                     prefs.edit().putBoolean("dualTorch",enabled)
                         .putBoolean("lampOn",enabled).apply();
                     game.reloadSettings();game.saveProgress();
-                    refreshEquipmentV131[0].run();return;
+                    if(redrawV92[0]!=null)redrawV92[0].run();return;
                 }
                 if(socketIndex==1){
                     Toast.makeText(this,"Face gear will appear here when obtained",
@@ -2017,12 +2020,13 @@ public final class MainActivity extends Activity {
         refreshEquipmentV131[0].run();
         LinearLayout vital=new LinearLayout(this);
         vital.setOrientation(LinearLayout.HORIZONTAL);
-        vital.addView(text("HP "+Math.round(game.health),12,true),
-            new LinearLayout.LayoutParams(0,-2,1));
-        vital.addView(text("STA "+Math.round(game.stamina),12,true),
-            new LinearLayout.LayoutParams(0,-2,1));
-        vital.addView(text("FOOD "+game.foodCount+"   WATER "+game.waterCount,12,true),
-            new LinearLayout.LayoutParams(0,-2,2));
+        final TextView hpVitalV162=text("HP "+Math.round(game.health),11,true);
+        final TextView staminaVitalV162=text("STA "+Math.round(game.stamina),11,true);
+        final TextView foodVitalV162=text(
+            "FOOD "+game.foodCount+"   WATER "+game.waterCount,11,true);
+        vital.addView(hpVitalV162,new LinearLayout.LayoutParams(0,-2,1));
+        vital.addView(staminaVitalV162,new LinearLayout.LayoutParams(0,-2,1));
+        vital.addView(foodVitalV162,new LinearLayout.LayoutParams(0,-2,2));
         left.addView(vital);
         // V138: appearance controls apply to backpacks and boots only.
         // Equipped helmets, masks and hats remain usable in inventory, but
@@ -2033,7 +2037,8 @@ public final class MainActivity extends Activity {
         packLookV96.setOnClickListener(v->new AlertDialog.Builder(this)
             .setTitle("BACKPACK APPEARANCE — 20 STYLES")
             .setSingleChoiceItems(WearableArtV96.PACK_NAMES,game.backpackStyleV96,(d,i)->{
-                game.backpackStyleV96=i;game.saveProgress();avatar.invalidate();
+                game.backpackStyleV96=i;game.saveProgress();
+                if(redrawV92[0]!=null)redrawV92[0].run();
                 packLookV96.setText("PACK LOOK\n"+WearableArtV96.PACK_NAMES[i]);d.dismiss();
             }).show());
 
@@ -2043,15 +2048,16 @@ public final class MainActivity extends Activity {
             .setTitle("V133 APPROVED BOOTS — 5 ANIMATED DESIGNS")
             .setSingleChoiceItems(BootArtV133.NAMES,game.bootStyleV133,(d,i)->{
                 game.bootStyleV133=BootArtV133.clampStyle(i);
-                game.saveProgress();avatar.invalidate();
+                game.saveProgress();
+                if(redrawV92[0]!=null)redrawV92[0].run();
                 bootLookV133.setText("BOOTS LOOK\n"+BootArtV133.NAMES[i]);
                 d.dismiss();
             }).show());
         appearanceV96.addView(packLookV96,new LinearLayout.LayoutParams(0,-2,1));
         appearanceV96.addView(bootLookV133,new LinearLayout.LayoutParams(0,-2,1));
         left.addView(appearanceV96);
-        left.addView(text("Carry capacity: "+game.fieldFindsV91.capacity()+
-            " • ENC "+Math.round(game.encumbranceV91())+"% • Packs appear on the survivor.",12,false));
+        final TextView carryLabelV162=text("",10,false);
+        left.addView(carryLabelV162);
         section(right,"BACKPACK   •   40 COMPACT SLOTS");
         LinearLayout sortBarV131=new LinearLayout(this);
         sortBarV131.setOrientation(LinearLayout.HORIZONTAL);
@@ -2190,6 +2196,17 @@ public final class MainActivity extends Activity {
         });
         redrawV92[0]=()->{
             game.reconcileBagSplitsV130();
+            if(refreshEquipmentV131[0]!=null)refreshEquipmentV131[0].run();
+            hpVitalV162.setText("HP "+Math.round(game.health));
+            staminaVitalV162.setText("STA "+Math.round(game.stamina));
+            foodVitalV162.setText("FOOD "+game.foodCount+
+                "   WATER "+game.waterCount);
+            GearStatsV162.Bonus bonuses=game.equipmentBonusesV162();
+            carryLabelV162.setText("CAP "+game.fieldFindsV91.capacity()+
+                " • ENC "+Math.round(game.encumbranceV91())+"%"+
+                " • ARMOR "+bonuses.armor+"%"+
+                " • AGI "+(bonuses.agility>=0?"+":"")+bonuses.agility+"%");
+            if(refreshQuickV162[0]!=null)refreshQuickV162[0].run();
             for(int coin=0;coin<bagCoinsV147.length;coin++)
                 bagCoinsV147[coin].setText(
                     NutWalletV143.NAMES[coin]+"  "+game.playerNutsV143.coins(coin));
@@ -2348,6 +2365,7 @@ public final class MainActivity extends Activity {
                 });
             }
         };
+        refreshQuickV162[0]=refresh[0];
         refresh[0].run();
         // The 40 player slots above now display all legacy AND recovered gear
         // directly; do not bury the new items in a separate bottom panel.
