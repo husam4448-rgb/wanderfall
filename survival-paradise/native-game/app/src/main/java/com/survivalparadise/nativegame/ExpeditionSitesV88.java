@@ -41,6 +41,11 @@ public final class ExpeditionSitesV88 {
       new Site(WORKSHOP,2380,1240,"WAREHOUSE ANNEX",true),
       new Site(FARM,894,1770,"DERELICT BARN",true)
     };
+    // Retained ONLY for one-time migration of saves made before V153.
+    // Site IDs, interior loot keys, NPC state and current player position remain
+    // valid; this lets old entrance/loot coordinates map to the new facade.
+    public static final float[] LEGACY_X=new float[SITES.length];
+    public static final float[] LEGACY_Y=new float[SITES.length];
     // V153: The original 26 centers were placed only a few hundred pixels
     // apart, which cannot contain 2720x1904 interiors at comparable scale.
     // Reserve full-size plots, using the original coordinates as preferred
@@ -48,6 +53,10 @@ public final class ExpeditionSitesV88 {
     // supplied items and the player's existing saved world coordinates.
     static {
         Site[] requested=SITES.clone();
+        for(int i=0;i<requested.length;i++){
+            LEGACY_X[i]=requested[i].x;
+            LEGACY_Y[i]=requested[i].y;
+        }
         Site[] allocated=new Site[SITES.length];
         // Give the unique clinic its own physical campus first.
         allocated[1]=allocate(requested[1],allocated);
