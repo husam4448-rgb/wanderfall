@@ -71,7 +71,7 @@ public final class MainActivity extends Activity {
         panel.addView(progress,barSize);
         TextView explanation=new TextView(this);
         explanation.setText("Seed: "+seed+
-            "\nCivilization layout, roads and gates saved once."+
+            "\nClimate, civilization layouts and gates saved once."+
             "\nDetailed landscape chunks stream as you explore.");
         explanation.setTextColor(0xffc2d1c7);
         explanation.setTextSize(12);
@@ -84,13 +84,25 @@ public final class MainActivity extends Activity {
         dialog.show();
         Thread worker=new Thread(()->{
             try{
+                // V160 climate parameters are validated before town placement.
+                // The actual work phases map monotonically onto the progress
+                // bar; no artificial "generation" delay is inserted.
+                WorldGeographyV160 geography=WorldGeographyV160.prepare(
+                    seed,(percent,label)->runOnUiThread(()->{
+                        if(!isFinishing()){
+                            int completed=percent/4;
+                            progress.setProgress(completed);
+                            stage.setText(label+"   "+completed+"%");
+                        }
+                    }));
                 WorldCivilizationV159.Plan layout=WorldCivilizationV159.generate(
                     seed,(percent,label)->runOnUiThread(()->{
                         if(!isFinishing()){
-                            progress.setProgress(percent);
-                            stage.setText(label+"   "+percent+"%");
+                            int completed=25+percent*3/4;
+                            progress.setProgress(completed);
+                            stage.setText(label+"   "+completed+"%");
                         }
-                    }));
+                    }),geography);
                 runOnUiThread(()->{
                     try{
                         if(isFinishing()||game==null)return;
@@ -99,7 +111,7 @@ public final class MainActivity extends Activity {
                         if(!prefs.edit().putInt(
                                 IndustrialWorldV123.SEED_PREF,seed).commit())
                             throw new IllegalStateException("Could not save seed");
-                        game.completeNewGameV159(layout);
+                        game.completeNewGameV159(layout,geography);
                     }catch(RuntimeException error){
                         android.util.Log.e("SP-V159","World initialization failed",error);
                         Toast.makeText(this,"World initialization failed: "+
