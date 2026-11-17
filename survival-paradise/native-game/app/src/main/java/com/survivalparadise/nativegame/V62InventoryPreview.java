@@ -26,15 +26,15 @@ public final class V62InventoryPreview extends View {
         // rendered through GameView.character; head/torso art is never reconstructed.
         // Fit the complete approved survivor and weapon within this panel. Never
         // enlarge by the world/character zoom or crop the face/equipment.
-        float factor=Math.min(w/210f,h/150f)*.92f/Math.max(.65f,game.scale);
+        float factor=Math.min(w/188f,h/140f)*1.04f/Math.max(.65f,game.scale);
         canvas.save();
-        canvas.translate(w*.55f,h*.81f);
+        canvas.translate(w*.57f,h*.87f);
         canvas.scale(factor,factor);
         float breath=(float)(-2+2*Math.sin(System.nanoTime()/350_000_000.0));
         game.character(canvas,0,0,game.gun,game.face,2,breath,0f,0f,true,false,-1);
         canvas.restore();
         paint.setColor(0xffd9bd83);paint.setTextSize(Math.max(11f,Math.min(16f,w*.036f)));
-        canvas.drawText("SURVIVOR • LIVE GEAR",w*.07f,h*.10f,paint);
+        canvas.drawText("SURVIVOR • LIVE GEAR",w*.07f,h*.07f,paint);
         postInvalidateDelayed(95);
     }
 }
