@@ -1677,7 +1677,8 @@ public final class GameView extends View {
         if(sitesInitializedV88)return;
         for(int i=0;i<ExpeditionSitesV88.SITES.length;i++){
             ExpeditionSitesV88.Site s=ExpeditionSitesV88.SITES[i];
-            BanditLootV87.Bag bag=banditLootV87.spawn(s.x+115,s.y+91,i+3,wave,i%2);
+            BanditLootV87.Bag bag=banditLootV87.spawn(s.x+120,s.y+ExteriorFootprintV130.anchor(s)+36f,
+                i+3,wave,i%2);
             if(bag==null)continue;
             int[] items=ExpeditionSitesV88.supplies(i);
             System.arraycopy(items,0,bag.count,0,BanditLootV87.ITEMS);
