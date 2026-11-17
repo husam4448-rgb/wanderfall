@@ -101,6 +101,7 @@ public final class GameView extends View {
     final SalvageWorldV84 salvageWorldV84=new SalvageWorldV84();
     final GroundPickupsV85 groundPickupsV85=new GroundPickupsV85();
     final BanditLootV87 banditLootV87=new BanditLootV87();
+    final IndoorCorpseLootV158 indoorCorpseLootV158=new IndoorCorpseLootV158();
     final FieldFindsV91 fieldFindsV91=new FieldFindsV91();
     final GearLootV95 gearLootV95=new GearLootV95();
     final WardrobeV92 wardrobeV92=new WardrobeV92();
@@ -437,6 +438,7 @@ public final class GameView extends View {
                        industrialSiteV123.id.replace(',','_');
             clinicInteriorV89.decode(host.prefs.getString(key+"_loot",""));
             clinicActorsV90.decode(host.prefs.getString(key+"_actors",""),clinicInteriorV89);
+            indoorCorpseLootV158.decode(host.prefs.getString(indoorCorpseLootKeyV158(),""));
             clinicFriendWaypointsV90.clear();return;
         }
         int builtIndex=site-ExpeditionSitesV88.SITES.length;
@@ -461,6 +463,7 @@ public final class GameView extends View {
             site==1?host.prefs.getString("clinic_actors_v90",""):"");
         clinicInteriorV89.decode(loot);
         clinicActorsV90.decode(actors,clinicInteriorV89);
+        indoorCorpseLootV158.decode(host.prefs.getString(indoorCorpseLootKeyV158(),""));
         clinicFriendWaypointsV90.clear();
     }
     void persistCurrentInteriorV91(){
@@ -468,14 +471,17 @@ public final class GameView extends View {
             String key=IndustrialWorldV123.saveNamespace(industrialSeedV123)+"_"+
                        industrialSiteV123.id.replace(',','_');
             host.prefs.edit().putString(key+"_loot",clinicInteriorV89.encode())
-                .putString(key+"_actors",clinicActorsV90.encode()).apply();
+                .putString(key+"_actors",clinicActorsV90.encode())
+                .putString(indoorCorpseLootKeyV158(),
+                    indoorCorpseLootV158.encode()).apply();
             return;
         }
         if(activeSiteV91<0||activeSiteV91>=ExpeditionSitesV88.SITES.length+
             CampCraftV83.MAX)return;
         android.content.SharedPreferences.Editor edit=host.prefs.edit()
             .putString("site_containers_v91_"+activeSiteV91,clinicInteriorV89.encode())
-            .putString("site_actors_v91_"+activeSiteV91,clinicActorsV90.encode());
+            .putString("site_actors_v91_"+activeSiteV91,clinicActorsV90.encode())
+            .putString(indoorCorpseLootKeyV158(),indoorCorpseLootV158.encode());
         if(activeSiteV91==1)edit.putString("clinic_containers_v89",clinicInteriorV89.encode())
             .putString("clinic_actors_v90",clinicActorsV90.encode());
         edit.apply();
@@ -1204,7 +1210,8 @@ public final class GameView extends View {
         clock.setClock(industrialModeV123?12*60f:(night?21*60f:12*60f),1);
         face=1;aimX=1;aimY=0;refreshDaylight();
         enemies.clear();friends.clear();campStaff.clear();shots.clear();drops.clear();sparks.clear();flashes.clear();indoorRoundsV122.clear();builtCampfires.clear();
-        craftV83.clear();banditLootV87.clear();removeBarricadeCoverV83();
+        craftV83.clear();banditLootV87.clear();indoorCorpseLootV158.clear();
+        removeBarricadeCoverV83();
         playerNutsV143.decode("0");npcTradesV143.clear();
         playerAmmoV143.clear();
         droppedItemsV129.clear();
@@ -1228,7 +1235,8 @@ public final class GameView extends View {
         for(int i=0;i<ExpeditionSitesV88.SITES.length+CampCraftV83.MAX;i++)
             {sitesClear.remove("site_containers_v91_"+i)
                 .remove("site_actors_v91_"+i)
-                .remove("indoor_corpse_v129_site:"+i);}
+                .remove("indoor_corpse_v129_site:"+i)
+                .remove("indoor_corpse_loot_v158_site:"+i);}
         // Fresh world of this seed: clear ALL industrial sites. The V127
         // isolated test's persistent per-facility and per-seed keys are reused.
         String industryPrefix=IndustrialWorldV123.saveNamespace(industrialSeedV123)+"_";
@@ -1239,7 +1247,9 @@ public final class GameView extends View {
                 String key=industryPrefix+sx+"_"+sy;
                 sitesClear.remove(key+"_loot").remove(key+"_actors")
                     .remove("indoor_corpse_v129_industrial:"+industrialSeedV123+
-                        ":"+sx+":"+sy);
+                        ":"+sx+":"+sy)
+                     .remove("indoor_corpse_loot_v158_industrial:"+
+                         industrialSeedV123+":"+sx+":"+sy);
             }
         sitesClear.remove("industrial_yard_v123_"+industrialSeedV123);
         // New games already use the V153 site layout; never run legacy
@@ -1351,6 +1361,7 @@ public final class GameView extends View {
         int savedSiteV91=host.prefs.getInt("active_site_v91",1);
         if(insideClinicV89)configureInteriorV91(savedSiteV91);
         else {
+            indoorCorpseLootV158.clear();
             activeSiteV91=-1;
             clinicInteriorV89=new ClinicInteriorV89();
             clinicActorsV90=new ClinicActorsV90(clinicInteriorV89);
@@ -2118,7 +2129,7 @@ public final class GameView extends View {
             host.runOnUiThread(()->host.lootClinicStorageV89(found));
         }else if(nearestIndoorCorpseV129()>=0){
             int corpse=nearestIndoorCorpseV129();
-            host.runOnUiThread(()->host.searchIndoorCorpseDialogV129(corpse));
+            host.runOnUiThread(()->host.lootIndoorCorpseV158(corpse));
         }else{
             gatherFeedback="SEARCH CLOSE TO A CASE OR FALLEN NPC";
             gatherFeedbackTime=1.5f;
