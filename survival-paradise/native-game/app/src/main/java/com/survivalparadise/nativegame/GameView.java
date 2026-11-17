@@ -3323,8 +3323,10 @@ public final class GameView extends View {
             float speed=PlayerMovementV77.speed(gun==9?169f:236f,walkSpeedMultiplier,runMultiplier,crouchHeld)*carrySpeedV91();
             float nx=playerX+vx*speed*dt;
             float ny=playerY+vy*speed*dt;
-            if(!blocked(nx,playerY,20))playerX=nx;
-            if(!blocked(playerX,ny,20))playerY=ny;
+            if(SweptWorldCollisionV157.clear(this::blocked,
+                playerX,playerY,nx,playerY,20f))playerX=nx;
+            if(SweptWorldCollisionV157.clear(this::blocked,
+                playerX,playerY,playerX,ny,20f))playerY=ny;
             // Movement joystick is locomotion ONLY. No facing or aim updates.
         }
         // Animate actual displacement only: releasing the stick or hitting a wall
@@ -3497,8 +3499,10 @@ public final class GameView extends View {
             if(travel>0f){
                 float ux=(gx-friend.x)/Math.max(1,d),uy=(gy-friend.y)/Math.max(1,d);
                 float nx=friend.x+ux*travel,ny=friend.y+uy*travel;
-                if(!blocked(nx,friend.y,18))friend.x=nx;
-                if(!blocked(friend.x,ny,18))friend.y=ny;
+                if(SweptWorldCollisionV157.clear(this::blocked,
+                    friend.x,friend.y,nx,friend.y,18f))friend.x=nx;
+                if(SweptWorldCollisionV157.clear(this::blocked,
+                    friend.x,friend.y,friend.x,ny,18f))friend.y=ny;
                 // Do not flip a companion and both flashlight hands back/forth
                 // as small repulsion/arrival corrections cross the desired slot.
                 if(FollowerArrivalV78.shouldTurn(gx-beforeFriendX,d))
@@ -3574,13 +3578,17 @@ public final class GameView extends View {
             float speed=BanditBrainV88.speed(state)*dt;
             float nx=e.x+mx*speed,ny=e.y+my*speed;
             if(WorldSafetyV92.hostileAllowed(nx,e.y,CAMP_X,CAMP_Y)&&
-                !blocked(nx,e.y,18))e.x=nx;
+                SweptWorldCollisionV157.clear(this::blocked,
+                    e.x,e.y,nx,e.y,18f))e.x=nx;
             else if(WorldSafetyV92.hostileAllowed(e.x-my*speed,e.y,CAMP_X,CAMP_Y)&&
-                !blocked(e.x-my*speed,e.y,18))e.x-=my*speed;
+                SweptWorldCollisionV157.clear(this::blocked,
+                    e.x,e.y,e.x-my*speed,e.y,18f))e.x-=my*speed;
             if(WorldSafetyV92.hostileAllowed(e.x,ny,CAMP_X,CAMP_Y)&&
-                !blocked(e.x,ny,18))e.y=ny;
+                SweptWorldCollisionV157.clear(this::blocked,
+                    e.x,e.y,e.x,ny,18f))e.y=ny;
             else if(WorldSafetyV92.hostileAllowed(e.x,e.y+mx*speed,CAMP_X,CAMP_Y)&&
-                !blocked(e.x,e.y+mx*speed,18))e.y+=mx*speed;
+                SweptWorldCollisionV157.clear(this::blocked,
+                    e.x,e.y,e.x,e.y+mx*speed,18f))e.y+=mx*speed;
             float scanX=NpcAimV122.scanX(worldTimer,e.variant+32);
             float scanY=NpcAimV122.scanY(worldTimer,e.variant+32);
             boolean tracking=d<BanditBrainV88.ALERT_RANGE&&clear;
