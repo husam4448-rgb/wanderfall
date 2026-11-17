@@ -74,12 +74,15 @@ final class ReloadArtV151 {
                 break;
             case ReloadProfileV151.CURVED_AK:
                 // AK: unmistakably CURVED 7.62 magazine, not a box or pistol clip.
-                rim(c,-10,-30,15,10,0xff293032);
-                rim(c,-7,-20,17,9,0xff303538);
-                rim(c,-4,-11,18,9,0xff343a3b);
-                rim(c,0,-2,17,8,0xff2c3436);
-                for(int i=0;i<4;i++){
-                    rect(c,-6+i*3,-27+i*9,2,7,0xff727b75);
+                // Graduated offsets create a banana-shaped bottom, matching
+                // this game's AK art rather than a straight pistol box.
+                rim(c,-11,-29,14,8,0xff293032);
+                rim(c,-9,-21,16,8,0xff303538);
+                rim(c,-5,-13,18,8,0xff343a3b);
+                rim(c,0,-5,19,8,0xff2c3436);
+                rim(c,7,3,19,7,0xff2a3032);
+                for(int i=0;i<5;i++){
+                    rect(c,-8+i*4,-27+i*8,2,6,0xff727b75);
                 }
                 brassTop(c,-8,-34,12);
                 break;
