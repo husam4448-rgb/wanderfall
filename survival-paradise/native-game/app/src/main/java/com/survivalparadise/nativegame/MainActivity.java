@@ -39,6 +39,89 @@ public final class MainActivity extends Activity {
             "AK rifle","Bullpup","Pump shotgun","Sniper rifle","LMG","Grenade launcher","Red axe"};
     private final int INK=0xffe4f0ed,BG=0xff172b32,ACC=0xff9bc8b1;
 
+    private boolean worldGenerationInProgressV159=false;
+    /**
+     * Real, non-blocking procedural planning. The progress bar follows
+     * completed generator phases, not a fixed timer. The existing save is
+     * untouched until the replacement world has been fully validated.
+     */
+    void generateWorldV159(int seed){
+        if(game==null||worldGenerationInProgressV159||isFinishing())return;
+        worldGenerationInProgressV159=true;
+        LinearLayout panel=new LinearLayout(this);
+        panel.setOrientation(LinearLayout.VERTICAL);
+        float density=getResources().getDisplayMetrics().density;
+        int inset=Math.round(18f*density);
+        panel.setPadding(inset,inset,inset,inset);
+        TextView stage=new TextView(this);
+        stage.setText("Surveying existing roads and landmarks");
+        stage.setTextColor(INK);
+        stage.setTextSize(16);
+        panel.addView(stage,new LinearLayout.LayoutParams(-1,-2));
+        android.widget.ProgressBar progress=new android.widget.ProgressBar(
+            this,null,android.R.attr.progressBarStyleHorizontal);
+        progress.setMax(100);
+        LinearLayout.LayoutParams barSize=new LinearLayout.LayoutParams(
+            -1,Math.max(10,Math.round(12f*density)));
+        barSize.topMargin=Math.round(16f*density);
+        panel.addView(progress,barSize);
+        TextView explanation=new TextView(this);
+        explanation.setText("Seed: "+seed+
+            "\nCivilization layout, roads and gates saved once."+
+            "\nDetailed landscape chunks stream as you explore.");
+        explanation.setTextColor(0xffc2d1c7);
+        explanation.setTextSize(12);
+        LinearLayout.LayoutParams noteSize=new LinearLayout.LayoutParams(-1,-2);
+        noteSize.topMargin=Math.round(12f*density);
+        panel.addView(explanation,noteSize);
+        AlertDialog dialog=new AlertDialog.Builder(this)
+            .setTitle("GENERATING SURVIVAL PARADISE")
+            .setView(panel).setCancelable(false).create();
+        dialog.show();
+        Thread worker=new Thread(()->{
+            try{
+                WorldCivilizationV159.Plan layout=WorldCivilizationV159.generate(
+                    seed,(percent,label)->runOnUiThread(()->{
+                        if(!isFinishing()){
+                            progress.setProgress(percent);
+                            stage.setText(label+"   "+percent+"%");
+                        }
+                    }));
+                runOnUiThread(()->{
+                    try{
+                        if(isFinishing()||game==null)return;
+                        // Never commit a new seed until all plot validation
+                        // checks have passed on the separate worker.
+                        if(!prefs.edit().putInt(
+                                IndustrialWorldV123.SEED_PREF,seed).commit())
+                            throw new IllegalStateException("Could not save seed");
+                        game.completeNewGameV159(layout);
+                    }catch(RuntimeException error){
+                        android.util.Log.e("SP-V159","World initialization failed",error);
+                        Toast.makeText(this,"World initialization failed: "+
+                            error.getMessage(),Toast.LENGTH_LONG).show();
+                    }finally{
+                        worldGenerationInProgressV159=false;
+                        dialog.dismiss();
+                    }
+                });
+            }catch(RuntimeException error){
+                android.util.Log.e("SP-V159","World planning failed",error);
+                runOnUiThread(()->{
+                    worldGenerationInProgressV159=false;
+                    dialog.dismiss();
+                    if(!isFinishing())
+                        new AlertDialog.Builder(this)
+                            .setTitle("WORLD GENERATION ERROR")
+                            .setMessage("Previous save preserved. "+error.getMessage())
+                            .setPositiveButton("CLOSE",null).show();
+                });
+            }
+        },"sp-world-generator-v159");
+        worker.setDaemon(true);
+        worker.start();
+    }
+
     @Override public void onCreate(Bundle saved){
         super.onCreate(saved);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
