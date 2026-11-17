@@ -1240,6 +1240,11 @@ public final class GameView extends View {
                         ":"+sx+":"+sy);
             }
         sitesClear.remove("industrial_yard_v123_"+industrialSeedV123);
+        // New games already use the V153 site layout; never run legacy
+        // position migration on fresh playthroughs.
+        sitesClear.putBoolean("v153_site_caches_migrated",true)
+            .putBoolean("v153_site_returns_migrated",true)
+            .putBoolean("v153_site_player_migrated",true);
         sitesClear.apply();
         clinicActorsV90.reset(clinicInteriorV89);
         outdoorCompanionPositionsV90.clear();
@@ -1304,6 +1309,14 @@ public final class GameView extends View {
         salvageWorldV84.decode(host.prefs.getString("salvaged_scrap_v84",""));
         groundPickupsV85.decode(host.prefs.getString("loose_pickups_v85",""));
         banditLootV87.decode(host.prefs.getString("bandit_loot_bags_v87",""));
+        if(!host.prefs.getBoolean("v153_site_caches_migrated",false)){
+            banditLootV87.migrateFixedSiteCachesV153();
+            // Persist bag positions and migration marker atomically; no loot
+            // disappears if Android closes before the next autosave.
+            host.prefs.edit().putString("bandit_loot_bags_v87",
+                banditLootV87.encode())
+                .putBoolean("v153_site_caches_migrated",true).apply();
+        }
         playerNutsV143.decode(host.prefs.getString("player_nuts_v143","0"));
         playerAmmoV143.decode(host.prefs.getString("player_ammo_v143",
             "1,0,0,0,0,0,0"));
@@ -1350,9 +1363,41 @@ public final class GameView extends View {
             ExpeditionSitesV88.SITES[1].x);
         outsideDoorYv89=host.prefs.getFloat("clinic_return_y_v89",
             ExpeditionSitesV88.SITES[1].y+165f);
+        if(insideClinicV89&&!host.prefs.getBoolean(
+                "v153_site_returns_migrated",false)&&
+                savedSiteV91>=0&&savedSiteV91<ExpeditionSitesV88.SITES.length){
+            // Old interior saves must exit at their same numbered facility,
+            // not at an empty footprint hundreds of units away.
+            ExpeditionSitesV88.Site site=ExpeditionSitesV88.SITES[savedSiteV91];
+            outsideDoorXv89=site.x;
+            outsideDoorYv89=site.y+ExteriorFootprintV130.anchor(site)+20f;
+            host.prefs.edit()
+                .putFloat("clinic_return_x_v89",outsideDoorXv89)
+                .putFloat("clinic_return_y_v89",outsideDoorYv89)
+                .putBoolean("v153_site_returns_migrated",true).apply();
+        }
         if(importedIndustrialV128){
             outsideDoorXv89=IndustrialBiomeBridgeV128.worldX(outsideDoorXv89);
             outsideDoorYv89=IndustrialBiomeBridgeV128.worldY(outsideDoorYv89);
+        }
+        if(!insideClinicV89&&!host.prefs.getBoolean(
+                "v153_site_player_migrated",false)&&
+                !industrialModeV123){
+            // Upgrade only saves parked directly beside an OLD fixed-site
+            // door. Never teleport a player simply exploring the old map.
+            for(int i=0;i<ExpeditionSitesV88.SITES.length;i++){
+                ExpeditionSitesV88.Site site=ExpeditionSitesV88.SITES[i];
+                float oldDoorY=ExpeditionSitesV88.LEGACY_Y[i]+
+                    ExteriorFootprintV130.anchor(site);
+                float dx=playerX-ExpeditionSitesV88.LEGACY_X[i];
+                float dy=playerY-oldDoorY;
+                if(dx*dx+dy*dy>125f*125f)continue;
+                playerX=site.x+dx;
+                playerY=site.y+ExteriorFootprintV130.anchor(site)+dy;
+                break;
+            }
+            host.prefs.edit().putFloat("px",playerX).putFloat("py",playerY)
+                .putBoolean("v153_site_player_migrated",true).apply();
         }
         if(!insideClinicV89&&blocked(playerX,playerY,21f)){
             float[] safe=WorldSafetyV92.resolveExit(this::blocked,playerX,playerY);
@@ -1800,6 +1845,7 @@ public final class GameView extends View {
         float[] landing=WorldSafetyV92.resolveExit(this::blocked,worldX,worldY);
         outsideDoorXv89=landing[0];
         outsideDoorYv89=landing[1];
+        host.prefs.edit().putBoolean("v153_site_returns_migrated",true).apply();
         configureInteriorV91(site);
         insideClinicV89=true;
         playerX=ClinicInteriorV89.ENTRANCE_X;
