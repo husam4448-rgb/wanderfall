@@ -76,10 +76,13 @@ public final class IndustrialArtV123 {
                 int shape=IndustrialFacadeShapeV126.facade(p.kind);
                 int facade=shape==0?DOUBLE:shape==1?SINGLE:
                            shape==2?SHED:WAREHOUSE;
-                // The facade and its collision use one approved PNG silhouette
-                // and precisely the same world-to-art transform.
+                // V155 attached roof wings are drawn behind the original
+                // approved facade. The V126 alpha mask still traces that
+                // untouched bitmap, and V155 adds exact wing collision.
+                IndustrialComplexArtV155.behindFacade(c,p);
                 draw(c,facade,p.buildingX-12,p.buildingY-22,
                      p.buildingW+24,p.buildingH+46);
+                IndustrialComplexArtV155.overFacade(c,p);
             }
             // Props: physical size and position are shared with collision.
             for(IndustrialPropLayoutV126.Prop prop:
