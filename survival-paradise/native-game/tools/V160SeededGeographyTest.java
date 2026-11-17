@@ -113,6 +113,42 @@ public final class V160SeededGeographyTest {
             yes(newPlan.parcels.length>10,
                 "terrain erased all human settlements");
             yes(newPlan.atTile(0,0)==null,"seeded city paved the original camp");
+            yes(newPlan.variedBuildingsV160&&restored.variedBuildingsV160,
+                "seed-specific architecture mode lost in the save");
+            WorldCivilizationV159.Plan legacyPlan=
+                WorldCivilizationV159.generate(seeds[i],null);
+            yes(!legacyPlan.variedBuildingsV160&&
+                !WorldCivilizationV159.decode(legacyPlan.encode(),
+                    seeds[i]).variedBuildingsV160,
+                "V159 existing save unexpectedly moved its buildings");
+            int changedArchitecture=0,buildingCount=0;
+            for(WorldCivilizationV159.Parcel plot:newPlan.parcels){
+                for(int slot=0;slot<NeighborhoodV154.COLS*NeighborhoodV154.ROWS;slot++){
+                    NeighborhoodV154.Building old=NeighborhoodV154.get(
+                        plot.tx,plot.ty,slot);
+                    NeighborhoodV154.Building building=NeighborhoodV154.get(
+                        plot.tx,plot.ty,slot,newPlan);
+                    NeighborhoodV154.Building saved=NeighborhoodV154.get(
+                        plot.tx,plot.ty,slot,restored);
+                    if(old==null){yes(building==null,"invented invalid building");continue;}
+                    buildingCount++;
+                    yes(building!=null&&saved!=null,"seed deleted locked building slot");
+                    yes(building.left==saved.left&&building.width==saved.width&&
+                        building.height==saved.height&&building.kind==saved.kind,
+                        "actual building changed coordinates on Continue");
+                    yes(NeighborhoodV154.blocked(
+                        building.left+building.width*.5f,
+                        building.top+building.height*.5f,15f,newPlan),
+                        "seed-specific roof is visually present but intangible");
+                    yes(NeighborhoodV154.safe(building),
+                        "seeded building overlaps historic highway or landmarks");
+                    if(old.left!=building.left||old.top!=building.top||
+                       old.kind!=building.kind||old.width!=building.width)
+                        changedArchitecture++;
+                }
+            }
+            yes(buildingCount>=20&&changedArchitecture>=buildingCount/2,
+                "all seed worlds reuse the same building art/geometry");
             if(i>0){
                 WorldCivilizationV159.Plan first=
                     WorldCivilizationV159.generate(seeds[0],null,worlds[0]);
