@@ -77,7 +77,20 @@ public final class ReloadProfileV151 {
         }
         return y;
     }
-    /** Suppress the prop when the off-hand is not actually reloading. */
+    /**
+     * Keep the support hand moving throughout the complete reload.
+     * Previously it snapped back to its weapon grip at ~83% progress, while
+     * the actual motion did not return home until ~95%.
+     * Single-hand weapons borrow a hand emerging from the torso; it enters
+     * at the rest pose and departs only once it has returned home.
+     */
+    public static boolean supportHandActive(int weapon,float remaining){
+        if(!canReload(weapon)||remaining<=0f)return false;
+        if(!needsBorrowedHand(weapon))return true;
+        float p=progress(weapon,remaining);
+        return p>.07f&&p<.95f;
+    }
+    /** Suppress the prop when the off-hand is not actually holding ammo. */
     public static boolean propVisible(int weapon,float remaining){
         if(!canReload(weapon)||remaining<=0f)return false;
         float p=progress(weapon,remaining);
