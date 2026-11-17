@@ -4846,15 +4846,30 @@ public final class GameView extends View {
                 int appearance=actor.type==ClinicActorsV90.MEDIC?ROLE_MEDIC:
                     actor.type==ClinicActorsV90.SURVIVOR?ROLE_CIVILIAN:0;
                 drawIndoorVisibleEntityV127(c,()->{
-                    boolean stripped=indoorCorpseSearchedV129(corpseIndexV141);
+                    int torso=OutfitInventoryV140.npcTorso(appearance,skin);
+                    int pants=OutfitInventoryV140.npcPants(appearance,skin);
+                    int boots=OutfitInventoryV140.npcBoots(appearance,skin);
+                    int held=actor.type==ClinicActorsV90.RAIDER?actor.gun:
+                        actor.type==ClinicActorsV90.MEDIC||
+                        actor.type==ClinicActorsV90.SURVIVOR?3:-1;
+                    BanditLootV87.Bag remains=indoorCorpseLootV158.get(corpseIndexV141);
+                    if(indoorCorpseLegacySearchedV129(corpseIndexV141)){
+                        torso=-1;pants=-1;boots=-1;held=-1;
+                    }else if(remains!=null&&remains.gearManifestV141){
+                        // V158 strip only items actually taken through the
+                        // grid; untouched clothing stays visibly on the body.
+                        if(remains.extra[OutfitInventoryV140.TORSO+torso-
+                                OutfitInventoryV140.FIRST]==0)torso=-1;
+                        if(remains.extra[OutfitInventoryV140.PANTS+pants-
+                                OutfitInventoryV140.FIRST]==0)pants=-1;
+                        if(remains.extra[OutfitInventoryV140.BOOTS+boots-
+                                OutfitInventoryV140.FIRST]==0)boots=-1;
+                        if(held>=0&&remains.extra[
+                                OutfitInventoryV140.WEAPONS+held-
+                                OutfitInventoryV140.FIRST]==0)held=-1;
+                    }
                     drawFallenBodyV141(c,actor.x,actor.y,appearance,skin,
-                        (actor.type&1)==0?1:-1,
-                        stripped?-1:OutfitInventoryV140.npcTorso(appearance,skin),
-                        stripped?-1:OutfitInventoryV140.npcPants(appearance,skin),
-                        stripped?-1:OutfitInventoryV140.npcBoots(appearance,skin),
-                        stripped?-1:actor.type==ClinicActorsV90.RAIDER?actor.gun:
-                            actor.type==ClinicActorsV90.MEDIC||
-                            actor.type==ClinicActorsV90.SURVIVOR?3:-1);
+                        (actor.type&1)==0?1:-1,torso,pants,boots,held);
                 });
             }
         }
