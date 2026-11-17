@@ -128,7 +128,7 @@ public final class WorldCivilizationV159 {
     private static float[] openings(Parcel p,boolean vertical){
         float sx=p.tx*(float)NeighborhoodV154.TILE_W;
         float sy=p.ty*(float)NeighborhoodV154.TILE_H;
-        float[] gates=vertical()?
+        float[] gates=vertical?
             new float[]{sy+2190f,sy+4250f,
                 1036f>=p.top&&1036f<=p.bottom?1036f:Float.NaN}:
             new float[]{sx+1750f,sx+3550f,
