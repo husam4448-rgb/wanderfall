@@ -58,7 +58,7 @@ jobs:
           assert '3100f,3100f,3100f,0f,3100f' in ballistics
           assert 'wearableArtV96.drawHead(' not in game
           # Existing indoor save serializes exactly eight actor values, not animation.
-          assert 'b.append(\",\").append(a.gun);' in clinic
+          assert ".append(',').append(a.gun);" in clinic
           assert 'append(a.reloadClockV150)' not in clinic
           print('PASS V150 actor render hooks, delayed ammo transfer and save compatibility')
           PY
