@@ -177,6 +177,15 @@ public final class WorldCivilizationV159 {
      * Only the compact blueprint is persisted; terrain chunks remain streamed.
      */
     public static Plan generate(int seed,Progress onProgress){
+        return generate(seed,onProgress,null); // V159 saved-map contract
+    }
+    /** V160: new worlds use actual generated relief and rainfall to decide
+     * WHERE settlements are plausible; old V159 maps are never replotted.
+     */
+    public static Plan generate(int seed,Progress onProgress,
+                                WorldGeographyV160 geography){
+        if(geography!=null&&geography.seed!=seed)
+            throw new IllegalArgumentException("Geography/settlement seed mismatch");
         if(onProgress!=null)onProgress.step(0,"SURVEYING EXISTING ROADS");
         // Pre-validate established sectors without changing any save keys.
         for(int sy=IndustrialBiomeBridgeV128.INDUSTRIAL_MIN_SY;
@@ -198,16 +207,36 @@ public final class WorldCivilizationV159 {
                 // This varies the actual building map, not merely paint.
                 // Natural tracts remain between connected built-up clusters.
                 if(tx==0&&ty==0)continue;
-                int cluster=hash(seed,Math.floorDiv(tx,2),
-                                 Math.floorDiv(ty,2),73);
-                if(Math.floorMod(cluster,100)>=76)continue;
+                int macroX=Math.floorDiv(tx,2),
+                    macroY=Math.floorDiv(ty,2);
+                int cluster=hash(seed,macroX,macroY,73);
+                int threshold=76;
+                float wet=0f,high=0f;
+                if(geography!=null){
+                    // A shared sample for all 2x2 sectors prevents towns
+                    // from flickering randomly between adjacent lots.
+                    float cx=(macroX*2f+1f)*NeighborhoodV154.TILE_W,
+                          cy=(macroY*2f+1f)*NeighborhoodV154.TILE_H;
+                    wet=geography.moisture(cx,cy);
+                    high=geography.elevation(cx,cy);
+                    if(high>.72f)threshold=23; // few alpine settlements
+                    else if(wet>.78f)threshold=38; // protected wetland
+                    else if(wet<.30f)threshold=51; // isolated desert outposts
+                    else if(high<.58f&&wet>.42f&&wet<.70f)
+                        threshold=88; // fertile lowland towns
+                }
+                if(Math.floorMod(cluster,100)>=threshold)continue;
                 int count=buildings(tx,ty);
                 if(count<1)continue;
-                // Coherent style across a 2-by-2 district, not random styles
-                // assigned separately to each building or fenced segment.
-                int macro=hash(seed,Math.floorDiv(tx,2),Math.floorDiv(ty,2),5);
-                int type=Math.floorMod(macro,10)<5?CITY:
-                    Math.floorMod(macro,10)<8?VILLAGE:OUTPOST;
+                // Regional construction style follows the physical biome,
+                // not a uniformly random type for every individual building.
+                int macro=hash(seed,macroX,macroY,5);
+                int type=geography==null?
+                    (Math.floorMod(macro,10)<5?CITY:
+                    Math.floorMod(macro,10)<8?VILLAGE:OUTPOST):
+                    high>.66f||wet<.36f?OUTPOST:
+                    wet>.68f?VILLAGE:
+                    Math.floorMod(macro,10)<6?CITY:VILLAGE;
                 int variation=Math.floorMod(hash(seed,tx,ty,23),6);
                 layout.add(new Parcel(tx,ty,type,variation,count));
             }
