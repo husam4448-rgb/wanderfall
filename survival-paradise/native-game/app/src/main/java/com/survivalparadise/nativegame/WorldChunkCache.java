@@ -146,11 +146,11 @@ public final class WorldChunkCache {
             final int div=4;
             final float step=TILE/(float)div;
             for(int yy=0;yy<div;yy++)for(int xx=0;xx<div;xx++){
-                float x=(gx+(xx+.5f)/div)*TILE;
-                float y=(gy+(yy+.5f)/div)*TILE;
+                float worldX=(gx+(xx+.5f)/div)*TILE;
+                float worldY=(gy+(yy+.5f)/div)*TILE;
                 rect(canvas,terrainPaint,
                     gx*TILE+xx*step,gy*TILE+yy*step,step+.2f,step+.2f,
-                    WorldChunkModel.groundColorAt(x,y,campX,campY));
+                    WorldChunkModel.groundColorAt(worldX,worldY,campX,campY));
             }
         }
     }
