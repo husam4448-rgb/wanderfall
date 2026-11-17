@@ -1,0 +1,96 @@
+name: Survival Paradise V158 - Indoor Corpse Loot Window - Source Only
+on:
+  push:
+    branches: [sp-native-v158-indoor-corpse-loot-window-20261117]
+    paths:
+      - '.github/workflows/sp-v158-indoor-corpse-loot-source-only.yml'
+      - 'survival-paradise/native-game/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            survival-paradise
+          sparse-checkout-cone-mode: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Test persistent indoor corpse inventories, migration and capacity-safe transfer contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          R=survival-paradise/native-game
+          P="$R/app/src/main/java/com/survivalparadise/nativegame"
+          mkdir -p /tmp/sp-v158-jvm
+          javac -d /tmp/sp-v158-jvm \
+            "$P/Ballistics.java" \
+            "$P/ClinicInteriorV89.java" \
+            "$P/ReloadProfileV151.java" \
+            "$P/AmmoInventoryV143.java" \
+            "$P/OutfitInventoryV140.java" \
+            "$P/NutWalletV143.java" \
+            "$P/NpcGearV143.java" \
+            "$P/ClinicActorsV90.java" \
+            "$P/ExpeditionSitesV88.java" \
+            "$P/BanditLootV87.java" \
+            "$P/IndoorCorpseLootV158.java" \
+            "$R/tools/V158IndoorCorpseLootTest.java"
+          java -cp /tmp/sp-v158-jvm com.survivalparadise.nativegame.V158IndoorCorpseLootTest
+      - name: Assert V134 outdoor loot UI reused for indoor and preserve locked head sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame')
+          g=(p/'GameView.java').read_text()
+          m=(p/'MainActivity.java').read_text()
+          source=g.split('void interactClinicV89(){',1)[1].split('int lootClinicStackV89(',1)[0]
+          assert 'host.lootIndoorCorpseV158(corpse)' in source
+          assert 'host.searchIndoorCorpseDialogV129' not in source
+          indoor=m.split('void lootIndoorCorpseV158(',1)[1].split('void recoverDroppedV129(',1)[0]
+          assert 'compactLootDialogV134(' in indoor
+          assert 'lootIndoorCorpseStackV158(corpseIndex,kind)' in indoor
+          assert 'lootAllIndoorCorpseV158(corpseIndex)' in indoor
+          assert 'game.indoorCorpseBagV158(corpseIndex)' in indoor
+          assert 'setTitle("SEARCH FALLEN CHARACTER")' not in indoor
+          assert 'indoorCorpseLootV158.decode(' in g
+          assert 'indoorCorpseLootKeyV158(),indoorCorpseLootV158.encode()' in g
+          assert 'indoorCorpseLegacySearchedV129(index)' in g
+          assert 'settleIndoorCorpsePocketV158(owner,bag)' in g
+          assert 'drawFallenBodyV141(c,actor.x,actor.y,appearance,skin,' in g
+          assert 'remains.extra[OutfitInventoryV140.TORSO+torso-' in g
+          assert 'if(index==1)return;' in g
+          assert 'characterSkinsV109.draw(c,skinIdV109,' in g
+          assert "applicationId 'com.survivalparadise.nativegame.v157worldfix'" in (Path('survival-paradise/native-game/app/build.gradle')).read_text()
+          print('V158 PASS: same exterior loot grid, per-building save, original heads, no APK/package changes')
+          PY
+          python3 survival-paradise/native-game/tools/test_headgear_visuals_v138.py
+      - name: Install Android SDK
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -path '*/bin/sdkmanager' | sort -V | tail -1)"
+          test -x "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Compile Android source only, do not assemble or upload an APK
+        working-directory: survival-paradise/native-game
+        shell: bash
+        run: |
+          set -euo pipefail
+          gradle --no-daemon :app:compileDebugJavaWithJavac
+          if [ -d app/build/outputs/apk ]; then
+            echo 'Unexpected APK output';exit 1
+          fi
+          echo 'V158 SOURCE-ONLY BUILD PASS: user installation remains untouched'
