@@ -6,7 +6,7 @@ package com.survivalparadise.nativegame;
  * the impact on the same tick. Outdoors use existing physical Shot objects.
  */
 public final class NpcGunfireV122 {
-    public static final float INDOOR_ROUND_SPEED=1850f;
+    public static final float INDOOR_ROUND_SPEED=Ballistics.SPEED[4];
     public static final float INDOOR_ROUND_MAX_LIFE=.35f;
     private NpcGunfireV122(){}
     public static boolean firearm(int weapon){return GunEffectsV119.firearm(weapon);}
