@@ -2,7 +2,7 @@ package com.survivalparadise.nativegame;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.zip.CRC32;
@@ -128,12 +128,13 @@ public final class WorldCivilizationV159 {
     private static float[] openings(Parcel p,boolean vertical){
         float sx=p.tx*(float)NeighborhoodV154.TILE_W;
         float sy=p.ty*(float)NeighborhoodV154.TILE_H;
-        if(vertical()){
-            return new float[]{sy+2190f,sy+4250f,
-                1036f>=p.top&&1036f<=p.bottom?1036f:Float.NaN};
-        }
-        return new float[]{sx+1750f,sx+3550f,
-            1605f>=p.left&&1605f<=p.right?1605f:Float.NaN};
+        float[] gates=vertical()?
+            new float[]{sy+2190f,sy+4250f,
+                1036f>=p.top&&1036f<=p.bottom?1036f:Float.NaN}:
+            new float[]{sx+1750f,sx+3550f,
+                1605f>=p.left&&1605f<=p.right?1605f:Float.NaN};
+        Arrays.sort(gates);
+        return gates;
     }
     private static void segment(ArrayList<Segment> out,float start,float end,
                                 float fixed,boolean vertical,
@@ -193,6 +194,9 @@ public final class WorldCivilizationV159 {
         int rows=MAX_TY-MIN_TY+1;
         for(int ty=MIN_TY;ty<=MAX_TY;ty++){
             for(int tx=MIN_TX;tx<=MAX_TX;tx++){
+                // The protected authored starter camp must remain a camp,
+                // not be buried under the large urban paved neighborhood.
+                if(tx==0&&ty==0)continue;
                 int count=buildings(tx,ty);
                 if(count<1)continue;
                 // Coherent style across a 2-by-2 district, not random styles
