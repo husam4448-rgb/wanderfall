@@ -18,9 +18,9 @@ public final class V62InventoryPreview extends View {
         super.onDraw(canvas);
         int w=getWidth(),h=getHeight();
         canvas.drawColor(0xff211d19);
-        paint.setColor(0xff3d3228);canvas.drawOval(w*.14f,h*.79f,w*.86f,h*.96f,paint);
+        paint.setColor(0xff3d3228);canvas.drawOval(w*.14f,h*.68f,w*.86f,h*.87f,paint);
         paint.setColor(0xffac8954);paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(3f);canvas.drawOval(w*.14f,h*.79f,w*.86f,h*.96f,paint);
+        paint.setStrokeWidth(3f);canvas.drawOval(w*.14f,h*.68f,w*.86f,h*.87f,paint);
         paint.setStyle(Paint.Style.FILL);
         // The exact approved idle atlas and current equipped firearm/torch are
         // rendered through GameView.character; head/torso art is never reconstructed.
@@ -28,7 +28,7 @@ public final class V62InventoryPreview extends View {
         // enlarge by the world/character zoom or crop the face/equipment.
         float factor=Math.min(w/188f,h/140f)*1.04f/Math.max(.65f,game.scale);
         canvas.save();
-        canvas.translate(w*.57f,h*.87f);
+        canvas.translate(w*.57f,h*.76f);
         canvas.scale(factor,factor);
         float breath=(float)(-2+2*Math.sin(System.nanoTime()/350_000_000.0));
         game.character(canvas,0,0,game.gun,game.face,2,breath,0f,0f,true,false,-1);
