@@ -40,7 +40,7 @@ jobs:
           adb shell wm density 260 || true
           adb install /tmp/sp157/Survival_Paradise_V157_World_Fix.apk
           adb logcat -c
-          adb shell am start -W -n "com.survivalparadise.nativegame.v157worldfix/com.survivalparadise.nativegame.MainActivity"
+          timeout 25s adb shell am start -n "com.survivalparadise.nativegame.v157worldfix/com.survivalparadise.nativegame.MainActivity" || echo 'Activity launch command timed out; collect logcat'
           sleep 8
           adb logcat -d > /tmp/sp157/visual/logcat_startup.txt
           if ! adb shell pidof "$PKG"; then
