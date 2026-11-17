@@ -1,0 +1,48 @@
+name: Survival Paradise V161 - Publish Verified Direct Test APK
+on:
+  push:
+    branches: [sp-native-v161-v160-feedback-fixes-20261117]
+    paths: ['.github/workflows/sp-v161-publish-direct-apk.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish-direct:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Retrieve exact CI-verified installable artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/spv161
+          gh run download 44160079101 -R "$GITHUB_REPOSITORY" \
+            -n Survival_Paradise_V161_World_Inventory_Fixes_Test -D /tmp/spv161
+          APK=/tmp/spv161/Survival_Paradise_V161_World_Inventory_Fixes_Test.apk
+          HASH=/tmp/spv161/SHA256.txt
+          test -s "$APK"
+          test -s "$HASH"
+          unzip -t "$APK" | tail -1 | grep -q 'No errors detected'
+          ( cd /tmp/spv161 && sed 's@deliverables/@@g' SHA256.txt | sha256sum -c - )
+          echo "PASS: downloaded APK matches immutable V161 Android build artifact"
+      - name: Publish publicly downloadable pre-release APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG=survival-paradise-v161-fixes-test
+          APK=/tmp/spv161/Survival_Paradise_V161_World_Inventory_Fixes_Test.apk
+          HASH=/tmp/spv161/SHA256.txt
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" "$HASH" --clobber -R "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" "$APK" "$HASH" -R "$GITHUB_REPOSITORY" \
+              --target 335b96641068d911e58b27812ae77886daa01ea2 \
+              --title "Survival Paradise V161 - World and Inventory Fixes Test" \
+              --notes "Standalone Android V161 test package, independently installable beside V160. Changes: distant zoom rendering budget; compact icon-led bag item details, larger character preview; door interactions and per-building interior variants; road/scrap exclusion. Seeded world, save and source regression tests and Android package SHA/asset/signature checks passed. Gameplay and framerate on a physical Android device still require hands-on testing. Original 200 heads and no visual head equipment retained." \
+              --prerelease
+          fi
+          gh release view "$TAG" -R "$GITHUB_REPOSITORY" --json url,assets \
+            --jq '{url:.url,assets:[.assets[]|{name:.name,url:.url}]}'
