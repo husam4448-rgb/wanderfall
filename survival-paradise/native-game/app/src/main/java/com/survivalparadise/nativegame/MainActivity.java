@@ -1437,22 +1437,26 @@ public final class MainActivity extends Activity {
                 (dialog,selected)->dropQuantityDialogV129(indexes.get(selected),refresh))
             .setNegativeButton("CANCEL",null).show();
     }
+    /** V158: indoor fallen NPCs use exactly the V134 exterior corpse grid:
+     * source inventory + player inventory, drag/drop, LOOT, LOOT ALL and CLOSE.
+     * The body remains on the floor after its last item is taken.
+     */
+    void lootIndoorCorpseV158(int corpseIndex){
+        if(game==null||!game.isPlaying()||!game.insideClinicV89||
+           game.nearestIndoorCorpseV129()!=corpseIndex)return;
+        BanditLootV87.Bag remains=game.indoorCorpseBagV158(corpseIndex);
+        if(remains==null)return;
+        compactLootDialogV134(
+            "FALLEN CHARACTER  •  SEARCH POSSESSIONS",
+            "CORPSE LOOT",GameView.CORPSE_NUT_KIND_V143+3,
+            kind->remains.itemCount(kind),
+            kind->game.lootIndoorCorpseStackV158(corpseIndex,kind),
+            ()->game.lootAllIndoorCorpseV158(corpseIndex),
+            true);
+    }
+    /** Retained V129 public entry, never show the obsolete bulk-search prompt. */
     void searchIndoorCorpseDialogV129(int corpseIndex){
-        if(game==null||!game.insideClinicV89||corpseIndex<0||
-            corpseIndex>=game.clinicActorsV90.actors.length)return;
-        ClinicActorsV90.Actor actor=game.clinicActorsV90.actors[corpseIndex];
-        if(actor.active)return;
-        boolean looted=game.indoorCorpseSearchedV129(corpseIndex);
-        new AlertDialog.Builder(this)
-            .setTitle("SEARCH FALLEN CHARACTER")
-            .setMessage(looted?"Already searched; nothing remains.":
-                "Possessions: "+game.indoorCorpseContentsV129(corpseIndex))
-            .setNegativeButton("CLOSE",null)
-            .setPositiveButton("SEARCH",(d,w)->{
-                if(!game.searchIndoorCorpseV129(corpseIndex))
-                    Toast.makeText(this,looted?"Already searched":
-                        "Move closer to search",Toast.LENGTH_SHORT).show();
-            }).show();
+        lootIndoorCorpseV158(corpseIndex);
     }
     void recoverDroppedV129(DroppedItemsV129.Stack stack){
         if(game==null||stack==null||!game.droppedItemsV129.contains(stack))return;
