@@ -20,7 +20,7 @@ public final class NaturalGroundArtV157 {
     }
     private static void patch(Canvas c,Paint paint,Path path,
                               NaturalGroundV157.Patch b,
-                              WorldGeographyV160 geography){
+                              WorldGeographyV160 geography,boolean distant){
         int biome=geography==null?BiomeWorldV74.biome(b.x,b.y):
             geography.biomeAt(b.x,b.y);
         // Desert and highland ground gets less saturated grass.
@@ -32,7 +32,7 @@ public final class NaturalGroundArtV157 {
             0xff596c54:color(b.kind,b.variation);
         path.reset();
         c.save();c.rotate(b.rotation,b.x,b.y);
-        final int sides=14;
+        final int sides=distant?8:14;
         for(int i=0;i<sides;i++){
             double angle=i*Math.PI*2/sides;
             float jag=NaturalGroundV157.wobble(b,i);
@@ -51,7 +51,7 @@ public final class NaturalGroundArtV157 {
             b.x+b.rx*.43f,b.y+b.ry*.31f,paint);
         c.restore();
         // Individual broken grass / grit clusters, not a tiled pattern.
-        int count=b.kind==NaturalGroundV157.GRASS?15:9;
+        int count=distant?2:b.kind==NaturalGroundV157.GRASS?15:9;
         for(int i=0;i<count;i++){
             int h=WorldChunkModel.hash(Math.round(b.x)+i*31,
                                        Math.round(b.y)+i*19+b.variation*41);
@@ -77,6 +77,11 @@ public final class NaturalGroundArtV157 {
     public static void draw(Canvas c,float camX,float camY,
                             float viewW,float viewH,
                             WorldGeographyV160 geography){
+        draw(c,camX,camY,viewW,viewH,geography,false);
+    }
+    public static void draw(Canvas c,float camX,float camY,
+                            float viewW,float viewH,
+                            WorldGeographyV160 geography,boolean distant){
         Paint p=new Paint(Paint.ANTI_ALIAS_FLAG);
         p.setStyle(Paint.Style.FILL);
         p.setStrokeWidth(1.8f);
@@ -93,7 +98,7 @@ public final class NaturalGroundArtV157 {
                         NaturalGroundV157.patchSeeded(gx,gy,k,geography.seed);
                     if(b.x+b.rx<camX||b.x-b.rx>camX+viewW||
                        b.y+b.ry<camY||b.y-b.ry>camY+viewH)continue;
-                    patch(c,p,shape,b,geography);
+                    patch(c,p,shape,b,geography,distant);
                 }
     }
 }
