@@ -939,7 +939,8 @@ public final class MainActivity extends Activity {
     }
     /** A single, stable listener reads the current compacted source kind. */
     private void attachCompactLootTouchV134(SquareItemSlotV88 cell,int[] selected,
-                                             Runnable[] refresh,LootCountV95 counts){
+                                             Runnable[] refresh,LootCountV95 counts,
+                                             java.util.function.IntConsumer inspector){
         final float[] first={0f,0f};
         final int[] pressed={-1};
         final boolean[] dragging={false};
@@ -951,6 +952,7 @@ public final class MainActivity extends Activity {
             if(kind>=0&&counts.at(kind)>0){
                 selected[0]=kind;
                 if(refresh[0]!=null)refresh[0].run();
+                if(inspector!=null)inspector.accept(kind);
             }
         });
         cell.setOnTouchListener((v,e)->{
@@ -985,6 +987,15 @@ public final class MainActivity extends Activity {
             }
             return true;
         });
+    }
+    private int lootItemKindV163(int kind,int kinds){
+        if(kind<BanditLootV87.ITEMS)return kind;
+        if(kinds<=GearLootV95.TOTAL)return 24+kind-BanditLootV87.ITEMS;
+        if(kind>=GameView.CORPSE_NUT_KIND_V143)
+            return -2-(kind-GameView.CORPSE_NUT_KIND_V143);
+        if(kind>=GameView.CORPSE_AMMO_KIND_V143)
+            return AmmoInventoryV143.FIRST+kind-GameView.CORPSE_AMMO_KIND_V143;
+        return OutfitInventoryV140.FIRST+kind-BanditLootV87.ITEMS;
     }
     interface LootTakeV134 { int take(int kind); }
     interface LootAllV134 { int take(); }
@@ -1030,15 +1041,7 @@ public final class MainActivity extends Activity {
                 if(amount<=0)continue;
                 if(index>=sourceCells.length)break;
                 SquareItemSlotV88 cell=sourceCells[index++];
-                int inventoryType=kind<BanditLootV87.ITEMS?kind:
-                    kinds>GearLootV95.TOTAL?
-                        (kind>=GameView.CORPSE_NUT_KIND_V143?
-                            -2-(kind-GameView.CORPSE_NUT_KIND_V143):
-                            kind>=GameView.CORPSE_AMMO_KIND_V143?
-                                AmmoInventoryV143.FIRST+
-                                    kind-GameView.CORPSE_AMMO_KIND_V143:
-                            OutfitInventoryV140.FIRST+kind-BanditLootV87.ITEMS):
-                        24+kind-BanditLootV87.ITEMS;
+                int inventoryType=lootItemKindV163(kind,kinds);
                 cell.setTag(kind);
                 showLootTileV134(cell,inventoryType,amount,selected[0]==kind);
             }
@@ -1068,12 +1071,32 @@ public final class MainActivity extends Activity {
             }
         };
         for(SquareItemSlotV88 cell:sourceCells)
-            attachCompactLootTouchV134(cell,selected,refresh,counts);
+            attachCompactLootTouchV134(cell,selected,refresh,counts,
+                kind->{
+                    int item=lootItemKindV163(kind,kinds),amount=counts.at(kind);
+                    if(amount<=0)return;
+                    showItemInspectorV163(item,amount,sourceTitle,
+                        "LOOT",()->{
+                            selected[0]=kind;
+                            if(claim[0]!=null)claim[0].run();
+                        },null,null,refresh[0]);
+                });
         View.OnDragListener drop=lootDropV95(selected,claim,kinds);
         destination.setOnDragListener(drop);
         dstScroll.setOnDragListener(drop);
         dstItems.setOnDragListener(drop);
-        for(SquareItemSlotV88 cell:playerCells)cell.setOnDragListener(drop);
+        for(int i=0;i<playerCells.length;i++){
+            final int position=i;
+            SquareItemSlotV88 cell=playerCells[i];
+            cell.setOnDragListener(drop);
+            cell.setOnClickListener(v->{
+                int type=game.bagOrderV92[position];
+                int amount=game.bagSlotQuantityV130(position);
+                if(amount>0&&UnifiedBagSlotsV141.valid(type))
+                    showItemInspectorV163(type,amount,"YOUR BAG • LOOT",
+                        null,null,null,null,refresh[0]);
+            });
+        }
         refresh[0].run();
         LinearLayout footer=new LinearLayout(this);
         footer.setOrientation(LinearLayout.HORIZONTAL);
