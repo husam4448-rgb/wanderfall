@@ -4364,7 +4364,21 @@ public final class GameView extends View {
                !GroundPickupsV85.placed(kind,seed,x,y,CAMP_X,CAMP_Y)||
                 WorldBuildingV157.sceneryBlocked(
                     x,y-11f,46f,industrialSeedV123,civilizationV159))continue;
-            // V86 irregular ground silhouettes; never draw framed inventory icons.
+            // V166 uses existing authored world sprites, never mini blocky
+            // inventory-like programmer shapes. Ground pickup coordinates,
+            // search reach, quantities and collected save keys are untouched.
+            int worldArtSeed=geographyV160==null?industrialSeedV123:
+                geographyV160.seed;
+            boolean authored=kind==GroundPickupsV85.STONE?
+                WorldArtV166.draw(c,WorldArtSelectionV166.ROCK,
+                    x,y+5f,46f,32f,worldArtSeed,seed):
+                kind==GroundPickupsV85.WOOD?
+                WorldArtV166.draw(c,WorldArtSelectionV166.WOOD,
+                    x,y+5f,54f,32f,worldArtSeed,seed):
+                CampSceneArtV1652.prop(c,CampSceneArtV1652.DEBRIS,
+                    x,y-8f,56f,36f);
+            if(authored)continue;
+            // Geometry exists only as a fallback when an authored atlas fails.
             color(0x99101c1a);c.drawOval(x-18,y-8,x+18,y+5,p);
             if(kind==GroundPickupsV85.STONE){
                 rect(c,x-17,y-11,30,13,0xff182628);

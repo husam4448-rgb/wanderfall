@@ -50,3 +50,8 @@ case, even if the JVM selector and Python pixel-asset contract pass.
 - **Production correction:** normalize the helper to `drawOval(left,top,right,bottom)`; keep the authored V166 campfire atlas as the normal render, with no duplicate geometric hearth.
 - **Actual in-game evidence:** GitHub Actions V166 run **44357275998** captured normal starter, road approach and distant-zoom real emulator frames after the production campfire replacement. The conspicuous diagonal gray/beige ellipse bands visible in V165.2 no longer appear in those frames; additional location/seed visual verification remains pending.
 - **Scope:** The correction changes camp fallback drawing only, not seeds, road topology, NPCs, equipment, object IDs or saves.
+
+## V166 world-wide small ground pickups
+- `GameView.drawLooseGroundPickupsV85` now selects original authored rock or fallen-wood sprites from `WorldArtV166` and material-rich salvage from `CampSceneArtV1652`, replacing mini block silhouettes at every original pickup coordinate.
+- **No identity/physics/economy changes:** pickup placement, quantity, radius, collection and save keys unchanged; seeded sprite variation uses existing identities only.
+- Normal/far in-game inspection **PENDING**; retains old visuals only if original author-sourced atlas fails to load.

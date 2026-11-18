@@ -173,6 +173,9 @@ jobs:
           assert 'RoadShoulderArtV1651.load(host.getAssets())' in game
           assert 'CampfireArtV166.load(host.getAssets())' in game
           assert 'CampfireArtV166.draw(c,x,y,campfiresLit,worldTimer)' in game
+          assert 'WorldArtV166.draw(c,WorldArtSelectionV166.ROCK' in game
+          assert 'WorldArtV166.draw(c,WorldArtSelectionV166.WOOD' in game
+          assert 'CampSceneArtV1652.prop(c,CampSceneArtV1652.DEBRIS' in game
           assert 'if(CampfireArtV166.ready())return;' in camp
           # Regression: V164's old helper took LTRB inputs but interpreted
           # right/bottom as widths, yielding huge diagonal road-adjacent bands.
