@@ -296,21 +296,21 @@ jobs:
           s=s.replace(before,'                if(v166Probe!=15&&v166Probe!=36)drawCover(c,box);',1)
           before='        boolean industrialCoreV128=stitchedIndustrialV128&&'
           after="""        // QA-only isolated renders, never compiled into production.
-        if(v166Probe==37){drawSpawnCamp(c);return;}
-        if(v166Probe==38){
+          if(v166Probe==37){drawSpawnCamp(c);return;}
+          if(v166Probe==38){
             for(Cover box:covers)drawCover(c,box);
             return;
-        }
-        if(v166Probe==39){
+          }
+          if(v166Probe==39){
             CampArtV164.drawGround(c,p,survivorCampsV164[0],false);
             return;
-        }
-        if(v166Probe==40){
+          }
+          if(v166Probe==40){
             CampArtV164.drawStructures(c,p,survivorCampsV164[0]);
             return;
-        }
-        if(v166Probe==41){drawSpawnCampDetails(c);return;}
-        boolean industrialCoreV128=stitchedIndustrialV128&&"""
+          }
+          if(v166Probe==41){drawSpawnCampDetails(c);return;}
+          boolean industrialCoreV128=stitchedIndustrialV128&&"""
           assert before in s,before
           p.write_text(s.replace(before,after,1))
           print('PASS: isolated camp, cached camp, direct camp, camp ground, structural props and cover geometry')
