@@ -50,7 +50,7 @@ jobs:
           for filename,expected in (
               ('sp_v1651_camp_tents.webp.b64',(668,263)),
               ('sp_v1651_stations.webp.b64',(500,215)),
-              ('sp_v1651_road_shoulder.webp.b64',(512,128)),
+              ('sp_v1651_road_shoulder.webp.b64',(1024,128)),
           ):
               pack=base64.b64decode((assets/filename).read_text())
               picture=Image.open(io.BytesIO(pack)).convert('RGBA')
@@ -196,7 +196,7 @@ jobs:
           adb logcat -d > /tmp/sp165/visual/logcat.txt
           grep -F 'Camp tents ready: 2 authored RGBA sprites' /tmp/sp165/visual/logcat.txt
           grep -F 'Trade and medic stations ready: 2 authored RGBA sprites' /tmp/sp165/visual/logcat.txt
-          grep -F 'Road shoulder ready: 512x128 RGBA strip' /tmp/sp165/visual/logcat.txt
+          grep -F 'Road shoulder ready: 1024x128 RGBA strip' /tmp/sp165/visual/logcat.txt
           adb shell pidof "$PKG"
           if grep -E 'FATAL EXCEPTION|Process: com.survivalparadise.nativegame.v164camptest' /tmp/sp165/visual/logcat.txt; then exit 1;fi
           test -s /tmp/sp165/visual/02_world_normal.png
