@@ -70,6 +70,11 @@ public final class NeighborhoodLayoutV163 {
         // Identical perimeter and original bottom entrance across all layouts.
         wall(0,0,1600,23);wall(0,0,23,1120);wall(1577,0,23,1120);
         wall(0,1095,751,25);wall(849,1095,751,25);
+        // V166: tie every partition to a continuous structural perimeter.
+        // The second south course deliberately shares the 98-unit exit gap.
+        // These are real collision walls, never visual-only doorway covers.
+        wall(23,23,1554,21);
+        wall(23,1070,728,25);wall(849,1070,728,25);
         switch(plan){
             case 0:horizontal();break;
             case 1:vertical();break;

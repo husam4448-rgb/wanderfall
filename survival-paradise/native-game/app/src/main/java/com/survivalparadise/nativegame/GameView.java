@@ -2823,14 +2823,12 @@ public final class GameView extends View {
         }
         float inv=1f/ClinicInteriorV89.EXPANSION_V90;
         drawIndoorFloorIlluminationV93(c);
-        for(float[] wall:nonClinicV91?
-            ((ExpeditionInteriorV91)clinicInteriorV89).sceneWalls():ClinicInteriorV89.WALLS){
-            float wx=wall[0]*inv,wy=wall[1]*inv,
-                ww=wall[2]*inv,wh=wall[3]*inv;
-            rect(c,wx-2,wy-2,ww+4,wh+4,0xff162e30);
-            rect(c,wx,wy,ww,wh,0xff425d59);
-            rect(c,wx+2,wy+2,Math.max(2,ww-4),5,0xff90a39b);
-        }
+        float[][] wallSegmentsV166=nonClinicV91?
+            ((ExpeditionInteriorV91)clinicInteriorV89).sceneWalls():ClinicInteriorV89.WALLS;
+        int wallThemeV166=clinicInteriorV89 instanceof NeighborhoodInteriorV161?
+            ((NeighborhoodInteriorV161)clinicInteriorV89).theme:8;
+        InteriorWallArtV166.draw(c,p,wallSegmentsV166,inv,wallThemeV166,
+            industrialSeedV123+Math.max(0,activeSiteV91)*37);
         // V163: the portal frames and labels follow this building's actual
         // topology. The legacy clinic/expedition grids retain their own signs.
         NeighborhoodInteriorV161 uniqueV163=
@@ -2842,13 +2840,10 @@ public final class GameView extends View {
             uniqueV163.sceneLabelPositionsV163():ClinicInteriorV89.ROOM_LABELS;
         for(int i=0;i<portals.length;i++){
             float dx=portals[i][0]*inv,dy=portals[i][1]*inv;
-            if(uniqueV163!=null&&uniqueV163.doorVerticalV163(i)){
-                rect(c,dx-6,dy-44,10,88,0xff283e40);
-                rect(c,dx-3,dy-42,4,84,0xffddc7a2);
-            }else{
-                rect(c,dx-47,dy-6,94,10,0xff283e40);
-                rect(c,dx-44,dy-3,88,4,0xffddc7a2);
-            }
+            if(uniqueV163!=null)
+                InteriorWallArtV166.doorway(c,p,dx,dy,
+                    uniqueV163.doorVerticalV163(i),uniqueV163.theme);
+            // Legacy clinic signs are labels only; do not paint a false door.
         }
         String[] roomsV91=nonClinicV91?
             ((ExpeditionInteriorV91)clinicInteriorV89).roomNames():ClinicInteriorV89.ROOMS;
