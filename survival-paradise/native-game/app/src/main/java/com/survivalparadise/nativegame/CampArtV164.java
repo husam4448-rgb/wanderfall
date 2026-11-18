@@ -275,7 +275,7 @@ public final class CampArtV164 {
     public static float foregroundY(CampWorldV164.Site s,int kind){
         if(kind<2)return s.y+(s.starter?-185f:-153f)+100f;
         if(kind==2)return s.y+(s.starter?34f:125f)+53f;
-        if(kind==3)return s.y+(s.starter?42f:119f)+92f;
+        if(kind==3)return s.y+(s.starter?-105f:119f)+70f;
         return s.y+(s.starter?5f:273f)+91f;
     }
     public static void foreground(Canvas c,Paint p,CampWorldV164.Site s,int kind){
@@ -312,8 +312,8 @@ public final class CampArtV164 {
             return;
         }
         if(kind==3){
-            cx=x+(s.starter?4f:155f);
-            cy=y+(s.starter?42f:119f);
+            cx=x+(s.starter?-38f:155f);
+            cy=y+(s.starter?-105f:119f);
             if(CampStationSpriteV1651.drawMedicFront(c,cx,cy))return;
             rect(c,p,cx-70,cy-2,135,42,0xff263a35);
             rect(c,p,cx-61,cy+2,119,33,0xff9c9d86);
@@ -344,7 +344,9 @@ public final class CampArtV164 {
             canvasTent(c,p,x-300,y-185,s.variation,true);
             canvasTent(c,p,x+225,y-185,s.variation+3,false);
             tradeStand(c,p,x-215,y+34);
-            medicPost(c,p,x+4,y+42);
+            // The field clinic belongs BETWEEN rear tents, not over the
+            // starting character's walkable ground/campfire apron.
+            medicPost(c,p,x-38,y-105);
             watchPost(c,p,x+222,y+5);
             storage(c,p,s.chestX(),s.chestY());
             // Solar panels and supplies occupy unused shaded corners.

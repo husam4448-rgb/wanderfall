@@ -60,7 +60,7 @@ public final class CampStationSpriteV1651 {
     }
     public static boolean drawMedic(Canvas c,float x,float y){
         Bitmap b=sprites[1];if(b==null||b.isRecycled())return false;
-        dst.set(x-125f,y-115f,x+125f,y+100f);
+        dst.set(x-95f,y-87f,x+95f,y+76f);
         c.drawBitmap(b,null,dst,P);
         return true;
     }
@@ -74,9 +74,9 @@ public final class CampStationSpriteV1651 {
     /** Keep center medical doorway clear: depth overlay is side fabric ONLY. */
     public static boolean drawMedicFront(Canvas c,float x,float y){
         Bitmap b=sprites[1];if(b==null||b.isRecycled())return false;
-        dst.set(x-125f,y-21f,x-60f,y+100f);
+        dst.set(x-95f,y-16f,x-45f,y+76f);
         c.drawBitmap(b,medicLeft,dst,P);
-        dst.set(x+60f,y-21f,x+125f,y+100f);
+        dst.set(x+45f,y-16f,x+95f,y+76f);
         c.drawBitmap(b,medicRight,dst,P);
         return true;
     }

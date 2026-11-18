@@ -1839,7 +1839,7 @@ public final class GameView extends View {
         // Reposition the SAME five roles outside actual art footprints.
         // NPC identities, trade inventories and save schema remain unchanged.
         campStaff.add(new Survivor(CAMP_X-210,CAMP_Y+147,3,ROLE_TRADER));
-        campStaff.add(new Survivor(CAMP_X+20,CAMP_Y+128,3,ROLE_MEDIC+1));
+        campStaff.add(new Survivor(CAMP_X-38,CAMP_Y+10,3,ROLE_MEDIC+1));
         campStaff.add(new Survivor(CAMP_X+310,CAMP_Y-26,3,ROLE_MECHANIC));
         campStaff.add(new Survivor(CAMP_X+206,CAMP_Y+140,2,ROLE_GUARD+1));
         campStaff.add(new Survivor(CAMP_X-80,CAMP_Y+171,3,ROLE_CIVILIAN));
