@@ -265,6 +265,9 @@ public final class NeighborhoodLayoutV163 {
         zone(24,cross+20,west,1070,(23+west)/2f,cross+19,false,1);
         zone(east+20,cross+20,1577,1070,(east+1577)/2f,cross+19,false,1);
     }
+    public boolean doorVertical(int room){
+        return room>=0&&room<zones.size()&&zones.get(room).vertical;
+    }
     public boolean blocked(float worldX,float worldY,float radius){
         if(worldX-radius<23*S||worldX+radius>1577*S||
            worldY-radius<23*S||worldY+radius>1095*S)return true;
