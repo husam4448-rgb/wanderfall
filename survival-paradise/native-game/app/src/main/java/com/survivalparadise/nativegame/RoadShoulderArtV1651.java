@@ -50,10 +50,16 @@ public final class RoadShoulderArtV1651 {
     public static boolean ready(){return shader!=null;}
 
     /** Band's local Y increases from dirt-side to asphalt-side. */
-    private static void band(Canvas c,float start,float end,float edge){
+    private static void band(Canvas c,float start,float end,float edge,
+                             float worldAnchor,boolean reverse){
         if(shader==null||end<=start)return;
         MATRIX.reset();
-        MATRIX.setTranslate(0f,edge-64f);
+        if(reverse){
+            // Left road edge uses a mirrored local X axis, but samples the
+            // SAME world-Y coordinate as right edge and adjacent sectors.
+            MATRIX.setScale(-1f,1f);
+            MATRIX.postTranslate(worldAnchor,edge-64f);
+        }else MATRIX.setTranslate(worldAnchor,edge-64f);
         shader.setLocalMatrix(MATRIX);
         P.setShader(shader);P.setAlpha(255);
         c.drawRect(start,edge-64f,end,edge+64f,P);
@@ -64,11 +70,11 @@ public final class RoadShoulderArtV1651 {
     public static void horizontal(Canvas c,float start,float end,
                                   float top,float bottom){
         if(shader==null||end<=start||bottom<=top)return;
-        band(c,start,end,top);
+        band(c,start,end,top,0f,false);
         c.save();
         c.translate(0f,2f*bottom);
         c.scale(1f,-1f);
-        band(c,start,end,bottom);
+        band(c,start,end,bottom,0f,false);
         c.restore();
     }
 
@@ -79,11 +85,11 @@ public final class RoadShoulderArtV1651 {
         float len=bottom-top;
         c.save();
         c.translate(left,top);c.rotate(-90f);
-        band(c,-len,0f,0f);
+        band(c,-len,0f,0f,top,true);
         c.restore();
         c.save();
         c.translate(right,bottom);c.rotate(90f);
-        band(c,-len,0f,0f);
+        band(c,-len,0f,0f,-bottom,false);
         c.restore();
     }
 
