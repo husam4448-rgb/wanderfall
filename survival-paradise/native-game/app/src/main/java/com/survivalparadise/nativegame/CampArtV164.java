@@ -208,9 +208,9 @@ public final class CampArtV164 {
         // Intentionally composed non-interactive salvage clusters.
         // These two weathered groups replace the old four identical
         // grid-aligned boxes, schematic barrels and flat solar grid.
-        CampSceneArtV1652.debris(c,x-414f,y+68f,false);
+        CampSceneArtV1652.debris(c,x-432f,y+68f,false);
         CampSceneArtV1652.debris(c,x+402f,y-26f,true);
-        CampSceneArtV1652.solar(c,x-403f,y+228f);
+        CampSceneArtV1652.solar(c,x-423f,y+255f);
     }
 
     /** Visible camp structures have foreground lips ordered by world Y.
@@ -219,7 +219,7 @@ public final class CampArtV164 {
      */
     public static float foregroundY(CampWorldV164.Site s,int kind){
         if(kind<2)return s.y+(s.starter?-185f:-153f)+100f;
-        if(kind==2)return s.y+(s.starter?34f:125f)+53f;
+        if(kind==2)return s.y+(s.starter?73f:125f)+53f;
         if(kind==3)return s.y+(s.starter?-105f:119f)+70f;
         if(kind==4)return s.y+(s.starter?5f:273f)+47f;
         return s.chestY()+32f;
@@ -236,7 +236,7 @@ public final class CampArtV164 {
             return;
         }
         float cx=x+(s.starter?-215f:-255f);
-        float cy=y+(s.starter?34f:125f);
+        float cy=y+(s.starter?73f:125f);
         if(kind==2){
             if(CampStationSpriteV1651.drawTraderFront(c,cx,cy))return;
             // Legacy fallback when the authored counter cannot be decoded.
@@ -273,7 +273,7 @@ public final class CampArtV164 {
             CampSceneArtV1652.chestFront(c,s.chestX(),s.chestY());
             return;
         }
-        cx=x+(s.starter?222f:55f);
+        cx=x+(s.starter?270f:55f);
         cy=y+(s.starter?5f:273f);
         if(CampSceneArtV1652.guardFront(c,cx,cy))return;
         for(int row=0;row<2;row++)for(int i=0;i<5;i++){
@@ -294,11 +294,11 @@ public final class CampArtV164 {
             c.clipRect(x-470,y-350,x+470,y+210);
             canvasTent(c,p,x-300,y-185,s.variation,true);
             canvasTent(c,p,x+225,y-185,s.variation+3,false);
-            tradeStand(c,p,x-215,y+34);
+            tradeStand(c,p,x-215,y+73);
             // The field clinic belongs BETWEEN rear tents, not over the
             // starting character's walkable ground/campfire apron.
             medicPost(c,p,x-38,y-105);
-            watchPost(c,p,x+222,y+5);
+            watchPost(c,p,x+270,y+5);
             storage(c,p,s.chestX(),s.chestY());
             // Smaller, correctly-scaled authored foldable solar charger and
             // two contextual salvage piles, clear of tents and trader access.
