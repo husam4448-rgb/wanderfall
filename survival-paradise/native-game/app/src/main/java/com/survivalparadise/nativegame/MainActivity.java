@@ -1927,7 +1927,57 @@ public final class MainActivity extends Activity {
                 }
             },"CHOOSE",()->showEquipmentChoicesV163(socket,refresh),refresh);
     }
+    private void showWeaponLoadoutsV163(Runnable refresh){
+        // Keep original selectable 12-weapon loadouts even when a recovered
+        // firearm is not owned. Previous gameplay must never be removed by UI.
+        LinearLayout panel=column();
+        panel.setPadding(dp118(7),dp118(6),dp118(7),dp118(6));
+        panel.setBackgroundColor(0xff22362f);
+        TextView head=text("EQUIP PRIMARY • CHOOSE AND INSPECT",10,true);
+        head.setTextColor(0xfff1e6c5);panel.addView(head);
+        ScrollView scroll=new ScrollView(this);
+        LinearLayout list=column();scroll.addView(list);
+        panel.addView(scroll,new LinearLayout.LayoutParams(-1,dp118(175)));
+        AlertDialog picker=new AlertDialog.Builder(this).setView(panel).create();
+        for(int weapon=0;weapon<GameView.POWER.length;weapon++){
+            final int gun=weapon;
+            final int type=OutfitInventoryV140.WEAPONS+gun;
+            LinearLayout row=new LinearLayout(this);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setBackground(v147TouchSurface(0xff2e463e,0xff698575,5));
+            android.widget.ImageView icon=new android.widget.ImageView(this);
+            icon.setImageDrawable(lootIconV134(type));
+            row.addView(icon,new LinearLayout.LayoutParams(dp118(29),dp118(29)));
+            String detail=OutfitInventoryV140.WEAPON_NAMES[gun]+
+                (gun==3?" • LIGHT":gun==11?" • MELEE":
+                 " • DMG "+GameView.POWER[gun]+" • MAG "+GameView.MAG[gun]);
+            TextView label=text(detail,10,true);
+            label.setPadding(dp118(5),0,0,0);
+            row.addView(label,new LinearLayout.LayoutParams(0,-2,1));
+            list.addView(row,new LinearLayout.LayoutParams(-1,dp118(33)));
+            row.setOnClickListener(v->{
+                picker.dismiss();
+                showItemInspectorV163(type,1,"PRIMARY LOADOUT",
+                    "EQUIP",()->{
+                        if(game.outfitsV140.available(type)>0)
+                            game.equipOutfitV140(type);
+                        else{
+                            prefs.edit().putInt("gun",gun).apply();
+                            game.reloadSettings();game.saveProgress();
+                        }
+                        game.organizeBagV131(1);
+                    },null,null,refresh);
+            });
+        }
+        picker.show();
+        if(picker.getWindow()!=null){
+            picker.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            picker.getWindow().setLayout(Math.min(dp118(300),
+                Math.round(getResources().getDisplayMetrics().widthPixels*.43f)),-2);
+        }
+    }
     private void showEquipmentChoicesV163(int slot,Runnable refresh){
+        if(slot==6){showWeaponLoadoutsV163(refresh);return;}
         java.util.ArrayList<Integer> choices=new java.util.ArrayList<>();
         for(int i=0;i<UnifiedBagSlotsV141.MAX_TYPES;i++)
             if(game.inventorySlotV141(i)==slot&&game.availableInventoryV131(i)>0)
