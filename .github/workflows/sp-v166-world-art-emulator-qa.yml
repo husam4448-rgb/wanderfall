@@ -371,22 +371,24 @@ jobs:
               playerX=ClinicInteriorV89.ENTRANCE_X;
               playerY=ClinicInteriorV89.ENTRANCE_Y;
           }
-          // Inspection-only camera vantages. This code never lands in a
-          // production APK: compiled only into the isolated QA test package.
-          int qaVantage=android.provider.Settings.Global.getInt(
-              host.getContentResolver(),"sp_v166_qa_vantage",0);
-          if(playing&&!gameOver&&
-             ((qaInterior>=1&&qaInterior<=8)||(qaLegacy>=9&&qaLegacy<=11))){
-              if(qaVantage==1){
-                  playerX=800f*ClinicInteriorV89.EXPANSION_V90;
-                  playerY=640f*ClinicInteriorV89.EXPANSION_V90;
-              }else if(qaVantage==2){
-                  playerX=800f*ClinicInteriorV89.EXPANSION_V90;
-                  playerY=250f*ClinicInteriorV89.EXPANSION_V90;
-              }
-          }
+          // QA-only scene selection. Camera movement is injected into
+          // render paths below, never by moving the live player into enemies.
           '''
           s=s.replace(needle,needle+'\n'+injection,1)
+          # Pan only the rendering camera for QA vantages. Never teleport
+          # the actual player: hostile NPCs killed the previous photo subject,
+          # making all subsequent captures show the YOU DIED overlay.
+          for render_method in ('drawClinicInteriorV89','drawIndustrialInteriorV123'):
+              entry=s.index('    void '+render_method+'(Canvas c){')
+              where=s.index('        c.save();c.translate(-camX,-camY);',entry)
+              old='        c.save();c.translate(-camX,-camY);'
+              replacement='''        c.save();
+        int qaVantageV166=android.provider.Settings.Global.getInt(
+            host.getContentResolver(),"sp_v166_qa_vantage",0);
+        float qaPanV166=qaVantageV166==1?-394f*ClinicInteriorV89.EXPANSION_V90:
+            qaVantageV166==2?-784f*ClinicInteriorV89.EXPANSION_V90:0f;
+        c.translate(-camX,-camY-qaPanV166);'''
+              s=s[:where]+replacement+s[where+len(old):]
           vision='        drawClinicVisionV90(c);'
           assert s.count(vision)>=2,s.count(vision)
           s=s.replace(vision,
@@ -551,6 +553,27 @@ jobs:
           for kind in 1 2 3 4 5 6 7 8;do test -s "/tmp/sp165/visual/08_centre_kind_$kind.png";done
           for kind in 1 2 3 4 5 6 7 8;do test -s "/tmp/sp165/visual/09_north_kind_$kind.png";done
           for scene in 9 10 11;do test -s "/tmp/sp165/visual/10_legacy_scene_$scene.png";done
+          python3 - <<'PY'
+          from PIL import Image,ImageChops,ImageStat
+          import numpy as np
+          folder='/tmp/sp165/visual/'
+          for name in ('09_north_kind_5.png','10_legacy_scene_9.png',
+                       '10_legacy_scene_10.png','10_legacy_scene_11.png'):
+              picture=np.asarray(Image.open(folder+name).convert('RGB'))
+              h,w=picture.shape[:2]
+              middle=picture[int(h*.32):int(h*.43),int(w*.41):int(w*.59)]
+              mean=middle.mean((0,1));std=middle.std((0,1))
+              assert not (mean[0]<70 and mean[1]<95 and mean[2]<115
+                  and max(std)<24),('Possible YOU DIED modal',name,mean,std)
+          for a,b in (('09_north_kind_5.png','10_legacy_scene_9.png'),
+                      ('10_legacy_scene_9.png','10_legacy_scene_10.png'),
+                      ('10_legacy_scene_10.png','10_legacy_scene_11.png')):
+              im1=Image.open(folder+a).convert('RGB')
+              im2=Image.open(folder+b).convert('RGB')
+              delta=sum(ImageStat.Stat(ImageChops.difference(im1,im2)).mean)/3
+              assert delta>12,(a,b,'unchanged stale view',delta)
+          print('PASS V166: real scene transitions and no death-screen QA capture')
+          PY
           python3 - <<'PY'
           from PIL import Image
           for name in ('02_world_normal.png','04_world_zoomed_out.png'):
