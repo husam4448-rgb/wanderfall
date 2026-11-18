@@ -121,8 +121,10 @@ jobs:
           s=(p/'SurfaceArtV165.java').read_text()
           assert all(t in s for t in ('BitmapShader','Shader.TileMode.REPEAT','sp_v165_surface.webp.b64','public static boolean ready()'))
           for name in ('GameView.java','NeighborhoodArtV154.java','IndustrialSceneV124.java',
-                       'NaturalGroundArtV157.java','IndustrialBiomeSceneV128.java'):
+                       'IndustrialBiomeSceneV128.java'):
             assert 'SurfaceArtV165' in (p/name).read_text(),name
+          assert 'NaturalBrushArtV1652.patch(c,b,biome,distant)' in (p/'NaturalGroundArtV157.java').read_text()
+          assert 'drawPath(' not in (p/'NaturalGroundArtV157.java').read_text()
           game=(p/'GameView.java').read_text()
           assert 'WorldArtV166.load(host.getAssets())' in game
           assert 'WorldArtV166.draw(c,kind,x,y,extent,extent' in game
