@@ -34,17 +34,9 @@ public final class IndustrialInteriorArtV125 {
         rect(c,p,35,35,2650,1825,background);
         // V166 authored concrete from the same persistent material atlas as
         // all exterior roads. No 29x20 checkerboard programmer tiles.
-        SurfaceArtV165.rect(c,35,35,2650,1825,
-            SurfaceArtV165.CONCRETE,162f,248);
-        for(int i=0;i<54;i++){
-            int h=hash(room,i,0x74D541);
-            float xx=75+Math.floorMod(h,2560);
-            float yy=80+Math.floorMod(h>>>11,1725);
-            NaturalBrushArtV1652.stamp(c,
-                i%3==0?NaturalGroundV157.DRY:NaturalGroundV157.DIRT,
-                xx,yy,80f+Math.floorMod(h>>>19,140),
-                50f+Math.floorMod(h>>>23,110),h,30);
-        }
+        if(!InteriorFloorArtV166.industrial(c,room))
+            SurfaceArtV165.rect(c,35,35,2650,1825,
+                SurfaceArtV165.CONCRETE,162f,248);
         // Wide central forklift route and cross-hall are kept free of clutter.
         rect(c,p,1080,38,560,1821,0xff575c56);
         rect(c,p,536,818,1644,214,0xff555951);

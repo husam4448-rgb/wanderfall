@@ -82,6 +82,18 @@ jobs:
               assert tile.getchannel('A').getbbox(),i
               assert tile.getchannel('A').getextrema()[0]==0,i
           print('PASS V166: 16 authored alpha furniture objects, 8 room families')
+          inside=base64.b64decode((assets/'sp_v166_indoor_floors.webp.b64').read_text())
+          assert hashlib.sha256(inside).hexdigest()=='b4baff990d9910508b2d0e55f31b37872ba98fee2a612d2614b4c03d2b5c1b8c'
+          ins=Image.open(io.BytesIO(inside)).convert('RGB')
+          assert ins.size==(1024,512), ins.size
+          import numpy as np
+          for ix in range(8):
+              tx=ix%4*256;ty=ix//4*256
+              a=np.asarray(ins.crop((tx,ty,tx+256,ty+256)),dtype=np.int16)
+              assert a.std()>14,('flat interior asset',ix)
+              assert np.abs(a[:,0,:]-a[:,-1,:]).mean()<9,('horizontal seam',ix)
+              assert np.abs(a[0,:,:]-a[-1,:,:]).mean()<9,('vertical seam',ix)
+          print('PASS V166: eight authored indoor materials, dimensions, seam continuity')
           original=assets/'sp_v109_characters.zip'
           assert original.is_file() and hashlib.sha256(original.read_bytes()).hexdigest()==(
               'c8e364bc1485eb5251fa9494889977038268cbac10f455fa844d7b8a46f6dc3a')
@@ -141,10 +153,11 @@ jobs:
             "$R/tools/V166NeighborhoodArtTest.java" \
             "$R/tools/V166SettlementGroundTest.java" \
             "$R/tools/V166InteriorArtTest.java" \
+            "$R/tools/V166InteriorFloorSelectionTest.java" \
             "$R/tools/V160SeededGeographyTest.java" \
             "$R/tools/V159WorldPlanTest.java" \
             "$R/tools/NeighborhoodV154Test.java"
-          for test in V166InteriorArtTest V166SettlementGroundTest V166NeighborhoodArtTest V166WorldArtSelectionTest V1652CampSpatialTest V164SettlementCampTest V163InteriorLayoutTest GearStatsV162Test \
+          for test in V166InteriorFloorSelectionTest V166InteriorArtTest V166SettlementGroundTest V166NeighborhoodArtTest V166WorldArtSelectionTest V1652CampSpatialTest V164SettlementCampTest V163InteriorLayoutTest GearStatsV162Test \
                       V161NeighborhoodInteriorTest V160SeededGeographyTest \
                       V159WorldPlanTest NeighborhoodV154Test; do
             java -Xmx512m -cp /tmp/v165-java com.survivalparadise.nativegame."$test"
@@ -210,6 +223,10 @@ jobs:
           assert 'CampfireArtV166.load(host.getAssets())' in game
           assert 'BuildingArtV166.load(host.getAssets())' in game
           assert 'InteriorPropArtV166.load(host.getAssets())' in game
+          assert 'InteriorFloorArtV166.load(host.getAssets())' in game
+          assert 'InteriorFloorArtV166.neighborhood(c,room)' in (p/'InteriorMaterialV166.java').read_text()
+          assert 'InteriorFloorArtV166.industrial(c,room)' in (p/'IndustrialInteriorArtV125.java').read_text()
+          assert 'InteriorFloorArtV166.legacy(c,siteKindV91' in game
           assert 'InteriorMaterialV166.floor(c,p,room)' in (p/'NeighborhoodInteriorArtV161.java').read_text()
           assert 'InteriorPropArtV166.draw(c,q,theme,variant,index)' in (p/'NeighborhoodInteriorArtV161.java').read_text()
           assert 'InteriorPropArtV166.drawAt(c,' in (p/'IndustrialInteriorArtV125.java').read_text()
@@ -355,6 +372,7 @@ jobs:
           unzip -l /tmp/sp165/qa-only.apk | grep -F 'assets/sp_v166_campfire.webp.b64'
           unzip -l /tmp/sp165/qa-only.apk | grep -F 'assets/sp_v166_neighborhood.webp.b64'
           unzip -l /tmp/sp165/qa-only.apk | grep -F 'assets/sp_v166_furniture.webp.b64'
+          unzip -l /tmp/sp165/qa-only.apk | grep -F 'assets/sp_v166_indoor_floors.webp.b64'
           unzip -l /tmp/sp165/qa-only.apk | grep -F 'assets/sp_v165_surface.webp.b64'
           unzip -l /tmp/sp165/qa-only.apk | grep -F 'assets/sp_v1652_props.webp.b64'
           unzip -l /tmp/sp165/qa-only.apk | grep -F 'assets/sp_v1652_ground.webp.b64'
@@ -435,6 +453,7 @@ jobs:
           grep -F 'Campfire production sprites ready: 4 lit + 1 unlit' /tmp/sp165/visual/logcat.txt
           grep -F 'Building exteriors ready: 8 families, 16 original sprites' /tmp/sp165/visual/logcat.txt
           grep -F 'Indoor furniture ready: 16 authored objects, 8 room families' /tmp/sp165/visual/logcat.txt
+          grep -F 'Indoor floor materials ready: 8 authored surfaces' /tmp/sp165/visual/logcat.txt
           adb shell pidof "$PKG"
           if grep -E 'FATAL EXCEPTION|Process: com.survivalparadise.nativegame.v164camptest' /tmp/sp165/visual/logcat.txt; then exit 1;fi
           test -s /tmp/sp165/visual/02_world_normal.png

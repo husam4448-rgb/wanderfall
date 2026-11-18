@@ -457,6 +457,7 @@ public final class GameView extends View {
         CampfireArtV166.load(host.getAssets());
         BuildingArtV166.load(host.getAssets());
         InteriorPropArtV166.load(host.getAssets());
+        InteriorFloorArtV166.load(host.getAssets());
         if(industrialModeV123||stitchedIndustrialV128)
             industrialArtV123.load(host.getAssets());
     }
@@ -2769,19 +2770,26 @@ public final class GameView extends View {
         int[] south=nonClinicV91?new int[]{0xff8c8978,0xff838a7a,0xff776e60}:
             new int[]{0xff7b8b78,0xff9a927d,0xff778579};
         if(!(clinicInteriorV89 instanceof NeighborhoodInteriorV161)){
-            for(int i=0;i<3;i++){
-                int sx=23+i*526;int width=(i==2?502:506);
-                rect(c,sx,44,width,442,north[i]);
-                rect(c,sx,642,width,428,south[i]);
+            boolean painted=InteriorFloorArtV166.ready();
+            if(painted){
+                InteriorFloorArtV166.legacy(c,siteKindV91,!nonClinicV91,
+                    industrialSeedV123+Math.max(0,activeSiteV91)*37);
+            }else{
+                for(int i=0;i<3;i++){
+                    int sx=23+i*526;int width=(i==2?502:506);
+                    rect(c,sx,44,width,442,north[i]);
+                    rect(c,sx,642,width,428,south[i]);
+                }
+                rect(c,23,508,1554,112,0xff93998a);
             }
-            rect(c,23,508,1554,112,0xff93998a);
         }
         if(clinicInteriorV89 instanceof NeighborhoodInteriorV161)
             NeighborhoodInteriorArtV161.floor(c,p,
                 (NeighborhoodInteriorV161)clinicInteriorV89);
         // V163 rooms have their own flooring, seams, wear and zone layouts.
         // Keep the hospital's old universal checker grid only for legacy POIs.
-        if(!(clinicInteriorV89 instanceof NeighborhoodInteriorV161)){
+        if(!(clinicInteriorV89 instanceof NeighborhoodInteriorV161)&&
+           !InteriorFloorArtV166.ready()){
             for(int x=44;x<1575;x+=72)
                 rect(c,x,43,2,1028,0x32404c46);
             for(int y=45;y<1080;y+=72)
@@ -6540,6 +6548,7 @@ public final class GameView extends View {
         CampfireArtV166.release();
         BuildingArtV166.release();
         InteriorPropArtV166.release();
+        InteriorFloorArtV166.release();
         lighting.release();
         if(campStatic!=null){campStatic.recycle();campStatic=null;}
         itemIconsV84.release();
