@@ -140,6 +140,13 @@ jobs:
           adb shell input tap 1130 330
           adb shell input tap 740 620
           sleep 26
+          # A second Android immersive-mode permission overlay can appear
+          # after NEW GAME, even if the menu was already unobstructed.
+          adb shell input tap 1130 330
+          sleep 2
+          # Force bright noon lighting so authored materials can be reviewed.
+          adb shell input tap 1493 45 || true
+          sleep 3
           adb shell screencap -p /sdcard/v165_world.png
           adb pull /sdcard/v165_world.png /tmp/sp165/visual/02_world_normal.png
           adb shell input tap 1840 170
@@ -152,6 +159,14 @@ jobs:
           if grep -E 'FATAL EXCEPTION|Process: com.survivalparadise.nativegame.v164camptest' /tmp/sp165/visual/logcat.txt; then exit 1;fi
           test -s /tmp/sp165/visual/02_world_normal.png
           test -s /tmp/sp165/visual/03_world_zoomed_out.png
+          python3 - <<'PY'
+          from PIL import Image
+          for name in ('02_world_normal.png','03_world_zoomed_out.png'):
+              im=Image.open('/tmp/sp165/visual/'+name).convert('RGB')
+              r,g,b=im.getpixel((im.width//2,130))
+              assert not (b>175 and r<100 and g>65 and g<190), (name,'fullscreen help overlay still visible',(r,g,b))
+          print('PASS: captured real unobstructed game visuals')
+          PY
           SCRIPT
           chmod +x /tmp/sp165/emulator.sh
       - name: Actual Android emulator capture (not a simulator)
