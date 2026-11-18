@@ -1,0 +1,76 @@
+package com.survivalparadise.nativegame;
+
+import android.content.res.AssetManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Rect;
+import android.graphics.RectF;
+import android.util.Base64;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+
+/** 
+ * V165.2 original world-ground pigment brushes: dirt, grass and dry soil.
+ * Replaces the visible fourteen-sided monochrome V157 polygons, retaining
+ * exact V157 world locations, biome categories, seed and patch rotations.
+ * No tile geometry, saved world state or spawn/harvest system is touched.
+ */
+public final class NaturalBrushArtV1652 {
+    private static final Paint P=new Paint(Paint.ANTI_ALIAS_FLAG |
+        Paint.FILTER_BITMAP_FLAG | Paint.DITHER_FLAG);
+    private static final Rect SRC=new Rect();
+    private static final RectF DST=new RectF();
+    private static Bitmap atlas;
+    private static boolean attempted;
+    private NaturalBrushArtV1652(){}
+
+    public static synchronized void load(AssetManager assets){
+        if(assets==null||attempted)return;
+        attempted=true;
+        try(InputStream in=assets.open("sp_v1652_biome_blends.webp.b64")){
+            ByteArrayOutputStream stream=new ByteArrayOutputStream(8192);
+            byte[] buf=new byte[4096];int n;
+            while((n=in.read(buf))!=-1)stream.write(buf,0,n);
+            byte[] data=Base64.decode(stream.toByteArray(),Base64.DEFAULT);
+            BitmapFactory.Options o=new BitmapFactory.Options();
+            o.inScaled=false;
+            atlas=BitmapFactory.decodeByteArray(data,0,data.length,o);
+            if(atlas==null||atlas.getWidth()!=768||atlas.getHeight()!=256)
+                throw new IllegalArgumentException("Invalid organic biome brush atlas");
+            android.util.Log.i("SP-V1652",
+                "Natural biome brushes ready: 3 transparent authored pigments");
+        }catch(Exception e){
+            android.util.Log.e("SP-V1652","Missing natural brushes",e);
+            release();
+        }
+    }
+    public static boolean ready(){return atlas!=null&&!atlas.isRecycled();}
+    public static boolean patch(Canvas c,NaturalGroundV157.Patch b,
+                                int biome,boolean distant){
+        if(!ready()||b==null)return false;
+        int kind=b.kind;
+        if(kind==NaturalGroundV157.GRASS&&
+            (biome==BiomeWorldV74.DESERT||biome==BiomeWorldV74.HIGHLANDS))
+            kind=NaturalGroundV157.DRY;
+        if(kind==NaturalGroundV157.DIRT&&biome==BiomeWorldV74.WETLAND)
+            kind=NaturalGroundV157.GRASS;
+        SRC.set(kind*256,0,kind*256+256,256);
+        // Alpha fades organically to zero at the edges, unlike a polygon
+        // clipped to an arbitrary edge with uniform fill.
+        DST.set(b.x-b.rx*1.15f,b.y-b.ry*1.15f,
+                b.x+b.rx*1.15f,b.y+b.ry*1.15f);
+        P.setAlpha(distant?214:255);
+        c.save();
+        c.rotate(b.rotation+(b.variation%3-1)*9f,b.x,b.y);
+        c.drawBitmap(atlas,SRC,DST,P);
+        c.restore();
+        P.setAlpha(255);
+        return true;
+    }
+    public static synchronized void release(){
+        if(atlas!=null&&!atlas.isRecycled())atlas.recycle();
+        atlas=null;attempted=false;
+    }
+}
