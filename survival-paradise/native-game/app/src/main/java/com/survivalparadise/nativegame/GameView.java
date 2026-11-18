@@ -263,6 +263,40 @@ public final class GameView extends View {
     final ArrayList<Bandit> enemies=new ArrayList<>();
     final ArrayList<Survivor> friends=new ArrayList<>();
     final ArrayList<Survivor> campStaff=new ArrayList<>();
+    CampWorldV164.Site[] survivorCampsV164=new CampWorldV164.Site[0];
+    CampCacheV164 campCachesV164=new CampCacheV164(survivorCampsV164);
+    void configureSurvivorCampsV164(boolean saved){
+        survivorCampsV164=CampWorldV164.generate(industrialSeedV123,civilizationV159);
+        campCachesV164=new CampCacheV164(survivorCampsV164);
+        if(saved)campCachesV164.decode(host.prefs.getString(
+            "camp_cache_v164_"+industrialSeedV123,""));
+        campStatic=null; // starter pixel-art texture uses current seed
+    }
+    CampWorldV164.Site nearbyCampCacheV164(){
+        if(!playing||paused||gameOver||insideClinicV89||industrialModeV123)
+            return null;
+        return CampWorldV164.nearbyChest(survivorCampsV164,
+            playerX,playerY,142f);
+    }
+    int lootCampCacheV164(CampWorldV164.Site site,int kind){
+        if(site==null||site!=nearbyCampCacheV164()||
+           kind<0||kind>=CampCacheV164.COUNT)return 0;
+        int qty=campCachesV164.count(site,kind);
+        int type=kind<BanditLootV87.ITEMS?kind:24+
+            kind-BanditLootV87.ITEMS;
+        if(qty<=0||!canStowInventoryV141(type)||
+           !changeInventoryV129(type,qty))return 0;
+        int taken=campCachesV164.take(site,kind);
+        organizeBagV131(1);
+        saveProgress();return taken;
+    }
+    int lootCampCacheAllV164(CampWorldV164.Site site){
+        if(site==null||site!=nearbyCampCacheV164())return 0;
+        int taken=0;
+        for(int kind=0;kind<CampCacheV164.COUNT;kind++)
+            taken+=lootCampCacheV164(site,kind);
+        return taken;
+    }
     final ArrayList<Shot> shots=new ArrayList<>();
     final ArrayList<Drop> drops=new ArrayList<>();
     final ArrayList<Spark> sparks=new ArrayList<>();
@@ -303,6 +337,8 @@ public final class GameView extends View {
     static class Survivor {float x,y,homeX,homeY,cd,aimX=1,aimY=0;int gun,face=1,variant,skinV109;
         // Visual/cadence only, existing survivor saves remain compatible.
         int firedRoundsV151=0;float reloadClockV151=0f;
+        String campIdV164=null;
+        int campRoleV164=-1;
         final AnimationCycle animation=new AnimationCycle();
         Survivor(float a,float b,int g,int variant){x=a;y=b;homeX=a;homeY=b;gun=g;this.variant=variant;
             skinV109=1+Math.floorMod(Math.round(a*13f+b*19f+variant*41f),200);}}
@@ -1284,6 +1320,7 @@ public final class GameView extends View {
         resetTerrainCacheV160(geography);
         civilizationV159=layout;
         industrialSeedV123=layout.seed;
+        configureSurvivorCampsV164(false);
         industrialSiteV123=IndustrialWorldV123.district(0,0,industrialSeedV123);
         industrialYardV123.clear();
         playerX=industrialModeV123?industrialSiteV123.doorX:CAMP_X;
@@ -1343,7 +1380,8 @@ public final class GameView extends View {
                      .remove("indoor_corpse_loot_v158_industrial:"+
                          industrialSeedV123+":"+sx+":"+sy);
             }
-        sitesClear.remove("industrial_yard_v123_"+industrialSeedV123);
+        sitesClear.remove("industrial_yard_v123_"+industrialSeedV123)
+            .remove("camp_cache_v164_"+industrialSeedV123);
         // New games already use the V153 site layout; never run legacy
         // position migration on fresh playthroughs.
         sitesClear.putBoolean("v153_site_caches_migrated",true)
@@ -1368,6 +1406,7 @@ public final class GameView extends View {
         // Continuing an old save leaves its world entirely intact.
         civilizationV159=WorldCivilizationV159.decode(
             host.prefs.getString("world_civilization_v159",""),industrialSeedV123);
+        configureSurvivorCampsV164(true);
         geographyV160=WorldGeographyV160.decode(
             host.prefs.getString("world_geography_v160",""),industrialSeedV123);
         resetTerrainCacheV160(geographyV160);
@@ -1795,6 +1834,21 @@ public final class GameView extends View {
         campStaff.add(new Survivor(CAMP_X+179,CAMP_Y-67,3,ROLE_MECHANIC));
         campStaff.add(new Survivor(CAMP_X+156,CAMP_Y+84,2,ROLE_GUARD+1));
         campStaff.add(new Survivor(CAMP_X-180,CAMP_Y+96,3,ROLE_CIVILIAN));
+        // Preserve the original five identities and append deterministic
+        // roles at every additional world settlement.
+        int[] rolesV164={ROLE_TRADER,ROLE_MEDIC+1,
+            ROLE_GUARD+1,ROLE_MECHANIC,ROLE_CIVILIAN};
+        int[] gunsV164={3,3,2,3,3};
+        for(CampWorldV164.Site site:survivorCampsV164){
+            if(site.starter)continue;
+            for(int role=0;role<CampWorldV164.ROLES;role++){
+                Survivor npc=new Survivor(site.npcX(role),site.npcY(role),
+                    gunsV164[role],rolesV164[role]);
+                npc.campIdV164=site.saveId();
+                npc.campRoleV164=role;
+                campStaff.add(npc);
+            }
+        }
     }
     /** Seed ten permanent scavenging caches once per save, never again after looting. */
     void seedExpeditionCachesV88(){
@@ -2153,7 +2207,9 @@ public final class GameView extends View {
                 float range=distance(playerX,playerY,npc.x,npc.y);
                 if(range>=nearest)continue;
                 nearest=range;
-                chosen="camp:"+i+"_"+npc.skinV109;
+                chosen=npc.campIdV164==null?
+                    "camp:"+i+"_"+npc.skinV109:
+                    "camp164:"+npc.campIdV164+":"+npc.campRoleV164;
             }
             for(int i=0;i<friends.size();i++){
                 Survivor npc=friends.get(i);
@@ -3050,6 +3106,13 @@ public final class GameView extends View {
         // Broadphase is restricted to the 3x3 city grid around this actor;
         // paved district lanes stay walkable, but actual roofs are solid.
         if(NeighborhoodV154.blocked(x,y,r,civilizationV159))return true;
+        // Tent interiors remain entirely walkable. Only the actual metal
+        // supply chest is solid, matching the painted box footprint.
+        for(CampWorldV164.Site site:survivorCampsV164){
+            if(industrialModeV123)break;
+            if(Math.abs(x-site.chestX())<62f+r&&
+               Math.abs(y-site.chestY())<54f+r)return true;
+        }
         if(civilizationV159!=null){
             if(civilizationV159.blocked(x,y,r))return true;
             if(IndustrialPerimeterV159.blocked(x,y,r,industrialSeedV123))
@@ -4059,6 +4122,9 @@ public final class GameView extends View {
         if(campfiresLit){
             for(float[] f:activeCampfiresV125())fireLight(f[0],f[1]);
             for(float[] f:builtCampfires)fireLight(f[0],f[1]);
+            if(!industrialModeV123)
+                for(CampWorldV164.Site camp:survivorCampsV164)
+                    if(!camp.starter)fireLight(camp.fireX(),camp.fireY());
         }
         if(neonEnabled)for(float[] n:NEONS)
             if(WorldPerfV55.nearView(n[0],n[1],camX,camY,viewW,viewH,215))
@@ -4142,6 +4208,8 @@ public final class GameView extends View {
         // Plotted civilization ground is separate from natural terrain.
         WorldCivilizationArtV159.ground(c,civilizationV159,
             camX,camY,viewW,viewH,renderZoomV90);
+        CityGreensV164.draw(c,p,civilizationV159,camX,camY,viewW,viewH,
+            renderZoomV90<.70f);
         // V162: two highways share one continuous asphalt intersection.
         // Road shoulders and center dashes terminate before the crossroad;
         // neither highway paints through the other as an overlapping stripe.
@@ -4246,6 +4314,15 @@ public final class GameView extends View {
                     box.x,box.y,box.x+box.w,box.y+box.h,industrialSeedV123,civilizationV159))
                 drawCover(c,box);
         drawSpawnCamp(c);
+        // Each distant camp is a deterministic actual outdoor compound with
+        // walk-through tents, trade, medical, watch and searchable supply posts.
+        if(!industrialModeV123)
+            for(CampWorldV164.Site camp:survivorCampsV164){
+                if(camp.starter||!CampWorldV164.visible(camp,
+                    camX,camY,viewW,viewH))continue;
+                CampArtV164.drawGround(c,p,camp,renderZoomV90<.70f);
+                CampArtV164.drawStructures(c,p,camp);
+            }
     }
     /** V80 living biome: V74 trees/rocks become harvestable, plus small fiber shrubs. */
     /** Three small, discoverable pickups, no heavy atlas or bitmap regeneration. */
@@ -4474,6 +4551,13 @@ public final class GameView extends View {
     }
     void drawSpawnCampDetails(Canvas c){
         float x=CAMP_X,y=CAMP_Y;
+        // The starter camp now uses the same complete original art vocabulary
+        // as world camps. It is cached in the same immutable camp bitmap.
+        if(survivorCampsV164.length>0){
+            CampArtV164.drawGround(c,p,survivorCampsV164[0],false);
+            CampArtV164.drawStructures(c,p,survivorCampsV164[0]);
+        }
+        if(true)return;
         rect(c,x-255,y-165,506,355,0x345c7351);
         // Restored simple survivor camp clearing with tents and equipment.
         for(int side:new int[]{-1,1}){
@@ -4748,7 +4832,8 @@ public final class GameView extends View {
         // body so neither head pixels nor the body silhouette are overwritten.
         if(player&&fieldFindsV91.equipped>=0)
             wearableArtV96.drawPack(c,backpackStyleV96,s,pixel);
-        else if(!renderingCorpseV130&&!player&&npcVariant>=0&&(npcVariant%3)!=0)
+        else if(!renderingCorpseV130&&!player&&npcVariant>=0&&
+                (Math.floorMod(npcVariant*31+skinIdV109,10)!=0))
             wearableArtV96.drawPack(c,Math.floorMod(npcVariant*7+11,20),s,pixel);
         // V58 rear-layer hand torch. Draw BEFORE the immutable original body:
         // its silhouette cannot cover the head, eyes, or facial outline.
@@ -5495,6 +5580,15 @@ public final class GameView extends View {
                 drawCampfire(c,fx,fy,true);
             }));
         }
+        if(!industrialModeV123)
+            for(CampWorldV164.Site camp:survivorCampsV164){
+                if(camp.starter||!WorldPerfV55.nearView(camp.fireX(),
+                    camp.fireY(),camX,camY,viewW,viewH,175))continue;
+                order.add(new DrawEntity(camp.fireY(),()->
+                    drawCampfire(c,camp.fireX(),camp.fireY(),false)));
+                order.add(new DrawEntity(camp.fireY()+1,()->
+                    drawCampfire(c,camp.fireX(),camp.fireY(),true)));
+            }
         for(CampCraftV83.Structure node:craftV83.objects){
             if(!WorldPerfV55.nearView(node.x,node.y,camX,camY,viewW,viewH,140))continue;
             order.add(new DrawEntity(node.y,()->drawCraftStructureV83(c,node)));
@@ -6699,6 +6793,11 @@ public final class GameView extends View {
                 collectIndustrialYardV123();return;
             }
             if(stitchedIndustrialV128&&collectIndustrialYardV123())return;
+            CampWorldV164.Site chest=nearbyCampCacheV164();
+            if(chest!=null){
+                host.runOnUiThread(()->host.lootCampChestV164(chest));
+                return;
+            }
             if(useFacilityV88())return;
             BanditLootV87.Bag banditBag=nearbyBanditBagV87();
             if(banditBag!=null){
