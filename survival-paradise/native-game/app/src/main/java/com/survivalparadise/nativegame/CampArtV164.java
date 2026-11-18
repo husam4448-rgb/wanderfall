@@ -30,9 +30,17 @@ public final class CampArtV164 {
         path.close();p.setColor(color);p.setStyle(Paint.Style.FILL);
         c.drawPath(path,p);
     }
-    private static void oval(Canvas c,Paint p,float x,float y,float w,float h,int color){
+    /**
+     * All camp callers pass explicit LEFT/TOP/RIGHT/BOTTOM coordinates.
+     * V164 accidentally added the right and bottom AGAIN as if dimensions,
+     * drawing gigantic tinted ellipses into the highway and nearby terrain.
+     * This corrected helper is shared by the emergency asset fallbacks.
+     */
+    private static void oval(Canvas c,Paint p,
+                             float left,float top,float right,float bottom,int color){
+        if(right<=left||bottom<=top)return;
         p.setColor(color);p.setStyle(Paint.Style.FILL);
-        c.drawOval(x,y,x+w,y+h,p);
+        c.drawOval(left,top,right,bottom,p);
     }
     private static void label(Canvas c,Paint p,String s,float x,float y,int color){
         p.setColor(0xff152725);p.setTextSize(16f);

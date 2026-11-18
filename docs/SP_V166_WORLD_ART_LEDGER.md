@@ -44,3 +44,9 @@ case, even if the JVM selector and Python pixel-asset contract pass.
 - Runtime: `CampfireArtV166` replaces the block-flame and regular geometric hearth from `GameView.drawCampfire` and `CampArtV164.drawGround` when art loads.
 - Animated with world time and stable location hash, original world-Y draw order retained; existing fire lighting and saved identities unchanged.
 - Asset bytes validated with SHA-256 and alpha/variation checks in GitHub Actions; **actual Android screenshot inspection pending; not approved.**
+
+## Diagonal-band provenance — root identified 2026-11-18
+- **Root bug:** `CampArtV164.oval` received `left,top,right,bottom` but called `Canvas.drawOval(left,top,left+right,top+bottom)`. The starter hearth intended x=1098..1242 and y=756..867 but instead covered **x=1098..2340 and y=756..1623**, with similarly oversized stones. The giant ellipses created broad off-axis bands and artificial soil overlap east of the campsite.
+- **Production correction:** normalize the helper to `drawOval(left,top,right,bottom)`; keep the authored V166 campfire atlas as the normal render, with no duplicate geometric hearth.
+- **Actual in-game evidence:** GitHub Actions V166 run **44357275998** captured normal starter, road approach and distant-zoom real emulator frames after the production campfire replacement. The conspicuous diagonal gray/beige ellipse bands visible in V165.2 no longer appear in those frames; additional location/seed visual verification remains pending.
+- **Scope:** The correction changes camp fallback drawing only, not seeds, road topology, NPCs, equipment, object IDs or saves.
