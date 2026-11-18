@@ -776,11 +776,11 @@ public final class GameView extends View {
             host.prefs.edit().putInt("gun",gun).apply();
             snapAimToWeaponRest();
         }
-        syncBagV141();saveProgress();invalidate();return true;
+        organizeBagV131(1);saveProgress();invalidate();return true;
     }
     boolean unequipOutfitV140(int slot){
         if(!outfitsV140.unequip(slot))return false;
-        syncBagV141();saveProgress();invalidate();return true;
+        organizeBagV131(1);saveProgress();invalidate();return true;
     }
     android.graphics.drawable.Drawable iconOutfitV140(int type,int dp){
         if(!OutfitInventoryV140.valid(type))return null;
@@ -873,7 +873,7 @@ public final class GameView extends View {
             // Legacy gear never hides a newer explicitly equipped V140 item.
             int nslot=targetSlot==2?0:targetSlot==3?1:targetSlot==4?2:-1;
             if(nslot>=0)outfitsV140.unequip(nslot);
-            organizeBagV131(0);saveProgress();invalidate();
+            organizeBagV131(1);saveProgress();invalidate();
         }
         return done;
     }
@@ -885,7 +885,7 @@ public final class GameView extends View {
             int custom=slot==2?0:slot==3?1:slot==4?2:-1;
             if(custom>=0)outfitsV140.unequip(custom);
         }else return false;
-        organizeBagV131(0);saveProgress();invalidate();return true;
+        organizeBagV131(1);saveProgress();invalidate();return true;
     }
     /** Sort never alters the underlying quantities. Split portions move as a unit. */
     void organizeBagV131(int mode){
