@@ -4454,6 +4454,7 @@ public final class GameView extends View {
                 harvestV81.salvageTarget.cx==cx&&harvestV81.salvageTarget.cy==cy&&
                 harvestV81.salvageTarget.slot==k;
             if(shake){c.save();c.translate((float)Math.sin(worldTimer*72f)*3f,0);}
+            if(!industrialArtV123.salvage(c,x,y,type,depleted)){
             if(type==SalvageWorldV84.CAR){
                 rect(c,x-75,y-35,150,44,0xff172528);
                 rect(c,x-70,y-39,140,39,depleted?0xff535952:0xff704c39);
@@ -4484,6 +4485,7 @@ public final class GameView extends View {
                     rect(c,x+off-8,y-29-(n%2)*9,16,6,0xffba8155);
                 }
             }
+            } // V165 fallback for artwork that failed to load
             if(shake)c.restore();
         }
     }
