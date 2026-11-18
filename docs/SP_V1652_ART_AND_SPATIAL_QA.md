@@ -40,8 +40,13 @@ existing structure interaction intact.
   `sp-native-v1652-diagnostic-isolate-roads-20261118` shows the band
   persists with all main highway contours and shoulder renderers removed.
   Neither diagnostic branch should be merged or used for an APK.
-- A further no-natural-brush test is in progress; this document must be
-  amended after that screenshot is visually reviewed.
+- A no-natural-brush diagnostic was attempted on branch
+  `sp-native-v1652-diagnostic-isolate-biome-20261118` (run 44283060162).
+  **Inconclusive**: Maven Central HTTP 429 dependency throttling prevented
+  Android compilation and screenshot capture. This is an external CI error,
+  not evidence of a game crash or visual improvement. Do not merge it.
+- The V165.2 production branch's earlier Android QA passes, but the final
+  visible large diagonal camp-edge bands are NOT resolved.
 
 ## Per-category residual art debt — not complete
 - Natural terrain transitions still need all-biome/different-seed QA at
