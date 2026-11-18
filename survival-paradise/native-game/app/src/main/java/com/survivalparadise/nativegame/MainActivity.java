@@ -1841,6 +1841,10 @@ public final class MainActivity extends Activity {
         panel.addView(actions);
         AlertDialog dialog=new AlertDialog.Builder(this).setView(panel).create();
         int equipped=type<0?-1:equippedComparatorV163(type);
+        if(equipped>=0&&equipped!=type&&source.contains("COMPARISON")){
+            comparison.setText(comparisonDetailsV163(type,equipped));
+            comparison.setVisibility(View.VISIBLE);
+        }
         if(type>=0&&game.inventorySlotV141(type)>=0){
             Button compare=v147TouchButton("COMPARE",false);
             compare.setTextSize(9f);
@@ -1957,7 +1961,7 @@ public final class MainActivity extends Activity {
             list.addView(row,new LinearLayout.LayoutParams(-1,dp118(33)));
             row.setOnClickListener(v->{
                 picker.dismiss();
-                showItemInspectorV163(type,1,"PRIMARY LOADOUT",
+                showItemInspectorV163(type,1,"PRIMARY LOADOUT • COMPARISON",
                     "EQUIP",()->{
                         if(game.outfitsV140.available(type)>0)
                             game.equipOutfitV140(type);
@@ -2009,7 +2013,7 @@ public final class MainActivity extends Activity {
             content.addView(line,new LinearLayout.LayoutParams(-1,dp118(34)));
             line.setOnClickListener(v->{
                 pick.dismiss();
-                showItemInspectorV163(type,1,"AVAILABLE • BAG",
+                showItemInspectorV163(type,1,"AVAILABLE • COMPARISON",
                     "EQUIP",()->{
                         if(game.equipInventoryItemV131(type,slot)){
                             game.organizeBagV131(0);
