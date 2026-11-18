@@ -272,8 +272,8 @@ jobs:
              '        if(v166Probe==33)return;\n        // One world, no portal: render the industrial terrain'),
             ('        if(placingKindV84>=0){\n            updatePlacementTargetV86();',
              '        if(v166Probe==34)return;\n        if(placingKindV84>=0){\n            updatePlacementTargetV86();'),
-            ('        drawSpawnCamp(c);',
-             '        drawSpawnCamp(c);\n        if(v166Probe==35)return;'),
+            ('        if(v166Probe!=6)drawSpawnCamp(c);',
+             '        if(v166Probe!=6)drawSpawnCamp(c);\n        if(v166Probe==35)return;'),
           ]
           for a,b in changes:
               assert a in s,a
