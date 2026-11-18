@@ -53,6 +53,7 @@ jobs:
               ('sp_v1651_road_shoulder.webp.b64',(1024,128)),
               ('sp_v1652_props.webp.b64',(768,576)),
               ('sp_v1652_ground.webp.b64',(640,434)),
+              ('sp_v1652_biome_blends.webp.b64',(768,256)),
           ):
               pack=base64.b64decode((assets/filename).read_text())
               picture=Image.open(io.BytesIO(pack)).convert('RGBA')
@@ -130,6 +131,10 @@ jobs:
           assert 'Math.abs(x-site.chestX())<47f+r' in game
           assert 'Math.abs(y-site.chestY())<35f+r' in game
           assert 'CampSceneArtV1652.load(host.getAssets())' in game
+          assert 'NaturalBrushArtV1652.load(host.getAssets())' in game
+          assert 'NaturalBrushArtV1652.patch(c,b,biome,distant)' in (p/'NaturalGroundArtV157.java').read_text()
+          assert 'tradeStand(c,p,x-215,y+73)' in camp
+          assert 'watchPost(c,p,x+270,y+5)' in camp
           assert 'SurfaceArtV165.load(host.getAssets())' in game
           assert 'CampSpriteArtV1651.load(host.getAssets())' in game
           assert 'CampStationSpriteV1651.load(host.getAssets())' in game
@@ -164,6 +169,7 @@ jobs:
           unzip -l /tmp/sp165/qa-only.apk | grep -F 'assets/sp_v165_surface.webp.b64'
           unzip -l /tmp/sp165/qa-only.apk | grep -F 'assets/sp_v1652_props.webp.b64'
           unzip -l /tmp/sp165/qa-only.apk | grep -F 'assets/sp_v1652_ground.webp.b64'
+          unzip -l /tmp/sp165/qa-only.apk | grep -F 'assets/sp_v1652_biome_blends.webp.b64'
           unzip -l /tmp/sp165/qa-only.apk | grep -F 'assets/sp_v109_characters.zip'
       - name: Allow emulator KVM
         run: |
@@ -217,6 +223,7 @@ jobs:
           grep -F 'Trade and medic stations ready: 2 authored RGBA sprites' /tmp/sp165/visual/logcat.txt
           grep -F 'Road shoulder ready: 1024x128 RGBA strip' /tmp/sp165/visual/logcat.txt
           grep -F 'Organic camp ground and four authored props ready' /tmp/sp165/visual/logcat.txt
+          grep -F 'Natural biome brushes ready: 3 transparent authored pigments' /tmp/sp165/visual/logcat.txt
           adb shell pidof "$PKG"
           if grep -E 'FATAL EXCEPTION|Process: com.survivalparadise.nativegame.v164camptest' /tmp/sp165/visual/logcat.txt; then exit 1;fi
           test -s /tmp/sp165/visual/02_world_normal.png
