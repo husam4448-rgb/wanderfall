@@ -4555,8 +4555,11 @@ public final class GameView extends View {
         // One cached complete starter settlement, in the same world style as
         // the satellite camps. Open tent interiors are never collision boxes.
         if(survivorCampsV164.length==0)return;
+        c.save();
+        c.clipRect(CAMP_X-480f,CAMP_Y-355f,CAMP_X+480f,CAMP_Y+207f);
         CampArtV164.drawGround(c,p,survivorCampsV164[0],false);
         CampArtV164.drawStructures(c,p,survivorCampsV164[0]);
+        c.restore();
     }
     void drawCover(Canvas c,Cover box){
         if(box.kind==3||box.kind==4)return; // player builds and authored V88 POIs drawn in their own passes.
@@ -5105,9 +5108,14 @@ public final class GameView extends View {
             distance(e.x,e.y,playerX,playerY)<420f);
         for(Survivor f:friends)drawSpeechV92(c,f.x,f.y,f.variant+30,
             NPCRelationshipsV92.FRIENDLY,nearest(f.x,f.y,430f)!=null);
-        for(Survivor npc:campStaff)drawSpeechV92(c,npc.x,npc.y,npc.variant,
-            npc.variant==ROLE_GUARD+1?NPCRelationshipsV92.FRIENDLY:
-            NPCRelationshipsV92.NEUTRAL,nearest(npc.x,npc.y,400f)!=null);
+        // V164 settlements can have 100+ dormant residents. Never run
+        // offscreen speech, proximity or nearest-enemy scans every frame.
+        for(Survivor npc:campStaff)
+            if(WorldPerfV55.nearView(npc.x,npc.y,camX,camY,viewW,viewH,175f))
+                drawSpeechV92(c,npc.x,npc.y,npc.variant,
+                    npc.variant==ROLE_GUARD+1?NPCRelationshipsV92.FRIENDLY:
+                    NPCRelationshipsV92.NEUTRAL,
+                    nearest(npc.x,npc.y,400f)!=null);
     }
 
     /** Fallen sprites are frozen: no animation clock, head movement or breathing. */
