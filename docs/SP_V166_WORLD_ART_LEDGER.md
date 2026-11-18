@@ -54,4 +54,9 @@ case, even if the JVM selector and Python pixel-asset contract pass.
 ## V166 world-wide small ground pickups
 - `GameView.drawLooseGroundPickupsV85` now selects original authored rock or fallen-wood sprites from `WorldArtV166` and material-rich salvage from `CampSceneArtV1652`, replacing mini block silhouettes at every original pickup coordinate.
 - **No identity/physics/economy changes:** pickup placement, quantity, radius, collection and save keys unchanged; seeded sprite variation uses existing identities only.
-- Normal/far in-game inspection **PENDING**; retains old visuals only if original author-sourced atlas fails to load.
+- **Scoped in-game QA PASS:** CI run **44359239035** passed seeded-world regressions, immutable-head checks, Android compilation, emulator launch and real normal/road/distant screenshots. Reviewed rocks and wood pickups at starter and highway approach; their silhouettes are authored and no longer rectangular. Scrap substitution is source/asset verified, but not independently approved in every biome; old silhouettes remain only if an original source atlas fails to load.
+
+## Verified starter visual checkpoint — 2026-11-18
+- Run [44358377150](https://github.com/husam4448-rgb/wanderfall/actions/runs/44358377150): source-level correction to camp LTRB oval helper plus real Android startup/normal/road/distant screenshots PASSED; diagonal oversized hearth ellipses no longer visible in reviewed frames.
+- Run [44359239035](https://github.com/husam4448-rgb/wanderfall/actions/runs/44359239035): same validations PASS after 3 ground-pickup art families integrated. Original fire, wood, stone assets visible in genuine emulator screenshots, normal + distant zoom.
+- **Remaining acceptance:** full-city/industrial interior/exterior passes, different seeds and weather/night, all item icon families, collision and occlusion checks are NOT yet visually verified. V166 release still disallowed.
