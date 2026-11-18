@@ -114,3 +114,10 @@ case, even if the JVM selector and Python pixel-asset contract pass.
 - **Visual review REJECTED**: Hotel and school shared floors remain almost empty; office and market commons are underfurnished; apartment, residence, factory and warehouse show useful objects but still excess empty floor. Wall finishes and doorway endpoints are materially improved, though continuity and scale require further sampling.
 - **Iteration 2 under test**: commit `75e97a0` adds furniture to otherwise undeclared shared public halls with collision/loot/door-aware placement; no visual approval yet.
 - Remaining: inspect revised eight-category captures, clinic/legacy expedition/industrial evidence, all-room viewpoints, NPC access and final detail density. NO APK RELEASE.
+
+
+## V166 shared-area furnishing iteration 2 — visually rejected, source QA PASS
+- Commit `75e97a0` adds collision-checked archetype-specific furnishings in uncovered commons; source+Android+real emulator all PASS in [run 44396066189](https://github.com/husam4448-rgb/wanderfall/actions/runs/44396066189).
+- Unmodified reduced JPEG frames from that actual emulator run are archived in `docs/qa/v166/interiors/iteration2/`. All eight were opened and inspected.
+- **Still NOT visually approved:** South-side captures show only modest improvement: a table in the hotel lobby and a bookshelf in the school commons, with significant unoccupied areas. The eight screenshots frame the southern entrance, not each room; they are insufficient to judge complete interiors, especially the northern and central portions.
+- QA expansion next: capture center/north viewpoints in all eight building types, plus actual clinic/expedition/industrial views. Continue furnishing revisions until images meet density and functional-identity requirements.
