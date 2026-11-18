@@ -111,38 +111,55 @@ public final class NeighborhoodLayoutV163 {
             supplies.add(new float[]{clamp(sx,z.x1+55f,z.x2-55f),
                 clamp(sy,z.y1+55f,z.y2-55f)});
         }
-        // Layout-specific furnishings never cross partitions or block doorways.
+        // V166 functional furnishing: authored sprites selected by ROOM use,
+        // wall-oriented placements, collision-tested against doors and loot.
+        // No more six slots of arbitrary building-wide objects.
+        final int[][] anchors={
+            {0,0},{1000,0},{0,1000},{1000,1000},
+            {450,0},{550,1000},{0,450},{1000,550},
+            {250,0},{750,1000},{0,780},{1000,240},
+            {210,1000},{780,0},{0,230},{1000,790}
+        };
         for(int index=0;index<6;index++){
             Zone z=zones.get(index);
-            for(int slot=0;slot<6;slot++){
-                int n=hash(index*73+slot,slot*107+theme);
-                float w=65+Math.floorMod(n>>>3,64);
-                float h=54+Math.floorMod(n>>>9,55);
-                float spanX=z.x2-z.x1-80f-w,spanY=z.y2-z.y1-80f-h;
+            float area=(z.x2-z.x1)*(z.y2-z.y1);
+            int target=area>270000f?7:area>160000f?6:5;
+            int placed=0;
+            for(int candidate=0;candidate<anchors.length&&placed<target;candidate++){
+                int n=hash(index*73+candidate,theme*107+candidate);
+                int[] anchor=anchors[(candidate+Math.floorMod(n>>>11,3))%anchors.length];
+                int sprite=InteriorRoomArchetypeV166.sprite(
+                    theme,index,variation,candidate);
+                if(sprite<0)continue;
+                float w=InteriorRoomArchetypeV166.width(sprite);
+                float h=InteriorRoomArchetypeV166.height(sprite);
+                float spanX=z.x2-z.x1-72f-w,spanY=z.y2-z.y1-72f-h;
                 if(spanX<1||spanY<1)continue;
-                float x=z.x1+40f+Math.floorMod(n>>>15,10000)*spanX/10000f;
-                float y=z.y1+40f+Math.floorMod(n>>>20,10000)*spanY/10000f;
-                float centerX=x+w/2f,centerY=y+h/2f;
-                if(Math.hypot(centerX-z.dx,centerY-z.dy)<170f)continue;
-                if(Math.hypot(centerX-(z.x1+z.x2)/2f,
-                    centerY-(z.y1+z.y2)/2f)<75f)continue;
+                float x=z.x1+36f+anchor[0]*spanX/1000f;
+                float y=z.y1+36f+anchor[1]*spanY/1000f;
+                x=clamp(x+(Math.floorMod(n>>>17,13)-6),z.x1+30f,z.x2-w-30f);
+                y=clamp(y+(Math.floorMod(n>>>23,13)-6),z.y1+30f,z.y2-h-30f);
+                float cx=x+w*.5f,cy=y+h*.5f;
+                // Entrance clearances and central routes are collision-safe.
+                if(Math.hypot(cx-z.dx,cy-z.dy)<166f)continue;
+                if(Math.abs(cx-(z.x1+z.x2)*.5f)<53f&&
+                   Math.abs(cy-(z.y1+z.y2)*.5f)<80f)continue;
                 boolean overlaps=false;
-                for(float[] c:supplies)
-                    if(centerX>c[0]-95f&&centerX<c[0]+95f&&
-                       centerY>c[1]-85f&&centerY<c[1]+85f)overlaps=true;
-                for(float[] r:objects)
-                    if(x<r[1]+r[3]+36f&&x+w>r[1]-36f&&
-                       y<r[2]+r[4]+36f&&y+h>r[2]-36f)overlaps=true;
+                for(float[] cache:supplies){
+                    if(Math.abs(cx-cache[0])<101f&&
+                       Math.abs(cy-cache[1])<93f){overlaps=true;break;}
+                }
                 if(overlaps)continue;
-                int type=theme==NeighborhoodV154.FACTORY?4:
-                    theme==NeighborhoodV154.WAREHOUSE?5:
-                    theme==NeighborhoodV154.SCHOOL?2:
-                    theme==NeighborhoodV154.MARKET?1:
-                    theme==NeighborhoodV154.OFFICES?2:
-                    theme==NeighborhoodV154.HOTEL?0:
-                    Math.floorMod(n,6);
-                objects.add(new float[]{type,x,y,w,h});
-                if(objects.size()>=48)break;
+                for(float[] q:objects){
+                    if(x<q[1]+q[3]+26f&&x+w>q[1]-26f&&
+                       y<q[2]+q[4]+26f&&y+h>q[2]-26f){
+                        overlaps=true;break;
+                    }
+                }
+                if(overlaps)continue;
+                // Direct atlas sprite tag 16..31; original types still decode.
+                objects.add(new float[]{16+sprite,x,y,w,h});
+                placed++;
             }
         }
         walls=pack(barriers);

@@ -12,6 +12,7 @@ public final class NeighborhoodInteriorV161 extends ExpeditionInteriorV91 {
     private final float[][] furniture;
     private final String[] rooms;
     public final NeighborhoodLayoutV163 layoutV163;
+    public final float[][] decorV166;
 
     public static int siteId(NeighborhoodV154.Building b,int seed){
         int h=IndustrialWorldV123.hash(b.tileX*47+b.slot*7,
@@ -64,6 +65,9 @@ public final class NeighborhoodInteriorV161 extends ExpeditionInteriorV91 {
         // V163: actual floor plan, partition walls and prop locations change
         // deterministically per building. No V89/V161 six-room grid reuse.
         furniture=layoutV163.furniture;
+        decorV166=InteriorDecoratorV166.plan(layoutV163.rooms,
+            furniture,layoutV163.caches,layoutV163.doors,
+            worldSeed^layoutV163.signature,theme);
         // Site-specific loot exists in actual reachable cabinets and containers.
         for(int i=0;i<storages.length;i++){
             Storage old=storages[i];

@@ -2725,7 +2725,11 @@ public final class GameView extends View {
     void drawIndustrialInteriorV123(Canvas c){
         c.save();c.translate(-camX,-camY);
         IndustrialSceneV123.indoors(c,p,(IndustrialInteriorV123)clinicInteriorV89);
-        industrialArtV123.indoors(c,(IndustrialInteriorV123)clinicInteriorV89);
+        IndustrialInteriorV123 industrialRoomV166=
+            (IndustrialInteriorV123)clinicInteriorV89;
+        InteriorWallArtV166.draw(c,p,IndustrialInteriorV123.WALLS,1f,5,
+            industrialRoomV166.district.seed);
+        industrialArtV123.indoors(c,industrialRoomV166);
         IndustrialInteriorArtV125.details(c,p,(IndustrialInteriorV123)clinicInteriorV89);
         for(ClinicInteriorV89.Storage box:clinicInteriorV89.storages){
             if(!WorldPerfV55.nearView(box.x,box.y,camX,camY,viewW,viewH,80))continue;
@@ -2854,6 +2858,14 @@ public final class GameView extends View {
         if(uniqueV163==null)
             label(c,"MAIN CORRIDOR  •  "+currentSiteNameV91(),
                 550,559,14,0xff253e3a,true);
+        if(uniqueV163!=null){
+            for(int di=0;di<uniqueV163.decorV166.length;di++){
+                float[] d=uniqueV163.decorV166[di];
+                InteriorDecorArtV166.draw(c,p,
+                    new float[]{d[0],d[1]*inv,d[2]*inv,d[3]*inv,d[4]*inv},
+                    uniqueV163.theme,uniqueV163.seed+di*43);
+            }
+        }
         c.restore();
         float[][] furnitureV161=nonClinicV91?
             ((ExpeditionInteriorV91)clinicInteriorV89).sceneFurniture():ClinicInteriorV89.FURNITURE;
@@ -2865,7 +2877,13 @@ public final class GameView extends View {
                 NeighborhoodInteriorV161 room=(NeighborhoodInteriorV161)clinicInteriorV89;
                 NeighborhoodInteriorArtV161.furniture(c,p,obj,
                     room.theme,room.variation,fi);
-            }else drawClinicFurnitureV89(c,obj);
+            }else{
+                int themedSpriteV166=InteriorRoomArchetypeV166.legacy(
+                    (int)obj[0],siteKindV91,!nonClinicV91,fi);
+                if(!InteriorPropArtV166.drawAt(c,themedSpriteV166,
+                    obj[1],obj[2],obj[3],obj[4]))
+                    drawClinicFurnitureV89(c,obj);
+            }
         }
         for(ClinicInteriorV89.Storage storage:clinicInteriorV89.storages){
             if(!WorldPerfV55.nearView(storage.x,storage.y,camX,camY,viewW,viewH,80))
