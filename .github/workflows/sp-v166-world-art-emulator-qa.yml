@@ -210,6 +210,43 @@ jobs:
           assert (fireY-49)+(fireY+62)==1623 and fireY+62==867
           print('PASS: V165.1 renderer wiring, depth sorting and original heads retained')
           PY
+      - name: Add CI-only eight-kind city camera (never production code)
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/GameView.java')
+          s=p.read_text()
+          assert '        renderZoomV90=effectiveZoom;' in s
+          s=s.replace('        renderZoomV90=effectiveZoom;',
+              '''        int v166CityKind=android.provider.Settings.Global.getInt(
+              host.getContentResolver(),"sp_v166_qa_city_kind",0);
+          if(v166CityKind>=1&&v166CityKind<=8)effectiveZoom=.46f;
+          renderZoomV90=effectiveZoom;''',1)
+          before='        canvas.drawColor(0xff101f24);'
+          assert before in s
+          s=s.replace(before,
+              '''        // Test-only camera movement: never modify the player's
+          // position, NPC data, collision, settlement or saved world.
+          if(!insideClinicV89&&playing&&civilizationV159!=null&&
+             v166CityKind>=1&&v166CityKind<=8){
+              boolean found=false;
+              for(WorldCivilizationV159.Parcel parcel:civilizationV159.parcels){
+                  if(found)break;
+                  for(int slot=0;slot<NeighborhoodV154.COLS*NeighborhoodV154.ROWS;slot++){
+                      NeighborhoodV154.Building b=NeighborhoodV154.get(
+                          parcel.tx,parcel.ty,slot,civilizationV159);
+                      if(b==null||b.kind!=v166CityKind-1)continue;
+                      camX=b.left+b.width*.5f-viewW/(2f*effectiveZoom);
+                      camY=b.top+b.height*.5f-viewH/(2f*effectiveZoom);
+                      found=true;break;
+                  }
+              }
+          }
+          canvas.drawColor(0xff101f24);''',1)
+          p.write_text(s)
+          print('PASS: QA-only city renderer inspection instrumentation')
+          PY
       - name: Android 35 SDK / Java compile
         shell: bash
         run: |
@@ -290,6 +327,15 @@ jobs:
           sleep 3
           adb shell screencap -p /sdcard/v165_far.png
           adb pull /sdcard/v165_far.png /tmp/sp165/visual/04_world_zoomed_out.png
+          # Real emulator views of eight actual generated architectural types.
+          # Source integration alone is not visual proof.
+          for kind in 1 2 3 4 5 6 7 8; do
+            adb shell settings put global sp_v166_qa_city_kind "$kind"
+            sleep 2
+            adb shell screencap -p "/sdcard/06_city_kind_$kind.png"
+            adb pull "/sdcard/06_city_kind_$kind.png" "/tmp/sp165/visual/06_city_kind_$kind.png"
+          done
+          adb shell settings put global sp_v166_qa_city_kind 0
           adb logcat -d > /tmp/sp165/visual/logcat.txt
           grep -F 'Camp tents ready: 2 authored RGBA sprites' /tmp/sp165/visual/logcat.txt
           grep -F 'Trade and medic stations ready: 2 authored RGBA sprites' /tmp/sp165/visual/logcat.txt
@@ -303,6 +349,7 @@ jobs:
           if grep -E 'FATAL EXCEPTION|Process: com.survivalparadise.nativegame.v164camptest' /tmp/sp165/visual/logcat.txt; then exit 1;fi
           test -s /tmp/sp165/visual/02_world_normal.png
           test -s /tmp/sp165/visual/04_world_zoomed_out.png
+          for kind in 1 2 3 4 5 6 7 8;do test -s "/tmp/sp165/visual/06_city_kind_$kind.png";done
           python3 - <<'PY'
           from PIL import Image
           for name in ('02_world_normal.png','04_world_zoomed_out.png'):
@@ -332,7 +379,7 @@ jobs:
           from PIL import Image
           import base64,io
           folder=Path('/tmp/sp165/visual')
-          for filename in ('02_world_normal.png','03_road_approach.png','04_world_zoomed_out.png'):
+          for filename in ('02_world_normal.png','04_world_zoomed_out.png','06_city_kind_1.png','06_city_kind_2.png','06_city_kind_3.png','06_city_kind_4.png','06_city_kind_5.png','06_city_kind_6.png','06_city_kind_7.png','06_city_kind_8.png'):
               path=folder/filename
               if not path.is_file():continue
               img=Image.open(path).convert('RGB')
