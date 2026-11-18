@@ -4226,8 +4226,8 @@ public final class GameView extends View {
         // neither highway paints through the other as an overlapping stripe.
         RoadContourV1651.horizontal(c,p,camX-4f,camX+viewW+4f,
             925f,1150f,industrialSeedV123);
-        rect(c,camX-4,940,viewW+8,8,0xff3e493e);
-        rect(c,camX-4,1134,viewW+8,7,0xff323f3a);
+        // Natural rural road: no perfect concrete kerb lines bordering grass.
+        // Eroded material and the repeat-safe shoulder atlas define the edge.
         int roadX=(int)Math.floor((camX-20)/123f);
         for(int i=roadX;i<roadX+(int)Math.ceil(viewW/123f)+3;i++){
             float dashX=20+i*123;
@@ -4245,19 +4245,8 @@ public final class GameView extends View {
         float roadBottom=camY+viewH+4f;
         RoadShoulderArtV1651.vertical(c,1500f,1720f,camY-4f,925f);
         RoadShoulderArtV1651.vertical(c,1500f,1720f,1150f,roadBottom);
-        // V162: vertical kerb is split above and below the intersection.
-        if(camY-4f<925f){
-            float end=Math.min(925f,roadBottom);
-            if(end>camY-4f){
-                rect(c,1500,camY-4,9,end-camY+4f,0xff3c473f);
-                rect(c,1712,camY-4,8,end-camY+4f,0xff3c473f);
-            }
-        }
-        if(roadBottom>1150f){
-            float start=Math.max(1150f,camY-4f);
-            rect(c,1500,start,9,roadBottom-start,0xff3c473f);
-            rect(c,1712,start,8,roadBottom-start,0xff3c473f);
-        }
+        // No straight vertical curbs: both wildland approaches end in
+        // organic exposed soil/gravel, not urban concrete barriers.
         int roadY=(int)Math.floor(camY/135f);
         for(int i=roadY;i<roadY+(int)Math.ceil(viewH/135f)+3;i++){
             float dashY=i*135+12f;
