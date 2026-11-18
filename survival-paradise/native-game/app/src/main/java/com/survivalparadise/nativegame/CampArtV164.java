@@ -51,7 +51,7 @@ public final class CampArtV164 {
         // Organic transparent, textured and trampled soil. The original
         // biome remains visible at the edges; no giant semi-opaque ovals,
         // no straight paths or rectangular tent-floor decals.
-        CampSceneArtV1652.ground(c,s);
+        if(false)CampSceneArtV1652.ground(c,s); // QA ONLY: isolate campground pigment
         // Fire ring is drawn underneath a depth-sorted, actual live campfire.
         float fx=s.fireX(),fy=s.fireY();
         oval(c,p,fx-72,fy-49,fx+72,fy+62,0x99504433);
