@@ -7,6 +7,8 @@ import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.Shader;
 import android.util.Base64;
 import java.io.ByteArrayOutputStream;
@@ -20,6 +22,9 @@ import java.io.InputStream;
 public final class RoadShoulderArtV1651 {
     private RoadShoulderArtV1651(){}
     private static Bitmap strip;
+    private static Bitmap leftStrip,rightStrip;
+    private static final Rect SRC=new Rect();
+    private static final RectF DST=new RectF();
     private static BitmapShader shader;
     private static final Matrix MATRIX=new Matrix();
     private static final Paint P=new Paint(Paint.ANTI_ALIAS_FLAG |
@@ -41,6 +46,18 @@ public final class RoadShoulderArtV1651 {
             if(strip==null||strip.getWidth()!=1024||strip.getHeight()!=128)
                 throw new IllegalArgumentException("Invalid road edge art");
             shader=new BitmapShader(strip,Shader.TileMode.REPEAT,Shader.TileMode.CLAMP);
+            // Pre-rotate once. The previous canvas rotation + mirrored shader
+            // matrix could generate giant diagonal wedges around the vertical
+            // road. Draw vertical strips in untransformed WORLD coordinates.
+            Matrix left=new Matrix(),right=new Matrix();
+            left.setRotate(-90f);right.setRotate(90f);
+            leftStrip=Bitmap.createBitmap(strip,0,0,strip.getWidth(),
+                strip.getHeight(),left,true);
+            rightStrip=Bitmap.createBitmap(strip,0,0,strip.getWidth(),
+                strip.getHeight(),right,true);
+            if(leftStrip.getWidth()!=128||leftStrip.getHeight()!=1024||
+               rightStrip.getWidth()!=128||rightStrip.getHeight()!=1024)
+                throw new IllegalArgumentException("Bad vertical road shoulder dimensions");
             android.util.Log.i("SP-V1651","Road shoulder ready: 1024x128 RGBA strip");
         }catch(Exception e){
             android.util.Log.w("SP-V1651","Road shoulder art missing; base roads remain",e);
@@ -78,23 +95,43 @@ public final class RoadShoulderArtV1651 {
         c.restore();
     }
 
-    /** Draw one uninterrupted vertical road SECTION, not across junctions. */
+    /**
+     * Tile a vertical shoulder by its absolute world-Y source offset.
+     * It NEVER rotates the world Canvas, and cannot paint outside a
+     * precise 128-world-unit road-edge band. Both materials and transitions
+     * are identical regardless of which chunk/camera draws them.
+     */
+    private static void verticalBand(Canvas c,float edge,float first,float last,
+                                     Bitmap art){
+        if(art==null||art.isRecycled()||last<=first)return;
+        final float tile=1024f;
+        float y=first;
+        while(y<last-.01f){
+            float origin=(float)Math.floor(y/tile)*tile;
+            float end=Math.min(last,origin+tile);
+            // Prevent precision stalls when coordinates are very large.
+            if(end<=y+.001f)break;
+            int top=Math.max(0,Math.min(1023,(int)Math.floor(y-origin)));
+            int bottom=Math.max(top+1,Math.min(1024,(int)Math.ceil(end-origin)));
+            SRC.set(0,top,128,bottom);
+            DST.set(edge-64f,y,edge+64f,end);
+            c.drawBitmap(art,SRC,DST,P);
+            y=end;
+        }
+    }
+    /** Only existing road segments, excluding the real four-way junction. */
     public static void vertical(Canvas c,float left,float right,
                                 float top,float bottom){
-        if(shader==null||right<=left||bottom<=top)return;
-        float len=bottom-top;
-        c.save();
-        c.translate(left,top);c.rotate(-90f);
-        band(c,-len,0f,0f,top,true);
-        c.restore();
-        c.save();
-        c.translate(right,bottom);c.rotate(90f);
-        band(c,-len,0f,0f,-bottom,false);
-        c.restore();
+        if(!ready()||right<=left||bottom<=top)return;
+        verticalBand(c,left,top,bottom,leftStrip);
+        verticalBand(c,right,top,bottom,rightStrip);
     }
 
     public static synchronized void release(){
         shader=null;
+        if(leftStrip!=null&&!leftStrip.isRecycled())leftStrip.recycle();
+        if(rightStrip!=null&&!rightStrip.isRecycled())rightStrip.recycle();
+        leftStrip=null;rightStrip=null;
         if(strip!=null&&!strip.isRecycled())strip.recycle();
         strip=null;
         attempted=false;
