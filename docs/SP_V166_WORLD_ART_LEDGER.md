@@ -75,3 +75,8 @@ case, even if the JVM selector and Python pixel-asset contract pass.
 - Camera-independent `SettlementGroundSelectionV166` controls stable clusters and variation from saved world seed. Paint is clipped only as an invisible rendering mask at the original parcel perimeter; feathered alpha handles material blending.
 - Original parcels/fences, road gates, structure IDs, NPCs, loot, head atlas, collision and saves unchanged. Paint uses pooled filters and brushes; no new runtime bitmaps per frame.
 - **Verification:** Java source/selection tests ready; Android emulator city and other biome screenshots pending in this follow-up pass. Not a V166 release.
+
+## Real emulator review gallery (V166 ground and city exteriors)
+- [Ten real Android screenshots](qa/v166/README.md) from green Action run [44366808396](https://github.com/husam4448-rgb/wanderfall/actions/runs/44366808396), including the starter and all 8 exterior building categories. Each image derives from an emulator screenshot, not a concept render.
+- Current QA observation: eight architectural facades occupy original collision-footprint envelopes and look visually distinct; city ground has organic surface blending without the old wide monochrome slabs; ordinary HUD overlays remain present in these evidence images.
+- **Limit:** Building interaction/collision at character scale, other world seeds, all major interiors, full biome coverage, and final art approval remain open.
