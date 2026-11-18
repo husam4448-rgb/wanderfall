@@ -383,11 +383,11 @@ jobs:
               where=s.index('        c.save();c.translate(-camX,-camY);',entry)
               old='        c.save();c.translate(-camX,-camY);'
               replacement='''        c.save();
-        int qaVantageV166=android.provider.Settings.Global.getInt(
+          int qaVantageV166=android.provider.Settings.Global.getInt(
             host.getContentResolver(),"sp_v166_qa_vantage",0);
-        float qaPanV166=qaVantageV166==1?-394f*ClinicInteriorV89.EXPANSION_V90:
+          float qaPanV166=qaVantageV166==1?-394f*ClinicInteriorV89.EXPANSION_V90:
             qaVantageV166==2?-784f*ClinicInteriorV89.EXPANSION_V90:0f;
-        c.translate(-camX,-camY-qaPanV166);'''
+          c.translate(-camX,-camY-qaPanV166);'''
               s=s[:where]+replacement+s[where+len(old):]
           vision='        drawClinicVisionV90(c);'
           assert s.count(vision)>=2,s.count(vision)
