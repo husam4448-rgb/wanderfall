@@ -273,7 +273,7 @@ public final class GameView extends View {
         campStatic=null; // starter pixel-art texture uses current seed
     }
     CampWorldV164.Site nearbyCampCacheV164(){
-        if(!playing||paused||gameOver||insideClinicV89||industrialModeV123)
+        if(!playing||gameOver||insideClinicV89||industrialModeV123)
             return null;
         return CampWorldV164.nearbyChest(survivorCampsV164,
             playerX,playerY,142f);
@@ -3004,6 +3004,8 @@ public final class GameView extends View {
                 .putString("player_nuts_v143",playerNutsV143.encode())
                 .putString("player_ammo_v143",playerAmmoV143.encode())
                 .putString("npc_trade_ledger_v143",npcTradesV143.encode())
+                .putString("camp_cache_v164_"+industrialSeedV123,
+                    campCachesV164.encode())
                 .putString("ground_drops_v129",droppedItemsV129.encode())
                 .putBoolean("sitesInitializedV88",sitesInitializedV88)
                 .putString("facilityCooldownV88",encodeFacilityCooldownV88())
