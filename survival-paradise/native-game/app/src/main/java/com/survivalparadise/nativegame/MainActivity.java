@@ -1845,12 +1845,19 @@ public final class MainActivity extends Activity {
             comparison.setText(comparisonDetailsV163(type,equipped));
             comparison.setVisibility(View.VISIBLE);
         }
-        if(type>=0&&game.inventorySlotV141(type)>=0){
+        {
+            // Always present the Compare control for consistent interaction.
+            // Consumables/currency explain why no worn counterpart exists.
             Button compare=v147TouchButton("COMPARE",false);
             compare.setTextSize(9f);
             actions.addView(compare,new LinearLayout.LayoutParams(0,dp118(29),1f));
             compare.setOnClickListener(v->{
-                if(equipped==type){
+                if(type<0||game.inventorySlotV141(type)<0){
+                    comparison.setText("No compatible equipped item: this item is "+
+                        "a consumable, material, ammunition or currency.");
+                    comparison.setVisibility(View.VISIBLE);
+                    scroller.post(()->scroller.fullScroll(View.FOCUS_DOWN));
+                }else if(equipped==type){
                     dialog.dismiss();
                     showCompareChoicesV163(type,refresh);
                 }else if(equipped<0){
