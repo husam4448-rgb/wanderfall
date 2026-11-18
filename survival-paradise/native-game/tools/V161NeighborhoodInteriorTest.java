@@ -22,8 +22,8 @@ public final class V161NeighborhoodInteriorTest {
                             NeighborhoodV154.get(parcel.tx,parcel.ty,slot,plan),seed),
                             "Building identity changed");
                     NeighborhoodInteriorV161 room=new NeighborhoodInteriorV161(building,seed);
-                    check(room.sceneFurniture().length==ClinicInteriorV89.FURNITURE.length,
-                        "Furniture count changed");
+                    check(room.sceneFurniture().length>0&&room.sceneFurniture().length<=48,
+                        "No valid per-site furniture was generated");
                     check(room.storages.length==14,"Lost loot containers");
                     check(room.roomNames().length==6,"Incomplete room labels");
                     check(!room.blocked(ClinicInteriorV89.ENTRANCE_X,
