@@ -3,7 +3,7 @@ on:
   push:
     branches: [sp-native-v166-world-art-overhaul-20261118]
     paths:
-      - '.github/workflows/sp-v1652-natural-camp-art-emulator-qa.yml'
+      - '.github/workflows/sp-v166-world-art-emulator-qa.yml'
       - 'survival-paradise/native-game/**'
   workflow_dispatch:
 # Art revisions arrive frequently. Cancel stale APK/emulator verification

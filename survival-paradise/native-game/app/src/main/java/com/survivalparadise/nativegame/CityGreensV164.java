@@ -36,6 +36,10 @@ public final class CityGreensV164 {
                 int seed=IndustrialWorldV123.hash(parcel.tx*73+slot,
                     parcel.ty*101-slot,plan.seed^0x1647AA);
                 int style=Math.floorMod(seed,4);
+                // An original grass brush establishes a soft, continuous
+                // foundation without paving the center of a public green.
+                NaturalBrushArtV1652.stamp(c,NaturalGroundV157.GRASS,
+                    x,y,1090f,820f,seed,242);
                 // A site is an aggregate of small, naturally feathered
                 // authored paint stamps, never a giant opaque rectangle,
                 // three concentric ellipses or a ruler-straight fake path.
