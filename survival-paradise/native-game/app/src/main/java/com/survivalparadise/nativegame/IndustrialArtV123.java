@@ -63,6 +63,27 @@ public final class IndustrialArtV123 {
         Bitmap b=sprites[index];if(b==null)return;
         dst.set(x,y,x+w,y+h);c.drawBitmap(b,null,dst,paint);
     }
+    /**
+     * V165: replace V84 salvage rectangles with the already-authored V123
+     * industrial artwork. All placement, harvesting, search radius, depletion,
+     * collisions and saved identities stay owned by SalvageWorldV84.
+     * When approved art is missing, V84's original safe fallback still draws.
+     */
+    public boolean salvage(Canvas c,float x,float y,int kind,boolean depleted){
+        int sprite=kind==SalvageWorldV84.CAR?CAR:
+                   kind==SalvageWorldV84.PILE?SCRAP:TANKS;
+        if(sprites[sprite]==null)return false;
+        float w=kind==SalvageWorldV84.CAR?164f:
+                kind==SalvageWorldV84.PILE?121f:91f;
+        float h=kind==SalvageWorldV84.CAR?106f:
+                kind==SalvageWorldV84.PILE?86f:76f;
+        int alpha=paint.getAlpha();
+        paint.setAlpha(depleted?186:255);
+        draw(c,sprite,x-w*.5f,y-h*.70f,w,h);
+        paint.setAlpha(alpha);
+        return true;
+    }
+
     /** V124: genuine industrial props on seeded parcels, not surface decals. */
     public void outdoors(Canvas c,float camX,float camY,float vw,float vh,int seed){
         int x0=IndustrialOpenWorldV124.sx(camX)-1;
