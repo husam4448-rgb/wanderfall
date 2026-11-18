@@ -59,6 +59,78 @@ public final class NeighborhoodLayoutV163 {
                       float dx,float dy,boolean vertical,float side){
         zones.add(new Zone(x1,y1,x2,y2,dx,dy,vertical,side));
     }
+    /**
+     * Geometric solid placement shared by chambers and circulation spaces.
+     * Test the true collision walls and the saved container/door anchors.
+     * Never alter the 14 persistent loot-container positions.
+     */
+    private boolean putFurnishing(int sprite,float x,float y,float w,float h,
+                                  ArrayList<float[]> supplies){
+        if(sprite<0||x<35f||y<48f||x+w>1565f||y+h>1059f)return false;
+        // Keep the original 98-unit south door and its approach open.
+        if(x<945f&&x+w>655f&&y<1095f&&y+h>866f)return false;
+        for(float[] wall:barriers){
+            if(x<wall[0]+wall[2]+10f&&x+w>wall[0]-10f&&
+               y<wall[1]+wall[3]+10f&&y+h>wall[1]-10f)return false;
+        }
+        float cx=x+w*.5f,cy=y+h*.5f;
+        for(Zone z:zones){
+            if(Math.hypot(cx-z.dx,cy-z.dy)<147f)return false;
+        }
+        for(float[] cache:supplies){
+            if(x<cache[0]+54f&&x+w>cache[0]-54f&&
+               y<cache[1]+54f&&y+h>cache[1]-54f)return false;
+        }
+        for(float[] obj:objects){
+            if(x<obj[1]+obj[3]+22f&&x+w>obj[1]-22f&&
+               y<obj[2]+obj[4]+22f&&y+h>obj[2]-22f)return false;
+        }
+        // Existing V161 collision and deterministic room signatures continue
+        // to derive from these same rectangles.
+        objects.add(new float[]{16+sprite,x,y,w,h});
+        return true;
+    }
+    /**
+     * Circulation and shared-purpose spaces were never part of the six V163
+     * rooms. Previously this left reception halls, sales floors and school
+     * commons completely empty. Place functional grouped equipment on their
+     * edges while preserving a broad continuous route to every room door.
+     */
+    private void furnishCommons(ArrayList<float[]> supplies){
+        final float[][] stations={
+            {275,195},{1190,195},{325,360},{1165,360},
+            {300,560},{1180,560},{325,735},{1165,735},
+            {515,185},{985,185},{515,445},{985,445},
+            {515,700},{985,700},{380,910},{1210,910},
+            {255,325},{1245,325},{405,490},{1095,490},
+            {600,310},{1000,310},{550,625},{1050,625}
+        };
+        int count=0,aim=theme==NeighborhoodV154.SCHOOL||
+            theme==NeighborhoodV154.HOTEL||
+            theme==NeighborhoodV154.MARKET?8:6;
+        for(int j=0;j<stations.length&&count<aim&&objects.size()<48;j++){
+            // Follow a fixed authored seating/workstation arrangement. Seed
+            // changes subtle local offsets/sprite variants, not safe anchors.
+            float[] anchor=stations[j];
+            int h=hash(571+j*13,theme*181+j*7);
+            int sprite=InteriorRoomArchetypeV166.shared(theme,j,variation);
+            float w=InteriorRoomArchetypeV166.width(sprite),hh=
+                InteriorRoomArchetypeV166.height(sprite);
+            float x=anchor[0]-w*.5f+(Math.floorMod(h>>>12,17)-8);
+            float y=anchor[1]-hh*.5f+(Math.floorMod(h>>>19,17)-8);
+            // Shared-space props must be OUTSIDE the six designated rooms.
+            // No generic shelving mistakenly appears in a bedroom.
+            float cx=x+w*.5f,cy=y+hh*.5f;
+            boolean occupiedRoom=false;
+            for(Zone z:zones)
+                if(cx>z.x1+12f&&cx<z.x2-12f&&
+                   cy>z.y1+12f&&cy<z.y2-12f){
+                    occupiedRoom=true;break;
+                }
+            if(occupiedRoom)continue;
+            if(putFurnishing(sprite,x,y,w,hh,supplies))count++;
+        }
+    }
     private int hash(int a,int b){
         return IndustrialWorldV123.hash(a*31+signature,b*71+variation,seed);
     }
@@ -165,6 +237,7 @@ public final class NeighborhoodLayoutV163 {
                 placed++;
             }
         }
+        furnishCommons(supplies);
         walls=pack(barriers);
         ArrayList<float[]> scaledObjects=new ArrayList<>();
         for(float[] o:objects){

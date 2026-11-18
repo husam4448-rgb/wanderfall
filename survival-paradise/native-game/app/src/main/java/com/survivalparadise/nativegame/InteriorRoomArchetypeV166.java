@@ -51,6 +51,24 @@ public final class InteriorRoomArchetypeV166 {
         return slot%3==0?primary:slot%3==1?secondary:
             (slot%2==0?primary:secondary);
     }
+    /**
+     * Shared-area furniture palette: reception/checkout, school commons,
+     * stock handling and residential seating remain architecture-specific.
+     */
+    public static int shared(int theme,int station,int variation){
+        if(theme<0||theme>=8)return 14;
+        final int[][] palette={
+            {14,15,6,1}, // apartment commons / seating
+            {2,3,2,3},   // shared office / reception workstation
+            {4,5,4,5},   // checkout and merchandising
+            {5,7,6,7},   // guest reception and common lounge
+            {8,9,8,9},   // school teaching tables and book shelving
+            {10,11,10,11},
+            {12,13,12,13},
+            {14,15,6,1}
+        };
+        return palette[theme][Math.floorMod(station+variation,4)];
+    }
     public static float width(int sprite){
         return SIZES[Math.floorMod(sprite,SIZES.length)][0];
     }
