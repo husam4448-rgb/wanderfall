@@ -15,11 +15,31 @@ jobs:
         with:
           sparse-checkout: |
             survival-paradise
+            assets/authored2d
+            assets/world
           sparse-checkout-cone-mode: true
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
+      - name: Restore and verify original approved character and game art
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --user -q Pillow numpy
+          python3 survival-paradise/native-game/tools/restore_runtime_assets_v157.py
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          root=Path('survival-paradise/native-game/app/src/main/assets')
+          original=root/'sp_v109_characters.zip'
+          assert original.is_file() and original.stat().st_size>1000
+          assert hashlib.sha256(original.read_bytes()).hexdigest()==(
+              'c8e364bc1485eb5251fa9494889977038268cbac10f455fa844d7b8a46f6dc3a')
+          assert (root/'body.png').is_file()
+          assert (root/'gear.png').is_file()
+          print('PASS: original 200 approved heads + original body and gun assets restored')
+          PY
       - name: Prepare Android SDK and offline-compatible debug package
         shell: bash
         run: |
@@ -39,6 +59,9 @@ jobs:
           mkdir -p /tmp/sp164/visual
           cp app/build/outputs/apk/debug/app-debug.apk /tmp/sp164/camp.apk
           test -s /tmp/sp164/camp.apk
+          unzip -l /tmp/sp164/camp.apk | grep -F 'assets/sp_v109_characters.zip'
+          unzip -l /tmp/sp164/camp.apk | grep -F 'assets/body.png'
+          unzip -l /tmp/sp164/camp.apk | grep -F 'assets/gear.png'
       - name: Enable Android emulator hardware acceleration
         run: |
           if [ -c /dev/kvm ]; then sudo chmod a+rw /dev/kvm; fi
