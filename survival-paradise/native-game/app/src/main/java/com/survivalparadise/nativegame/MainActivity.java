@@ -1941,6 +1941,39 @@ public final class MainActivity extends Activity {
                           AlertDialog[] bagDialog,Runnable refreshEquipment){
         if(game==null||position<0||position>=40)return;
         game.reconcileBagSplitsV130();
+        int kind=game.bagOrderV92[position],qty=game.bagSlotQuantityV130(position);
+        if(!UnifiedBagSlotsV141.valid(kind)||qty<=0)return;
+        int equipSlot=game.inventorySlotV141(kind);
+        boolean usable=kind==1||kind==3||kind==4||kind==12||kind==13;
+        boolean place=kind>=8&&kind<=11;
+        String primary=equipSlot>=0?"EQUIP":usable?"USE":place?"PLACE":"DROP";
+        Runnable action=()->{
+            if(equipSlot>=0){
+                if(!game.equipInventoryItemV131(kind,equipSlot))
+                    Toast.makeText(this,"Unable to equip",Toast.LENGTH_SHORT).show();
+                else{
+                    game.organizeBagV131(1);
+                    if(refreshEquipment!=null)refreshEquipment.run();
+                }
+            }else if(usable){
+                int mapped=kind==3?6:kind==4?7:kind==12?13:kind==13?14:kind;
+                if(!game.useBackpackV88(mapped))
+                    Toast.makeText(this,"Cannot use this item now",Toast.LENGTH_SHORT).show();
+            }else if(place){
+                if(game.selectPlaceItemV84(kind-8)&&bagDialog[0]!=null)
+                    bagDialog[0].dismiss();
+            }else bagQuantityMenuV130(position,false,refresh);
+            game.reconcileBagSplitsV130();
+            if(avatar!=null)avatar.invalidate();
+        };
+        showItemInspectorV163(kind,qty,"BACKPACK",primary,action,
+            "MORE",()->bagActionsMenuV163(position,refresh,avatar,
+                bagDialog,refreshEquipment),refresh);
+    }
+    void bagActionsMenuV163(int position,Runnable refresh,V62InventoryPreview avatar,
+                          AlertDialog[] bagDialog,Runnable refreshEquipment){
+        if(game==null||position<0||position>=40)return;
+        game.reconcileBagSplitsV130();
         int kind=game.bagOrderV92[position],quantity=game.bagSlotQuantityV130(position);
         if(!UnifiedBagSlotsV141.valid(kind)||quantity<=0)return;
         java.util.ArrayList<String> choices=new java.util.ArrayList<>();
