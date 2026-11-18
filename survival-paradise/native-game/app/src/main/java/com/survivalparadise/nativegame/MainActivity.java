@@ -880,6 +880,20 @@ public final class MainActivity extends Activity {
         }
         return tiles;
     }
+    /** V164: show only actual, available goods. Collapse empty rows while
+     * keeping invisible spacers in the last used row for consistent slot size.
+     * All 104 catalog types remain reachable after extensive NPC trades. */
+    private void compactTradeRowsV164(SquareItemSlotV88[] tiles,int filled,
+                                      LinearLayout parent){
+        int columns=TradeGridV148.columns(
+            getResources().getDisplayMetrics().widthPixels,
+            getResources().getDisplayMetrics().density);
+        for(int i=0;i<tiles.length;i++)
+            tiles[i].setVisibility(i<filled?View.VISIBLE:View.INVISIBLE);
+        for(int i=0;i<parent.getChildCount();i++)
+            parent.getChildAt(i).setVisibility(
+                i*columns<filled?View.VISIBLE:View.GONE);
+    }
     private void tradeSectionV148(LinearLayout target,String title){
         TextView label=text(title,10,true);
         label.setTextColor(0xffbce5ce);
@@ -1356,8 +1370,10 @@ public final class MainActivity extends Activity {
         npcScroll.addView(stockTiles);playerScroll.addView(playerTiles);
         stock.addView(npcScroll,new LinearLayout.LayoutParams(-1,0,1));
         player.addView(playerScroll,new LinearLayout.LayoutParams(-1,0,1));
-        final SquareItemSlotV88[] npcCells=tradeGridV148(stockTiles,40);
-        final SquareItemSlotV88[] playerCells=tradeGridV148(playerTiles,40);
+        final SquareItemSlotV88[] npcCells=tradeGridV148(stockTiles,
+            NpcTradeLedgerV143.ITEM_TYPES);
+        final SquareItemSlotV88[] playerCells=tradeGridV148(playerTiles,
+            NpcTradeLedgerV143.ITEM_TYPES);
         final int[] selectedNpc={-1},selectedPlayer={-1},selectedQuantity={1};
         TextView priceLine=text("TAP AN ITEM TO SHOW ITS UNIT PRICE",10,true);
         priceLine.setPadding(dp118(5),dp118(3),dp118(5),dp118(3));
@@ -1448,11 +1464,13 @@ public final class MainActivity extends Activity {
                         },null,null,refresh[0]);
                 });
             }
+            int visibleStockV164=pos;
             while(pos<npcCells.length){
                 SquareItemSlotV88 tile=npcCells[pos++];
                 showLootTileV134(tile,-1,0,false);v147TradeCell(tile,false);
                 tile.setOnClickListener(null);
             }
+            compactTradeRowsV164(npcCells,visibleStockV164,stockTiles);
             pos=0;
             for(int stockType=0;stockType<NpcTradeLedgerV143.ITEM_TYPES;stockType++){
                 int qty=game.availableInventoryV131(stockType);
@@ -1480,11 +1498,13 @@ public final class MainActivity extends Activity {
                         },null,null,refresh[0]);
                 });
             }
+            int visibleOwnedV164=pos;
             while(pos<playerCells.length){
                 SquareItemSlotV88 tile=playerCells[pos++];
                 showLootTileV134(tile,-1,0,false);v147TradeCell(tile,false);
                 tile.setOnClickListener(null);
             }
+            compactTradeRowsV164(playerCells,visibleOwnedV164,playerTiles);
         };
         minus.setOnClickListener(v->{
             selectedQuantity[0]=Math.max(1,selectedQuantity[0]-1);
