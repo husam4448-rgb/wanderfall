@@ -1,0 +1,270 @@
+name: SP V165.2 diagnostic ground isolation - no release
+on:
+  push:
+    branches: [sp-native-v1652-diagnostic-isolate-ground-20261118]
+    paths:
+      - '.github/workflows/sp-v1652-diagnostic-isolate-ground-qa.yml'
+      - 'survival-paradise/native-game/**'
+  workflow_dispatch:
+# Art revisions arrive frequently. Cancel stale APK/emulator verification
+# to avoid parallel downloads saturating Maven Central (HTTP 429).
+concurrency:
+  group: sp-v1652-art-qa-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  v165-art-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 38
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            survival-paradise
+            assets/authored2d
+            assets/world
+          sparse-checkout-cone-mode: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Verify original immutable runtime art and decode V165 painted material atlas
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --user -q Pillow numpy
+          python3 survival-paradise/native-game/tools/restore_runtime_assets_v157.py
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import base64,hashlib,io
+          assets=Path('survival-paradise/native-game/app/src/main/assets')
+          original=assets/'sp_v109_characters.zip'
+          assert original.is_file() and hashlib.sha256(original.read_bytes()).hexdigest()==(
+              'c8e364bc1485eb5251fa9494889977038268cbac10f455fa844d7b8a46f6dc3a')
+          assert (assets/'body.png').is_file() and (assets/'gear.png').is_file()
+          raw=base64.b64decode((assets/'sp_v165_surface.webp.b64').read_text())
+          atlas=Image.open(io.BytesIO(raw)).convert('RGB')
+          assert atlas.size==(256,256),atlas.size
+          halves=[atlas.crop((x*128,y*128,(x+1)*128,(y+1)*128)) for y in range(2) for x in range(2)]
+          import numpy as np
+          means=[np.array(q).mean(axis=(0,1)) for q in halves]
+          assert len({tuple(map(int,m)) for m in means})==4,means
+          assert len(raw)<20000
+          for filename,expected in (
+              ('sp_v1651_camp_tents.webp.b64',(668,263)),
+              ('sp_v1651_stations.webp.b64',(500,215)),
+              ('sp_v1651_road_shoulder.webp.b64',(1024,128)),
+              ('sp_v1652_props.webp.b64',(768,576)),
+              ('sp_v1652_ground.webp.b64',(640,434)),
+              ('sp_v1652_biome_blends.webp.b64',(768,256)),
+          ):
+              pack=base64.b64decode((assets/filename).read_text())
+              picture=Image.open(io.BytesIO(pack)).convert('RGBA')
+              assert picture.size==expected,(filename,picture.size)
+              alpha=np.asarray(picture.getchannel('A'))
+              assert alpha.min()==0 and alpha.max()>100,filename
+              assert np.count_nonzero(alpha<30)>alpha.size//25,filename
+              assert len(pack)<270000,filename
+              if filename.endswith('sp_v1652_ground.webp.b64'):
+                  # Genuine naturalized alpha, never a flat opaque rectangle.
+                  assert alpha[0,0]<4 and alpha[alpha.shape[0]//2,alpha.shape[1]//2]>50
+              if filename.endswith('sp_v1652_props.webp.b64'):
+                  assert np.count_nonzero(alpha<30)>alpha.size//4
+              print('PASS original authored RGBA:',filename,len(pack),picture.size)
+          tents=Image.open(io.BytesIO(base64.b64decode(
+              (assets/'sp_v1651_camp_tents.webp.b64').read_text()))).convert('RGB')
+          a=np.asarray(tents.crop((0,0,334,263)))
+          b=np.asarray(tents.crop((334,0,668,263)))
+          assert np.mean(np.abs(a.astype('int')-b.astype('int')))>15
+          Path('/tmp/sp165').mkdir(exist_ok=True)
+          atlas.save('/tmp/sp165/atlas-qa.png')
+          print('PASS: original 200 heads preserved; V165 four distinct authored materials decode')
+          PY
+      - name: Preserve V164 seeded-world gameplay regression coverage
+        shell: bash
+        run: |
+          set -euo pipefail
+          R=survival-paradise/native-game
+          mkdir -p /tmp/v165-java
+          javac -sourcepath "$R/app/src/main/java" -d /tmp/v165-java \
+            "$R/tools/V161NeighborhoodInteriorTest.java" \
+            "$R/tools/GearStatsV162Test.java" \
+            "$R/tools/V163InteriorLayoutTest.java" \
+            "$R/tools/V164SettlementCampTest.java" \
+            "$R/tools/V1652CampSpatialTest.java" \
+            "$R/tools/V160SeededGeographyTest.java" \
+            "$R/tools/V159WorldPlanTest.java" \
+            "$R/tools/NeighborhoodV154Test.java"
+          for test in V1652CampSpatialTest V164SettlementCampTest V163InteriorLayoutTest GearStatsV162Test \
+                      V161NeighborhoodInteriorTest V160SeededGeographyTest \
+                      V159WorldPlanTest NeighborhoodV154Test; do
+            java -Xmx512m -cp /tmp/v165-java com.survivalparadise.nativegame."$test"
+          done
+      - name: Verify no headgear renderer or world/saves reconfiguration
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame')
+          s=(p/'SurfaceArtV165.java').read_text()
+          assert all(t in s for t in ('BitmapShader','Shader.TileMode.REPEAT','sp_v165_surface.webp.b64','public static boolean ready()'))
+          for name in ('GameView.java','NeighborhoodArtV154.java','IndustrialSceneV124.java',
+                       'NaturalGroundArtV157.java','IndustrialBiomeSceneV128.java'):
+            assert 'SurfaceArtV165' in (p/name).read_text(),name
+          game=(p/'GameView.java').read_text()
+          assert 'if(index==1)return;' in game
+          assert 'terrainChunks.draw(c,camX,camY,viewW,viewH,renderZoomV90)' in game
+          assert 'campCachesV164.encode()' in game
+          assert 'CampSpriteArtV1651.drawTent' in (p/'CampArtV164.java').read_text()
+          assert 'CampStationSpriteV1651.drawTrader' in (p/'CampArtV164.java').read_text()
+          assert 'CampStationSpriteV1651.drawMedic' in (p/'CampArtV164.java').read_text()
+          assert 'RoadShoulderArtV1651.vertical' in (p/'NeighborhoodArtV154.java').read_text()
+          assert 'RoadShoulderArtV1651.horizontal' in game
+          assert 'CampArtV164.foregroundY(site,what)' in game
+          assert 'CampArtV164.foreground(c,p,site,what)' in game
+          assert 'campStaff.add(new Survivor(CAMP_X-210,CAMP_Y+147' in game
+          assert 'for(int part=0;part<6;part++)' in game
+          camp=(p/'CampArtV164.java').read_text()
+          assert 'CampSceneArtV1652.ground(c,s)' in camp
+          assert 'CampSceneArtV1652.chest' in camp
+          assert 'CampSceneArtV1652.guard(c' in camp
+          assert 'CampSceneArtV1652.solar' in camp
+          assert 'CampSceneArtV1652.debris' in camp
+          assert 'oval(c,p,x-470,y-295' not in camp
+          assert 'Math.abs(x-site.chestX())<47f+r' in game
+          assert 'Math.abs(y-site.chestY())<35f+r' in game
+          assert 'CampSceneArtV1652.load(host.getAssets())' in game
+          assert 'NaturalBrushArtV1652.load(host.getAssets())' in game
+          assert 'NaturalBrushArtV1652.patch(c,b,biome,distant)' in (p/'NaturalGroundArtV157.java').read_text()
+          assert 'tradeStand(c,p,x-215,y+73)' in camp
+          assert 'watchPost(c,p,x+270,y+5)' in camp
+          assert 'CampSceneArtV1652.solar(c,x-397f,y+132f)' in camp
+          assert 'CampSceneArtV1652.debris(c,x-399f,y-5f,false)' in camp
+          assert 'CampSceneArtV1652.debris(c,x+405f,y-16f,false)' in camp
+          assert 'STARTER_GROUND=GROUND.copy' in (p/'CampSceneArtV1652.java').read_text()
+          assert 'SurfaceArtV165.load(host.getAssets())' in game
+          assert 'CampSpriteArtV1651.load(host.getAssets())' in game
+          assert 'CampStationSpriteV1651.load(host.getAssets())' in game
+          assert 'RoadShoulderArtV1651.load(host.getAssets())' in game
+          print('PASS: V165.1 renderer wiring, depth sorting and original heads retained')
+          PY
+      - name: Android 35 SDK / Java compile
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -path '*/bin/sdkmanager' | sort -V | tail -1)"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Compile native Android app
+        working-directory: survival-paradise/native-game
+        shell: bash
+        run: |
+          set -euo pipefail
+          gradle --no-daemon :app:compileDebugJavaWithJavac
+      - name: Prepare temporary emulator-only debug test package (NO APK PUBLICATION)
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd survival-paradise/native-game
+          gradle --no-daemon :app:assembleDebug
+          mkdir -p /tmp/sp165/visual
+          cp app/build/outputs/apk/debug/app-debug.apk /tmp/sp165/qa-only.apk
+          test -s /tmp/sp165/qa-only.apk
+          unzip -l /tmp/sp165/qa-only.apk | grep -F 'assets/sp_v165_surface.webp.b64'
+          unzip -l /tmp/sp165/qa-only.apk | grep -F 'assets/sp_v1652_props.webp.b64'
+          unzip -l /tmp/sp165/qa-only.apk | grep -F 'assets/sp_v1652_ground.webp.b64'
+          unzip -l /tmp/sp165/qa-only.apk | grep -F 'assets/sp_v1652_biome_blends.webp.b64'
+          unzip -l /tmp/sp165/qa-only.apk | grep -F 'assets/sp_v109_characters.zip'
+      - name: Allow emulator KVM
+        run: |
+          if [ -c /dev/kvm ]; then sudo chmod a+rw /dev/kvm; fi
+      - name: Prepare actual game camera capture script
+        shell: bash
+        run: |
+          cat > /tmp/sp165/emulator.sh <<'SCRIPT'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          PKG=com.survivalparadise.nativegame.v164camptest
+          adb wait-for-device
+          adb shell settings put system accelerometer_rotation 0 || true
+          adb shell settings put system user_rotation 1 || true
+          adb shell wm size 1920x1080 || true
+          adb shell wm density 260 || true
+          adb install /tmp/sp165/qa-only.apk
+          adb logcat -c
+          timeout 28s adb shell am start -n "$PKG/com.survivalparadise.nativegame.MainActivity"
+          sleep 9
+          adb shell screencap -p /sdcard/v165_menu.png
+          adb pull /sdcard/v165_menu.png /tmp/sp165/visual/01_menu.png
+          if ! adb shell pidof "$PKG"; then adb logcat -d > /tmp/sp165/visual/launch_failure.txt;exit 1;fi
+          adb shell input tap 1130 330
+          adb shell input tap 740 620
+          sleep 26
+          # A second Android immersive-mode permission overlay can appear
+          # after NEW GAME, even if the menu was already unobstructed.
+          adb shell input tap 1130 330
+          sleep 2
+          # Force bright noon lighting so authored materials can be reviewed.
+          adb shell input tap 1493 45 || true
+          sleep 3
+          adb shell screencap -p /sdcard/v165_world.png
+          adb pull /sdcard/v165_world.png /tmp/sp165/visual/02_world_normal.png
+          # Walk south toward the fixed starting highway to test actual
+          # in-game road dressing; navigation/gameplay are unchanged.
+          adb shell input swipe 268 820 268 995 3600 || true
+          sleep 2
+          adb shell screencap -p /sdcard/v165_road.png
+          adb pull /sdcard/v165_road.png /tmp/sp165/visual/03_road_approach.png
+          # At 1920x1080 the real ZOOM - control is centered near x1680;
+          # the old x1840 tap was ZOOM + and therefore NOT zoomed out.
+          adb shell input tap 1685 170
+          adb shell input tap 1685 170
+          sleep 3
+          adb shell screencap -p /sdcard/v165_far.png
+          adb pull /sdcard/v165_far.png /tmp/sp165/visual/04_world_zoomed_out.png
+          adb logcat -d > /tmp/sp165/visual/logcat.txt
+          grep -F 'Camp tents ready: 2 authored RGBA sprites' /tmp/sp165/visual/logcat.txt
+          grep -F 'Trade and medic stations ready: 2 authored RGBA sprites' /tmp/sp165/visual/logcat.txt
+          grep -F 'Road shoulder ready: 1024x128 RGBA strip' /tmp/sp165/visual/logcat.txt
+          grep -F 'Organic camp ground and four authored props ready' /tmp/sp165/visual/logcat.txt
+          grep -F 'Natural biome brushes ready: 3 transparent authored pigments' /tmp/sp165/visual/logcat.txt
+          adb shell pidof "$PKG"
+          if grep -E 'FATAL EXCEPTION|Process: com.survivalparadise.nativegame.v164camptest' /tmp/sp165/visual/logcat.txt; then exit 1;fi
+          test -s /tmp/sp165/visual/02_world_normal.png
+          test -s /tmp/sp165/visual/04_world_zoomed_out.png
+          python3 - <<'PY'
+          from PIL import Image
+          for name in ('02_world_normal.png','04_world_zoomed_out.png'):
+              im=Image.open('/tmp/sp165/visual/'+name).convert('RGB')
+              r,g,b=im.getpixel((im.width//2,130))
+              assert not (b>175 and r<100 and g>65 and g<190), (name,'fullscreen help overlay still visible',(r,g,b))
+          print('PASS: captured real unobstructed game visuals')
+          PY
+          SCRIPT
+          chmod +x /tmp/sp165/emulator.sh
+      - name: Actual Android emulator capture (not a simulator)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          target: default
+          arch: x86_64
+          profile: pixel_2
+          emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -gpu swiftshader_indirect -memory 3072
+          disable-animations: true
+          script: bash /tmp/sp165/emulator.sh
+      - name: Save visual QA screenshots only; never publish test APK
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SP_V1652_Real_Emulator_Art_QA
+          path: |
+            /tmp/sp165/atlas-qa.png
+            /tmp/sp165/visual/
+          retention-days: 14
+          if-no-files-found: warn
