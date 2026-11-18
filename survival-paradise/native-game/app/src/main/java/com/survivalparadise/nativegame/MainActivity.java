@@ -1428,6 +1428,13 @@ public final class MainActivity extends Activity {
                     tile.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP);
                     selectedNpc[0]=id;selectedPlayer[0]=-1;
                     selectedQuantity[0]=1;refresh[0].run();
+                    showItemInspectorV163(id,live.count(id),"TRADER • BUY",
+                        "BUY 1",()->{
+                            if(!game.tradeV143(traderId,id,1,true))
+                                Toast.makeText(this,"Purchase unavailable",
+                                    Toast.LENGTH_SHORT).show();
+                            game.organizeBagV131(1);
+                        },null,null,refresh[0]);
                 });
             }
             while(pos<npcCells.length){
@@ -1453,6 +1460,13 @@ public final class MainActivity extends Activity {
                     tile.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP);
                     selectedPlayer[0]=id;selectedNpc[0]=-1;
                     selectedQuantity[0]=1;refresh[0].run();
+                    showItemInspectorV163(id,qty,"YOUR BAG • SELL",
+                        "SELL 1",()->{
+                            if(!game.tradeV143(traderId,id,1,false))
+                                Toast.makeText(this,"Sale unavailable",
+                                    Toast.LENGTH_SHORT).show();
+                            game.organizeBagV131(1);
+                        },null,null,refresh[0]);
                 });
             }
             while(pos<playerCells.length){
@@ -1485,6 +1499,7 @@ public final class MainActivity extends Activity {
             if(!ok)Toast.makeText(this,buying?
                 "Cannot buy: nuts, stock, space or NPC range":
                 "Cannot sell: item, NPC budget or range",Toast.LENGTH_SHORT).show();
+            if(ok)game.organizeBagV131(1);
             refresh[0].run();
         });
         AlertDialog dialog=new AlertDialog.Builder(this).setView(shell).create();
