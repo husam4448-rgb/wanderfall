@@ -330,19 +330,78 @@ jobs:
                   playerY=ClinicInteriorV89.ENTRANCE_Y;
               }
           }
+          int qaLegacy=android.provider.Settings.Global.getInt(
+              host.getContentResolver(),"sp_v166_qa_legacy_scene",0);
+          if(playing&&!gameOver&&qaLegacy==9&&
+             (!insideClinicV89||
+              clinicInteriorV89.getClass()!=ClinicInteriorV89.class)){
+              neighborhoodSiteV161=null;
+              activeSiteV91=1;
+              clinicInteriorV89=new ClinicInteriorV89();
+              clinicActorsV90=new ClinicActorsV90(clinicInteriorV89);
+              clinicNavV90=new ClinicNavV90(clinicInteriorV89);
+              insideClinicV89=true;
+              playerX=ClinicInteriorV89.ENTRANCE_X;
+              playerY=ClinicInteriorV89.ENTRANCE_Y;
+          }
+          if(playing&&!gameOver&&qaLegacy==10&&
+             (!insideClinicV89||
+              !(clinicInteriorV89 instanceof ExpeditionInteriorV91)||
+              clinicInteriorV89 instanceof NeighborhoodInteriorV161)){
+              neighborhoodSiteV161=null;
+              activeSiteV91=0;
+              clinicInteriorV89=new ExpeditionInteriorV91(
+                  ExpeditionSitesV88.SITES[0]);
+              clinicActorsV90=new ClinicActorsV90(clinicInteriorV89);
+              clinicNavV90=new ClinicNavV90(clinicInteriorV89);
+              insideClinicV89=true;
+              playerX=ClinicInteriorV89.ENTRANCE_X;
+              playerY=ClinicInteriorV89.ENTRANCE_Y;
+          }
+          if(playing&&!gameOver&&qaLegacy==11&&
+             (!insideClinicV89||
+              !(clinicInteriorV89 instanceof IndustrialInteriorV123))){
+              neighborhoodSiteV161=null;
+              activeSiteV91=INDUSTRIAL_SITE_V123;
+              clinicInteriorV89=new IndustrialInteriorV123(
+                  IndustrialWorldV123.district(0,0,industrialSeedV123));
+              clinicActorsV90=new ClinicActorsV90(clinicInteriorV89);
+              clinicNavV90=new ClinicNavV90(clinicInteriorV89);
+              insideClinicV89=true;
+              playerX=ClinicInteriorV89.ENTRANCE_X;
+              playerY=ClinicInteriorV89.ENTRANCE_Y;
+          }
+          // Inspection-only camera vantages. This code never lands in a
+          // production APK: compiled only into the isolated QA test package.
+          int qaVantage=android.provider.Settings.Global.getInt(
+              host.getContentResolver(),"sp_v166_qa_vantage",0);
+          if(playing&&!gameOver&&
+             ((qaInterior>=1&&qaInterior<=8)||(qaLegacy>=9&&qaLegacy<=11))){
+              if(qaVantage==1){
+                  playerX=800f*ClinicInteriorV89.EXPANSION_V90;
+                  playerY=640f*ClinicInteriorV89.EXPANSION_V90;
+              }else if(qaVantage==2){
+                  playerX=800f*ClinicInteriorV89.EXPANSION_V90;
+                  playerY=250f*ClinicInteriorV89.EXPANSION_V90;
+              }
+          }
           '''
           s=s.replace(needle,needle+'\n'+injection,1)
           vision='        drawClinicVisionV90(c);'
           assert s.count(vision)>=2,s.count(vision)
           s=s.replace(vision,
               '''        if(android.provider.Settings.Global.getInt(
-                  host.getContentResolver(),"sp_v166_qa_interior_kind",0)==0)
+                  host.getContentResolver(),"sp_v166_qa_interior_kind",0)==0&&
+                  android.provider.Settings.Global.getInt(
+                  host.getContentResolver(),"sp_v166_qa_legacy_scene",0)==0)
                   drawClinicVisionV90(c);''')
           hud='            hud(canvas);'
           assert hud in s,hud
           s=s.replace(hud,
               '''            if(android.provider.Settings.Global.getInt(
-                host.getContentResolver(),"sp_v166_qa_interior_kind",0)==0)
+                host.getContentResolver(),"sp_v166_qa_interior_kind",0)==0&&
+                android.provider.Settings.Global.getInt(
+                host.getContentResolver(),"sp_v166_qa_legacy_scene",0)==0)
                 hud(canvas);''',1)
           file.write_text(s)
           print('PASS: temporary QA mode for eight real V163 seeded interiors')
@@ -446,7 +505,32 @@ jobs:
             adb shell screencap -p "/sdcard/07_interior_kind_$kind.png"
             adb pull "/sdcard/07_interior_kind_$kind.png" "/tmp/sp165/visual/07_interior_kind_$kind.png"
           done
+          # Second and third real-camera viewpoints reveal room furniture
+          # hidden above the entrance-level framing in iteration 1 and 2.
+          adb shell settings put global sp_v166_qa_vantage 1
+          for kind in 1 2 3 4 5 6 7 8; do
+            adb shell settings put global sp_v166_qa_interior_kind "$kind"
+            sleep 2
+            adb shell screencap -p "/sdcard/08_centre_kind_$kind.png"
+            adb pull "/sdcard/08_centre_kind_$kind.png" "/tmp/sp165/visual/08_centre_kind_$kind.png"
+          done
+          adb shell settings put global sp_v166_qa_vantage 2
+          for kind in 1 2 3 4 5 6 7 8; do
+            adb shell settings put global sp_v166_qa_interior_kind "$kind"
+            sleep 2
+            adb shell screencap -p "/sdcard/09_north_kind_$kind.png"
+            adb pull "/sdcard/09_north_kind_$kind.png" "/tmp/sp165/visual/09_north_kind_$kind.png"
+          done
           adb shell settings put global sp_v166_qa_interior_kind 0
+          adb shell settings put global sp_v166_qa_vantage 1
+          for scene in 9 10 11; do
+            adb shell settings put global sp_v166_qa_legacy_scene "$scene"
+            sleep 3
+            adb shell screencap -p "/sdcard/10_legacy_scene_$scene.png"
+            adb pull "/sdcard/10_legacy_scene_$scene.png" "/tmp/sp165/visual/10_legacy_scene_$scene.png"
+          done
+          adb shell settings put global sp_v166_qa_vantage 0
+          adb shell settings put global sp_v166_qa_legacy_scene 0
           adb logcat -d > /tmp/sp165/visual/logcat.txt
           grep -F 'Camp tents ready: 2 authored RGBA sprites' /tmp/sp165/visual/logcat.txt
           grep -F 'Trade and medic stations ready: 2 authored RGBA sprites' /tmp/sp165/visual/logcat.txt
@@ -464,6 +548,9 @@ jobs:
           test -s /tmp/sp165/visual/04_world_zoomed_out.png
           for kind in 1 2 3 4 5 6 7 8;do test -s "/tmp/sp165/visual/06_city_kind_$kind.png";done
           for kind in 1 2 3 4 5 6 7 8;do test -s "/tmp/sp165/visual/07_interior_kind_$kind.png";done
+          for kind in 1 2 3 4 5 6 7 8;do test -s "/tmp/sp165/visual/08_centre_kind_$kind.png";done
+          for kind in 1 2 3 4 5 6 7 8;do test -s "/tmp/sp165/visual/09_north_kind_$kind.png";done
+          for scene in 9 10 11;do test -s "/tmp/sp165/visual/10_legacy_scene_$scene.png";done
           python3 - <<'PY'
           from PIL import Image
           for name in ('02_world_normal.png','04_world_zoomed_out.png'):
@@ -493,13 +580,17 @@ jobs:
           from PIL import Image
           import base64,io
           folder=Path('/tmp/sp165/visual')
-          for filename in ('07_interior_kind_1.png','07_interior_kind_2.png','07_interior_kind_3.png','07_interior_kind_4.png','07_interior_kind_5.png','07_interior_kind_6.png','07_interior_kind_7.png','07_interior_kind_8.png'):
-              path=folder/filename
+          image_names=(list(folder.glob('07_interior_kind_*.png'))+
+                       list(folder.glob('08_centre_kind_*.png'))+
+                       list(folder.glob('09_north_kind_*.png'))+
+                       list(folder.glob('10_legacy_scene_*.png')))
+          for path in sorted(image_names):
+              filename=path.name
               if not path.is_file():continue
               img=Image.open(path).convert('RGB')
-              img.thumbnail((1280,720))
+              img.thumbnail((960,540))
               stream=io.BytesIO()
-              img.save(stream,format='JPEG',quality=66,optimize=True)
+              img.save(stream,format='JPEG',quality=60,optimize=True)
               print('V166_VISUAL_'+filename.split('.')[0]+'='+base64.b64encode(stream.getvalue()).decode('ascii'))
               print('V166_VISUAL_DIM_'+filename.split('.')[0]+'='+str(img.size))
           PY
