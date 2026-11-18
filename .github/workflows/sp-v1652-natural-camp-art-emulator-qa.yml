@@ -93,10 +93,11 @@ jobs:
             "$R/tools/GearStatsV162Test.java" \
             "$R/tools/V163InteriorLayoutTest.java" \
             "$R/tools/V164SettlementCampTest.java" \
+            "$R/tools/V1652CampSpatialTest.java" \
             "$R/tools/V160SeededGeographyTest.java" \
             "$R/tools/V159WorldPlanTest.java" \
             "$R/tools/NeighborhoodV154Test.java"
-          for test in V164SettlementCampTest V163InteriorLayoutTest GearStatsV162Test \
+          for test in V1652CampSpatialTest V164SettlementCampTest V163InteriorLayoutTest GearStatsV162Test \
                       V161NeighborhoodInteriorTest V160SeededGeographyTest \
                       V159WorldPlanTest NeighborhoodV154Test; do
             java -Xmx512m -cp /tmp/v165-java com.survivalparadise.nativegame."$test"
@@ -140,6 +141,10 @@ jobs:
           assert 'NaturalBrushArtV1652.patch(c,b,biome,distant)' in (p/'NaturalGroundArtV157.java').read_text()
           assert 'tradeStand(c,p,x-215,y+73)' in camp
           assert 'watchPost(c,p,x+270,y+5)' in camp
+          assert 'CampSceneArtV1652.solar(c,x-397f,y+132f)' in camp
+          assert 'CampSceneArtV1652.debris(c,x-399f,y-5f,false)' in camp
+          assert 'CampSceneArtV1652.debris(c,x+405f,y-16f,false)' in camp
+          assert 'STARTER_GROUND=GROUND.copy' in (p/'CampSceneArtV1652.java').read_text()
           assert 'SurfaceArtV165.load(host.getAssets())' in game
           assert 'CampSpriteArtV1651.load(host.getAssets())' in game
           assert 'CampStationSpriteV1651.load(host.getAssets())' in game
