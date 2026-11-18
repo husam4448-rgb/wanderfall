@@ -33,14 +33,14 @@ Working branch: `sp-native-v165-world-art-surfaces-20261118`.
   collision or saved-state fields. The V164 app ID/version is deliberately untouched.
 
 ## Acceptance/verification checklist
-- [ ] Pure-Java V164 seed/camp/gear/interior regressions pass.
-- [ ] V165 asset bytes decode into four nonidentical images.
-- [ ] Android `:app:compileDebugJavaWithJavac` passes.
-- [ ] Temporary internal Android debug build has the asset in its ZIP manifest.
-- [ ] Emulator startup and screenshots at normal and distant zoom.
+- [x] Pure-Java V164 seed/camp/gear/interior regressions pass.
+- [x] V165 asset bytes decode into four nonidentical images.
+- [x] Android `:app:compileDebugJavaWithJavac` passes.
+- [x] Temporary internal Android debug build has the asset in its ZIP manifest.
+- [x] Emulator startup and screenshots at normal and distant zoom.
 - [ ] Visual review checks tiling seams, geometric alignment, palette, roughness,
       road intersection continuity, texture repetition and readability.
-- [ ] Emulator evidence reviewed BEFORE any user-facing APK.
+- [x] Emulator evidence reviewed BEFORE any user-facing APK.
 - [ ] Later art passes proceed through clutter/exteriors/interiors/camps/items.
 
 ## Audit coverage: shape-heavy code (2026-11-18)
@@ -77,3 +77,19 @@ a placeholder. Each renderer is also visually audited at normal and distant zoom
   collision and procedural layouts are unchanged.
 - This is an initial art batch, **not** completion or visual acceptance of the
   full world-art replacement program.
+
+## Verified CI status (November 18, 2026)
+- [PASS] GitHub Actions run **44257149801** on commit `e4ed0cb44efe254bee627542aa61ebd3d2446299`.
+  Original head/source restoration, existing seeded-world Java regressions,
+  art-atlas decode, Android compile, temporary emulator-only assembly,
+  real Android emulator startup, visible road/camp screenshots at two zooms,
+  and no app fatal exception in captured logcat.
+- The earlier run **44256300606** failed on an Android API-29 Google-services
+  emulator **system-server OOM** (16MB system heap); not a verified game-code
+  exception. The passing recheck uses the smaller AOSP service stack and
+  3072MB emulator RAM.
+- **VISUAL REVIEW: NOT APPROVED YET.** Real screenshots confirm that the
+  new road material renders; repetitive texture and prominent basic camp
+  tents, trading/medic stations, crates and background clutter still require
+  authored sprite replacements.
+- No user-facing APK published or attached.
