@@ -237,10 +237,10 @@ jobs:
                   '        if(v166Whole==8){c.restore();return;}\n'
                   '        drawDroppedItemsV129(c);')
           # Mode 9 is optional: tolerate a renderer variant with no night pass.
-          needle='applyWorldLighting(c);else drawFixtures(c,true);'
+          needle='if(lightAlpha>0)applyWorldLighting(c);else drawFixtures(c,true);'
           if needle in s:
               s=s.replace(needle,
-                'if(v166Whole!=9){if(lightAlpha>0)'+needle+'}',1)
+                'if(v166Whole!=9){'+needle+'}',1)
           replace('            hud(canvas);\n            if(paused&&!settingsPause)pauseOverlay(canvas);',
                   '            if(android.provider.Settings.Global.getInt(\n'
                   '                host.getContentResolver(),"sp_v166_qa_layer",0)!=10)hud(canvas);\n'
