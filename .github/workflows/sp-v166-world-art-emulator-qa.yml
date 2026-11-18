@@ -54,6 +54,24 @@ jobs:
           import numpy as np
           f0=np.asarray(fire.crop((0,0,256,256)),dtype=np.int16)
           assert all(np.abs(f0-np.asarray(fire.crop((i*256,0,(i+1)*256,256)),dtype=np.int16)).sum()>5000 for i in range(1,4))
+          # V166 8-category city exterior contract. No image-generation
+          # success counts as game integration: require real Android captures.
+          ext=base64.b64decode((assets/'sp_v166_neighborhood.webp.b64').read_text())
+          assert hashlib.sha256(ext).hexdigest()=='b4afd1a9112519f907e4e285c552bf072206f53952e35797490abc2ebba6712f'
+          building_atlas=Image.open(io.BytesIO(ext)).convert('RGBA')
+          assert building_atlas.size==(1280,1280),building_atlas.size
+          for kind in range(8):
+              cells=[]
+              for variant in range(2):
+                  i=variant*8+kind
+                  x=i%4*320;y=i//4*320
+                  tile=building_atlas.crop((x,y,x+320,y+320))
+                  assert tile.getchannel('A').getbbox(),(kind,variant)
+                  assert tile.getchannel('A').getextrema()[0]==0,(kind,variant)
+                  cells.append(tile)
+              from PIL import ImageChops
+              assert ImageChops.difference(cells[0],cells[1]).getbbox(),kind
+          print('PASS V166: 8 authentic building families, 16 distinct art cells')
           original=assets/'sp_v109_characters.zip'
           assert original.is_file() and hashlib.sha256(original.read_bytes()).hexdigest()==(
               'c8e364bc1485eb5251fa9494889977038268cbac10f455fa844d7b8a46f6dc3a')
@@ -110,10 +128,11 @@ jobs:
             "$R/tools/V164SettlementCampTest.java" \
             "$R/tools/V1652CampSpatialTest.java" \
             "$R/tools/V166WorldArtSelectionTest.java" \
+            "$R/tools/V166NeighborhoodArtTest.java" \
             "$R/tools/V160SeededGeographyTest.java" \
             "$R/tools/V159WorldPlanTest.java" \
             "$R/tools/NeighborhoodV154Test.java"
-          for test in V166WorldArtSelectionTest V1652CampSpatialTest V164SettlementCampTest V163InteriorLayoutTest GearStatsV162Test \
+          for test in V166NeighborhoodArtTest V166WorldArtSelectionTest V1652CampSpatialTest V164SettlementCampTest V163InteriorLayoutTest GearStatsV162Test \
                       V161NeighborhoodInteriorTest V160SeededGeographyTest \
                       V159WorldPlanTest NeighborhoodV154Test; do
             java -Xmx512m -cp /tmp/v165-java com.survivalparadise.nativegame."$test"
@@ -172,6 +191,9 @@ jobs:
           assert 'CampStationSpriteV1651.load(host.getAssets())' in game
           assert 'RoadShoulderArtV1651.load(host.getAssets())' in game
           assert 'CampfireArtV166.load(host.getAssets())' in game
+          assert 'BuildingArtV166.load(host.getAssets())' in game
+          assert 'BuildingArtV166.draw(c,b,worldSeed)' in (p/'NeighborhoodArtV154.java').read_text()
+          assert 'b->building(c,p,b,night,plan==null?14901:plan.seed)' in (p/'NeighborhoodArtV154.java').read_text()
           assert 'CampfireArtV166.draw(c,x,y,campfiresLit,worldTimer)' in game
           assert 'WorldArtV166.draw(c,WorldArtSelectionV166.ROCK' in game
           assert 'WorldArtV166.draw(c,WorldArtSelectionV166.WOOD' in game
@@ -215,6 +237,7 @@ jobs:
           test -s /tmp/sp165/qa-only.apk
           unzip -l /tmp/sp165/qa-only.apk | grep -F 'assets/world_props_v166.png'
           unzip -l /tmp/sp165/qa-only.apk | grep -F 'assets/sp_v166_campfire.webp.b64'
+          unzip -l /tmp/sp165/qa-only.apk | grep -F 'assets/sp_v166_neighborhood.webp.b64'
           unzip -l /tmp/sp165/qa-only.apk | grep -F 'assets/sp_v165_surface.webp.b64'
           unzip -l /tmp/sp165/qa-only.apk | grep -F 'assets/sp_v1652_props.webp.b64'
           unzip -l /tmp/sp165/qa-only.apk | grep -F 'assets/sp_v1652_ground.webp.b64'
@@ -275,6 +298,7 @@ jobs:
           grep -F 'Natural biome brushes ready: 3 transparent authored pigments' /tmp/sp165/visual/logcat.txt
           grep -F 'World sprite library ready: 23 original-art variations' /tmp/sp165/visual/logcat.txt
           grep -F 'Campfire production sprites ready: 4 lit + 1 unlit' /tmp/sp165/visual/logcat.txt
+          grep -F 'Building exteriors ready: 8 families, 16 original sprites' /tmp/sp165/visual/logcat.txt
           adb shell pidof "$PKG"
           if grep -E 'FATAL EXCEPTION|Process: com.survivalparadise.nativegame.v164camptest' /tmp/sp165/visual/logcat.txt; then exit 1;fi
           test -s /tmp/sp165/visual/02_world_normal.png

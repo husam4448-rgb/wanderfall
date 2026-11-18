@@ -175,8 +175,29 @@ public final class NeighborhoodArtV154 {
         // This pavement has no collision, unlike the masonry roof.
     }
     private static void building(Canvas c,Paint p,NeighborhoodV154.Building b,
-                                 boolean night){
+                                 boolean night,int worldSeed){
         float x=b.left,y=b.top,w=b.width,h=b.height,bottom=b.bottom();
+        // Painted ground/contact zone only. No coarse rectangular asphalt or
+        // giant fake yard polygon: V154 geography and solid walls stay fixed.
+        if(BuildingArtV166.ready()){
+            int salt=WorldChunkModel.hash(b.tileX*31+b.slot*17,
+                b.tileY*73+worldSeed);
+            for(int i=0;i<5;i++){
+                int h0=WorldChunkModel.hash(salt+i*71,b.variation+i*13);
+                float px=x+w*(.13f+.74f*Math.floorMod(h0,1000)/999f);
+                float py=bottom+22f+Math.floorMod(h0>>>13,88);
+                NaturalBrushArtV1652.stamp(c,
+                    i%3==0?NaturalGroundV157.DRY:NaturalGroundV157.DIRT,
+                    px,py,188f+Math.floorMod(h0>>>19,150),91f,h0,172);
+            }
+            // Small door threshold ends at the real saved front wall.
+            SurfaceArtV165.rect(c,b.doorX-83f,bottom+5f,166f,52f,
+                SurfaceArtV165.CONCRETE,315f,197);
+            if(BuildingArtV166.draw(c,b,worldSeed))return;
+        }
+        // Legacy wall drawing is a safety fallback only when the required
+        // production atlas fails decoding; CI strictly requires this atlas.
+
         int roof=shade(ROOFS[b.kind],(b.variation%5-2)*5);
         int wall=shade(WALLS[b.kind],(b.variation%4-2)*6);
         int trim=ACCENTS[b.kind];
@@ -306,6 +327,6 @@ public final class NeighborhoodArtV154 {
                (plan==null||plan.atTile(tx,ty)!=null))
                 roads(c,p,tx,ty);
         NeighborhoodV154.visible(camX,camY,viewW,viewH,plan,
-            b->building(c,p,b,night));
+            b->building(c,p,b,night,plan==null?14901:plan.seed));
     }
 }

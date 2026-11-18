@@ -60,3 +60,11 @@ case, even if the JVM selector and Python pixel-asset contract pass.
 - Run [44358377150](https://github.com/husam4448-rgb/wanderfall/actions/runs/44358377150): source-level correction to camp LTRB oval helper plus real Android startup/normal/road/distant screenshots PASSED; diagonal oversized hearth ellipses no longer visible in reviewed frames.
 - Run [44359239035](https://github.com/husam4448-rgb/wanderfall/actions/runs/44359239035): same validations PASS after 3 ground-pickup art families integrated. Original fire, wood, stone assets visible in genuine emulator screenshots, normal + distant zoom.
 - **Remaining acceptance:** full-city/industrial interior/exterior passes, different seeds and weather/night, all item icon families, collision and occlusion checks are NOT yet visually verified. V166 release still disallowed.
+
+## V166 city-exterior replacement (8 object families, 16 authored sprites)
+- **Production atlas:** `sp_v166_neighborhood.webp.b64`, 1280×1280 transparent atlas, 16 cells of 320×320, sha256 `b4afd1a9112519f907e4e285c552bf072206f53952e35797490abc2ebba6712f`.
+- Art types in model index order: apartments, offices, supermarket, hotel, school, factory, warehouse, row houses. Two visibly distinct source-art variants each, complete roof and south-facing facade with contextual architectural details.
+- **V154 world-space contract:** `BuildingArtV166.draw` maps each exterior to its existing solid `NeighborhoodV154.Building` bounding rectangle. Preserves parcel layout, road spacing, saved world identities, projectile collisions and door position.
+- `NeighborhoodArtV154.building` now replaces all roof/facade programmer shapes with complete authored imagery; the retained geometric routine is an emergency fallback only if the required atlas fails. Five alpha-authored earth/soil contact stamps replace the giant rectangular paved base. Only short service-door concrete remains.
+- Visual variant selection hashes existing tile/slot/variation with the saved civilization seed without drawing a world RNG value.
+- **QA status:** Source-integrated, additional emulator city close-up capture and collision/interior validation required. Initial full Android run will still show starter camp because the existing CI navigation covers it; source asset verification is not city visual approval.
