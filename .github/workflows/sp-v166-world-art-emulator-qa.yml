@@ -275,6 +275,25 @@ jobs:
           emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -gpu swiftshader_indirect -memory 3072
           disable-animations: true
           script: bash /tmp/sp165/emulator.sh
+      - name: Print reduced real-emulator visual evidence for review
+        if: always()
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import base64,io
+          folder=Path('/tmp/sp165/visual')
+          for filename in ('02_world_normal.png','03_road_approach.png','04_world_zoomed_out.png'):
+              path=folder/filename
+              if not path.is_file():continue
+              img=Image.open(path).convert('RGB')
+              img.thumbnail((1280,720))
+              stream=io.BytesIO()
+              img.save(stream,format='JPEG',quality=66,optimize=True)
+              print('V166_VISUAL_'+filename.split('.')[0]+'='+base64.b64encode(stream.getvalue()).decode('ascii'))
+              print('V166_VISUAL_DIM_'+filename.split('.')[0]+'='+str(img.size))
+          PY
       - name: Save visual QA screenshots only; never publish test APK
         if: always()
         uses: actions/upload-artifact@v4
