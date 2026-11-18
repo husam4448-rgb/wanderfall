@@ -140,6 +140,9 @@ public final class NeighborhoodLayoutV163 {
                 x=clamp(x+(Math.floorMod(n>>>17,13)-6),z.x1+30f,z.x2-w-30f);
                 y=clamp(y+(Math.floorMod(n>>>23,13)-6),z.y1+30f,z.y2-h-30f);
                 float cx=x+w*.5f,cy=y+h*.5f;
+                // All six layouts share the original south-facing spawn/exit.
+                // Protect a broad approach, not only the tiny 98px door gap.
+                if(x<940f&&x+w>660f&&y<1095f&&y+h>880f)continue;
                 // Entrance clearances and central routes are collision-safe.
                 if(Math.hypot(cx-z.dx,cy-z.dy)<166f)continue;
                 if(Math.abs(cx-(z.x1+z.x2)*.5f)<53f&&
