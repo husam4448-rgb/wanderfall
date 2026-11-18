@@ -449,6 +449,7 @@ public final class GameView extends View {
         // independently of the industrial-mode renderer.
         SurfaceArtV165.load(host.getAssets());
         CampSpriteArtV1651.load(host.getAssets());
+        CampStationSpriteV1651.load(host.getAssets());
         RoadShoulderArtV1651.load(host.getAssets());
         if(industrialModeV123||stitchedIndustrialV128)
             industrialArtV123.load(host.getAssets());
@@ -6495,6 +6496,7 @@ public final class GameView extends View {
         industrialArtV123.release();
         SurfaceArtV165.release();
         CampSpriteArtV1651.release();
+        CampStationSpriteV1651.release();
         RoadShoulderArtV1651.release();
         lighting.release();
         if(campStatic!=null){campStatic.recycle();campStatic=null;}

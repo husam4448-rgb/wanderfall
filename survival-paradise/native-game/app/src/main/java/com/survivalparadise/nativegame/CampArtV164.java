@@ -165,6 +165,7 @@ public final class CampArtV164 {
         label(c,p,"SUPPLIES",x-46,y+64,0xffe5cf9b);
     }
     private static void tradeStand(Canvas c,Paint p,float x,float y){
+        if(CampStationSpriteV1651.drawTrader(c,x,y))return;
         // Counter and open merchant stall: shelves stocked with real-looking
         // produce, jerrycans, rifles, med packets and assorted small goods.
         oval(c,p,x-111,y-86,x+115,y+95,0x74202a24);
@@ -195,6 +196,7 @@ public final class CampArtV164 {
         label(c,p,"TRADE",x-28,y+78,0xffffdfaa);
     }
     private static void medicPost(Canvas c,Paint p,float x,float y){
+        if(CampStationSpriteV1651.drawMedic(c,x,y))return;
         // Dedicated open treatment station and olive canvas shade; patient
         // cot stays accessible from front and sides.
         oval(c,p,x-96,y-90,x+99,y+91,0x6220312e);
@@ -272,8 +274,8 @@ public final class CampArtV164 {
      */
     public static float foregroundY(CampWorldV164.Site s,int kind){
         if(kind<2)return s.y+(s.starter?-185f:-153f)+100f;
-        if(kind==2)return s.y+(s.starter?34f:125f)+67f;
-        if(kind==3)return s.y+(s.starter?42f:119f)+40f;
+        if(kind==2)return s.y+(s.starter?34f:125f)+53f;
+        if(kind==3)return s.y+(s.starter?42f:119f)+92f;
         return s.y+(s.starter?5f:273f)+91f;
     }
     public static void foreground(Canvas c,Paint p,CampWorldV164.Site s,int kind){
@@ -290,6 +292,8 @@ public final class CampArtV164 {
         float cx=x+(s.starter?-215f:-255f);
         float cy=y+(s.starter?34f:125f);
         if(kind==2){
+            if(CampStationSpriteV1651.drawTraderFront(c,cx,cy))return;
+            // Legacy fallback when the authored counter cannot be decoded.
             // The existing physical front counter occludes characters behind
             // it; sprites are never simply painted on top of all actors.
             rect(c,p,cx-107,cy+17,214,50,0xff253634);
@@ -310,6 +314,7 @@ public final class CampArtV164 {
         if(kind==3){
             cx=x+(s.starter?4f:155f);
             cy=y+(s.starter?42f:119f);
+            if(CampStationSpriteV1651.drawMedicFront(c,cx,cy))return;
             rect(c,p,cx-70,cy-2,135,42,0xff263a35);
             rect(c,p,cx-61,cy+2,119,33,0xff9c9d86);
             rect(c,p,cx-57,cy+6,37,23,0xffdfdfca);
