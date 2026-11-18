@@ -75,6 +75,7 @@ public final class IndustrialBiomeSceneV128 {
            new int[]{0xff565b50,0xff444b48,0xff303638},
            new float[]{0f,.56f,1f},Shader.TileMode.CLAMP));
         c.drawPath(surface,p);p.setShader(null);
+        SurfaceArtV165.path(c,surface,SurfaceArtV165.AGED_PAVEMENT,350f,149);
         // The approach stripes follow the old road, then adopt the V124
         // narrower amber center dashes at the actual industrial intersection.
         for(int i=(int)Math.floor((camX-70-ACCESS)/110f);

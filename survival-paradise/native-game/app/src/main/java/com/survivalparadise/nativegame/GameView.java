@@ -4216,6 +4216,8 @@ public final class GameView extends View {
         // Road shoulders and center dashes terminate before the crossroad;
         // neither highway paints through the other as an overlapping stripe.
         rect(c,camX-4,925,viewW+8,225,0xff565b50);
+        SurfaceArtV165.rect(c,camX-4,925,viewW+8,225,
+            SurfaceArtV165.AGED_PAVEMENT,330f,223);
         rect(c,camX-4,940,viewW+8,8,0xff3e493e);
         rect(c,camX-4,1134,viewW+8,7,0xff323f3a);
         int roadX=(int)Math.floor((camX-20)/123f);
@@ -4227,6 +4229,8 @@ public final class GameView extends View {
         // Paint the perpendicular carriageway on top with SAME asphalt tone.
         // This hides the horizontal kerb inside the crossing.
         rect(c,1500,camY-4,220,viewH+8,0xff565b50);
+        SurfaceArtV165.rect(c,1500,camY-4,220,viewH+8,
+            SurfaceArtV165.AGED_PAVEMENT,330f,223);
         float roadBottom=camY+viewH+4f;
         // V162: vertical kerb is split above and below the intersection.
         if(camY-4f<925f){

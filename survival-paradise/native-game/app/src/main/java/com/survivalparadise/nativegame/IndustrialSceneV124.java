@@ -97,6 +97,8 @@ public final class IndustrialSceneV124 {
             box(c,p,x-vw*.5f-11,y, vw+22,S,0xff8a8270);
             box(c,p,x-vw*.5f-5,y,vw+10,S,0xff464846);
             box(c,p,x-vw*.5f,y,vw,S,0xff303638);
+            SurfaceArtV165.rect(c,x-vw*.5f,y,vw,S,
+                SurfaceArtV165.ASPHALT,360f,224);
             // No black strip sticker edges: cracks are part of asphalt itself.
             stroke(c,p,x-vw*.5f+8,y,x-vw*.5f+8,y+S,0xff6a6554,3);
             stroke(c,p,x+vw*.5f-8,y,x+vw*.5f-8,y+S,0xff6a6554,3);
@@ -110,6 +112,8 @@ public final class IndustrialSceneV124 {
             box(c,p,x,y-hw*.5f-11,S,hw+22,0xff8a8270);
             box(c,p,x,y-hw*.5f-5,S,hw+10,0xff464846);
             box(c,p,x,y-hw*.5f,S,hw,0xff303638);
+            SurfaceArtV165.rect(c,x,y-hw*.5f,S,hw,
+                SurfaceArtV165.ASPHALT,360f,224);
             stroke(c,p,x,y-hw*.5f+8,x+S,y-hw*.5f+8,0xff6a6554,3);
             stroke(c,p,x,y+hw*.5f-8,x+S,y+hw*.5f-8,0xff6a6554,3);
             for(int i=0;i<12;i++){
@@ -122,6 +126,8 @@ public final class IndustrialSceneV124 {
             // Actual pavement-junction shading rather than isolated corner tile.
             float a=Math.max(vw,hw)*.5f+6;
             box(c,p,x-a,y-a,a*2,a*2,0xff34393a);
+            SurfaceArtV165.rect(c,x-a,y-a,a*2,a*2,
+                SurfaceArtV165.ASPHALT,360f,224);
             for(int i=0;i<5;i++){
                 float xx=x-vw*.5f+19+i*(vw-38)/5f;
                 stroke(c,p,xx,y-hw*.5f-55,xx,y-hw*.5f-20,0xffa9a198,7);

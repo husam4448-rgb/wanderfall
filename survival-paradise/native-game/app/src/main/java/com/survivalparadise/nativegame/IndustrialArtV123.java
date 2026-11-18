@@ -46,6 +46,7 @@ public final class IndustrialArtV123 {
     private final RectF dst=new RectF();
     public int loaded(){int n=0;for(Bitmap b:sprites)if(b!=null)n++;return n;}
     public void load(AssetManager manager){
+        SurfaceArtV165.load(manager);
         BitmapFactory.Options opts=new BitmapFactory.Options();
         opts.inScaled=false;
         for(int i=0;i<NAMES.length;i++){
@@ -118,6 +119,7 @@ public final class IndustrialArtV123 {
         }
     }
     public void release(){
+        SurfaceArtV165.release();
         for(int i=0;i<sprites.length;i++){
             if(sprites[i]!=null&&!sprites[i].isRecycled())sprites[i].recycle();
             sprites[i]=null;

@@ -57,6 +57,12 @@ public final class WorldCivilizationArtV159 {
                 region.kind==WorldCivilizationV159.VILLAGE?205:224;
             P.setColor((opacity<<24)|(BASE[region.kind]&0xffffff));
             c.drawRoundRect(x,y,x+w,y+h,22f,22f,P);
+            // Low-opacity hand-painted aggregate prevents homogeneous slabs;
+            // park greenery and lane geometry are still drawn separately.
+            SurfaceArtV165.rect(c,x+6f,y+6f,w-12f,h-12f,
+                region.kind==WorldCivilizationV159.VILLAGE?
+                    SurfaceArtV165.SOIL:SurfaceArtV165.CONCRETE,
+                410f,region.kind==WorldCivilizationV159.VILLAGE?55:68);
             c.save();
             c.clipRect(x+2,y+2,x+w-2,y+h-2);
             for(int i=0;i<(zoom<.70f?11:44);i++){

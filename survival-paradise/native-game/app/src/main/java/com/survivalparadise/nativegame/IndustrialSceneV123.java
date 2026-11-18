@@ -64,8 +64,14 @@ public final class IndustrialSceneV123 {
         }
         r(c,p,x-IndustrialWorldV123.roadWidth(sx)/2f,y-5,
           IndustrialWorldV123.roadWidth(sx),1410,0xff252e30);
+        SurfaceArtV165.rect(c,x-IndustrialWorldV123.roadWidth(sx)/2f,y-5,
+            IndustrialWorldV123.roadWidth(sx),1410,
+            SurfaceArtV165.ASPHALT,360f,220);
         r(c,p,x-5,y-IndustrialWorldV123.roadWidth(sy)/2f,
           1410,IndustrialWorldV123.roadWidth(sy),0xff252e30);
+        SurfaceArtV165.rect(c,x-5,y-IndustrialWorldV123.roadWidth(sy)/2f,
+            1410,IndustrialWorldV123.roadWidth(sy),
+            SurfaceArtV165.ASPHALT,360f,220);
         for(int k=0;k<14;k++){
             r(c,p,x-3,y+40+k*95,6,48,0xffb49c62);
             r(c,p,x+40+k*95,y-3,48,6,0xffb49c62);

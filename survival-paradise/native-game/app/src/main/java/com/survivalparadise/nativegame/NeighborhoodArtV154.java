@@ -229,13 +229,21 @@ public final class NeighborhoodArtV154 {
         for(float xx:vertical){
             box(c,p,x+xx-116,y+200,232,4195,0xff64665e);
             box(c,p,x+xx-99,y+201,198,4192,0xff373d3f);
+            SurfaceArtV165.rect(c,x+xx-99,y+201,198,4192,
+                SurfaceArtV165.ASPHALT,355f,213);
         }
         for(float yy:horizontal){
             box(c,p,x+140,y+yy-111,5120,222,0xff67675e);
             box(c,p,x+142,y+yy-97,5116,194,0xff373d3f);
+            SurfaceArtV165.rect(c,x+142,y+yy-97,5116,194,
+                SurfaceArtV165.ASPHALT,355f,213);
         }
         for(float xx:vertical)for(float yy:horizontal)
-            box(c,p,x+xx-116,y+yy-111,232,222,0xff373d3f);
+            {
+                box(c,p,x+xx-116,y+yy-111,232,222,0xff373d3f);
+                SurfaceArtV165.rect(c,x+xx-116,y+yy-111,232,222,
+                    SurfaceArtV165.ASPHALT,355f,213);
+            }
         // Kerbs only on free-standing vertical road edges; never through the
         // asphalt intersection where a perpendicular road connects.
         for(float xx:vertical){

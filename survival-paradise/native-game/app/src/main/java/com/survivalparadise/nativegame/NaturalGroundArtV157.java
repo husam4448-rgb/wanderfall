@@ -44,6 +44,9 @@ public final class NaturalGroundArtV157 {
         path.close();
         paint.setColor(alpha(base,b.kind==NaturalGroundV157.DIRT?109:93));
         c.drawPath(path,paint);
+        // V165 original textured pigment dresses the EXISTING organic shape.
+        SurfaceArtV165.path(c,path,SurfaceArtV165.SOIL,330f,
+            b.kind==NaturalGroundV157.GRASS?31:62);
         // Two local splashes of uneven color with no rectangular stroke,
         // without introducing texture outside the site's actual dirt island.
         paint.setColor(alpha(base,73));
