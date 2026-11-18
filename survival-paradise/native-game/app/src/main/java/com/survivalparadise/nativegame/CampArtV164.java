@@ -53,6 +53,10 @@ public final class CampArtV164 {
         oval(c,p,x-470,y-295,x+470,y+317,0x77718b63);
         oval(c,p,x-435,y-260,x+430,y+283,0x665d7452);
         oval(c,p,x-310,y-260,x+370,y+289,0x53686652);
+        // V165 pigment art does not seal tent doorways or alter movement.
+        Path clearing=new Path();
+        clearing.addOval(x-390,y-258,x+395,y+275,Path.Direction.CW);
+        SurfaceArtV165.path(c,clearing,SurfaceArtV165.SOIL,300f,81);
         // Cut-stone walking trail, wood chips, and scuffed foot tracks.
         poly(c,p,0x90715f4c,x-78,y+294,x-95,y+155,x-120,y+50,
             x-130,y-90,x-75,y-102,x+9,y+57,x+18,y+200,x+28,y+308);

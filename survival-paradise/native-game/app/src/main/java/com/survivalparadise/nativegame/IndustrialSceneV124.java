@@ -26,11 +26,15 @@ public final class IndustrialSceneV124 {
         int base=plot.type==IndustrialOpenWorldV124.VACANT?0xff514f48:
             plot.type==IndustrialOpenWorldV124.YARD?0xff56554d:0xff555650;
         box(c,p,x,y,1400,1400,base);
+        SurfaceArtV165.rect(c,x,y,1400,1400,
+            SurfaceArtV165.CONCRETE,390f,108);
         if(plot.developed()){
             // Building yard and stock pads use one concrete material.
             box(c,p,x+95,y+105,1180,1115,0xff65655b);
             box(c,p,x+113,y+118,1144,1079,0xff67665c);
             box(c,p,x+118,y+175,1128,995,0xff69675d);
+            SurfaceArtV165.rect(c,x+118,y+175,1128,995,
+                SurfaceArtV165.CONCRETE,390f,173);
             // Material staining spreads organically from the working surfaces.
             box(c,p,x+150,y+850,1080,286,0x16412d24);
             box(c,p,x+140,y+1060,1020,91,0x16342b26);
@@ -46,6 +50,8 @@ public final class IndustrialSceneV124 {
             float cx=plot.doorX;
             box(c,p,cx-112,plot.doorY,224,486,0xff5a5950);
             box(c,p,cx-103,plot.doorY,206,487,0xff6c695d);
+            SurfaceArtV165.rect(c,cx-103,plot.doorY,206,487,
+                SurfaceArtV165.AGED_PAVEMENT,330f,151);
             for(int i=0;i<5;i++){
                 stroke(c,p,cx-95,plot.doorY+85+i*82,cx+95,plot.doorY+85+i*82,
                     0x55413b32,3);

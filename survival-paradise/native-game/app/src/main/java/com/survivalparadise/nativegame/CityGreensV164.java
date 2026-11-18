@@ -48,6 +48,11 @@ public final class CityGreensV164 {
                 oval(c,p,x,y,645f,475f,0xff586e55);
                 oval(c,p,x-26,y-15,592f,427f,0xff6b815e);
                 oval(c,p,x+41,y+40,510f,360f,0xff7b8965);
+                // Painterly native grass/soil material within the EXISTING
+                // vacant-lot boundary; park placement remains immutable.
+                Path meadow=new Path();
+                meadow.addOval(x-470,y-300,x+480,y+350,Path.Direction.CW);
+                SurfaceArtV165.path(c,meadow,SurfaceArtV165.SOIL,300f,94);
                 // Different parks have curved paths, athletic lawns,
                 // vegetable plots and overgrown wasteland clearings.
                 int type=Math.floorMod(seed,4);

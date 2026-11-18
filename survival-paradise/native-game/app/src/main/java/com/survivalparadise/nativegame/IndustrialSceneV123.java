@@ -56,6 +56,8 @@ public final class IndustrialSceneV123 {
         float x=sx*(float)IndustrialWorldV123.SECTOR;
         float y=sy*(float)IndustrialWorldV123.SECTOR;
         r(c,p,x,y,1400,1400,0xff565954);
+        SurfaceArtV165.rect(c,x,y,1400,1400,
+            SurfaceArtV165.CONCRETE,390f,135);
         for(int k=0;k<10;k++){
             int h=IndustrialWorldV123.hash(sx*13+k,sy*19-k,seed);
             float xx=x+Math.floorMod(h,1350);
