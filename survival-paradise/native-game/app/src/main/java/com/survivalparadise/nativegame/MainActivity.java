@@ -2343,67 +2343,10 @@ public final class MainActivity extends Activity {
                 }
                 return true;
             });
-            socket.setOnClickListener(view->{
-                if(socketIndex==6){
-                    new AlertDialog.Builder(this).setTitle("EQUIP PRIMARY WEAPON")
-                        .setItems(LOADOUTS,(d,weapon)->{
-                            prefs.edit().putInt("gun",weapon).apply();
-                            game.reloadSettings();game.saveProgress();
-                            if(redrawV92[0]!=null)redrawV92[0].run();
-                        }).show();
-                    return;
-                }
-                if(socketIndex==7){
-                    boolean enabled=!(game.lampOn&&game.dualTorch);
-                    prefs.edit().putBoolean("dualTorch",enabled)
-                        .putBoolean("lampOn",enabled).apply();
-                    game.reloadSettings();game.saveProgress();
-                    if(redrawV92[0]!=null)redrawV92[0].run();return;
-                }
-                if(socketIndex==1){
-                    Toast.makeText(this,"Face gear will appear here when obtained",
-                        Toast.LENGTH_SHORT).show();return;
-                }
-                java.util.ArrayList<String> choices=new java.util.ArrayList<>();
-                java.util.ArrayList<Integer> kinds=new java.util.ArrayList<>();
-                choices.add("UNEQUIP / REMOVE");kinds.add(-1);
-                for(int kind=24;kind<39;kind++){
-                    if(InventoryCatalogV131.compatible(kind,socketIndex)&&
-                       game.availableInventoryV131(kind)>0){
-                        choices.add(GameView.INVENTORY_NAMES_V92[kind]+" ×"+
-                            game.availableInventoryV131(kind));
-                        kinds.add(kind);
-                    }
-                }
-                int clothingSocket=socketIndex==2?0:socketIndex==3?1:
-                    socketIndex==4?2:-1;
-                if(clothingSocket>=0)
-                    for(int kind=OutfitInventoryV140.FIRST;
-                        kind<OutfitInventoryV140.WEAPONS;kind++)
-                        if(OutfitInventoryV140.slot(kind)==clothingSocket&&
-                            game.outfitsV140.available(kind)>0){
-                            choices.add(OutfitInventoryV140.name(kind)+" ×"+
-                                game.outfitsV140.available(kind));
-                            kinds.add(kind);
-                        }
-                new AlertDialog.Builder(this)
-                    .setTitle(equipment[socketIndex]+" EQUIPMENT")
-                    .setItems(choices.toArray(new String[0]),(dialog,which)->{
-                        int kind=kinds.get(which);
-                        boolean success=kind<0?
-                            (clothingSocket>=0&&game.outfitsV140.equippedType(clothingSocket)>=0?
-                                game.unequipOutfitV140(clothingSocket):
-                                game.unequipInventorySlotV131(socketIndex)):
-                            OutfitInventoryV140.valid(kind)?
-                                game.equipOutfitV140(kind):
-                                game.equipInventoryItemV131(kind,socketIndex);
-                        if(success){
-                            refreshEquipmentV131[0].run();
-                            if(redrawV92[0]!=null)redrawV92[0].run();
-                        }else Toast.makeText(this,"Equipment unavailable",
-                            Toast.LENGTH_SHORT).show();
-                    }).show();
-            });
+            // V163: clicking an equipped icon always shows the very same
+            // compact stat/price/compare card used for backpack and loot.
+            socket.setOnClickListener(view->showSocketInspectorV163(
+                socketIndex,redrawV92[0]));
         }
         refreshEquipmentV131[0].run();
         LinearLayout vital=new LinearLayout(this);
