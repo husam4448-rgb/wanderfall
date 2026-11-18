@@ -226,6 +226,10 @@ jobs:
           assert 'InteriorFloorArtV166.load(host.getAssets())' in game
           assert 'InteriorFloorArtV166.neighborhood(c,room)' in (p/'InteriorMaterialV166.java').read_text()
           assert 'InteriorFloorArtV166.industrial(c,room)' in (p/'IndustrialInteriorArtV125.java').read_text()
+          assert 'InteriorPropArtV166.drawAt(c,sprite,x-23,y-17,47,34)' in game
+          assert 'if(InteriorPropArtV166.ready())continue;' in (p/'IndustrialSceneV123.java').read_text()
+          assert 'float x=q[0],y=q[1],w=q[2],h=q[3]' in (p/'IndustrialInteriorArtV125.java').read_text()
+          assert 'worldTileSize(tile)' in (p/'InteriorFloorArtV166.java').read_text()
           assert 'InteriorFloorArtV166.legacy(c,siteKindV91' in game
           assert 'InteriorMaterialV166.floor(c,p,room)' in (p/'NeighborhoodInteriorArtV161.java').read_text()
           assert 'InteriorPropArtV166.draw(c,q,theme,variant,index)' in (p/'NeighborhoodInteriorArtV161.java').read_text()

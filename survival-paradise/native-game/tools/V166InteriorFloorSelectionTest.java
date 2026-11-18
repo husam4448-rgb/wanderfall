@@ -29,6 +29,10 @@ public final class V166InteriorFloorSelectionTest {
             "KITCHEN")==InteriorFloorSelectionV166.VINYL,"Kitchen vinyl");
         check(InteriorFloorSelectionV166.room(NeighborhoodV154.WAREHOUSE,
             "PALLET RACKS")==InteriorFloorSelectionV166.CONCRETE,"Freight");
+        for(int i=0;i<8;i++){
+            float s=InteriorFloorSelectionV166.worldTileSize(i);
+            check(s>=165f&&s<=230f,"World scale outside character reference");
+        }
         check(InteriorFloorSelectionV166.TILE_COUNT==8,"Atlas contract");
         System.out.println("PASS V166: 8 semantic indoor floor materials, room swaps stable");
     }

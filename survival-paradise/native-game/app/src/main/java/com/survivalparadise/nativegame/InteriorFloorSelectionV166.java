@@ -7,6 +7,24 @@ public final class InteriorFloorSelectionV166 {
         LINO=4,EPOXY=5,CONCRETE=6,PARQUET=7;
     public static final int TILE_COUNT=8,TILE_SIZE=256;
 
+    /**
+     * Physical texel size normalized to character/door widths. In the first
+     * V166 emulator pass 292–355 world units made one floor slab almost as
+     * wide as a whole character. Keep seams continuous but material scale sane.
+     */
+    public static float worldTileSize(int material){
+        switch(material){
+            case OAK:return 216f;
+            case TERRAZZO:return 176f;
+            case VINYL:return 176f;
+            case CARPET:return 210f;
+            case LINO:return 176f;
+            case EPOXY:return 226f;
+            case CONCRETE:return 225f;
+            case PARQUET:return 184f;
+            default:return 200f;
+        }
+    }
     public static int hallway(int theme){
         switch(theme){
             case NeighborhoodV154.APARTMENTS:return OAK;

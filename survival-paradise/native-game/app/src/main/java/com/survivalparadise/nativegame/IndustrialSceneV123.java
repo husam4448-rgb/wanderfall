@@ -180,6 +180,9 @@ public final class IndustrialSceneV123 {
         }
         for(int i=0;i<room.machines.length;i++){
             float[] q=room.machines[i];
+            // V166 details pass draws COMPLETE authored sprites over the exact
+            // collision hulls, so do not paint obsolete geometric machines.
+            if(InteriorPropArtV166.ready())continue;
             if(i<6){
                 int variant=Math.floorMod(IndustrialWorldV123.hash(
                     room.district.sx*17+i,room.district.sy*29-i,seed^0x161A),6);
@@ -200,11 +203,13 @@ public final class IndustrialSceneV123 {
                 r(c,p,x-15,y+145,58,11,0xffba8b39);
             }
         }
-        for(int i=0;i<14;i++){
-            ClinicInteriorV89.Storage s=room.storages[i];
-            r(c,p,s.x-31,s.y-18,62,36,0xff1c292b);
-            r(c,p,s.x-26,s.y-13,52,27,s.empty()?0xff58615b:0xff9a754a);
-            r(c,p,s.x-20,s.y-7,40,5,0xffd1b782);
+        if(!InteriorPropArtV166.ready()){
+            for(int i=0;i<14;i++){
+                ClinicInteriorV89.Storage s=room.storages[i];
+                r(c,p,s.x-31,s.y-18,62,36,0xff1c292b);
+                r(c,p,s.x-26,s.y-13,52,27,s.empty()?0xff58615b:0xff9a754a);
+                r(c,p,s.x-20,s.y-7,40,5,0xffd1b782);
+            }
         }
         // Explicit unblocked threshold on the actual V90 exit coordinate.
         r(c,p,1235,1858,250,22,0xffc0a36a);

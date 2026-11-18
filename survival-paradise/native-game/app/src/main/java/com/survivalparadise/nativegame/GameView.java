@@ -2652,6 +2652,11 @@ public final class GameView extends View {
     void drawClinicFurnitureV89(Canvas c,float[] item){
         int kind=(int)item[0];
         float x=item[1],y=item[2],w=item[3],h=item[4];
+        // Authored furniture fitted to the original V89/V91 collision hull.
+        // This applies to all surviving original expeditions and the clinic.
+        int sprite=kind==0?6:kind==1?13:kind==2?2:
+            kind==3?14:kind==4?10:1;
+        if(InteriorPropArtV166.drawAt(c,sprite,x,y,w,h))return;
         int fill=kind==0?0xff697d6f:kind==1?0xff647781:
             kind==2?0xff806b54:kind==3?0xff9f9e87:
             kind==4?0xff587b7a:0xff697c61;
@@ -2684,6 +2689,27 @@ public final class GameView extends View {
     void drawClinicStorageV89(Canvas c,ClinicInteriorV89.Storage box){
         float x=box.x,y=box.y;
         boolean empty=box.empty();
+        // The original searchable box coordinates and 47x34 footprint remain.
+        // Renderer-only class selection: no change to quantity, reach or saves.
+        int sprite=1;
+        if(clinicInteriorV89 instanceof NeighborhoodInteriorV161){
+            switch(((NeighborhoodInteriorV161)clinicInteriorV89).theme){
+                case NeighborhoodV154.OFFICES:sprite=3;break;  // file cabinet
+                case NeighborhoodV154.MARKET:sprite=4;break;   // grocery stock
+                case NeighborhoodV154.SCHOOL:sprite=9;break;  // bookcase
+                case NeighborhoodV154.FACTORY:sprite=11;break; // parts rack
+                case NeighborhoodV154.WAREHOUSE:sprite=12;break; // pallet
+                default:sprite=1;break;
+            }
+        }else if(clinicInteriorV89 instanceof ClinicInteriorV89&&
+                 !(clinicInteriorV89 instanceof ExpeditionInteriorV91)){
+            sprite=13; // hygienic metal cabinet
+        }
+        if(InteriorPropArtV166.drawAt(c,sprite,x-23,y-17,47,34)){
+            if(!empty&&distance(playerX,playerY,x,y)<148)
+                label(c,"INTERACT  "+box.label,x-51,y-28,10,0xffe8ddad,true);
+            return;
+        }
         rect(c,x-23,y-17,47,34,0xff152b2c);
         rect(c,x-19,y-14,39,27,empty?0xff4b5d59:0xff867c64);
         rect(c,x-14,y-10,29,10,empty?0xff55645b:0xffc1b18c);

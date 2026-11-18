@@ -81,7 +81,8 @@ public final class InteriorFloorArtV166 {
         if(room==null||!ready())return;
         int base=InteriorFloorSelectionV166.hallway(room.theme);
         int phase=InteriorFloorSelectionV166.phase(room.seed,room.variation);
-        fill(c,base,23f,23f,1554f,1072f,phase,292f);
+        fill(c,base,23f,23f,1554f,1072f,phase,
+            InteriorFloorSelectionV166.worldTileSize(base));
         final float scale=ClinicInteriorV89.EXPANSION_V90;
         String[] labels=room.roomNames();
         for(int i=0;i<room.layoutV163.rooms.length;i++){
@@ -95,7 +96,8 @@ public final class InteriorFloorArtV166 {
                 phase^room.building.slot*19,i);
             c.save();
             c.clipRect(x+2f,y+2f,x+w-2f,y+h-2f);
-            fill(c,tile,x+2f,y+2f,w-4f,h-4f,roomPhase,292f);
+            fill(c,tile,x+2f,y+2f,w-4f,h-4f,roomPhase,
+                InteriorFloorSelectionV166.worldTileSize(tile));
             c.restore();
         }
     }
@@ -103,14 +105,16 @@ public final class InteriorFloorArtV166 {
         if(!ready())return;
         int tile=InteriorFloorSelectionV166.legacy(siteKind,clinic);
         int phase=InteriorFloorSelectionV166.phase(seed,siteKind);
-        fill(c,tile,23f,23f,1554f,1072f,phase,300f);
+        fill(c,tile,23f,23f,1554f,1072f,phase,
+            InteriorFloorSelectionV166.worldTileSize(tile));
         for(int i=0;i<6;i++){
             float x=23+(i%3)*526f,y=i<3?44f:642f;
             float w=i%3==2?502f:506f,h=i<3?442f:428f;
             int roomTile=clinic?(i%3==1?TERRAZZO():InteriorFloorSelectionV166.LINO):
                 (siteKind==ExpeditionSitesV88.MOTEL&&i%3==0?
                     InteriorFloorSelectionV166.CARPET:tile);
-            fill(c,roomTile,x+3,y+3,w-6,h-6,phase+i*71,300f);
+            fill(c,roomTile,x+3,y+3,w-6,h-6,phase+i*71,
+                InteriorFloorSelectionV166.worldTileSize(roomTile));
         }
     }
     // Helper isolates the clinic's hygienic slate from legacy site carpets.
@@ -122,7 +126,8 @@ public final class InteriorFloorArtV166 {
             InteriorFloorSelectionV166.CONCRETE:InteriorFloorSelectionV166.EPOXY;
         int seed=InteriorFloorSelectionV166.phase(room.district.seed,
             room.district.sx*37+room.district.sy*71);
-        return fill(c,tile,35f,35f,2650f,1825f,seed,355f);
+        return fill(c,tile,35f,35f,2650f,1825f,seed,
+            InteriorFloorSelectionV166.worldTileSize(tile));
     }
     public static synchronized void release(){
         for(int i=0;i<TILES;i++){

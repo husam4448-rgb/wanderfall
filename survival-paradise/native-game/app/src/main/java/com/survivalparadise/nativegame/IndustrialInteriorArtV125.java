@@ -153,7 +153,9 @@ public final class IndustrialInteriorArtV125 {
         // exact same 16 machine rectangles and deterministic room identity.
         for(int i=0;i<room.machines.length;i++){
             float[] q=room.machines[i];
-            float x=q[0]+15,y=q[1]+12,w=q[2]-30,h=q[3]-24;
+            // Full physical footprint; avoid old geometric borders and
+            // invisible 12–15 px collision margins around rendered machines.
+            float x=q[0],y=q[1],w=q[2],h=q[3];
             if(w<35||h<28)continue;
             int mode=Math.floorMod(hash(room,i,0x161B),4);
             if(InteriorPropArtV166.drawAt(c,
