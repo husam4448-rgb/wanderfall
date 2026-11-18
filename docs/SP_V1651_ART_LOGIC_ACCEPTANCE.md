@@ -55,7 +55,12 @@ screenshots NEVER count as actual in-game evidence.
 - Leaves original heads, headgear render ban, saves and equipment intact.
 
 ## Outstanding quality debt — NOT YET approved
-- Trade/medic/guard station main geometry is still partly programmer art.
+- Trader and compact open medic station have original character-free
+  RGBA sprites; **guard post and storage chest remain blocky prototype art**.
+- Camp soil/grass clearing still contains angular, flat-colored polygons and
+  environmental filler that fails the natural-terrain acceptance criterion.
+- Rural road contours and shoulder material are improved but still need
+  stronger natural integration and realistic material continuity.
 - Remaining indoor furniture, building exteriors, pavement, clutter, pickups,
   barriers, item icons and wildlife/environment props need authored replacements.
 - Old dirt ellipses, coarse grass tiles and other repeated motifs need polish.
@@ -64,3 +69,21 @@ screenshots NEVER count as actual in-game evidence.
 Every reviewed frame must be inspected for art, physical geometry, lighting,
 overdraw, missing assets and texture repetition. A clean compile alone
 does **not** constitute visual acceptance.
+
+## Latest actual Android visual QA, run 44271591088
+- CI passed on source commit `c13052dbfa3d4b8d1030b3c58d5d06e3de76a306`,
+  November 18, 2026. Passed original 200-head byte verification,
+  deterministic Java world/camp/save regressions, PNG/WebP alpha and unique
+  palette checks, Android Java compilation, temporary non-published debug
+  build, actual Android emulator launch, and sprite-loading log checks.
+- Genuine emulator evidence includes normal camp, highway approach and
+  distant-zoom PNG frames; no synthetic concept screenshots count as QA.
+- Visually inspected: original two tent sprites replace flat roofs; trader
+  kiosk and compact field-medical awning have genuine texture/detail;
+  the medic shelter was relocated into the open gap between rear tents so
+  a nearby survivor no longer appears to stand on its canopy in the
+  inspected normal and road-approach frames.
+- Critically, this pass is **NOT VISUALLY APPROVED**. Primitive watch/storage
+  props, hard camp ground polygons, unfinished outdoor clutter, repetitive
+  materials, roads and missing authored interiors remain visible.
+- No downloadable APK release or visual approval has been issued.
