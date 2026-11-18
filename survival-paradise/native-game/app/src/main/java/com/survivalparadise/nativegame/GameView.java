@@ -456,6 +456,7 @@ public final class GameView extends View {
         WorldArtV166.load(host.getAssets());
         CampfireArtV166.load(host.getAssets());
         BuildingArtV166.load(host.getAssets());
+        InteriorPropArtV166.load(host.getAssets());
         if(industrialModeV123||stitchedIndustrialV128)
             industrialArtV123.load(host.getAssets());
     }
@@ -2760,18 +2761,21 @@ public final class GameView extends View {
         c.save();
         c.scale(ClinicInteriorV89.EXPANSION_V90,
             ClinicInteriorV89.EXPANSION_V90);
-        rect(c,23,23,1554,1072,0xff747d70);
+        if(!(clinicInteriorV89 instanceof NeighborhoodInteriorV161))
+            rect(c,23,23,1554,1072,0xff747d70);
         // Six departments have differentiated tile/palette, connected by hall.
         int[] north=nonClinicV91?new int[]{0xff777667,0xff767a71,0xff7c766b}:
             new int[]{0xff70837e,0xff858a81,0xff6a8987};
         int[] south=nonClinicV91?new int[]{0xff8c8978,0xff838a7a,0xff776e60}:
             new int[]{0xff7b8b78,0xff9a927d,0xff778579};
-        for(int i=0;i<3;i++){
-            int sx=23+i*526;int width=(i==2?502:506);
-            rect(c,sx,44,width,442,north[i]);
-            rect(c,sx,642,width,428,south[i]);
+        if(!(clinicInteriorV89 instanceof NeighborhoodInteriorV161)){
+            for(int i=0;i<3;i++){
+                int sx=23+i*526;int width=(i==2?502:506);
+                rect(c,sx,44,width,442,north[i]);
+                rect(c,sx,642,width,428,south[i]);
+            }
+            rect(c,23,508,1554,112,0xff93998a);
         }
-        rect(c,23,508,1554,112,0xff93998a);
         if(clinicInteriorV89 instanceof NeighborhoodInteriorV161)
             NeighborhoodInteriorArtV161.floor(c,p,
                 (NeighborhoodInteriorV161)clinicInteriorV89);
@@ -6535,6 +6539,7 @@ public final class GameView extends View {
         WorldArtV166.release();
         CampfireArtV166.release();
         BuildingArtV166.release();
+        InteriorPropArtV166.release();
         lighting.release();
         if(campStatic!=null){campStatic.recycle();campStatic=null;}
         itemIconsV84.release();

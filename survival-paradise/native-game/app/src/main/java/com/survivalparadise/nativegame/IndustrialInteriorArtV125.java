@@ -32,26 +32,18 @@ public final class IndustrialInteriorArtV125 {
             kind==3?0xff4a4844:0xff444b4a;
         rect(c,p,0,0,2720,1904,0xff171e21);
         rect(c,p,35,35,2650,1825,background);
-        // Structured concrete slabs with weathering integrated in the surface.
-        for(int col=0;col<29;col++)for(int row=0;row<20;row++){
-            float x=37+col*92f,y=37+row*92f;
-            int h=hash(room,col*23+row,0x74D541);
-            rect(c,p,x+2,y+2,88,88,(h&3)==0?0x11343b37:
-                (h&3)==1?0x132e3031:0x0c89907c);
-            rect(c,p,x,y,92,1,0x2e1d2828);
-            rect(c,p,x,y,1,92,0x291d2828);
-            if(Math.floorMod(h,7)==0){
-                float xx=x+12+Math.floorMod(h>>>8,55);
-                float yy=y+11+Math.floorMod(h>>>15,43);
-                line(c,p,xx,yy,xx+13,yy+7,2,0x5a25282a);
-                line(c,p,xx+13,yy+7,xx+20,yy+15,1.8f,0x4825282a);
-            }
-            if(Math.floorMod(h>>>5,9)==0){
-                circle(c,p,x+Math.floorMod(h>>>12,70)+12,
-                    y+Math.floorMod(h>>>19,70)+12,11,0x18202522);
-                circle(c,p,x+Math.floorMod(h>>>12,70)+10,
-                    y+Math.floorMod(h>>>19,70)+9,4,0x20302524);
-            }
+        // V166 authored concrete from the same persistent material atlas as
+        // all exterior roads. No 29x20 checkerboard programmer tiles.
+        SurfaceArtV165.rect(c,35,35,2650,1825,
+            SurfaceArtV165.CONCRETE,162f,248);
+        for(int i=0;i<54;i++){
+            int h=hash(room,i,0x74D541);
+            float xx=75+Math.floorMod(h,2560);
+            float yy=80+Math.floorMod(h>>>11,1725);
+            NaturalBrushArtV1652.stamp(c,
+                i%3==0?NaturalGroundV157.DRY:NaturalGroundV157.DIRT,
+                xx,yy,80f+Math.floorMod(h>>>19,140),
+                50f+Math.floorMod(h>>>23,110),h,30);
         }
         // Wide central forklift route and cross-hall are kept free of clutter.
         rect(c,p,1080,38,560,1821,0xff575c56);
@@ -172,6 +164,10 @@ public final class IndustrialInteriorArtV125 {
             float x=q[0]+15,y=q[1]+12,w=q[2]-30,h=q[3]-24;
             if(w<35||h<28)continue;
             int mode=Math.floorMod(hash(room,i,0x161B),4);
+            if(InteriorPropArtV166.drawAt(c,
+                    i<6?(mode%2==0?10:11):
+                    i<14?(mode%2==0?12:13):12,x,y,w,h))
+                continue;
             if(i<6){
                 if(mode==0||mode==2)pump(c,p,x+12,y+10,w-24,h-23,kind);
                 else cabinet(c,p,x+12,y+11,w-24,h-22,kind);
@@ -203,6 +199,8 @@ public final class IndustrialInteriorArtV125 {
             ClinicInteriorV89.Storage s=room.storages[i];
             if(s==null)continue;
             boolean supplies=!s.empty();
+            if(InteriorPropArtV166.drawAt(c,
+                    i%4==0?13:12,s.x-32,s.y-25,64,47))continue;
             if(i%4==0)cabinet(c,p,s.x-32,s.y-25,64,47,kind);
             else crate(c,p,s.x-31,s.y-21,62,42,supplies);
             if(supplies){

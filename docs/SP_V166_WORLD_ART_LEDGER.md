@@ -80,3 +80,11 @@ case, even if the JVM selector and Python pixel-asset contract pass.
 - [Ten real Android screenshots](qa/v166/README.md) from green Action run [44366808396](https://github.com/husam4448-rgb/wanderfall/actions/runs/44366808396), including the starter and all 8 exterior building categories. Each image derives from an emulator screenshot, not a concept render.
 - Current QA observation: eight architectural facades occupy original collision-footprint envelopes and look visually distinct; city ground has organic surface blending without the old wide monochrome slabs; ordinary HUD overlays remain present in these evidence images.
 - **Limit:** Building interaction/collision at character scale, other world seeds, all major interiors, full biome coverage, and final art approval remain open.
+
+## V166 neighborhood/industrial interior pass
+- Production 16-item transparent furniture atlas `sp_v166_furniture.webp.b64`, 1024×1024, 4×4 256-px cells; alpha-pixel silhouettes checked. Eight themes use two original object families each. Art-only selection is V163-furniture-geometry dependent, not a new loot/collision object system.
+- `NeighborhoodInteriorArtV161.furniture` now renders complete authored furnishings in existing V163 exact collision rectangles. Legacy programmer-art routine is an asset-failure fallback only.
+- `InteriorMaterialV166` replaces V161 flat six-room shades, simplistic floor stripes and false checkerboard grids with tiled original V165 painted industrial/aged material and subtle wear pigments inside each actual procedural room.
+- `GameView.drawClinicInteriorV89` skips the old six-room placeholder floor under V161 interiors. **Walls, physical door portals, NPC navigation and 14 loot container save IDs are untouched.**
+- `IndustrialInteriorArtV125` removes its 29×20 floor-square checkerboard from the industrial room, reuses painted original concrete, and draws authored machinery, racks, pallets and supply storage at the existing exact collision rectangles. Old geometry kept only if the required authored asset fails.
+- **QA status:** JVM selectors, asset alpha integrity, Android compile and actual interior screenshots required before visual approval. No head visuals, body art, gameplay or save logic changed.
