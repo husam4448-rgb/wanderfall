@@ -15,7 +15,7 @@ import java.io.InputStream;
 /**
  * V165.1 original gravel/dirt/grass transition artwork.
  * Alpha band follows EXISTING road edges only. No false geometry, lanes,
- * obstacles or world-seed changes. A 512-world-unit repeat is world anchored.
+ * obstacles or world-seed changes. A 1024-world-unit repeat is world anchored.
  */
 public final class RoadShoulderArtV1651 {
     private RoadShoulderArtV1651(){}
@@ -38,10 +38,10 @@ public final class RoadShoulderArtV1651 {
             BitmapFactory.Options opts=new BitmapFactory.Options();
             opts.inScaled=false;
             strip=BitmapFactory.decodeByteArray(raw,0,raw.length,opts);
-            if(strip==null||strip.getWidth()!=512||strip.getHeight()!=128)
+            if(strip==null||strip.getWidth()!=1024||strip.getHeight()!=128)
                 throw new IllegalArgumentException("Invalid road edge art");
             shader=new BitmapShader(strip,Shader.TileMode.REPEAT,Shader.TileMode.CLAMP);
-            android.util.Log.i("SP-V1651","Road shoulder ready: 512x128 RGBA strip");
+            android.util.Log.i("SP-V1651","Road shoulder ready: 1024x128 RGBA strip");
         }catch(Exception e){
             android.util.Log.w("SP-V1651","Road shoulder art missing; base roads remain",e);
             release();
