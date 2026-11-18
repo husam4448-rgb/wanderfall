@@ -100,7 +100,7 @@ public final class CampWorldV164 {
         // housing blocks. Unbuilt public greens are painted separately.
         for(WorldCivilizationV159.Parcel parcel:city.parcels){
             int hash=hash(parcel.tx,parcel.ty,seed^0x471);
-            if(Math.floorMod(hash,100)>=38)continue;
+            if(Math.floorMod(hash,100)>=6)continue;
             for(int i=0;i<NeighborhoodV154.COLS*NeighborhoodV154.ROWS;i++){
                 int slot=Math.floorMod(i+hash,NeighborhoodV154.COLS*NeighborhoodV154.ROWS);
                 if(NeighborhoodV154.get(parcel.tx,parcel.ty,slot,city)!=null)
