@@ -121,3 +121,11 @@ case, even if the JVM selector and Python pixel-asset contract pass.
 - Unmodified reduced JPEG frames from that actual emulator run are archived in `docs/qa/v166/interiors/iteration2/`. All eight were opened and inspected.
 - **Still NOT visually approved:** South-side captures show only modest improvement: a table in the hotel lobby and a bookshelf in the school commons, with significant unoccupied areas. The eight screenshots frame the southern entrance, not each room; they are insufficient to judge complete interiors, especially the northern and central portions.
 - QA expansion next: capture center/north viewpoints in all eight building types, plus actual clinic/expedition/industrial views. Continue furnishing revisions until images meet density and functional-identity requirements.
+
+
+## V166 full-room QA coverage / death-screen false-positive correction
+- [run 44397889033](https://github.com/husam4448-rgb/wanderfall/actions/runs/44397889033) technically PASSED and captured central/northern viewpoints and clinic/expedition/industrial frames. **Visual QA rejected:** northern room shots eventually showed a `YOU DIED` menu and later scene captures were stale. These are not acceptable interior evidence.
+- Root QA issue: the temporary screenshot harness teleported the real player to hostile NPCs for each vantage, causing death. Production gameplay code was not modified by this QA-only hook.
+- CI-only fix: commit `5a5ab9a` moves the *rendering camera* instead of the player. Explicit image checks reject uniform death-modal screens and unchanged transitions between scene families.
+- Corrected expanded workflow: [run 44399715228](https://github.com/husam4448-rgb/wanderfall/actions/runs/44399715228). In progress; **no QA PASS or visual approval claimed until the corrected captures are inspected**.
+- Remaining visual defects: sparse shared spaces (notably school and hotel); too little distinct room furniture, decorative object variation and clinical/expedition art. No APK release.
