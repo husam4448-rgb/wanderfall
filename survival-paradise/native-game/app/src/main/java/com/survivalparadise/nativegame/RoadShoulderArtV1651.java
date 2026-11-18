@@ -41,6 +41,7 @@ public final class RoadShoulderArtV1651 {
             if(strip==null||strip.getWidth()!=512||strip.getHeight()!=128)
                 throw new IllegalArgumentException("Invalid road edge art");
             shader=new BitmapShader(strip,Shader.TileMode.REPEAT,Shader.TileMode.CLAMP);
+            android.util.Log.i("SP-V1651","Road shoulder ready: 512x128 RGBA strip");
         }catch(Exception e){
             android.util.Log.w("SP-V1651","Road shoulder art missing; base roads remain",e);
             release();
