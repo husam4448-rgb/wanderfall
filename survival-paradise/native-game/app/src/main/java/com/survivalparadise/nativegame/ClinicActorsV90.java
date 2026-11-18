@@ -36,6 +36,13 @@ public final class ClinicActorsV90 {
         for(int i=0;i<actors.length;i++){
             float x=START[i][0]*ClinicInteriorV89.EXPANSION_V90;
             float y=START[i][1]*ClinicInteriorV89.EXPANSION_V90;
+            // A seed-specific room map must spawn actors inside its actual
+            // chambers, not at hardcoded hospital corridor coordinates.
+            if(map instanceof NeighborhoodInteriorV161){
+                float[][] points=((NeighborhoodInteriorV161)map).layoutV163.encounters;
+                float[] anchor=points[i%points.length];
+                x=anchor[0];y=anchor[1];
+            }
             if(map.blocked(x,y,13)){
                 boolean found=false;
                 for(int rad=20;rad<=210&&!found;rad+=20)
