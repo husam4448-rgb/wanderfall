@@ -19,43 +19,64 @@ public final class NeighborhoodInteriorArtV161 {
         p.setStyle(Paint.Style.FILL);p.setColor(color);
         c.drawOval(x,y,x+w,y+h,p);
     }
-    /** Under wall layer, so each building has real floor zoning and wear. */
+    /**
+     * V163 exact room footprints. No static six-box checkerboard: each site's
+     * walls, tiles, work zones and room signs follow its unique physical map.
+     * Drawn in logical pre-scaled coordinates, not on top of characters.
+     */
     public static void floor(Canvas c,Paint p,NeighborhoodInteriorV161 room){
-        int kind=room.theme,variant=room.variation;
-        int floor=kind==NeighborhoodV154.FACTORY?0xff686963:
-            kind==NeighborhoodV154.WAREHOUSE?0xff777566:
-            kind==NeighborhoodV154.MARKET?0xff8d8c7a:
-            kind==NeighborhoodV154.HOTEL?0xff826f64:
-            kind==NeighborhoodV154.SCHOOL?0xff818b80:
-            kind==NeighborhoodV154.OFFICES?0xff6b797a:0xff8b816e;
-        for(int z=0;z<6;z++){
-            float left=38+(z%3)*525,top=z<3?49:659;
-            r(c,p,left,top,488,398,floor);
-            for(int i=0;i<10;i++){
-                int hash=IndustrialWorldV123.hash(i+z*37,
-                    variant+z*59,room.seed);
-                float xx=left+24+Math.floorMod(hash,420);
-                float yy=top+18+Math.floorMod(hash>>>10,340);
-                if(kind==NeighborhoodV154.FACTORY||kind==NeighborhoodV154.WAREHOUSE){
-                    r(c,p,xx,yy,48,4,0x59606154);
-                    r(c,p,xx+4,yy+4,3,13,0x554c5248);
-                }else{
-                    r(c,p,xx,yy,4,3,0x4d3a423e);
+        NeighborhoodLayoutV163 plan=room.layoutV163;
+        int kind=room.theme;
+        int ground=kind==NeighborhoodV154.FACTORY?0xff666d6b:
+            kind==NeighborhoodV154.WAREHOUSE?0xff77766d:
+            kind==NeighborhoodV154.MARKET?0xff81796c:
+            kind==NeighborhoodV154.HOTEL?0xff83716a:
+            kind==NeighborhoodV154.SCHOOL?0xff728077:
+            kind==NeighborhoodV154.OFFICES?0xff6b787a:0xff827866;
+        r(c,p,23,23,1554,1072,ground);
+        float scale=ClinicInteriorV89.EXPANSION_V90;
+        for(int z=0;z<plan.rooms.length;z++){
+            float[] b=plan.rooms[z];
+            float x=b[0]/scale,y=b[1]/scale,w=b[2]/scale,h=b[3]/scale;
+            int hsh=IndustrialWorldV123.hash(z+room.building.tileX*9,
+                room.building.tileY*31+room.variation,room.seed);
+            int tint=(Math.floorMod(hsh,5)-2)*5;
+            int red=Math.max(0,Math.min(255,((ground>>>16)&255)+tint));
+            int green=Math.max(0,Math.min(255,((ground>>>8)&255)+tint));
+            int blue=Math.max(0,Math.min(255,(ground&255)+tint));
+            int tile=0xff000000|(red<<16)|(green<<8)|blue;
+            r(c,p,x+3,y+3,w-6,h-6,tile);
+            // Different floor finishes: workshop stripe, classroom lino,
+            // residence parquet, hotel carpet, or warehouse expansion joints.
+            boolean industrial=kind==NeighborhoodV154.FACTORY||
+                kind==NeighborhoodV154.WAREHOUSE;
+            if(industrial){
+                for(int i=0;i<6;i++){
+                    float vx=x+15+(w-30)*i/6f;
+                    r(c,p,vx,y+12,2,h-24,0x33404746);
                 }
+                r(c,p,x+20,y+h-42,w-40,6,0xffb69a60);
+                for(int i=0;i<Math.min(6,(int)(w/65));i++)
+                    r(c,p,x+25+i*65,y+h-42,25,6,0xff343e3e);
+            }else if(kind==NeighborhoodV154.SCHOOL||
+                     kind==NeighborhoodV154.MARKET||
+                     kind==NeighborhoodV154.OFFICES){
+                for(int i=1;i<Math.max(2,(int)(w/90));i++)
+                    r(c,p,x+i*88,y+6,2,h-12,0x40435656);
+                for(int i=1;i<Math.max(2,(int)(h/92));i++)
+                    r(c,p,x+6,y+i*88,w-12,2,0x40435656);
+            }else{
+                for(int i=0;i<Math.min(9,(int)(h/38));i++)
+                    r(c,p,x+8,y+11+i*38,w-16,2,0x4b4a3e34);
+                r(c,p,x+30,y+22,w-60,h-44,
+                    (room.variation+z)%2==0?0x3376a1a2:0x335e6d64);
             }
-            if(kind==NeighborhoodV154.MARKET||kind==NeighborhoodV154.SCHOOL){
-                for(int i=0;i<6;i++)r(c,p,left+21+i*72,top+15,2,355,0x28545e56);
-                for(int i=0;i<5;i++)r(c,p,left+17,top+12+i*76,450,2,0x28545e56);
-            }else if(kind==NeighborhoodV154.HOTEL||
-                     kind==NeighborhoodV154.RESIDENCES||
-                     kind==NeighborhoodV154.APARTMENTS){
-                r(c,p,left+140,top+105,205,160,0xff695b50);
-                r(c,p,left+151,top+116,183,138,
-                    (variant&1)==0?0xffae8466:0xff7b8c7f);
-                r(c,p,left+165,top+129,155,10,0xffd7ba93);
-            }else if(kind==NeighborhoodV154.FACTORY){
-                r(c,p,left+12,top+8,465,9,0xffd1ad61);
-                for(int j=0;j<18;j++)r(c,p,left+15+j*25,top+8,11,9,0xff344241);
+            for(int i=0;i<8;i++){
+                int hash=IndustrialWorldV123.hash(z*29+i,
+                    plan.signature+i*17,room.seed);
+                float bx=x+15+Math.floorMod(hash,Math.max(1,(int)(w-35)));
+                float by=y+15+Math.floorMod(hash>>>9,Math.max(1,(int)(h-35)));
+                r(c,p,bx,by,Math.max(2,i%3+1),2,0x4c242a27);
             }
         }
     }
