@@ -39,6 +39,34 @@ public final class NaturalBrushArtV1652 {
             atlas=BitmapFactory.decodeByteArray(data,0,data.length,o);
             if(atlas==null||atlas.getWidth()!=768||atlas.getHeight()!=256)
                 throw new IllegalArgumentException("Invalid organic biome brush atlas");
+            // The original three-pigment atlas still carried substantial
+            // alpha on some source CELL boundaries. A 30%-opaque cropped
+            // rectangle rotated 40 degrees becomes the conspicuous straight
+            // diagonal terrain bands seen in real emulator screenshots.
+            // Feather EACH tile to zero once at load, never per frame.
+            final int w=atlas.getWidth(),h=atlas.getHeight();
+            int[] pixels=new int[w*h];
+            atlas.getPixels(pixels,0,w,0,0,w,h);
+            for(int y=0;y<h;y++){
+                int dy=Math.min(y,h-1-y);
+                for(int x=0;x<w;x++){
+                    int lx=x%256;
+                    int dx=Math.min(lx,255-lx);
+                    float edge=Math.min(dx,dy)/38f;
+                    if(edge>=1f)continue;
+                    edge=Math.max(0f,edge);
+                    float feather=edge*edge*(3f-2f*edge);
+                    int i=y*w+x;
+                    int a=(pixels[i]>>>24);
+                    pixels[i]=((Math.round(a*feather)&255)<<24)|
+                        (pixels[i]&0x00ffffff);
+                }
+            }
+            Bitmap masked=Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888);
+            masked.setPixels(pixels,0,w,0,0,w,h);
+            atlas.recycle();
+            atlas=masked;
+            android.util.Log.i("SP-V1652","Biome perimeter alpha feather: 38 pixels, three cells");
             android.util.Log.i("SP-V1652",
                 "Natural biome brushes ready: 3 transparent authored pigments");
         }catch(Exception e){
