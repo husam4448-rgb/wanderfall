@@ -26,17 +26,17 @@ public final class CampWorldV164 {
         }
         /** Each role has a real station; no camp roles are assigned randomly. */
         public float npcX(int role){
-            float[] dx={-248,235,302,-204,48};
+            float[] dx={-248,157,66,-112,12};
             return x+dx[Math.max(0,Math.min(role,ROLES-1))];
         }
         public float npcY(int role){
-            float[] dy={150,-65,173,-72,253};
+            float[] dy={214,222,280,183,-38};
             return y+dy[Math.max(0,Math.min(role,ROLES-1))];
         }
-        public float chestX(){return x+338;}
-        public float chestY(){return y+7;}
-        public float fireX(){return x+35;}
-        public float fireY(){return y+88;}
+        public float chestX(){return x+(starter?335f:342f);}
+        public float chestY(){return y+(starter?155f:125f);}
+        public float fireX(){return x+(starter?90f:20f);}
+        public float fireY(){return y+(starter?95f:70f);}
         public String saveId(){return "c"+seed+"_"+tx+"_"+ty+"_"+slot;}
     }
     private static int hash(int x,int y,int seed){
