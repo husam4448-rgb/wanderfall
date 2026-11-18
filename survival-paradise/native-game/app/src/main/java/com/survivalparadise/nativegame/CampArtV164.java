@@ -100,6 +100,7 @@ public final class CampArtV164 {
     }
     private static void canvasTent(Canvas c,Paint p,float x,float y,
                                    int variant,boolean olive){
+        if(CampSpriteArtV1651.drawTent(c,x,y,olive))return;
         int dark=0xff172b2a;
         int fabric=olive?0xff596e56:0xff8b8061;
         int sun=olive?0xff9aa47a:0xffc2af80;
@@ -264,6 +265,69 @@ public final class CampArtV164 {
                 rect(c,p,x-420+j*16,y-104,8,24,0xff715638);
         }
     }
+
+    /** Visible camp structures have foreground lips ordered by world Y.
+     * They do NOT introduce teleport doors, tent collision, or character art.
+     * 0/1: tent side drapes, 2: trader counter, 3: medic cot, 4: guard bags.
+     */
+    public static float foregroundY(CampWorldV164.Site s,int kind){
+        if(kind<2)return s.y+(s.starter?-185f:-153f)+100f;
+        if(kind==2)return s.y+(s.starter?34f:125f)+67f;
+        if(kind==3)return s.y+(s.starter?42f:119f)+40f;
+        return s.y+(s.starter?5f:273f)+91f;
+    }
+    public static void foreground(Canvas c,Paint p,CampWorldV164.Site s,int kind){
+        float x=s.x,y=s.y;
+        if(kind<2){
+            if(kind==0)CampSpriteArtV1651.drawFront(c,
+                x+(s.starter?-300f:-205f),
+                y+(s.starter?-185f:-153f),true);
+            else CampSpriteArtV1651.drawFront(c,
+                x+(s.starter?225f:186f),
+                y+(s.starter?-185f:-153f),false);
+            return;
+        }
+        float cx=x+(s.starter?-215f:-255f);
+        float cy=y+(s.starter?34f:125f);
+        if(kind==2){
+            // The existing physical front counter occludes characters behind
+            // it; sprites are never simply painted on top of all actors.
+            rect(c,p,cx-107,cy+17,214,50,0xff253634);
+            rect(c,p,cx-100,cy+20,200,40,0xff826c4e);
+            rect(c,p,cx-96,cy+23,192,8,0xffc4a679);
+            for(int i=0;i<9;i++){
+                float xx=cx-90+i*23f;
+                line(c,p,xx,cy+33,xx-2,cy+55,1.2f,
+                    i%2==0?0xff665139:0xffa28a64);
+            }
+            rect(c,p,cx-85,cy+36,22,18,0xff344f4b);
+            rect(c,p,cx-81,cy+39,13,10,0xff9ab5b0);
+            rect(c,p,cx+61,cy+37,23,18,0xff343d33);
+            rect(c,p,cx+64,cy+41,15,10,0xffc1b684);
+            label(c,p,"TRADE",cx-28,cy+78,0xffffdfaa);
+            return;
+        }
+        if(kind==3){
+            cx=x+(s.starter?4f:155f);
+            cy=y+(s.starter?42f:119f);
+            rect(c,p,cx-70,cy-2,135,42,0xff263a35);
+            rect(c,p,cx-61,cy+2,119,33,0xff9c9d86);
+            rect(c,p,cx-57,cy+6,37,23,0xffdfdfca);
+            rect(c,p,cx+31,cy+6,22,24,0xffe9e9d4);
+            rect(c,p,cx+37,cy+9,9,19,0xffb74b46);
+            rect(c,p,cx+33,cy+14,18,8,0xffb74b46);
+            return;
+        }
+        cx=x+(s.starter?222f:55f);
+        cy=y+(s.starter?5f:273f);
+        for(int row=0;row<2;row++)for(int i=0;i<5;i++){
+            float xx=cx-94+i*39+(row&1)*11;
+            rect(c,p,xx,cy+42+row*22,35,21,0xff263632);
+            rect(c,p,xx+3,cy+44+row*22,29,17,
+                (i+row)%2==0?0xff96815c:0xffb7a179);
+        }
+    }
+
     public static void drawStructures(Canvas c,Paint p,CampWorldV164.Site s){
         float x=s.x,y=s.y;
         if(s.starter){

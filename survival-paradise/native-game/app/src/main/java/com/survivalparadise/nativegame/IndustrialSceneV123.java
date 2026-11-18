@@ -74,6 +74,12 @@ public final class IndustrialSceneV123 {
         SurfaceArtV165.rect(c,x-5,y-IndustrialWorldV123.roadWidth(sy)/2f,
             1410,IndustrialWorldV123.roadWidth(sy),
             SurfaceArtV165.ASPHALT,360f,220);
+        RoadShoulderArtV1651.vertical(c,
+            x-IndustrialWorldV123.roadWidth(sx)/2f,
+            x+IndustrialWorldV123.roadWidth(sx)/2f,y+170f,y+1405f);
+        RoadShoulderArtV1651.horizontal(c,x+170f,x+1405f,
+            y-IndustrialWorldV123.roadWidth(sy)/2f,
+            y+IndustrialWorldV123.roadWidth(sy)/2f);
         for(int k=0;k<14;k++){
             r(c,p,x-3,y+40+k*95,6,48,0xffb49c62);
             r(c,p,x+40+k*95,y-3,48,6,0xffb49c62);

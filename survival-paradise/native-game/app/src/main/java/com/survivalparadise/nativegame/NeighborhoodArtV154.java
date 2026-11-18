@@ -244,6 +244,20 @@ public final class NeighborhoodArtV154 {
                 SurfaceArtV165.rect(c,x+xx-116,y+yy-111,232,222,
                     SurfaceArtV165.ASPHALT,355f,213);
             }
+        // V165.1 organic shoulder strips remain inside each road segment;
+        // do not draw fake soil seams across real intersections.
+        for(float xx:vertical){
+            float[][] seg={{205f,2076f},{2304f,4136f},{4364f,4390f}};
+            for(float[] v:seg)
+                RoadShoulderArtV1651.vertical(c,x+xx-99f,x+xx+99f,
+                    y+v[0],y+v[1]);
+        }
+        for(float yy:horizontal){
+            float[][] seg={{142f,1636f},{1864f,3436f},{3664f,5258f}};
+            for(float[] h:seg)
+                RoadShoulderArtV1651.horizontal(c,x+h[0],x+h[1],
+                    y+yy-97f,y+yy+97f);
+        }
         // Kerbs only on free-standing vertical road edges; never through the
         // asphalt intersection where a perpendicular road connects.
         for(float xx:vertical){

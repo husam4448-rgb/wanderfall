@@ -445,6 +445,11 @@ public final class GameView extends View {
         pickaxeV81=makePixelPickaxeV81();
         loadApprovedGearV93();
         initCovers();reloadSettings();hasSave=host.prefs.getBoolean("hasSave",false);
+        // V165.1: load all world assets, including wilderness/camp views,
+        // independently of the industrial-mode renderer.
+        SurfaceArtV165.load(host.getAssets());
+        CampSpriteArtV1651.load(host.getAssets());
+        RoadShoulderArtV1651.load(host.getAssets());
         if(industrialModeV123||stitchedIndustrialV128)
             industrialArtV123.load(host.getAssets());
     }
@@ -1829,11 +1834,14 @@ public final class GameView extends View {
             }
             return;
         }
-        campStaff.add(new Survivor(CAMP_X-175,CAMP_Y-75,3,ROLE_TRADER));
-        campStaff.add(new Survivor(CAMP_X-126,CAMP_Y-78,3,ROLE_MEDIC+1));
-        campStaff.add(new Survivor(CAMP_X+179,CAMP_Y-67,3,ROLE_MECHANIC));
-        campStaff.add(new Survivor(CAMP_X+156,CAMP_Y+84,2,ROLE_GUARD+1));
-        campStaff.add(new Survivor(CAMP_X-180,CAMP_Y+96,3,ROLE_CIVILIAN));
+        // V165.1: the original homes sat directly on tent/stall canopies.
+        // Reposition the SAME five roles outside actual art footprints.
+        // NPC identities, trade inventories and save schema remain unchanged.
+        campStaff.add(new Survivor(CAMP_X-210,CAMP_Y+147,3,ROLE_TRADER));
+        campStaff.add(new Survivor(CAMP_X+20,CAMP_Y+128,3,ROLE_MEDIC+1));
+        campStaff.add(new Survivor(CAMP_X+310,CAMP_Y-26,3,ROLE_MECHANIC));
+        campStaff.add(new Survivor(CAMP_X+206,CAMP_Y+140,2,ROLE_GUARD+1));
+        campStaff.add(new Survivor(CAMP_X-80,CAMP_Y+171,3,ROLE_CIVILIAN));
         // Preserve the original five identities and append deterministic
         // roles at every additional world settlement.
         int[] rolesV164={ROLE_TRADER,ROLE_MEDIC+1,
@@ -4226,12 +4234,18 @@ public final class GameView extends View {
             if(dashX<1720f&&dashX+56>1500f)continue;
             rect(c,dashX,1035,56,6,0xffa1a78d);
         }
+        // Artistically weather BOTH asphalt/soil contacts, without painting
+        // shoulders through the continuous four-way junction.
+        RoadShoulderArtV1651.horizontal(c,camX-4f,1500f,925f,1150f);
+        RoadShoulderArtV1651.horizontal(c,1720f,camX+viewW+4f,925f,1150f);
         // Paint the perpendicular carriageway on top with SAME asphalt tone.
         // This hides the horizontal kerb inside the crossing.
         rect(c,1500,camY-4,220,viewH+8,0xff565b50);
         SurfaceArtV165.rect(c,1500,camY-4,220,viewH+8,
             SurfaceArtV165.AGED_PAVEMENT,330f,223);
         float roadBottom=camY+viewH+4f;
+        RoadShoulderArtV1651.vertical(c,1500f,1720f,camY-4f,925f);
+        RoadShoulderArtV1651.vertical(c,1500f,1720f,1150f,roadBottom);
         // V162: vertical kerb is split above and below the intersection.
         if(camY-4f<925f){
             float end=Math.min(925f,roadBottom);
@@ -5606,6 +5620,19 @@ public final class GameView extends View {
                     playerAnimation.isWalking()?Float.POSITIVE_INFINITY:playerAnimation.breathOffset(),
                     angle,recoil*2.7f,true,false,-1);
         }));
+        // Render tent fabric and station fronts in the SAME world-Y queue
+        // as actors. Fixes characters appearing ON roofs/counters and does not
+        // seal the intentionally walk-through center of the tents.
+        if(!industrialModeV123)
+            for(CampWorldV164.Site site:survivorCampsV164){
+                if(!CampWorldV164.visible(site,camX,camY,viewW,viewH))
+                    continue;
+                for(int part=0;part<5;part++){
+                    final int what=part;
+                    order.add(new DrawEntity(CampArtV164.foregroundY(site,what),
+                        ()->CampArtV164.foreground(c,p,site,what)));
+                }
+            }
         order.sort((a,b)->Float.compare(a.y,b.y));
         for(DrawEntity e:order)e.draw.run();
         // Melee knife is drawn with the player at the correct world depth.
@@ -6466,6 +6493,9 @@ public final class GameView extends View {
     @Override protected void onDetachedFromWindow(){
         terrainChunks.release();
         industrialArtV123.release();
+        SurfaceArtV165.release();
+        CampSpriteArtV1651.release();
+        RoadShoulderArtV1651.release();
         lighting.release();
         if(campStatic!=null){campStatic.recycle();campStatic=null;}
         itemIconsV84.release();

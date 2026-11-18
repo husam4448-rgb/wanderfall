@@ -105,6 +105,8 @@ public final class IndustrialSceneV124 {
             box(c,p,x-vw*.5f,y,vw,S,0xff303638);
             SurfaceArtV165.rect(c,x-vw*.5f,y,vw,S,
                 SurfaceArtV165.ASPHALT,360f,224);
+            RoadShoulderArtV1651.vertical(c,x-vw*.5f,x+vw*.5f,
+                y+(h?hw*.5f+24f:0f),y+S);
             // No black strip sticker edges: cracks are part of asphalt itself.
             stroke(c,p,x-vw*.5f+8,y,x-vw*.5f+8,y+S,0xff6a6554,3);
             stroke(c,p,x+vw*.5f-8,y,x+vw*.5f-8,y+S,0xff6a6554,3);
@@ -120,6 +122,8 @@ public final class IndustrialSceneV124 {
             box(c,p,x,y-hw*.5f,S,hw,0xff303638);
             SurfaceArtV165.rect(c,x,y-hw*.5f,S,hw,
                 SurfaceArtV165.ASPHALT,360f,224);
+            RoadShoulderArtV1651.horizontal(c,
+                x+(v?vw*.5f+24f:0f),x+S,y-hw*.5f,y+hw*.5f);
             stroke(c,p,x,y-hw*.5f+8,x+S,y-hw*.5f+8,0xff6a6554,3);
             stroke(c,p,x,y+hw*.5f-8,x+S,y+hw*.5f-8,0xff6a6554,3);
             for(int i=0;i<12;i++){

@@ -91,5 +91,6 @@ public final class SurfaceArtV165 {
             if(tiles[i]!=null&&!tiles[i].isRecycled())tiles[i].recycle();
             tiles[i]=null;
         }
+        attempted=false;
     }
 }
