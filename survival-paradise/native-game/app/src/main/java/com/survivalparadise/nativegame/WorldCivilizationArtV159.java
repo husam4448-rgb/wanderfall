@@ -2,7 +2,6 @@ package com.survivalparadise.nativegame;
 
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Path;
 
 /**
  * Civilization is drawn INSIDE authentic plotted lots and their fences.
@@ -13,12 +12,6 @@ import android.graphics.Path;
 public final class WorldCivilizationArtV159 {
     private WorldCivilizationArtV159(){}
     private static final Paint P=new Paint(Paint.ANTI_ALIAS_FLAG);
-    private static final Path SHAPE=new Path();
-    private static final int[] BASE={
-        0xff6f736c, // city: aged concrete
-        0xff8a8068, // village: compacted earth
-        0xff77766c  // outpost: industrial gravel
-    };
     private static final int[] FENCE={
         0xff879c91,0xff957654,0xff9e9d8a
     };
@@ -33,78 +26,14 @@ public final class WorldCivilizationArtV159 {
         P.setStyle(Paint.Style.FILL);P.setColor(color);P.setShader(null);
         c.drawRect(x,y,x+w,y+h,P);
     }
-    /** A region uses one material family, with natural, irregular weathering
-     * instead of a visually flat 5km square or repeated tile checkerboard.
-     */
+    /** Planned parcel geography is immutable; authored materials paint it. */
     public static void ground(Canvas c,WorldCivilizationV159.Plan plan,
                               float camX,float camY,float viewW,float viewH){
         ground(c,plan,camX,camY,viewW,viewH,1f);
     }
     public static void ground(Canvas c,WorldCivilizationV159.Plan plan,
                               float camX,float camY,float viewW,float viewH,float zoom){
-        if(plan==null)return;
-        c.save();c.clipRect(camX-30,camY-30,camX+viewW+30,camY+viewH+30);
-        for(WorldCivilizationV159.Parcel region:plan.parcels){
-            if(!region.onScreen(camX,camY,viewW,viewH))continue;
-            float x=region.left,y=region.top,w=region.right-x,h=region.bottom-y;
-            // Slightly rounded, but planned fence corners remain square.
-            // Industrial region is separately authored in V124/V128.
-            P.setStyle(Paint.Style.FILL);
-            // Preserve a faint trace of the procedural biome's color noise
-            // underneath the developed surface. Fully opaque flat slabs
-            // were visually artificial and destroyed terrain texture.
-            int opacity=region.kind==WorldCivilizationV159.CITY?230:
-                region.kind==WorldCivilizationV159.VILLAGE?205:224;
-            P.setColor((opacity<<24)|(BASE[region.kind]&0xffffff));
-            c.drawRoundRect(x,y,x+w,y+h,22f,22f,P);
-            // Low-opacity hand-painted aggregate prevents homogeneous slabs;
-            // park greenery and lane geometry are still drawn separately.
-            SurfaceArtV165.rect(c,x+6f,y+6f,w-12f,h-12f,
-                region.kind==WorldCivilizationV159.VILLAGE?
-                    SurfaceArtV165.SOIL:SurfaceArtV165.CONCRETE,
-                410f,region.kind==WorldCivilizationV159.VILLAGE?55:68);
-            c.save();
-            c.clipRect(x+2,y+2,x+w-2,y+h-2);
-            for(int i=0;i<(zoom<.70f?11:44);i++){
-                int rand=IndustrialWorldV123.hash(
-                    region.tx*53+i*37,region.ty*71-i*29,
-                    plan.seed^0x159A000+region.variation);
-                float cx=x+68+Math.floorMod(rand,Math.max(1,(int)w-136));
-                float cy=y+64+Math.floorMod(rand>>>9,Math.max(1,(int)h-128));
-                float rx=25f+Math.floorMod(rand>>>17,165);
-                float ry=12f+Math.floorMod(rand>>>23,93);
-                P.setColor((region.kind==WorldCivilizationV159.VILLAGE?
-                    0x2962473a:0x29343837));
-                c.save();
-                c.rotate(Math.floorMod(rand>>>13,160),cx,cy);
-                SHAPE.reset();
-                for(int v=0;v<10;v++){
-                    double theta=v*Math.PI/5.0;
-                    float jag=.74f+Math.floorMod(
-                        IndustrialWorldV123.hash(v,i,rand),32)/100f;
-                    float px=cx+(float)Math.cos(theta)*rx*jag;
-                    float py=cy+(float)Math.sin(theta)*ry*jag;
-                    if(v==0)SHAPE.moveTo(px,py);
-                    else SHAPE.lineTo(px,py);
-                }
-                SHAPE.close();
-                c.drawPath(SHAPE,P);
-                c.restore();
-            }
-            // Fine stones and natural cracks instead of geometric floor grids.
-            for(int i=0;i<(zoom<.70f?24:110);i++){
-                int hsh=IndustrialWorldV123.hash(
-                    region.tx*131+i*17,region.ty*119-i*23,plan.seed^0x15938);
-                float px=x+28f+Math.floorMod(hsh,(int)Math.max(1,w-56));
-                float py=y+22f+Math.floorMod(hsh>>>10,(int)Math.max(1,h-44));
-                P.setColor(region.kind==WorldCivilizationV159.VILLAGE?
-                    0x65644c36:0x45434b4a);
-                float r=1.2f+Math.floorMod(hsh>>>22,4);
-                c.drawOval(px-r,py-r*.5f,px+r*1.8f,py+r*.7f,P);
-            }
-            c.restore();
-        }
-        c.restore();
+        SettlementGroundArtV166.draw(c,plan,camX,camY,viewW,viewH);
     }
     private static void drawFence(Canvas c,WorldCivilizationV159.Segment s,
                                   float camX,float camY,float width,float height){

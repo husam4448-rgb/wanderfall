@@ -68,3 +68,10 @@ case, even if the JVM selector and Python pixel-asset contract pass.
 - `NeighborhoodArtV154.building` now replaces all roof/facade programmer shapes with complete authored imagery; the retained geometric routine is an emergency fallback only if the required atlas fails. Five alpha-authored earth/soil contact stamps replace the giant rectangular paved base. Only short service-door concrete remains.
 - Visual variant selection hashes existing tile/slot/variation with the saved civilization seed without drawing a world RNG value.
 - **QA status:** Source-integrated, additional emulator city close-up capture and collision/interior validation required. Initial full Android run will still show starter camp because the existing CI navigation covers it; source asset verification is not city visual approval.
+
+## Global developed-parcel ground replacement (city, village, outpost)
+- `WorldCivilizationArtV159.ground` now delegates exclusively to `SettlementGroundArtV166`; former giant opaque `Canvas.drawRoundRect` settlement carpet, polygon scorch stickers and 110 primitive pebble ellipses per parcel are removed from the production visual path.
+- Every seeded parcel is painted with clustered, overlapping, authored, alpha-feathered pigment stamps. City = weathered compacted gray soil plus greenery; village = trampled brown earth and green space; outpost = arid gravel plus surviving scrub.
+- Camera-independent `SettlementGroundSelectionV166` controls stable clusters and variation from saved world seed. Paint is clipped only as an invisible rendering mask at the original parcel perimeter; feathered alpha handles material blending.
+- Original parcels/fences, road gates, structure IDs, NPCs, loot, head atlas, collision and saves unchanged. Paint uses pooled filters and brushes; no new runtime bitmaps per frame.
+- **Verification:** Java source/selection tests ready; Android emulator city and other biome screenshots pending in this follow-up pass. Not a V166 release.

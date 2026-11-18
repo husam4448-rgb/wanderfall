@@ -101,6 +101,26 @@ public final class NaturalBrushArtV1652 {
         return true;
     }
 
+    // Preallocated tint filters preserve the authored pigment detail while
+    // differentiating industrial gravel, village earth and city concrete.
+    private static final android.graphics.LightingColorFilter[] SETTLEMENT_TINT={
+        new android.graphics.LightingColorFilter(0xffa6abb1,0x00070909),
+        new android.graphics.LightingColorFilter(0xffd6ae86,0x00070503),
+        new android.graphics.LightingColorFilter(0xffb5b3a5,0x00090604)
+    };
+
+    public static boolean stampSettlement(Canvas c,int kind,float x,float y,
+                                          float width,float height,int variation,
+                                          int alpha,int regionKind){
+        if(regionKind<0||regionKind>=SETTLEMENT_TINT.length)return false;
+        P.setColorFilter(SETTLEMENT_TINT[regionKind]);
+        try{
+            return stamp(c,kind,x,y,width,height,variation,alpha);
+        }finally{
+            P.setColorFilter(null);
+        }
+    }
+
     /** Paint author-sourced transparent ground in a physical world footprint. */
     public static boolean stamp(Canvas c,int kind,float x,float y,
                                 float width,float height,int variation,int alpha){

@@ -129,10 +129,11 @@ jobs:
             "$R/tools/V1652CampSpatialTest.java" \
             "$R/tools/V166WorldArtSelectionTest.java" \
             "$R/tools/V166NeighborhoodArtTest.java" \
+            "$R/tools/V166SettlementGroundTest.java" \
             "$R/tools/V160SeededGeographyTest.java" \
             "$R/tools/V159WorldPlanTest.java" \
             "$R/tools/NeighborhoodV154Test.java"
-          for test in V166NeighborhoodArtTest V166WorldArtSelectionTest V1652CampSpatialTest V164SettlementCampTest V163InteriorLayoutTest GearStatsV162Test \
+          for test in V166SettlementGroundTest V166NeighborhoodArtTest V166WorldArtSelectionTest V1652CampSpatialTest V164SettlementCampTest V163InteriorLayoutTest GearStatsV162Test \
                       V161NeighborhoodInteriorTest V160SeededGeographyTest \
                       V159WorldPlanTest NeighborhoodV154Test; do
             java -Xmx512m -cp /tmp/v165-java com.survivalparadise.nativegame."$test"
@@ -150,6 +151,11 @@ jobs:
                        'IndustrialBiomeSceneV128.java'):
             assert 'SurfaceArtV165' in (p/name).read_text(),name
           assert 'NaturalBrushArtV1652.patch(c,b,biome,distant)' in (p/'NaturalGroundArtV157.java').read_text()
+          settlement=(p/'WorldCivilizationArtV159.java').read_text()
+          assert 'SettlementGroundArtV166.draw(c,plan,camX,camY,viewW,viewH)' in settlement
+          assert 'c.drawRoundRect(x,y,x+w,y+h' not in settlement
+          assert 'stampSettlement(c,source,' in (p/'SettlementGroundArtV166.java').read_text()
+          assert 'P.setColorFilter(null)' in (p/'NaturalBrushArtV1652.java').read_text()
           assert 'drawPath(' not in (p/'NaturalGroundArtV157.java').read_text()
           game=(p/'GameView.java').read_text()
           assert 'WorldArtV166.load(host.getAssets())' in game
