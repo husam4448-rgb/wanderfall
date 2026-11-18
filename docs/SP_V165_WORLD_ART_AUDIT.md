@@ -42,3 +42,38 @@ Working branch: `sp-native-v165-world-art-surfaces-20261118`.
       road intersection continuity, texture repetition and readability.
 - [ ] Emulator evidence reviewed BEFORE any user-facing APK.
 - [ ] Later art passes proceed through clutter/exteriors/interiors/camps/items.
+
+## Audit coverage: shape-heavy code (2026-11-18)
+These are **source-site heuristic counts**, not a claim that every primitive is
+a placeholder. Each renderer is also visually audited at normal and distant zoom.
+
+| Renderer | Primitive draw/helper sites | Bitmap draw sites | Status |
+|---|---:|---:|---|
+| `CampArtV164` | 71 | 0 | Ground pigment introduced; tent/station sprites pending |
+| `NeighborhoodArtV154` | 70 | 0 | Road pigment introduced; facade sprites pending |
+| `NeighborhoodInteriorArtV161` | 63 | 0 | Pending furniture/floor atlas |
+| `IndustrialSceneV123` | 61 | 0 | Road/yard materials added; primitives remain |
+| `IndustrialInteriorArtV125` | 57 | 0 | Pending authentic machinery/flooring refinement |
+| `ItemIconsV84` | 77 | 1 | Pending coherent icons |
+| `GearItemIconsV95` | 49 | 0 | Pending; approved legacy art retained |
+| `IndustrialSceneV124` | 37 | 0 | Road/yard/driveway materials added |
+| `IndustrialComplexArtV155` | 23 | 0 | Pending review |
+| `CityGreensV164` | 17 | 0 | Park ground pigment added; benches/gardens pending |
+| `IndustrialBiomeSceneV128` | 13 | 0 | Approach-road surface added |
+| `WorldCivilizationArtV159` | 9 | 0 | Developed-ground surface material added |
+| `WorldChunkCache` | 7 | 1 | Existing chunk raster preserved |
+| `NaturalGroundArtV157` | 4 | 0 | Soil brush and foliage details coexist |
+| `IndustrialArtV123` | 0 | 1 | Existing approved 24 WebPs retained/reused for V84 salvage |
+| `FieldItemIconsV91` | 1 | 0 | Review after item atlas |
+| `NutIconsV143` | 2 | 0 | Review after item atlas |
+
+### Incremental V165 source replacement log
+- Four authored ground paintings integrated via a single compact WebP atlas.
+- Applied to highways, town streets, intersections, industrial roads and access,
+  city concrete, parks, industrial yards/driveways, camp clearings and natural patches.
+- Existing approved V123 WebPs now replace V84 block-drawn rusted cars, scrap
+  piles and barrel/tank clusters **without changing salvage IDs or depletion**.
+- Headgear rendering stays banned; head, movement, inventory, trading, saves,
+  collision and procedural layouts are unchanged.
+- This is an initial art batch, **not** completion or visual acceptance of the
+  full world-art replacement program.
