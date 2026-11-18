@@ -30,6 +30,9 @@ public final class NaturalGroundArtV157 {
             0xff828777:biome==BiomeWorldV74.WETLAND&&
                 b.kind==NaturalGroundV157.DIRT?
             0xff596c54:color(b.kind,b.variation);
+        // V165.2 replaces flat triangulated islands with authored blended
+        // pigment, preserving the original deterministic patch position.
+        if(NaturalBrushArtV1652.patch(c,b,biome,distant))return;
         path.reset();
         c.save();c.rotate(b.rotation,b.x,b.y);
         final int sides=distant?8:14;

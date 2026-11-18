@@ -452,6 +452,7 @@ public final class GameView extends View {
         CampStationSpriteV1651.load(host.getAssets());
         RoadShoulderArtV1651.load(host.getAssets());
         CampSceneArtV1652.load(host.getAssets());
+        NaturalBrushArtV1652.load(host.getAssets());
         if(industrialModeV123||stitchedIndustrialV128)
             industrialArtV123.load(host.getAssets());
     }
@@ -6487,6 +6488,7 @@ public final class GameView extends View {
         CampStationSpriteV1651.release();
         RoadShoulderArtV1651.release();
         CampSceneArtV1652.release();
+        NaturalBrushArtV1652.release();
         lighting.release();
         if(campStatic!=null){campStatic.recycle();campStatic=null;}
         itemIconsV84.release();
