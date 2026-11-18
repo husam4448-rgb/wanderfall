@@ -195,6 +195,27 @@ jobs:
           replace("        rect(c,1535,1195,142,6,0xff9b9f88);",
               "        rect(c,1535,1195,142,6,0xff9b9f88);\n        }")
           replace("        drawSpawnCamp(c);","        if(v166Probe!=6)drawSpawnCamp(c);")
+          # Second pass narrows the surviving band to camp ground, camp art,
+          # the saved camp bitmap, or the night lighting compositing pass.
+          replace("        if(campStatic==null){",
+              "        int probe=android.provider.Settings.Global.getInt(\n"
+              "            host.getContentResolver(),\"sp_v166_qa_layer\",0);\n"
+              "        if(probe==7||probe==8||probe==10){\n"
+              "            drawSpawnCampDetails(c);return;\n"
+              "        }\n        if(campStatic==null){")
+          replace("        CampArtV164.drawGround(c,p,survivorCampsV164[0],false);",
+              "        if(android.provider.Settings.Global.getInt(host.getContentResolver(),\n"
+              "            \"sp_v166_qa_layer\",0)!=7)\n"
+              "            CampArtV164.drawGround(c,p,survivorCampsV164[0],false);")
+          replace("        CampArtV164.drawStructures(c,p,survivorCampsV164[0]);",
+              "        if(android.provider.Settings.Global.getInt(host.getContentResolver(),\n"
+              "            \"sp_v166_qa_layer\",0)!=8)\n"
+              "            CampArtV164.drawStructures(c,p,survivorCampsV164[0]);")
+          replace("        if(lightAlpha>0)applyWorldLighting(c);else drawFixtures(c,true);",
+              "        if(android.provider.Settings.Global.getInt(host.getContentResolver(),\n"
+              "            \"sp_v166_qa_layer\",0)!=9&&lightAlpha>0)\n"
+              "            applyWorldLighting(c);\n"
+              "        else drawFixtures(c,true);")
           p.write_text(s)
           print('QA-only instrumentation: natural, civilization, parks, highways, chunk ground, camp')
           PY
@@ -266,7 +287,7 @@ jobs:
           # Layer isolation: each is an ACTUAL Android game screenshot
           # from the same camera. These debug toggles exist ONLY in this
           # workflow's temporary instrumented build, never production.
-          for mode in 1 2 3 4 5 6; do
+          for mode in 1 2 3 4 5 6 7 8 9 10; do
             adb shell settings put global sp_v166_qa_layer "$mode"
             sleep 2
             adb shell screencap -p "/sdcard/05_isolate_$mode.png"
@@ -326,7 +347,7 @@ jobs:
           from PIL import Image
           import base64,io
           folder=Path('/tmp/sp165/visual')
-          for filename in ('02_world_normal.png','05_isolate_1.png','05_isolate_2.png','05_isolate_3.png','05_isolate_4.png','05_isolate_5.png','05_isolate_6.png'):
+          for filename in ('02_world_normal.png','05_isolate_1.png','05_isolate_2.png','05_isolate_3.png','05_isolate_4.png','05_isolate_5.png','05_isolate_6.png','05_isolate_7.png','05_isolate_8.png','05_isolate_9.png','05_isolate_10.png'):
               path=folder/filename
               if not path.is_file():continue
               img=Image.open(path).convert('RGB')
