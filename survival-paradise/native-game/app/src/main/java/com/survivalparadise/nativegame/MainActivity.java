@@ -1620,6 +1620,323 @@ public final class MainActivity extends Activity {
     private String bagItemStatsV162(int type,int quantity){
         return ItemDetailsV162.describe(game,type,quantity);
     }
+
+    /** V163 single small themed inspector shared by bag, loot, trade and gear. */
+    private int equippedComparatorV163(int type){
+        if(game==null||type<0)return -1;
+        int socket=game.inventorySlotV141(type);
+        if(socket==5)return game.fieldFindsV91.equipped<0?-1:
+            24+game.fieldFindsV91.equipped;
+        if(socket==6)return OutfitInventoryV140.WEAPONS+game.gun;
+        if(socket==0||socket==2||socket==3||socket==4)
+            return game.equippedGearTypeV162(socket);
+        return -1;
+    }
+    private static String deltaV163(String key,float current,float equipped,
+                                    String units){
+        float diff=current-equipped;
+        String sign=diff>0f?"+":"";
+        return key+"  "+String.format(java.util.Locale.US,"%.2f",current)+units+
+            " vs "+String.format(java.util.Locale.US,"%.2f",equipped)+units+
+            "  ("+sign+String.format(java.util.Locale.US,"%.2f",diff)+")";
+    }
+    private String comparisonDetailsV163(int candidate,int worn){
+        if(candidate<0||worn<0)return "Nothing equipped in this slot.";
+        if(candidate==worn)return "This item is already equipped. Select another item in your bag.";
+        int socket=game.inventorySlotV141(candidate);
+        if(socket!=game.inventorySlotV141(worn))
+            return "The items use different equipment slots.";
+        StringBuilder b=new StringBuilder("CURRENT: ")
+            .append(game.inventoryNameV141(worn))
+            .append("\nSELECTED: ").append(game.inventoryNameV141(candidate))
+            .append("\n");
+        if(socket==5){
+            int a=FieldFindsV91.CAPACITY_BONUS[candidate-24];
+            int c=FieldFindsV91.CAPACITY_BONUS[worn-24];
+            float load=game.inventoryLoadV162();
+            return b.append(deltaV163("CAPACITY BONUS",a,c," load")).append('\n')
+                .append(deltaV163("BURDEN",GearStatsV162.encumbrance(load,a),
+                    GearStatsV162.encumbrance(load,c),"%"))
+                .append("\nLower burden is better.").toString();
+        }
+        if(socket==6){
+            int a=OutfitInventoryV140.style(candidate);
+            int c=OutfitInventoryV140.style(worn);
+            b.append(deltaV163("DAMAGE",GameView.POWER[a],
+                GameView.POWER[c],"")).append('\n');
+            b.append(deltaV163("FIRE RATE",
+                GameView.RATES[a]>=900f?0f:1f/GameView.RATES[a],
+                GameView.RATES[c]>=900f?0f:1f/GameView.RATES[c],
+                "/sec")).append('\n');
+            b.append(deltaV163("MAGAZINE",GameView.MAG[a],GameView.MAG[c],
+                " rounds")).append('\n');
+            int aa=AmmoInventoryV143.forGun(a),cc=AmmoInventoryV143.forGun(c);
+            b.append("AMMO: ").append(aa<0?"NONE":AmmoInventoryV143.name(aa))
+                .append(" vs ").append(cc<0?"NONE":AmmoInventoryV143.name(cc));
+            return b.toString();
+        }
+        b.append(deltaV163("ARMOR",GearStatsV162.armor(candidate),
+            GearStatsV162.armor(worn),"%")).append('\n');
+        b.append(deltaV163("AGILITY",GearStatsV162.agility(candidate),
+            GearStatsV162.agility(worn),"%")).append('\n');
+        b.append(deltaV163("HP REGEN",GearStatsV162.healthRegen(candidate),
+            GearStatsV162.healthRegen(worn)," HP/s"));
+        return b.toString();
+    }
+    private int[] alternativesV163(int original,int socket){
+        java.util.ArrayList<Integer> options=new java.util.ArrayList<>();
+        if(game==null)return new int[0];
+        for(int i=0;i<UnifiedBagSlotsV141.MAX_TYPES;i++){
+            if(i==97||i==original||game.inventorySlotV141(i)!=socket||
+               game.availableInventoryV131(i)<=0)continue;
+            options.add(i);
+        }
+        int[] result=new int[options.size()];
+        for(int i=0;i<result.length;i++)result[i]=options.get(i);
+        return result;
+    }
+    private void showCompareChoicesV163(int worn,Runnable refresh){
+        if(worn<0)return;
+        int socket=game.inventorySlotV141(worn);
+        int[] options=alternativesV163(worn,socket);
+        if(options.length==0){
+            Toast.makeText(this,"No alternative equipment in your bag",
+                Toast.LENGTH_SHORT).show();return;
+        }
+        LinearLayout panel=column();
+        panel.setPadding(dp118(8),dp118(8),dp118(8),dp118(8));
+        panel.setBackgroundColor(0xff20322f);
+        TextView heading=text("COMPARE WITH EQUIPPED • "+
+            game.inventoryNameV141(worn),10,true);
+        heading.setTextColor(0xffeddda9);panel.addView(heading);
+        ScrollView scroller=new ScrollView(this);
+        LinearLayout optionsColumn=column();
+        scroller.addView(optionsColumn);
+        panel.addView(scroller,new LinearLayout.LayoutParams(-1,dp118(155)));
+        final AlertDialog dialog=new AlertDialog.Builder(this).setView(panel).create();
+        for(int candidate:options){
+            LinearLayout line=new LinearLayout(this);
+            line.setGravity(Gravity.CENTER_VERTICAL);
+            line.setPadding(dp118(5),dp118(3),dp118(5),dp118(3));
+            line.setBackground(v147TouchSurface(0xff29423b,0xff5b786c,5));
+            android.widget.ImageView icon=new android.widget.ImageView(this);
+            icon.setImageDrawable(lootIconV134(candidate));
+            line.addView(icon,new LinearLayout.LayoutParams(dp118(28),dp118(28)));
+            TextView entry=text(game.inventoryNameV141(candidate),10,true);
+            entry.setTextColor(0xfff0e5c9);
+            entry.setPadding(dp118(5),0,0,0);
+            line.addView(entry,new LinearLayout.LayoutParams(0,-2,1));
+            optionsColumn.addView(line,new LinearLayout.LayoutParams(-1,dp118(34)));
+            line.setOnClickListener(v->{
+                dialog.dismiss();
+                showItemInspectorV163(candidate,1,"BAG / COMPARISON",
+                    "EQUIP",()->{
+                        if(game.equipInventoryItemV131(candidate,socket)){
+                            game.organizeBagV131(0);
+                            if(refresh!=null)refresh.run();
+                        }
+                    },null,null,refresh);
+            });
+        }
+        dialog.show();
+        if(dialog.getWindow()!=null){
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            dialog.getWindow().setLayout(Math.min(dp118(300),
+                Math.round(getResources().getDisplayMetrics().widthPixels*.43f)),-2);
+        }
+    }
+    private void showItemInspectorV163(int type,int qty,String source,
+                                       String primary,Runnable onPrimary,
+                                       String secondary,Runnable onSecondary,
+                                       Runnable refresh){
+        if(game==null||type==97)return;
+        if(type<0&&(type< -4||type> -2))return;
+        LinearLayout panel=column();
+        panel.setPadding(dp118(9),dp118(8),dp118(9),dp118(7));
+        android.graphics.drawable.GradientDrawable shape=
+            new android.graphics.drawable.GradientDrawable();
+        shape.setColor(0xff21332e);shape.setCornerRadius(dp118(8));
+        shape.setStroke(dp118(1),0xff79988a);
+        panel.setBackground(shape);
+        LinearLayout header=new LinearLayout(this);
+        header.setGravity(Gravity.CENTER_VERTICAL);
+        android.widget.ImageView icon=new android.widget.ImageView(this);
+        icon.setImageDrawable(type<0?
+            NutIconsV143.drawable(this,-type-2,30):lootIconV134(type));
+        icon.setScaleType(android.widget.ImageView.ScaleType.FIT_CENTER);
+        header.addView(icon,new LinearLayout.LayoutParams(dp118(36),dp118(36)));
+        LinearLayout headings=column();
+        String title=type<0?NutWalletV143.NAMES[-type-2]:
+            game.inventoryNameV141(type);
+        TextView itemTitle=text(title+" ×"+Math.max(1,qty),12,true);
+        itemTitle.setTextColor(0xfff2e7c7);
+        itemTitle.setMaxLines(2);
+        headings.addView(itemTitle);
+        TextView from=text(source,9,false);
+        from.setTextColor(0xffa8cabc);headings.addView(from);
+        headings.setPadding(dp118(6),0,0,0);
+        header.addView(headings,new LinearLayout.LayoutParams(0,-2,1));
+        panel.addView(header);
+        TextView price=text(type<0?"CURRENCY • 100 iron = 1 silver • 100 silver = 1 gold":
+            "BUY "+NutWalletV143.price(NpcTradeLedgerV143.price(type))+
+            "   •   SELL "+NutWalletV143.price(NpcTradeLedgerV143.resale(type)),9,true);
+        price.setTextColor(0xffffd290);
+        price.setPadding(0,dp118(3),0,dp118(4));
+        panel.addView(price);
+        ScrollView scroller=new ScrollView(this);
+        scroller.setVerticalScrollBarEnabled(true);
+        LinearLayout statsColumn=column();
+        TextView stats=text(type<0?
+            "Currency. Traded directly using your nut wallet.":
+            ItemDetailsV162.describe(game,type,Math.max(1,qty)),9,false);
+        stats.setTextColor(0xffdce8dd);
+        statsColumn.addView(stats);
+        final TextView comparison=text("",9,false);
+        comparison.setTextColor(0xffbfe1cb);
+        comparison.setPadding(dp118(3),dp118(6),0,0);
+        comparison.setVisibility(View.GONE);
+        statsColumn.addView(comparison);
+        scroller.addView(statsColumn);
+        panel.addView(scroller,new LinearLayout.LayoutParams(-1,dp118(116)));
+        LinearLayout actions=new LinearLayout(this);
+        actions.setOrientation(LinearLayout.HORIZONTAL);
+        panel.addView(actions);
+        AlertDialog dialog=new AlertDialog.Builder(this).setView(panel).create();
+        int equipped=type<0?-1:equippedComparatorV163(type);
+        if(type>=0&&game.inventorySlotV141(type)>=0){
+            Button compare=v147TouchButton("COMPARE",false);
+            compare.setTextSize(9f);
+            actions.addView(compare,new LinearLayout.LayoutParams(0,dp118(29),1f));
+            compare.setOnClickListener(v->{
+                if(equipped==type){
+                    dialog.dismiss();
+                    showCompareChoicesV163(type,refresh);
+                }else if(equipped<0){
+                    comparison.setText("Nothing equipped in this category.");
+                    comparison.setVisibility(View.VISIBLE);
+                    scroller.post(()->scroller.fullScroll(View.FOCUS_DOWN));
+                }else{
+                    comparison.setText(comparisonDetailsV163(type,equipped));
+                    comparison.setVisibility(View.VISIBLE);
+                    scroller.post(()->scroller.fullScroll(View.FOCUS_DOWN));
+                }
+            });
+        }
+        if(primary!=null&&onPrimary!=null){
+            Button button=v147TouchButton(primary,true);button.setTextSize(9f);
+            actions.addView(button,new LinearLayout.LayoutParams(0,dp118(29),1f));
+            button.setOnClickListener(v->{
+                dialog.dismiss();onPrimary.run();
+                if(refresh!=null)refresh.run();
+            });
+        }
+        if(secondary!=null&&onSecondary!=null){
+            Button button=v147TouchButton(secondary,false);button.setTextSize(9f);
+            actions.addView(button,new LinearLayout.LayoutParams(0,dp118(29),1f));
+            button.setOnClickListener(v->{dialog.dismiss();onSecondary.run();});
+        }
+        Button done=v147TouchButton("CLOSE",false);done.setTextSize(9f);
+        actions.addView(done,new LinearLayout.LayoutParams(0,dp118(29),1f));
+        done.setOnClickListener(v->dialog.dismiss());
+        dialog.show();
+        if(dialog.getWindow()!=null){
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            int screen=getResources().getDisplayMetrics().widthPixels;
+            dialog.getWindow().setLayout(Math.min(dp118(306),
+                Math.round(screen*.43f)),-2);
+        }
+    }
+    private void showSocketInspectorV163(int socket,Runnable refresh){
+        if(socket==1){
+            Toast.makeText(this,"Face equipment visuals are disabled",
+                Toast.LENGTH_SHORT).show();return;
+        }
+        if(socket==7){
+            showItemInspectorV163(OutfitInventoryV140.WEAPONS+3,1,"OFF-HAND",
+                "TOGGLE LAMP",()->{
+                    boolean enabled=!(game.lampOn&&game.dualTorch);
+                    prefs.edit().putBoolean("dualTorch",enabled)
+                        .putBoolean("lampOn",enabled).apply();
+                    game.reloadSettings();game.saveProgress();
+                },null,null,refresh);
+            return;
+        }
+        int worn=socket==5?
+            (game.fieldFindsV91.equipped>=0?24+game.fieldFindsV91.equipped:-1):
+            socket==6?OutfitInventoryV140.WEAPONS+game.gun:
+            game.equippedGearTypeV162(socket);
+        if(worn<0){
+            // An empty equipment socket still offers available items to compare.
+            java.util.ArrayList<Integer> candidates=new java.util.ArrayList<>();
+            for(int i=0;i<UnifiedBagSlotsV141.MAX_TYPES;i++)
+                if(game.inventorySlotV141(i)==socket&&
+                    game.availableInventoryV131(i)>0)candidates.add(i);
+            if(candidates.isEmpty()){
+                Toast.makeText(this,"No equipment available for this slot",
+                    Toast.LENGTH_SHORT).show();return;
+            }
+            showEquipmentChoicesV163(socket,refresh);
+            return;
+        }
+        final int equippedType=worn;
+        showItemInspectorV163(worn,1,"EQUIPPED • SLOT "+socket,
+            socket==6?"CHANGE":"UNEQUIP",
+            ()->{
+                if(socket==6)showEquipmentChoicesV163(socket,refresh);
+                else if(game.unequipInventorySlotV131(socket)){
+                    game.organizeBagV131(0);
+                    if(refresh!=null)refresh.run();
+                }
+            },"CHOOSE",()->showEquipmentChoicesV163(socket,refresh),refresh);
+    }
+    private void showEquipmentChoicesV163(int slot,Runnable refresh){
+        java.util.ArrayList<Integer> choices=new java.util.ArrayList<>();
+        for(int i=0;i<UnifiedBagSlotsV141.MAX_TYPES;i++)
+            if(game.inventorySlotV141(i)==slot&&game.availableInventoryV131(i)>0)
+                choices.add(i);
+        if(choices.isEmpty()){
+            Toast.makeText(this,"No alternatives in your bag",Toast.LENGTH_SHORT).show();
+            return;
+        }
+        LinearLayout body=column();
+        body.setPadding(dp118(8),dp118(6),dp118(8),dp118(6));
+        body.setBackgroundColor(0xff253a35);
+        body.addView(text("SELECT EQUIPMENT • TAP TO INSPECT",10,true));
+        ScrollView scroll=new ScrollView(this);
+        LinearLayout content=column();scroll.addView(content);
+        body.addView(scroll,new LinearLayout.LayoutParams(-1,dp118(150)));
+        AlertDialog pick=new AlertDialog.Builder(this).setView(body).create();
+        for(int type:choices){
+            LinearLayout line=new LinearLayout(this);
+            line.setGravity(Gravity.CENTER_VERTICAL);
+            line.setBackground(v147TouchSurface(0xff2c4841,0xff5c776d,4));
+            android.widget.ImageView icon=new android.widget.ImageView(this);
+            icon.setImageDrawable(lootIconV134(type));
+            line.addView(icon,new LinearLayout.LayoutParams(dp118(31),dp118(31)));
+            TextView name=text(game.inventoryNameV141(type)+"  ×"+
+                game.availableInventoryV131(type),10,true);
+            name.setTextColor(0xfff2e7cb);
+            name.setPadding(dp118(4),0,0,0);
+            line.addView(name,new LinearLayout.LayoutParams(0,-2,1));
+            content.addView(line,new LinearLayout.LayoutParams(-1,dp118(34)));
+            line.setOnClickListener(v->{
+                pick.dismiss();
+                showItemInspectorV163(type,1,"AVAILABLE • BAG",
+                    "EQUIP",()->{
+                        if(game.equipInventoryItemV131(type,slot)){
+                            game.organizeBagV131(0);
+                            if(refresh!=null)refresh.run();
+                        }
+                    },null,null,refresh);
+            });
+        }
+        pick.show();
+        if(pick.getWindow()!=null){
+            pick.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            pick.getWindow().setLayout(Math.min(dp118(296),
+                Math.round(getResources().getDisplayMetrics().widthPixels*.43f)),-2);
+        }
+    }
     void bagItemMenuV130(int position,Runnable refresh,V62InventoryPreview avatar,
                           AlertDialog[] bagDialog,Runnable refreshEquipment){
         if(game==null||position<0||position>=40)return;
