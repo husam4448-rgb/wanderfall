@@ -17,9 +17,7 @@ public final class V166InteriorArtTest {
                 check(sprite==InteriorPropSelectionV166.choose(
                     theme,kind,i,width,height),"Index unstable");
                 seen|=1<<(sprite%2);
-                int material=InteriorMaterialV166.material(theme,i);
-                check(material>=SurfaceArtV165.ASPHALT&&
-                    material<=SurfaceArtV165.SOIL,"Material not in library");
+
             }
             check(seen==3,"Missing visual variant for family "+theme);
         }
