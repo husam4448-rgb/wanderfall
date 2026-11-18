@@ -11,6 +11,7 @@ public final class NeighborhoodInteriorV161 extends ExpeditionInteriorV91 {
     public final int theme,variation,seed;
     private final float[][] furniture;
     private final String[] rooms;
+    public final NeighborhoodLayoutV163 layoutV163;
 
     public static int siteId(NeighborhoodV154.Building b,int seed){
         int h=IndustrialWorldV123.hash(b.tileX*47+b.slot*7,
@@ -59,34 +60,10 @@ public final class NeighborhoodInteriorV161 extends ExpeditionInteriorV91 {
         super(site(b));
         building=b;theme=b.kind;variation=b.variation;seed=worldSeed;
         rooms=names(theme,variation);
-        float[][] source=super.sceneFurniture();
-        furniture=new float[source.length][];
-        int global=IndustrialWorldV123.hash(b.tileX*19+b.slot,b.tileY*23,worldSeed);
-        for(int i=0;i<source.length;i++){
-            furniture[i]=source[i].clone();
-            if(i>=source.length-2)continue; // preserve unobstructed main corridor
-            int h=IndustrialWorldV123.hash(i*31+b.slot,b.tileX*7+b.tileY,global);
-            // Controlled offsets preserve the inherited room doors and walls.
-            furniture[i][1]+=(Math.floorMod(h,5)-2)*7f;
-            furniture[i][2]+=(Math.floorMod(h>>>6,5)-2)*5f;
-            // A factory has machinery, a hotel beds, school desks, and so on.
-            int[] styles=theme==NeighborhoodV154.HOTEL?
-                new int[]{0,0,5,0,1,0}:
-                theme==NeighborhoodV154.FACTORY?
-                new int[]{4,4,3,4,5,4}:
-                theme==NeighborhoodV154.WAREHOUSE?
-                new int[]{5,5,3,5,1,5}:
-                theme==NeighborhoodV154.SCHOOL?
-                new int[]{2,2,1,2,5,3}:
-                theme==NeighborhoodV154.MARKET?
-                new int[]{1,5,1,3,5,1}:
-                theme==NeighborhoodV154.OFFICES?
-                new int[]{2,2,1,2,4,5}:
-                theme==NeighborhoodV154.RESIDENCES||theme==NeighborhoodV154.APARTMENTS?
-                new int[]{0,1,3,0,2,5}:
-                new int[]{2,1,3,0,1,5};
-            furniture[i][0]=styles[Math.floorMod(i+variation/3+Math.floorMod(h,3),styles.length)];
-        }
+        layoutV163=new NeighborhoodLayoutV163(b,worldSeed);
+        // V163: actual floor plan, partition walls and prop locations change
+        // deterministically per building. No V89/V161 six-room grid reuse.
+        furniture=layoutV163.furniture;
         // Site-specific loot exists in actual reachable cabinets and containers.
         for(int i=0;i<storages.length;i++){
             Storage old=storages[i];
@@ -104,7 +81,7 @@ public final class NeighborhoodInteriorV161 extends ExpeditionInteriorV91 {
             items[5]=i%3==0?1:0;
             items[6]=i%5==0?2:0;
             items[7]=i%4==0?1:0;
-            storages[i]=new Storage(old.x,old.y,
+            storages[i]=new Storage(layoutV163.caches[i][0],layoutV163.caches[i][1],
                     (theme==NeighborhoodV154.WAREHOUSE?"PALLET CRATE":
                      theme==NeighborhoodV154.MARKET?"STORE SHELF":
                      theme==NeighborhoodV154.SCHOOL?"SCHOOL CABINET":
@@ -114,17 +91,13 @@ public final class NeighborhoodInteriorV161 extends ExpeditionInteriorV91 {
                     items);
         }
     }
+    @Override public float[][] sceneWalls(){return layoutV163.walls;}
+    public float[][] sceneDoorPositionsV163(){return layoutV163.doors;}
+    public float[][] sceneLabelPositionsV163(){return layoutV163.labels;}
+    public boolean doorVerticalV163(int room){return layoutV163.doorVertical(room);}
     @Override public String[] roomNames(){return rooms;}
     @Override public float[][] sceneFurniture(){return furniture;}
     @Override public boolean blocked(float x,float y,float r){
-        if(x-r<23*EXPANSION_V90||x+r>1577*EXPANSION_V90||
-           y-r<23*EXPANSION_V90||y+r>1095*EXPANSION_V90)return true;
-        for(float[] q:sceneWalls())
-            if(x+r>q[0]&&x-r<q[0]+q[2]&&y+r>q[1]&&y-r<q[1]+q[3])
-                return true;
-        for(float[] q:furniture)
-            if(x+r>q[1]+4&&x-r<q[1]+q[3]-4&&
-               y+r>q[2]+4&&y-r<q[2]+q[4]-4)return true;
-        return false;
+        return layoutV163.blocked(x,y,r);
     }
 }
