@@ -76,6 +76,7 @@ public final class V164SettlementCampTest {
                 selected.chestY(),120f)==selected,"Chest cannot be searched");
         }
         yes(rural>=8,"Too few wilderness survivor camps: "+rural);
+        yes(rural>=urban*3,"Urban camps outnumber the countryside preference: rural="+rural+" urban="+urban);
         yes(occupiedVacantParks>=12,"Not enough green city lots");
         NpcTradeLedgerV143 traderLedger=new NpcTradeLedgerV143();
         NpcTradeLedgerV143.Npc trader=traderLedger.get("camp164:site14901_0:0",0);
