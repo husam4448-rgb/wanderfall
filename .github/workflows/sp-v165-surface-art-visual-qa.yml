@@ -149,19 +149,27 @@ jobs:
           sleep 3
           adb shell screencap -p /sdcard/v165_world.png
           adb pull /sdcard/v165_world.png /tmp/sp165/visual/02_world_normal.png
-          adb shell input tap 1840 170
-          adb shell input tap 1840 170
+          # Walk south toward the fixed starting highway to test actual
+          # in-game road dressing; navigation/gameplay are unchanged.
+          adb shell input swipe 268 820 268 995 3600 || true
+          sleep 2
+          adb shell screencap -p /sdcard/v165_road.png
+          adb pull /sdcard/v165_road.png /tmp/sp165/visual/03_road_approach.png
+          # At 1920x1080 the real ZOOM - control is centered near x1680;
+          # the old x1840 tap was ZOOM + and therefore NOT zoomed out.
+          adb shell input tap 1685 170
+          adb shell input tap 1685 170
           sleep 3
           adb shell screencap -p /sdcard/v165_far.png
-          adb pull /sdcard/v165_far.png /tmp/sp165/visual/03_world_zoomed_out.png
+          adb pull /sdcard/v165_far.png /tmp/sp165/visual/04_world_zoomed_out.png
           adb logcat -d > /tmp/sp165/visual/logcat.txt
           adb shell pidof "$PKG"
           if grep -E 'FATAL EXCEPTION|Process: com.survivalparadise.nativegame.v164camptest' /tmp/sp165/visual/logcat.txt; then exit 1;fi
           test -s /tmp/sp165/visual/02_world_normal.png
-          test -s /tmp/sp165/visual/03_world_zoomed_out.png
+          test -s /tmp/sp165/visual/04_world_zoomed_out.png
           python3 - <<'PY'
           from PIL import Image
-          for name in ('02_world_normal.png','03_world_zoomed_out.png'):
+          for name in ('02_world_normal.png','04_world_zoomed_out.png'):
               im=Image.open('/tmp/sp165/visual/'+name).convert('RGB')
               r,g,b=im.getpixel((im.width//2,130))
               assert not (b>175 and r<100 and g>65 and g<190), (name,'fullscreen help overlay still visible',(r,g,b))
