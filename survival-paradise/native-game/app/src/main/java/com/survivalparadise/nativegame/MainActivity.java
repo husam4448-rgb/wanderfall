@@ -1149,6 +1149,17 @@ public final class MainActivity extends Activity {
             kind->game.lootBanditStackV87(bag,kind),
             ()->game.lootAllBanditV87(bag),true);
     }
+    /** V164 camp chest uses the same safe touch grid and per-item inspector as
+     * corpses and indoor storage; stock is physically persistent per camp. */
+    void lootCampChestV164(CampWorldV164.Site site){
+        if(game==null||site==null||site!=game.nearbyCampCacheV164()||
+           !game.isPlaying())return;
+        compactLootDialogV134("SURVIVOR CAMP • STORAGE CHEST",
+            "CAMP SUPPLIES • BACKPACKS",CampCacheV164.COUNT,
+            kind->game.campCachesV164.count(site,kind),
+            kind->game.lootCampCacheV164(site,kind),
+            ()->game.lootCampCacheAllV164(site),false);
+    }
     void lootClinicStorageV89(ClinicInteriorV89.Storage box){
         if(game==null||box==null||!game.insideClinicV89||
            !game.clinicInteriorV89.contains(box)||!game.isPlaying()||
