@@ -48,45 +48,10 @@ public final class CampArtV164 {
     public static void drawGround(Canvas c,Paint p,CampWorldV164.Site s,
                                   boolean reduced){
         float x=s.x,y=s.y;
-        // Meadow/clearing is porous and organic; even a city camp is placed
-        // on the green of an abandoned OPEN lot, not the rooftop of a house.
-        oval(c,p,x-470,y-295,x+470,y+317,0x77718b63);
-        oval(c,p,x-435,y-260,x+430,y+283,0x665d7452);
-        oval(c,p,x-310,y-260,x+370,y+289,0x53686652);
-        // V165 pigment art does not seal tent doorways or alter movement.
-        Path clearing=new Path();
-        clearing.addOval(x-390,y-258,x+395,y+275,Path.Direction.CW);
-        SurfaceArtV165.path(c,clearing,SurfaceArtV165.SOIL,300f,81);
-        // Cut-stone walking trail, wood chips, and scuffed foot tracks.
-        poly(c,p,0x90715f4c,x-78,y+294,x-95,y+155,x-120,y+50,
-            x-130,y-90,x-75,y-102,x+9,y+57,x+18,y+200,x+28,y+308);
-        poly(c,p,0x8875684f,x-70,y+290,x-75,y+162,x-104,y+56,
-            x-106,y-71,x-86,y-74,x-2,y+63,x+1,y+215,x+8,y+303);
-        int details=reduced?30:86;
-        for(int i=0;i<details;i++){
-            int h=hash(s,i+7);
-            float xx=x-450+Math.floorMod(h,900);
-            float yy=y-280+Math.floorMod(h>>>10,560);
-            if(Math.abs(xx-x)<60&&Math.abs(yy-y)<115)continue;
-            if((h&3)==0){
-                line(c,p,xx,yy,xx-5,yy-12,2f,0xff506c47);
-                line(c,p,xx+1,yy,xx+6,yy-9,2f,0xff81965b);
-                line(c,p,xx+2,yy-3,xx+2,yy-12,1.5f,0xffb2a76c);
-            }else if((h&3)==1){
-                oval(c,p,xx-5,yy-3,xx+9,yy+4,0x80685e4d);
-                rect(c,p,xx-1,yy-3,7,3,0xff99947a);
-            }else if((h&3)==2){
-                line(c,p,xx-7,yy+2,xx+6,yy-2,2.5f,0x78644533);
-            }else rect(c,p,xx,yy,3,2,0xff8b9b67);
-        }
-        // Ground contact details are permanently visible through tents.
-        for(int a:new int[]{-210,200}){
-            oval(c,p,x+a-130,y-255,x+a+130,y-58,0x66504438);
-            rect(c,p,x+a-100,y-204,200,115,0xff6b5f49);
-            for(int j=0;j<5;j++)
-                line(c,p,x+a-95,y-196+j*26,x+a+93,y-196+j*26,
-                    2,0xff8d7652);
-        }
+        // Organic transparent, textured and trampled soil. The original
+        // biome remains visible at the edges; no giant semi-opaque ovals,
+        // no straight paths or rectangular tent-floor decals.
+        CampSceneArtV1652.ground(c,s);
         // Fire ring is drawn underneath a depth-sorted, actual live campfire.
         float fx=s.fireX(),fy=s.fireY();
         oval(c,p,fx-72,fy-49,fx+72,fy+62,0x99504433);
@@ -149,6 +114,7 @@ public final class CampArtV164 {
         }
     }
     private static void storage(Canvas c,Paint p,float x,float y){
+        if(CampSceneArtV1652.chest(c,x,y))return;
         // Tapered, shaded reinforced supply chest with actual lock and straps.
         oval(c,p,x-69,y-38,x+74,y+43,0x5b132223);
         rect(c,p,x-69,y-54,138,103,0xff1b2b2a);
@@ -220,6 +186,7 @@ public final class CampArtV164 {
         label(c,p,"MEDIC",x-38,y+84,0xffe2e7bf);
     }
     private static void watchPost(Canvas c,Paint p,float x,float y){
+        if(CampSceneArtV1652.guard(c,x,y))return;
         // A guard post with a two-sided sandbag breastwork and a weapon rack.
         oval(c,p,x-95,y-39,x+94,y+76,0x65202c24);
         for(int row=0;row<2;row++)for(int i=0;i<5;i++){
@@ -238,34 +205,12 @@ public final class CampArtV164 {
         label(c,p,"WATCH",x-41,y+97,0xfff0d39a);
     }
     private static void clutter(Canvas c,Paint p,float x,float y,int variant){
-        // Nonblocking atmospheric props around the meadow perimeter.
-        for(int i=0;i<4;i++){
-            float bx=x-410+i*240f,by=y+234+(i%2)*18;
-            rect(c,p,bx-13,by-4,62,24,0xff1e2c2a);
-            rect(c,p,bx-9,by-12,54,29,0xff836247);
-            rect(c,p,bx-6,by-8,49,7,0xffc09b61);
-            for(int j=0;j<4;j++)
-                line(c,p,bx+j*13-4,by+1,bx+j*13-4,by+16,2,0xff523f31);
-        }
-        // Water drums and solar charging board.
-        for(int i=0;i<3;i++){
-            float ax=x+286+i*31,ay=y-235+(i%2)*6;
-            rect(c,p,ax-13,ay-13,26,47,0xff1d3436);
-            rect(c,p,ax-10,ay-11,20,42,0xff58777a);
-            rect(c,p,ax-10,ay-10,20,6,0xffa3b5a2);
-            rect(c,p,ax-10,ay+19,20,5,0xff91a9a9);
-            oval(c,p,ax-9,ay-15,ax+9,ay-7,0xffc0bb9c);
-        }
-        rect(c,p,x-420,y-260,132,74,0xff1c3235);
-        rect(c,p,x-414,y-254,120,62,0xff537c83);
-        for(int k=1;k<5;k++)line(c,p,x-414+k*24,y-253,
-            x-414+k*24,y-192,2,0xffd5d9bb);
-        for(int k=1;k<3;k++)line(c,p,x-413,y-254+k*21,
-            x-294,y-254+k*21,2,0xffd5d9bb);
-        if((variant&1)==0){
-            for(int j=0;j<6;j++)
-                rect(c,p,x-420+j*16,y-104,8,24,0xff715638);
-        }
+        // Intentionally composed non-interactive salvage clusters.
+        // These two weathered groups replace the old four identical
+        // grid-aligned boxes, schematic barrels and flat solar grid.
+        CampSceneArtV1652.debris(c,x-414f,y+68f,false);
+        CampSceneArtV1652.debris(c,x+402f,y-26f,true);
+        CampSceneArtV1652.solar(c,x-403f,y+228f);
     }
 
     /** Visible camp structures have foreground lips ordered by world Y.
@@ -276,7 +221,8 @@ public final class CampArtV164 {
         if(kind<2)return s.y+(s.starter?-185f:-153f)+100f;
         if(kind==2)return s.y+(s.starter?34f:125f)+53f;
         if(kind==3)return s.y+(s.starter?-105f:119f)+70f;
-        return s.y+(s.starter?5f:273f)+91f;
+        if(kind==4)return s.y+(s.starter?5f:273f)+47f;
+        return s.chestY()+32f;
     }
     public static void foreground(Canvas c,Paint p,CampWorldV164.Site s,int kind){
         float x=s.x,y=s.y;
@@ -323,8 +269,13 @@ public final class CampArtV164 {
             rect(c,p,cx+33,cy+14,18,8,0xffb74b46);
             return;
         }
+        if(kind==5){
+            CampSceneArtV1652.chestFront(c,s.chestX(),s.chestY());
+            return;
+        }
         cx=x+(s.starter?222f:55f);
         cy=y+(s.starter?5f:273f);
+        if(CampSceneArtV1652.guardFront(c,cx,cy))return;
         for(int row=0;row<2;row++)for(int i=0;i<5;i++){
             float xx=cx-94+i*39+(row&1)*11;
             rect(c,p,xx,cy+42+row*22,35,21,0xff263632);
@@ -349,15 +300,11 @@ public final class CampArtV164 {
             medicPost(c,p,x-38,y-105);
             watchPost(c,p,x+222,y+5);
             storage(c,p,s.chestX(),s.chestY());
-            // Solar panels and supplies occupy unused shaded corners.
-            rect(c,p,x-420,y+99,107,69,0xff172c2d);
-            rect(c,p,x-415,y+104,97,59,0xff5e8791);
-            for(int i=1;i<4;i++)
-                line(c,p,x-415+i*24,y+105,x-415+i*24,y+162,
-                    2,0xffc3d6d5);
-            for(int i=1;i<3;i++)
-                line(c,p,x-414,y+104+i*20,x-318,y+104+i*20,
-                    2,0xffc3d6d5);
+            // Smaller, correctly-scaled authored foldable solar charger and
+            // two contextual salvage piles, clear of tents and trader access.
+            CampSceneArtV1652.solar(c,x-397f,y+132f);
+            CampSceneArtV1652.debris(c,x-399f,y-5f,false);
+            CampSceneArtV1652.debris(c,x+405f,y-16f,false);
             c.restore();
         }else{
             canvasTent(c,p,x-205,y-153,s.variation,true);

@@ -451,6 +451,7 @@ public final class GameView extends View {
         CampSpriteArtV1651.load(host.getAssets());
         CampStationSpriteV1651.load(host.getAssets());
         RoadShoulderArtV1651.load(host.getAssets());
+        CampSceneArtV1652.load(host.getAssets());
         if(industrialModeV123||stitchedIndustrialV128)
             industrialArtV123.load(host.getAssets());
     }
@@ -3121,8 +3122,8 @@ public final class GameView extends View {
         // supply chest is solid, matching the painted box footprint.
         for(CampWorldV164.Site site:survivorCampsV164){
             if(industrialModeV123)break;
-            if(Math.abs(x-site.chestX())<62f+r&&
-               Math.abs(y-site.chestY())<54f+r)return true;
+            if(Math.abs(x-site.chestX())<47f+r&&
+               Math.abs(y-site.chestY())<35f+r)return true;
         }
         if(civilizationV159!=null){
             if(civilizationV159.blocked(x,y,r))return true;
@@ -5615,7 +5616,7 @@ public final class GameView extends View {
             for(CampWorldV164.Site site:survivorCampsV164){
                 if(!CampWorldV164.visible(site,camX,camY,viewW,viewH))
                     continue;
-                for(int part=0;part<5;part++){
+                for(int part=0;part<6;part++){
                     final int what=part;
                     order.add(new DrawEntity(CampArtV164.foregroundY(site,what),
                         ()->CampArtV164.foreground(c,p,site,what)));
@@ -6485,6 +6486,7 @@ public final class GameView extends View {
         CampSpriteArtV1651.release();
         CampStationSpriteV1651.release();
         RoadShoulderArtV1651.release();
+        CampSceneArtV1652.release();
         lighting.release();
         if(campStatic!=null){campStatic.recycle();campStatic=null;}
         itemIconsV84.release();

@@ -30,7 +30,7 @@ public final class CampWorldV164 {
             return x+dx[Math.max(0,Math.min(role,ROLES-1))];
         }
         public float npcY(int role){
-            float[] dy={214,222,280,183,-38};
+            float[] dy={214,222,190,183,-38};
             return y+dy[Math.max(0,Math.min(role,ROLES-1))];
         }
         public float chestX(){return x+(starter?335f:342f);}
