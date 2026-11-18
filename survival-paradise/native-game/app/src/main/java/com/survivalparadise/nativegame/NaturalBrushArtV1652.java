@@ -48,13 +48,16 @@ public final class NaturalBrushArtV1652 {
             int[] pixels=new int[w*h];
             atlas.getPixels(pixels,0,w,0,0,w,h);
             for(int y=0;y<h;y++){
-                int dy=Math.min(y,h-1-y);
+
                 for(int x=0;x<w;x++){
                     int lx=x%256;
-                    int dx=Math.min(lx,255-lx);
-                    float edge=Math.min(dx,dy)/38f;
-                    if(edge>=1f)continue;
-                    edge=Math.max(0f,edge);
+
+                    // Radial feather eliminates the rotated square's long,
+                    // straight diagonal edges (the 38px strip was insufficient).
+                    float ux=(lx-127.5f)/127.5f;
+                    float uy=(y-127.5f)/127.5f;
+                    float radius=(float)Math.sqrt(ux*ux+uy*uy);
+                    float edge=Math.max(0f,Math.min(1f,(1.03f-radius)/.43f));
                     float feather=edge*edge*(3f-2f*edge);
                     int i=y*w+x;
                     int a=(pixels[i]>>>24);
@@ -97,6 +100,22 @@ public final class NaturalBrushArtV1652 {
         P.setAlpha(255);
         return true;
     }
+
+    /** Paint author-sourced transparent ground in a physical world footprint. */
+    public static boolean stamp(Canvas c,int kind,float x,float y,
+                                float width,float height,int variation,int alpha){
+        if(!ready()||kind<0||kind>2||width<=0||height<=0)return false;
+        SRC.set(kind*256,0,(kind+1)*256,256);
+        DST.set(x-width*.5f,y-height*.5f,x+width*.5f,y+height*.5f);
+        P.setAlpha(Math.max(0,Math.min(255,alpha)));
+        c.save();
+        c.rotate(Math.floorMod(variation,150)-75f,x,y);
+        c.drawBitmap(atlas,SRC,DST,P);
+        c.restore();
+        P.setAlpha(255);
+        return true;
+    }
+
     public static synchronized void release(){
         if(atlas!=null&&!atlas.isRecycled())atlas.recycle();
         atlas=null;attempted=false;

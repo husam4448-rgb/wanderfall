@@ -30,7 +30,8 @@ NEEDED = [
     "body.png", "gear.png", "approved_v44_walk_palette.png",
     "stable_v51_body.png", "npc_roles_v51.png", "npc_idle_v52.png",
     "npc_walk_v56.png", "npc_idle_v56.png", "world_props_v74.png",
-    "approved_v29_axe.png", "sp_v109_characters.zip"
+    "approved_v29_axe.png", "sp_v109_characters.zip",
+    "world_props_v166.png", "world_props_v166_manifest.json"
 ]
 
 
@@ -68,7 +69,8 @@ def main() -> None:
     for script in ("build_v51_assets.py", "build_v52_idle.py",
                    "fix_v53_skin_palette.py",
                    "build_v56_approved_character_atlases.py",
-                   "build_v74_biome_assets.py"):
+                   "build_v74_biome_assets.py",
+                   "build_v166_world_atlas.py"):
         subprocess.run([sys.executable, str(TOOLS / script)], cwd=ROOT, check=True)
 
     for name in NEEDED:

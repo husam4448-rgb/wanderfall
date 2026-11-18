@@ -453,6 +453,7 @@ public final class GameView extends View {
         RoadShoulderArtV1651.load(host.getAssets());
         CampSceneArtV1652.load(host.getAssets());
         NaturalBrushArtV1652.load(host.getAssets());
+        WorldArtV166.load(host.getAssets());
         if(industrialModeV123||stitchedIndustrialV128)
             industrialArtV123.load(host.getAssets());
     }
@@ -4271,6 +4272,12 @@ public final class GameView extends View {
             if(x<camX-55||x>camX+viewW+55||y<camY-55||y>camY+viewH+55||
                WorldBuildingV157.sceneryRectBlocked(
                    x-40f,y-185f,x+53f,y+56f,industrialSeedV123,civilizationV159))continue;
+            // V166 uses original authored sprite art for old rectangular shrubs.
+            if(WorldArtV166.draw(c,(i%7)==0?
+                    WorldArtSelectionV166.SPARSE:WorldArtSelectionV166.BUSH,
+                    x,y,(i%7)==0?85f:41f,(i%7)==0?108f:35f,
+                    geographyV160==null?industrialSeedV123:geographyV160.seed,i))
+                continue;
             if((i%7)==0){
                 c.save();
                 c.translate(x,y+43f);
@@ -4525,6 +4532,14 @@ public final class GameView extends View {
                         (kind==ResourceWorldV80.BUSH?4f:2.6f),0f);
                 }
                 if(kind==ResourceWorldV80.BUSH){
+                    // V166 authored foliage crowns retain original V80 fiber hitboxes.
+                    if(WorldArtV166.draw(c,WorldArtSelectionV166.BUSH,x,y,
+                        54f,42f,geographyV160==null?industrialSeedV123:
+                        geographyV160.seed,h)){
+                        if(shake)c.restore();
+                        continue;
+                    }
+                    // Legacy safe fallback if the production atlas is absent.
                     // Low stepped pixel bush; distinct fiber gathering target.
                     int leaf=BiomeWorldV74.detail(geographyV160==null?
                         BiomeWorldV74.biome(x,y):geographyV160.biomeAt(x,y),h);
@@ -4536,6 +4551,11 @@ public final class GameView extends View {
                     continue;
                 }
                 float extent=kind==4?72f:kind==5?84f:kind==3?162f:186f;
+                if(WorldArtV166.draw(c,kind,x,y,extent,extent,
+                    geographyV160==null?industrialSeedV123:geographyV160.seed,h)){
+                    if(shake)c.restore();
+                    continue;
+                }
                 if(biomeProps!=null){
                     int size=BiomeWorldV74.CELL;
                     src.set(kind*size,0,(kind+1)*size,size);
@@ -6489,6 +6509,7 @@ public final class GameView extends View {
         RoadShoulderArtV1651.release();
         CampSceneArtV1652.release();
         NaturalBrushArtV1652.release();
+        WorldArtV166.release();
         lighting.release();
         if(campStatic!=null){campStatic.recycle();campStatic=null;}
         itemIconsV84.release();
