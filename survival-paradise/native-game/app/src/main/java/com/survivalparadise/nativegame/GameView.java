@@ -2705,11 +2705,14 @@ public final class GameView extends View {
         if(clinicInteriorV89 instanceof NeighborhoodInteriorV161)
             NeighborhoodInteriorArtV161.floor(c,p,
                 (NeighborhoodInteriorV161)clinicInteriorV89);
-        // Checker-style grouting with no dynamic bitmaps, loops <160 lines.
-        for(int x=44;x<1575;x+=72)
-            rect(c,x,43,2,1028,0x32404c46);
-        for(int y=45;y<1080;y+=72)
-            rect(c,24,y,1551,2,0x37455851);
+        // V163 rooms have their own flooring, seams, wear and zone layouts.
+        // Keep the hospital's old universal checker grid only for legacy POIs.
+        if(!(clinicInteriorV89 instanceof NeighborhoodInteriorV161)){
+            for(int x=44;x<1575;x+=72)
+                rect(c,x,43,2,1028,0x32404c46);
+            for(int y=45;y<1080;y+=72)
+                rect(c,24,y,1551,2,0x37455851);
+        }
         float inv=1f/ClinicInteriorV89.EXPANSION_V90;
         drawIndoorFloorIlluminationV93(c);
         for(float[] wall:nonClinicV91?
@@ -4952,6 +4955,31 @@ public final class GameView extends View {
     /** Each luminaire illuminates the FLOOR, not the characters or equipment.
       * Clip by individual rooms so falloff cannot shine through interior walls. */
     void drawIndoorFloorIlluminationV93(Canvas c){
+        if(clinicInteriorV89 instanceof NeighborhoodInteriorV161){
+            NeighborhoodInteriorV161 unique=(NeighborhoodInteriorV161)clinicInteriorV89;
+            float scale=ClinicInteriorV89.EXPANSION_V90;
+            boolean electric=unique.theme==NeighborhoodV154.FACTORY||
+                unique.theme==NeighborhoodV154.SCHOOL||
+                unique.theme==NeighborhoodV154.OFFICES||
+                unique.theme==NeighborhoodV154.WAREHOUSE;
+            int tint=electric?0x245f9fa3:0x2c986c43;
+            for(float[] zone:unique.layoutV163.rooms){
+                float x0=zone[0]/scale,y0=zone[1]/scale;
+                float w=zone[2]/scale,h=zone[3]/scale;
+                float x=x0+w*.5f,y=y0+h*.5f;
+                if(!WorldPerfV55.nearView(x*scale,y*scale,
+                    camX,camY,viewW,viewH,450f))continue;
+                float range=Math.min(285f,Math.max(150f,Math.min(w,h)*.62f));
+                c.save();c.clipRect(x0+3,y0+3,x0+w-3,y0+h-3);
+                p.setColor(0xffffffff);
+                p.setShader(new android.graphics.RadialGradient(x,y,range,
+                    new int[]{tint,0x136e817a,0x00000000},
+                    new float[]{0f,.5f,1f},android.graphics.Shader.TileMode.CLAMP));
+                c.drawCircle(x,y,range,p);
+                p.setShader(null);c.restore();
+            }
+            return;
+        }
         final int[][] lamps={{260,225},{790,225},{1310,225},
             {260,845},{790,845},{1310,845},{800,562}};
         boolean electric=activeSiteV91==1||(activeSiteV91>=0&&
@@ -4981,6 +5009,26 @@ public final class GameView extends View {
     }
     /** Scene fixture is a solid object, NOT an additive circle rendered over actors. */
     void drawIndoorLightFixturesV93(Canvas c){
+        if(clinicInteriorV89 instanceof NeighborhoodInteriorV161){
+            NeighborhoodInteriorV161 unique=(NeighborhoodInteriorV161)clinicInteriorV89;
+            boolean electric=unique.theme==NeighborhoodV154.FACTORY||
+                unique.theme==NeighborhoodV154.SCHOOL||
+                unique.theme==NeighborhoodV154.OFFICES||
+                unique.theme==NeighborhoodV154.WAREHOUSE;
+            for(int i=0;i<unique.layoutV163.rooms.length;i++){
+                float[] zone=unique.layoutV163.rooms[i];
+                float x=zone[0]+zone[2]*.5f,y=zone[1]+zone[3]*.5f;
+                if(!WorldPerfV55.nearView(x,y,camX,camY,viewW,viewH,64f))
+                    continue;
+                int style=(i+unique.variation)%3;
+                float w=style==0?46f:style==1?30f:56f;
+                rect(c,x-w/2f-3,y-12,w+6,24,0xff172b2a);
+                rect(c,x-w/2f,y-9,w,18,electric?0xff698e92:0xff9f805d);
+                rect(c,x-w/2f+5,y-5,w-10,10,
+                    electric?0xffc3ddd6:0xfff0c487);
+            }
+            return;
+        }
         float z=ClinicInteriorV89.EXPANSION_V90;
         final int[][] lamps={{260,225},{790,225},{1310,225},
             {260,845},{790,845},{1310,845},{800,562}};
