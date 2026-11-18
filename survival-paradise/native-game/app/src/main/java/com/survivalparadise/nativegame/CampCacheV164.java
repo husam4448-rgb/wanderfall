@@ -4,7 +4,7 @@ import java.util.LinkedHashMap;
 
 /** Fixed physical camp chests, with durable independent eight-item inventories. */
 public final class CampCacheV164 {
-    private static final int COUNT=BanditLootV87.ITEMS;
+    public static final int COUNT=BanditLootV87.ITEMS+3; // three actual backpack items
     private final LinkedHashMap<String,int[]> contents=new LinkedHashMap<>();
     public CampCacheV164(CampWorldV164.Site[] camps){
         for(CampWorldV164.Site s:camps){
@@ -14,7 +14,9 @@ public final class CampCacheV164 {
                 3+Math.floorMod(h,9),1+Math.floorMod(h>>>4,3),
                 2+Math.floorMod(h>>>6,4),2+Math.floorMod(h>>>8,4),
                 2+Math.floorMod(h>>>10,5),2+Math.floorMod(h>>>13,7),
-                1+Math.floorMod(h>>>17,4),2+Math.floorMod(h>>>21,6)};
+                1+Math.floorMod(h>>>17,4),2+Math.floorMod(h>>>21,6),
+                1+Math.floorMod(h>>>7,2),1+Math.floorMod(h>>>13,2),
+                1+Math.floorMod(h>>>19,2)};
             contents.put(s.saveId(),quantities);
         }
     }
