@@ -1457,8 +1457,17 @@ public final class GameView extends View {
         syncBagV141();
         insideClinicV89=host.prefs.getBoolean("inside_clinic_v89",false);
         int savedSiteV91=host.prefs.getInt("active_site_v91",1);
-        if(insideClinicV89)configureInteriorV91(savedSiteV91);
-        else {
+        if(insideClinicV89){
+            configureInteriorV91(savedSiteV91);
+            // A V161 save may resume inside a room now rebuilt as a genuinely
+            // different V163 floor plan. Move only obstructed positions to the
+            // guaranteed clear entrance; inventory and loot remain untouched.
+            if(clinicInteriorV89 instanceof NeighborhoodInteriorV161&&
+               clinicInteriorV89.blocked(playerX,playerY,18f)){
+                playerX=ClinicInteriorV89.ENTRANCE_X;
+                playerY=ClinicInteriorV89.ENTRANCE_Y;
+            }
+        }else {
             indoorCorpseLootV158.clear();
             activeSiteV91=-1;neighborhoodSiteV161=null;
             clinicInteriorV89=new ClinicInteriorV89();
