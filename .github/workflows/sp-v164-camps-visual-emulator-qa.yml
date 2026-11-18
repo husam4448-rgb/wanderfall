@@ -61,7 +61,11 @@ jobs:
           adb shell screencap -p /sdcard/v164_start.png
           adb pull /sdcard/v164_start.png /tmp/sp164/visual/01_menu.png
           if ! adb shell pidof "$PKG"; then
-            echo 'ERROR: game process exited before launch';exit 1
+            echo 'ERROR: V164 app exited: capture process and Android runtime details'
+            adb logcat -d > /tmp/sp164/visual/00_launch_failure_logcat.txt
+            grep -E -A 30 -B 8 'FATAL EXCEPTION|Process: com.survivalparadise.nativegame.v164camptest|AndroidRuntime|OutOfMemoryError|NoClassDefFoundError|SP-V109|Fatal signal|ANR in' /tmp/sp164/visual/00_launch_failure_logcat.txt | tail -180 || true
+            adb shell dumpsys activity activities | tail -80 || true
+            exit 1
           fi
           adb shell input tap 1130 330
           adb shell input tap 740 620
