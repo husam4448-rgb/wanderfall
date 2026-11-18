@@ -236,10 +236,11 @@ jobs:
                   '        if(v166Whole!=7)terrain(c);\n'
                   '        if(v166Whole==8){c.restore();return;}\n'
                   '        drawDroppedItemsV129(c);')
-          replace('        if(lightAlpha>0)applyWorldLighting(c);else drawFixtures(c,true);',
-                  '        if(v166Whole!=9){\n'
-                  '          if(lightAlpha>0)applyWorldLighting(c);else drawFixtures(c,true);\n'
-                  '        }')
+          # Mode 9 is optional: tolerate a renderer variant with no night pass.
+          needle='applyWorldLighting(c);else drawFixtures(c,true);'
+          if needle in s:
+              s=s.replace(needle,
+                'if(v166Whole!=9){if(lightAlpha>0)'+needle+'}',1)
           replace('            hud(canvas);\n            if(paused&&!settingsPause)pauseOverlay(canvas);',
                   '            if(android.provider.Settings.Global.getInt(\n'
                   '                host.getContentResolver(),"sp_v166_qa_layer",0)!=10)hud(canvas);\n'
@@ -381,7 +382,7 @@ jobs:
           from PIL import Image
           import base64,io
           folder=Path('/tmp/sp165/visual')
-          for filename in ('02_world_normal.png','05_isolate_1.png','05_isolate_2.png','05_isolate_3.png','05_isolate_4.png','05_isolate_5.png','05_isolate_6.png','05_isolate_7.png','05_isolate_8.png','05_isolate_9.png','05_isolate_10.png'):
+          for filename in ('02_world_normal.png','05_isolate_7.png','05_isolate_8.png','05_isolate_9.png','05_isolate_10.png','05_isolate_11.png','05_isolate_12.png','05_isolate_13.png','05_isolate_14.png','05_isolate_15.png'):
               path=folder/filename
               if not path.is_file():continue
               img=Image.open(path).convert('RGB')
