@@ -6,6 +6,11 @@ on:
       - '.github/workflows/sp-v1652-natural-camp-art-emulator-qa.yml'
       - 'survival-paradise/native-game/**'
   workflow_dispatch:
+# Art revisions arrive frequently. Cancel stale APK/emulator verification
+# to avoid parallel downloads saturating Maven Central (HTTP 429).
+concurrency:
+  group: sp-v1652-art-qa-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
