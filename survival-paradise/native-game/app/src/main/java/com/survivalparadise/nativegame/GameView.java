@@ -4217,7 +4217,7 @@ public final class GameView extends View {
         // V54: render cached, asynchronously prepared 16x16-tile chunk textures.
         // Missing chunks use a deterministic immediate fallback (no blank screen).
         terrainChunks.draw(c,camX,camY,viewW,viewH,renderZoomV90);
-        NaturalGroundArtV157.draw(c,camX,camY,viewW,viewH,geographyV160,renderZoomV90<.70f);
+        if(false)NaturalGroundArtV157.draw(c,camX,camY,viewW,viewH,geographyV160,renderZoomV90<.70f); // diagnostic no natural ground
         // Plotted civilization ground is separate from natural terrain.
         WorldCivilizationArtV159.ground(c,civilizationV159,
             camX,camY,viewW,viewH,renderZoomV90);
