@@ -4226,7 +4226,7 @@ public final class GameView extends View {
         // V162: two highways share one continuous asphalt intersection.
         // Road shoulders and center dashes terminate before the crossroad;
         // neither highway paints through the other as an overlapping stripe.
-        RoadContourV1651.horizontal(c,p,camX-4f,camX+viewW+4f,
+        if(false)RoadContourV1651.horizontal(c,p,camX-4f,camX+viewW+4f,
             925f,1150f,industrialSeedV123);
         // Natural rural road: no perfect concrete kerb lines bordering grass.
         // Eroded material and the repeat-safe shoulder atlas define the edge.
@@ -4238,15 +4238,15 @@ public final class GameView extends View {
         }
         // Artistically weather BOTH asphalt/soil contacts, without painting
         // shoulders through the continuous four-way junction.
-        RoadShoulderArtV1651.horizontal(c,camX-4f,1500f,925f,1150f);
-        RoadShoulderArtV1651.horizontal(c,1720f,camX+viewW+4f,925f,1150f);
+        if(false)RoadShoulderArtV1651.horizontal(c,camX-4f,1500f,925f,1150f);
+        if(false)RoadShoulderArtV1651.horizontal(c,1720f,camX+viewW+4f,925f,1150f);
         // Paint the perpendicular carriageway on top with SAME asphalt tone.
         // This hides the horizontal kerb inside the crossing.
-        RoadContourV1651.vertical(c,p,1500f,1720f,
+        if(false)RoadContourV1651.vertical(c,p,1500f,1720f,
             camY-4f,camY+viewH+4f,industrialSeedV123);
         float roadBottom=camY+viewH+4f;
-        RoadShoulderArtV1651.vertical(c,1500f,1720f,camY-4f,925f);
-        RoadShoulderArtV1651.vertical(c,1500f,1720f,1150f,roadBottom);
+        if(false)RoadShoulderArtV1651.vertical(c,1500f,1720f,camY-4f,925f);
+        if(false)RoadShoulderArtV1651.vertical(c,1500f,1720f,1150f,roadBottom);
         // No straight vertical curbs: both wildland approaches end in
         // organic exposed soil/gravel, not urban concrete barriers.
         int roadY=(int)Math.floor(camY/135f);
