@@ -22,6 +22,7 @@ public final class CampSceneArtV1652 {
     private static final int CELL_W=384,CELL_H=288;
     private static final Bitmap[] ART=new Bitmap[4];
     private static Bitmap GROUND;
+    private static Bitmap STARTER_GROUND;
     private static final Paint P=new Paint(Paint.ANTI_ALIAS_FLAG |
         Paint.FILTER_BITMAP_FLAG | Paint.DITHER_FLAG);
     private static final RectF DST=new RectF();
@@ -60,6 +61,22 @@ public final class CampSceneArtV1652 {
             GROUND=fromBase64(assets,"sp_v1652_ground.webp.b64");
             if(GROUND.getWidth()!=640||GROUND.getHeight()!=434)
                 throw new IllegalArgumentException("Bad V165.2 camp ground decal");
+            // The starter camp touches the original highway. A hard clip
+            // would slice visible dirt at y+207: fade to transparent instead.
+            STARTER_GROUND=GROUND.copy(Bitmap.Config.ARGB_8888,true);
+            final int gw=STARTER_GROUND.getWidth(),gh=STARTER_GROUND.getHeight();
+            int[] argb=new int[gw*gh];
+            STARTER_GROUND.getPixels(argb,0,gw,0,0,gw,gh);
+            for(int iy=0;iy<gh;iy++){
+                float worldY=(iy+.5f)*650f/gh-325f;
+                float fade=Math.max(0f,Math.min(1f,(207f-worldY)/90f));
+                if(fade>=1f)continue;
+                for(int ix=0;ix<gw;ix++){
+                    int at=iy*gw+ix,v=argb[at];
+                    argb[at]=(Math.round((v>>>24)*fade)<<24)|(v&0xffffff);
+                }
+            }
+            STARTER_GROUND.setPixels(argb,0,gw,0,0,gw,gh);
             android.util.Log.i("SP-V1652","Organic camp ground and four authored props ready");
         }catch(Exception e){
             android.util.Log.e("SP-V1652","Camp scene art did not load",e);
@@ -67,7 +84,8 @@ public final class CampSceneArtV1652 {
         }
     }
     public static boolean ready(){
-        if(GROUND==null||GROUND.isRecycled())return false;
+        if(GROUND==null||GROUND.isRecycled()||
+           STARTER_GROUND==null||STARTER_GROUND.isRecycled())return false;
         for(Bitmap b:ART)if(b==null||b.isRecycled())return false;
         return true;
     }
@@ -77,7 +95,9 @@ public final class CampSceneArtV1652 {
         // The painted alpha fades to 0 around the full footprint; it never
         // draws a rectangle or displaces any collision or terrain tile.
         DST.set(x-480f,y-325f,x+480f,y+325f);
-        c.drawBitmap(GROUND,null,DST,P);
+        Bitmap floor=site.starter?STARTER_GROUND:GROUND;
+        if(floor==null||floor.isRecycled())return false;
+        c.drawBitmap(floor,null,DST,P);
         return true;
     }
     public static boolean prop(Canvas c,int kind,float x,float y,
@@ -117,6 +137,9 @@ public final class CampSceneArtV1652 {
         return true;
     }
     public static synchronized void release(){
+        if(STARTER_GROUND!=null&&!STARTER_GROUND.isRecycled())
+            STARTER_GROUND.recycle();
+        STARTER_GROUND=null;
         if(GROUND!=null&&!GROUND.isRecycled())GROUND.recycle();
         GROUND=null;
         for(int i=0;i<ART.length;i++){
