@@ -1,0 +1,102 @@
+package com.survivalparadise.nativegame;
+
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.HashSet;
+
+/** V163: prove walls, collision, room topology, seed identity and saves. */
+public final class V163InteriorLayoutTest {
+    private static void check(boolean ok,String detail){
+        if(!ok)throw new AssertionError(detail);
+    }
+    private static boolean[] reachable(ClinicNavV90 nav){
+        boolean[] seen=new boolean[nav.w*nav.h];
+        ArrayDeque<Integer> q=new ArrayDeque<>();
+        int x=(int)(ClinicInteriorV89.ENTRANCE_X/ClinicNavV90.CELL),
+            y=(int)(ClinicInteriorV89.ENTRANCE_Y/ClinicNavV90.CELL);
+        int initial=y*nav.w+x;
+        check(nav.free[initial],"Entry blocked in nav grid");
+        q.add(initial);seen[initial]=true;
+        int[] dx={-1,1,0,0},dy={0,0,-1,1};
+        while(!q.isEmpty()){
+            int id=q.removeFirst(),cx=id%nav.w,cy=id/nav.w;
+            for(int k=0;k<4;k++){
+                int nx=cx+dx[k],ny=cy+dy[k];
+                if(nx<0||ny<0||nx>=nav.w||ny>=nav.h)continue;
+                int next=ny*nav.w+nx;
+                if(nav.free[next]&&!seen[next]){seen[next]=true;q.addLast(next);}
+            }
+        }
+        return seen;
+    }
+    private static boolean nearby(boolean[] seen,ClinicNavV90 nav,float x,float y){
+        int ix=(int)(x/ClinicNavV90.CELL),iy=(int)(y/ClinicNavV90.CELL);
+        for(int dy=-3;dy<=3;dy++)for(int dx=-3;dx<=3;dx++){
+            int a=ix+dx,b=iy+dy;
+            if(a<0||b<0||a>=nav.w||b>=nav.h)continue;
+            if(seen[b*nav.w+a])return true;
+        }
+        return false;
+    }
+    public static void main(String[] args){
+        HashSet<Integer> topology=new HashSet<>(),geometry=new HashSet<>();
+        int tested=0,lootPreserved=0;
+        for(int seed:new int[]{14901,87011,31526,58923}){
+            WorldGeographyV160 earth=WorldGeographyV160.prepare(seed,null);
+            WorldCivilizationV159.Plan plan=WorldCivilizationV159.generate(
+                seed,null,earth);
+            for(WorldCivilizationV159.Parcel parcel:plan.parcels){
+                for(int slot=0;slot<NeighborhoodV154.COLS*NeighborhoodV154.ROWS;slot++){
+                    NeighborhoodV154.Building b=NeighborhoodV154.get(
+                        parcel.tx,parcel.ty,slot,plan);
+                    if(b==null)continue;
+                    NeighborhoodInteriorV161 room=new NeighborhoodInteriorV161(b,seed);
+                    NeighborhoodLayoutV163 layout=room.layoutV163;
+                    check(layout.walls.length>12,"Missing physical room partitions");
+                    check(layout.rooms.length==6&&layout.doors.length==6,
+                        "Room/door topology not generated");
+                    check(layout.caches.length==14&&room.storages.length==14,
+                        "Container save indices changed");
+                    check(!room.blocked(ClinicInteriorV89.ENTRANCE_X,
+                        ClinicInteriorV89.ENTRANCE_Y,12f),"Blocked entrance");
+                    check(!room.blocked(ClinicInteriorV89.EXIT_X,
+                        ClinicInteriorV89.EXIT_Y,12f),"Blocked exit");
+                    ClinicNavV90 nav=new ClinicNavV90(room);
+                    boolean[] seen=reachable(nav);
+                    for(float[] z:layout.rooms){
+                        float midX=z[0]+z[2]/2,midY=z[1]+z[3]/2;
+                        check(nearby(seen,nav,midX,midY),
+                            "Unreachable room in topology "+layout.plan);
+                    }
+                    for(float[] door:layout.doors)
+                        check(nearby(seen,nav,door[0],door[1]),
+                            "Door inaccessible in topology "+layout.plan);
+                    for(ClinicInteriorV89.Storage item:room.storages)
+                        check(nearby(seen,nav,item.x,item.y),
+                            "Container cannot be approached in topology "+layout.plan);
+                    int signature=Arrays.deepHashCode(layout.walls);
+                    geometry.add(signature);
+                    topology.add(layout.plan);
+                    String saved=room.encode();
+                    NeighborhoodInteriorV161 reentered=new NeighborhoodInteriorV161(b,seed);
+                    reentered.decode(saved);
+                    check(saved.equals(reentered.encode()),
+                        "Container contents changed on re-entry");
+                    check(Arrays.deepEquals(layout.walls,reentered.sceneWalls()),
+                        "Same building regenerated a different interior");
+                    lootPreserved++;tested++;
+                    if(tested>85&&topology.size()==NeighborhoodLayoutV163.PLAN_COUNT)break;
+                }
+                if(tested>85&&topology.size()==NeighborhoodLayoutV163.PLAN_COUNT)break;
+            }
+        }
+        check(tested>=20,"Too few buildings inspected");
+        check(topology.size()==NeighborhoodLayoutV163.PLAN_COUNT,
+            "Floor plans are not sufficiently diverse: "+topology);
+        check(geometry.size()>15,"Different buildings reused indistinguishable wall layouts");
+        check(lootPreserved==tested,"Lost a saved loot container");
+        System.out.println("PASS V163: "+tested+" buildings, "+
+            topology.size()+" layout families, "+geometry.size()+
+            " distinct wall sets, reachable doors and preserved loot");
+    }
+}
