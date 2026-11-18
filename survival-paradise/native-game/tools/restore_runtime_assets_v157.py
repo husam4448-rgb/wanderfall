@@ -31,7 +31,7 @@ NEEDED = [
     "stable_v51_body.png", "npc_roles_v51.png", "npc_idle_v52.png",
     "npc_walk_v56.png", "npc_idle_v56.png", "world_props_v74.png",
     "approved_v29_axe.png", "sp_v109_characters.zip",
-    "world_props_v166.png", "world_props_v166_manifest.json"
+    "world_props_v166.png", "world_props_v166_manifest.json", "sp_v166_campfire.webp.b64"
 ]
 
 

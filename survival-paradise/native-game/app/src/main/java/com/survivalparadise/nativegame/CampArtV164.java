@@ -52,6 +52,9 @@ public final class CampArtV164 {
         // biome remains visible at the edges; no giant semi-opaque ovals,
         // no straight paths or rectangular tent-floor decals.
         CampSceneArtV1652.ground(c,s);
+        // The V166 fire atlas already includes a detailed rocky hearth.
+        // A second procedural oval or regular ring would duplicate it.
+        if(CampfireArtV166.ready())return;
         // Fire ring is drawn underneath a depth-sorted, actual live campfire.
         float fx=s.fireX(),fy=s.fireY();
         oval(c,p,fx-72,fy-49,fx+72,fy+62,0x99504433);

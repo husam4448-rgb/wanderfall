@@ -48,6 +48,12 @@ jobs:
               assert piece.getchannel('A').getbbox(),cell
               assert piece.getchannel('A').getextrema()[0]==0,cell
           print('PASS V166: 23 actual original-art variants embedded')
+          fire_bin=base64.b64decode((assets/'sp_v166_campfire.webp.b64').read_text())
+          assert hashlib.sha256(fire_bin).hexdigest()=='43d927b444aca74199b8c0c65983593ef3216224c85c8a4a28d93c8341f36b9d'
+          fire=Image.open(io.BytesIO(fire_bin)).convert('RGBA')
+          import numpy as np
+          f0=np.asarray(fire.crop((0,0,256,256)),dtype=np.int16)
+          assert all(np.abs(f0-np.asarray(fire.crop((i*256,0,(i+1)*256,256)),dtype=np.int16)).sum()>5000 for i in range(1,4))
           original=assets/'sp_v109_characters.zip'
           assert original.is_file() and hashlib.sha256(original.read_bytes()).hexdigest()==(
               'c8e364bc1485eb5251fa9494889977038268cbac10f455fa844d7b8a46f6dc3a')
@@ -67,6 +73,7 @@ jobs:
               ('sp_v1652_props.webp.b64',(768,576)),
               ('sp_v1652_ground.webp.b64',(640,434)),
               ('sp_v1652_biome_blends.webp.b64',(768,256)),
+              ('sp_v166_campfire.webp.b64',(1280,256)),
           ):
               pack=base64.b64decode((assets/filename).read_text())
               picture=Image.open(io.BytesIO(pack)).convert('RGBA')
@@ -164,6 +171,9 @@ jobs:
           assert 'CampSpriteArtV1651.load(host.getAssets())' in game
           assert 'CampStationSpriteV1651.load(host.getAssets())' in game
           assert 'RoadShoulderArtV1651.load(host.getAssets())' in game
+          assert 'CampfireArtV166.load(host.getAssets())' in game
+          assert 'CampfireArtV166.draw(c,x,y,campfiresLit,worldTimer)' in game
+          assert 'if(CampfireArtV166.ready())return;' in camp
           print('PASS: V165.1 renderer wiring, depth sorting and original heads retained')
           PY
       - name: Android 35 SDK / Java compile
@@ -192,6 +202,7 @@ jobs:
           cp app/build/outputs/apk/debug/app-debug.apk /tmp/sp165/qa-only.apk
           test -s /tmp/sp165/qa-only.apk
           unzip -l /tmp/sp165/qa-only.apk | grep -F 'assets/world_props_v166.png'
+          unzip -l /tmp/sp165/qa-only.apk | grep -F 'assets/sp_v166_campfire.webp.b64'
           unzip -l /tmp/sp165/qa-only.apk | grep -F 'assets/sp_v165_surface.webp.b64'
           unzip -l /tmp/sp165/qa-only.apk | grep -F 'assets/sp_v1652_props.webp.b64'
           unzip -l /tmp/sp165/qa-only.apk | grep -F 'assets/sp_v1652_ground.webp.b64'
@@ -251,6 +262,7 @@ jobs:
           grep -F 'Organic camp ground and four authored props ready' /tmp/sp165/visual/logcat.txt
           grep -F 'Natural biome brushes ready: 3 transparent authored pigments' /tmp/sp165/visual/logcat.txt
           grep -F 'World sprite library ready: 23 original-art variations' /tmp/sp165/visual/logcat.txt
+          grep -F 'Campfire production sprites ready: 4 lit + 1 unlit' /tmp/sp165/visual/logcat.txt
           adb shell pidof "$PKG"
           if grep -E 'FATAL EXCEPTION|Process: com.survivalparadise.nativegame.v164camptest' /tmp/sp165/visual/logcat.txt; then exit 1;fi
           test -s /tmp/sp165/visual/02_world_normal.png

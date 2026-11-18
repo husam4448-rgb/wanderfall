@@ -454,6 +454,7 @@ public final class GameView extends View {
         CampSceneArtV1652.load(host.getAssets());
         NaturalBrushArtV1652.load(host.getAssets());
         WorldArtV166.load(host.getAssets());
+        CampfireArtV166.load(host.getAssets());
         if(industrialModeV123||stitchedIndustrialV128)
             industrialArtV123.load(host.getAssets());
     }
@@ -4059,6 +4060,13 @@ public final class GameView extends View {
         color(core);c.drawPath(inside,p);
     }
     void drawCampfire(Canvas c,float x,float y,boolean emissive){
+        // New production asset draws full hearth and flames once, within the
+        // existing world-Y draw queue. Keep V50 shapes only as a load fallback.
+        if(CampfireArtV166.ready()){
+            if(campfiresLit==emissive)
+                CampfireArtV166.draw(c,x,y,campfiresLit,worldTimer);
+            return;
+        }
         if(!emissive){
             rect(c,x-76,y+6,152,15,0xff242724);
             for(int i=0;i<11;i++){
@@ -6510,6 +6518,7 @@ public final class GameView extends View {
         CampSceneArtV1652.release();
         NaturalBrushArtV1652.release();
         WorldArtV166.release();
+        CampfireArtV166.release();
         lighting.release();
         if(campStatic!=null){campStatic.recycle();campStatic=null;}
         itemIconsV84.release();

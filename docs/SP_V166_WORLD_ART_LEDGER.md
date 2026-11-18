@@ -38,3 +38,9 @@ not "verified" until real Android game screenshots show the correct art.
 
 Implementation changes are marked PENDING until an emulator image proves each
 case, even if the JVM selector and Python pixel-asset contract pass.
+
+## V166 original campfire production pass
+- Source: artist-authored transparent 4-stage fire cycle plus extinguished stone/log hearth, packed as 1280x256 WebP alpha atlas in `sp_v166_campfire.webp.b64`.
+- Runtime: `CampfireArtV166` replaces the block-flame and regular geometric hearth from `GameView.drawCampfire` and `CampArtV164.drawGround` when art loads.
+- Animated with world time and stable location hash, original world-Y draw order retained; existing fire lighting and saved identities unchanged.
+- Asset bytes validated with SHA-256 and alpha/variation checks in GitHub Actions; **actual Android screenshot inspection pending; not approved.**
