@@ -268,6 +268,64 @@ jobs:
           p.write_text(s)
           print('PASS: QA-only city renderer inspection instrumentation')
           PY
+      - name: CI-only camera and active-room rendering for all 8 seeded interiors
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          file=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/GameView.java')
+          s=file.read_text()
+          needle='        updateNs=System.nanoTime()-updateStart;'
+          assert needle in s,needle
+          injection='''        // QA-only: instantiate actual V163 interior from the existing seed
+          // and model; no gameplay positions or source files are changed in
+          // the repository. Test package is isolated from normal installations.
+          int qaInterior=android.provider.Settings.Global.getInt(
+              host.getContentResolver(),"sp_v166_qa_interior_kind",0);
+          if(playing&&!gameOver&&qaInterior>=1&&qaInterior<=8&&
+             civilizationV159!=null&&
+             (!(clinicInteriorV89 instanceof NeighborhoodInteriorV161)||
+              !insideClinicV89||
+              ((NeighborhoodInteriorV161)clinicInteriorV89).theme!=qaInterior-1)){
+              NeighborhoodV154.Building target=null;
+              for(WorldCivilizationV159.Parcel parcel:civilizationV159.parcels){
+                  if(target!=null)break;
+                  for(int slot=0;slot<6;slot++){
+                      NeighborhoodV154.Building one=NeighborhoodV154.get(
+                          parcel.tx,parcel.ty,slot,civilizationV159);
+                      if(one!=null&&one.kind==qaInterior-1){target=one;break;}
+                  }
+              }
+              if(target!=null){
+                  neighborhoodSiteV161=target;
+                  activeSiteV91=NeighborhoodInteriorV161.siteId(
+                      target,industrialSeedV123);
+                  clinicInteriorV89=new NeighborhoodInteriorV161(
+                      target,industrialSeedV123);
+                  clinicActorsV90=new ClinicActorsV90(clinicInteriorV89);
+                  clinicNavV90=new ClinicNavV90(clinicInteriorV89);
+                  insideClinicV89=true;
+                  playerX=ClinicInteriorV89.ENTRANCE_X;
+                  playerY=ClinicInteriorV89.ENTRANCE_Y;
+              }
+          }
+          '''
+          s=s.replace(needle,needle+'\n'+injection,1)
+          vision='        drawClinicVisionV90(c);'
+          assert s.count(vision)>=2,s.count(vision)
+          s=s.replace(vision,
+              '''        if(android.provider.Settings.Global.getInt(
+                  host.getContentResolver(),"sp_v166_qa_interior_kind",0)==0)
+                  drawClinicVisionV90(c);''')
+          hud='            hud(canvas);'
+          assert hud in s,hud
+          s=s.replace(hud,
+              '''            if(android.provider.Settings.Global.getInt(
+                host.getContentResolver(),"sp_v166_qa_interior_kind",0)==0)
+                hud(canvas);''',1)
+          file.write_text(s)
+          print('PASS: temporary QA mode for eight real V163 seeded interiors')
+          PY
       - name: Android 35 SDK / Java compile
         shell: bash
         run: |
@@ -358,6 +416,15 @@ jobs:
             adb pull "/sdcard/06_city_kind_$kind.png" "/tmp/sp165/visual/06_city_kind_$kind.png"
           done
           adb shell settings put global sp_v166_qa_city_kind 0
+          # Actual Android screenshots: eight different indoor categories.
+          # The test-only hook renders real V163 layouts at their native scale.
+          for kind in 1 2 3 4 5 6 7 8; do
+            adb shell settings put global sp_v166_qa_interior_kind "$kind"
+            sleep 2
+            adb shell screencap -p "/sdcard/07_interior_kind_$kind.png"
+            adb pull "/sdcard/07_interior_kind_$kind.png" "/tmp/sp165/visual/07_interior_kind_$kind.png"
+          done
+          adb shell settings put global sp_v166_qa_interior_kind 0
           adb logcat -d > /tmp/sp165/visual/logcat.txt
           grep -F 'Camp tents ready: 2 authored RGBA sprites' /tmp/sp165/visual/logcat.txt
           grep -F 'Trade and medic stations ready: 2 authored RGBA sprites' /tmp/sp165/visual/logcat.txt
@@ -373,6 +440,7 @@ jobs:
           test -s /tmp/sp165/visual/02_world_normal.png
           test -s /tmp/sp165/visual/04_world_zoomed_out.png
           for kind in 1 2 3 4 5 6 7 8;do test -s "/tmp/sp165/visual/06_city_kind_$kind.png";done
+          for kind in 1 2 3 4 5 6 7 8;do test -s "/tmp/sp165/visual/07_interior_kind_$kind.png";done
           python3 - <<'PY'
           from PIL import Image
           for name in ('02_world_normal.png','04_world_zoomed_out.png'):
@@ -402,7 +470,7 @@ jobs:
           from PIL import Image
           import base64,io
           folder=Path('/tmp/sp165/visual')
-          for filename in ('02_world_normal.png','04_world_zoomed_out.png','06_city_kind_1.png','06_city_kind_2.png','06_city_kind_3.png','06_city_kind_4.png','06_city_kind_5.png','06_city_kind_6.png','06_city_kind_7.png','06_city_kind_8.png'):
+          for filename in ('07_interior_kind_1.png','07_interior_kind_2.png','07_interior_kind_3.png','07_interior_kind_4.png','07_interior_kind_5.png','07_interior_kind_6.png','07_interior_kind_7.png','07_interior_kind_8.png'):
               path=folder/filename
               if not path.is_file():continue
               img=Image.open(path).convert('RGB')
