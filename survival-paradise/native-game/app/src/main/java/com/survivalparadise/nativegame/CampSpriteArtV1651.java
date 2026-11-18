@@ -44,6 +44,7 @@ public final class CampSpriteArtV1651 {
             for(int i=0;i<2;i++)
                 TENTS[i]=Bitmap.createBitmap(atlas,i*WIDTH,0,WIDTH,HEIGHT);
             atlas.recycle();
+            android.util.Log.i("SP-V1651","Camp tents ready: 2 authored RGBA sprites");
         }catch(Exception e){
             android.util.Log.w("SP-V1651","Tent sprites failed; V164 drawings remain",e);
             release();
