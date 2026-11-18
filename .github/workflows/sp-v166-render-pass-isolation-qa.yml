@@ -281,6 +281,40 @@ jobs:
           path.write_text(s)
           print('PASS V166: terrain checkpoints after base/chunk, road, props, architecture, industry and camps')
           PY
+      - name: Separate camp bitmap, direct original art and cover geometry (temporary QA)
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('survival-paradise/native-game/app/src/main/java/com/survivalparadise/nativegame/GameView.java')
+          s=p.read_text()
+          before='        if(v166Probe!=6)drawSpawnCamp(c);'
+          assert before in s,before
+          s=s.replace(before,'        if(v166Probe!=6&&v166Probe!=36)drawSpawnCamp(c);',1)
+          before='                if(v166Probe!=15)drawCover(c,box);'
+          assert before in s,before
+          s=s.replace(before,'                if(v166Probe!=15&&v166Probe!=36)drawCover(c,box);',1)
+          before='        boolean industrialCoreV128=stitchedIndustrialV128&&'
+          after="""        // QA-only isolated renders, never compiled into production.
+        if(v166Probe==37){drawSpawnCamp(c);return;}
+        if(v166Probe==38){
+            for(Cover box:covers)drawCover(c,box);
+            return;
+        }
+        if(v166Probe==39){
+            CampArtV164.drawGround(c,p,survivorCampsV164[0],false);
+            return;
+        }
+        if(v166Probe==40){
+            CampArtV164.drawStructures(c,p,survivorCampsV164[0]);
+            return;
+        }
+        if(v166Probe==41){drawSpawnCampDetails(c);return;}
+        boolean industrialCoreV128=stitchedIndustrialV128&&"""
+          assert before in s,before
+          p.write_text(s.replace(before,after,1))
+          print('PASS: isolated camp, cached camp, direct camp, camp ground, structural props and cover geometry')
+          PY
       - name: Android 35 SDK / Java compile
         shell: bash
         run: |
@@ -349,7 +383,7 @@ jobs:
           # Layer isolation: each is an ACTUAL Android game screenshot
           # from the same camera. These debug toggles exist ONLY in this
           # workflow's temporary instrumented build, never production.
-          for mode in 30 31 32 33 34 35; do
+          for mode in 36 37 38 39 40 41; do
             adb shell settings put global sp_v166_qa_layer "$mode"
             sleep 2
             adb shell screencap -p "/sdcard/05_isolate_$mode.png"
@@ -409,7 +443,7 @@ jobs:
           from PIL import Image
           import base64,io
           folder=Path('/tmp/sp165/visual')
-          for filename in ('02_world_normal.png','05_isolate_30.png','05_isolate_31.png','05_isolate_32.png','05_isolate_33.png','05_isolate_34.png','05_isolate_35.png'):
+          for filename in ('02_world_normal.png','05_isolate_36.png','05_isolate_37.png','05_isolate_38.png','05_isolate_39.png','05_isolate_40.png','05_isolate_41.png'):
               path=folder/filename
               if not path.is_file():continue
               img=Image.open(path).convert('RGB')
