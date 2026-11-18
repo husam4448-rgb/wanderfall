@@ -186,6 +186,25 @@ public final class ClinicActorsV90 {
             }
             for(int i=0;i<actors.length;i++){
                 Actor a=actors[i];a.x=parsed[i][1];a.y=parsed[i][2];
+                // V161 -> V163 room migration: keep actor status, health and
+                // ammunition, but never reappear embedded in a new partition.
+                if(map instanceof NeighborhoodInteriorV161&&map.blocked(a.x,a.y,15f)){
+                    float[][] anchors=((NeighborhoodInteriorV161)map).layoutV163.encounters;
+                    float[] point=anchors[i%anchors.length];
+                    a.x=point[0];a.y=point[1];
+                    if(map.blocked(a.x,a.y,15f)){
+                        for(int radius=25;radius<260&&map.blocked(a.x,a.y,15f);
+                            radius+=25)
+                            for(int direction=0;direction<12;direction++){
+                                float angle=(float)(direction*Math.PI/6f);
+                                float nx=point[0]+radius*(float)Math.cos(angle);
+                                float ny=point[1]+radius*(float)Math.sin(angle);
+                                if(!map.blocked(nx,ny,15f)){
+                                    a.x=nx;a.y=ny;break;
+                                }
+                            }
+                    }
+                }
                 a.hp=parsed[i][3];a.active=parsed[i][4]==1&&a.hp>0;
                 a.rounds=legacy[i]?(a.active&&a.type==RAIDER?
                     NpcGearV143.magazine(a.gun):0):parsed[i][5];
