@@ -49,6 +49,7 @@ jobs:
           assert len(raw)<20000
           for filename,expected in (
               ('sp_v1651_camp_tents.webp.b64',(668,263)),
+              ('sp_v1651_stations.webp.b64',(500,215)),
               ('sp_v1651_road_shoulder.webp.b64',(512,128)),
           ):
               pack=base64.b64decode((assets/filename).read_text())
@@ -104,6 +105,8 @@ jobs:
           assert 'terrainChunks.draw(c,camX,camY,viewW,viewH,renderZoomV90)' in game
           assert 'campCachesV164.encode()' in game
           assert 'CampSpriteArtV1651.drawTent' in (p/'CampArtV164.java').read_text()
+          assert 'CampStationSpriteV1651.drawTrader' in (p/'CampArtV164.java').read_text()
+          assert 'CampStationSpriteV1651.drawMedic' in (p/'CampArtV164.java').read_text()
           assert 'RoadShoulderArtV1651.vertical' in (p/'NeighborhoodArtV154.java').read_text()
           assert 'RoadShoulderArtV1651.horizontal' in game
           assert 'CampArtV164.foregroundY(site,what)' in game
@@ -112,6 +115,7 @@ jobs:
           assert 'for(int part=0;part<5;part++)' in game
           assert 'SurfaceArtV165.load(host.getAssets())' in game
           assert 'CampSpriteArtV1651.load(host.getAssets())' in game
+          assert 'CampStationSpriteV1651.load(host.getAssets())' in game
           assert 'RoadShoulderArtV1651.load(host.getAssets())' in game
           print('PASS: V165.1 renderer wiring, depth sorting and original heads retained')
           PY
@@ -191,6 +195,7 @@ jobs:
           adb pull /sdcard/v165_far.png /tmp/sp165/visual/04_world_zoomed_out.png
           adb logcat -d > /tmp/sp165/visual/logcat.txt
           grep -F 'Camp tents ready: 2 authored RGBA sprites' /tmp/sp165/visual/logcat.txt
+          grep -F 'Trade and medic stations ready: 2 authored RGBA sprites' /tmp/sp165/visual/logcat.txt
           grep -F 'Road shoulder ready: 512x128 RGBA strip' /tmp/sp165/visual/logcat.txt
           adb shell pidof "$PKG"
           if grep -E 'FATAL EXCEPTION|Process: com.survivalparadise.nativegame.v164camptest' /tmp/sp165/visual/logcat.txt; then exit 1;fi
