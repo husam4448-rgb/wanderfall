@@ -84,11 +84,12 @@ public final class CampArtV164 {
                     2,0xff8d7652);
         }
         // Fire ring is drawn underneath a depth-sorted, actual live campfire.
-        oval(c,p,x-37,y+40,x+107,y+151,0x99504433);
+        float fx=s.fireX(),fy=s.fireY();
+        oval(c,p,fx-72,fy-49,fx+72,fy+62,0x99504433);
         for(int i=0;i<11;i++){
             double angle=i*Math.PI*2/11;
-            float px=x+35+(float)Math.cos(angle)*62f;
-            float py=y+89+(float)Math.sin(angle)*44f;
+            float px=fx+(float)Math.cos(angle)*62f;
+            float py=fy+(float)Math.sin(angle)*44f;
             oval(c,p,px-12,py-6,px+14,py+10,
                 i%3==0?0xffa99f83:0xff575952);
         }
@@ -261,12 +262,36 @@ public final class CampArtV164 {
     }
     public static void drawStructures(Canvas c,Paint p,CampWorldV164.Site s){
         float x=s.x,y=s.y;
-        canvasTent(c,p,x-205,y-153,s.variation,true);
-        canvasTent(c,p,x+186,y-153,s.variation+3,false);
-        tradeStand(c,p,x-260,y+36);
-        medicPost(c,p,x+244,y-77);
-        watchPost(c,p,x+264,y+120);
-        storage(c,p,s.chestX(),s.chestY());
-        clutter(c,p,x,y,s.variation);
+        if(s.starter){
+            // Never paint across the historical y=925 highway beside the
+            // original player spawn; the larger countryside layouts use
+            // the uncompressed full-sized version instead.
+            c.save();
+            c.clipRect(x-470,y-350,x+470,y+210);
+            canvasTent(c,p,x-300,y-185,s.variation,true);
+            canvasTent(c,p,x+225,y-185,s.variation+3,false);
+            tradeStand(c,p,x-215,y+34);
+            medicPost(c,p,x+4,y+42);
+            watchPost(c,p,x+222,y+5);
+            storage(c,p,s.chestX(),s.chestY());
+            // Solar panels and supplies occupy unused shaded corners.
+            rect(c,p,x-420,y+99,107,69,0xff172c2d);
+            rect(c,p,x-415,y+104,97,59,0xff5e8791);
+            for(int i=1;i<4;i++)
+                line(c,p,x-415+i*24,y+105,x-415+i*24,y+162,
+                    2,0xffc3d6d5);
+            for(int i=1;i<3;i++)
+                line(c,p,x-414,y+104+i*20,x-318,y+104+i*20,
+                    2,0xffc3d6d5);
+            c.restore();
+        }else{
+            canvasTent(c,p,x-205,y-153,s.variation,true);
+            canvasTent(c,p,x+186,y-153,s.variation+3,false);
+            tradeStand(c,p,x-255,y+125);
+            medicPost(c,p,x+155,y+119);
+            watchPost(c,p,x+55,y+273);
+            storage(c,p,s.chestX(),s.chestY());
+            clutter(c,p,x,y,s.variation);
+        }
     }
 }
