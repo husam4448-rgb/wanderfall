@@ -2711,21 +2711,34 @@ public final class GameView extends View {
             rect(c,wx,wy,ww,wh,0xff425d59);
             rect(c,wx+2,wy+2,Math.max(2,ww-4),5,0xff90a39b);
         }
-        // Door portal frames face the central corridor.
-        for(float[] door:ClinicInteriorV89.DOOR_SIGNS){
-            float dx=door[0]*inv,dy=door[1]*inv;
-            rect(c,dx-47,dy,94,9,0xff283e40);
-            rect(c,dx-44,dy+3,88,4,0xffddc7a2);
+        // V163: the portal frames and labels follow this building's actual
+        // topology. The legacy clinic/expedition grids retain their own signs.
+        NeighborhoodInteriorV161 uniqueV163=
+            clinicInteriorV89 instanceof NeighborhoodInteriorV161?
+                (NeighborhoodInteriorV161)clinicInteriorV89:null;
+        float[][] portals=uniqueV163!=null?
+            uniqueV163.sceneDoorPositionsV163():ClinicInteriorV89.DOOR_SIGNS;
+        float[][] captions=uniqueV163!=null?
+            uniqueV163.sceneLabelPositionsV163():ClinicInteriorV89.ROOM_LABELS;
+        for(int i=0;i<portals.length;i++){
+            float dx=portals[i][0]*inv,dy=portals[i][1]*inv;
+            if(uniqueV163!=null&&uniqueV163.doorVerticalV163(i)){
+                rect(c,dx-6,dy-44,10,88,0xff283e40);
+                rect(c,dx-3,dy-42,4,84,0xffddc7a2);
+            }else{
+                rect(c,dx-47,dy-6,94,10,0xff283e40);
+                rect(c,dx-44,dy-3,88,4,0xffddc7a2);
+            }
         }
-        for(int i=0;i<ClinicInteriorV89.ROOM_LABELS.length;i++){
-            float x=ClinicInteriorV89.ROOM_LABELS[i][0]*inv;
-            float y=ClinicInteriorV89.ROOM_LABELS[i][1]*inv;
-            String[] roomsV91=nonClinicV91?
-                ((ExpeditionInteriorV91)clinicInteriorV89).roomNames():ClinicInteriorV89.ROOMS;
+        String[] roomsV91=nonClinicV91?
+            ((ExpeditionInteriorV91)clinicInteriorV89).roomNames():ClinicInteriorV89.ROOMS;
+        for(int i=0;i<captions.length&&i<roomsV91.length;i++){
+            float x=captions[i][0]*inv,y=captions[i][1]*inv;
             label(c,roomsV91[i],x,y,13,0xff213b3b,true);
         }
-        label(c,"MAIN CORRIDOR  •  "+currentSiteNameV91(),
-            550,559,14,0xff253e3a,true);
+        if(uniqueV163==null)
+            label(c,"MAIN CORRIDOR  •  "+currentSiteNameV91(),
+                550,559,14,0xff253e3a,true);
         c.restore();
         float[][] furnitureV161=nonClinicV91?
             ((ExpeditionInteriorV91)clinicInteriorV89).sceneFurniture():ClinicInteriorV89.FURNITURE;
