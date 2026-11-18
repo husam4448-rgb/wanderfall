@@ -4550,62 +4550,11 @@ public final class GameView extends View {
         c.drawBitmap(campStatic,CAMP_TEXTURE_LEFT,CAMP_TEXTURE_TOP,pixel);
     }
     void drawSpawnCampDetails(Canvas c){
-        float x=CAMP_X,y=CAMP_Y;
-        // The starter camp now uses the same complete original art vocabulary
-        // as world camps. It is cached in the same immutable camp bitmap.
-        if(survivorCampsV164.length>0){
-            CampArtV164.drawGround(c,p,survivorCampsV164[0],false);
-            CampArtV164.drawStructures(c,p,survivorCampsV164[0]);
-        }
-        if(true)return;
-        rect(c,x-255,y-165,506,355,0x345c7351);
-        // Restored simple survivor camp clearing with tents and equipment.
-        for(int side:new int[]{-1,1}){
-            float tx=x+side*168,ty=y-135;
-            rect(c,tx-70,ty-7,140,14,0xff263b32);
-            rect(c,tx-62,ty-45,124,39,0xff576c53);
-            rect(c,tx-49,ty-70,98,28,0xff71815e);
-            rect(c,tx-32,ty-13,64,28,0xff2c3a32);
-            rect(c,tx-25,ty-12,50,24,0xff3d483b);
-            rect(c,tx-68,ty+22,34,27,0xff634f32);
-            rect(c,tx-60,ty+23,18,5,0xffa58b5a);
-            rect(c,tx+40,ty+19,31,26,0xff53422c);
-        }
-        rect(c,x-93,y+108,190,14,0xff493c2b);
-        rect(c,x-91,y+112,186,5,0xff87764f);
-        for(int i=0;i<5;i++)rect(c,x-86+i*40,y+116,8,10,0xff312e27);
-        rect(c,x+212,y-5,9,80,0xff594832);
-        rect(c,x+217,y-4,68,22,0xff797a54);
-        label(c,"CAMP",x+223,y+12,13,0xffe1dbc2,true);
-        // Approved original camp remains. Add deterministic ground-level detail:
-        // old-world woodland, scattered stones, wooden supplies and shrubbery.
-        for(int k=0;k<38;k++){
-            int h=hash(k+203,319-k*7);
-            float px=x-400f+Math.floorMod(h,800);
-            float py=y-275f+Math.floorMod(h>>>9,560);
-            if(Math.abs(px-x)<130&&Math.abs(py-y)<125)continue;
-            if((h&3)==0){
-                rect(c,px-8,py+4,29,8,0xff364b34);
-                rect(c,px-2,py-5,20,17,0xff466946);
-                rect(c,px+4,py-11,14,12,0xff66845a);
-                if((h&31)==0)rect(c,px+7,py-1,4,4,0xffa76560);
-            }else if((h&3)==1){
-                rect(c,px-11,py,27,11,0xff3d5148);
-                rect(c,px-8,py-6,22,11,0xff758379);
-                rect(c,px+1,py-7,6,3,0xff9a9d80);
-            }else if((h&3)==2){
-                rect(c,px,py,58,11,0xff3c392b);
-                rect(c,px,py-8,58,9,0xff775b39);
-                rect(c,px+4,py-6,43,3,0xff9a7945);
-                rect(c,px+49,py-6,7,7,0xffbda078);
-            }else{
-                for(int q=0;q<5;q++){
-                    float ox=Math.floorMod(hash(k,q*7),28);
-                    float oy=Math.floorMod(hash(q,k*9),22);
-                    rect(c,px+ox,py+oy,4,3,q%2==0?0xffa39c66:0xff6f864f);
-                }
-            }
-        }
+        // One cached complete starter settlement, in the same world style as
+        // the satellite camps. Open tent interiors are never collision boxes.
+        if(survivorCampsV164.length==0)return;
+        CampArtV164.drawGround(c,p,survivorCampsV164[0],false);
+        CampArtV164.drawStructures(c,p,survivorCampsV164[0]);
     }
     void drawCover(Canvas c,Cover box){
         if(box.kind==3||box.kind==4)return; // player builds and authored V88 POIs drawn in their own passes.
