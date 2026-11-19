@@ -40,7 +40,7 @@ public final class V163InteriorLayoutTest {
     }
     public static void main(String[] args){
         HashSet<Integer> topology=new HashSet<>(),geometry=new HashSet<>();
-        int tested=0,lootPreserved=0;
+        int tested=0,lootPreserved=0,allProps=0,minProps=Integer.MAX_VALUE,maxProps=0;
         for(int seed:new int[]{14901,87011,31526,58923}){
             WorldGeographyV160 earth=WorldGeographyV160.prepare(seed,null);
             WorldCivilizationV159.Plan plan=WorldCivilizationV159.generate(
@@ -55,6 +55,12 @@ public final class V163InteriorLayoutTest {
                     check(layout.walls.length>12,"Missing physical room partitions");
                     check(layout.rooms.length==6&&layout.doors.length==6,
                         "Room/door topology not generated");
+                    // Density evidence is counted from actual seeded object
+                    // rectangles, not the number of attempted placements.
+                    int nProps=layout.furniture.length;
+                    allProps+=nProps;
+                    minProps=Math.min(minProps,nProps);
+                    maxProps=Math.max(maxProps,nProps);
                     check(layout.caches.length==14&&room.storages.length==14,
                         "Container save indices changed");
                     check(!room.blocked(ClinicInteriorV89.ENTRANCE_X,
@@ -82,6 +88,9 @@ public final class V163InteriorLayoutTest {
                     reentered.decode(saved);
                     check(saved.equals(reentered.encode()),
                         "Container contents changed on re-entry");
+                    check(Arrays.deepEquals(layout.furniture,
+                            reentered.sceneFurniture()),
+                        "Same building regenerated a different furniture plan");
                     check(Arrays.deepEquals(layout.walls,reentered.sceneWalls()),
                         "Same building regenerated a different interior");
                     lootPreserved++;tested++;
@@ -97,6 +106,7 @@ public final class V163InteriorLayoutTest {
         check(lootPreserved==tested,"Lost a saved loot container");
         System.out.println("PASS V163: "+tested+" buildings, "+
             topology.size()+" layout families, "+geometry.size()+
-            " distinct wall sets, reachable doors and preserved loot");
+            " distinct wall sets, reachable doors and preserved loot; "+
+            "furniture min/mean/max="+minProps+"/"+(allProps/tested)+"/"+maxProps);
     }
 }
