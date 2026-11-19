@@ -41,7 +41,8 @@ public final class V163InteriorLayoutTest {
     public static void main(String[] args){
         HashSet<Integer> topology=new HashSet<>(),geometry=new HashSet<>();
         int tested=0,lootPreserved=0,allProps=0,minProps=Integer.MAX_VALUE,maxProps=0;
-        int composedGroups=0;
+        int composedGroups=0,roomMin=Integer.MAX_VALUE,roomsBelowSix=0;
+        int downward=0,sideways=0;
         for(int seed:new int[]{14901,87011,31526,58923}){
             WorldGeographyV160 earth=WorldGeographyV160.prepare(seed,null);
             WorldCivilizationV159.Plan plan=WorldCivilizationV159.generate(
@@ -61,6 +62,22 @@ public final class V163InteriorLayoutTest {
                     int nProps=layout.furniture.length;
                     for(float[] q:layout.furniture)
                         if((int)q[0]>=64&&(int)q[0]<80)composedGroups++;
+                    for(float[] roomBox:layout.rooms){
+                        int roomProps=0;
+                        for(float[] q:layout.furniture){
+                            if(q[1]>=roomBox[0]&&q[2]>=roomBox[1]&&
+                               q[1]+q[3]<=roomBox[0]+roomBox[2]&&
+                               q[2]+q[4]<=roomBox[1]+roomBox[3]){
+                                roomProps++;
+                                if(q.length>5){
+                                    if((int)q[5]==0)downward++;
+                                    if((int)q[5]==90||(int)q[5]==270)sideways++;
+                                }
+                            }
+                        }
+                        roomMin=Math.min(roomMin,roomProps);
+                        if(roomProps<6)roomsBelowSix++;
+                    }
                     allProps+=nProps;
                     minProps=Math.min(minProps,nProps);
                     maxProps=Math.max(maxProps,nProps);
@@ -126,6 +143,9 @@ public final class V163InteriorLayoutTest {
             topology.size()+" layout families, "+geometry.size()+
             " distinct wall sets, reachable doors and preserved loot; "+
             "furniture min/mean/max="+minProps+"/"+(allProps/tested)+"/"+maxProps+
-            "; complete scene ensembles="+composedGroups);
+            "; complete scene ensembles="+composedGroups+
+            "; individual props per room minimum="+roomMin+
+            "; below six="+roomsBelowSix+
+            "; front/side orientations="+downward+"/"+sideways);
     }
 }
