@@ -97,37 +97,41 @@ public final class NeighborhoodLayoutV163 {
      * edges while preserving a broad continuous route to every room door.
      */
     private void furnishCommons(ArrayList<float[]> supplies){
-        final float[][] stations={
-            {275,195},{1190,195},{325,360},{1165,360},
-            {300,560},{1180,560},{325,735},{1165,735},
-            {515,185},{985,185},{515,445},{985,445},
-            {515,700},{985,700},{380,910},{1210,910},
-            {255,325},{1245,325},{405,490},{1095,490},
-            {600,310},{1000,310},{550,625},{1050,625}
-        };
-        int count=0,aim=theme==NeighborhoodV154.SCHOOL||
+        // A deterministic full-floor search, rather than 24 southern-edge
+        // anchors. Broad atria and public areas previously contained only
+        // one or two fixtures because the old candidate list missed them.
+        // Keep all functional props solid and navigation-aware. The 81-cell
+        // permutation visits every floor region with stable seed variation.
+        final int aim=theme==NeighborhoodV154.SCHOOL||
             theme==NeighborhoodV154.HOTEL||
-            theme==NeighborhoodV154.MARKET?8:6;
-        for(int j=0;j<stations.length&&count<aim&&objects.size()<48;j++){
-            // Follow a fixed authored seating/workstation arrangement. Seed
-            // changes subtle local offsets/sprite variants, not safe anchors.
-            float[] anchor=stations[j];
-            int h=hash(571+j*13,theme*181+j*7);
-            int sprite=InteriorRoomArchetypeV166.shared(theme,j,variation);
-            float w=InteriorRoomArchetypeV166.width(sprite),hh=
-                InteriorRoomArchetypeV166.height(sprite);
-            float x=anchor[0]-w*.5f+(Math.floorMod(h>>>12,17)-8);
-            float y=anchor[1]-hh*.5f+(Math.floorMod(h>>>19,17)-8);
-            // Shared-space props must be OUTSIDE the six designated rooms.
-            // No generic shelving mistakenly appears in a bedroom.
-            float cx=x+w*.5f,cy=y+hh*.5f;
-            boolean occupiedRoom=false;
-            for(Zone z:zones)
-                if(cx>z.x1+12f&&cx<z.x2-12f&&
-                   cy>z.y1+12f&&cy<z.y2-12f){
-                    occupiedRoom=true;break;
+            theme==NeighborhoodV154.MARKET?14:10;
+        int count=0;
+        for(int j=0;j<81&&count<aim&&objects.size()<84;j++){
+            int index=Math.floorMod(j*47+Math.floorMod(signature,81),81);
+            int col=index%9,row=index/9;
+            int h=hash(571+index*13,theme*181+index*7);
+            int sprite=InteriorRoomArchetypeV166.shared(
+                theme,index,variation);
+            float w=InteriorRoomArchetypeV166.width(sprite);
+            float hh=InteriorRoomArchetypeV166.height(sprite);
+            // Fixed proportional scale, never stretch/flatten source art.
+            float scale=index%4==0?.84f:1f;
+            w*=scale;hh*=scale;
+            float cx=110f+col*171f+(Math.floorMod(h>>>12,15)-7);
+            float cy=108f+row*110f+(Math.floorMod(h>>>19,15)-7);
+            float x=cx-w*.5f,y=cy-hh*.5f;
+            // The south entry must remain an unmistakable walkable path.
+            if(x<910f&&x+w>690f&&y+h>830f)continue;
+            boolean inRoom=false;
+            for(Zone z:zones){
+                // Check ENTIRE object extent; a center-only test allowed
+                // props to spill across room walls into neighboring spaces.
+                if(x<z.x2+9f&&x+w>z.x1-9f&&
+                   y<z.y2+9f&&y+hh>z.y1-9f){
+                    inRoom=true;break;
                 }
-            if(occupiedRoom)continue;
+            }
+            if(inRoom)continue;
             if(putFurnishing(sprite,x,y,w,hh,supplies))count++;
         }
     }
@@ -190,12 +194,18 @@ public final class NeighborhoodLayoutV163 {
             {0,0},{1000,0},{0,1000},{1000,1000},
             {450,0},{550,1000},{0,450},{1000,550},
             {250,0},{750,1000},{0,780},{1000,240},
-            {210,1000},{780,0},{0,230},{1000,790}
+            {210,1000},{780,0},{0,230},{1000,790},
+            // Secondary wall niches and paired work surfaces, not a
+            // uniform checkerboard of randomly positioned machinery.
+            {500,200},{500,800},{200,500},{800,500},
+            {330,330},{670,330},{330,670},{670,670},
+            {120,330},{880,670},{120,670},{880,330},
+            {330,120},{670,880},{330,880},{670,120}
         };
         for(int index=0;index<6;index++){
             Zone z=zones.get(index);
             float area=(z.x2-z.x1)*(z.y2-z.y1);
-            int target=area>270000f?7:area>160000f?6:5;
+            int target=area>270000f?10:area>160000f?8:6;
             int placed=0;
             for(int candidate=0;candidate<anchors.length&&placed<target;candidate++){
                 int n=hash(index*73+candidate,theme*107+candidate);
