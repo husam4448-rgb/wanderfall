@@ -123,6 +123,8 @@ public final class V166InteriorArtTest {
                 for(int g=48;g<64;g++)
                     for(int[] part:InteriorScenePlanV166.parts(g))
                         if(part[0]==i+32)referenced=true;
+                if(i==14&&InteriorRoomArchetypeV166.legacy(3,0,true,3)==46)
+                    referenced=true; // Medical cart remains clinic-only.
                 check(referenced,"Unused new room scene "+(i+32));
             }
         }

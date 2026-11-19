@@ -139,7 +139,7 @@ public final class InteriorRoomArchetypeV166 {
                 case 0:return 30; // original medical patient bed
                 case 1:return 31; // sterile supplies trolley
                 case 2:return 2;  // clinician work desk
-                case 3:return 31; // equipment cart
+                case 3:return 46; // authored clinic supplies trolley
                 case 4:return 9;  // medical storage cabinet
                 default:return 31;
             }
