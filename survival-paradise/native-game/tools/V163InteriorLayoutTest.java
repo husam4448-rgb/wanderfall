@@ -41,6 +41,7 @@ public final class V163InteriorLayoutTest {
     public static void main(String[] args){
         HashSet<Integer> topology=new HashSet<>(),geometry=new HashSet<>();
         int tested=0,lootPreserved=0,allProps=0,minProps=Integer.MAX_VALUE,maxProps=0;
+        int composedGroups=0;
         for(int seed:new int[]{14901,87011,31526,58923}){
             WorldGeographyV160 earth=WorldGeographyV160.prepare(seed,null);
             WorldCivilizationV159.Plan plan=WorldCivilizationV159.generate(
@@ -58,6 +59,8 @@ public final class V163InteriorLayoutTest {
                     // Density evidence is counted from actual seeded object
                     // rectangles, not the number of attempted placements.
                     int nProps=layout.furniture.length;
+                    for(float[] q:layout.furniture)
+                        if((int)q[0]>=64&&(int)q[0]<80)composedGroups++;
                     allProps+=nProps;
                     minProps=Math.min(minProps,nProps);
                     maxProps=Math.max(maxProps,nProps);
@@ -122,6 +125,7 @@ public final class V163InteriorLayoutTest {
         System.out.println("PASS V163: "+tested+" buildings, "+
             topology.size()+" layout families, "+geometry.size()+
             " distinct wall sets, reachable doors and preserved loot; "+
-            "furniture min/mean/max="+minProps+"/"+(allProps/tested)+"/"+maxProps);
+            "furniture min/mean/max="+minProps+"/"+(allProps/tested)+"/"+maxProps+
+            "; complete scene ensembles="+composedGroups);
     }
 }

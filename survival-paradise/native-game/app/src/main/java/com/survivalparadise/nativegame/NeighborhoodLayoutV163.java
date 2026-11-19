@@ -96,51 +96,57 @@ public final class NeighborhoodLayoutV163 {
      * and every piece uses the same collision, portal and loot clearances as
      * the old V163 model; no decorative fake loot or new saved objects.
      */
+    /**
+     * Put a complete themed ensemble against an actual ROOM WALL first.
+     * The old 13% inward anchors excluded every large scene from small
+     * chambers. Human-furnished rooms use corners and perimeter stations;
+     * retain central player paths and the saved 14 cabinet interactions.
+     */
     private void composeRoomScene(int room,ArrayList<float[]> supplies){
         Zone z=zones.get(room);
         final int[][] anchors={
-            {130,140},{850,145},{120,800},{850,800},
-            {500,130},{500,825},{155,490},{845,490},
-            {320,320},{685,320},{320,690},{685,690},
-            {495,500},{250,570},{765,580}
+            {0,0},{1000,0},{0,1000},{1000,1000},
+            {500,0},{500,1000},{0,500},{1000,500},
+            {220,210},{780,210},{220,790},{780,790},
+            {500,300},{150,500},{850,500}
         };
         int staged=0;
         float area=(z.x2-z.x1)*(z.y2-z.y1);
-        int aim=area>210000f?4:area>120000f?3:2;
+        int aim=area>210000f?5:area>120000f?4:3;
         for(int slot=0;slot<anchors.length&&staged<aim;slot++){
             int sprite=InteriorRoomArchetypeV166.sprite(
                 theme,room,variation,slot);
             if(sprite<0)continue;
             float width=InteriorRoomArchetypeV166.width(sprite);
             float height=InteriorRoomArchetypeV166.height(sprite);
-            // Same uniform scene scale on both axes. No character-sized
-            // artifact distortion or overhanging collision geometry.
-            float scale=area<120000f?.83f:area<185000f?.92f:1f;
+            float scale=area<120000f?.80f:area<185000f?.89f:1f;
             width*=scale;height*=scale;
-            float spanX=z.x2-z.x1-72f-width;
-            float spanY=z.y2-z.y1-72f-height;
+            float spanX=z.x2-z.x1-52f-width;
+            float spanY=z.y2-z.y1-52f-height;
             if(spanX<=0||spanY<=0)continue;
             int n=hash(room*587+slot*13,theme*97+slot*19);
-            float x=z.x1+36f+anchors[slot][0]*spanX/1000f+
-                    Math.floorMod(n>>>9,9)-4f;
-            float y=z.y1+36f+anchors[slot][1]*spanY/1000f+
-                    Math.floorMod(n>>>17,9)-4f;
-            // A clear 160-unit pedestrian route must connect the real
-            // doorway to each chamber's central standing area.
+            float x=z.x1+26f+anchors[slot][0]*spanX/1000f+
+                    Math.floorMod(n>>>9,5)-2f;
+            float y=z.y1+26f+anchors[slot][1]*spanY/1000f+
+                    Math.floorMod(n>>>17,5)-2f;
+            float cx=x+width*.5f,cy=y+height*.5f;
             float midX=(z.x1+z.x2)*.5f,midY=(z.y1+z.y2)*.5f;
+            // The solid composition may reach toward the centre but must
+            // not cover the exact standing / navigation cell at room centre.
+            float centreMargin=sprite>=48?16f:58f;
+            if(x<midX+centreMargin&&x+width>midX-centreMargin&&
+               y<midY+centreMargin&&y+height>midY-centreMargin)continue;
+            // A clear corridor still connects door opening to room centre.
+            float passage=sprite>=48?53f:75f;
             if(z.vertical){
                 float left=Math.min(z.dx,midX),right=Math.max(z.dx,midX);
-                if(x<right+75f&&x+width>left-75f&&
-                   y<z.dy+80f&&y+height>z.dy-80f)continue;
+                if(x<right+passage&&x+width>left-passage&&
+                   y<z.dy+passage&&y+height>z.dy-passage)continue;
             }else{
                 float top=Math.min(z.dy,midY),bottom=Math.max(z.dy,midY);
-                if(y<bottom+75f&&y+height>top-75f&&
-                   x<z.dx+80f&&x+width>z.dx-80f)continue;
+                if(y<bottom+passage&&y+height>top-passage&&
+                   x<z.dx+passage&&x+width>z.dx-passage)continue;
             }
-            // Preserve a usable room center, even when a decorated table
-            // is already stationed near the far corner.
-            if(x<midX+80f&&x+width>midX-80f&&
-               y<midY+70f&&y+height>midY-70f)continue;
             if(putFurnishing(sprite,x,y,width,height,supplies))staged++;
         }
     }
