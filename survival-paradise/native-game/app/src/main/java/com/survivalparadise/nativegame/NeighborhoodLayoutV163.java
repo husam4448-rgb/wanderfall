@@ -75,20 +75,58 @@ public final class NeighborhoodLayoutV163 {
         }
         float cx=x+w*.5f,cy=y+h*.5f;
         for(Zone z:zones){
-            if(Math.hypot(cx-z.dx,cy-z.dy)<147f)return false;
+            if(Math.hypot(cx-z.dx,cy-z.dy)<135f)return false;
         }
         for(float[] cache:supplies){
             if(x<cache[0]+54f&&x+w>cache[0]-54f&&
                y<cache[1]+54f&&y+h>cache[1]-54f)return false;
         }
         for(float[] obj:objects){
-            if(x<obj[1]+obj[3]+22f&&x+w>obj[1]-22f&&
-               y<obj[2]+obj[4]+22f&&y+h>obj[2]-22f)return false;
+            if(x<obj[1]+obj[3]+13f&&x+w>obj[1]-13f&&
+               y<obj[2]+obj[4]+13f&&y+h>obj[2]-13f)return false;
         }
         // Existing V161 collision and deterministic room signatures continue
         // to derive from these same rectangles.
         objects.add(new float[]{16+sprite,x,y,w,h});
         return true;
+    }
+    /**
+     * Curate complete functional work/living clusters before adding small
+     * scattered support furniture. Anchors are relative to actual rooms,
+     * and every piece uses the same collision, portal and loot clearances as
+     * the old V163 model; no decorative fake loot or new saved objects.
+     */
+    private void composeRoomScene(int room,ArrayList<float[]> supplies){
+        Zone z=zones.get(room);
+        final int[][] anchors={
+            {130,140},{850,145},{120,800},{850,800},
+            {500,130},{500,825},{155,490},{845,490},
+            {320,320},{685,320},{320,690},{685,690},
+            {495,500},{250,570},{765,580}
+        };
+        int staged=0;
+        float area=(z.x2-z.x1)*(z.y2-z.y1);
+        int aim=area>210000f?6:area>120000f?5:4;
+        for(int slot=0;slot<anchors.length&&staged<aim;slot++){
+            int sprite=InteriorRoomArchetypeV166.sprite(
+                theme,room,variation,slot);
+            if(sprite<0)continue;
+            float width=InteriorRoomArchetypeV166.width(sprite);
+            float height=InteriorRoomArchetypeV166.height(sprite);
+            // Same uniform scene scale on both axes. No character-sized
+            // artifact distortion or overhanging collision geometry.
+            float scale=area<120000f?.83f:area<185000f?.92f:1f;
+            width*=scale;height*=scale;
+            float spanX=z.x2-z.x1-72f-width;
+            float spanY=z.y2-z.y1-72f-height;
+            if(spanX<=0||spanY<=0)continue;
+            int n=hash(room*587+slot*13,theme*97+slot*19);
+            float x=z.x1+36f+anchors[slot][0]*spanX/1000f+
+                    Math.floorMod(n>>>9,9)-4f;
+            float y=z.y1+36f+anchors[slot][1]*spanY/1000f+
+                    Math.floorMod(n>>>17,9)-4f;
+            if(putFurnishing(sprite,x,y,width,height,supplies))staged++;
+        }
     }
     /**
      * Circulation and shared-purpose spaces were never part of the six V163
@@ -104,9 +142,9 @@ public final class NeighborhoodLayoutV163 {
         // permutation visits every floor region with stable seed variation.
         final int aim=theme==NeighborhoodV154.SCHOOL||
             theme==NeighborhoodV154.HOTEL||
-            theme==NeighborhoodV154.MARKET?14:10;
+            theme==NeighborhoodV154.MARKET?17:13;
         int count=0;
-        for(int j=0;j<81&&count<aim&&objects.size()<84;j++){
+        for(int j=0;j<81&&count<aim&&objects.size()<90;j++){
             int index=Math.floorMod(j*47+Math.floorMod(signature,81),81);
             int col=index%9,row=index/9;
             int h=hash(571+index*13,theme*181+index*7);
@@ -205,7 +243,8 @@ public final class NeighborhoodLayoutV163 {
         for(int index=0;index<6;index++){
             Zone z=zones.get(index);
             float area=(z.x2-z.x1)*(z.y2-z.y1);
-            int target=area>270000f?10:area>160000f?8:6;
+            composeRoomScene(index,supplies);
+            int target=area>270000f?9:area>160000f?7:5;
             int placed=0;
             // First honor human-authored perimeter stations. Then probe
             // seeded interior niches on a 9x9 lattice, avoiding the former
@@ -224,7 +263,7 @@ public final class NeighborhoodLayoutV163 {
                     ax=(id%9)*125;ay=(id/9)*125;
                 }
                 int sprite=InteriorRoomArchetypeV166.sprite(
-                    theme,index,variation,candidate);
+                    theme,index,variation,candidate+5);
                 if(sprite<0)continue;
                 float w=InteriorRoomArchetypeV166.width(sprite);
                 float h=InteriorRoomArchetypeV166.height(sprite);
@@ -239,18 +278,18 @@ public final class NeighborhoodLayoutV163 {
                 // Protect a broad approach, not only the tiny 98px door gap.
                 if(x<940f&&x+w>660f&&y<1095f&&y+h>880f)continue;
                 // Entrance clearances and central routes are collision-safe.
-                if(Math.hypot(cx-z.dx,cy-z.dy)<166f)continue;
-                if(Math.abs(cx-(z.x1+z.x2)*.5f)<53f&&
-                   Math.abs(cy-(z.y1+z.y2)*.5f)<80f)continue;
+                if(Math.hypot(cx-z.dx,cy-z.dy)<140f)continue;
+                if(Math.abs(cx-(z.x1+z.x2)*.5f)<46f&&
+                   Math.abs(cy-(z.y1+z.y2)*.5f)<66f)continue;
                 boolean overlaps=false;
                 for(float[] cache:supplies){
-                    if(Math.abs(cx-cache[0])<101f&&
-                       Math.abs(cy-cache[1])<93f){overlaps=true;break;}
+                    if(Math.abs(cx-cache[0])<75f&&
+                       Math.abs(cy-cache[1])<71f){overlaps=true;break;}
                 }
                 if(overlaps)continue;
                 for(float[] q:objects){
-                    if(x<q[1]+q[3]+26f&&x+w>q[1]-26f&&
-                       y<q[2]+q[4]+26f&&y+h>q[2]-26f){
+                    if(x<q[1]+q[3]+14f&&x+w>q[1]-14f&&
+                       y<q[2]+q[4]+14f&&y+h>q[2]-14f){
                         overlaps=true;break;
                     }
                 }

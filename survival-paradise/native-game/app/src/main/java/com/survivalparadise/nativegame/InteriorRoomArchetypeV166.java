@@ -1,7 +1,7 @@
 package com.survivalparadise.nativegame;
 
 /**
- * V166 authored vocabulary: 16 original and 16 specialized transparent props.
+ * V166 authored vocabulary: 16 original, 16 specialized and 16 hand-authored set-piece props.
  * Roles follow actual room labels, not arbitrary building-wide families.
  * Legacy 0..5 furniture and direct 16+sprite layout tags remain compatible;
  * the physical V163 collision and save schema is unchanged.
@@ -12,46 +12,70 @@ public final class InteriorRoomArchetypeV166 {
     // Atlas 16..31: hotel reception/luggage/service/linen, classroom/lab/
     // study/library, office reception/records, market checkout/refrigeration,
     // factory lathe/bench, clinic bed/trolley.
+    // Rows are building themes; columns are actual named rooms. Swapped room
+    // labels continue to receive their correct functional content.
     private static final int[][] PRIMARY={
-        {14,0,15,1,6,1},     // apartment lounge, bed, kitchen, utility
-        {24,2,2,25,3,25},   // office reception, work, meeting, records
-        {4,4,27,26,12,2},  // market produce, aisles, cold storage, till
-        {16,6,19,18,6,19}, // hotel lobby, suite, housekeeping, lounge
-        {20,20,23,2,21,23},// school classrooms, library, office, lab
-        {28,29,2,29,13,28},// factory machine hall, assembly, control, tools
-        {12,13,12,29,13,24},// warehouse receiving, racks, packing, security
-        {14,0,15,14,1,6}   // residence living, sleep, kitchen, dining
+        {33,35,47,13,35,34},
+        {36,36,2,41,36,34},
+        {38,38,27,26,38,36},
+        {39,35,46,33,35,46},
+        {40,40,41,36,42,41},
+        {44,44,36,44,45,44},
+        {45,45,45,44,45,36},
+        {33,35,47,47,36,41}
     };
     private static final int[][] SUPPORT={
-        {15,1,14,15,1,15},
-        {2,25,14,3,25,3},
-        {13,27,13,4,13,25},
-        {17,18,3,7,18,1},
-        {22,22,22,25,22,9},
-        {29,11,3,11,12,29},
-        {13,12,13,12,12,3},
-        {7,1,14,15,1,15}
+        {32,34,15,14,34,41},
+        {24,2,25,25,3,3},
+        {4,27,38,26,13,25},
+        {16,18,19,17,18,19},
+        {20,22,23,25,21,23},
+        {28,29,2,29,13,28},
+        {12,13,12,29,13,24},
+        {14,0,15,32,1,6}
     };
     private static final int[][] ACCENT={
-        {7,1,14,15,1,15},
+        {34,1,14,15,1,13},
         {3,3,25,3,25,2},
         {4,13,12,26,4,3},
-        {7,1,18,14,1,3},
-        {23,23,9,3,21,1},
+        {17,1,18,7,18,1},
+        {22,20,9,3,21,1},
         {10,29,11,13,12,11},
         {12,12,13,13,12,3},
         {15,7,1,14,15,1}
     };
-    private static final int[][] SHARED={
-        {14,15,7,1},  // apartment shared kitchen + seating
-        {24,2,25,3},  // office lobby + records
-        {4,26,4,27},  // market aisles + checkout + cold displays
-        {16,17,18,7}, // hotel reception, luggage, services, lounge
-        {20,23,22,23},// school classroom and study/library commons
-        {28,29,10,11},// factory shop machinery and tool benches
-        {12,13,29,12},// warehouse freight and work surfaces
-        {14,15,7,1}
+    private static final int[][] SCENIC={
+        {32,35,47,37,32,34},
+        {39,36,37,41,36,37},
+        {38,38,45,26,38,37},
+        {39,35,46,32,35,46},
+        {40,40,41,37,42,43},
+        {44,44,37,44,45,44},
+        {45,45,45,44,45,37},
+        {32,35,47,47,36,41}
     };
+    private static final int[][] UTILITY={
+        {41,34,32,13,34,13},
+        {36,41,36,41,37,45},
+        {45,6,45,26,45,41},
+        {34,3,45,32,3,45},
+        {43,43,43,41,43,45},
+        {45,45,41,45,45,44},
+        {45,45,45,44,45,36},
+        {34,41,32,34,41,38}
+    };
+    private static final int[][] SHARED={
+        {33,32,34,47,7,14},
+        {24,36,25,41,37,2},
+        {4,26,38,27,45,38},
+        {39,17,33,16,32,18},
+        {20,40,23,22,41,43},
+        {28,44,29,45,12,13},
+        {12,45,13,29,44,36},
+        {33,32,47,34,15,14}
+    };
+    // Physical rectangles for all 48 rendered art cells; scaling is uniform
+    // per object, and collision is exactly the chosen visual bounding box.
     private static final float[][] SIZES={
         {125,106},{110,76},{139,94},{94,71},
         {142,77},{148,82},{132,110},{101,83},
@@ -60,7 +84,11 @@ public final class InteriorRoomArchetypeV166 {
         {151,101},{80,88},{111,83},{93,91},
         {137,86},{144,92},{128,86},{126,78},
         {140,93},{122,95},{133,90},{105,109},
-        {145,97},{140,92},{105,135},{101,96}
+        {145,97},{140,92},{105,135},{101,96},
+        {110,78},{144,95},{139,92},{72,78},
+        {146,110},{78,57},{126,109},{142,100},
+        {148,111},{120,104},{138,103},{130,84},
+        {143,101},{129,96},{109,92},{139,111}
     };
     public static int sprite(int theme,int index,int variation,int slot){
         if(theme<0||theme>=8||index<0||index>=6)return -1;
@@ -74,14 +102,16 @@ public final class InteriorRoomArchetypeV166 {
             if(logical==4)logical=5;
             else if(logical==5)logical=4;
         }
-        int primary=PRIMARY[theme][logical],secondary=SUPPORT[theme][logical];
-        int accent=ACCENT[theme][logical];
-        switch(Math.floorMod(slot,5)){
-            case 0:return primary;
-            case 1:return secondary;
-            case 2:return accent;
-            case 3:return secondary;
-            default:return primary;
+        // Curated work/life ensembles. Distinct anchor roles create a
+        // coherent room identity instead of a scattering of generic objects.
+        switch(Math.floorMod(slot,7)){
+            case 0:return PRIMARY[theme][logical];
+            case 1:return SUPPORT[theme][logical];
+            case 2:return SCENIC[theme][logical];
+            case 3:return ACCENT[theme][logical];
+            case 4:return UTILITY[theme][logical];
+            case 5:return SUPPORT[theme][logical];
+            default:return ACCENT[theme][logical];
         }
     }
     /**
@@ -90,7 +120,7 @@ public final class InteriorRoomArchetypeV166 {
      */
     public static int shared(int theme,int station,int variation){
         if(theme<0||theme>=8)return 14;
-        return SHARED[theme][Math.floorMod(station+variation,4)];
+        return SHARED[theme][Math.floorMod(station+variation,SHARED[theme].length)];
     }
     public static float width(int sprite){
         return SIZES[Math.floorMod(sprite,SIZES.length)][0];

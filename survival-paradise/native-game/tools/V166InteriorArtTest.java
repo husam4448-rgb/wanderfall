@@ -3,8 +3,8 @@ package com.survivalparadise.nativegame;
 public final class V166InteriorArtTest {
     private static void check(boolean x,String m){if(!x)throw new AssertionError(m);}
     public static void main(String[] args){
-        check(InteriorPropSelectionV166.SPRITES==32,
-            "Combined 16 original + 16 specialized art cells");
+        check(InteriorPropSelectionV166.SPRITES==48,
+            "Combined 16 original + 16 specialized + 16 story scenes");
         check(InteriorPropSelectionV166.CELL==256,"Atlas dimensions");
         for(int theme=0;theme<NeighborhoodV154.TYPES;theme++){
             int seen=0;
@@ -58,7 +58,7 @@ public final class V166InteriorArtTest {
             check(InteriorRoomArchetypeV166.height(sprite)>55,
                 "Special height missing");
         }
-        check(!InteriorPropSelectionV166.valid(32),
+        check(!InteriorPropSelectionV166.valid(48),
             "Invalid sprite accepted");
         boolean[] categories=new boolean[16];
         for(int theme=0;theme<8;theme++){
@@ -92,12 +92,35 @@ public final class V166InteriorArtTest {
         }
         for(int sprite=0;sprite<14;sprite++)
             check(categories[sprite],"Specialized room sprite never assigned: "+sprite);
+        // Every newly authored set-piece index is reachable in some
+        // actual room/shared area; none is a dead asset or a random prop.
+        boolean[] newScenes=new boolean[16];
+        for(int theme=0;theme<8;theme++){
+            for(int room=0;room<6;room++)
+                for(int variation=0;variation<4;variation++)
+                    for(int slot=0;slot<21;slot++){
+                        int sprite=InteriorRoomArchetypeV166.sprite(
+                            theme,room,variation,slot);
+                        if(sprite>=32)newScenes[sprite-32]=true;
+                    }
+            for(int station=0;station<12;station++){
+                int sprite=InteriorRoomArchetypeV166.shared(theme,station,0);
+                if(sprite>=32)newScenes[sprite-32]=true;
+            }
+        }
+        for(int i=0;i<16;i++){
+            check(InteriorPropSelectionV166.choose(2,i+48,0,100,100)==i+32,
+                "New 32..47 direct role tag changed");
+            check(InteriorRoomArchetypeV166.width(i+32)>50,
+                "Missing new set-piece dimensions");
+            check(newScenes[i],"Unused new room scene "+(i+32));
+        }
         check(InteriorRoomArchetypeV166.legacy(0,0,true,0)==30,
             "Clinic bed replaced");
         check(InteriorRoomArchetypeV166.legacy(1,0,true,1)==31,
             "Clinic trolley replaced");
         check(InteriorPropSelectionV166.choose(-1,0,0,90,75)==-1,
             "Invalid family");
-        System.out.println("PASS V166: 32 themed sprites; correct hotel/school, clinic and original identity");
+        System.out.println("PASS V166: 48 themed sprites; 16 complete room set-pieces, preserved hotel/school, clinic and original identity");
     }
 }
