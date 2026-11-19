@@ -217,12 +217,12 @@ public final class NeighborhoodLayoutV163 {
     private void finishWallDetails(Zone z,int room,ArrayList<float[]> supplies){
         if(roomCount(z)>=6)return;
         float rw=z.x2-z.x1,rh=z.y2-z.y1;
-        for(int candidate=0;candidate<256&&roomCount(z)<6;candidate++){
+        for(int candidate=0;candidate<320&&roomCount(z)<6;candidate++){
             int side=candidate%4,step=(candidate/4)%16;
             int pass=candidate/64;
             int sprite=(candidate/4+room+theme)%3==0?37:43;
-            float w=(sprite==43?73f:52f)*(pass==0?1f:pass==1?.84f:.72f);
-            float h=(sprite==43?35f:30f)*(pass==0?1f:pass==1?.84f:.72f);
+            float w=(sprite==43?73f:52f)*(pass==0?1f:pass==1?.84f:pass==2?.70f:pass==3?.53f:.46f);
+            float h=(sprite==43?35f:30f)*(pass==0?1f:pass==1?.84f:pass==2?.70f:pass==3?.53f:.46f);
             int orientation=side==0?0:side==1?90:side==2?270:180;
             if(orientation==90||orientation==270){
                 float swap=w;w=h;h=swap;
@@ -248,13 +248,13 @@ public final class NeighborhoodLayoutV163 {
             }
             if(occupied)continue;
             for(float[] cache:supplies)
-                if(x<cache[0]+44f&&x+w>cache[0]-44f&&
-                   y<cache[1]+44f&&y+h>cache[1]-44f){
+                if(x<cache[0]+37f&&x+w>cache[0]-37f&&
+                   y<cache[1]+37f&&y+h>cache[1]-37f){
                     occupied=true;break;
                 }
             if(occupied)continue;
             for(Zone door:zones)
-                if(Math.hypot(cx-door.dx,cy-door.dy)<75f){
+                if(Math.hypot(cx-door.dx,cy-door.dy)<65f){
                     occupied=true;break;
                 }
             if(occupied)continue;
