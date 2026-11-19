@@ -91,6 +91,19 @@ public final class NeighborhoodLayoutV163 {
         float cx=x+w*.5f,cy=y+h*.5f;
         for(Zone z:zones){
             if(Math.hypot(cx-z.dx,cy-z.dy)<86f)return false;
+            float mx=(z.x1+z.x2)*.5f,my=(z.y1+z.y2)*.5f;
+            // Guard the continuous portal-to-standing-area corridor, not
+            // just a disk around the door. Prevent corner furniture from
+            // sealing otherwise accessible rooms.
+            if(z.vertical){
+                float left=Math.min(mx,z.dx),right=Math.max(mx,z.dx);
+                if(x<right+28f&&x+w>left-28f&&
+                   y<z.dy+42f&&y+h>z.dy-42f)return false;
+            }else{
+                float top=Math.min(my,z.dy),bottom=Math.max(my,z.dy);
+                if(y<bottom+28f&&y+h>top-28f&&
+                   x<z.dx+42f&&x+w>z.dx-42f)return false;
+            }
         }
         for(float[] cache:supplies){
             if(x<cache[0]+42f&&x+w>cache[0]-42f&&
