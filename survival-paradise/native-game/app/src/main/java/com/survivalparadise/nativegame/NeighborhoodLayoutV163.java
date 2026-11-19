@@ -264,6 +264,84 @@ public final class NeighborhoodLayoutV163 {
         }
     }
     /**
+     * Guarantee recognizable facing variety within each six-object room.
+     * Reposition an existing minor dressing onto a safe perimeter wall,
+     * preserving room object count, loot IDs, walls and all solid navigation.
+     * A wall-hung note/board is a real authored sprite, never a fake cabinet.
+     */
+    private void ensureRoomFacing(Zone z,int required,ArrayList<float[]> supplies){
+        int down=0,side=0;
+        for(float[] q:objects){
+            if(q.length<6||q[1]<z.x1||q[2]<z.y1||
+               q[1]+q[3]>z.x2||q[2]+q[4]>z.y2)continue;
+            int angle=(int)q[5];
+            if(angle==0)down++;
+            if(angle==90||angle==270)side++;
+        }
+        if(required==0?down>0:side>0)return;
+        int victim=-1;
+        float best=Float.MAX_VALUE;
+        for(int i=0;i<objects.size();i++){
+            float[] q=objects.get(i);
+            if(q.length<6||q[1]<z.x1||q[2]<z.y1||
+               q[1]+q[3]>z.x2||q[2]+q[4]>z.y2)continue;
+            int angle=(int)q[5];
+            if(required==0&&(angle==90||angle==270)&&side<=1)continue;
+            if(required!=0&&angle==0&&down<=1)continue;
+            int sprite=(int)q[0]-16;
+            float score=(q.length>6&&q[6]==1f?0f:200000f)+
+                (sprite>=48?500000f:0f)+q[3]*q[4];
+            if(score<best){best=score;victim=i;}
+        }
+        if(victim<0)return;
+        float rw=z.x2-z.x1,rh=z.y2-z.y1;
+        for(int candidate=0;candidate<112;candidate++){
+            int pass=candidate/28,step=(candidate/2)%14;
+            int sideChoice=candidate%2;
+            int sprite=required==0?37:43;
+            float scale=pass==0?1f:pass==1?.78f:pass==2?.59f:.43f;
+            float w=(sprite==43?73f:52f)*scale;
+            float h=(sprite==43?35f:30f)*scale;
+            int angle=required==0?0:sideChoice==0?90:270;
+            if(angle==90||angle==270){float a=w;w=h;h=a;}
+            float t=(step+1)/15f;
+            float x,y;
+            if(required==0){
+                x=z.x1+24f+(rw-48f-w)*t;
+                y=z.y1+24f;
+            }else{
+                x=sideChoice==0?z.x1+24f:z.x2-24f-w;
+                y=z.y1+24f+(rh-48f-h)*t;
+            }
+            if(x<z.x1+16f||y<z.y1+16f||
+               x+w>z.x2-16f||y+h>z.y2-16f)continue;
+            float cx=x+w*.5f,cy=y+h*.5f;
+            boolean occupied=false;
+            for(int i=0;i<objects.size();i++){
+                if(i==victim)continue;
+                float[] q=objects.get(i);
+                if(x<q[1]+q[3]+3f&&x+w>q[1]-3f&&
+                   y<q[2]+q[4]+3f&&y+h>q[2]-3f){
+                    occupied=true;break;
+                }
+            }
+            if(occupied)continue;
+            for(float[] cache:supplies)
+                if(x<cache[0]+36f&&x+w>cache[0]-36f&&
+                   y<cache[1]+36f&&y+h>cache[1]-36f){
+                    occupied=true;break;
+                }
+            if(occupied)continue;
+            for(Zone door:zones)
+                if(Math.hypot(cx-door.dx,cy-door.dy)<67f){
+                    occupied=true;break;
+                }
+            if(occupied)continue;
+            objects.set(victim,new float[]{16+sprite,x,y,w,h,angle,1f});
+            return;
+        }
+    }
+    /**
      * Circulation and shared-purpose spaces were never part of the six V163
      * rooms. Previously this left reception halls, sales floors and school
      * commons completely empty. Place functional grouped equipment on their
@@ -438,6 +516,8 @@ public final class NeighborhoodLayoutV163 {
             }
             finishRoom(z,index,supplies);
             finishWallDetails(z,index,supplies);
+            ensureRoomFacing(z,0,supplies);
+            ensureRoomFacing(z,90,supplies);
         }
         furnishCommons(supplies);
         walls=pack(barriers);
