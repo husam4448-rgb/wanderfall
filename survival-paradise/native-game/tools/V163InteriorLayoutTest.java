@@ -93,6 +93,21 @@ public final class V163InteriorLayoutTest {
                         "Same building regenerated a different furniture plan");
                     check(Arrays.deepEquals(layout.walls,reentered.sceneWalls()),
                         "Same building regenerated a different interior");
+                    check(Arrays.deepEquals(room.decorV166,reentered.decorV166),
+                        "Ambient decorations differ after re-entry");
+                    check(room.decorV166.length>0,
+                        "An inhabited interior has no ambient detail");
+                    for(float[] d:room.decorV166){
+                        check(d.length==5&&d[3]>0f&&d[4]>0f,
+                            "Invalid walk-through decoration");
+                        for(float[] furnishing:layout.furniture){
+                            check(d[1]+d[3]<=furnishing[1]||
+                                  d[1]>=furnishing[1]+furnishing[3]||
+                                  d[2]+d[4]<=furnishing[2]||
+                                  d[2]>=furnishing[2]+furnishing[4],
+                                  "Ambient detail overlaps solid furniture");
+                        }
+                    }
                     lootPreserved++;tested++;
                     if(tested>85&&topology.size()==NeighborhoodLayoutV163.PLAN_COUNT)break;
                 }
