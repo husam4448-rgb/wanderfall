@@ -379,14 +379,18 @@ jobs:
           # retains entrance-based nearView culling and hides distant props.
           camera_anchor='        canvas.drawColor(0xff101f24);'
           assert camera_anchor in s
-          camera_setup='''        // QA ONLY: both render and visibility culling use camY.
-          if(insideClinicV89&&(qaInterior>0||qaLegacy>0)){
+          camera_setup='''        // QA ONLY: render and culling share camY.
+          if(insideClinicV89&&(
+              android.provider.Settings.Global.getInt(
+                  host.getContentResolver(),"sp_v166_qa_interior_kind",0)>0||
+              android.provider.Settings.Global.getInt(
+                  host.getContentResolver(),"sp_v166_qa_legacy_scene",0)>0)){
               int qaVantageV166=android.provider.Settings.Global.getInt(
                   host.getContentResolver(),"sp_v166_qa_vantage",0);
               float qaStageHeightV166=clinicInteriorV89 instanceof
                   IndustrialInteriorV123?1904f:ClinicInteriorV89.HEIGHT;
               float qaMaxYV166=Math.max(0f,
-                  qaStageHeightV166-viewH/effectiveZoom);
+                  qaStageHeightV166-viewH/Math.max(.45f,renderZoomV90));
               if(qaVantageV166==1)camY=qaMaxYV166*.5f;
               else if(qaVantageV166==2)camY=0f;
           }
