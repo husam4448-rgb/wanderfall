@@ -42,7 +42,7 @@ public final class V163InteriorLayoutTest {
         HashSet<Integer> topology=new HashSet<>(),geometry=new HashSet<>();
         int tested=0,lootPreserved=0,allProps=0,minProps=Integer.MAX_VALUE,maxProps=0;
         int composedGroups=0,roomMin=Integer.MAX_VALUE,roomsBelowSix=0;
-        int downward=0,sideways=0;
+        int downward=0,sideways=0,roomsNoDown=0,roomsNoSide=0;
         for(int seed:new int[]{14901,87011,31526,58923}){
             WorldGeographyV160 earth=WorldGeographyV160.prepare(seed,null);
             WorldCivilizationV159.Plan plan=WorldCivilizationV159.generate(
@@ -64,19 +64,23 @@ public final class V163InteriorLayoutTest {
                         if((int)q[0]>=64&&(int)q[0]<80)composedGroups++;
                     for(int roomIndex=0;roomIndex<layout.rooms.length;roomIndex++){
                         float[] roomBox=layout.rooms[roomIndex];
-                        int roomProps=0;
+                        int roomProps=0,frontCount=0,sideCount=0;
                         for(float[] q:layout.furniture){
                             if(q[1]>=roomBox[0]&&q[2]>=roomBox[1]&&
                                q[1]+q[3]<=roomBox[0]+roomBox[2]&&
                                q[2]+q[4]<=roomBox[1]+roomBox[3]){
                                 roomProps++;
                                 if(q.length>5){
-                                    if((int)q[5]==0)downward++;
-                                    if((int)q[5]==90||(int)q[5]==270)sideways++;
+                                    if((int)q[5]==0){downward++;frontCount++;}
+                                    if((int)q[5]==90||(int)q[5]==270){
+                                        sideways++;sideCount++;
+                                    }
                                 }
                             }
                         }
                         roomMin=Math.min(roomMin,roomProps);
+                        if(frontCount==0)roomsNoDown++;
+                        if(sideCount==0)roomsNoSide++;
                         if(roomProps<6){
                             if(roomsBelowSix<18)System.out.println(
                                 "SPARSE ROOM theme="+room.theme+" plan="+layout.plan+
@@ -144,6 +148,8 @@ public final class V163InteriorLayoutTest {
             }
         }
         check(tested>=20,"Too few buildings inspected");
+        check(roomMin>=6 && roomsBelowSix==0,
+            "Any room below six visibly distinct objects: "+roomsBelowSix);
         check(topology.size()==NeighborhoodLayoutV163.PLAN_COUNT,
             "Floor plans are not sufficiently diverse: "+topology);
         check(geometry.size()>15,"Different buildings reused indistinguishable wall layouts");
@@ -155,6 +161,8 @@ public final class V163InteriorLayoutTest {
             "; complete scene ensembles="+composedGroups+
             "; individual props per room minimum="+roomMin+
             "; below six="+roomsBelowSix+
-            "; front/side orientations="+downward+"/"+sideways);
+            "; front/side orientations="+downward+"/"+sideways+
+            "; rooms missing down-facing="+roomsNoDown+
+            "; rooms missing side-facing="+roomsNoSide);
     }
 }
