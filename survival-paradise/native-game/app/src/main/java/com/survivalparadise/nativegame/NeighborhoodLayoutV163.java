@@ -90,15 +90,15 @@ public final class NeighborhoodLayoutV163 {
         }
         float cx=x+w*.5f,cy=y+h*.5f;
         for(Zone z:zones){
-            if(Math.hypot(cx-z.dx,cy-z.dy)<112f)return false;
+            if(Math.hypot(cx-z.dx,cy-z.dy)<86f)return false;
         }
         for(float[] cache:supplies){
-            if(x<cache[0]+54f&&x+w>cache[0]-54f&&
-               y<cache[1]+54f&&y+h>cache[1]-54f)return false;
+            if(x<cache[0]+42f&&x+w>cache[0]-42f&&
+               y<cache[1]+42f&&y+h>cache[1]-42f)return false;
         }
         for(float[] obj:objects){
-            if(x<obj[1]+obj[3]+10f&&x+w>obj[1]-10f&&
-               y<obj[2]+obj[4]+10f&&y+h>obj[2]-10f)return false;
+            if(x<obj[1]+obj[3]+6f&&x+w>obj[1]-6f&&
+               y<obj[2]+obj[4]+6f&&y+h>obj[2]-6f)return false;
         }
         // Existing V161 collision and deterministic room signatures continue
         // to derive from these same rectangles.
@@ -193,17 +193,17 @@ public final class NeighborhoodLayoutV163 {
             float t=(step+1)/13f;
             float x,y;
             if(side==0||side==1){
-                x=side==0?z.x1+39f:z.x2-39f-w;
-                y=z.y1+35f+(rh-70f-h)*t;
+                x=side==0?z.x1+32f:z.x2-32f-w;
+                y=z.y1+32f+(rh-64f-h)*t;
             }else{
-                x=z.x1+35f+(rw-70f-w)*t;
-                y=side==2?z.y1+39f:z.y2-39f-h;
+                x=z.x1+32f+(rw-64f-w)*t;
+                y=side==2?z.y1+32f:z.y2-32f-h;
             }
             if(w<28f||h<24f||x<z.x1+24f||y<z.y1+24f||
                x+w>z.x2-24f||y+h>z.y2-24f)continue;
             float mx=(z.x1+z.x2)*.5f,my=(z.y1+z.y2)*.5f;
-            if(x<mx+43f&&x+w>mx-43f&&
-               y<my+43f&&y+h>my-43f)continue;
+            if(x<mx+25f&&x+w>mx-25f&&
+               y<my+25f&&y+h>my-25f)continue;
             putFurnishing(sprite,x,y,w,h,orientation,supplies);
         }
     }
