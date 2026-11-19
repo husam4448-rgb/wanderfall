@@ -223,7 +223,7 @@ public final class NeighborhoodLayoutV163 {
             theme==NeighborhoodV154.HOTEL||
             theme==NeighborhoodV154.MARKET?14:10;
         int count=0;
-        for(int j=0;j<81&&count<aim&&objects.size()<84;j++){
+        for(int j=0;j<81&&count<aim&&objects.size()<48;j++){
             int index=Math.floorMod(j*47+Math.floorMod(signature,81),81);
             int col=index%9,row=index/9;
             int h=hash(571+index*13,theme*181+index*7);
