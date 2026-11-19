@@ -75,15 +75,15 @@ public final class NeighborhoodLayoutV163 {
         }
         float cx=x+w*.5f,cy=y+h*.5f;
         for(Zone z:zones){
-            if(Math.hypot(cx-z.dx,cy-z.dy)<135f)return false;
+            if(Math.hypot(cx-z.dx,cy-z.dy)<155f)return false;
         }
         for(float[] cache:supplies){
             if(x<cache[0]+54f&&x+w>cache[0]-54f&&
                y<cache[1]+54f&&y+h>cache[1]-54f)return false;
         }
         for(float[] obj:objects){
-            if(x<obj[1]+obj[3]+13f&&x+w>obj[1]-13f&&
-               y<obj[2]+obj[4]+13f&&y+h>obj[2]-13f)return false;
+            if(x<obj[1]+obj[3]+22f&&x+w>obj[1]-22f&&
+               y<obj[2]+obj[4]+22f&&y+h>obj[2]-22f)return false;
         }
         // Existing V161 collision and deterministic room signatures continue
         // to derive from these same rectangles.
@@ -106,7 +106,7 @@ public final class NeighborhoodLayoutV163 {
         };
         int staged=0;
         float area=(z.x2-z.x1)*(z.y2-z.y1);
-        int aim=area>210000f?6:area>120000f?5:4;
+        int aim=area>210000f?4:area>120000f?3:2;
         for(int slot=0;slot<anchors.length&&staged<aim;slot++){
             int sprite=InteriorRoomArchetypeV166.sprite(
                 theme,room,variation,slot);
@@ -125,6 +125,22 @@ public final class NeighborhoodLayoutV163 {
                     Math.floorMod(n>>>9,9)-4f;
             float y=z.y1+36f+anchors[slot][1]*spanY/1000f+
                     Math.floorMod(n>>>17,9)-4f;
+            // A clear 160-unit pedestrian route must connect the real
+            // doorway to each chamber's central standing area.
+            float midX=(z.x1+z.x2)*.5f,midY=(z.y1+z.y2)*.5f;
+            if(z.vertical){
+                float left=Math.min(z.dx,midX),right=Math.max(z.dx,midX);
+                if(x<right+75f&&x+width>left-75f&&
+                   y<z.dy+80f&&y+height>z.dy-80f)continue;
+            }else{
+                float top=Math.min(z.dy,midY),bottom=Math.max(z.dy,midY);
+                if(y<bottom+75f&&y+height>top-75f&&
+                   x<z.dx+80f&&x+width>z.dx-80f)continue;
+            }
+            // Preserve a usable room center, even when a decorated table
+            // is already stationed near the far corner.
+            if(x<midX+80f&&x+width>midX-80f&&
+               y<midY+70f&&y+height>midY-70f)continue;
             if(putFurnishing(sprite,x,y,width,height,supplies))staged++;
         }
     }
@@ -142,9 +158,9 @@ public final class NeighborhoodLayoutV163 {
         // permutation visits every floor region with stable seed variation.
         final int aim=theme==NeighborhoodV154.SCHOOL||
             theme==NeighborhoodV154.HOTEL||
-            theme==NeighborhoodV154.MARKET?17:13;
+            theme==NeighborhoodV154.MARKET?14:10;
         int count=0;
-        for(int j=0;j<81&&count<aim&&objects.size()<90;j++){
+        for(int j=0;j<81&&count<aim&&objects.size()<84;j++){
             int index=Math.floorMod(j*47+Math.floorMod(signature,81),81);
             int col=index%9,row=index/9;
             int h=hash(571+index*13,theme*181+index*7);
@@ -278,18 +294,18 @@ public final class NeighborhoodLayoutV163 {
                 // Protect a broad approach, not only the tiny 98px door gap.
                 if(x<940f&&x+w>660f&&y<1095f&&y+h>880f)continue;
                 // Entrance clearances and central routes are collision-safe.
-                if(Math.hypot(cx-z.dx,cy-z.dy)<140f)continue;
-                if(Math.abs(cx-(z.x1+z.x2)*.5f)<46f&&
-                   Math.abs(cy-(z.y1+z.y2)*.5f)<66f)continue;
+                if(Math.hypot(cx-z.dx,cy-z.dy)<166f)continue;
+                if(Math.abs(cx-(z.x1+z.x2)*.5f)<53f&&
+                   Math.abs(cy-(z.y1+z.y2)*.5f)<80f)continue;
                 boolean overlaps=false;
                 for(float[] cache:supplies){
-                    if(Math.abs(cx-cache[0])<75f&&
-                       Math.abs(cy-cache[1])<71f){overlaps=true;break;}
+                    if(Math.abs(cx-cache[0])<101f&&
+                       Math.abs(cy-cache[1])<93f){overlaps=true;break;}
                 }
                 if(overlaps)continue;
                 for(float[] q:objects){
-                    if(x<q[1]+q[3]+14f&&x+w>q[1]-14f&&
-                       y<q[2]+q[4]+14f&&y+h>q[2]-14f){
+                    if(x<q[1]+q[3]+26f&&x+w>q[1]-26f&&
+                       y<q[2]+q[4]+26f&&y+h>q[2]-26f){
                         overlaps=true;break;
                     }
                 }
