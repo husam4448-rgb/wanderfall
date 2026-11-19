@@ -1,0 +1,36 @@
+name: SP V166 - Import Authored Interior Set Pieces
+on:
+  push:
+    branches: [sp-native-v166-world-art-overhaul-20261118]
+    paths:
+      - '.github/workflows/sp-v166-story-props-import.yml'
+      - 'survival-paradise/native-game/tools/import_v166_story_atlas.py'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  import-original-art:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          ref: sp-native-v166-world-art-overhaul-20261118
+      - name: Install lossless-alpha image decoder
+        run: python3 -m pip install --disable-pip-version-check pillow==11.3.0
+      - name: Verify original authored image and pack offline runtime atlas
+        run: python3 survival-paradise/native-game/tools/import_v166_story_atlas.py
+      - name: Commit vetted artwork to source repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add survival-paradise/native-game/app/src/main/assets/sp_v166_story_props.webp.b64
+          if git diff --cached --quiet; then
+            echo 'Original art asset already committed'
+            exit 0
+          fi
+          git commit -m "V166 original art: embed 16 themed set-piece sprites for offline rendering"
+          git push origin HEAD:sp-native-v166-world-art-overhaul-20261118
