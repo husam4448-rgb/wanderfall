@@ -340,6 +340,26 @@ public final class NeighborhoodLayoutV163 {
             objects.set(victim,new float[]{16+sprite,x,y,w,h,angle,1f});
             return;
         }
+        // Extremely narrow chambers can have no remaining wall clearance.
+        // Turn the nearest EXISTING perimeter item instead of adding a
+        // blocker, changing collision geometry, or crowding a cabinet.
+        int alternate=-1;float closest=Float.MAX_VALUE;
+        for(int i=0;i<objects.size();i++){
+            float[] q=objects.get(i);
+            if(q.length<6||q[1]<z.x1||q[2]<z.y1||
+               q[1]+q[3]>z.x2||q[2]+q[4]>z.y2)continue;
+            int angle=(int)q[5];
+            if(required==0&&(angle==90||angle==270)&&side<=1)continue;
+            if(required!=0&&angle==0&&down<=1)continue;
+            float distance=required==0?q[2]-z.y1:
+                Math.min(q[1]-z.x1,z.x2-q[1]-q[3]);
+            if(distance<closest){closest=distance;alternate=i;}
+        }
+        if(alternate>=0){
+            float[] q=objects.get(alternate);
+            q[5]=required==0?0:
+                q[1]-z.x1<=z.x2-q[1]-q[3]?90:270;
+        }
     }
     /**
      * Circulation and shared-purpose spaces were never part of the six V163
