@@ -3,8 +3,8 @@ package com.survivalparadise.nativegame;
 public final class V166InteriorArtTest {
     private static void check(boolean x,String m){if(!x)throw new AssertionError(m);}
     public static void main(String[] args){
-        check(InteriorPropSelectionV166.SPRITES==48,
-            "Combined 16 original + 16 specialized + 16 story scenes");
+        check(InteriorPropSelectionV166.SPRITES==64,
+            "Original 16 + specialized 16 + story 16 + ensemble 16");
         check(InteriorPropSelectionV166.CELL==256,"Atlas dimensions");
         for(int theme=0;theme<NeighborhoodV154.TYPES;theme++){
             int seen=0;
@@ -58,7 +58,7 @@ public final class V166InteriorArtTest {
             check(InteriorRoomArchetypeV166.height(sprite)>55,
                 "Special height missing");
         }
-        check(!InteriorPropSelectionV166.valid(48),
+        check(!InteriorPropSelectionV166.valid(64),
             "Invalid sprite accepted");
         boolean[] categories=new boolean[16];
         for(int theme=0;theme<8;theme++){
@@ -95,17 +95,20 @@ public final class V166InteriorArtTest {
         // Every newly authored set-piece index is reachable in some
         // actual room/shared area; none is a dead asset or a random prop.
         boolean[] newScenes=new boolean[16];
+        boolean[] ensembles=new boolean[16];
         for(int theme=0;theme<8;theme++){
             for(int room=0;room<6;room++)
                 for(int variation=0;variation<4;variation++)
                     for(int slot=0;slot<21;slot++){
                         int sprite=InteriorRoomArchetypeV166.sprite(
                             theme,room,variation,slot);
-                        if(sprite>=32)newScenes[sprite-32]=true;
+                        if(sprite>=32&&sprite<48)newScenes[sprite-32]=true;
+                        if(sprite>=48)ensembles[sprite-48]=true;
                     }
             for(int station=0;station<12;station++){
                 int sprite=InteriorRoomArchetypeV166.shared(theme,station,0);
-                if(sprite>=32)newScenes[sprite-32]=true;
+                if(sprite>=32&&sprite<48)newScenes[sprite-32]=true;
+                        if(sprite>=48)ensembles[sprite-48]=true;
             }
         }
         for(int i=0;i<16;i++){
@@ -113,7 +116,30 @@ public final class V166InteriorArtTest {
                 "New 32..47 direct role tag changed");
             check(InteriorRoomArchetypeV166.width(i+32)>50,
                 "Missing new set-piece dimensions");
-            check(newScenes[i],"Unused new room scene "+(i+32));
+            // Some individual original artworks appear as subcomponents of
+            // ensembles rather than as isolated physical obstacles.
+            if(!newScenes[i]){
+                boolean referenced=false;
+                for(int g=48;g<64;g++)
+                    for(int[] part:InteriorScenePlanV166.parts(g))
+                        if(part[0]==i+32)referenced=true;
+                check(referenced,"Unused new room scene "+(i+32));
+            }
+        }
+        // Complete semantic set pieces use only existing authored sprites.
+        for(int group=48;group<64;group++){
+            int[][] recipe=InteriorScenePlanV166.parts(group);
+            check(recipe.length>=2,"Single-object ensemble");
+            check(InteriorPropSelectionV166.choose(2,group+16,0,140,100)==group,
+                "Direct grouping role changed");
+            for(int[] part:recipe){
+                check(part.length==5,"Invalid scene component");
+                check(part[0]>=0&&part[0]<48,"Recursive/invalid child");
+                check(part[1]>=0&&part[2]>=0&&part[3]>0&&part[4]>0,
+                    "Invalid part bounds");
+                check(part[1]+part[3]<=1000&&part[2]+part[4]<=1000,
+                    "Set piece overhangs collision footprint");
+            }
         }
         check(InteriorRoomArchetypeV166.legacy(0,0,true,0)==30,
             "Clinic bed replaced");
@@ -121,6 +147,6 @@ public final class V166InteriorArtTest {
             "Clinic trolley replaced");
         check(InteriorPropSelectionV166.choose(-1,0,0,90,75)==-1,
             "Invalid family");
-        System.out.println("PASS V166: 48 themed sprites; 16 complete room set-pieces, preserved hotel/school, clinic and original identity");
+        System.out.println("PASS V166: 64 themed sprites; staged complete room sets, correct hotel/school and identity");
     }
 }

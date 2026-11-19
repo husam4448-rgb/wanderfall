@@ -66,6 +66,9 @@ public final class InteriorPropArtV166 {
                                  float width,float height){
         if(!InteriorPropSelectionV166.valid(sprite)||
            width<=0||height<=0)return false;
+        if(sprite>=48)
+            return InteriorEnsembleArtV166.drawAt(
+                canvas,sprite,x,y,width,height);
         if(sprite>=32)
             return InteriorScenePropArtV166.drawAt(
                 canvas,sprite,x,y,width,height);

@@ -2,15 +2,15 @@ package com.survivalparadise.nativegame;
 
 /**
  * Deterministic V166 art lookup: 16 original furniture silhouettes plus
- * 16 dedicated interiors, mapped through one stable 0..47 sprite vocabulary.
+ * 16 dedicated interiors, mapped through one stable 0..63 sprite vocabulary.
  * Physical coordinates, saves and collisions remain owned by V163.
  */
 public final class InteriorPropSelectionV166 {
     private InteriorPropSelectionV166(){}
-    public static final int CELL=256,COLS=4,ROWS=4,SPRITES=48;
+    public static final int CELL=256,COLS=4,ROWS=4,SPRITES=64;
     public static int choose(int theme,int type,int index,float width,float height){
         // V166 semantic direct-sprite role; older 0..5 lookup remains stable.
-        if(type>=16&&type<64)return type-16;
+        if(type>=16&&type<80)return type-16;
         if(theme<0||theme>=NeighborhoodV154.TYPES)return -1;
         float aspect=width/Math.max(1f,height);
         int variant;
