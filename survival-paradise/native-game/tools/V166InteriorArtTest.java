@@ -21,8 +21,33 @@ public final class V166InteriorArtTest {
             }
             check(seen==3,"Missing visual variant for family "+theme);
         }
+        // All direct-role furniture must remain visually plausible for its
+        // actual room. A successful Android run does not certify art quality.
+        // Regression: the former hotel reception used supermarket checkout #5.
+        for(int room=0;room<6;room++){
+            for(int variation=0;variation<4;variation++){
+                for(int slot=0;slot<48;slot++){
+                    int hotel=InteriorRoomArchetypeV166.sprite(3,room,variation,slot);
+                    int school=InteriorRoomArchetypeV166.sprite(4,room,variation,slot);
+                    check(InteriorPropSelectionV166.valid(hotel),"Hotel role invalid");
+                    check(InteriorPropSelectionV166.valid(school),"School role invalid");
+                    check(hotel!=4&&hotel!=5,"Supermarket furniture in hotel");
+                    check(school!=10&&school!=11,
+                        "Factory machine in classroom/laboratory");
+                }
+            }
+        }
+        for(int station=0;station<90;station++)
+            for(int variation=0;variation<4;variation++){
+                int hotel=InteriorRoomArchetypeV166.shared(3,station,variation);
+                int school=InteriorRoomArchetypeV166.shared(4,station,variation);
+                check(hotel!=4&&hotel!=5,
+                    "Supermarket checkout in hotel lobby");
+                check(school!=10&&school!=11,
+                    "Factory machinery in school commons");
+            }
         check(InteriorPropSelectionV166.choose(-1,0,0,90,75)==-1,
             "Invalid family");
-        System.out.println("PASS V166: 16 themed indoor props, 8 distinct floors, stable choice");
+        System.out.println("PASS V166: existing 16 props, 8 floors, corrected hotel/school semantic roles");
     }
 }
