@@ -207,9 +207,22 @@ public final class NeighborhoodLayoutV163 {
             float area=(z.x2-z.x1)*(z.y2-z.y1);
             int target=area>270000f?10:area>160000f?8:6;
             int placed=0;
-            for(int candidate=0;candidate<anchors.length&&placed<target;candidate++){
+            // First honor human-authored perimeter stations. Then probe
+            // seeded interior niches on a 9x9 lattice, avoiding the former
+            // early exit when every candidate near a cabinet/door was used.
+            for(int candidate=0;candidate<anchors.length+81&&placed<target;candidate++){
                 int n=hash(index*73+candidate,theme*107+candidate);
-                int[] anchor=anchors[(candidate+Math.floorMod(n>>>11,3))%anchors.length];
+                int ax,ay;
+                if(candidate<anchors.length){
+                    int[] anchor=anchors[
+                        (candidate+Math.floorMod(n>>>11,3))%anchors.length];
+                    ax=anchor[0];ay=anchor[1];
+                }else{
+                    int id=Math.floorMod(
+                        (candidate-anchors.length)*47+Math.floorMod(signature,81),
+                        81);
+                    ax=(id%9)*125;ay=(id/9)*125;
+                }
                 int sprite=InteriorRoomArchetypeV166.sprite(
                     theme,index,variation,candidate);
                 if(sprite<0)continue;
@@ -217,8 +230,8 @@ public final class NeighborhoodLayoutV163 {
                 float h=InteriorRoomArchetypeV166.height(sprite);
                 float spanX=z.x2-z.x1-72f-w,spanY=z.y2-z.y1-72f-h;
                 if(spanX<1||spanY<1)continue;
-                float x=z.x1+36f+anchor[0]*spanX/1000f;
-                float y=z.y1+36f+anchor[1]*spanY/1000f;
+                float x=z.x1+36f+ax*spanX/1000f;
+                float y=z.y1+36f+ay*spanY/1000f;
                 x=clamp(x+(Math.floorMod(n>>>17,13)-6),z.x1+30f,z.x2-w-30f);
                 y=clamp(y+(Math.floorMod(n>>>23,13)-6),z.y1+30f,z.y2-h-30f);
                 float cx=x+w*.5f,cy=y+h*.5f;
