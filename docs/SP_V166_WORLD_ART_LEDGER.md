@@ -129,3 +129,11 @@ case, even if the JVM selector and Python pixel-asset contract pass.
 - CI-only fix: commit `5a5ab9a` moves the *rendering camera* instead of the player. Explicit image checks reject uniform death-modal screens and unchanged transitions between scene families.
 - Corrected expanded workflow: [run 44399715228](https://github.com/husam4448-rgb/wanderfall/actions/runs/44399715228). In progress; **no QA PASS or visual approval claimed until the corrected captures are inspected**.
 - Remaining visual defects: sparse shared spaces (notably school and hotel); too little distinct room furniture, decorative object variation and clinical/expedition art. No APK release.
+
+## V166 reconstruction continuation, 2026-11-19 — NOT APPROVED
+- Production `NeighborhoodLayoutV163` now searches extra deterministic safe room niches (113 candidates/room) and an 81-station commons lattice, reusing the 16 original-art prop sprites. Solid walls, entry approaches, room boundaries, saved container locations and door clearances remain excluded. No saved item data or head art changed. Source revision: `33a23055`.
+- Source regressions passed across 89 real seeded buildings and six layouts, checking doorway/storage reachability, saved loot and deterministic furniture. Actual placed-furniture min/mean/max: **17 / 24 / 32**. This remains visually insufficient for full approval.
+- [Run 44458802126](https://github.com/husam4448-rgb/wanderfall/actions/runs/44458802126) passed Android compilation, emulator capture and scene transition checks. **Visual review rejected the center/north shots:** they were identical to entrance frames despite a green workflow.
+- Root cause: the earlier QA camera injection modified `drawSnapshot()` instead of live `onDraw()`, because the city QA hook changed `drawColor` indentation.
+- QA-only correction `5b8537d` targets the unique live onDraw scaling anchor and explicitly rejects identical entrance, center and north screenshots for all eight categories. Fresh real Android views must be inspected before approval.
+- **V166 remains IN DEVELOPMENT / NOT APPROVED. No APK release.** Additional room-specific art, believable dense decor, wall continuity, clinic/expedition/industrial viewpoints and world-art coverage remain open.
