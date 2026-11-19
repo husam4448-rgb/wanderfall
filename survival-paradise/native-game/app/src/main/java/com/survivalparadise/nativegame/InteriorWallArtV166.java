@@ -30,53 +30,100 @@ public final class InteriorWallArtV166 {
         x^=x>>>16;x*=0x7feb352d;x^=x>>>15;x*=0x846ca68b;
         return x^(x>>>16);
     }
-    /** Draw material, relief, trims, discrete seams, wear and contact shadows. */
+    /**
+     * Use the existing authored indoor-material atlas as the wall's painted
+     * masonry / timber grain instead of a flat solid-color programmer strip.
+     * This is a rendering-only treatment; each clip is the exact V163
+     * collision wall, so the 164-unit door cuts remain completely open.
+     */
+    private static int material(int theme){
+        switch(theme){
+            case 0:case 3:case 7:return InteriorFloorSelectionV166.OAK;
+            case 1:case 2:case 8:return InteriorFloorSelectionV166.TERRAZZO;
+            case 4:return InteriorFloorSelectionV166.LINO;
+            default:return InteriorFloorSelectionV166.CONCRETE;
+        }
+    }
+    /** Painterly textured surface, continuous junctions and inset trim. */
     public static void draw(Canvas c,Paint p,float[][] walls,float inv,
                             int theme,int seed){
         int[] palette=MATERIAL[theme>=0&&theme<8?theme:8];
+        int material=material(theme);
+        // Base pass first: intersecting perimeter, corner and partition wall
+        // segments are not left with individual dark caps at their crossings.
+        for(int i=0;i<walls.length;i++){
+            float[] q=walls[i];
+            float x=q[0]*inv,y=q[1]*inv,w=q[2]*inv,h=q[3]*inv;
+            if(w<2||h<2)continue;
+            rect(c,p,x+2,y+3,w,h,0x40202927);
+            rect(c,p,x,y,w,h,palette[0]);
+            c.save();
+            c.clipRect(x,y,x+w,y+h);
+            if(InteriorFloorArtV166.fill(c,material,
+                x+1,y+1,w-2,h-2,seed^theme*739,94f)){
+                // Semi-transparent colored wash retains visible authored
+                // stone/wood grain without copying the room's floor palette.
+                rect(c,p,x+1,y+1,w-2,h-2,
+                    0x95000000|(palette[1]&0x00ffffff));
+            }else{
+                rect(c,p,x+1,y+1,w-2,h-2,palette[1]);
+            }
+            c.restore();
+        }
+        // Seam, skirting and wear details remain within physical wall faces.
         for(int i=0;i<walls.length;i++){
             float[] q=walls[i];
             float x=q[0]*inv,y=q[1]*inv,w=q[2]*inv,h=q[3]*inv;
             if(w<2||h<2)continue;
             boolean horizontal=w>=h;
-            // Shadow and detail clip to their *physical* wall footprint.
-            // Contact shadow can project onto floors by at most two pixels.
-            rect(c,p,x+2,y+2,w,h,0x33222b2a);
             c.save();c.clipRect(x,y,x+w,y+h);
-            rect(c,p,x,y,w,h,palette[0]);
-            rect(c,p,x+2,y+2,w-4,h-4,palette[1]);
             if(horizontal){
-                rect(c,p,x+2,y+2,w-4,Math.min(4,h*.24f),palette[2]);
+                rect(c,p,x+2,y+2,w-4,Math.min(3,h*.22f),palette[2]);
                 rect(c,p,x+2,y+h-5,w-4,3,palette[3]);
-                rect(c,p,x+3,y+h*.53f,w-6,2,0x443b3530);
+                rect(c,p,x+3,y+h*.54f,w-6,2,0x503b3530);
             }else{
-                rect(c,p,x+2,y+2,Math.min(4,w*.24f),h-4,palette[2]);
+                rect(c,p,x+2,y+2,Math.min(3,w*.22f),h-4,palette[2]);
                 rect(c,p,x+w-5,y+2,3,h-4,palette[3]);
-                rect(c,p,x+w*.53f,y+3,2,h-6,0x443b3530);
+                rect(c,p,x+w*.54f,y+3,2,h-6,0x503b3530);
             }
-            float length=horizontal?w:h, thickness=horizontal?h:w;
-            for(int t=27;t<length-8;t+=48){
+            float length=horizontal?w:h,thickness=horizontal?h:w;
+            for(int t=35;t<length-11;t+=61){
                 int n=mix(seed^i*1379^t*9137);
                 float along=t+Math.floorMod(n,15)-7;
-                // Uneven mortar seams, repaint chips and subtle exposed brick.
                 float a=horizontal?x+along:x+3;
                 float b=horizontal?y+3:y+along;
-                float cw=horizontal?2:Math.max(3,thickness-6);
-                float ch=horizontal?Math.max(3,thickness-7):2;
-                rect(c,p,a,b,cw,ch,(n&3)==0?palette[3]:0x4c473e35);
+                rect(c,p,a,b,horizontal?2:Math.max(3,thickness-7),
+                    horizontal?Math.max(3,thickness-7):2,
+                    (n&3)==0?0x88473e35:0x59473e35);
                 if((n&7)==2){
-                    float cx=horizontal?x+along+5:x+5;
-                    float cy=horizontal?y+thickness*.34f:y+along+5;
-                    rect(c,p,cx,cy,horizontal?8:4,horizontal?3:9,palette[2]);
-                    rect(c,p,cx+2,cy+2,horizontal?4:2,horizontal?2:5,palette[3]);
-                }
-                if((n&15)==8){
-                    float xx=horizontal?x+along-12:x+thickness*.55f;
-                    float yy=horizontal?y+thickness*.55f:y+along-12;
-                    rect(c,p,xx,yy,horizontal?15:2,horizontal?2:15,palette[3]);
+                    rect(c,p,horizontal?x+along+5:x+5,
+                        horizontal?y+thickness*.34f:y+along+5,
+                        horizontal?8:4,horizontal?3:9,palette[2]);
                 }
             }
             c.restore();
+        }
+        // Connect only truly touching *orthogonal* structural segments.
+        // Long door openings are never bridged by this visual-only pass.
+        for(int i=0;i<walls.length;i++){
+            float[] a=walls[i];
+            if(a[2]<2||a[3]<2)continue;
+            boolean ah=a[2]>=a[3];
+            for(int j=i+1;j<walls.length;j++){
+                float[] b=walls[j];
+                if(b[2]<2||b[3]<2||(b[2]>=b[3])==ah)continue;
+                float l=Math.max(a[0],b[0])*inv,
+                    t=Math.max(a[1],b[1])*inv;
+                float r=Math.min(a[0]+a[2],b[0]+b[2])*inv,
+                    bt=Math.min(a[1]+a[3],b[1]+b[3])*inv;
+                if(r<l-.25f||bt<t-.25f)continue;
+                float jw=Math.max(1f,r-l),jh=Math.max(1f,bt-t);
+                rect(c,p,l,t,jw,jh,0x775f615a);
+                // A narrow shared cap unifies masonry courses at T-joints
+                // without filling any traversable gap.
+                rect(c,p,l,t,Math.min(3f,jw),Math.min(3f,jh),
+                    palette[2]);
+            }
         }
     }
     /**
