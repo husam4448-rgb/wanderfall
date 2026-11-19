@@ -148,3 +148,10 @@ case, even if the JVM selector and Python pixel-asset contract pass.
 - Removed retail checkout units from hotel reception/commons and heavy industrial machinery from school room assignments. Reassigned office, domestic, school, hotel and factory fixtures to closer functional equivalents from the current 16-object atlas.
 - Added pure-Java tests to catch reintroduction of inappropriate hotel and school prop families across all room variations and shared-area stations.
 - **Not an art-quality fix:** a hotel front desk still uses an office-desk image. Distinct hotel reception, classroom, records-room, domestic and clinic original artwork remains outstanding. Android visual QA and V166 final acceptance remain **PENDING / REJECTED**; no release.
+
+## V166 room-specific original art integration — needs actual Android visual audit
+- Added a separate transparent 384×384 WebP sprite atlas with 16 themed furnishings: hotel check-in/luggage/service/linen, school classroom/laboratory/study/library, office reception/records, market checkout/refrigeration, factory lathe/toolbench, and clinic bed/trolley. Alpha silhouettes and asset SHA are checked in Android QA.
+- The 16 previously authored furniture sprites remain intact. `InteriorPropSelectionV166` maps direct V163 tags 16..47 to one 32-item vocabulary. The original stored 0..5 layout types and all 14 loot IDs remain unchanged.
+- `InteriorRoomArchetypeV166` selects these objects deterministically by the actual six rooms and public area building kind, with a third accent role to reduce repetition. The clinic and industrial/fixed-expedition rooms now use appropriate extra categories.
+- Every image remains clipped to an existing V163/V89/V123 physical footprint; no new collision or save keys, no head-equipment visuals, no character changes.
+- **Acceptance gates:** Java seeds/navigation/loot regressions, Android compilation, real distinct full-room screenshots, aesthetic/art-scale inspection, and opening actual clinic/industrial screenshots. No visual approval or APK release before screenshots are reviewed.

@@ -64,8 +64,12 @@ public final class InteriorPropArtV166 {
     }
     public static boolean drawAt(Canvas canvas,int sprite,float x,float y,
                                  float width,float height){
-        if(!ready()||!InteriorPropSelectionV166.valid(sprite)||
+        if(!InteriorPropSelectionV166.valid(sprite)||
            width<=0||height<=0)return false;
+        if(sprite>=16)
+            return InteriorSpecialPropArtV166.drawAt(
+                canvas,sprite,x,y,width,height);
+        if(!ready())return false;
         int cell=InteriorPropSelectionV166.CELL;
         int col=sprite%4,row=sprite/4;
         int[] b=BOUNDS[sprite];

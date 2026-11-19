@@ -3,7 +3,8 @@ package com.survivalparadise.nativegame;
 public final class V166InteriorArtTest {
     private static void check(boolean x,String m){if(!x)throw new AssertionError(m);}
     public static void main(String[] args){
-        check(InteriorPropSelectionV166.SPRITES==16,"Atlas cells");
+        check(InteriorPropSelectionV166.SPRITES==32,
+            "Combined 16 original + 16 specialized art cells");
         check(InteriorPropSelectionV166.CELL==256,"Atlas dimensions");
         for(int theme=0;theme<NeighborhoodV154.TYPES;theme++){
             int seen=0;
@@ -46,8 +47,57 @@ public final class V166InteriorArtTest {
                 check(school!=10&&school!=11,
                     "Factory machinery in school commons");
             }
+        // Existing exact original atlas indices remain immutable, while
+        // direct role tags 32..47 select the specialized atlas 16..31.
+        for(int sprite=16;sprite<32;sprite++){
+            check(InteriorPropSelectionV166.valid(sprite),"Special invalid");
+            check(InteriorPropSelectionV166.choose(3,sprite+16,0,150,90)
+                ==sprite,"Special direct-role mapping changed");
+            check(InteriorRoomArchetypeV166.width(sprite)>55,
+                "Special width missing");
+            check(InteriorRoomArchetypeV166.height(sprite)>55,
+                "Special height missing");
+        }
+        check(!InteriorPropSelectionV166.valid(32),
+            "Invalid sprite accepted");
+        boolean[] categories=new boolean[16];
+        for(int theme=0;theme<8;theme++){
+            for(int room=0;room<6;room++)
+                for(int variation=0;variation<4;variation++)
+                    for(int slot=0;slot<20;slot++){
+                        int sprite=InteriorRoomArchetypeV166.sprite(
+                            theme,room,variation,slot);
+                        check(InteriorPropSelectionV166.valid(sprite),
+                            "Semantic role invalid");
+                        if(sprite>=16)categories[sprite-16]=true;
+                        if(theme==3)
+                            check(sprite!=4&&sprite!=5&&sprite!=26&&sprite!=27,
+                                "Retail checkout in hotel");
+                        if(theme==4)
+                            check(sprite!=10&&sprite!=11&&sprite!=28&&sprite!=29,
+                                "Industrial machinery in school");
+                    }
+            for(int station=0;station<80;station++){
+                int sprite=InteriorRoomArchetypeV166.shared(theme,station,0);
+                check(InteriorPropSelectionV166.valid(sprite),
+                    "Common area role invalid");
+                if(sprite>=16)categories[sprite-16]=true;
+                if(theme==3)
+                    check(sprite!=4&&sprite!=5&&sprite!=26&&sprite!=27,
+                        "Retail equipment in hotel commons");
+                if(theme==4)
+                    check(sprite!=10&&sprite!=11&&sprite!=28&&sprite!=29,
+                        "Heavy machinery in school commons");
+            }
+        }
+        for(int sprite=0;sprite<14;sprite++)
+            check(categories[sprite],"Specialized room sprite never assigned: "+sprite);
+        check(InteriorRoomArchetypeV166.legacy(0,0,true,0)==30,
+            "Clinic bed replaced");
+        check(InteriorRoomArchetypeV166.legacy(1,0,true,1)==31,
+            "Clinic trolley replaced");
         check(InteriorPropSelectionV166.choose(-1,0,0,90,75)==-1,
             "Invalid family");
-        System.out.println("PASS V166: existing 16 props, 8 floors, corrected hotel/school semantic roles");
+        System.out.println("PASS V166: 32 themed sprites; correct hotel/school, clinic and original identity");
     }
 }

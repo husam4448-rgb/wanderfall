@@ -1,16 +1,16 @@
 package com.survivalparadise.nativegame;
 
 /**
- * Pure V166 art lookup. Matches 4x4 atlas: two authored furniture silhouettes
- * per V154 building kind. Layout coordinates, save keys and collisions come
- * entirely from the existing V163 model, never from this selector.
+ * Deterministic V166 art lookup: 16 original furniture silhouettes plus
+ * 16 dedicated interiors, mapped through one stable 0..31 sprite vocabulary.
+ * Physical coordinates, saves and collisions remain owned by V163.
  */
 public final class InteriorPropSelectionV166 {
     private InteriorPropSelectionV166(){}
-    public static final int CELL=256,COLS=4,ROWS=4,SPRITES=16;
+    public static final int CELL=256,COLS=4,ROWS=4,SPRITES=32;
     public static int choose(int theme,int type,int index,float width,float height){
         // V166 semantic direct-sprite role; older 0..5 lookup remains stable.
-        if(type>=16&&type<32)return type-16;
+        if(type>=16&&type<48)return type-16;
         if(theme<0||theme>=NeighborhoodV154.TYPES)return -1;
         float aspect=width/Math.max(1f,height);
         int variant;

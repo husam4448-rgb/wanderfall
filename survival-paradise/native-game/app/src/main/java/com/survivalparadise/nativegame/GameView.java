@@ -457,6 +457,7 @@ public final class GameView extends View {
         CampfireArtV166.load(host.getAssets());
         BuildingArtV166.load(host.getAssets());
         InteriorPropArtV166.load(host.getAssets());
+        InteriorSpecialPropArtV166.load(host.getAssets());
         InteriorFloorArtV166.load(host.getAssets());
         if(industrialModeV123||stitchedIndustrialV128)
             industrialArtV123.load(host.getAssets());
@@ -2703,7 +2704,7 @@ public final class GameView extends View {
             }
         }else if(clinicInteriorV89 instanceof ClinicInteriorV89&&
                  !(clinicInteriorV89 instanceof ExpeditionInteriorV91)){
-            sprite=13; // hygienic metal cabinet
+            sprite=31; // authored medical trolley on existing loot anchor
         }
         if(InteriorPropArtV166.drawAt(c,sprite,x-23,y-17,47,34)){
             if(!empty&&distance(playerX,playerY,x,y)<148)
@@ -6587,6 +6588,7 @@ public final class GameView extends View {
         CampfireArtV166.release();
         BuildingArtV166.release();
         InteriorPropArtV166.release();
+        InteriorSpecialPropArtV166.release();
         InteriorFloorArtV166.release();
         lighting.release();
         if(campStatic!=null){campStatic.recycle();campStatic=null;}

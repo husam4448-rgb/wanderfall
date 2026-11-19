@@ -159,7 +159,7 @@ public final class IndustrialInteriorArtV125 {
             if(w<35||h<28)continue;
             int mode=Math.floorMod(hash(room,i,0x161B),4);
             if(InteriorPropArtV166.drawAt(c,
-                    i<6?(mode%2==0?10:11):
+                    i<6?(mode%2==0?28:29):
                     i<14?(mode%2==0?12:13):12,x,y,w,h))
                 continue;
             if(i<6){

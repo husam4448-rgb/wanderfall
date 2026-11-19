@@ -82,6 +82,23 @@ jobs:
               assert tile.getchannel('A').getbbox(),i
               assert tile.getchannel('A').getextrema()[0]==0,i
           print('PASS V166: 16 authored alpha furniture objects, 8 room families')
+          # Extra interior identity, not merely recolored old furnishings.
+          special_binary=base64.b64decode(
+              (assets/'sp_v166_specialized_furniture.webp.b64').read_text())
+          assert hashlib.sha256(special_binary).hexdigest()==(
+              'dd6729edfde4172d9db6eff93e3231903a0c5e3eb060f1d91ac0b8a9ac738677')
+          special=Image.open(io.BytesIO(special_binary)).convert('RGBA')
+          assert special.size==(384,384)
+          signature=set()
+          for i in range(16):
+              tile=special.crop(((i%4)*96,(i//4)*96,
+                  (i%4+1)*96,(i//4+1)*96))
+              alpha=np.asarray(tile.getchannel('A'))
+              assert alpha.min()==0 and alpha.max()>225, i
+              assert np.count_nonzero(alpha>80)>1200,('empty furniture',i)
+              signature.add(hashlib.sha256(tile.tobytes()).hexdigest())
+          assert len(signature)==16,'Repeated specialized prop cells'
+          print('PASS V166: 16 category-specific 96px furniture objects decoded')
           inside=base64.b64decode((assets/'sp_v166_indoor_floors.webp.b64').read_text())
           assert hashlib.sha256(inside).hexdigest()=='b4baff990d9910508b2d0e55f31b37872ba98fee2a612d2614b4c03d2b5c1b8c'
           ins=Image.open(io.BytesIO(inside)).convert('RGB')
@@ -223,6 +240,8 @@ jobs:
           assert 'CampfireArtV166.load(host.getAssets())' in game
           assert 'BuildingArtV166.load(host.getAssets())' in game
           assert 'InteriorPropArtV166.load(host.getAssets())' in game
+          assert 'InteriorSpecialPropArtV166.load(host.getAssets())' in game
+          assert 'InteriorSpecialPropArtV166.release()' in game
           assert 'InteriorFloorArtV166.load(host.getAssets())' in game
           assert 'InteriorFloorArtV166.neighborhood(c,room)' in (p/'InteriorMaterialV166.java').read_text()
           assert 'InteriorFloorArtV166.industrial(c,room)' in (p/'IndustrialInteriorArtV125.java').read_text()
