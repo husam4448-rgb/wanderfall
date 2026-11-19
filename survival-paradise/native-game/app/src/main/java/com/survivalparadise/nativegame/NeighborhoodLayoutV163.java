@@ -90,28 +90,15 @@ public final class NeighborhoodLayoutV163 {
         }
         float cx=x+w*.5f,cy=y+h*.5f;
         for(Zone z:zones){
-            if(Math.hypot(cx-z.dx,cy-z.dy)<86f)return false;
-            float mx=(z.x1+z.x2)*.5f,my=(z.y1+z.y2)*.5f;
-            // Guard the continuous portal-to-standing-area corridor, not
-            // just a disk around the door. Prevent corner furniture from
-            // sealing otherwise accessible rooms.
-            if(z.vertical){
-                float left=Math.min(mx,z.dx),right=Math.max(mx,z.dx);
-                if(x<right+28f&&x+w>left-28f&&
-                   y<z.dy+42f&&y+h>z.dy-42f)return false;
-            }else{
-                float top=Math.min(my,z.dy),bottom=Math.max(my,z.dy);
-                if(y<bottom+28f&&y+h>top-28f&&
-                   x<z.dx+42f&&x+w>z.dx-42f)return false;
-            }
+            if(Math.hypot(cx-z.dx,cy-z.dy)<112f)return false;
         }
         for(float[] cache:supplies){
-            if(x<cache[0]+42f&&x+w>cache[0]-42f&&
-               y<cache[1]+42f&&y+h>cache[1]-42f)return false;
+            if(x<cache[0]+54f&&x+w>cache[0]-54f&&
+               y<cache[1]+54f&&y+h>cache[1]-54f)return false;
         }
         for(float[] obj:objects){
-            if(x<obj[1]+obj[3]+6f&&x+w>obj[1]-6f&&
-               y<obj[2]+obj[4]+6f&&y+h>obj[2]-6f)return false;
+            if(x<obj[1]+obj[3]+10f&&x+w>obj[1]-10f&&
+               y<obj[2]+obj[4]+10f&&y+h>obj[2]-10f)return false;
         }
         // Existing V161 collision and deterministic room signatures continue
         // to derive from these same rectangles.
@@ -206,18 +193,74 @@ public final class NeighborhoodLayoutV163 {
             float t=(step+1)/13f;
             float x,y;
             if(side==0||side==1){
-                x=side==0?z.x1+32f:z.x2-32f-w;
-                y=z.y1+32f+(rh-64f-h)*t;
+                x=side==0?z.x1+39f:z.x2-39f-w;
+                y=z.y1+35f+(rh-70f-h)*t;
             }else{
-                x=z.x1+32f+(rw-64f-w)*t;
-                y=side==2?z.y1+32f:z.y2-32f-h;
+                x=z.x1+35f+(rw-70f-w)*t;
+                y=side==2?z.y1+39f:z.y2-39f-h;
             }
             if(w<28f||h<24f||x<z.x1+24f||y<z.y1+24f||
                x+w>z.x2-24f||y+h>z.y2-24f)continue;
             float mx=(z.x1+z.x2)*.5f,my=(z.y1+z.y2)*.5f;
-            if(x<mx+25f&&x+w>mx-25f&&
-               y<my+25f&&y+h>my-25f)continue;
+            if(x<mx+43f&&x+w>mx-43f&&
+               y<my+43f&&y+h>my-43f)continue;
             putFurnishing(sprite,x,y,w,h,orientation,supplies);
+        }
+    }
+    /**
+     * Lightweight noticeboards and paper stations complete very narrow rooms
+     * where six blocking objects would seal the only corridor. These use
+     * existing hand-painted 43 (wall noticeboard) and 37 (paper) sprites,
+     * cling to real perimeter walls and are never loot or path blockers.
+     * All substantial furniture still uses normal solid collision.
+     */
+    private void finishWallDetails(Zone z,int room,ArrayList<float[]> supplies){
+        if(roomCount(z)>=6)return;
+        float rw=z.x2-z.x1,rh=z.y2-z.y1;
+        for(int candidate=0;candidate<256&&roomCount(z)<6;candidate++){
+            int side=candidate%4,step=(candidate/4)%16;
+            int pass=candidate/64;
+            int sprite=(candidate/4+room+theme)%3==0?37:43;
+            float w=(sprite==43?73f:52f)*(pass==0?1f:pass==1?.84f:.72f);
+            float h=(sprite==43?35f:30f)*(pass==0?1f:pass==1?.84f:.72f);
+            int orientation=side==0?0:side==1?90:side==2?270:180;
+            if(orientation==90||orientation==270){
+                float swap=w;w=h;h=swap;
+            }
+            float t=(step+1)/17f;
+            float x,y;
+            if(side==0||side==3){
+                x=z.x1+25f+(rw-50f-w)*t;
+                y=side==0?z.y1+24f:z.y2-24f-h;
+            }else{
+                x=side==1?z.x1+24f:z.x2-24f-w;
+                y=z.y1+25f+(rh-50f-h)*t;
+            }
+            if(x<z.x1+18f||y<z.y1+18f||
+               x+w>z.x2-18f||y+h>z.y2-18f)continue;
+            boolean occupied=false;
+            float cx=x+w*.5f,cy=y+h*.5f;
+            for(float[] q:objects){
+                if(x<q[1]+q[3]+5f&&x+w>q[1]-5f&&
+                   y<q[2]+q[4]+5f&&y+h>q[2]-5f){
+                    occupied=true;break;
+                }
+            }
+            if(occupied)continue;
+            for(float[] cache:supplies)
+                if(x<cache[0]+44f&&x+w>cache[0]-44f&&
+                   y<cache[1]+44f&&y+h>cache[1]-44f){
+                    occupied=true;break;
+                }
+            if(occupied)continue;
+            for(Zone door:zones)
+                if(Math.hypot(cx-door.dx,cy-door.dy)<75f){
+                    occupied=true;break;
+                }
+            if(occupied)continue;
+            // This final field marks a wall-hung/flat decorative object:
+            // it paints normally but does not create a phantom blocker.
+            objects.add(new float[]{16+sprite,x,y,w,h,orientation,1f});
         }
     }
     /**
@@ -336,7 +379,7 @@ public final class NeighborhoodLayoutV163 {
             Zone z=zones.get(index);
             float area=(z.x2-z.x1)*(z.y2-z.y1);
             composeRoomScene(index,supplies);
-            int target=area>270000f?9:area>160000f?8:6;
+            int target=6;
             int placed=roomCount(z);
             // First honor human-authored perimeter stations. Then probe
             // seeded interior niches on a 9x9 lattice, avoiding the former
@@ -394,6 +437,7 @@ public final class NeighborhoodLayoutV163 {
                 if(putFurnishing(sprite,x,y,w,h,orientation,supplies))placed++;
             }
             finishRoom(z,index,supplies);
+            finishWallDetails(z,index,supplies);
         }
         furnishCommons(supplies);
         walls=pack(barriers);
@@ -530,10 +574,12 @@ public final class NeighborhoodLayoutV163 {
         for(float[] q:walls)
             if(worldX+radius>q[0]&&worldX-radius<q[0]+q[2]&&
                worldY+radius>q[1]&&worldY-radius<q[1]+q[3])return true;
-        for(float[] q:furniture)
+        for(float[] q:furniture){
+            if(q.length>6&&q[6]==1f)continue; // wall-hung / floor-paper detail
             if(worldX+radius>q[1]+4&&worldX-radius<q[1]+q[3]-4&&
                worldY+radius>q[2]+4&&worldY-radius<q[2]+q[4]-4)
                 return true;
+        }
         return false;
     }
 }
