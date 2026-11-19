@@ -62,7 +62,8 @@ public final class V163InteriorLayoutTest {
                     int nProps=layout.furniture.length;
                     for(float[] q:layout.furniture)
                         if((int)q[0]>=64&&(int)q[0]<80)composedGroups++;
-                    for(float[] roomBox:layout.rooms){
+                    for(int roomIndex=0;roomIndex<layout.rooms.length;roomIndex++){
+                        float[] roomBox=layout.rooms[roomIndex];
                         int roomProps=0;
                         for(float[] q:layout.furniture){
                             if(q[1]>=roomBox[0]&&q[2]>=roomBox[1]&&
@@ -76,7 +77,15 @@ public final class V163InteriorLayoutTest {
                             }
                         }
                         roomMin=Math.min(roomMin,roomProps);
-                        if(roomProps<6)roomsBelowSix++;
+                        if(roomProps<6){
+                            if(roomsBelowSix<18)System.out.println(
+                                "SPARSE ROOM theme="+room.theme+" plan="+layout.plan+
+                                " room="+roomIndex+" width="+(int)roomBox[2]+
+                                " height="+(int)roomBox[3]+
+                                " placed="+roomProps+
+                                " buildingTotal="+nProps);
+                            roomsBelowSix++;
+                        }
                     }
                     allProps+=nProps;
                     minProps=Math.min(minProps,nProps);
