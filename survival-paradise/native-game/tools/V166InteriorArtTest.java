@@ -69,7 +69,7 @@ public final class V166InteriorArtTest {
                             theme,room,variation,slot);
                         check(InteriorPropSelectionV166.valid(sprite),
                             "Semantic role invalid");
-                        if(sprite>=16)categories[sprite-16]=true;
+                        if(sprite>=16&&sprite<32)categories[sprite-16]=true;
                         if(theme==3)
                             check(sprite!=4&&sprite!=5&&sprite!=26&&sprite!=27,
                                 "Retail checkout in hotel");
@@ -81,7 +81,7 @@ public final class V166InteriorArtTest {
                 int sprite=InteriorRoomArchetypeV166.shared(theme,station,0);
                 check(InteriorPropSelectionV166.valid(sprite),
                     "Common area role invalid");
-                if(sprite>=16)categories[sprite-16]=true;
+                if(sprite>=16&&sprite<32)categories[sprite-16]=true;
                 if(theme==3)
                     check(sprite!=4&&sprite!=5&&sprite!=26&&sprite!=27,
                         "Retail equipment in hotel commons");
