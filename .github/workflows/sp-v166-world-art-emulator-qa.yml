@@ -377,8 +377,10 @@ jobs:
           s=s.replace(needle,needle+'\n'+injection,1)
           # Move the render/culling camera itself. A translate-only pan
           # retains entrance-based nearView culling and hides distant props.
-          camera_anchor='        canvas.drawColor(0xff101f24);'
-          assert camera_anchor in s
+          # This unique anchor is in live onDraw, not drawSnapshot().
+          # The city QA hook changes drawColor's indentation.
+          camera_anchor='        canvas.save();canvas.scale(drawScale,drawScale);'
+          assert s.count(camera_anchor)==1,s.count(camera_anchor)
           camera_setup='''        // QA ONLY: render and culling share camY.
           if(insideClinicV89&&(
               android.provider.Settings.Global.getInt(
@@ -582,6 +584,17 @@ jobs:
               mean=middle.mean((0,1));std=middle.std((0,1))
               assert not (mean[0]<70 and mean[1]<95 and mean[2]<115
                   and max(std)<24),('Possible YOU DIED modal',name,mean,std)
+          # Reject repeated entrance frames masquerading as full-room QA.
+          for kind in range(1,9):
+              names=[f'07_interior_kind_{kind}.png',
+                     f'08_centre_kind_{kind}.png',
+                     f'09_north_kind_{kind}.png']
+              images=[Image.open(folder+n).convert('RGB') for n in names]
+              for k in (0,1):
+                  delta=sum(ImageStat.Stat(ImageChops.difference(
+                      images[k],images[k+1])).mean)/3
+                  assert delta>8,(kind,names[k],names[k+1],
+                      'camera did not move',delta)
           for a,b in (('09_north_kind_5.png','10_legacy_scene_9.png'),
                       ('10_legacy_scene_9.png','10_legacy_scene_10.png'),
                       ('10_legacy_scene_10.png','10_legacy_scene_11.png')):
