@@ -119,6 +119,25 @@ public final class InteriorRoomArchetypeV166 {
             default:return ACCENT[theme][logical];
         }
     }
+    /** Select one smaller individual furnishing, never a huge ensemble. */
+    public static int detail(int theme,int index,int variation,int slot){
+        if(theme<0||theme>=8||index<0||index>=6)return -1;
+        int logical=index;
+        if((variation&1)!=0){
+            if(logical==1)logical=2;
+            else if(logical==2)logical=1;
+        }
+        if((variation&2)!=0){
+            if(logical==4)logical=5;
+            else if(logical==5)logical=4;
+        }
+        switch(Math.floorMod(slot,4)){
+            case 0:return SUPPORT[theme][logical];
+            case 1:return SCENIC[theme][logical];
+            case 2:return ACCENT[theme][logical];
+            default:return UTILITY[theme][logical];
+        }
+    }
     /**
      * Shared-area furniture palette: reception/checkout, school commons,
      * stock handling and residential seating remain architecture-specific.

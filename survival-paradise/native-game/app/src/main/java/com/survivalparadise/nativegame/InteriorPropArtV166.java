@@ -59,8 +59,19 @@ public final class InteriorPropArtV166 {
      */
     public static boolean draw(Canvas c,float[] q,int theme,int variation,int index){
         if(q==null||q.length<5)return false;
-        return drawAt(c,InteriorPropSelectionV166.choose(
-            theme,(int)q[0],index,q[3],q[4]),q[1],q[2],q[3],q[4]);
+        int sprite=InteriorPropSelectionV166.choose(
+            theme,(int)q[0],index,q[3],q[4]);
+        int facing=q.length>5?(int)q[5]:0;
+        if(facing==0)return drawAt(c,sprite,q[1],q[2],q[3],q[4]);
+        float cx=q[1]+q[3]*.5f,cy=q[2]+q[4]*.5f;
+        c.save();
+        c.rotate(facing,cx,cy);
+        boolean drawn;
+        if(facing==90||facing==270)
+            drawn=drawAt(c,sprite,cx-q[4]*.5f,cy-q[3]*.5f,q[4],q[3]);
+        else drawn=drawAt(c,sprite,q[1],q[2],q[3],q[4]);
+        c.restore();
+        return drawn;
     }
     public static boolean drawAt(Canvas canvas,int sprite,float x,float y,
                                  float width,float height){

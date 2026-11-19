@@ -64,8 +64,23 @@ public final class NeighborhoodLayoutV163 {
      * Test the true collision walls and the saved container/door anchors.
      * Never alter the 14 persistent loot-container positions.
      */
+    private static int facing(int ax,int ay){
+        // A top wall faces south (0); side walls look inward (90/270).
+        int edge=Math.min(Math.min(ax,1000-ax),Math.min(ay,1000-ay));
+        if(ay==edge)return 0;
+        if(ax==edge)return 90;
+        if(1000-ax==edge)return 270;
+        return 180;
+    }
+    private int roomCount(Zone z){
+        int count=0;
+        for(float[] q:objects)
+            if(q[1]>=z.x1&&q[2]>=z.y1&&
+               q[1]+q[3]<=z.x2&&q[2]+q[4]<=z.y2)count++;
+        return count;
+    }
     private boolean putFurnishing(int sprite,float x,float y,float w,float h,
-                                  ArrayList<float[]> supplies){
+                                  int orientation,ArrayList<float[]> supplies){
         if(sprite<0||x<35f||y<48f||x+w>1565f||y+h>1059f)return false;
         // Keep the original 98-unit south door and its approach open.
         if(x<945f&&x+w>655f&&y<1095f&&y+h>866f)return false;
@@ -75,19 +90,19 @@ public final class NeighborhoodLayoutV163 {
         }
         float cx=x+w*.5f,cy=y+h*.5f;
         for(Zone z:zones){
-            if(Math.hypot(cx-z.dx,cy-z.dy)<155f)return false;
+            if(Math.hypot(cx-z.dx,cy-z.dy)<112f)return false;
         }
         for(float[] cache:supplies){
             if(x<cache[0]+54f&&x+w>cache[0]-54f&&
                y<cache[1]+54f&&y+h>cache[1]-54f)return false;
         }
         for(float[] obj:objects){
-            if(x<obj[1]+obj[3]+22f&&x+w>obj[1]-22f&&
-               y<obj[2]+obj[4]+22f&&y+h>obj[2]-22f)return false;
+            if(x<obj[1]+obj[3]+10f&&x+w>obj[1]-10f&&
+               y<obj[2]+obj[4]+10f&&y+h>obj[2]-10f)return false;
         }
         // Existing V161 collision and deterministic room signatures continue
         // to derive from these same rectangles.
-        objects.add(new float[]{16+sprite,x,y,w,h});
+        objects.add(new float[]{16+sprite,x,y,w,h,orientation});
         return true;
     }
     /**
@@ -112,22 +127,26 @@ public final class NeighborhoodLayoutV163 {
         };
         int staged=0;
         float area=(z.x2-z.x1)*(z.y2-z.y1);
-        int aim=area>210000f?5:area>120000f?4:3;
+        int aim=area>210000f?2:1;
         for(int slot=0;slot<anchors.length&&staged<aim;slot++){
             int sprite=InteriorRoomArchetypeV166.sprite(
                 theme,room,variation,slot);
             if(sprite<0)continue;
             float width=InteriorRoomArchetypeV166.width(sprite);
             float height=InteriorRoomArchetypeV166.height(sprite);
-            float scale=area<120000f?.80f:area<185000f?.89f:1f;
+            float scale=area<120000f?.75f:area<185000f?.86f:1f;
             width*=scale;height*=scale;
-            float spanX=z.x2-z.x1-52f-width;
-            float spanY=z.y2-z.y1-52f-height;
+            int orientation=facing(anchors[slot][0],anchors[slot][1]);
+            if(orientation==90||orientation==270){
+                float swap=width;width=height;height=swap;
+            }
+            float spanX=z.x2-z.x1-84f-width;
+            float spanY=z.y2-z.y1-84f-height;
             if(spanX<=0||spanY<=0)continue;
             int n=hash(room*587+slot*13,theme*97+slot*19);
-            float x=z.x1+26f+anchors[slot][0]*spanX/1000f+
+            float x=z.x1+42f+anchors[slot][0]*spanX/1000f+
                     Math.floorMod(n>>>9,5)-2f;
-            float y=z.y1+26f+anchors[slot][1]*spanY/1000f+
+            float y=z.y1+42f+anchors[slot][1]*spanY/1000f+
                     Math.floorMod(n>>>17,5)-2f;
             float cx=x+width*.5f,cy=y+height*.5f;
             float midX=(z.x1+z.x2)*.5f,midY=(z.y1+z.y2)*.5f;
@@ -147,7 +166,45 @@ public final class NeighborhoodLayoutV163 {
                 if(y<bottom+passage&&y+height>top-passage&&
                    x<z.dx+passage&&x+width>z.dx-passage)continue;
             }
-            if(putFurnishing(sprite,x,y,width,height,supplies))staged++;
+            if(putFurnishing(sprite,x,y,width,height,orientation,supplies))staged++;
+        }
+    }
+    /**
+     * Add individual furniture rather than counting one multi-object set as
+     * six. Perimeter stations face into the room; they are solid and subject
+     * to the normal collision, cabinet and portal exclusions.
+     */
+    private void finishRoom(Zone z,int room,ArrayList<float[]> supplies){
+        if(roomCount(z)>=6)return;
+        float rw=z.x2-z.x1,rh=z.y2-z.y1;
+        for(int candidate=0;candidate<144&&roomCount(z)<6;candidate++){
+            int step=(candidate/4)%12;
+            int side=candidate%4; // left, right, north, south
+            int pass=candidate/48;
+            float scale=pass==0?.56f:pass==1?.47f:.39f;
+            int sprite=InteriorRoomArchetypeV166.detail(
+                theme,room,variation,candidate+3);
+            float w=InteriorRoomArchetypeV166.width(sprite)*scale;
+            float h=InteriorRoomArchetypeV166.height(sprite)*scale;
+            int orientation=side==0?90:side==1?270:side==2?0:180;
+            if(orientation==90||orientation==270){
+                float swap=w;w=h;h=swap;
+            }
+            float t=(step+1)/13f;
+            float x,y;
+            if(side==0||side==1){
+                x=side==0?z.x1+39f:z.x2-39f-w;
+                y=z.y1+35f+(rh-70f-h)*t;
+            }else{
+                x=z.x1+35f+(rw-70f-w)*t;
+                y=side==2?z.y1+39f:z.y2-39f-h;
+            }
+            if(w<28f||h<24f||x<z.x1+24f||y<z.y1+24f||
+               x+w>z.x2-24f||y+h>z.y2-24f)continue;
+            float mx=(z.x1+z.x2)*.5f,my=(z.y1+z.y2)*.5f;
+            if(x<mx+43f&&x+w>mx-43f&&
+               y<my+43f&&y+h>my-43f)continue;
+            putFurnishing(sprite,x,y,w,h,orientation,supplies);
         }
     }
     /**
@@ -192,7 +249,7 @@ public final class NeighborhoodLayoutV163 {
                 }
             }
             if(inRoom)continue;
-            if(putFurnishing(sprite,x,y,w,hh,supplies))count++;
+            if(putFurnishing(sprite,x,y,w,hh,0,supplies))count++;
         }
     }
     private int hash(int a,int b){
@@ -266,8 +323,8 @@ public final class NeighborhoodLayoutV163 {
             Zone z=zones.get(index);
             float area=(z.x2-z.x1)*(z.y2-z.y1);
             composeRoomScene(index,supplies);
-            int target=area>270000f?9:area>160000f?7:5;
-            int placed=0;
+            int target=area>270000f?9:area>160000f?8:6;
+            int placed=roomCount(z);
             // First honor human-authored perimeter stations. Then probe
             // seeded interior niches on a 9x9 lattice, avoiding the former
             // early exit when every candidate near a cabinet/door was used.
@@ -284,17 +341,22 @@ public final class NeighborhoodLayoutV163 {
                         81);
                     ax=(id%9)*125;ay=(id/9)*125;
                 }
-                int sprite=InteriorRoomArchetypeV166.sprite(
+                int sprite=InteriorRoomArchetypeV166.detail(
                     theme,index,variation,candidate+5);
                 if(sprite<0)continue;
-                float w=InteriorRoomArchetypeV166.width(sprite);
-                float h=InteriorRoomArchetypeV166.height(sprite);
-                float spanX=z.x2-z.x1-72f-w,spanY=z.y2-z.y1-72f-h;
+                float scale=area<130000f?.55f:area<190000f?.65f:.83f;
+                float w=InteriorRoomArchetypeV166.width(sprite)*scale;
+                float h=InteriorRoomArchetypeV166.height(sprite)*scale;
+                int orientation=facing(ax,ay);
+                if(orientation==90||orientation==270){
+                    float swap=w;w=h;h=swap;
+                }
+                float spanX=z.x2-z.x1-84f-w,spanY=z.y2-z.y1-84f-h;
                 if(spanX<1||spanY<1)continue;
-                float x=z.x1+36f+ax*spanX/1000f;
-                float y=z.y1+36f+ay*spanY/1000f;
-                x=clamp(x+(Math.floorMod(n>>>17,13)-6),z.x1+30f,z.x2-w-30f);
-                y=clamp(y+(Math.floorMod(n>>>23,13)-6),z.y1+30f,z.y2-h-30f);
+                float x=z.x1+42f+ax*spanX/1000f;
+                float y=z.y1+42f+ay*spanY/1000f;
+                x=clamp(x+(Math.floorMod(n>>>17,9)-4),z.x1+38f,z.x2-w-38f);
+                y=clamp(y+(Math.floorMod(n>>>23,9)-4),z.y1+38f,z.y2-h-38f);
                 float cx=x+w*.5f,cy=y+h*.5f;
                 // All six layouts share the original south-facing spawn/exit.
                 // Protect a broad approach, not only the tiny 98px door gap.
@@ -316,10 +378,9 @@ public final class NeighborhoodLayoutV163 {
                     }
                 }
                 if(overlaps)continue;
-                // Direct atlas sprite tag 16..31; original types still decode.
-                objects.add(new float[]{16+sprite,x,y,w,h});
-                placed++;
+                if(putFurnishing(sprite,x,y,w,h,orientation,supplies))placed++;
             }
+            finishRoom(z,index,supplies);
         }
         furnishCommons(supplies);
         walls=pack(barriers);
