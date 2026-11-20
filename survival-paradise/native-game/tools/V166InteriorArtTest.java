@@ -33,6 +33,11 @@ public final class V166InteriorArtTest {
                     check(InteriorPropSelectionV166.valid(hotel),"Hotel role invalid");
                     check(InteriorPropSelectionV166.valid(school),"School role invalid");
                     check(hotel!=4&&hotel!=5,"Supermarket furniture in hotel");
+                    if(room==0) {
+                        int kind=InteriorFurnitureCatalogV166.kind(hotel);
+                        if(kind>=0)check(kind!=4&&kind!=5&&kind!=14,
+                            "Hotel reception contains sink, dining set or cooler");
+                    }
                     check(school!=10&&school!=11,
                         "Factory machine in classroom/laboratory");
                 }
@@ -44,6 +49,9 @@ public final class V166InteriorArtTest {
                 int school=InteriorRoomArchetypeV166.shared(4,station,variation);
                 check(hotel!=4&&hotel!=5,
                     "Supermarket checkout in hotel lobby");
+                int hotelKind=InteriorFurnitureCatalogV166.kind(hotel);
+                check(hotelKind!=4&&hotelKind!=5&&hotelKind!=14,
+                    "Hotel commons contain sink, dining set or refrigerator");
                 check(school!=10&&school!=11,
                     "Factory machinery in school commons");
             }
