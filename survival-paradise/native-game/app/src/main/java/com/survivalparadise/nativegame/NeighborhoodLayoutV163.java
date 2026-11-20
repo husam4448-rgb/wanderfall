@@ -83,7 +83,7 @@ public final class NeighborhoodLayoutV163 {
                                   int orientation,ArrayList<float[]> supplies){
         if(sprite<0||x<35f||y<48f||x+w>1565f||y+h>1059f)return false;
         // Keep the original 98-unit south door and its approach open.
-        if(x<945f&&x+w>655f&&y<1095f&&y+h>866f)return false;
+        if(x<891f&&x+w>709f&&y<1095f&&y+h>855f)return false;
         for(float[] wall:barriers){
             if(x<wall[0]+wall[2]+10f&&x+w>wall[0]-10f&&
                y<wall[1]+wall[3]+10f&&y+h>wall[1]-10f)return false;
@@ -287,7 +287,7 @@ public final class NeighborhoodLayoutV163 {
             float cy=108f+row*110f+(Math.floorMod(h>>>19,15)-7);
             float x=cx-w*.5f,y=cy-hh*.5f;
             // The south entry must remain an unmistakable walkable path.
-            if(x<910f&&x+w>690f&&y+h>830f)continue;
+            if(x<891f&&x+w>709f&&y+h>855f)continue;
             boolean inRoom=false;
             for(Zone z:zones){
                 // Check ENTIRE object extent; a center-only test allowed
@@ -409,7 +409,7 @@ public final class NeighborhoodLayoutV163 {
                 float cx=x+w*.5f,cy=y+h*.5f;
                 // All six layouts share the original south-facing spawn/exit.
                 // Protect a broad approach, not only the tiny 98px door gap.
-                if(x<940f&&x+w>660f&&y<1095f&&y+h>880f)continue;
+                if(x<891f&&x+w>709f&&y<1095f&&y+h>855f)continue;
                 // Entrance clearances and central routes are collision-safe.
                 if(Math.hypot(cx-z.dx,cy-z.dy)<166f)continue;
                 if(Math.abs(cx-(z.x1+z.x2)*.5f)<53f&&
