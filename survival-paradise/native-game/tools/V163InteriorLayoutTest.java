@@ -43,7 +43,7 @@ public final class V163InteriorLayoutTest {
         int tested=0,lootPreserved=0,allProps=0,minProps=Integer.MAX_VALUE,maxProps=0;
         int composedGroups=0,roomMin=Integer.MAX_VALUE,roomsBelowSix=0;
         int downward=0,sideways=0,roomsNoDown=0,roomsNoSide=0;
-        int directional=0,nonSolidFake=0,miniatures=0;
+        int directional=0,nonSolidFake=0,miniatures=0,sparseLog=0;
         java.util.HashSet<Integer> furnishedRoles=new java.util.HashSet<>();
         for(int seed:new int[]{14901,87011,31526,58923}){
             WorldGeographyV160 earth=WorldGeographyV160.prepare(seed,null);
@@ -94,7 +94,7 @@ public final class V163InteriorLayoutTest {
                         if(frontCount==0)roomsNoDown++;
                         if(sideCount==0)roomsNoSide++;
                         if(roomProps<6)roomsBelowSix++;
-                        if(roomProps<2&&roomsBelowSix<30)
+                        if(roomProps<2&&sparseLog++<16)
                             System.out.println("NEEDS_FURNITURE seed="+seed+
                                 " theme="+room.theme+" plan="+layout.plan+
                                 " room="+roomIndex+" size="+
