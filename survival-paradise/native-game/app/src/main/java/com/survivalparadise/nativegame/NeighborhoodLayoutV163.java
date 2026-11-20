@@ -521,7 +521,7 @@ public final class NeighborhoodLayoutV163 {
     private void openWorkshop(){
         float top=325+Math.floorMod(hash(1,23),85);
         float west=465+Math.floorMod(hash(2,23),95),east=1070+Math.floorMod(hash(3,23),95);
-        float divider=795+Math.floorMod(hash(4,23),35);
+        float divider=758+Math.floorMod(hash(4,23),28);
         float[] xx={23,west,1055,1577};
         for(int i=0;i<3;i++){
             float mid=(xx[i]+xx[i+1])/2f;
@@ -529,13 +529,13 @@ public final class NeighborhoodLayoutV163 {
             zone(xx[i]+20,44,xx[i+1]-20,top,mid,top,false,-1);
         }
         wall(west,44,19,top-44);wall(1055,44,19,top-44);
-        vGap(535,divider,west,(535+divider)/2f);
+        vGap(485,divider,west,(485+divider)/2f);
         vGap(divider,1070,west,(divider+1070)/2f);
-        vGap(535,1070,east,(535+1070)/2f);
+        vGap(485,1070,east,(485+1070)/2f);
         wall(23,divider,west-23,20);
-        zone(24,535,west,divider,west,(535+divider)/2f,true,-1);
+        zone(24,485,west,divider,west,(485+divider)/2f,true,-1);
         zone(24,divider+20,west,1070,west,(divider+1070)/2f,true,-1);
-        zone(east+20,535,1577,1070,east,(535+1070)/2f,true,1);
+        zone(east+20,485,1577,1070,east,(485+1070)/2f,true,1);
     }
     /** Tall central spine, two pairs of high rooms, two lower wings. */
     private void splitSpine(){
