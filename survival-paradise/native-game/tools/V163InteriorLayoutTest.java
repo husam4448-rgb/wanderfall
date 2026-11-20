@@ -123,7 +123,8 @@ public final class V163InteriorLayoutTest {
                             "Door inaccessible in topology "+layout.plan);
                     for(ClinicInteriorV89.Storage item:room.storages)
                         check(nearby(seen,nav,item.x,item.y),
-                            "Container cannot be approached in topology "+layout.plan);
+                            "Container inaccessible: seed="+seed+" theme="+room.theme+
+                            " topology="+layout.plan+" cache="+item.x+","+item.y);
                     int signature=Arrays.deepHashCode(layout.walls);
                     geometry.add(signature);
                     topology.add(layout.plan);

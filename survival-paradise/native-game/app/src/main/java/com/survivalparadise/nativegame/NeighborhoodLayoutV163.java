@@ -17,6 +17,8 @@ public final class NeighborhoodLayoutV163 {
     private final ArrayList<float[]> objects=new ArrayList<>();
     private final ArrayList<Zone> zones=new ArrayList<>();
     private final int theme,variation,seed;
+    // Built once from the exact 14 saved, collidable cabinet footprints.
+    private float[][] navigationCaches;
 
     private static final class Zone {
         final float x1,y1,x2,y2,dx,dy,side;
@@ -72,6 +74,83 @@ public final class NeighborhoodLayoutV163 {
         if(1000-ax==edge)return 270;
         return 180;
     }
+
+    /**
+     * Acceptance gate for newly placed furniture, evaluated only during
+     * deterministic interior construction (never on the render thread).
+     * Rebuilds the same 51-world-unit nav grid as ClinicNavV90 and rejects
+     * placements that would isolate a room, door or saved loot cabinet.
+     * Keeping the grid pass in the layout avoids expensive runtime repair
+     * and prevents artificial density gains from blocking gameplay.
+     */
+    private boolean navigationSafe(){
+        if(navigationCaches==null)return true;
+        final int cell=ClinicNavV90.CELL;
+        final int nw=(ClinicInteriorV89.WIDTH+cell-1)/cell;
+        final int nh=(ClinicInteriorV89.HEIGHT+cell-1)/cell;
+        boolean[] seen=new boolean[nw*nh];
+        boolean[] free=new boolean[nw*nh];
+        int[] queue=new int[nw*nh];
+        final float rr=10f;
+        for(int gy=0;gy<nh;gy++)for(int gx=0;gx<nw;gx++){
+            float wx=gx*cell+cell*.5f,wy=gy*cell+cell*.5f;
+            boolean solid=wx-rr<23f*S||wx+rr>1577f*S||
+                wy-rr<23f*S||wy+rr>1095f*S;
+            if(!solid)for(float[] q:barriers){
+                if(wx+rr>q[0]*S&&wx-rr<(q[0]+q[2])*S&&
+                   wy+rr>q[1]*S&&wy-rr<(q[1]+q[3])*S){
+                    solid=true;break;
+                }
+            }
+            if(!solid)for(float[] q:objects){
+                if(wx+rr>q[1]*S+4f&&wx-rr<(q[1]+q[3])*S-4f&&
+                   wy+rr>q[2]*S+4f&&wy-rr<(q[2]+q[4])*S-4f){
+                    solid=true;break;
+                }
+            }
+            if(!solid)for(float[] q:navigationCaches){
+                if(InteriorCacheFixtureV166.collides(q,wx,wy,rr)){
+                    solid=true;break;
+                }
+            }
+            free[gy*nw+gx]=!solid;
+        }
+        int sx=(int)(ClinicInteriorV89.ENTRANCE_X/cell);
+        int sy=(int)(ClinicInteriorV89.ENTRANCE_Y/cell);
+        int start=sy*nw+sx;
+        if(start<0||start>=free.length||!free[start])return false;
+        int read=0,write=1;
+        queue[0]=start;seen[start]=true;
+        final int[] dx={-1,1,0,0},dy={0,0,-1,1};
+        while(read<write){
+            int p=queue[read++],cx=p%nw,cy=p/nw;
+            for(int i=0;i<4;i++){
+                int x=cx+dx[i],y=cy+dy[i];
+                if(x<0||y<0||x>=nw||y>=nh)continue;
+                int id=y*nw+x;
+                if(free[id]&&!seen[id]){
+                    seen[id]=true;queue[write++]=id;
+                }
+            }
+        }
+        for(float[] q:navigationCaches)
+            if(!reachableNear(seen,nw,nh,
+                q[1]+q[3]*.5f,q[2]+q[4]*.5f))return false;
+        for(Zone z:zones){
+            if(!reachableNear(seen,nw,nh,
+                (z.x1+z.x2)*.5f*S,(z.y1+z.y2)*.5f*S))return false;
+            if(!reachableNear(seen,nw,nh,z.dx*S,z.dy*S))return false;
+        }
+        return true;
+    }
+    private static boolean reachableNear(boolean[] seen,int w,int h,float x,float y){
+        int cx=(int)(x/ClinicNavV90.CELL),cy=(int)(y/ClinicNavV90.CELL);
+        for(int iy=cy-3;iy<=cy+3;iy++)
+            for(int ix=cx-3;ix<=cx+3;ix++){
+                if(ix>=0&&ix<w&&iy>=0&&iy<h&&seen[iy*w+ix])return true;
+            }
+        return false;
+    }
     private int roomCount(Zone z){
         int count=0;
         for(float[] q:objects)
@@ -110,6 +189,10 @@ public final class NeighborhoodLayoutV163 {
         // Existing V161 collision and deterministic room signatures continue
         // to derive from these same rectangles.
         objects.add(new float[]{16+sprite,x,y,w,h,orientation});
+        if(!navigationSafe()){
+            objects.remove(objects.size()-1);
+            return false;
+        }
         return true;
     }
     /**
@@ -383,6 +466,18 @@ public final class NeighborhoodLayoutV163 {
                 q[1]=clamp(z.y1+90f,z.y1+36f,z.y2-36f);
             }
         }
+        // Exact cached collision geometry is required to protect the same
+        // interaction positions that ClinicNavV90 later tests on Android.
+        float[][] navRooms=new float[zones.size()][4];
+        for(int i=0;i<zones.size();i++){
+            Zone z=zones.get(i);
+            navRooms[i]=new float[]{z.x1*S,z.y1*S,
+                (z.x2-z.x1)*S,(z.y2-z.y1)*S};
+        }
+        float[][] navCenters=new float[supplies.size()][2];
+        for(int i=0;i<supplies.size();i++)
+            navCenters[i]=new float[]{supplies.get(i)[0]*S,supplies.get(i)[1]*S};
+        navigationCaches=InteriorCacheFixtureV166.build(theme,navRooms,navCenters);
         // V166 functional furnishing: authored sprites selected by ROOM use,
         // wall-oriented placements, collision-tested against doors and loot.
         // No more six slots of arbitrary building-wide objects.
