@@ -101,43 +101,43 @@ public final class InteriorRoomArchetypeV166 {
      * Column order matches the actual named V161 rooms, before label swaps.
      */
     private static final int[][][] ROOM_ROLES={
-        { // apartments: lounge, bedroom, kitchen, bath/utility, bedroom, storage
-            {0,5,6,8,10,9,7,2},{1,2,7,5,6,0,9,11},
-            {3,4,10,5,6,8,9,7},{4,2,6,11,3,7,10,8},
-            {1,2,7,0,5,6,11,9},{2,6,11,7,9,8,10,4}
+        { // apartments: lounge, bedroom, kitchen, washroom, bedroom, storage
+            {0,5,6,8,9,7,2,10},{1,2,7,5,6,9,3,10},
+            {3,4,10,5,6,8,9,7},{4,10,3,8,2,7,9,6},
+            {1,2,7,5,9,6,3,10},{2,6,7,8,10,4,9,5}
         },
         { // offices: reception, open plan, meeting, records, server, supplies
             {7,0,2,9,6,4,8,11},{0,1,2,4,6,5,7,10},
             {9,0,2,7,5,10,4,8},{3,6,8,10,4,9,11,0},
             {5,1,9,3,11,6,8,0},{8,3,6,11,10,4,5,7}
         },
-        { // market: produce, aisles, cold storage, checkout, stock, manager
-            {0,1,7,6,4,2,9,10},{0,2,1,7,5,4,10,9},
-            {3,2,6,5,4,7,1,10},{1,4,0,8,6,5,7,9},
-            {2,6,10,5,9,4,0,7},{8,4,7,1,11,6,3,2}
+        { // market: produce, grocery aisles, cold storage, checkout, stock, office
+            {0,3,6,5,9,1,4,11},{0,3,6,5,9,1,4,11},
+            {3,5,6,10,9,0,4,11},{1,4,8,0,11,9,5,6},
+            {5,6,9,11,0,3,10,4},{8,11,4,2,10,9,6,5}
         },
-        { // hotel: reception, suite, service, lounge, suite, laundry
-            {3,4,5,6,10,8,7,2},{0,1,2,5,6,10,8,4},
-            {9,7,6,2,8,10,3,5},{4,5,10,7,3,6,2,8},
-            {0,1,2,6,5,8,10,7},{9,8,7,2,6,10,5,11}
+        { // hotel: reception, guest suite, housekeeping, lounge, suite, laundry
+            {3,4,5,2,7,9,6,10},{0,1,6,5,4,7,9,10},
+            {8,9,6,11,7,2,10,3},{4,5,7,3,2,10,9,6},
+            {0,1,6,5,4,7,9,10},{8,9,11,6,7,2,10,3}
         },
-        { // school: classrooms, library, staff office, laboratory, storage
-            {0,1,4,8,2,3,10,6},{0,1,4,2,8,5,10,7},
+        { // school: 2 classrooms, library, staff office, laboratory, storage
+            {0,1,4,2,3,5,9,10},{0,1,4,2,3,5,9,10},
             {2,4,5,3,9,10,8,1},{3,5,7,9,4,2,10,1},
             {6,7,11,8,9,5,3,2},{8,2,10,9,11,3,5,4}
         },
-        { // factory: machinery, assembly, control, tools, parts, maintenance
+        { // factory: machine hall, assembly, controls, tools, parts, maintenance
             {0,1,2,3,4,6,8,10},{1,0,2,8,3,7,10,5},
             {6,11,4,9,2,8,3,5},{2,3,9,7,10,6,4,8},
             {3,7,2,8,10,1,5,9},{0,4,9,10,3,2,11,5}
         },
-        { // warehouse: receiving, racks, dispatch, packing, spare, security
-            {0,1,2,3,9,4,7,10},{0,1,2,5,7,10,3,4},
-            {2,8,6,7,0,4,9,11},{3,2,1,4,8,7,5,10},
-            {0,4,3,1,6,7,5,8},{7,8,9,5,6,11,4,2}
+        { // warehouse: receiving, racks, dispatch, packing, parts, security
+            {0,1,2,3,4,5,10,6},{0,1,2,5,4,3,10,6},
+            {1,2,3,5,0,4,7,8},{3,1,2,0,4,5,6,10},
+            {0,4,5,1,2,3,10,6},{7,8,9,5,6,11,4,2}
         },
-        { // homes: living, bedroom, kitchen, dining, work, pantry
-            {0,4,6,8,10,9,5,7},{1,5,6,0,8,9,7,10},
+        { // residences: living, bedroom, kitchen, dining, work, pantry
+            {0,4,6,8,10,9,5,7},{1,5,6,8,9,10,4,7},
             {2,3,7,4,8,9,11,10},{4,7,0,5,6,9,8,3},
             {9,8,6,5,7,4,10,11},{8,2,7,11,3,6,5,9}
         }
@@ -180,14 +180,14 @@ public final class InteriorRoomArchetypeV166 {
         // Curated public-area functions, not generic clutter. Offsets across
         // halls vary stock, seating and workstations without spawning minis.
         final int[][] commons={
-            {0,5,6,8,9,10,7,2},
-            {7,0,2,3,4,8,9,10},
-            {0,1,4,7,2,8,10,3},
-            {3,4,5,6,7,10,8,2},
-            {0,2,4,5,6,9,10,8},
-            {0,1,2,3,4,6,7,10},
-            {0,1,2,3,4,7,8,9},
-            {0,4,6,8,9,10,7,5}
+            {0,5,6,8,9,10,7,2}, // apartment shared living
+            {7,0,2,3,4,8,9,10}, // office workstations
+            {0,3,6,5,9,1,4,11}, // merchandise and backstock only
+            {3,4,5,7,2,6,9,10}, // guest reception and seats
+            {0,1,2,4,3,5,9,10}, // school: desks/boards/bookcases
+            {0,1,2,3,4,7,8,10}, // production stations, not generic offices
+            {0,1,2,3,4,5,6,10},// warehouse: pallets/racks/handling
+            {0,4,6,8,9,10,7,5} // family living
         };
         int[] roles=commons[theme];
         return InteriorFurnitureCatalogV166.sprite(theme,
