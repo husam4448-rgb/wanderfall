@@ -381,23 +381,31 @@ public final class NeighborhoodLayoutV163 {
         // one or two fixtures because the old candidate list missed them.
         // Keep all functional props solid and navigation-aware. The 81-cell
         // permutation visits every floor region with stable seed variation.
+        // Three subcell offsets make valid placements possible even when the
+        // first lattice aligns with a partition; this is placement, not fake
+        // scattered clutter. Never stop merely because six rooms are full.
         final int aim=theme==NeighborhoodV154.SCHOOL||
             theme==NeighborhoodV154.HOTEL||
-            theme==NeighborhoodV154.MARKET?14:10;
+            theme==NeighborhoodV154.MARKET?18:12;
         int count=0;
-        for(int j=0;j<81&&count<aim&&objects.size()<48;j++){
-            int index=Math.floorMod(j*47+Math.floorMod(signature,81),81);
+        for(int j=0;j<243&&count<aim&&objects.size()<72;j++){
+            int pass=j/81;
+            int index=Math.floorMod((j%81)*47+Math.floorMod(signature,81),81);
             int col=index%9,row=index/9;
             int h=hash(571+index*13,theme*181+index*7);
             int sprite=InteriorRoomArchetypeV166.shared(
-                theme,index,variation);
+                theme,index+pass*5,variation);
             float w=InteriorRoomArchetypeV166.width(sprite);
             float hh=InteriorRoomArchetypeV166.height(sprite);
             // Fixed proportional scale, never stretch/flatten source art.
             float scale=index%4==0?.84f:1f;
             w*=scale;hh*=scale;
-            float cx=110f+col*171f+(Math.floorMod(h>>>12,15)-7);
-            float cy=108f+row*110f+(Math.floorMod(h>>>19,15)-7);
+            int orientation=col<=1?90:col>=7?270:0;
+            if(orientation!=0){float swap=w;w=hh;hh=swap;}
+            float cx=110f+col*171f+(Math.floorMod(h>>>12,15)-7)+
+                     (pass==0?0f:pass==1?28f:-28f);
+            float cy=108f+row*110f+(Math.floorMod(h>>>19,15)-7)+
+                     (pass==0?0f:pass==1?-19f:19f);
             float x=cx-w*.5f,y=cy-hh*.5f;
             // The south entry must remain an unmistakable walkable path.
             if(x<891f&&x+w>709f&&y+h>855f)continue;
@@ -411,7 +419,7 @@ public final class NeighborhoodLayoutV163 {
                 }
             }
             if(inRoom)continue;
-            if(putFurnishing(sprite,x,y,w,hh,0,supplies))count++;
+            if(putFurnishing(sprite,x,y,w,hh,orientation,supplies))count++;
         }
     }
     private int hash(int a,int b){
