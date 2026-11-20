@@ -280,11 +280,18 @@ class Art:
       x=18+j*15;self.R((x,46,x+11,87),tint(self.m,26),1)
       self.L(((x+2,48),(x+2,84)),PAPER,1)
   elif k==26:
-   self.L(((38,13),(48,93),(103,93)),self.m,6)
-   self.L(((52,16),(60,83),(105,83)),DARK,4)
-   self.plank((48,49,91,86))
-   self.L(((51,51),(87,84)),DARK,2)
-   for x in (53,99):self.O((x-7,94,x+7,109),DARK,True)
+   if s:
+    self.L(((54,11),(61,93),(99,93)),self.m,6)
+    self.L(((65,14),(69,82),(105,82)),DARK,4)
+    self.plank((62,41,92,83))
+    self.L(((64,44),(90,80)),DARK,2)
+    for x in (65,99):self.O((x-7,94,x+7,109),DARK,True)
+   else:
+    self.L(((27,13),(35,93),(107,93)),self.m,6)
+    self.L(((38,16),(47,83),(109,83)),DARK,4)
+    self.plank((36,49,101,86))
+    self.L(((39,51),(98,84)),DARK,2)
+    for x in (38,103):self.O((x-7,94,x+7,109),DARK,True)
   elif k==27:
    self.plank((40,84,99,112) if s else (17,85,111,112))
    for j in range(3):
