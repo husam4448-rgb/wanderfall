@@ -334,10 +334,18 @@ public final class NeighborhoodLayoutV163 {
             roomRects.add(new float[]{z.x1,z.y1,z.x2-z.x1,z.y2-z.y1});
             texts.add(new float[]{z.x1+32f,z.y1+53f});
             portals.add(new float[]{z.dx,z.dy});
+            // Two original saved storage IDs per room now occupy believable
+            // perimeter cabinetry stations, NOT repeated mini crates right
+            // beside the doorway. Order and index remain V161-compatible.
             for(int j=0;j<2;j++){
-                float offset=j==0?-49f:49f;
-                float sx=z.vertical?z.dx+z.side*105f:z.dx+offset;
-                float sy=z.vertical?z.dy+offset:z.dy+z.side*105f;
+                float sx,sy;
+                if(z.vertical){
+                    sx=z.side<0?z.x1+51f:z.x2-51f;
+                    sy=z.y1+(z.y2-z.y1)*(j==0?.27f:.73f);
+                }else{
+                    sx=z.x1+(z.x2-z.x1)*(j==0?.27f:.73f);
+                    sy=z.side<0?z.y1+51f:z.y2-51f;
+                }
                 supplies.add(new float[]{clamp(sx,z.x1+38f,z.x2-38f),
                     clamp(sy,z.y1+36f,z.y2-36f)});
             }
@@ -348,8 +356,16 @@ public final class NeighborhoodLayoutV163 {
         // Two additional container anchors preserve V161 14-box save format.
         for(int i:new int[]{0,5}){
             Zone z=zones.get(i);
-            float sx=z.vertical?z.dx+z.side*157f:z.dx+150f;
-            float sy=z.vertical?z.dy+125f:z.dy+z.side*150f;
+            // The two historical extra saved inventories remain indices
+            // 12/13 but are staged as side-wall storage, not doorway debris.
+            float sx,sy;
+            if(z.vertical){
+                sx=z.side<0?z.x1+112f:z.x2-112f;
+                sy=(z.y1+z.y2)*.5f;
+            }else{
+                sx=i==0?z.x1+99f:z.x2-99f;
+                sy=z.side<0?z.y1+110f:z.y2-110f;
+            }
             supplies.add(new float[]{clamp(sx,z.x1+55f,z.x2-55f),
                 clamp(sy,z.y1+55f,z.y2-55f)});
         }
