@@ -107,45 +107,69 @@ public final class InteriorRoomArchetypeV166 {
     // Classrooms use student desks, boards and teacher stations instead of
     // the generic family-size dining tables; libraries may use study tables.
     private static final int[][][] ROOM_ROLES={
-        { // apartments: living, bedroom, kitchen, utility, bedroom, storage
-            {0,5,6,7,9,8,2,11},{1,2,7,9,6,11,8,5},
-            {3,4,10,5,6,9,7,2},{4,10,6,2,7,11,9,4},
-            {1,2,7,9,6,11,5,8},{2,6,11,7,10,4,9,5}
+        { // apartments: lounge, bedroom, kitchen, utility, bedroom, storage
+            {0,5,6,9,8,7,0,6},
+            {1,2,7,9,6,8,1,2},
+            {3,4,10,5,6,9,3,4},
+            {4,10,6,2,7,11,4,6},
+            {1,2,7,9,6,8,1,2},
+            {2,6,11,7,10,4,2,6}
         },
-        { // office: reception, open plan, meeting, records, server, supplies
-            {7,2,0,9,6,3,4,8},{0,2,4,6,3,9,1,8},
-            {9,2,6,0,4,3,7,8},{3,6,8,11,4,5,0,2},
-            {5,1,8,6,4,3,11,2},{8,3,6,11,10,4,2,7}
+        { // offices: reception, workspace, conference, records, server, supply
+            {7,2,0,9,6,3,4,8},
+            {0,2,4,6,3,9,1,8},
+            {9,2,6,0,4,3,7,8},
+            {3,6,8,11,4,5,0,2},
+            {5,1,8,6,4,3,11,2},
+            {8,3,6,11,10,4,2,7}
         },
-        { // market: produce, aisles, refrigeration, checkout, stock, manager
-            {0,2,6,5,9,3,10,1},{0,2,3,6,5,9,10,1},
-            {3,6,5,2,9,10,11,0},{1,0,2,9,4,6,10,5},
-            {5,6,9,11,2,3,10,0},{8,11,4,2,6,10,5,9}
+        { // market: produce, groceries, cold chain, checkout, stock, office
+            {0,2,6,5,9,3,10,1},
+            {0,2,3,6,5,9,10,1},
+            {3,6,5,2,9,10,11,0},
+            {1,0,2,9,4,6,10,5},
+            {5,6,9,11,2,3,10,0},
+            {8,11,4,2,6,10,5,9}
         },
         { // hotel: reception, suite, housekeeping, lounge, suite, laundry
-            {3,4,5,2,7,10,9,1},{0,1,6,5,4,7,10,2},
-            {9,7,6,2,8,1,3,9},{4,5,10,7,3,2,1,11},
-            {0,1,6,5,4,7,10,2},{8,9,7,6,1,2,3,8}
+            {3,4,5,2,7,10,9,1},
+            {0,1,6,5,4,7,10,2},
+            {9,7,6,2,8,1,3,9},
+            {4,5,10,7,3,2,1,11},
+            {0,1,6,5,4,7,10,2},
+            {8,9,7,6,1,2,8,9}
         },
-        { // school: classrooms, library, staff, laboratory, supplies
-            {0,1,4,2,3,8,9,10},{0,1,4,2,3,8,9,10},
-            {2,5,4,3,8,9,0,10},{3,4,5,9,2,10,8,1},
-            {6,7,11,8,9,5,3,2},{8,2,9,10,11,5,6,7}
+        { // school: classroom desks, library, staff, science, supplies
+            {0,1,3,4,2,8,0,3},
+            {0,1,3,4,2,8,0,3},
+            {2,5,4,3,8,9,0,10},
+            {3,4,5,9,2,10,8,1},
+            {6,7,11,8,9,5,3,2},
+            {8,2,9,10,11,5,8,2}
         },
-        { // factory: machinery, assembly, controls, tools, parts, maintenance
-            {0,1,2,3,7,8,9,11},{1,2,3,7,8,0,9,11},
-            {11,6,4,9,2,3,5,10},{2,3,9,8,7,10,0,1},
-            {3,7,8,9,2,0,10,1},{2,10,9,3,8,11,4,7}
+        { // factory: machine, assembly, control, tools, parts, maintenance
+            {0,1,2,3,7,8,9,11},
+            {1,2,3,7,8,0,9,11},
+            {11,6,4,9,2,3,5,10},
+            {2,3,9,8,7,10,0,1},
+            {3,7,8,9,2,0,10,1},
+            {2,10,9,3,8,11,4,7}
         },
-        { // warehouse: receiving, racks, dispatch, packing, spares, security
-            {0,1,2,3,4,5,9,11},{0,1,2,5,9,4,11,3},
-            {1,2,3,6,5,0,4,7},{3,0,1,2,4,6,5,9},
-            {0,4,1,5,2,9,3,11},{7,8,6,5,9,0,2,4}
+        { // warehouse: receiving, shelves, dispatch, packing, spares, security
+            {0,1,2,3,4,5,9,11},
+            {0,1,2,5,9,4,11,3},
+            {1,2,3,6,5,0,4,7},
+            {3,0,1,2,4,6,5,9},
+            {0,4,1,5,2,9,3,11},
+            {7,8,6,5,9,0,2,4}
         },
-        { // homes: living, bedroom, kitchen, dining, work, pantry
-            {0,4,8,10,9,6,5,7},{1,5,6,10,8,9,4,7},
-            {2,3,7,4,8,11,10,6},{4,10,0,7,8,6,11,9},
-            {9,10,8,4,6,5,0,7},{8,11,7,3,6,5,4,2}
+        { // residences: living, bedroom, kitchen, dining, work, pantry
+            {0,4,8,10,9,6,0,4},
+            {1,5,6,10,8,9,1,5},
+            {2,3,7,4,8,11,2,3},
+            {4,10,0,7,8,11,4,10},
+            {9,10,8,4,6,5,9,10},
+            {8,11,7,3,6,5,8,11}
         }
     };
     /**
