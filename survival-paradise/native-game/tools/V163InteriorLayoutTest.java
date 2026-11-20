@@ -44,6 +44,7 @@ public final class V163InteriorLayoutTest {
         int composedGroups=0,roomMin=Integer.MAX_VALUE,roomsBelowSix=0;
         int downward=0,sideways=0,roomsNoDown=0,roomsNoSide=0;
         int directional=0,nonSolidFake=0,miniatures=0,sparseLog=0;
+        int[] histogram=new int[11];
         java.util.HashSet<Integer> furnishedRoles=new java.util.HashSet<>();
         for(int seed:new int[]{14901,87011,31526,58923}){
             WorldGeographyV160 earth=WorldGeographyV160.prepare(seed,null);
@@ -91,6 +92,7 @@ public final class V163InteriorLayoutTest {
                             }
                         }
                         roomMin=Math.min(roomMin,roomProps);
+                        histogram[Math.min(roomProps,10)]++;
                         if(frontCount==0)roomsNoDown++;
                         if(sideCount==0)roomsNoSide++;
                         if(roomProps<6)roomsBelowSix++;
@@ -166,7 +168,8 @@ public final class V163InteriorLayoutTest {
         System.out.println("V166_DENSITY_METRICS buildings="+tested+
             " roomMin="+roomMin+" belowSix="+roomsBelowSix+
             " missingSide="+roomsNoSide+" missingFront="+roomsNoDown+
-            " directional="+directional+" totalFurniture="+allProps);
+            " directional="+directional+" totalFurniture="+allProps+
+            " histogram0to10plus="+java.util.Arrays.toString(histogram));
         check(tested>=20,"Too few buildings inspected");
         // Count of decals or small wall-notes is never a quality criterion.
         check(nonSolidFake==0,"Fake wall-note objects still in layout");

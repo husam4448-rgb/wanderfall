@@ -307,6 +307,35 @@ public final class NeighborhoodLayoutV163 {
      * chairs or equipment, not non-solid paper/noticeboard count fillers.
      * All survivors pass the identical solid/door/loot collision method.
      */
+
+    /**
+     * In a fully furnished room, prefer a genuine independently painted
+     * furniture profile against a lateral wall over an all-front-facing set.
+     * Changing only the sprite-facing selection preserves the exact solid
+     * rectangle, saved room seed and furniture/cabinet reachability.
+     */
+    private void ensureSideProfile(Zone z){
+        float[] closest=null;
+        float closestGap=Float.MAX_VALUE;
+        int face=0;
+        for(float[] q:objects){
+            if(q[1]<z.x1||q[2]<z.y1||
+               q[1]+q[3]>z.x2||q[2]+q[4]>z.y2)continue;
+            if((int)q[5]==90||(int)q[5]==270)return;
+            int art=(int)q[0]-16;
+            if(!InteriorFurnitureCatalogV166.valid(art))continue;
+            float left=q[1]-z.x1;
+            float right=z.x2-(q[1]+q[3]);
+            float gap=Math.min(left,right);
+            // Only use a true profile when the piece already belongs to
+            // the lateral perimeter, never for a central or top-wall desk.
+            if(gap>100f||gap>=closestGap)continue;
+            closest=q;
+            closestGap=gap;
+            face=left<=right?90:270;
+        }
+        if(closest!=null)closest[5]=face;
+    }
     private void completeNarrowRoom(Zone z,int room,ArrayList<float[]> supplies){
         if(roomCount(z)>=6)return;
         float rw=z.x2-z.x1,rh=z.y2-z.y1;
@@ -548,6 +577,7 @@ public final class NeighborhoodLayoutV163 {
                 if(putFurnishing(sprite,x,y,w,h,orientation,supplies))placed++;
             }
             completeNarrowRoom(z,index,supplies);
+            ensureSideProfile(z);
         }
         furnishCommons(supplies);
         walls=pack(barriers);
