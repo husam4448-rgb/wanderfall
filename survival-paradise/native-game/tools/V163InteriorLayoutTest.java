@@ -94,6 +94,13 @@ public final class V163InteriorLayoutTest {
                         if(frontCount==0)roomsNoDown++;
                         if(sideCount==0)roomsNoSide++;
                         if(roomProps<6)roomsBelowSix++;
+                        if(roomProps<2&&roomsBelowSix<30)
+                            System.out.println("NEEDS_FURNITURE seed="+seed+
+                                " theme="+room.theme+" plan="+layout.plan+
+                                " room="+roomIndex+" size="+
+                                (int)(roomBox[2]/ClinicInteriorV89.EXPANSION_V90)+
+                                "x"+(int)(roomBox[3]/ClinicInteriorV89.EXPANSION_V90)+
+                                " solid="+roomProps);
                     }
                     allProps+=nProps;
                     minProps=Math.min(minProps,nProps);

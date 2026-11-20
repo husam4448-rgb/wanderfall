@@ -213,6 +213,44 @@ public final class NeighborhoodLayoutV163 {
         }
     }
     /**
+     * Narrow-room recovery: finite grid search for real bedside cabinets,
+     * chairs or equipment, not non-solid paper/noticeboard count fillers.
+     * All survivors pass the identical solid/door/loot collision method.
+     */
+    private void completeNarrowRoom(Zone z,int room,ArrayList<float[]> supplies){
+        if(roomCount(z)>=3)return;
+        float rw=z.x2-z.x1,rh=z.y2-z.y1;
+        for(int kind=0;kind<16&&roomCount(z)<3;kind++){
+            int sprite=InteriorRoomArchetypeV166.detail(
+                theme,room,variation,kind+5);
+            int side=kind%4;
+            int angle=side==0?90:side==1?270:side==2?0:180;
+            float w=Math.max(64f,
+                InteriorRoomArchetypeV166.width(sprite)*.69f);
+            float h=Math.max(54f,
+                InteriorRoomArchetypeV166.height(sprite)*.69f);
+            if(angle==90||angle==270){
+                float swap=w;w=h;h=swap;
+            }
+            if(w>rw-54f||h>rh-54f)continue;
+            // Perimeter-first scan, then genuinely usable interior slots.
+            for(int j=0;j<121&&roomCount(z)<3;j++){
+                int gx=j%11,gy=j/11;
+                float x=z.x1+27f+gx*(rw-54f-w)/10f;
+                float y=z.y1+27f+gy*(rh-54f-h)/10f;
+                float cx=x+w*.5f,cy=y+h*.5f;
+                if(x<z.x1+22f||y<z.y1+22f||
+                   x+w>z.x2-22f||y+h>z.y2-22f)continue;
+                // Preserve a person-sized travel lane through the room.
+                float midX=(z.x1+z.x2)*.5f,midY=(z.y1+z.y2)*.5f;
+                if(Math.abs(cx-midX)<63f&&Math.abs(cy-midY)<63f)
+                    continue;
+                if(putFurnishing(sprite,x,y,w,h,angle,supplies))
+                    break;
+            }
+        }
+    }
+    /**
      * Circulation and shared-purpose spaces were never part of the six V163
      * rooms. Previously this left reception halls, sales floors and school
      * commons completely empty. Place functional grouped equipment on their
@@ -386,6 +424,7 @@ public final class NeighborhoodLayoutV163 {
                 if(putFurnishing(sprite,x,y,w,h,orientation,supplies))placed++;
             }
             finishRoom(z,index,supplies,target);
+            completeNarrowRoom(z,index,supplies);
         }
         furnishCommons(supplies);
         walls=pack(barriers);
