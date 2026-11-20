@@ -459,6 +459,7 @@ public final class GameView extends View {
         InteriorPropArtV166.load(host.getAssets());
         InteriorSpecialPropArtV166.load(host.getAssets());
         InteriorScenePropArtV166.load(host.getAssets());
+        InteriorDirectionalFurnitureV166.load(host.getAssets());
         InteriorFloorArtV166.load(host.getAssets());
         if(industrialModeV123||stitchedIndustrialV128)
             industrialArtV123.load(host.getAssets());
