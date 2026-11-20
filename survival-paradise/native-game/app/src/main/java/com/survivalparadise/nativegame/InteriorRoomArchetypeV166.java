@@ -96,8 +96,9 @@ public final class InteriorRoomArchetypeV166 {
         {230,160},{208,152},{190,135},{205,165}
     };
     /**
-     * Functional room plans: every integer is a DISTINCT large furnishing
-     * model inside that building theme's twelve-object directional library.
+     * Functional room plans: six or more semantically compatible large
+     * furnishings for each room. Repeated desks and seating are deliberate,
+     * but unrelated equipment is never added merely to increase variety.
      * Column order matches the actual named V161 rooms, before label swaps.
      */
     // Service and utility spaces use real sink, shelf, cabinet and linen
@@ -132,7 +133,7 @@ public final class InteriorRoomArchetypeV166 {
             {8,11,4,2,6,10,5,9}
         },
         { // hotel: reception, suite, housekeeping, lounge, suite, laundry
-            {3,4,5,2,7,10,9,1},
+            {3,4,5,2,7,1,3,4},
             {0,1,6,5,4,7,10,2},
             {9,7,6,2,8,1,3,9},
             {4,5,10,7,3,2,1,11},
@@ -225,7 +226,7 @@ public final class InteriorRoomArchetypeV166 {
             {0,5,6,8,9,10,7,2},
             {7,0,2,3,4,8,9,10},
             {0,2,3,5,6,9,10,1},
-            {3,4,5,6,7,10,8,2},
+            {3,4,5,2,7,1,4,5},
             {0,1,2,3,4,8,9,10},
             {0,1,2,3,4,6,7,10},
             {0,1,2,3,4,5,9,11},
