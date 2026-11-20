@@ -94,7 +94,7 @@ public final class V163InteriorLayoutTest {
                         if(frontCount==0)roomsNoDown++;
                         if(sideCount==0)roomsNoSide++;
                         if(roomProps<6)roomsBelowSix++;
-                        if(roomProps<2&&sparseLog++<16)
+                        if(roomProps<3&&sparseLog++<24)
                             System.out.println("NEEDS_FURNITURE seed="+seed+
                                 " theme="+room.theme+" plan="+layout.plan+
                                 " room="+roomIndex+" size="+
@@ -163,6 +163,10 @@ public final class V163InteriorLayoutTest {
                 if(tested>85&&topology.size()==NeighborhoodLayoutV163.PLAN_COUNT)break;
             }
         }
+        System.out.println("V166_DENSITY_METRICS buildings="+tested+
+            " roomMin="+roomMin+" belowSix="+roomsBelowSix+
+            " missingSide="+roomsNoSide+" missingFront="+roomsNoDown+
+            " directional="+directional+" totalFurniture="+allProps);
         check(tested>=20,"Too few buildings inspected");
         // Count of decals or small wall-notes is never a quality criterion.
         check(nonSolidFake==0,"Fake wall-note objects still in layout");
