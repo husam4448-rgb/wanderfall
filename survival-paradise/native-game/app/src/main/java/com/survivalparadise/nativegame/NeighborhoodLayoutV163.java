@@ -209,58 +209,52 @@ public final class NeighborhoodLayoutV163 {
      */
     private void composeRoomScene(int room,ArrayList<float[]> supplies){
         Zone z=zones.get(room);
-        final int[][] anchors={
+        float area=(z.x2-z.x1)*(z.y2-z.y1);
+        // The signature scene is a real grouped artwork, not a decorative
+        // count filler. Historically it received ONE attempt at the NW
+        // corner (slot zero); a cabinet there caused nearly every authored
+        // classroom, hotel and domestic set-piece to disappear.
+        // Search distinct WALL-adjacent stations for the same scene before
+        // selecting individual supporting furniture.
+        final int[][] stations={
             {0,0},{1000,0},{0,1000},{1000,1000},
             {500,0},{500,1000},{0,500},{1000,500},
-            {220,210},{780,210},{220,790},{780,790},
-            {500,300},{150,500},{850,500}
+            {180,0},{820,0},{180,1000},{820,1000},
+            {0,220},{0,780},{1000,220},{1000,780},
+            {250,180},{750,180},{250,820},{750,820},
+            {500,230},{500,770},{180,500},{820,500}
         };
-        int staged=0;
-        float area=(z.x2-z.x1)*(z.y2-z.y1);
-        int aim=area>250000f?3:area>165000f?2:1;
-        for(int slot=0;slot<anchors.length&&staged<aim;slot++){
-            int sprite=InteriorRoomArchetypeV166.sprite(
-                theme,room,variation,slot);
-            if(sprite<0)continue;
-            float width=InteriorRoomArchetypeV166.width(sprite);
-            float height=InteriorRoomArchetypeV166.height(sprite);
-            float scale=area<120000f?.88f:area<185000f?.95f:1f;
-            width*=scale;height*=scale;
-            int orientation=facing(anchors[slot][0],anchors[slot][1]);
-            // Existing legacy ensembles have only authored frontal bitmaps.
-            // Never rotate these to counterfeit side-view perspective.
-            if(sprite<64)orientation=0;
-            if(orientation==90||orientation==270){
-                float swap=width;width=height;height=swap;
-            }
-            float spanX=z.x2-z.x1-84f-width;
-            float spanY=z.y2-z.y1-84f-height;
+        int signatureSprite=InteriorRoomArchetypeV166.sprite(
+            theme,room,variation,0);
+        boolean signaturePlaced=false;
+        for(int pass=0;pass<3&&!signaturePlaced;pass++){
+            float scale=(area<120000f?.86f:area<185000f?.93f:1f)
+                *(pass==0?1f:pass==1?.88f:.79f);
+            float width=InteriorRoomArchetypeV166.width(signatureSprite)*scale;
+            float height=InteriorRoomArchetypeV166.height(signatureSprite)*scale;
+            float spanX=z.x2-z.x1-76f-width;
+            float spanY=z.y2-z.y1-76f-height;
             if(spanX<=0||spanY<=0)continue;
-            int n=hash(room*587+slot*13,theme*97+slot*19);
-            float x=z.x1+42f+anchors[slot][0]*spanX/1000f+
-                    Math.floorMod(n>>>9,5)-2f;
-            float y=z.y1+42f+anchors[slot][1]*spanY/1000f+
-                    Math.floorMod(n>>>17,5)-2f;
-            float cx=x+width*.5f,cy=y+height*.5f;
-            float midX=(z.x1+z.x2)*.5f,midY=(z.y1+z.y2)*.5f;
-            // The solid composition may reach toward the centre but must
-            // not cover the exact standing / navigation cell at room centre.
-            float centreMargin=sprite>=48?16f:58f;
-            if(x<midX+centreMargin&&x+width>midX-centreMargin&&
-               y<midY+centreMargin&&y+height>midY-centreMargin)continue;
-            // A clear corridor still connects door opening to room centre.
-            float passage=sprite>=48?53f:75f;
-            if(z.vertical){
-                float left=Math.min(z.dx,midX),right=Math.max(z.dx,midX);
-                if(x<right+passage&&x+width>left-passage&&
-                   y<z.dy+passage&&y+height>z.dy-passage)continue;
-            }else{
-                float top=Math.min(z.dy,midY),bottom=Math.max(z.dy,midY);
-                if(y<bottom+passage&&y+height>top-passage&&
-                   x<z.dx+passage&&x+width>z.dx-passage)continue;
+            // Prefer authored corners and wall runs, but permute ties between
+            // seeds to avoid identical furniture arrangements in each home.
+            int start=Math.floorMod(hash(room*587+pass*47,theme*97),4);
+            for(int k=0;k<stations.length&&!signaturePlaced;k++){
+                int[] station=stations[k<4?(k+start)%4:k];
+                float x=z.x1+38f+station[0]*spanX/1000f;
+                float y=z.y1+38f+station[1]*spanY/1000f;
+                float mx=(z.x1+z.x2)*.5f,my=(z.y1+z.y2)*.5f;
+                // Keep a visible central circulation zone: the exact
+                // navigability, loot and portal constraints are enforced
+                // again by putFurnishing on every successful candidate.
+                if(x<mx+24f&&x+width>mx-24f&&
+                   y<my+24f&&y+height>my-24f)continue;
+                if(putFurnishing(signatureSprite,x,y,width,height,0,supplies))
+                    signaturePlaced=true;
             }
-            if(putFurnishing(sprite,x,y,width,height,orientation,supplies))staged++;
         }
+        // Supplement the authored focal grouping with genuine independent
+        // front/side furniture, rather than making the grouped artwork a
+        // replacement for the room's remaining five or six objects.
     }
     /**
      * Add individual furniture rather than counting one multi-object set as
