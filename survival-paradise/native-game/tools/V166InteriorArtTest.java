@@ -103,12 +103,12 @@ public final class V166InteriorArtTest {
                         int sprite=InteriorRoomArchetypeV166.sprite(
                             theme,room,variation,slot);
                         if(sprite>=32&&sprite<48)newScenes[sprite-32]=true;
-                        if(sprite>=48)ensembles[sprite-48]=true;
+                        if(sprite>=48&&sprite<64)ensembles[sprite-48]=true;
                     }
             for(int station=0;station<12;station++){
                 int sprite=InteriorRoomArchetypeV166.shared(theme,station,0);
                 if(sprite>=32&&sprite<48)newScenes[sprite-32]=true;
-                        if(sprite>=48)ensembles[sprite-48]=true;
+                        if(sprite>=48&&sprite<64)ensembles[sprite-48]=true;
             }
         }
         for(int i=0;i<16;i++){
