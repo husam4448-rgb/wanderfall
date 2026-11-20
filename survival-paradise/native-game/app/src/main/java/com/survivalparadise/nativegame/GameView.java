@@ -2689,10 +2689,24 @@ public final class GameView extends View {
             rect(c,x+16,y+29,9,10,0xffe0bf79);
         }
     }
-    void drawClinicStorageV89(Canvas c,ClinicInteriorV89.Storage box){
+    void drawClinicStorageV89(Canvas c,ClinicInteriorV89.Storage box,int index){
         float x=box.x,y=box.y;
         boolean empty=box.empty();
-        // The original searchable box coordinates and 47x34 footprint remain.
+        if(clinicInteriorV89 instanceof NeighborhoodInteriorV161){
+            NeighborhoodInteriorV161 room=(NeighborhoodInteriorV161)clinicInteriorV89;
+            if(index>=0&&index<room.layoutV163.cacheFixtures.length){
+                float[] cabinet=room.layoutV163.cacheFixtures[index];
+                if(InteriorDirectionalFurnitureV166.drawAt(
+                    c,(int)cabinet[0],cabinet[1],cabinet[2],
+                    cabinet[3],cabinet[4],(int)cabinet[5])){
+                    if(!empty&&distance(playerX,playerY,x,y)<148f)
+                        label(c,"INTERACT  "+box.label,
+                            cabinet[1],cabinet[2]-15f,10,0xffe8ddad,true);
+                    return;
+                }
+            }
+        }
+        // Legacy interior fallback, not used by V163 neighborhood furniture.
         // Renderer-only class selection: no change to quantity, reach or saves.
         int sprite=1;
         if(clinicInteriorV89 instanceof NeighborhoodInteriorV161){
@@ -2888,10 +2902,11 @@ public final class GameView extends View {
                     drawClinicFurnitureV89(c,obj);
             }
         }
-        for(ClinicInteriorV89.Storage storage:clinicInteriorV89.storages){
-            if(!WorldPerfV55.nearView(storage.x,storage.y,camX,camY,viewW,viewH,80))
+        for(int si=0;si<clinicInteriorV89.storages.length;si++){
+            ClinicInteriorV89.Storage storage=clinicInteriorV89.storages[si];
+            if(!WorldPerfV55.nearView(storage.x,storage.y,camX,camY,viewW,viewH,160))
                 continue;
-            drawClinicStorageV89(c,storage);
+            drawClinicStorageV89(c,storage,si);
         }
         // Real departure point at bottom entrance; not a map-teleport hotspot.
         float s=ClinicInteriorV89.EXPANSION_V90;

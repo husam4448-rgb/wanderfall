@@ -12,7 +12,7 @@ public final class NeighborhoodLayoutV163 {
     public static final int PLAN_COUNT=6;
     private static final float S=ClinicInteriorV89.EXPANSION_V90;
     public final int plan,signature;
-    public final float[][] walls,furniture,rooms,labels,doors,caches,encounters;
+    public final float[][] walls,furniture,rooms,labels,doors,caches,encounters,cacheFixtures;
     private final ArrayList<float[]> barriers=new ArrayList<>();
     private final ArrayList<float[]> objects=new ArrayList<>();
     private final ArrayList<Zone> zones=new ArrayList<>();
@@ -445,6 +445,7 @@ public final class NeighborhoodLayoutV163 {
         labels=pack(texts);
         doors=pack(portals);
         caches=pack(supplies);
+        cacheFixtures=InteriorCacheFixtureV166.build(theme,rooms,caches);
         encounters=pack(spawn);
     }
     /** Three north / three south rooms surrounding a broad horizontal spine. */
@@ -573,6 +574,11 @@ public final class NeighborhoodLayoutV163 {
                worldY+radius>q[2]+4&&worldY-radius<q[2]+q[4]-4)
                 return true;
         }
+        // Searchable storage is now substantial physical cabinetry. The
+        // visible atlas rectangle is the SAME as its collision footprint.
+        for(float[] cache:cacheFixtures)
+            if(InteriorCacheFixtureV166.collides(
+                cache,worldX,worldY,radius))return true;
         return false;
     }
 }
