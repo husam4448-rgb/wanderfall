@@ -203,6 +203,14 @@ public final class V163InteriorLayoutTest {
                         "Office desk placed in shop floor or market storage");
                     if(theme==0&&actual==2)check(kind!=0&&kind!=6,
                         "Bed or computer workstation in apartment kitchen");
+                    if(theme==0&&actual==3)
+                        check(kind!=0&&kind!=1&&kind!=3&&kind!=5&&kind!=6,
+                            "Inappropriate living/dining furniture in apartment utility");
+                    if(theme==3&&(actual==2||actual==5))
+                        check(kind!=5&&kind!=14,
+                            "Dining table or supermarket cooler in hotel service room");
+                    if(theme==4&&(actual==0||actual==1))
+                        check(kind!=5,"Generic dining table in classroom");
                 }
 
         check(topology.size()==NeighborhoodLayoutV163.PLAN_COUNT,
