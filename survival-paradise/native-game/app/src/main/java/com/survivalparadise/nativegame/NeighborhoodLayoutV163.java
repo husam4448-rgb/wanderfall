@@ -94,7 +94,20 @@ public final class NeighborhoodLayoutV163 {
         for(Zone z:zones){
             float nearestX=clamp(z.dx,x,x+w);
             float nearestY=clamp(z.dy,y,y+h);
-            if(Math.hypot(nearestX-z.dx,nearestY-z.dy)<63f)return false;
+            if(Math.hypot(nearestX-z.dx,nearestY-z.dy)<76f)return false;
+            // Reserve an orthogonal, player-width path from each ROOM DOOR
+            // to its navigable centre, independent of subsequent furniture
+            // candidate algorithms. Applies to every collidable furnishing.
+            float midX=(z.x1+z.x2)*.5f,midY=(z.y1+z.y2)*.5f;
+            if(z.vertical){
+                float a=Math.min(z.dx,midX),b=Math.max(z.dx,midX);
+                if(x<b+66f&&x+w>a-66f&&
+                   y<z.dy+66f&&y+h>z.dy-66f)return false;
+            }else{
+                float a=Math.min(z.dy,midY),b=Math.max(z.dy,midY);
+                if(y<b+66f&&y+h>a-66f&&
+                   x<z.dx+66f&&x+w>z.dx-66f)return false;
+            }
         }
         for(float[] cache:supplies){
             // Saved cabinets are 47x34; 43 units keeps an interaction ring
