@@ -43,6 +43,8 @@ public final class V163InteriorLayoutTest {
         int tested=0,lootPreserved=0,allProps=0,minProps=Integer.MAX_VALUE,maxProps=0;
         int composedGroups=0,roomMin=Integer.MAX_VALUE,roomsBelowSix=0;
         int downward=0,sideways=0,roomsNoDown=0,roomsNoSide=0;
+        int directional=0,nonSolidFake=0,miniatures=0;
+        java.util.HashSet<Integer> furnishedRoles=new java.util.HashSet<>();
         for(int seed:new int[]{14901,87011,31526,58923}){
             WorldGeographyV160 earth=WorldGeographyV160.prepare(seed,null);
             WorldCivilizationV159.Plan plan=WorldCivilizationV159.generate(
@@ -60,8 +62,18 @@ public final class V163InteriorLayoutTest {
                     // Density evidence is counted from actual seeded object
                     // rectangles, not the number of attempted placements.
                     int nProps=layout.furniture.length;
-                    for(float[] q:layout.furniture)
+                    for(float[] q:layout.furniture){
                         if((int)q[0]>=64&&(int)q[0]<80)composedGroups++;
+                        if(q.length>6&&q[6]==1f)nonSolidFake++;
+                        int art=(int)q[0]-16;
+                        if(InteriorFurnitureCatalogV166.valid(art)){
+                            directional++;
+                            furnishedRoles.add(art);
+                            if(q[3]/ClinicInteriorV89.EXPANSION_V90<49f||
+                               q[4]/ClinicInteriorV89.EXPANSION_V90<42f)
+                                miniatures++;
+                        }
+                    }
                     for(int roomIndex=0;roomIndex<layout.rooms.length;roomIndex++){
                         float[] roomBox=layout.rooms[roomIndex];
                         int roomProps=0,frontCount=0,sideCount=0;
@@ -81,15 +93,7 @@ public final class V163InteriorLayoutTest {
                         roomMin=Math.min(roomMin,roomProps);
                         if(frontCount==0)roomsNoDown++;
                         if(sideCount==0)roomsNoSide++;
-                        if(roomProps<6){
-                            if(roomsBelowSix<18)System.out.println(
-                                "SPARSE ROOM theme="+room.theme+" plan="+layout.plan+
-                                " room="+roomIndex+" width="+(int)roomBox[2]+
-                                " height="+(int)roomBox[3]+
-                                " placed="+roomProps+
-                                " buildingTotal="+nProps);
-                            roomsBelowSix++;
-                        }
+                        if(roomProps<6)roomsBelowSix++;
                     }
                     allProps+=nProps;
                     minProps=Math.min(minProps,nProps);
@@ -128,8 +132,12 @@ public final class V163InteriorLayoutTest {
                         "Same building regenerated a different interior");
                     check(Arrays.deepEquals(room.decorV166,reentered.decorV166),
                         "Ambient decorations differ after re-entry");
-                    check(room.decorV166.length>0,
-                        "An inhabited interior has no ambient detail");
+                    // No floor decals are preferable to loose paper/bolt
+                    // scatter, especially on industrial concrete floors.
+                    if(room.theme==NeighborhoodV154.FACTORY||
+                       room.theme==NeighborhoodV154.WAREHOUSE)
+                        check(room.decorV166.length==0,
+                            "Industrial floor uses fake cosmetic clutter");
                     for(float[] d:room.decorV166){
                         check(d.length==5&&d[3]>0f&&d[4]>0f,
                             "Invalid walk-through decoration");
@@ -148,8 +156,12 @@ public final class V163InteriorLayoutTest {
             }
         }
         check(tested>=20,"Too few buildings inspected");
-        check(roomMin>=6 && roomsBelowSix==0,
-            "Any room below six visibly distinct objects: "+roomsBelowSix);
+        // Count of decals or small wall-notes is never a quality criterion.
+        check(nonSolidFake==0,"Fake wall-note objects still in layout");
+        check(miniatures==0,"Miniature furniture generated to pad counts");
+        check(directional>tested*8,"New directional props not actually used");
+        check(furnishedRoles.size()>=55,"Insufficient furniture vocabulary in layouts");
+        check(roomMin>=2,"Empty rooms despite available navigable edges");
         check(topology.size()==NeighborhoodLayoutV163.PLAN_COUNT,
             "Floor plans are not sufficiently diverse: "+topology);
         check(geometry.size()>15,"Different buildings reused indistinguishable wall layouts");
@@ -160,7 +172,7 @@ public final class V163InteriorLayoutTest {
             "furniture min/mean/max="+minProps+"/"+(allProps/tested)+"/"+maxProps+
             "; complete scene ensembles="+composedGroups+
             "; individual props per room minimum="+roomMin+
-            "; below six="+roomsBelowSix+
+            "; rooms below six (informational)="+roomsBelowSix+
             "; front/side orientations="+downward+"/"+sideways+
             "; rooms missing down-facing="+roomsNoDown+
             "; rooms missing side-facing="+roomsNoSide);
