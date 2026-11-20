@@ -97,10 +97,11 @@ public final class NeighborhoodLayoutV163 {
             if(Math.hypot(nearestX-z.dx,nearestY-z.dy)<63f)return false;
         }
         for(float[] cache:supplies){
-            // Saved cabinets are 47x34; 43 units keeps an interaction ring
-            // while making a real bedside cabinet viable in narrow bays.
-            if(x<cache[0]+43f&&x+w>cache[0]-43f&&
-               y<cache[1]+43f&&y+h>cache[1]-43f)return false;
+            // Preserve a full navigation/interaction ring around each saved
+            // loot fixture. A mere 43-unit exclusion let newly dense wall
+            // stations trap cabinets even though they didn't touch them.
+            if(x<cache[0]+78f&&x+w>cache[0]-78f&&
+               y<cache[1]+78f&&y+h>cache[1]-78f)return false;
         }
         for(float[] obj:objects){
             if(x<obj[1]+obj[3]+10f&&x+w>obj[1]-10f&&
