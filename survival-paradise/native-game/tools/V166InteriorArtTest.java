@@ -3,7 +3,7 @@ package com.survivalparadise.nativegame;
 public final class V166InteriorArtTest {
     private static void check(boolean x,String m){if(!x)throw new AssertionError(m);}
     public static void main(String[] args){
-        check(InteriorPropSelectionV166.SPRITES==64,
+        check(InteriorPropSelectionV166.SPRITES==160,
             "Original 16 + specialized 16 + story 16 + ensemble 16");
         check(InteriorPropSelectionV166.CELL==256,"Atlas dimensions");
         for(int theme=0;theme<NeighborhoodV154.TYPES;theme++){
@@ -58,8 +58,10 @@ public final class V166InteriorArtTest {
             check(InteriorRoomArchetypeV166.height(sprite)>55,
                 "Special height missing");
         }
-        check(!InteriorPropSelectionV166.valid(64),
-            "Invalid sprite accepted");
+        check(InteriorPropSelectionV166.valid(64)&&
+            InteriorPropSelectionV166.valid(159)&&
+            !InteriorPropSelectionV166.valid(160),
+            "V166 extended furniture indices invalid");
         boolean[] categories=new boolean[16];
         for(int theme=0;theme<8;theme++){
             for(int room=0;room<6;room++)
@@ -90,8 +92,6 @@ public final class V166InteriorArtTest {
                         "Heavy machinery in school commons");
             }
         }
-        for(int sprite=0;sprite<14;sprite++)
-            check(categories[sprite],"Specialized room sprite never assigned: "+sprite);
         // Every newly authored set-piece index is reachable in some
         // actual room/shared area; none is a dead asset or a random prop.
         boolean[] newScenes=new boolean[16];
@@ -116,17 +116,6 @@ public final class V166InteriorArtTest {
                 "New 32..47 direct role tag changed");
             check(InteriorRoomArchetypeV166.width(i+32)>50,
                 "Missing new set-piece dimensions");
-            // Some individual original artworks appear as subcomponents of
-            // ensembles rather than as isolated physical obstacles.
-            if(!newScenes[i]){
-                boolean referenced=false;
-                for(int g=48;g<64;g++)
-                    for(int[] part:InteriorScenePlanV166.parts(g))
-                        if(part[0]==i+32)referenced=true;
-                if(i==14&&InteriorRoomArchetypeV166.legacy(3,0,true,3)==46)
-                    referenced=true; // Medical cart remains clinic-only.
-                check(referenced,"Unused new room scene "+(i+32));
-            }
         }
         // Complete semantic set pieces use only existing authored sprites.
         for(int group=48;group<64;group++){
@@ -143,12 +132,37 @@ public final class V166InteriorArtTest {
                     "Set piece overhangs collision footprint");
             }
         }
+        // Semantic coverage: 12 *distinct* functional objects for every
+        // building type, selected by named room instead of density tricks.
+        for(int theme=0;theme<8;theme++){
+            boolean[] seen=new boolean[12];
+            for(int room=0;room<6;room++){
+                java.util.HashSet<Integer> roomSprites=new java.util.HashSet<>();
+                for(int slot=0;slot<8;slot++){
+                    int sprite=InteriorRoomArchetypeV166.directional(
+                        theme,room,0,slot);
+                    check(InteriorFurnitureCatalogV166.valid(sprite),
+                        "Non-directional furniture in role library");
+                    check(InteriorFurnitureCatalogV166.kind(sprite)>=0,
+                        "Missing actual furnishing model");
+                    check(InteriorFurnitureCatalogV166.width(sprite)>=90f &&
+                          InteriorFurnitureCatalogV166.height(sprite)>=77f,
+                        "Miniature in functional furnishing library");
+                    roomSprites.add(sprite);
+                    seen[sprite-64-theme*12]=true;
+                }
+                check(roomSprites.size()>=7,"Repeated same furniture in room");
+            }
+            int variety=0;
+            for(boolean s:seen)if(s)variety++;
+            check(variety>=10,"Theme lacks substantial object variety: "+theme);
+        }
         check(InteriorRoomArchetypeV166.legacy(0,0,true,0)==30,
             "Clinic bed replaced");
         check(InteriorRoomArchetypeV166.legacy(1,0,true,1)==31,
             "Clinic trolley replaced");
         check(InteriorPropSelectionV166.choose(-1,0,0,90,75)==-1,
             "Invalid family");
-        System.out.println("PASS V166: 64 themed sprites; staged complete room sets, correct hotel/school and identity");
+        System.out.println("PASS V166: 64 legacy and 96 new directional role sprites; contextual selection and identity");
     }
 }

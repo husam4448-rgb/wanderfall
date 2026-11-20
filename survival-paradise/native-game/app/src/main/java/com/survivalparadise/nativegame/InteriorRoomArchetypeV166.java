@@ -157,7 +157,7 @@ public final class InteriorRoomArchetypeV166 {
     public static int directional(int theme,int index,int variation,int slot){
         if(theme<0||theme>=8||index<0||index>=6)return -1;
         int[] roles=ROOM_ROLES[theme][actualRoom(index,variation)];
-        return InteriorDirectionalFurnitureV166.sprite(theme,
+        return InteriorFurnitureCatalogV166.sprite(theme,
             roles[Math.floorMod(slot,roles.length)]);
     }
     public static int sprite(int theme,int index,int variation,int slot){
@@ -190,17 +190,17 @@ public final class InteriorRoomArchetypeV166 {
             {0,4,6,8,9,10,7,5}
         };
         int[] roles=commons[theme];
-        return InteriorDirectionalFurnitureV166.sprite(theme,
+        return InteriorFurnitureCatalogV166.sprite(theme,
             roles[Math.floorMod(station+variation,roles.length)]);
     }
     public static float width(int sprite){
-        if(InteriorDirectionalFurnitureV166.valid(sprite))
-            return InteriorDirectionalFurnitureV166.width(sprite);
+        if(InteriorFurnitureCatalogV166.valid(sprite))
+            return InteriorFurnitureCatalogV166.width(sprite);
         return SIZES[Math.floorMod(sprite,SIZES.length)][0];
     }
     public static float height(int sprite){
-        if(InteriorDirectionalFurnitureV166.valid(sprite))
-            return InteriorDirectionalFurnitureV166.height(sprite);
+        if(InteriorFurnitureCatalogV166.valid(sprite))
+            return InteriorFurnitureCatalogV166.height(sprite);
         return SIZES[Math.floorMod(sprite,SIZES.length)][1];
     }
     public static int legacy(int type,int siteKind,boolean clinic,int index){
