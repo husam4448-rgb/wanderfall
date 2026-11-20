@@ -161,8 +161,8 @@ public final class InteriorRoomArchetypeV166 {
         { // warehouse: receiving, shelves, dispatch, packing, spares, security
             // Shipping and mechanical storage use industrial equipment, not
             // domestic bookcases or supermarket refrigerators.
-            {0,1,2,3,4,5,8,10},
-            {0,1,2,5,3,4,8,10},
+            {0,1,2,3,4,5,6,10},
+            {0,1,2,5,3,4,6,10},
             {1,2,3,6,5,0,4,7},
             {3,0,1,2,4,6,5,10},
             {0,4,1,5,2,10,3,6},
@@ -233,7 +233,7 @@ public final class InteriorRoomArchetypeV166 {
             {3,4,5,2,7,1,4,5},
             {0,1,2,3,4,8,9,10},
             {0,1,2,3,4,6,7,10},
-            {0,1,2,3,4,5,8,10},
+            {0,1,2,3,4,5,6,10},
             {0,4,6,8,9,10,7,5}
         };
         int[] roles=commons[theme];
