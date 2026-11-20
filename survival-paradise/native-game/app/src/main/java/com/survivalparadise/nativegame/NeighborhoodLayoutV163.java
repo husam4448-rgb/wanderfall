@@ -88,13 +88,19 @@ public final class NeighborhoodLayoutV163 {
             if(x<wall[0]+wall[2]+10f&&x+w>wall[0]-10f&&
                y<wall[1]+wall[3]+10f&&y+h>wall[1]-10f)return false;
         }
-        float cx=x+w*.5f,cy=y+h*.5f;
+        // The original center-distance test excluded almost an entire
+        // narrow room, yet let the edge of a large sofa touch a doorway.
+        // Compute actual rectangle-to-portal clearance instead.
         for(Zone z:zones){
-            if(Math.hypot(cx-z.dx,cy-z.dy)<112f)return false;
+            float nearestX=clamp(z.dx,x,x+w);
+            float nearestY=clamp(z.dy,y,y+h);
+            if(Math.hypot(nearestX-z.dx,nearestY-z.dy)<63f)return false;
         }
         for(float[] cache:supplies){
-            if(x<cache[0]+54f&&x+w>cache[0]-54f&&
-               y<cache[1]+54f&&y+h>cache[1]-54f)return false;
+            // Saved cabinets are 47x34; 43 units keeps an interaction ring
+            // while making a real bedside cabinet viable in narrow bays.
+            if(x<cache[0]+43f&&x+w>cache[0]-43f&&
+               y<cache[1]+43f&&y+h>cache[1]-43f)return false;
         }
         for(float[] obj:objects){
             if(x<obj[1]+obj[3]+10f&&x+w>obj[1]-10f&&
@@ -515,7 +521,7 @@ public final class NeighborhoodLayoutV163 {
     private void openWorkshop(){
         float top=325+Math.floorMod(hash(1,23),85);
         float west=465+Math.floorMod(hash(2,23),95),east=1070+Math.floorMod(hash(3,23),95);
-        float divider=840+Math.floorMod(hash(4,23),70);
+        float divider=795+Math.floorMod(hash(4,23),35);
         float[] xx={23,west,1055,1577};
         for(int i=0;i<3;i++){
             float mid=(xx[i]+xx[i+1])/2f;
@@ -523,13 +529,13 @@ public final class NeighborhoodLayoutV163 {
             zone(xx[i]+20,44,xx[i+1]-20,top,mid,top,false,-1);
         }
         wall(west,44,19,top-44);wall(1055,44,19,top-44);
-        vGap(660,divider,west,(660+divider)/2f);
+        vGap(535,divider,west,(535+divider)/2f);
         vGap(divider,1070,west,(divider+1070)/2f);
-        vGap(660,1070,east,(660+1070)/2f);
+        vGap(535,1070,east,(535+1070)/2f);
         wall(23,divider,west-23,20);
-        zone(24,660,west,divider,west,(660+divider)/2f,true,-1);
+        zone(24,535,west,divider,west,(535+divider)/2f,true,-1);
         zone(24,divider+20,west,1070,west,(divider+1070)/2f,true,-1);
-        zone(east+20,660,1577,1070,east,(660+1070)/2f,true,1);
+        zone(east+20,535,1577,1070,east,(535+1070)/2f,true,1);
     }
     /** Tall central spine, two pairs of high rooms, two lower wings. */
     private void splitSpine(){
