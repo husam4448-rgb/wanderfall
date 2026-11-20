@@ -127,16 +127,19 @@ public final class NeighborhoodLayoutV163 {
         };
         int staged=0;
         float area=(z.x2-z.x1)*(z.y2-z.y1);
-        int aim=area>210000f?2:1;
+        int aim=area>250000f?3:area>165000f?2:1;
         for(int slot=0;slot<anchors.length&&staged<aim;slot++){
             int sprite=InteriorRoomArchetypeV166.sprite(
                 theme,room,variation,slot);
             if(sprite<0)continue;
             float width=InteriorRoomArchetypeV166.width(sprite);
             float height=InteriorRoomArchetypeV166.height(sprite);
-            float scale=area<120000f?.75f:area<185000f?.86f:1f;
+            float scale=area<120000f?.88f:area<185000f?.95f:1f;
             width*=scale;height*=scale;
             int orientation=facing(anchors[slot][0],anchors[slot][1]);
+            // Existing legacy ensembles have only authored frontal bitmaps.
+            // Never rotate these to counterfeit side-view perspective.
+            if(sprite<64)orientation=0;
             if(orientation==90||orientation==270){
                 float swap=width;width=height;height=swap;
             }
@@ -174,191 +177,39 @@ public final class NeighborhoodLayoutV163 {
      * six. Perimeter stations face into the room; they are solid and subject
      * to the normal collision, cabinet and portal exclusions.
      */
-    private void finishRoom(Zone z,int room,ArrayList<float[]> supplies){
-        if(roomCount(z)>=6)return;
-        float rw=z.x2-z.x1,rh=z.y2-z.y1;
-        for(int candidate=0;candidate<144&&roomCount(z)<6;candidate++){
-            int step=(candidate/4)%12;
-            int side=candidate%4; // left, right, north, south
-            int pass=candidate/48;
-            float scale=pass==0?.56f:pass==1?.47f:.39f;
+    private void finishRoom(Zone z,int room,ArrayList<float[]> supplies,
+                            int target){
+        final float rw=z.x2-z.x1,rh=z.y2-z.y1;
+        // Four large perimeter runs, using deliberately different objects
+        // and original profile artwork. Stop when actual doors, paths and
+        // cabinet access leave no safe footprint; never shrink to miniatures.
+        for(int candidate=0;candidate<160&&roomCount(z)<target;candidate++){
+            int step=(candidate/4)%10, side=candidate%4, pass=candidate/40;
+            float scale=pass==0?.94f:pass==1?.87f:pass==2?.79f:.72f;
             int sprite=InteriorRoomArchetypeV166.detail(
-                theme,room,variation,candidate+3);
+                theme,room,variation,candidate+room*3);
             float w=InteriorRoomArchetypeV166.width(sprite)*scale;
             float h=InteriorRoomArchetypeV166.height(sprite)*scale;
             int orientation=side==0?90:side==1?270:side==2?0:180;
             if(orientation==90||orientation==270){
                 float swap=w;w=h;h=swap;
             }
-            float t=(step+1)/13f;
+            if(w<50f||h<43f)continue;
+            float t=(step+1)/11f;
             float x,y;
             if(side==0||side==1){
-                x=side==0?z.x1+39f:z.x2-39f-w;
-                y=z.y1+35f+(rh-70f-h)*t;
+                x=side==0?z.x1+35f:z.x2-35f-w;
+                y=z.y1+31f+(rh-62f-h)*t;
             }else{
-                x=z.x1+35f+(rw-70f-w)*t;
-                y=side==2?z.y1+39f:z.y2-39f-h;
+                x=z.x1+31f+(rw-62f-w)*t;
+                y=side==2?z.y1+35f:z.y2-35f-h;
             }
-            if(w<28f||h<24f||x<z.x1+24f||y<z.y1+24f||
-               x+w>z.x2-24f||y+h>z.y2-24f)continue;
+            if(x<z.x1+23f||y<z.y1+23f||
+               x+w>z.x2-23f||y+h>z.y2-23f)continue;
             float mx=(z.x1+z.x2)*.5f,my=(z.y1+z.y2)*.5f;
-            if(x<mx+43f&&x+w>mx-43f&&
-               y<my+43f&&y+h>my-43f)continue;
+            if(x<mx+53f&&x+w>mx-53f&&
+               y<my+53f&&y+h>my-53f)continue;
             putFurnishing(sprite,x,y,w,h,orientation,supplies);
-        }
-    }
-    /**
-     * Lightweight noticeboards and paper stations complete very narrow rooms
-     * where six blocking objects would seal the only corridor. These use
-     * existing hand-painted 43 (wall noticeboard) and 37 (paper) sprites,
-     * cling to real perimeter walls and are never loot or path blockers.
-     * All substantial furniture still uses normal solid collision.
-     */
-    private void finishWallDetails(Zone z,int room,ArrayList<float[]> supplies){
-        if(roomCount(z)>=6)return;
-        float rw=z.x2-z.x1,rh=z.y2-z.y1;
-        for(int candidate=0;candidate<320&&roomCount(z)<6;candidate++){
-            int side=candidate%4,step=(candidate/4)%16;
-            int pass=candidate/64;
-            int sprite=(candidate/4+room+theme)%3==0?37:43;
-            float w=(sprite==43?73f:52f)*(pass==0?1f:pass==1?.84f:pass==2?.70f:pass==3?.53f:.46f);
-            float h=(sprite==43?35f:30f)*(pass==0?1f:pass==1?.84f:pass==2?.70f:pass==3?.53f:.46f);
-            int orientation=side==0?0:side==1?90:side==2?270:180;
-            if(orientation==90||orientation==270){
-                float swap=w;w=h;h=swap;
-            }
-            float t=(step+1)/17f;
-            float x,y;
-            if(side==0||side==3){
-                x=z.x1+25f+(rw-50f-w)*t;
-                y=side==0?z.y1+24f:z.y2-24f-h;
-            }else{
-                x=side==1?z.x1+24f:z.x2-24f-w;
-                y=z.y1+25f+(rh-50f-h)*t;
-            }
-            if(x<z.x1+18f||y<z.y1+18f||
-               x+w>z.x2-18f||y+h>z.y2-18f)continue;
-            boolean occupied=false;
-            float cx=x+w*.5f,cy=y+h*.5f;
-            for(float[] q:objects){
-                if(x<q[1]+q[3]+5f&&x+w>q[1]-5f&&
-                   y<q[2]+q[4]+5f&&y+h>q[2]-5f){
-                    occupied=true;break;
-                }
-            }
-            if(occupied)continue;
-            for(float[] cache:supplies)
-                if(x<cache[0]+37f&&x+w>cache[0]-37f&&
-                   y<cache[1]+37f&&y+h>cache[1]-37f){
-                    occupied=true;break;
-                }
-            if(occupied)continue;
-            for(Zone door:zones)
-                if(Math.hypot(cx-door.dx,cy-door.dy)<65f){
-                    occupied=true;break;
-                }
-            if(occupied)continue;
-            // This final field marks a wall-hung/flat decorative object:
-            // it paints normally but does not create a phantom blocker.
-            objects.add(new float[]{16+sprite,x,y,w,h,orientation,1f});
-        }
-    }
-    /**
-     * Guarantee recognizable facing variety within each six-object room.
-     * Reposition an existing minor dressing onto a safe perimeter wall,
-     * preserving room object count, loot IDs, walls and all solid navigation.
-     * A wall-hung note/board is a real authored sprite, never a fake cabinet.
-     */
-    private void ensureRoomFacing(Zone z,int required,ArrayList<float[]> supplies){
-        int down=0,side=0;
-        for(float[] q:objects){
-            if(q.length<6||q[1]<z.x1||q[2]<z.y1||
-               q[1]+q[3]>z.x2||q[2]+q[4]>z.y2)continue;
-            int angle=(int)q[5];
-            if(angle==0)down++;
-            if(angle==90||angle==270)side++;
-        }
-        if(required==0?down>0:side>0)return;
-        int victim=-1;
-        float best=Float.MAX_VALUE;
-        for(int i=0;i<objects.size();i++){
-            float[] q=objects.get(i);
-            if(q.length<6||q[1]<z.x1||q[2]<z.y1||
-               q[1]+q[3]>z.x2||q[2]+q[4]>z.y2)continue;
-            int angle=(int)q[5];
-            if(required==0&&(angle==90||angle==270)&&side<=1)continue;
-            if(required!=0&&angle==0&&down<=1)continue;
-            int sprite=(int)q[0]-16;
-            float score=(q.length>6&&q[6]==1f?0f:200000f)+
-                (sprite>=48?500000f:0f)+q[3]*q[4];
-            if(score<best){best=score;victim=i;}
-        }
-        if(victim<0)return;
-        float rw=z.x2-z.x1,rh=z.y2-z.y1;
-        for(int candidate=0;candidate<112;candidate++){
-            int pass=candidate/28,step=(candidate/2)%14;
-            int sideChoice=candidate%2;
-            int sprite=required==0?37:43;
-            float scale=pass==0?1f:pass==1?.78f:pass==2?.59f:.43f;
-            float w=(sprite==43?73f:52f)*scale;
-            float h=(sprite==43?35f:30f)*scale;
-            int angle=required==0?0:sideChoice==0?90:270;
-            if(angle==90||angle==270){float a=w;w=h;h=a;}
-            float t=(step+1)/15f;
-            float x,y;
-            if(required==0){
-                x=z.x1+24f+(rw-48f-w)*t;
-                y=z.y1+24f;
-            }else{
-                x=sideChoice==0?z.x1+24f:z.x2-24f-w;
-                y=z.y1+24f+(rh-48f-h)*t;
-            }
-            if(x<z.x1+16f||y<z.y1+16f||
-               x+w>z.x2-16f||y+h>z.y2-16f)continue;
-            float cx=x+w*.5f,cy=y+h*.5f;
-            boolean occupied=false;
-            for(int i=0;i<objects.size();i++){
-                if(i==victim)continue;
-                float[] q=objects.get(i);
-                if(x<q[1]+q[3]+3f&&x+w>q[1]-3f&&
-                   y<q[2]+q[4]+3f&&y+h>q[2]-3f){
-                    occupied=true;break;
-                }
-            }
-            if(occupied)continue;
-            for(float[] cache:supplies)
-                if(x<cache[0]+36f&&x+w>cache[0]-36f&&
-                   y<cache[1]+36f&&y+h>cache[1]-36f){
-                    occupied=true;break;
-                }
-            if(occupied)continue;
-            for(Zone door:zones)
-                if(Math.hypot(cx-door.dx,cy-door.dy)<67f){
-                    occupied=true;break;
-                }
-            if(occupied)continue;
-            objects.set(victim,new float[]{16+sprite,x,y,w,h,angle,1f});
-            return;
-        }
-        // Extremely narrow chambers can have no remaining wall clearance.
-        // Turn the nearest EXISTING perimeter item instead of adding a
-        // blocker, changing collision geometry, or crowding a cabinet.
-        int alternate=-1;float closest=Float.MAX_VALUE;
-        for(int i=0;i<objects.size();i++){
-            float[] q=objects.get(i);
-            if(q.length<6||q[1]<z.x1||q[2]<z.y1||
-               q[1]+q[3]>z.x2||q[2]+q[4]>z.y2)continue;
-            int angle=(int)q[5];
-            if(required==0&&(angle==90||angle==270)&&side<=1)continue;
-            if(required!=0&&angle==0&&down<=1)continue;
-            float distance=required==0?q[2]-z.y1:
-                Math.min(q[1]-z.x1,z.x2-q[1]-q[3]);
-            if(distance<closest){closest=distance;alternate=i;}
-        }
-        if(alternate>=0){
-            float[] q=objects.get(alternate);
-            q[5]=required==0?0:
-                q[1]-z.x1<=z.x2-q[1]-q[3]?90:270;
         }
     }
     /**
@@ -477,7 +328,7 @@ public final class NeighborhoodLayoutV163 {
             Zone z=zones.get(index);
             float area=(z.x2-z.x1)*(z.y2-z.y1);
             composeRoomScene(index,supplies);
-            int target=6;
+            int target=area>235000f?8:area>155000f?7:5;
             int placed=roomCount(z);
             // First honor human-authored perimeter stations. Then probe
             // seeded interior niches on a 9x9 lattice, avoiding the former
@@ -498,7 +349,7 @@ public final class NeighborhoodLayoutV163 {
                 int sprite=InteriorRoomArchetypeV166.detail(
                     theme,index,variation,candidate+5);
                 if(sprite<0)continue;
-                float scale=area<130000f?.55f:area<190000f?.65f:.83f;
+                float scale=area<130000f?.78f:area<190000f?.87f:.98f;
                 float w=InteriorRoomArchetypeV166.width(sprite)*scale;
                 float h=InteriorRoomArchetypeV166.height(sprite)*scale;
                 int orientation=facing(ax,ay);
@@ -534,10 +385,7 @@ public final class NeighborhoodLayoutV163 {
                 if(overlaps)continue;
                 if(putFurnishing(sprite,x,y,w,h,orientation,supplies))placed++;
             }
-            finishRoom(z,index,supplies);
-            finishWallDetails(z,index,supplies);
-            ensureRoomFacing(z,0,supplies);
-            ensureRoomFacing(z,90,supplies);
+            finishRoom(z,index,supplies,target);
         }
         furnishCommons(supplies);
         walls=pack(barriers);

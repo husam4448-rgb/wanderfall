@@ -95,48 +95,81 @@ public final class InteriorRoomArchetypeV166 {
         {215,160},{203,149},{208,151},{240,172},
         {230,160},{208,152},{190,135},{205,165}
     };
+    /**
+     * Functional room plans: every integer is a DISTINCT large furnishing
+     * model inside that building theme's twelve-object directional library.
+     * Column order matches the actual named V161 rooms, before label swaps.
+     */
+    private static final int[][][] ROOM_ROLES={
+        { // apartments: lounge, bedroom, kitchen, bath/utility, bedroom, storage
+            {0,5,6,8,10,9,7,2},{1,2,7,5,6,0,9,11},
+            {3,4,10,5,6,8,9,7},{4,2,6,11,3,7,10,8},
+            {1,2,7,0,5,6,11,9},{2,6,11,7,9,8,10,4}
+        },
+        { // offices: reception, open plan, meeting, records, server, supplies
+            {7,0,2,9,6,4,8,11},{0,1,2,4,6,5,7,10},
+            {9,0,2,7,5,10,4,8},{3,6,8,10,4,9,11,0},
+            {5,1,9,3,11,6,8,0},{8,3,6,11,10,4,5,7}
+        },
+        { // market: produce, aisles, cold storage, checkout, stock, manager
+            {0,1,7,6,4,2,9,10},{0,2,1,7,5,4,10,9},
+            {3,2,6,5,4,7,1,10},{1,4,0,8,6,5,7,9},
+            {2,6,10,5,9,4,0,7},{8,4,7,1,11,6,3,2}
+        },
+        { // hotel: reception, suite, service, lounge, suite, laundry
+            {3,4,5,6,10,8,7,2},{0,1,2,5,6,10,8,4},
+            {9,7,6,2,8,10,3,5},{4,5,10,7,3,6,2,8},
+            {0,1,2,6,5,8,10,7},{9,8,7,2,6,10,5,11}
+        },
+        { // school: classrooms, library, staff office, laboratory, storage
+            {0,1,4,8,2,3,10,6},{0,1,4,2,8,5,10,7},
+            {2,4,5,3,9,10,8,1},{3,5,7,9,4,2,10,1},
+            {6,7,11,8,9,5,3,2},{8,2,10,9,11,3,5,4}
+        },
+        { // factory: machinery, assembly, control, tools, parts, maintenance
+            {0,1,2,3,4,6,8,10},{1,0,2,8,3,7,10,5},
+            {6,11,4,9,2,8,3,5},{2,3,9,7,10,6,4,8},
+            {3,7,2,8,10,1,5,9},{0,4,9,10,3,2,11,5}
+        },
+        { // warehouse: receiving, racks, dispatch, packing, spare, security
+            {0,1,2,3,9,4,7,10},{0,1,2,5,7,10,3,4},
+            {2,8,6,7,0,4,9,11},{3,2,1,4,8,7,5,10},
+            {0,4,3,1,6,7,5,8},{7,8,9,5,6,11,4,2}
+        },
+        { // homes: living, bedroom, kitchen, dining, work, pantry
+            {0,4,6,8,10,9,5,7},{1,5,6,0,8,9,7,10},
+            {2,3,7,4,8,9,11,10},{4,7,0,5,6,9,8,3},
+            {9,8,6,5,7,4,10,11},{8,2,7,11,3,6,5,9}
+        }
+    };
+    private static int actualRoom(int index,int variation){
+        int logical=index;
+        if((variation&1)!=0){
+            if(logical==1)logical=2;
+            else if(logical==2)logical=1;
+        }
+        if((variation&2)!=0){
+            if(logical==4)logical=5;
+            else if(logical==5)logical=4;
+        }
+        return logical;
+    }
+    public static int directional(int theme,int index,int variation,int slot){
+        if(theme<0||theme>=8||index<0||index>=6)return -1;
+        int[] roles=ROOM_ROLES[theme][actualRoom(index,variation)];
+        return InteriorDirectionalFurnitureV166.sprite(theme,
+            roles[Math.floorMod(slot,roles.length)]);
+    }
     public static int sprite(int theme,int index,int variation,int slot){
         if(theme<0||theme>=8||index<0||index>=6)return -1;
-        // V161 room name variant swaps: actual role follows the name.
-        int logical=index;
-        if((variation&1)!=0){
-            if(logical==1)logical=2;
-            else if(logical==2)logical=1;
-        }
-        if((variation&2)!=0){
-            if(logical==4)logical=5;
-            else if(logical==5)logical=4;
-        }
-        // Curated work/life ensembles. Distinct anchor roles create a
-        // coherent room identity instead of a scattering of generic objects.
-        switch(Math.floorMod(slot,7)){
-            case 0:return PRIMARY[theme][logical];
-            case 1:return SUPPORT[theme][logical];
-            case 2:return SCENIC[theme][logical];
-            case 3:return ACCENT[theme][logical];
-            case 4:return UTILITY[theme][logical];
-            case 5:return SUPPORT[theme][logical];
-            default:return ACCENT[theme][logical];
-        }
+        // Preserve the familiar authored room-scale signature station, then
+        // add independently authored directional equipment; no repeated
+        // desk/paper filler and no random building-wide palette.
+        if(slot==0)return PRIMARY[theme][actualRoom(index,variation)];
+        return directional(theme,index,variation,slot-1);
     }
-    /** Select one smaller individual furnishing, never a huge ensemble. */
     public static int detail(int theme,int index,int variation,int slot){
-        if(theme<0||theme>=8||index<0||index>=6)return -1;
-        int logical=index;
-        if((variation&1)!=0){
-            if(logical==1)logical=2;
-            else if(logical==2)logical=1;
-        }
-        if((variation&2)!=0){
-            if(logical==4)logical=5;
-            else if(logical==5)logical=4;
-        }
-        switch(Math.floorMod(slot,4)){
-            case 0:return SUPPORT[theme][logical];
-            case 1:return SCENIC[theme][logical];
-            case 2:return ACCENT[theme][logical];
-            default:return UTILITY[theme][logical];
-        }
+        return directional(theme,index,variation,slot);
     }
     /**
      * Shared-area furniture palette: reception/checkout, school commons,
@@ -144,12 +177,30 @@ public final class InteriorRoomArchetypeV166 {
      */
     public static int shared(int theme,int station,int variation){
         if(theme<0||theme>=8)return 14;
-        return SHARED[theme][Math.floorMod(station+variation,SHARED[theme].length)];
+        // Curated public-area functions, not generic clutter. Offsets across
+        // halls vary stock, seating and workstations without spawning minis.
+        final int[][] commons={
+            {0,5,6,8,9,10,7,2},
+            {7,0,2,3,4,8,9,10},
+            {0,1,4,7,2,8,10,3},
+            {3,4,5,6,7,10,8,2},
+            {0,2,4,5,6,9,10,8},
+            {0,1,2,3,4,6,7,10},
+            {0,1,2,3,4,7,8,9},
+            {0,4,6,8,9,10,7,5}
+        };
+        int[] roles=commons[theme];
+        return InteriorDirectionalFurnitureV166.sprite(theme,
+            roles[Math.floorMod(station+variation,roles.length)]);
     }
     public static float width(int sprite){
+        if(InteriorDirectionalFurnitureV166.valid(sprite))
+            return InteriorDirectionalFurnitureV166.width(sprite);
         return SIZES[Math.floorMod(sprite,SIZES.length)][0];
     }
     public static float height(int sprite){
+        if(InteriorDirectionalFurnitureV166.valid(sprite))
+            return InteriorDirectionalFurnitureV166.height(sprite);
         return SIZES[Math.floorMod(sprite,SIZES.length)][1];
     }
     public static int legacy(int type,int siteKind,boolean clinic,int index){

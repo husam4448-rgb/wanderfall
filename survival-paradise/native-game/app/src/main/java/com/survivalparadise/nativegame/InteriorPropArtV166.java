@@ -62,6 +62,9 @@ public final class InteriorPropArtV166 {
         int sprite=InteriorPropSelectionV166.choose(
             theme,(int)q[0],index,q[3],q[4]);
         int facing=q.length>5?(int)q[5]:0;
+        if(InteriorDirectionalFurnitureV166.valid(sprite))
+            return InteriorDirectionalFurnitureV166.drawAt(
+                c,sprite,q[1],q[2],q[3],q[4],facing);
         if(facing==0)return drawAt(c,sprite,q[1],q[2],q[3],q[4]);
         float cx=q[1]+q[3]*.5f,cy=q[2]+q[4]*.5f;
         c.save();
@@ -77,6 +80,9 @@ public final class InteriorPropArtV166 {
                                  float width,float height){
         if(!InteriorPropSelectionV166.valid(sprite)||
            width<=0||height<=0)return false;
+        if(InteriorDirectionalFurnitureV166.valid(sprite))
+            return InteriorDirectionalFurnitureV166.drawAt(
+                canvas,sprite,x,y,width,height,0);
         if(sprite>=48)
             return InteriorEnsembleArtV166.drawAt(
                 canvas,sprite,x,y,width,height);
@@ -100,5 +106,6 @@ public final class InteriorPropArtV166 {
     public static synchronized void release(){
         if(atlas!=null&&!atlas.isRecycled())atlas.recycle();
         atlas=null;attempted=false;
+        InteriorDirectionalFurnitureV166.release();
     }
 }
