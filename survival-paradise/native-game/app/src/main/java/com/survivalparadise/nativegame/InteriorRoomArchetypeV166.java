@@ -125,12 +125,14 @@ public final class InteriorRoomArchetypeV166 {
             {8,3,6,11,10,4,2,7}
         },
         { // market: produce, groceries, cold chain, checkout, stock, office
-            {0,2,6,5,9,3,10,1},
-            {0,2,3,6,5,9,10,1},
-            {3,6,5,2,9,10,11,0},
-            {1,0,2,9,4,6,10,5},
-            {5,6,9,11,2,3,10,0},
-            {8,11,4,2,6,10,5,9}
+            // Retail aisles use actual merchandise, racks, cooling and freight,
+            // never a wash basin or household dining furniture.
+            {0,2,3,5,6,9,0,2},
+            {0,2,3,6,5,9,0,2},
+            {3,2,6,5,9,0,3,2},
+            {1,4,0,2,6,9,1,4},
+            {5,6,2,9,11,0,5,6},
+            {8,11,2,6,4,9,8,11}
         },
         { // hotel: reception, suite, housekeeping, lounge, suite, laundry
             {3,4,5,2,7,1,3,4},
@@ -157,12 +159,14 @@ public final class InteriorRoomArchetypeV166 {
             {2,10,9,3,8,11,4,7}
         },
         { // warehouse: receiving, shelves, dispatch, packing, spares, security
-            {0,1,2,3,4,5,9,11},
-            {0,1,2,5,9,4,11,3},
+            // Shipping and mechanical storage use industrial equipment, not
+            // domestic bookcases or supermarket refrigerators.
+            {0,1,2,3,4,5,8,10},
+            {0,1,2,5,3,4,8,10},
             {1,2,3,6,5,0,4,7},
-            {3,0,1,2,4,6,5,9},
-            {0,4,1,5,2,9,3,11},
-            {7,8,6,5,9,0,2,4}
+            {3,0,1,2,4,6,5,10},
+            {0,4,1,5,2,10,3,6},
+            {7,8,6,5,0,2,4,3}
         },
         { // residences: living, bedroom, kitchen, dining, work, pantry
             {0,4,8,10,9,6,0,4},
@@ -225,11 +229,11 @@ public final class InteriorRoomArchetypeV166 {
         final int[][] commons={
             {0,5,6,8,9,10,7,2},
             {7,0,2,3,4,8,9,10},
-            {0,2,3,5,6,9,10,1},
+            {0,2,3,5,6,9,4,1},
             {3,4,5,2,7,1,4,5},
             {0,1,2,3,4,8,9,10},
             {0,1,2,3,4,6,7,10},
-            {0,1,2,3,4,5,9,11},
+            {0,1,2,3,4,5,8,10},
             {0,4,6,8,9,10,7,5}
         };
         int[] roles=commons[theme];

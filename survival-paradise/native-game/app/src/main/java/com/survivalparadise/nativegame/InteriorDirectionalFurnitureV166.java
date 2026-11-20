@@ -89,7 +89,10 @@ public final class InteriorDirectionalFurnitureV166 {
             case 5:return slot%3==0?47:14; // dining room set/table
             case 6:return slot%2==0?2:36; // complete computer workstation
             case 7:return -1;           // dedicated seating, not fake furniture
-            case 8:return slot%3==0?41:slot%2==0?23:9; // book stacks
+            case 8: // A market shelf is groceries, a depot shelf is freight.
+                if(theme==2)return 38;
+                if(theme==6)return 45;
+                return slot%3==0?41:slot%2==0?23:9; // domestic/library books
             case 9:return 10;           // security/industrial console
             case 10:return 3;           // original filing drawers
             case 11:return theme==5?13:1; // steel stock cabinet / locker

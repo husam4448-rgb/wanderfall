@@ -55,6 +55,39 @@ public final class V166InteriorArtTest {
                 check(school!=10&&school!=11,
                     "Factory machinery in school commons");
             }
+        // Catch attractive-but-illogical furniture substitutions observed
+        // in the actual V166 emulator screenshots, not only object counts.
+        for(int variation=0;variation<4;variation++)
+            for(int room=0;room<6;room++)
+                for(int slot=1;slot<25;slot++){
+                    int market=InteriorRoomArchetypeV166.sprite(
+                        2,room,variation,slot);
+                    int depot=InteriorRoomArchetypeV166.sprite(
+                        6,room,variation,slot);
+                    if(InteriorFurnitureCatalogV166.valid(market)){
+                        int kind=InteriorFurnitureCatalogV166.kind(market);
+                        check(kind!=4&&kind!=5,
+                            "Market aisle contains sink or domestic dining set");
+                    }
+                    if(InteriorFurnitureCatalogV166.valid(depot)){
+                        int kind=InteriorFurnitureCatalogV166.kind(depot);
+                        check(kind!=8&&kind!=14,
+                            "Warehouse contains bookcase or grocery cooler");
+                    }
+                }
+        for(int station=0;station<80;station++)
+            for(int variation=0;variation<4;variation++){
+                int market=InteriorRoomArchetypeV166.shared(
+                    2,station,variation);
+                int depot=InteriorRoomArchetypeV166.shared(
+                    6,station,variation);
+                int marketKind=InteriorFurnitureCatalogV166.kind(market);
+                int depotKind=InteriorFurnitureCatalogV166.kind(depot);
+                check(marketKind!=4&&marketKind!=5,
+                    "Market commons contain sink or dining furniture");
+                check(depotKind!=8&&depotKind!=14,
+                    "Depot commons contain bookcases or grocery coolers");
+            }
         // Existing exact original atlas indices remain immutable, while
         // direct role tags 32..47 select the specialized atlas 16..31.
         for(int sprite=16;sprite<32;sprite++){
