@@ -224,9 +224,9 @@ public final class NeighborhoodLayoutV163 {
      * All survivors pass the identical solid/door/loot collision method.
      */
     private void completeNarrowRoom(Zone z,int room,ArrayList<float[]> supplies){
-        if(roomCount(z)>=3)return;
+        if(roomCount(z)>=5)return;
         float rw=z.x2-z.x1,rh=z.y2-z.y1;
-        for(int kind=0;kind<16&&roomCount(z)<3;kind++){
+        for(int kind=0;kind<28&&roomCount(z)<5;kind++){
             int sprite=InteriorRoomArchetypeV166.detail(
                 theme,room,variation,kind+5);
             int side=kind%4;
@@ -240,7 +240,7 @@ public final class NeighborhoodLayoutV163 {
             }
             if(w>rw-54f||h>rh-54f)continue;
             // Perimeter-first scan, then genuinely usable interior slots.
-            for(int j=0;j<121&&roomCount(z)<3;j++){
+            for(int j=0;j<121&&roomCount(z)<5;j++){
                 int gx=j%11,gy=j/11;
                 float x=z.x1+27f+gx*(rw-54f-w)/10f;
                 float y=z.y1+27f+gy*(rh-54f-h)/10f;
@@ -401,7 +401,10 @@ public final class NeighborhoodLayoutV163 {
             Zone z=zones.get(index);
             float area=(z.x2-z.x1)*(z.y2-z.y1);
             composeRoomScene(index,supplies);
-            int target=area>235000f?8:area>155000f?7:5;
+            int target=area>235000f?8:area>155000f?7:6;
+            // Fill meaningful wall stations first, then try additional niches.
+            // Side-profile furniture must not be crowded out by center-facing art.
+            finishRoom(z,index,supplies,target);
             int placed=roomCount(z);
             // First honor human-authored perimeter stations. Then probe
             // seeded interior niches on a 9x9 lattice, avoiding the former
@@ -440,25 +443,14 @@ public final class NeighborhoodLayoutV163 {
                 // Protect a broad approach, not only the tiny 98px door gap.
                 if(x<891f&&x+w>709f&&y<1095f&&y+h>855f)continue;
                 // Entrance clearances and central routes are collision-safe.
-                if(Math.hypot(cx-z.dx,cy-z.dy)<166f)continue;
-                if(Math.abs(cx-(z.x1+z.x2)*.5f)<53f&&
-                   Math.abs(cy-(z.y1+z.y2)*.5f)<80f)continue;
-                boolean overlaps=false;
-                for(float[] cache:supplies){
-                    if(Math.abs(cx-cache[0])<101f&&
-                       Math.abs(cy-cache[1])<93f){overlaps=true;break;}
-                }
-                if(overlaps)continue;
-                for(float[] q:objects){
-                    if(x<q[1]+q[3]+26f&&x+w>q[1]-26f&&
-                       y<q[2]+q[4]+26f&&y+h>q[2]-26f){
-                        overlaps=true;break;
-                    }
-                }
-                if(overlaps)continue;
+                if(Math.abs(cx-(z.x1+z.x2)*.5f)<35f&&
+                   Math.abs(cy-(z.y1+z.y2)*.5f)<48f)continue;
+                // putFurnishing already performs the complete wall, door,
+                // saved-loot and 10-unit solid overlap checks. The former
+                // redundant 166-unit door/101-unit loot exclusions discarded
+                // legitimate normal-sized furniture throughout small rooms.
                 if(putFurnishing(sprite,x,y,w,h,orientation,supplies))placed++;
             }
-            finishRoom(z,index,supplies,target);
             completeNarrowRoom(z,index,supplies);
         }
         furnishCommons(supplies);

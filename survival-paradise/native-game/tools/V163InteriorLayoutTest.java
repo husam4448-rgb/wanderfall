@@ -168,7 +168,35 @@ public final class V163InteriorLayoutTest {
         check(miniatures==0,"Miniature furniture generated to pad counts");
         check(directional>tested*8,"New directional props not actually used");
         check(furnishedRoles.size()>=55,"Insufficient furniture vocabulary in layouts");
-        check(roomMin>=2,"Empty rooms despite available navigable edges");
+        check(roomMin>=3,"Room needs at least three substantial furniture objects");
+        check(roomsBelowSix<=tested*4,
+            "Too many rooms have fewer than six distinct furniture objects: "+roomsBelowSix);
+        check(roomsNoSide<=tested*2,
+            "Too many rooms lack side-facing furniture: "+roomsNoSide);
+        // Structural semantics must be enforced per named room, not only by
+        // the building theme. Warehouses must not look like open-plan offices.
+        for(int theme=0;theme<8;theme++)for(int idx=0;idx<6;idx++)
+            for(int variation=0;variation<4;variation++)
+                for(int slot=0;slot<16;slot++){
+                    int sprite=InteriorRoomArchetypeV166.directional(theme,idx,variation,slot);
+                    check(InteriorRoomArchetypeV166.isRoomFurniture(theme,idx,variation,sprite),
+                        "Incompatible furnishing in room "+theme+"/"+idx);
+                    int kind=InteriorFurnitureCatalogV166.kind(sprite);
+                    int actual=idx;
+                    if((variation&1)!=0){
+                        if(actual==1)actual=2;else if(actual==2)actual=1;
+                    }
+                    if((variation&2)!=0){
+                        if(actual==4)actual=5;else if(actual==5)actual=4;
+                    }
+                    if(theme==6&&actual<5)check(kind!=6,
+                        "Office desk placed in warehouse stock or handling area");
+                    if(theme==2&&actual<5)check(kind!=6,
+                        "Office desk placed in shop floor or market storage");
+                    if(theme==0&&actual==2)check(kind!=0&&kind!=6,
+                        "Bed or computer workstation in apartment kitchen");
+                }
+
         check(topology.size()==NeighborhoodLayoutV163.PLAN_COUNT,
             "Floor plans are not sufficiently diverse: "+topology);
         check(geometry.size()>15,"Different buildings reused indistinguishable wall layouts");
@@ -179,7 +207,7 @@ public final class V163InteriorLayoutTest {
             "furniture min/mean/max="+minProps+"/"+(allProps/tested)+"/"+maxProps+
             "; complete scene ensembles="+composedGroups+
             "; individual props per room minimum="+roomMin+
-            "; rooms below six (informational)="+roomsBelowSix+
+            "; rooms below six="+roomsBelowSix+
             "; front/side orientations="+downward+"/"+sideways+
             "; rooms missing down-facing="+roomsNoDown+
             "; rooms missing side-facing="+roomsNoSide);
