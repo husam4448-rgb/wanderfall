@@ -173,14 +173,14 @@ public final class NeighborhoodLayoutV163 {
         for(Zone z:zones){
             float nearestX=clamp(z.dx,x,x+w);
             float nearestY=clamp(z.dy,y,y+h);
-            if(Math.hypot(nearestX-z.dx,nearestY-z.dy)<63f)return false;
+            if(Math.hypot(nearestX-z.dx,nearestY-z.dy)<54f)return false;
         }
         for(float[] cache:supplies){
-            // Preserve a full navigation/interaction ring around each saved
-            // loot fixture. A mere 43-unit exclusion let newly dense wall
-            // stations trap cabinets even though they didn't touch them.
-            if(x<cache[0]+78f&&x+w>cache[0]-78f&&
-               y<cache[1]+78f&&y+h>cache[1]-78f)return false;
+            // Keep the cabinet's physical access ring free while the exact
+            // navigation gate below rejects any path-breaking placement.
+            // Wider blanket exclusions unnecessarily empty narrow rooms.
+            if(x<cache[0]+43f&&x+w>cache[0]-43f&&
+               y<cache[1]+43f&&y+h>cache[1]-43f)return false;
         }
         for(float[] obj:objects){
             if(x<obj[1]+obj[3]+10f&&x+w>obj[1]-10f&&
@@ -308,9 +308,9 @@ public final class NeighborhoodLayoutV163 {
      * All survivors pass the identical solid/door/loot collision method.
      */
     private void completeNarrowRoom(Zone z,int room,ArrayList<float[]> supplies){
-        if(roomCount(z)>=5)return;
+        if(roomCount(z)>=6)return;
         float rw=z.x2-z.x1,rh=z.y2-z.y1;
-        for(int kind=0;kind<28&&roomCount(z)<5;kind++){
+        for(int kind=0;kind<40&&roomCount(z)<6;kind++){
             int sprite=InteriorRoomArchetypeV166.detail(
                 theme,room,variation,kind+5);
             int side=kind%4;
@@ -324,7 +324,7 @@ public final class NeighborhoodLayoutV163 {
             }
             if(w>rw-54f||h>rh-54f)continue;
             // Perimeter-first scan, then genuinely usable interior slots.
-            for(int j=0;j<121&&roomCount(z)<5;j++){
+            for(int j=0;j<121&&roomCount(z)<6;j++){
                 int gx=j%11,gy=j/11;
                 float x=z.x1+27f+gx*(rw-54f-w)/10f;
                 float y=z.y1+27f+gy*(rh-54f-h)/10f;
