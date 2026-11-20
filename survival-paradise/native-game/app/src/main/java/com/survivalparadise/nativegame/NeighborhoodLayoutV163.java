@@ -369,6 +369,19 @@ public final class NeighborhoodLayoutV163 {
             supplies.add(new float[]{clamp(sx,z.x1+55f,z.x2-55f),
                 clamp(sy,z.y1+55f,z.y2-55f)});
         }
+        // The protected south entrance is a real pedestrian route, never
+        // a storage alcove. Rehome the rare per-room cache whose old indexed
+        // station would otherwise occupy the player spawn/exit footprint.
+        // The same persistent inventory ID still refers to this cabinet.
+        for(int i=0;i<supplies.size();i++){
+            float[] q=supplies.get(i);
+            if(q[0]>=640f&&q[0]<=960f&&q[1]>=835f){
+                Zone z=zones.get(i<12?i/2:i==12?0:5);
+                q[0]=clamp(q[0]<800f?z.x1+58f:z.x2-58f,
+                    z.x1+38f,z.x2-38f);
+                q[1]=clamp(z.y1+90f,z.y1+36f,z.y2-36f);
+            }
+        }
         // V166 functional furnishing: authored sprites selected by ROOM use,
         // wall-oriented placements, collision-tested against doors and loot.
         // No more six slots of arbitrary building-wide objects.
