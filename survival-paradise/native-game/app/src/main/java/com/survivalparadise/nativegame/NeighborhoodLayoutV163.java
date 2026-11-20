@@ -94,20 +94,7 @@ public final class NeighborhoodLayoutV163 {
         for(Zone z:zones){
             float nearestX=clamp(z.dx,x,x+w);
             float nearestY=clamp(z.dy,y,y+h);
-            if(Math.hypot(nearestX-z.dx,nearestY-z.dy)<76f)return false;
-            // Reserve an orthogonal, player-width path from each ROOM DOOR
-            // to its navigable centre, independent of subsequent furniture
-            // candidate algorithms. Applies to every collidable furnishing.
-            float midX=(z.x1+z.x2)*.5f,midY=(z.y1+z.y2)*.5f;
-            if(z.vertical){
-                float a=Math.min(z.dx,midX),b=Math.max(z.dx,midX);
-                if(x<b+66f&&x+w>a-66f&&
-                   y<z.dy+66f&&y+h>z.dy-66f)return false;
-            }else{
-                float a=Math.min(z.dy,midY),b=Math.max(z.dy,midY);
-                if(y<b+66f&&y+h>a-66f&&
-                   x<z.dx+66f&&x+w>z.dx-66f)return false;
-            }
+            if(Math.hypot(nearestX-z.dx,nearestY-z.dy)<63f)return false;
         }
         for(float[] cache:supplies){
             // Saved cabinets are 47x34; 43 units keeps an interaction ring
@@ -385,7 +372,7 @@ public final class NeighborhoodLayoutV163 {
             Zone z=zones.get(index);
             float area=(z.x2-z.x1)*(z.y2-z.y1);
             composeRoomScene(index,supplies);
-            int target=area>235000f?9:area>155000f?8:6;
+            int target=area>235000f?8:area>155000f?7:5;
             int placed=roomCount(z);
             // First honor human-authored perimeter stations. Then probe
             // seeded interior niches on a 9x9 lattice, avoiding the former
@@ -424,25 +411,22 @@ public final class NeighborhoodLayoutV163 {
                 // Protect a broad approach, not only the tiny 98px door gap.
                 if(x<891f&&x+w>709f&&y<1095f&&y+h>855f)continue;
                 // Entrance clearances and central routes are collision-safe.
-                // Activity-zone placement: preserve the door-to-centre route,
-                // but do not reject an entire room based on a 166-unit
-                // centroid distance or duplicate, oversized cache clearance.
-                // putFurnishing performs the definitive rectangle-based
-                // collision and saved storage checks for every attempt.
-                float midX=(z.x1+z.x2)*.5f,midY=(z.y1+z.y2)*.5f;
-                if(x<midX+46f&&x+w>midX-46f&&
-                   y<midY+46f&&y+h>midY-46f)continue;
-                if(z.vertical){
-                    float passageY=z.dy;
-                    float lo=Math.min(z.dx,midX),hi=Math.max(z.dx,midX);
-                    if(x<hi+51f&&x+w>lo-51f&&
-                       y<passageY+51f&&y+h>passageY-51f)continue;
-                }else{
-                    float passageX=z.dx;
-                    float lo=Math.min(z.dy,midY),hi=Math.max(z.dy,midY);
-                    if(y<hi+51f&&y+h>lo-51f&&
-                       x<passageX+51f&&x+w>passageX-51f)continue;
+                if(Math.hypot(cx-z.dx,cy-z.dy)<166f)continue;
+                if(Math.abs(cx-(z.x1+z.x2)*.5f)<53f&&
+                   Math.abs(cy-(z.y1+z.y2)*.5f)<80f)continue;
+                boolean overlaps=false;
+                for(float[] cache:supplies){
+                    if(Math.abs(cx-cache[0])<101f&&
+                       Math.abs(cy-cache[1])<93f){overlaps=true;break;}
                 }
+                if(overlaps)continue;
+                for(float[] q:objects){
+                    if(x<q[1]+q[3]+26f&&x+w>q[1]-26f&&
+                       y<q[2]+q[4]+26f&&y+h>q[2]-26f){
+                        overlaps=true;break;
+                    }
+                }
+                if(overlaps)continue;
                 if(putFurnishing(sprite,x,y,w,h,orientation,supplies))placed++;
             }
             finishRoom(z,index,supplies,target);
