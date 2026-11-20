@@ -100,16 +100,22 @@ public final class InteriorRoomArchetypeV166 {
      * model inside that building theme's twelve-object directional library.
      * Column order matches the actual named V161 rooms, before label swaps.
      */
+    // Service and utility spaces use real sink, shelf, cabinet and linen
+    // profiles, never a dining table, a stove or a cold-grocery display.
+    // Repeating a useful station in these rooms is preferable to falsely
+    // introducing incompatible equipment only to inflate variety counts.
+    // Classrooms use student desks, boards and teacher stations instead of
+    // the generic family-size dining tables; libraries may use study tables.
     private static final int[][][] ROOM_ROLES={
         { // apartments: living, bedroom, kitchen, utility, bedroom, storage
             {0,5,6,7,9,8,2,11},{1,2,7,9,6,11,8,5},
-            {3,4,10,5,6,9,7,2},{4,10,2,7,6,11,5,9},
+            {3,4,10,5,6,9,7,2},{4,10,6,2,7,11,4,10},
             {1,2,7,9,6,11,5,8},{2,6,11,7,10,4,9,5}
         },
         { // office: reception, open plan, meeting, records, server, supplies
             {7,2,0,9,6,3,4,8},{0,2,4,6,3,9,1,8},
             {9,2,6,0,4,3,7,8},{3,6,8,11,4,5,0,2},
-            {5,1,8,6,4,3,11,2},{8,3,6,11,10,4,1,5}
+            {5,1,8,6,4,3,11,2},{8,3,6,11,10,4,2,7}
         },
         { // market: produce, aisles, refrigeration, checkout, stock, manager
             {0,2,6,5,9,3,10,1},{0,2,3,6,5,9,10,1},
@@ -118,12 +124,12 @@ public final class InteriorRoomArchetypeV166 {
         },
         { // hotel: reception, suite, housekeeping, lounge, suite, laundry
             {3,4,5,2,7,10,9,1},{0,1,6,5,4,7,10,2},
-            {9,7,6,2,8,10,1,11},{4,5,10,7,3,2,1,11},
-            {0,1,6,5,4,7,10,2},{9,8,7,6,2,10,11,1}
+            {9,7,6,2,8,1,3,9},{4,5,10,7,3,2,1,11},
+            {0,1,6,5,4,7,10,2},{8,9,7,6,1,2,8,9}
         },
         { // school: classrooms, library, staff, laboratory, supplies
-            {0,1,4,2,5,3,8,9},{0,1,4,2,5,3,8,9},
-            {2,5,4,3,8,9,0,10},{3,4,5,9,2,10,8,7},
+            {0,1,4,2,3,8,9,10},{0,1,4,2,3,8,9,10},
+            {2,5,4,3,8,9,0,10},{3,4,5,9,2,10,8,1},
             {6,7,11,8,9,5,3,2},{8,2,9,10,11,5,6,7}
         },
         { // factory: machinery, assembly, controls, tools, parts, maintenance
@@ -196,7 +202,7 @@ public final class InteriorRoomArchetypeV166 {
             {7,0,2,3,4,8,9,10},
             {0,2,3,5,6,9,10,1},
             {3,4,5,6,7,10,8,2},
-            {0,2,4,5,6,9,10,8},
+            {0,1,2,3,4,8,9,10},
             {0,1,2,3,4,6,7,10},
             {0,1,2,3,4,5,9,11},
             {0,4,6,8,9,10,7,5}
