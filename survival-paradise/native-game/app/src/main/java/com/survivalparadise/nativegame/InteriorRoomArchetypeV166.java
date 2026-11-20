@@ -109,7 +109,7 @@ public final class InteriorRoomArchetypeV166 {
     private static final int[][][] ROOM_ROLES={
         { // apartments: living, bedroom, kitchen, utility, bedroom, storage
             {0,5,6,7,9,8,2,11},{1,2,7,9,6,11,8,5},
-            {3,4,10,5,6,9,7,2},{4,10,6,2,7,11,4,10},
+            {3,4,10,5,6,9,7,2},{4,10,6,2,7,11,9,4},
             {1,2,7,9,6,11,5,8},{2,6,11,7,10,4,9,5}
         },
         { // office: reception, open plan, meeting, records, server, supplies
@@ -125,7 +125,7 @@ public final class InteriorRoomArchetypeV166 {
         { // hotel: reception, suite, housekeeping, lounge, suite, laundry
             {3,4,5,2,7,10,9,1},{0,1,6,5,4,7,10,2},
             {9,7,6,2,8,1,3,9},{4,5,10,7,3,2,1,11},
-            {0,1,6,5,4,7,10,2},{8,9,7,6,1,2,8,9}
+            {0,1,6,5,4,7,10,2},{8,9,7,6,1,2,3,8}
         },
         { // school: classrooms, library, staff, laboratory, supplies
             {0,1,4,2,3,8,9,10},{0,1,4,2,3,8,9,10},
