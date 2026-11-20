@@ -1,0 +1,55 @@
+name: SP V166 - Build Authored Directional Furniture Atlas
+on:
+  push:
+    branches: [sp-native-v166-world-art-overhaul-20261118]
+    paths:
+      - '.github/workflows/sp-v166-directional-furniture-import.yml'
+      - 'survival-paradise/native-game/tools/generate_v166_furniture_atlas.py'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: sp-v166-directional-furniture-art
+  cancel-in-progress: true
+jobs:
+  build-original-furniture-art:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: sp-native-v166-world-art-overhaul-20261118
+          persist-credentials: true
+      - name: Install deterministic pixel-art renderer
+        run: python3 -m pip install --disable-pip-version-check Pillow==11.3.0
+      - name: Paint separate original front and side views for 96 furniture variants
+        run: python3 survival-paradise/native-game/tools/generate_v166_furniture_atlas.py
+      - name: Verify exact raster atlas and transparency
+        run: |
+          python3 - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          import base64,io
+          p=Path('survival-paradise/native-game/app/src/main/assets/sp_v166_directional_furniture.webp.b64')
+          image=Image.open(io.BytesIO(base64.b64decode(p.read_text()))).convert('RGBA')
+          assert image.size==(2048,1536)
+          for n in range(192):
+              x=(n%16)*128;y=(n//16)*128
+              cell=image.crop((x,y,x+128,y+128))
+              assert cell.getchannel('A').getbbox(),n
+              assert cell.getpixel((0,0))[3]==0,n
+          print('PASS original directional image asset: 192 cells')
+          PY
+      - name: Commit art assets, not screenshots
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add survival-paradise/native-game/app/src/main/assets/sp_v166_directional_furniture.webp.b64
+          git add docs/qa/v166/interiors/reconstruction/asset_review/v166_directional_contact_sheet.jpg
+          if git diff --cached --quiet; then echo 'No changes';exit 0;fi
+          git commit -m "V166 original art: embed 192 textured furniture sprite views"
+          git fetch origin sp-native-v166-world-art-overhaul-20261118
+          git rebase origin/sp-native-v166-world-art-overhaul-20261118
+          git push origin HEAD:sp-native-v166-world-art-overhaul-20261118
