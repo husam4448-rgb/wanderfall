@@ -22,7 +22,9 @@ public final class V161NeighborhoodInteriorTest {
                             NeighborhoodV154.get(parcel.tx,parcel.ty,slot,plan),seed),
                             "Building identity changed");
                     NeighborhoodInteriorV161 room=new NeighborhoodInteriorV161(building,seed);
-                    check(room.sceneFurniture().length>0&&room.sceneFurniture().length<=48,
+                    // V166 furnishes public halls after rooms; the obsolete
+                    // 48-object cap artificially left large commons empty.
+                    check(room.sceneFurniture().length>0&&room.sceneFurniture().length<=72,
                         "No valid per-site furniture was generated");
                     check(room.storages.length==14,"Lost loot containers");
                     check(room.roomNames().length==6,"Incomplete room labels");
