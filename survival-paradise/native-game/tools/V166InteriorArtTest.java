@@ -151,7 +151,31 @@ public final class V166InteriorArtTest {
                     roomSprites.add(sprite);
                     seen[sprite-64-theme*12]=true;
                 }
-                check(roomSprites.size()>=7,"Repeated same furniture in room");
+                // A coherent classroom or bedroom has six true functional
+                // furnishing types; forcing seven introduced printers, file
+                // cabinets and dining equipment into inappropriate rooms.
+                check(roomSprites.size()>=6,
+                    "Room lacks six distinct functional furniture models");
+            }
+            // The real room layout matters more than the raw number of
+            // different prop IDs. Explicitly reject unsuitable classroom,
+            // domestic kitchen and sleeping-room objects.
+            for(int room=0;room<6;room++)for(int slot=0;slot<8;slot++){
+                int sprite=InteriorRoomArchetypeV166.directional(
+                    theme,room,0,slot);
+                int kind=InteriorFurnitureCatalogV166.kind(sprite);
+                if(theme==4&&(room==0||room==1))
+                    check(kind!=5&&kind!=10&&kind!=28,
+                        "Classroom polluted by dining table, files or printer");
+                if(theme==0&&(room==1||room==4))
+                    check(kind!=3&&kind!=4&&kind!=5&&kind!=10,
+                        "Apartment bedroom has kitchen, dining or filing equipment");
+                if(theme==7&&room==1)
+                    check(kind!=3&&kind!=4&&kind!=31,
+                        "Residence bedroom has cooker, dining set or kitchen island");
+                if(theme==7&&room==2)
+                    check(kind!=0&&kind!=6&&kind!=30,
+                        "Residence kitchen has sofa, office desk or dresser");
             }
             int variety=0;
             for(boolean s:seen)if(s)variety++;
