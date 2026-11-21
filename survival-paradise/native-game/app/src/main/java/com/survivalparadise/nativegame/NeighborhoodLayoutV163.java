@@ -384,9 +384,21 @@ public final class NeighborhoodLayoutV163 {
             }
             if(w>rw-54f||h>rh-54f)continue;
             // Perimeter-first scan, then genuinely usable interior slots.
-            for(int j=0;j<121&&roomCount(z)<6;j++){
-                int station=Math.floorMod(j*37+kind*53+signature,121);
-                int gx=station%11,gy=station/11;
+            // Hand-furnished rooms favor the four wall runs before any
+            // interior niche. Keep the old seeded grid as a full fallback
+            // so this composition change never removes valid placements.
+            for(int j=0;j<165&&roomCount(z)<6;j++){
+                int gx,gy;
+                if(j<44){
+                    int step=j/4,edge=j%4;
+                    gx=edge==0?0:edge==1?10:step;
+                    gy=edge==2?0:edge==3?10:step;
+                }else{
+                    int station=Math.floorMod(
+                        (j-44)*37+kind*53+signature,121);
+                    gx=station%11;
+                    gy=station/11;
+                }
                 float x=z.x1+27f+gx*(rw-54f-w)/10f;
                 float y=z.y1+27f+gy*(rh-54f-h)/10f;
                 float cx=x+w*.5f,cy=y+h*.5f;
