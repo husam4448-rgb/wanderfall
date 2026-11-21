@@ -189,7 +189,7 @@ public final class InteriorRoomArchetypeV166 {
         for(int role:roles)if(role==local)return true;
         return false;
     }
-    private static int actualRoom(int index,int variation){
+    static int actualRoom(int index,int variation){
         int logical=index;
         if((variation&1)!=0){
             if(logical==1)logical=2;
