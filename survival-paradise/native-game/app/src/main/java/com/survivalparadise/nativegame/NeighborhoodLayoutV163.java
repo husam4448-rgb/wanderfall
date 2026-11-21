@@ -274,7 +274,8 @@ public final class NeighborhoodLayoutV163 {
             int step=(candidate/4)%10, side=candidate%4, pass=candidate/40;
             float scale=pass==0?.94f:pass==1?.87f:pass==2?.79f:.72f;
             int sprite=InteriorRoomArchetypeV166.detail(
-                theme,room,variation,candidate+room*3);
+                theme,room,variation,
+                candidate*5+(candidate/4)*3+room*3);
             float w=InteriorRoomArchetypeV166.width(sprite)*scale;
             float h=InteriorRoomArchetypeV166.height(sprite)*scale;
             int orientation=side==0?90:side==1?270:side==2?0:180;
@@ -367,7 +368,8 @@ public final class NeighborhoodLayoutV163 {
         float rw=z.x2-z.x1,rh=z.y2-z.y1;
         for(int kind=0;kind<64&&roomCount(z)<6;kind++){
             int sprite=InteriorRoomArchetypeV166.detail(
-                theme,room,variation,kind+5);
+                theme,room,variation,
+                kind*5+(kind/4)*3+room*3+5);
             int side=kind%4;
             int angle=side==0?90:side==1?270:side==2?0:180;
             float w=Math.max(64f,
