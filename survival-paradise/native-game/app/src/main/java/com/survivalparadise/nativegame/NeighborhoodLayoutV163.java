@@ -188,7 +188,10 @@ public final class NeighborhoodLayoutV163 {
         }
         // Existing V161 collision and deterministic room signatures continue
         // to derive from these same rectangles.
-        objects.add(new float[]{16+sprite,x,y,w,h,orientation});
+        // The atlas has front and true side profiles; 180 uses the
+        // same front pixels, so keep its orientation canonical for QA.
+        objects.add(new float[]{16+sprite,x,y,w,h,
+            orientation==180?0:orientation});
         if(!navigationSafe()){
             objects.remove(objects.size()-1);
             return false;
@@ -308,7 +311,13 @@ public final class NeighborhoodLayoutV163 {
      * Changing only the sprite-facing selection preserves the exact solid
      * rectangle, saved room seed and furniture/cabinet reachability.
      */
-    private void ensureSideProfile(Zone z){
+    /**
+     * Recover an actual side-facing furniture silhouette, not a rotated
+     * down-facing picture or a non-solid decoration. Prefer an existing
+     * functional station along a lateral wall; if none exists, find one
+     * additional reachable wall station from this room's own role palette.
+     */
+    private void ensureSideProfile(Zone z,int room,ArrayList<float[]> supplies){
         float[] closest=null;
         float closestGap=Float.MAX_VALUE;
         int face=0;
@@ -321,19 +330,42 @@ public final class NeighborhoodLayoutV163 {
             float left=q[1]-z.x1;
             float right=z.x2-(q[1]+q[3]);
             float gap=Math.min(left,right);
-            // Only use a true profile when the piece already belongs to
-            // the lateral perimeter, never for a central or top-wall desk.
             if(gap>100f||gap>=closestGap)continue;
             closest=q;
             closestGap=gap;
             face=left<=right?90:270;
         }
-        if(closest!=null)closest[5]=face;
+        if(closest!=null){
+            closest[5]=face;
+            return;
+        }
+        float roomHeight=z.y2-z.y1;
+        // Sixteen authored wall positions, two sides and three natural
+        // full-size scales; every candidate still passes real navigation,
+        // door, wall and persistent cabinet clearance.
+        for(int pass=0;pass<3;pass++){
+            float scale=pass==0?.91f:pass==1?.82f:.74f;
+            for(int candidate=0;candidate<32;candidate++){
+                int side=candidate%2;
+                int slot=(candidate/2+room*3+pass*7);
+                int sprite=InteriorRoomArchetypeV166.detail(
+                    theme,room,variation,slot);
+                float w=InteriorRoomArchetypeV166.height(sprite)*scale;
+                float h=InteriorRoomArchetypeV166.width(sprite)*scale;
+                float usable=roomHeight-58f-h;
+                if(usable<=0||w<60f||h<54f)continue;
+                int station=Math.floorMod((candidate/2)*7+room*3,16);
+                float x=side==0?z.x1+29f:z.x2-29f-w;
+                float y=z.y1+29f+usable*station/15f;
+                if(putFurnishing(sprite,x,y,w,h,
+                        side==0?90:270,supplies))return;
+            }
+        }
     }
     private void completeNarrowRoom(Zone z,int room,ArrayList<float[]> supplies){
         if(roomCount(z)>=6)return;
         float rw=z.x2-z.x1,rh=z.y2-z.y1;
-        for(int kind=0;kind<40&&roomCount(z)<6;kind++){
+        for(int kind=0;kind<64&&roomCount(z)<6;kind++){
             int sprite=InteriorRoomArchetypeV166.detail(
                 theme,room,variation,kind+5);
             int side=kind%4;
@@ -348,7 +380,8 @@ public final class NeighborhoodLayoutV163 {
             if(w>rw-54f||h>rh-54f)continue;
             // Perimeter-first scan, then genuinely usable interior slots.
             for(int j=0;j<121&&roomCount(z)<6;j++){
-                int gx=j%11,gy=j/11;
+                int station=Math.floorMod(j*37+kind*53+signature,121);
+                int gx=station%11,gy=station/11;
                 float x=z.x1+27f+gx*(rw-54f-w)/10f;
                 float y=z.y1+27f+gy*(rh-54f-h)/10f;
                 float cx=x+w*.5f,cy=y+h*.5f;
@@ -579,7 +612,7 @@ public final class NeighborhoodLayoutV163 {
                 if(putFurnishing(sprite,x,y,w,h,orientation,supplies))placed++;
             }
             completeNarrowRoom(z,index,supplies);
-            ensureSideProfile(z);
+            ensureSideProfile(z,index,supplies);
         }
         furnishCommons(supplies);
         walls=pack(barriers);
