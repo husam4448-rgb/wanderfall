@@ -222,6 +222,36 @@ public final class V166InteriorArtTest {
             for(boolean s:seen)if(s)variety++;
             check(variety>=10,"Theme lacks substantial object variety: "+theme);
         }
+        // Every persistent cache now follows its ROOM use (including
+        // the two extra saved inventory IDs) under room-label swaps.
+        // Pure source checks are not visual approval, but they prevent
+        // obvious refrigerators in hotel linen rooms or shelves in kitchens.
+        for(int theme=0;theme<8;theme++)
+            for(int variation=0;variation<4;variation++)
+                for(int id=0;id<14;id++){
+                    int sprite=InteriorCacheFixtureV166.cacheSprite(
+                        theme,variation,id);
+                    check(InteriorFurnitureCatalogV166.valid(sprite),
+                        "Storage sprite out of authored atlas");
+                    check((sprite-64)/12==theme,
+                        "Storage cabinet belongs to another building");
+                    int room=id<12?id/2:id==12?0:5;
+                    int actual=InteriorRoomArchetypeV166.actualRoom(
+                        room,variation);
+                    int kind=InteriorFurnitureCatalogV166.kind(sprite);
+                    if(theme==7&&actual==2)
+                        check(kind!=8&&kind!=0&&kind!=30&&kind!=2,
+                            "Residence kitchen rendered a bookcase/bedroom cabinet");
+                    if(theme==4&&(actual==0||actual==1))
+                        check(kind!=4&&kind!=10&&kind!=28,
+                            "Classroom storage uses laboratory sink or office files");
+                    if(theme==6&&actual<5)
+                        check(kind!=6&&kind!=8&&kind!=14,
+                            "Warehouse stock area uses office/bookcase/cooler");
+                    if(theme==3&&(actual==2||actual==5))
+                        check(kind!=5&&kind!=14,
+                            "Hotel linen or laundry uses dining/cold grocery fixture");
+                }
         check(InteriorRoomArchetypeV166.legacy(0,0,true,0)==30,
             "Clinic bed replaced");
         check(InteriorRoomArchetypeV166.legacy(1,0,true,1)==31,
