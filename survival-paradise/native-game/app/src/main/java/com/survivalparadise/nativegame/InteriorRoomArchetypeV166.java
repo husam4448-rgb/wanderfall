@@ -111,7 +111,7 @@ public final class InteriorRoomArchetypeV166 {
         { // apartments: lounge, bedroom, kitchen, utility, bedroom, storage
             {0,5,6,9,8,7,0,6},
             {1,2,7,9,6,8,1,2},
-            {3,4,10,5,9,6,3,4},
+            {3,4,10,5,9,7,3,4},
             {4,10,6,7,6,4,10,7},
             {1,2,7,9,6,8,1,2},
             {2,6,11,7,10,4,2,6}
