@@ -215,8 +215,14 @@ public final class V166InteriorArtTest {
                     check(kind!=3&&kind!=4&&kind!=31,
                         "Residence bedroom has cooker, dining set or kitchen island");
                 if(theme==7&&room==2)
-                    check(kind!=0&&kind!=6&&kind!=30,
-                        "Residence kitchen has sofa, office desk or dresser");
+                    check(kind!=0&&kind!=6&&kind!=30&&kind!=8,
+                        "Residence kitchen has sofa, office desk, dresser or bookcase");
+                if(theme==0&&room==2)
+                    check(kind!=8&&kind!=0&&kind!=6,
+                        "Apartment kitchen contains a bookcase, bed or workstation");
+                if(theme==6&&room<2)
+                    check(kind!=28&&kind!=22&&kind!=6,
+                        "Warehouse receiving or storage cluttered with office copier, press or desk");
             }
             int variety=0;
             for(boolean s:seen)if(s)variety++;
