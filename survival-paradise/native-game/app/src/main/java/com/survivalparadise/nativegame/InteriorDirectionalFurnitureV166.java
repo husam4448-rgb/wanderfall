@@ -27,6 +27,9 @@ public final class InteriorDirectionalFurnitureV166 {
     private static final int CELL=128,COLS=16,ROWS=12;
     private static final String FILE="sp_v166_directional_furniture.webp.b64";
     private static Bitmap atlas;
+    // Source-authored 4-finish metal lockers, 128px front and profile per finish.
+    private static Bitmap lockerAtlas;
+    private static final String LOCKER_FILE="sp_v166_authored_lockers.png";
     private static boolean attempted;
     private static final Rect SOURCE=new Rect();
     private static final RectF DEST=new RectF();
@@ -62,6 +65,17 @@ public final class InteriorDirectionalFurnitureV166 {
         }catch(Exception err){
             android.util.Log.e("SP-V166",
                 "Missing source-authored directional furniture. Not silently using geometric placeholders.",err);
+        }
+        try(InputStream lockerStream=assets.open(LOCKER_FILE)){
+            Bitmap painted=BitmapFactory.decodeStream(lockerStream);
+            if(painted==null||painted.getWidth()!=512||painted.getHeight()!=256){
+                if(painted!=null)painted.recycle();
+                throw new IllegalArgumentException("Invalid locker art atlas");
+            }
+            lockerAtlas=painted;
+            android.util.Log.i("SP-V166","Source-authored locker front/profile atlas loaded");
+        }catch(Exception err){
+            android.util.Log.e("SP-V166","Missing authored metal locker artwork",err);
         }
     }
     public static boolean ready(){
@@ -125,6 +139,21 @@ public final class InteriorDirectionalFurnitureV166 {
         // Each side-facing pixel is authored independently rather than a
         // rotated south-facing square. 270 is a horizontal mirror ONLY.
         int side=(facing==90||facing==270)?1:0;
+        if(InteriorFurnitureCatalogV166.kind(sprite)==11&&
+           lockerAtlas!=null&&!lockerAtlas.isRecycled()){
+            int theme=(sprite-FIRST)/InteriorFurnitureCatalogV166.PER_THEME;
+            int tile=(theme%4)*2+side;
+            int sx=(tile%4)*CELL,sy=(tile/4)*CELL;
+            SOURCE.set(sx,sy,sx+CELL,sy+CELL);
+            DEST.set(x,y,x+width,y+height);
+            if(facing==270){
+                canvas.save();
+                canvas.scale(-1f,1f,x+width*.5f,y+height*.5f);
+                canvas.drawBitmap(lockerAtlas,SOURCE,DEST,FILTER);
+                canvas.restore();
+            }else canvas.drawBitmap(lockerAtlas,SOURCE,DEST,FILTER);
+            return true;
+        }
         if(side==0){
             int painted=paintedFront(sprite);
             if(painted>=0&&InteriorPropArtV166.drawAt(canvas,painted,
@@ -147,6 +176,9 @@ public final class InteriorDirectionalFurnitureV166 {
     }
     public static synchronized void release(){
         if(atlas!=null&&!atlas.isRecycled())atlas.recycle();
-        atlas=null;attempted=false;
+        atlas=null;
+        if(lockerAtlas!=null&&!lockerAtlas.isRecycled())lockerAtlas.recycle();
+        lockerAtlas=null;
+        attempted=false;
     }
 }
