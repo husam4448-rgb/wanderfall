@@ -48,8 +48,8 @@ public final class InteriorCacheFixtureV166 {
             }
             // Searchable storage is actual full-sized room furniture, not
             // a miniature loot crate. Visuals and collision use one bbox.
-            float w=(face==0?88f:76f)*S;
-            float h=(face==0?76f:88f)*S;
+            float w=(face==0?76f:66f)*S;
+            float h=(face==0?66f:76f)*S;
             result[index]=new float[]{sprite,x-w*.5f,y-h*.5f,w,h,face};
         }
         return result;
