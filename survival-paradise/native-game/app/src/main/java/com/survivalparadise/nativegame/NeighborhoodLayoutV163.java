@@ -369,7 +369,7 @@ public final class NeighborhoodLayoutV163 {
         for(int kind=0;kind<64&&roomCount(z)<6;kind++){
             int sprite=InteriorRoomArchetypeV166.detail(
                 theme,room,variation,
-                kind*5+(kind/4)*3+room*3+5);
+                kind+5);
             int side=kind%4;
             int angle=side==0?90:side==1?270:side==2?0:180;
             float w=Math.max(64f,
