@@ -417,31 +417,47 @@ public final class NeighborhoodLayoutV163 {
                                   ArrayList<float[]> supplies,
                                   int target,int start){
         if(roomCount(z)>=6)return;
-        ArrayList<float[]> original=new ArrayList<>();
-        for(int i=start;i<objects.size();i++)original.add(objects.get(i).clone());
-        int originalScore=compositionScore(original);
-        while(objects.size()>start)objects.remove(objects.size()-1);
-        // The paired alternate arrangement is deliberately different:
-        // usable independent perimeter equipment first; then try a
-        // compatible authored multi-object scene wherever there is space.
-        finishRoom(z,room,supplies,target);
-        completeNarrowRoom(z,room,supplies);
-        composeRoomScene(room,supplies);
-        ensureSideProfile(z,room,supplies);
-        ArrayList<float[]> alternate=new ArrayList<>();
-        for(int i=start;i<objects.size();i++)alternate.add(objects.get(i).clone());
-        int alternateScore=compositionScore(alternate);
-        // Only replace the original when the result is observably fuller.
-        // One signature grouping depicts multiple physical furnishings
-        // but keeps one contiguous collision rectangle; do not sacrifice
-        // it merely to make an arbitrary test counter go up.
-        if(alternateScore<=originalScore){
+        ArrayList<float[]> best=new ArrayList<>();
+        for(int i=start;i<objects.size();i++)best.add(objects.get(i).clone());
+        int bestScore=compositionScore(best);
+        // Try two coherent alternatives only for rooms which the regular
+        // wall-first furnishing pass cannot finish. Keep all placements real
+        // and solid; the identical navigation gate protects every saved
+        // cache, exit and room doorway in each candidate.
+        for(int strategy=0;strategy<2&&best.size()<6;strategy++){
             while(objects.size()>start)objects.remove(objects.size()-1);
-            objects.addAll(original);
+            if(strategy==0){
+                // Independent perimeter stations first, scene if space allows.
+                finishRoom(z,room,supplies,target);
+                completeNarrowRoom(z,room,supplies);
+                composeRoomScene(room,supplies);
+                ensureSideProfile(z,room,supplies);
+            }else{
+                // Reserve a genuine lateral-wall profile before the authored
+                // focal scene, then complete perimeter and remaining niches.
+                ensureSideProfile(z,room,supplies);
+                composeRoomScene(room,supplies);
+                finishRoom(z,room,supplies,target);
+                completeNarrowRoom(z,room,supplies);
+                ensureSideProfile(z,room,supplies);
+            }
+            ArrayList<float[]> candidate=new ArrayList<>();
+            for(int i=start;i<objects.size();i++)
+                candidate.add(objects.get(i).clone());
+            int score=compositionScore(candidate);
+            if(score>bestScore){
+                bestScore=score;
+                best=candidate;
+            }
         }
+        while(objects.size()>start)objects.remove(objects.size()-1);
+        objects.addAll(best);
     }
     private static int compositionScore(ArrayList<float[]> furniture){
-        int score=furniture.size()*2;
+        // Independent, readable furniture takes priority over a single
+        // multi-object focal scene, but keep the visual-composition bonus
+        // when two candidates have comparable real furnishing counts.
+        int score=furniture.size()*10;
         boolean front=false,side=false;
         java.util.HashSet<Integer> models=new java.util.HashSet<>();
         for(float[] f:furniture){
