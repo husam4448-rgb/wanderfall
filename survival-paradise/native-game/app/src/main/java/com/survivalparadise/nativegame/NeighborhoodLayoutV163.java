@@ -331,7 +331,10 @@ public final class NeighborhoodLayoutV163 {
             float left=q[1]-z.x1;
             float right=z.x2-(q[1]+q[3]);
             float gap=Math.min(left,right);
-            if(gap>100f||gap>=closestGap)continue;
+            // The authored side profile may serve a practical side-wall
+            // workstation slightly inset from its wall (e.g. desk + chair).
+            // Never turn an unrelated central focal group sideways.
+            if(gap>135f||gap>=closestGap)continue;
             closest=q;
             closestGap=gap;
             face=left<=right?90:270;
