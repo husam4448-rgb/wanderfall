@@ -25,7 +25,7 @@ public final class InteriorCacheFixtureV166 {
      */
     private static final int[][][] ROOM_STORAGE_SLOTS={
         { // apartments: living, bedroom, kitchen, utility, bedroom, store
-            {6,7,2},{2,7,6},{10,4,3},{2,7,6},{2,7,6},{6,2,7}
+            {6,7,6},{2,7,6},{6,10,7},{6,7,6},{2,7,6},{6,7,2}
         },
         { // office: reception, workspace, meeting, records, server, supplies
             {8,3,7},{3,6,8},{3,6,8},{3,8,6},{5,8,3},{8,3,6}
@@ -34,19 +34,19 @@ public final class InteriorCacheFixtureV166 {
             {2,6,0},{2,6,0},{3,6,5},{4,2,6},{6,5,11},{11,6,5}
         },
         { // hotel: reception, guest suite, service, lounge, suite, laundry
-            {9,6,3},{6,1,9},{9,7,6},{7,1,6},{6,1,9},{9,6,7}
+            {9,7,3},{6,1,9},{9,7,6},{7,1,7},{6,1,9},{9,6,7}
         },
         { // school: classrooms, library, staff, laboratory, stores
-            {2,8,2},{2,8,2},{2,8,2},{9,2,8},{7,8,11},{8,2,9}
+            {8,2,8},{8,2,8},{2,8,2},{9,2,8},{8,2,8},{8,2,9}
         },
         { // factory: machinery, assembly, control, tools, parts, maintenance
-            {2,3,9},{3,7,9},{6,9,3},{2,9,3},{3,7,9},{9,2,10}
+            {2,3,9},{3,7,9},{6,9,3},{2,9,3},{3,7,9},{9,2,8}
         },
         { // warehouse: receiving, racks, dispatch, packing, spares, security
             {0,1,5},{0,1,5},{0,1,6},{0,5,1},{0,4,5},{7,5,6}
         },
         { // residences: living, bedroom, kitchen, dining, study, pantry
-            {8,6,5},{5,6,5},{11,7,3},{6,5,4},{8,6,5},{11,7,3}
+            {8,6,8},{5,6,5},{11,8,7},{8,6,7},{8,6,8},{11,8,7}
         }
     };
     static int cacheSprite(int theme,int variation,int index){
