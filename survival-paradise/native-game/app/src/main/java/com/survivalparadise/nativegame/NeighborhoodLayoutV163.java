@@ -158,6 +158,24 @@ public final class NeighborhoodLayoutV163 {
                q[1]+q[3]<=z.x2&&q[2]+q[4]<=z.y2)count++;
         return count;
     }
+    /** Do not reuse an identical furniture model inside one physical room.
+     * Shared halls are handled separately; all normal placement, collision and
+     * navigation requirements remain unchanged.
+     */
+    private boolean repeatsRoomFurniture(int sprite,float x,float y,float w,float h){
+        for(Zone room:zones){
+            if(x<room.x1||y<room.y1||
+               x+w>room.x2||y+h>room.y2)continue;
+            for(float[] object:objects){
+                if((int)object[0]!=16+sprite)continue;
+                if(object[1]>=room.x1&&object[2]>=room.y1&&
+                   object[1]+object[3]<=room.x2&&
+                   object[2]+object[4]<=room.y2)return true;
+            }
+            break;
+        }
+        return false;
+    }
     private boolean putFurnishing(int sprite,float x,float y,float w,float h,
                                   int orientation,ArrayList<float[]> supplies){
         if(sprite<0||x<35f||y<48f||x+w>1565f||y+h>1059f)return false;
@@ -186,6 +204,7 @@ public final class NeighborhoodLayoutV163 {
             if(x<obj[1]+obj[3]+10f&&x+w>obj[1]-10f&&
                y<obj[2]+obj[4]+10f&&y+h>obj[2]-10f)return false;
         }
+        if(repeatsRoomFurniture(sprite,x,y,w,h))return false;
         // Existing V161 collision and deterministic room signatures continue
         // to derive from these same rectangles.
         // The atlas has front and true side profiles; 180 uses the
