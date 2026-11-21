@@ -30,6 +30,11 @@ public final class InteriorDirectionalFurnitureV166 {
     // Source-authored 4-finish metal lockers, 128px front and profile per finish.
     private static Bitmap lockerAtlas;
     private static final String LOCKER_FILE="sp_v166_authored_lockers.png";
+    // Cohesive hand-painted storage objects: wardrobe, files, dresser, locker.
+    // Four matching front and side pairs; artwork is decoded once at startup.
+    private static final String STORAGE_FILE="sp_v166_cohesive_storage.webp";
+    private static final int STORAGE_CELL=128;
+    private static Bitmap storageAtlas;
     private static boolean attempted;
     private static final Rect SOURCE=new Rect();
     private static final RectF DEST=new RectF();
@@ -76,6 +81,20 @@ public final class InteriorDirectionalFurnitureV166 {
             android.util.Log.i("SP-V166","Source-authored locker front/profile atlas loaded");
         }catch(Exception err){
             android.util.Log.e("SP-V166","Missing authored metal locker artwork",err);
+        }
+        try(InputStream stream=assets.open(STORAGE_FILE)){
+            BitmapFactory.Options options=new BitmapFactory.Options();
+            options.inScaled=false;
+            Bitmap result=BitmapFactory.decodeStream(stream,null,options);
+            if(result==null||result.getWidth()!=STORAGE_CELL*4||
+               result.getHeight()!=STORAGE_CELL*2){
+                if(result!=null)result.recycle();
+                throw new IllegalArgumentException("Invalid cohesive storage art dimensions");
+            }
+            storageAtlas=result;
+            android.util.Log.i("SP-V166","Four painted storage identities / eight views ready");
+        }catch(Exception err){
+            android.util.Log.e("SP-V166","Missing cohesive storage artwork; using legacy images",err);
         }
     }
     public static boolean ready(){
@@ -133,12 +152,37 @@ public final class InteriorDirectionalFurnitureV166 {
             default:return -1;
         }
     }
+    private static int storageSlot(int kind){
+        switch(kind){
+            case 2:return 0;   // wardrobe
+            case 10:return 1;  // filing cabinet
+            case 30:return 2;  // dresser
+            case 11:return 3;  // metal locker
+            default:return -1;
+        }
+    }
     public static boolean drawAt(Canvas canvas,int sprite,
                                  float x,float y,float width,float height,int facing){
         if(!valid(sprite)||width<=0||height<=0||!ready())return false;
         // Each side-facing pixel is authored independently rather than a
         // rotated south-facing square. 270 is a horizontal mirror ONLY.
         int side=(facing==90||facing==270)?1:0;
+        int storage=storageSlot(InteriorFurnitureCatalogV166.kind(sprite));
+        if(storage>=0&&storageAtlas!=null&&!storageAtlas.isRecycled()){
+            int index=storage+side*4;
+            int sx=(index%4)*STORAGE_CELL,sy=(index/4)*STORAGE_CELL;
+            SOURCE.set(sx,sy,sx+STORAGE_CELL,sy+STORAGE_CELL);
+            DEST.set(x,y,x+width,y+height);
+            if(facing==270){
+                canvas.save();
+                canvas.scale(-1f,1f,x+width*.5f,y+height*.5f);
+                canvas.drawBitmap(storageAtlas,SOURCE,DEST,FILTER);
+                canvas.restore();
+            }else{
+                canvas.drawBitmap(storageAtlas,SOURCE,DEST,FILTER);
+            }
+            return true;
+        }
         if(InteriorFurnitureCatalogV166.kind(sprite)==11&&
            lockerAtlas!=null&&!lockerAtlas.isRecycled()){
             int theme=(sprite-FIRST)/InteriorFurnitureCatalogV166.PER_THEME;
@@ -179,6 +223,8 @@ public final class InteriorDirectionalFurnitureV166 {
         atlas=null;
         if(lockerAtlas!=null&&!lockerAtlas.isRecycled())lockerAtlas.recycle();
         lockerAtlas=null;
+        if(storageAtlas!=null&&!storageAtlas.isRecycled())storageAtlas.recycle();
+        storageAtlas=null;
         attempted=false;
     }
 }
