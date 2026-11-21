@@ -602,7 +602,7 @@ public final class NeighborhoodLayoutV163 {
         float[][] navCenters=new float[supplies.size()][2];
         for(int i=0;i<supplies.size();i++)
             navCenters[i]=new float[]{supplies.get(i)[0]*S,supplies.get(i)[1]*S};
-        navigationCaches=InteriorCacheFixtureV166.build(theme,navRooms,navCenters);
+        navigationCaches=InteriorCacheFixtureV166.build(theme,variation,navRooms,navCenters);
         // V166 functional furnishing: authored sprites selected by ROOM use,
         // wall-oriented placements, collision-tested against doors and loot.
         // No more six slots of arbitrary building-wide objects.
@@ -690,7 +690,7 @@ public final class NeighborhoodLayoutV163 {
         labels=pack(texts);
         doors=pack(portals);
         caches=pack(supplies);
-        cacheFixtures=InteriorCacheFixtureV166.build(theme,rooms,caches);
+        cacheFixtures=InteriorCacheFixtureV166.build(theme,variation,rooms,caches);
         encounters=pack(spawn);
     }
     /** Three north / three south rooms surrounding a broad horizontal spine. */
