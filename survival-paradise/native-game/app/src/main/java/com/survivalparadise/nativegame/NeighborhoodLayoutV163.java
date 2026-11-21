@@ -275,7 +275,7 @@ public final class NeighborhoodLayoutV163 {
             float scale=pass==0?.94f:pass==1?.87f:pass==2?.79f:.72f;
             int sprite=InteriorRoomArchetypeV166.detail(
                 theme,room,variation,
-                candidate*5+(candidate/4)*3+room*3);
+                candidate+room*3);
             float w=InteriorRoomArchetypeV166.width(sprite)*scale;
             float h=InteriorRoomArchetypeV166.height(sprite)*scale;
             int orientation=side==0?90:side==1?270:side==2?0:180;
