@@ -126,8 +126,67 @@ class Art:
    for j in range(3):self.L(((b[0]+7,b[1]+14+j*6),(b[2]-11-j*5,b[1]+14+j*6)),
                                 (178,207,175),1)
   else:self.L(((b[0]+9,b[3]-10),(b[2]-9,b[1]+13)),tint(SCREEN,39),2)
+ def industrial_profile(self):
+  """V166.7 orthogonal original profiles: no rotations or tilted hulls."""
+  k=self.k;m=self.m
+  self.R((44,18,95,111),DARK,4)
+  self.R((47,21,92,106),tint(m,-29),3)
+  self.R((47,21,91,31),tint(m,36),2)
+  self.L(((49,22),(88,22)),tint(m,68),2)
+  self.R((89,31,94,106),tint(m,-53),1,False)
+  self.L(((49,104),(89,104)),tint(m,-58),3)
+  for x,y in ((49,36),(89,36),(49,99),(89,99)):self.screw(x,y)
+  if k==9:
+   self.R((53,36,85,70),DARK,4)
+   self.R((57,40,81,66),(50,105,108),2,False)
+   self.L(((59,45),(77,45)),tint(SCREEN,85),2)
+   for i in range(4):
+    self.L(((60,50+i*4),(78-i%2*5,50+i*4)),(127,191,173),1)
+   self.R((54,74,86,98),tint(m,-9),2)
+   for i in range(3):
+    for j in range(4):
+     self.R((57+j*7,77+i*6,61+j*7,80+i*6),
+            (197,150,82) if (i+j)%3==0 else (104,146,138),1)
+   self.L(((54,94),(86,94)),tint(m,-51),1)
+  else:
+   self.R((52,37,86,97),tint(m,-40),2)
+   for j in range(5):
+    y=40+j*11
+    self.R((55,y,83,y+9),tint(m,-9+j%2*5),1)
+    self.L(((59,y+3),(73,y+3)),tint(m,-58),1)
+    self.L(((59,y+5),(73,y+5)),tint(m,-58),1)
+    self.O((77,y+3,80,y+6),(111,178,121))
+   self.L(((52,37),(52,96)),tint(m,45),2)
+  self.grit((50,25,87,102),"metal",14)
+
+ def industrial_server_front(self):
+  """Independently illustrated front of the same five-bay server rack."""
+  m=self.m
+  self.R((13,22,114,110),DARK,5)
+  self.R((16,25,110,105),tint(m,-27),3)
+  self.R((17,25,108,35),tint(m,36),2)
+  self.L(((20,27),(104,27)),tint(m,66),2)
+  self.R((104,35,111,104),tint(m,-49),1,False)
+  for j in range(5):
+   y=40+j*12
+   self.R((24,y,101,y+10),tint(m,-15+j%2*6),2)
+   self.L(((29,y+3),(77,y+3)),tint(m,-53),1)
+   self.L(((29,y+6),(77,y+6)),tint(m,-53),1)
+   self.R((82,y+2,92,y+8),DARK,1)
+   self.O((84,y+3,88,y+7),(111,178,121))
+   self.screw(20,y+4);self.screw(106,y+4)
+  self.grit((26,34,100,106),"metal",12)
+
  def draw(self):
   k=self.k;s=self.side
+  # V166.7: only two industrial equipment families, all themed copies.
+  if k==29:
+   if s:self.industrial_profile()
+   else:self.industrial_server_front()
+   return self.a
+  if s and k==9:
+   self.industrial_profile()
+   return self.a
   # Full-sized, believable equipment. Detail belongs to furnishings,
   # never distributed as standalone floor specks/mini paper.
   if k==0:

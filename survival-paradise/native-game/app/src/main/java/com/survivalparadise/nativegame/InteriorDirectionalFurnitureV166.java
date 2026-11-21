@@ -146,7 +146,7 @@ public final class InteriorDirectionalFurnitureV166 {
             case 26:return -1;          // handtruck side/front pair only
             case 27:return slot%2==0?12:45; // pallet stacks and loading racks
             case 28:return -1;          // copier: no unrelated cabinet art
-            case 29:return 10;          // security electronics rack
+            case 29:return -1;          // matching original server rack front/side
             case 30:return -1; // actual dresser rather than a wardrobe
             case 31:return -1;          // actual kitchen/utility island, not a sink
             default:return -1;
