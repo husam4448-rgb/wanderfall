@@ -95,7 +95,7 @@ public final class InteriorDirectionalFurnitureV166 {
                 return slot%3==0?41:slot%2==0?23:9; // domestic/library books
             case 9:return 10;           // security/industrial console
             case 10:return 3;           // original filing drawers
-            case 11:return theme==5?13:1; // steel stock cabinet / locker
+            case 11:return -1; // original metal locker, not a wooden wardrobe
             case 12:return slot%2==0?26:5; // actual store checkout
             case 13:return slot%2==0?38:4; // stocked retail shelving
             case 14:return 27;          // cold-glass grocery cabinet
@@ -114,8 +114,8 @@ public final class InteriorDirectionalFurnitureV166 {
             case 27:return slot%2==0?12:45; // pallet stacks and loading racks
             case 28:return -1;          // copier: no unrelated cabinet art
             case 29:return 10;          // security electronics rack
-            case 30:return slot%2==0?35:1; // dresser or wardrobe
-            case 31:return 15;          // kitchen/utility island
+            case 30:return -1; // actual dresser rather than a wardrobe
+            case 31:return -1;          // actual kitchen/utility island, not a sink
             default:return -1;
         }
     }
