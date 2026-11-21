@@ -158,19 +158,33 @@ public final class NeighborhoodLayoutV163 {
                q[1]+q[3]<=z.x2&&q[2]+q[4]<=z.y2)count++;
         return count;
     }
-    /** Do not reuse an identical furniture model inside one physical room.
-     * Shared halls are handled separately; all normal placement, collision and
-     * navigation requirements remain unchanged.
+    /** The painted sofa is reused by directional sofa IDs and authored
+     * lounge scenes. A different sprite ID must not count as unique art.
+     */
+    private static boolean containsPaintedSofa(int sprite){
+        if(InteriorFurnitureCatalogV166.valid(sprite))
+            return InteriorFurnitureCatalogV166.kind(sprite)==1;
+        if(InteriorScenePlanV166.valid(sprite)){
+            for(int[] part:InteriorScenePlanV166.parts(sprite))
+                if(part[0]==33)return true;
+        }
+        return false;
+    }
+    /** Reject exact duplicates and repeated sofa artwork within one room.
+     * Existing placement, navigation, doors and save identities stay intact.
      */
     private boolean repeatsRoomFurniture(int sprite,float x,float y,float w,float h){
+        boolean sofa=containsPaintedSofa(sprite);
         for(Zone room:zones){
             if(x<room.x1||y<room.y1||
                x+w>room.x2||y+h>room.y2)continue;
             for(float[] object:objects){
-                if((int)object[0]!=16+sprite)continue;
-                if(object[1]>=room.x1&&object[2]>=room.y1&&
-                   object[1]+object[3]<=room.x2&&
-                   object[2]+object[4]<=room.y2)return true;
+                if(object[1]<room.x1||object[2]<room.y1||
+                   object[1]+object[3]>room.x2||
+                   object[2]+object[4]>room.y2)continue;
+                int existing=(int)object[0]-16;
+                if(existing==sprite || (sofa&&containsPaintedSofa(existing)))
+                    return true;
             }
             break;
         }
