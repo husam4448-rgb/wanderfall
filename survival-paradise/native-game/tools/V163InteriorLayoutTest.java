@@ -211,6 +211,21 @@ public final class V163InteriorLayoutTest {
                             "Dining table or supermarket cooler in hotel service room");
                     if(theme==4&&(actual==0||actual==1))
                         check(kind!=5,"Generic dining table in classroom");
+                    if(theme==0&&(actual==2||actual==3))
+                        check(kind!=2,"Wardrobe placed in kitchen or utility room");
+                    if(theme==3&&actual==5)
+                        check(kind!=15,"Guest luggage placed in hotel laundry");
+                    if(theme==7&&actual==2)
+                        check(kind!=0&&kind!=1&&kind!=2&&kind!=6,
+                            "Bedroom or workstation prop in residence kitchen");
+                    if(theme==7&&actual==3)
+                        check(kind!=0&&kind!=1&&kind!=2&&kind!=14,
+                            "Sofa, wardrobe or refrigerator in residence dining room");
+                    if(theme==7&&actual==4)
+                        check(kind!=2,"Wardrobe placed in residence study");
+                    if(theme==7&&actual==5)
+                        check(kind!=0&&kind!=1&&kind!=2&&kind!=6,
+                            "Bed, wardrobe or office desk in residence pantry");
                 }
 
         check(topology.size()==NeighborhoodLayoutV163.PLAN_COUNT,
