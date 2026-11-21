@@ -165,7 +165,7 @@ public final class InteriorRoomArchetypeV166 {
             {0,1,2,5,3,4,0,1},
             {1,2,3,6,5,0,4,1},
             {3,0,1,2,4,6,5,0},
-            {0,4,1,5,2,3,0,1},
+            {0,4,1,5,2,3,10,1},
             {7,8,6,5,0,1,7,8}
         },
         { // residences: living, bedroom, kitchen, dining, work, pantry
