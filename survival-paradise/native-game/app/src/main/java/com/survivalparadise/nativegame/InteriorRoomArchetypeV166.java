@@ -111,8 +111,8 @@ public final class InteriorRoomArchetypeV166 {
         { // apartments: lounge, bedroom, kitchen, utility, bedroom, storage
             {0,5,6,9,8,7,0,6},
             {1,2,7,9,6,8,1,2},
-            {3,4,10,5,6,9,3,4},
-            {4,10,6,2,7,11,4,6},
+            {3,4,10,5,9,2,3,4},
+            {4,10,6,2,7,9,4,6},
             {1,2,7,9,6,8,1,2},
             {2,6,11,7,10,4,2,6}
         },
@@ -161,20 +161,20 @@ public final class InteriorRoomArchetypeV166 {
         { // warehouse: receiving, shelves, dispatch, packing, spares, security
             // Shipping and mechanical storage use industrial equipment, not
             // domestic bookcases or supermarket refrigerators.
-            {0,1,2,3,4,5,6,10},
-            {0,1,2,5,3,4,6,10},
-            {1,2,3,6,5,0,4,7},
-            {3,0,1,2,4,6,5,10},
-            {0,4,1,5,2,10,3,6},
-            {7,8,6,5,0,2,4,3}
+            {0,1,2,3,4,5,0,1},
+            {0,1,2,5,3,4,0,1},
+            {1,2,3,6,5,0,4,1},
+            {3,0,1,2,4,6,5,0},
+            {0,4,1,5,2,3,0,1},
+            {7,8,6,5,0,1,7,8}
         },
         { // residences: living, bedroom, kitchen, dining, work, pantry
             {0,4,8,10,9,6,0,4},
             {1,5,6,10,8,9,1,5},
-            {2,3,7,4,8,11,2,3},
+            {2,3,7,4,10,11,2,3},
             {4,10,0,7,8,11,4,10},
             {9,10,8,4,6,5,9,10},
-            {8,11,7,3,6,5,8,11}
+            {11,7,3,6,5,4,11,7}
         }
     };
     /**
